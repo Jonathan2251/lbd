@@ -165,7 +165,7 @@ gh-pages:
 	rm -rf build _sources _static _images
 	git checkout master $(GH_PAGES_SOURCES)
 	git reset HEAD
-  bash gen-ch12-output.sh
+  bash ./gen-ch12-output.sh
 	make html latexpdf epub
 	tar -zcvf lbdex.tar.gz lbdex
 	mv -fv build/html/* ./
