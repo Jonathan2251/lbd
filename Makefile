@@ -164,7 +164,7 @@ gh-pages:
 	rm -rf build _sources _static _images
 	git checkout master $(GH_PAGES_SOURCES)
 	git reset HEAD
-	make genref
+	make genexample
 	make html latexpdf epub
 	tar -zcvf lbdex.tar.gz lbdex
 	mv -fv build/html/* ./
