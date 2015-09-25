@@ -1,0 +1,632 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>About &mdash; Tutorial: Creating an LLVM Backend for the Cpu0 Architecture</title>
+    
+    <link rel="stylesheet" href="_static/haiku.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '3.7.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="author" title="About these documents" href="#" />
+    <link rel="top" title="Tutorial: Creating an LLVM Backend for the Cpu0 Architecture" href="index.html" />
+    <link rel="next" title="Cpu0 architecture and LLVM structure" href="llvmstructure.html" />
+    <link rel="prev" title="Table of Contents" href="index.html" /> 
+  </head>
+  <body>
+      <div class="header"><h1 class="heading"><a href="index.html">
+          <span>Tutorial: Creating an LLVM Backend for the Cpu0 Architecture</span></a></h1>
+        <h2 class="heading"><span>About</span></h2>
+      </div>
+      <div class="topnav">
+      
+        <p>
+        «&#160;&#160;<a href="index.html">Table of Contents</a>
+        &#160;&#160;::&#160;&#160;
+        <a class="uplink" href="index.html">Contents</a>
+        &#160;&#160;::&#160;&#160;
+        <a href="llvmstructure.html">Cpu0 architecture and LLVM structure</a>&#160;&#160;»
+        </p>
+
+      </div>
+      <div class="content">
+        
+        
+  <div class="section" id="about">
+<span id="sec-about"></span><h1>About<a class="headerlink" href="#about" title="Permalink to this headline">¶</a></h1>
+<div class="contents local topic" id="contents">
+<ul class="simple">
+<li><a class="reference internal" href="#authors" id="id6">Authors</a></li>
+<li><a class="reference internal" href="#contributors" id="id7">Contributors</a></li>
+<li><a class="reference internal" href="#acknowledgments" id="id8">Acknowledgments</a></li>
+<li><a class="reference internal" href="#support" id="id9">Support</a></li>
+<li><a class="reference internal" href="#revision-history" id="id10">Revision history</a></li>
+<li><a class="reference internal" href="#licensing" id="id11">Licensing</a></li>
+<li><a class="reference internal" href="#motivation" id="id12">Motivation</a></li>
+<li><a class="reference internal" href="#preface" id="id13">Preface</a></li>
+<li><a class="reference internal" href="#prerequisites" id="id14">Prerequisites</a></li>
+<li><a class="reference internal" href="#outline-of-chapters" id="id15">Outline of Chapters</a></li>
+</ul>
+</div>
+<div class="section" id="authors">
+<h2><a class="toc-backref" href="#id6">Authors</a><a class="headerlink" href="#authors" title="Permalink to this headline">¶</a></h2>
+<div class="figure align-right">
+<img alt="_images/Author_ChineseName.png" src="_images/Author_ChineseName.png" />
+</div>
+<dl class="docutils">
+<dt>Chen Chung-Shu</dt>
+<dd><p class="first"><a class="reference external" href="mailto:gamma_chen&#37;&#52;&#48;yahoo&#46;com&#46;tw">gamma_chen<span>&#64;</span>yahoo<span>&#46;</span>com<span>&#46;</span>tw</a></p>
+<p class="last"><a class="reference external" href="http://jonathan2251.github.io/web/index.html">http://jonathan2251.github.io/web/index.html</a></p>
+</dd>
+<dt>Anoushe Jamshidi</dt>
+<dd><a class="reference external" href="mailto:ajamshidi&#37;&#52;&#48;gmail&#46;com">ajamshidi<span>&#64;</span>gmail<span>&#46;</span>com</a></dd>
+</dl>
+</div>
+<div class="section" id="contributors">
+<h2><a class="toc-backref" href="#id7">Contributors</a><a class="headerlink" href="#contributors" title="Permalink to this headline">¶</a></h2>
+<p>Anoushe Jamshidi, <a class="reference external" href="mailto:ajamshidi&#37;&#52;&#48;gmail&#46;com">ajamshidi<span>&#64;</span>gmail<span>&#46;</span>com</a>,  Chapters 1, 2, 3 English re-writing and Sphinx tool and format setting.</p>
+<p>Chen Wei-Ren, <a class="reference external" href="mailto:chenwj&#37;&#52;&#48;iis&#46;sinica&#46;edu&#46;tw">chenwj<span>&#64;</span>iis<span>&#46;</span>sinica<span>&#46;</span>edu<span>&#46;</span>tw</a>, assisted with text and code formatting.</p>
+<p>Chen Zhong-Cheng, who is the author of original cpu0 verilog code.</p>
+</div>
+<div class="section" id="acknowledgments">
+<h2><a class="toc-backref" href="#id8">Acknowledgments</a><a class="headerlink" href="#acknowledgments" title="Permalink to this headline">¶</a></h2>
+<p>We would like to thank Sean Silva, <a class="reference external" href="mailto:chisophugis&#37;&#52;&#48;gmail&#46;com">chisophugis<span>&#64;</span>gmail<span>&#46;</span>com</a>, for his help,
+encouragement, and assistance with the Sphinx document generator.
+Without his help, this book would not have been finished and published online.
+We also thank those corrections from readers who make the book more accurate.</p>
+</div>
+<div class="section" id="support">
+<h2><a class="toc-backref" href="#id9">Support</a><a class="headerlink" href="#support" title="Permalink to this headline">¶</a></h2>
+<p>We get the kind help from LLVM development mail list, <a class="reference external" href="mailto:llvmdev&#37;&#52;&#48;cs&#46;uiuc&#46;edu">llvmdev<span>&#64;</span>cs<span>&#46;</span>uiuc<span>&#46;</span>edu</a>,
+even we don&#8217;t know them. So, our experience is you are not
+alone and can get help from the development list members in working with the LLVM
+project. Some of them are:</p>
+<p>Akira Hatanaka &lt;<a class="reference external" href="mailto:ahatanak&#37;&#52;&#48;gmail&#46;com">ahatanak<span>&#64;</span>gmail<span>&#46;</span>com</a>&gt; in va_arg question answer.</p>
+<p>Ulrich Weigand &lt;<a class="reference external" href="mailto:Ulrich&#46;Weigand&#37;&#52;&#48;de&#46;ibm&#46;com">Ulrich<span>&#46;</span>Weigand<span>&#64;</span>de<span>&#46;</span>ibm<span>&#46;</span>com</a>&gt; in AsmParser question answer.</p>
+</div>
+<div class="section" id="revision-history">
+<h2><a class="toc-backref" href="#id10">Revision history</a><a class="headerlink" href="#revision-history" title="Permalink to this headline">¶</a></h2>
+<p>Version 3.7.1, Not release yet</p>
+<dl class="docutils">
+<dt>Version 3.7.0, Released September 24, 2015</dt>
+<dd>Porting to lld 3.7.
+Change tricore_llvm.pdf web link.
+Add C++ atomic to regression test.</dd>
+<dt>Version 3.6.4, Released July 15, 2015</dt>
+<dd>Add C++ atomic support.</dd>
+<dt>Version 3.6.3, Released May 25, 2015</dt>
+<dd>Correct typing.</dd>
+<dt>Version 3.6.2, Released May 3, 2015</dt>
+<dd>Write Appendix B.
+Split chapter Appendix B from Appendix A.
+Move some test from lbt to lbd.
+Remove warning in build Cpu0 code.</dd>
+<dt>Version 3.6.1, Released March 22, 2015</dt>
+<dd>Add Cpu0 instructions ROLV and RORV.</dd>
+<dt>Version 3.6.0, Released March 9, 2015</dt>
+<dd>Update Appendix A for llvm 3.6.
+Replace cpp with ll for appearing in document.
+Move chapter lld, optimization, library to
+<a class="reference external" href="https://github.com/Jonathan2251/lbt.git">https://github.com/Jonathan2251/lbt.git</a>.</dd>
+<dt>Version 3.5.9, Released February 2, 2015</dt>
+<dd>Fix bug of 64 bits shift.
+Fix global address error by replacing addiu with ori.
+Change encode of &#8220;cmp $sw, $3, $2&#8221; from 0x10320000 to 0x10f32000.</dd>
+<dt>Version 3.5.8, Released December 27, 2014</dt>
+<dd>Correct typing.
+Fix typing error for update lbdex/src/modify/src/ of install.rst.
+Add libsoftfloat/compiler-rt and libc/avr-libc-1.8.1.
+Add LLVM-VPO in chapter Optimization.</dd>
+<dt>Version 3.5.7, Released December 1, 2014</dt>
+<dd>Fix over 16-bits frame prologue/epilogue error from 3.5.3.
+Call convention ABI S32 is enabled by option.
+Change from ADD to ADDu in copyPhysReg() of Cpu0SEInstrInfo.cpp.
+Add asm directive .weak back which exists in 3.5.3.</dd>
+<dt>Version 3.5.6, Released November 18, 2014</dt>
+<dd>Remove SWI and IRET instructions.
+Add Cpu0SetChapter.h for ex-build-test.sh.
+Correct typing.
+Fix thread variable error come from version 3.5.3 in static mode.
+Add sub-section &#8220;Cpu0 backend machine ID and relocation records&#8221; of Chapter 2.</dd>
+<dt>Version 3.5.5, Released November 11, 2014</dt>
+<dd>Rename SPR to C0R.
+Add ISR simulation.</dd>
+<dt>Version 3.5.4, Released November 6, 2014</dt>
+<dd>Adjust chapter 9 sections.
+Fix .cprestore bug.
+Re-organize sections.
+Add sub-section &#8220;Why not using ADD instead of SUB?&#8221; in chapter 2.
+Add overflow control option to use ADD and SUB instructions.</dd>
+<dt>Version 3.5.3, Released October 29, 2014</dt>
+<dd>Merge Cpu0 example code into one copy and it can be config by Cpu0Config.h.</dd>
+<dt>Version 3.5.2, Released October 3, 2014</dt>
+<dd>Move R_CPU0_32 from type of non-relocation record to type ofrelocation record.
+Correct logic error for setgt of BrcondPatsSlt of Cpu0InstrInfo.td.</dd>
+<dt>Version 3.5.1, Released October 1, 2014</dt>
+<dd>Add move alias instruction for addu $reg, $zero.
+Add cpu cycles count in verilog.
+Fix ISD::SIGN_EXTEND_INREG error in other types beside i1.
+Support DAG op br_jt and DAG node JumpTable.</dd>
+<dt>Version 3.5.0, Released September 05, 2014</dt>
+<dd>Issue NOP in delay slot.</dd>
+<dt>Version 3.4.8, Released August 29, 2014</dt>
+<dd>Add reason that set endian swap in memory module.
+Add presentation files.</dd>
+<dt>Version 3.4.7, Released August 22, 2014</dt>
+<dd>Fix wrapper_pic for cmov.ll.
+Add shift operations 64 bits support.
+Fix wrapper_pic for ch8_5.cpp.
+Add section thread of chapter 14.
+Add section Motivation of chapter about.
+Support little endian for cpu0 verilog.
+Move ch8_5.cpp test from Chapter Run backend to Chapter lld since it need lld
+linker.
+Support both big endian and little endian in cpu0 Verilog, elf2hex and lld.
+Make branch release_34_7.</dd>
+<dt>Version 3.4.6, Released July 26, 2014</dt>
+<dd>Add Chapter 15, optimization.
+Correct typing.
+Add Chapter 14, C++.
+Fix bug of generating cpu032II instruction in dynamic_linker.cpp.</dd>
+<dt>Version 3.4.5, Released June 30, 2014</dt>
+<dd>Correct typing.</dd>
+<dt>Version 3.4.4, Released June 24, 2014</dt>
+<dd>Correct typing.
+Add the reason of use SSA form.
+Move sections LLVM Code Generation Sequence, DAG and Instruction Selection
+from Chapter 3 to Chapter 2.</dd>
+<dt>Version 3.4.3, Released March 31, 2014</dt>
+<dd>Fix Disassembly bug for GPROut register class.
+Adjust Chapters.
+Remove hand copy Table of tblgen in AsmParser.</dd>
+<dt>Version 3.4.2, Released February 9, 2014</dt>
+<dd>Add ch12_2.cpp for slt instruction explanation and fix bug in Cpu0InstrInfo.cpp.
+Correct typing.
+Move Cpu0 Status Register from Number 20 to Number 10.
+Fix llc -mcpu option problem.
+Update example code build shell script.
+Add condition move instruction.
+Fix bug of branch pattern match in Cpu0InstrInfo.td.</dd>
+<dt>Version 3.4.1, Released January 18, 2014</dt>
+<dd>Add ch9_4.cpp to lld test.
+Fix the wrong reference in lbd/lib/Target/Cpu0 code.
+inlineasm.
+First instruction jmp X, where X changed from _Z5startv to start.
+Correct typing.</dd>
+<dt>Version 3.4.0, Released January 9, 2014</dt>
+<dd>Porting to llvm 3.4 release.</dd>
+<dt>Version 3.3.14, Released January 4, 2014</dt>
+<dd>lld support on iMac.
+Correct typing.</dd>
+<dt>Version 3.3.13, Released December 27, 2013</dt>
+<dd>Update section Install sphinx on install.rst.
+Add Fig/llvmstructure/cpu0_arch.odp.</dd>
+<dt>Version 3.3.12, Released December 25, 2013</dt>
+<dd>Correct typing error.
+Adjust Example Code.
+Add section Data operands DAGs of backendstructure.rst.
+Fix bug in instructions lb and lh of cpu0.v.
+Fix bug in itoa.cpp.
+Add ch7_2_2.cpp for othertype.rst.
+Add AsmParser reference web.</dd>
+<dt>Version 3.3.11, Released December 11, 2013</dt>
+<dd>Add Figure Code generation and execution flow in about.rst.
+Update backendstructure.rst.
+Correct otherinst.rst.
+Decoration.
+Correct typing error.</dd>
+<dt>Version 3.3.10, Released December 5, 2013</dt>
+<dd>Correct typing error.
+Dynamic linker in lld.rst.
+Correct errors came from old version of example code.
+lld.rst.</dd>
+<dt>Version 3.3.9, Released November 22, 2013</dt>
+<dd>Add LLD introduction and Cpu0 static linker document in lld.rst.
+Fix the plt bug in elf2hex.h for dynamic linker.</dd>
+<dt>Version 3.3.8, Released November 19, 2013</dt>
+<dd>Fix the reference file missing for make gh-page.</dd>
+<dt>Version 3.3.7, Released November 17, 2013</dt>
+<dd>lld.rst documentation.
+Add cpu032I and cpu032II in <cite>llc -mcpu</cite>.
+Reference only for Chapter12_2.</dd>
+<dt>Version 3.3.6, Released November 8, 2013</dt>
+<dd>Move example code from github to dropbox since the name is not work for
+download example code.</dd>
+<dt>Version 3.3.5, Released November 7, 2013</dt>
+<dd>Split the elf2hex code from modiified llvm-objdump.cpp to elf2hex.h.
+Fix bug for tail call setting in LowerCall().
+Fix bug for LowerCPLOAD().
+Update elf.rst.
+Fix typing error.
+Add dynamic linker support.
+Merge cpu0 Chapter12_1 and Chapter12_2 code into one, and identify each of
+them by -mcpu=cpu0I and -mcpu=cpu0II.
+cpu0II.
+Update lld.rst for static linker.
+Change the name of example code from LLVMBackendTutorialExampleCode to lbdex.</dd>
+<dt>Version 3.3.4, Released September 21, 2013</dt>
+<dd>Fix Chapter Global variables error for LUi instructions and the material move
+to Chapter Other data type.
+Update regression test items.</dd>
+<dt>Version 3.3.3, Released September 20, 2013</dt>
+<dd>Add Chapter othertype</dd>
+<dt>Version 3.3.2, Released September 17, 2013</dt>
+<dd>Update example code.
+Fix bug sext_inreg.
+Fix llvm-objdump.cpp bug to support global variable of .data.
+Update install.rst to run on llvm 3.3.</dd>
+<dt>Version 3.3.1, Released September 14, 2013</dt>
+<dd>Add load bool type in chapter 6.
+Fix chapter 4 error.
+Add interrupt function in cpu0i.v.
+Fix bug in alloc() support of Chapter 8 by adding code of spill $fp register.
+Add JSUB texternalsym for memcpy function call of llvm auto reference.
+Rename cpu0i.v to cpu0s.v.
+Modify itoa.cpp.
+Cpu0 of lld.</dd>
+<dt>Version 3.3.0, Released July 13, 2013</dt>
+<dd>Add Table: C operator ! corresponding IR of .bc and IR of DAG and Table: C
+operator ! corresponding IR of Type-legalized selection DAG and Cpu0
+instructions. Add explanation in section Full support %.
+Add Table: Chapter 4 operators.
+Add Table: Chapter 3 .bc IR instructions.
+Rewrite Chapter 5 Global variables.
+Rewrite section Handle $gp register in PIC addressing mode.
+Add Large Frame Stack Pointer support.
+Add dynamic link section in elf.rst.
+Re-oganize Chapter 3.
+Re-oganize Chapter 8.
+Re-oganize Chapter 10.
+Re-oganize Chapter 11.
+Re-oganize Chapter 12.
+Fix bug that ret not $lr register.
+Porting to LLVM 3.3.</dd>
+<dt>Version 3.2.15, Released June 12, 2013</dt>
+<dd>Porting to llvm 3.3.
+Rewrite section Support arithmetic instructions of chapter Adding arithmetic
+and local pointer support with the table adding.
+Add two sentences in Preface.
+Add <cite>llc -debug-pass</cite> in section LLVM Code Generation Sequence.
+Remove section Adjust cpu0 instructions.
+Remove section Use cpu0 official LDI instead of ADDiu of Appendix-C.</dd>
+<dt>Version 3.2.14, Released May 24, 2013</dt>
+<dd>Fix example code disappeared error.</dd>
+<dt>Version 3.2.13, Released May 23, 2013</dt>
+<dd>Add sub-section &#8220;Setup llvm-lit on iMac&#8221; of Appendix A.
+Replace some code-block with literalinclude in *.rst.
+Add Fig 9 of chapter Backend structure.
+Add section Dynamic stack allocation support of chapter Function call.
+Fix bug of Cpu0DelUselessJMP.cpp.
+Fix cpu0 instruction table errors.</dd>
+<dt>Version 3.2.12, Released March 9, 2013</dt>
+<dd>Add section &#8220;Type of char and short int&#8221; of chapter
+&#8220;Global variables, structs and arrays, other type&#8221;.</dd>
+<dt>Version 3.2.11, Released March 8, 2013</dt>
+<dd>Fix bug in generate elf of chapter &#8220;Backend Optimization&#8221;.</dd>
+<dt>Version 3.2.10, Released February 23, 2013</dt>
+<dd>Add chapter &#8220;Backend Optimization&#8221;.</dd>
+<dt>Version 3.2.9, Released February 20, 2013</dt>
+<dd>Correct the &#8220;Variable number of arguments&#8221; such as sum_i(int amount, ...)
+errors.</dd>
+<dt>Version 3.2.8, Released February 20, 2013</dt>
+<dd>Add section llvm-objdump -t -r.</dd>
+<dt>Version 3.2.7, Released February 14, 2013</dt>
+<dd>Add chapter Run backend.
+Add Icarus Verilog tool installation in Appendix A.</dd>
+<dt>Version 3.2.6, Released February 4, 2013</dt>
+<dd>Update CMP instruction implementation.
+Add llvm-objdump section.</dd>
+<dt>Version 3.2.5, Released January 27, 2013</dt>
+<dd>Add &#8220;LLVMBackendTutorialExampleCode/llvm3.1&#8221;.
+Add  section &#8220;Structure type support&#8221;.
+Change reference from Figure title to Figure number.</dd>
+<dt>Version 3.2.4, Released January 17, 2013</dt>
+<dd>Update for LLVM 3.2.
+Change title (book name) from &#8220;Write An LLVM Backend Tutorial For Cpu0&#8221; to
+&#8220;Tutorial: Creating an LLVM Backend for the Cpu0 Architecture&#8221;.</dd>
+<dt>Version 3.2.3, Released January 12, 2013</dt>
+<dd>Add chapter &#8220;Porting to LLVM 3.2&#8221;.</dd>
+<dt>Version 3.2.2, Released January 10, 2013</dt>
+<dd>Add section &#8220;Full support %&#8221; and section &#8220;Verify DIV for operator %&#8221;.</dd>
+<dt>Version 3.2.1, Released January 7, 2013</dt>
+<dd>Add Footnote for references.
+Reorganize chapters (Move bottom part of chapter &#8220;Global variable&#8221; to
+chapter &#8220;Other instruction&#8221;; Move section &#8220;Translate into obj file&#8221; to
+new chapter &#8220;Generate obj file&#8221;.
+Fix errors in Fig/otherinst/2.png and Fig/otherinst/3.png.</dd>
+<dt>Version 3.2.0, Released January 1, 2013</dt>
+<dd>Add chapter Function.
+Move Chapter &#8220;Installing LLVM and the Cpu0 example code&#8221; from beginning to
+Appendix A.
+Add subsection &#8220;Install other tools on Linux&#8221;.
+Add chapter ELF.</dd>
+<dt>Version 3.1.2, Released December 15, 2012</dt>
+<dd>Fix section 6.1 error by add “def : Pat&lt;(brcond RC:$cond, bb:$dst),
+(JNEOp (CMPOp RC:$cond, ZEROReg), bb:$dst)&gt;;” in last pattern.
+Modify section 5.5
+Fix bug Cpu0InstrInfo.cpp SW to ST.
+Correct LW to LD; LB to LDB; SB to STB.</dd>
+<dt>Version 3.1.1, Released November 28, 2012</dt>
+<dd>Add Revision history.
+Correct ldi instruction error (replace ldi instruction with addiu from the
+beginning and in the all example code).
+Move ldi instruction change from section of &#8220;Adjust cpu0 instruction and
+support type of local variable pointer&#8221; to Section ”CPU0
+processor architecture”.
+Correct some English &amp; typing errors.</dd>
+</dl>
+</div>
+<div class="section" id="licensing">
+<h2><a class="toc-backref" href="#id11">Licensing</a><a class="headerlink" href="#licensing" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference external" href="http://llvm.org/docs/DeveloperPolicy.html#license">http://llvm.org/docs/DeveloperPolicy.html#license</a></p>
+</div>
+<div class="section" id="motivation">
+<h2><a class="toc-backref" href="#id12">Motivation</a><a class="headerlink" href="#motivation" title="Permalink to this headline">¶</a></h2>
+<p>We all learned computer knowledge from school through the concept of book.
+The concept is an effective way to know the big view.
+But once getting into develop a real complicate system, we often feel the
+concept from school or book is not much or not details enough.
+Compiler is a very complicate system, so traditionally
+the students in school learn this knowledge in concept and do the home work via
+yacc/lex tools to translate part of C or other high level language into
+immediate representation (IR) to feel the parsing knowledge and tools
+application.</p>
+<p>On the other hand, the compiler engineers who graduated from school often facing
+the real market complicate CPUs and spec. Since for market reason, there
+are a serial of CPUs and ABI (Application Binary Interface) to deal with.
+Moreover, for speed reason, the real compiler backend program is too complicate
+to be a learning material in compiler backend design even the market CPU include
+only one CPU and ABI.</p>
+<p>This book develop the compiler backend along with a simple school designed CPU
+which called Cpu0. It include the implementation of a compiler backend, linker,
+llvm-objdump, elf2hex as well as Verilog language source code of Cpu0
+instruction set.
+We provide readers full source code to compile C/C++ program and see
+how the programs run on the Cpu0 machine you created by verilog language.
+Through this school learning purpose CPU, you have the chance to know the whole
+thing in compiler backend, linker, system tools and CPU design. Usually it is
+not easy from working in real CPU and compiler since the real job is too
+complicate to be finished by one single person alone.</p>
+<p>As my observation, LLVM advocated by some software engineers against gcc with
+two reasons.
+One is political with BSD license <a class="footnote-reference" href="#llvm-license" id="id1">[1]</a> <a class="footnote-reference" href="#richard" id="id2">[2]</a>.
+The other is technical with following the 3 tiers of compiler software
+structure with C++ object oriented technology.
+GCC started with C and adopted C++ after near 20 years later <a class="footnote-reference" href="#wiki-gcc" id="id3">[3]</a>.
+Maybe gcc adopted C++ just because llvm do that.
+I learned C++ object oriented programming during studied in school.
+After &#8220;Design Pattern&#8221;, &#8220;C++/STL&#8221; and &#8220;object oriented design&#8221; books study,
+I understand the C is easy to trace while C++ is easy to creating reusable
+software units known as object.
+And if a programmer has well knowledge in &#8220;Design Pattern&#8221;, then the C++ can
+supply more readablity and rewritabily (I have ever read a book of
+&#8220;system language&#8221; about software quality, it lists these items: read ablity,
+rewrite ablity, reuse ablity and performance to define the software quality).
+Object oriented programming exists for solving the big and complex
+software development.
+Since compiler and OS are complex software definitly, why gcc and linux not
+use c++ <a class="footnote-reference" href="#wiki-cpp" id="id4">[4]</a>.
+This is the reason I try to create a backend under llvm rather than gcc.</p>
+</div>
+<div class="section" id="preface">
+<h2><a class="toc-backref" href="#id13">Preface</a><a class="headerlink" href="#preface" title="Permalink to this headline">¶</a></h2>
+<p>The LLVM Compiler Infrastructure provides a versatile structure for creating new
+backends. Creating a new backend should not be too difficult once you
+familiarize yourself with this structure. However, the available backend
+documentation is fairly high level and leaves out many details. This tutorial
+will provide step-by-step instructions to write a new backend for a new target
+architecture from scratch.</p>
+<p>We will use the Cpu0 architecture as an example to build our new backend. Cpu0
+is a simple RISC architecture that has been designed for educational purposes.
+More information about Cpu0, including its instruction set, is available
+<a class="reference external" href="http://ccckmit.wikidot.com/ocs:cpu0">here</a>. The Cpu0 example code referenced in
+this book can be found <a class="reference external" href="http://jonathan2251.github.io/lbd/lbdex.tar.gz">here</a>.
+As you progress from one chapter to the next, you will incrementally build the
+backend&#8217;s functionality.</p>
+<p>Since Cpu0 is a simple RISC CPU for educational purpose, it makes this llvm
+backend code simple too and easy to learning. In addition, Cpu0 supply the
+Verilog source code that you can run on your PC or FPGA platform when you go to
+chapter Run backend.</p>
+<p>This tutorial started using the LLVM 3.1 Mips backend as a reference and sync
+to llvm 3.5 Mips at version 3.5.3. As our experience, reference and sync with
+a released backend code will help upgrading your backend features and fix bugs.
+You can take advantage by compare difference from version to version, and hire
+llvm development team effort. Since
+Cpu0 is an educational architecture, it is missing some key pieces of
+documentation needed when developing a compiler, such as an Application Binary
+Interface (ABI). We implement our backend borrowing information from the Mips
+ABI as a guide. You may want to familiarize yourself with the relevant parts of
+the Mips ABI as you progress through this tutorial.</p>
+<p>This document can be a tutorial of toolchain development for a new CPU
+architecture. Many programmer gradutated from school with the knowledges of
+Compiler as well as Computer architecture but is not an professional engineer
+in compiler or CPU design. This document is a material to introduce these
+engineers how to programming a toolchain as well as designing a CPU based on
+the LLVM infrastructure without pay any money to buy software or hardware.
+Computer is the only device needed.</p>
+<p>Finally, this book is not a compiler book in concept. It is for those readers
+who are interested in extend compiler toolchain to support a new CPU based on
+llvm structure. To program
+on Linux OS, you program or write a driver without knowing every details in OS.
+For example in a specific USB device driver program on Linux plateform, he
+or she will try to understand the USB spec., linux USB subsystem and common
+device driver working model and API.
+In the same way, to extend functions from a large software like this llvm
+umbrella project, you should find a way to reach the goal and ignore the
+details not on your way.
+Try to understand in details of every line of source code is not realistic if
+your project is an extended function from a well defined software structure.
+It only makes sense in rewriting the whole software structure.
+Of course, if there are more llvm backend book or documents, then
+readers have the chance to know more about llvm by reading book or documents.</p>
+</div>
+<div class="section" id="prerequisites">
+<h2><a class="toc-backref" href="#id14">Prerequisites</a><a class="headerlink" href="#prerequisites" title="Permalink to this headline">¶</a></h2>
+<p>Readers should be comfortable with the C++ language and Object-Oriented
+Programming concepts. LLVM has been developed and implemented in C++, and it is
+written in a modular way so that various classes can be adapted and reused as
+often as possible.</p>
+<p>Already having conceptual knowledge of how compilers work is a plus, and if you
+already have implemented compilers in the past you will likely have no trouble
+following this tutorial. As this tutorial will build up an LLVM backend
+step-by-step, we will introduce important concepts as necessary.</p>
+<p>This tutorial references the following materials.  We highly recommend you read
+these documents to get a deeper understanding of what the tutorial is teaching:</p>
+<p><a class="reference external" href="http://www.aosabook.org/en/llvm.html">The Architecture of Open Source Applications Chapter on LLVM</a></p>
+<p><a class="reference external" href="http://llvm.org/docs/CodeGenerator.html">LLVM&#8217;s Target-Independent Code Generation documentation</a></p>
+<p><a class="reference external" href="http://llvm.org/docs/TableGenFundamentals.html">LLVM&#8217;s TableGen Fundamentals documentation</a></p>
+<p><a class="reference external" href="http://llvm.org/docs/WritingAnLLVMBackend.html">LLVM&#8217;s Writing an LLVM Compiler Backend documentation</a></p>
+<p><a class="reference external" href="https://opus4.kobv.de/opus4-fau/files/1108/tricore_llvm.pdf">Description of the Tricore LLVM Backend</a></p>
+<p><a class="reference external" href="http://www.linux-mips.org/pub/linux/mips/doc/ABI/mipsabi.pdf">Mips ABI document</a></p>
+</div>
+<div class="section" id="outline-of-chapters">
+<h2><a class="toc-backref" href="#id15">Outline of Chapters</a><a class="headerlink" href="#outline-of-chapters" title="Permalink to this headline">¶</a></h2>
+<div class="figure align-center" id="about-f1">
+<a class="reference internal image-reference" href="_images/1.png"><img alt="_images/1.png" src="_images/1.png" style="width: 899.0px; height: 261.0px;" /></a>
+<p class="caption">Figure 2: Code generation and execution flow</p>
+</div>
+<p>The upper half of <a class="pageref" href="#about-f1">Figure  2</a> is the work flow and software package
+of a computer program be generated and executed. IR stands for Intermediate
+Representation.
+The lower half is this book&#8217;s work flow and software package of the toolchain
+extended implementation based on llvm. Except clang, the other blocks need to
+be extended for a new backend development. This book implement the yellow boxes
+part. The Cpu0 llvm backend can be find on
+<a class="reference external" href="http://jonathan2251.github.io/lbt/index.html">http://jonathan2251.github.io/lbt/index.html</a>.
+The hex is the ascii file format
+using &#8216;0&#8217; to &#8216;9&#8217; and &#8216;a&#8217; to &#8216;f&#8217; for hexadecimal value representation since
+the verilog language machine uses it as input file.</p>
+<p>This book include 10,000 lines of source code for</p>
+<ol class="arabic simple">
+<li>Step-by-step, create an llvm backend for the Cpu0. Chapter 2 to
+11.</li>
+<li>ELF linker for Cpu0 which extended from lld. Chapter 13.</li>
+<li>elf2hex extended from llvm-objump. Chapter 13.</li>
+<li>Cpu0 verilog source code. Chapter 12.</li>
+</ol>
+<p>With these code, reader can generate Cpu0 machine code through Cpu0 llvm
+backend compiler, linker and elf2hex, then see how it runs on your computer.
+The pdf and epub are also available in the web.
+This is a tutorial for llvm backend developer but not for an expert.
+It also can be a material for those who have compiler and computer
+architecture book&#8217;s knowledges and like to know how to extend the llvm
+toolchain to support a new CPU.</p>
+<p><a class="reference internal" href="llvmstructure.html#sec-llvmstructure"><em>Cpu0 architecture and LLVM structure</em></a>:</p>
+<p>This chapter introduces the Cpu0 architecture, a high-level view of LLVM, and how Cpu0
+will be targeted in in an LLVM backend. This chapter will run you through the initial
+steps of building the backend, including initial work on the target description (td),
+setting up cmake and LLVMBuild files, and target registration. Around 750 lines of source
+code are added by the end of this chapter.</p>
+<p><a class="reference internal" href="backendstructure.html#sec-backendstructure"><em>Backend structure</em></a>:</p>
+<p>This chapter highlights the structure of an LLVM backend using by UML graphs, and we
+continue to build the Cpu0 backend. Around 3100 lines of source code are added,
+most of which are common from one LLVM backends to another, regardless of the
+target architecture. By the end of this chapter, the Cpu0 LLVM backend will support
+less than ten instructions to generate some initial assembly output.</p>
+<p><a class="reference internal" href="otherinst.html#sec-addingmoresupport"><em>Arithmetic and logic instructions</em></a>:</p>
+<p>Over ten C operators and their corresponding LLVM IR instructions are introduced in this
+chapter. Around 345 lines of source code, mostly in .td Target Description files, are
+added. With these 345 lines, the backend can now translate the <strong>+, -, *, /, &amp;, |, ^,
+&lt;&lt;, &gt;&gt;, !</strong> and <strong>%</strong> C operators into the appropriate Cpu0 assembly code. Use of the
+<tt class="docutils literal"><span class="pre">llc</span></tt> debug option and of <strong>Graphviz</strong> as a debug tool are introduced in this chapter.</p>
+<p><a class="reference internal" href="genobj.html#sec-genobjfiles"><em>Generating object files</em></a>:</p>
+<p>Object file generation support for the Cpu0 backend is added in this chapter, as the
+Target Registration structure is introduced. With 700 lines of additional code,
+the Cpu0 backend can now generate big and little endian ELF object files.</p>
+<p><a class="reference internal" href="globalvar.html#sec-globalvars"><em>Global variables</em></a>:</p>
+<p>Global variable, struct and array support, char and short int, are added in this chapter.
+About 300 lines of source code are added to do this. The Cpu0 supports PIC and static
+addressing mode, both addressing mode explained as their functionality is implemented.</p>
+<p><a class="reference internal" href="othertype.html#sec-othertypesupport"><em>Other data type</em></a>:</p>
+<p>In addition to type int, other data type like pointer, char, bool, long long,
+structure and array are added in this chapter.</p>
+<p><a class="reference internal" href="ctrlflow.html#sec-controlflow"><em>Control flow statements</em></a>:</p>
+<p>Support for the <strong>if, else, while, for, goto, switch, case</strong> flow control
+statements as well as both a simple optimization software pass and hardware
+instructions for control statement optimization discussed in this chapter.
+Around 500 lines of source code added.</p>
+<p><a class="reference internal" href="funccall.html#sec-funccall"><em>Function call</em></a>:</p>
+<p>This chapter details the implementation of function calls in the Cpu0 backend. The stack
+frame, handling incoming &amp; outgoing arguments, and their corresponding standard LLVM
+functions are introduced. Over 700 lines of source code are added.</p>
+<p><a class="reference internal" href="elf.html#sec-elf"><em>ELF Support</em></a>:</p>
+<p>This chapter details Cpu0 support for the well-known ELF object file format. The ELF
+format and binutils tools are not a part of LLVM, but are introduced.  This chapter
+details how to use the ELF tools to verify and analyze the object files created by the
+Cpu0 backend. The <tt class="docutils literal"><span class="pre">llvm-objdump</span> <span class="pre">-d</span></tt> support for Cpu0 which translate elf into hex
+file format is added in the last section.</p>
+<p><a class="reference internal" href="asm.html#sec-asm"><em>Assembler</em></a>:</p>
+<p>Support the translation of hand code assembly language into obj under the llvm
+insfrastructure.</p>
+<p><a class="reference internal" href="c++.html#sec-c"><em>C++ support</em></a>:</p>
+<p>Support C++ language features. It&#8217;s under working.</p>
+<p><a class="reference internal" href="verilog.html#sec-runbackend"><em>Verify backend on verilog simulator</em></a>:</p>
+<p>Create the CPU0 virtual machine with Verilog language of Icarus tool first.
+With this tool, feed the hex file which generated by llvm-objdump to the CPU0
+virtual machine and see the CPU0 running result on PC computer.</p>
+<p><a class="reference internal" href="install.html#sec-appendix-installing"><em>Appendix A: Getting Started: Installing LLVM and the Cpu0 example code</em></a>:</p>
+<p>Details how to set up the LLVM source code, development tools, and environment
+setting for Mac OS X and Linux platforms.</p>
+<table class="docutils footnote" frame="void" id="llvm-license" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id1">[1]</a></td><td><a class="reference external" href="http://llvm.org/docs/DeveloperPolicy.html#license">http://llvm.org/docs/DeveloperPolicy.html#license</a></td></tr>
+</tbody>
+</table>
+<table class="docutils footnote" frame="void" id="richard" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id2">[2]</a></td><td><a class="reference external" href="http://www.phoronix.com/scan.php?page=news_item&amp;px=MTU4MjA">http://www.phoronix.com/scan.php?page=news_item&amp;px=MTU4MjA</a></td></tr>
+</tbody>
+</table>
+<table class="docutils footnote" frame="void" id="wiki-gcc" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id3">[3]</a></td><td><a class="reference external" href="http://en.wikipedia.org/wiki/GNU_Compiler_Collection">http://en.wikipedia.org/wiki/GNU_Compiler_Collection</a></td></tr>
+</tbody>
+</table>
+<table class="docutils footnote" frame="void" id="wiki-cpp" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id4">[4]</a></td><td><a class="reference external" href="http://en.wikipedia.org/wiki/C%2B%2B">http://en.wikipedia.org/wiki/C%2B%2B</a></td></tr>
+</tbody>
+</table>
+</div>
+</div>
+
+
+      </div>
+      <div class="bottomnav">
+      
+        <p>
+        «&#160;&#160;<a href="index.html">Table of Contents</a>
+        &#160;&#160;::&#160;&#160;
+        <a class="uplink" href="index.html">Contents</a>
+        &#160;&#160;::&#160;&#160;
+        <a href="llvmstructure.html">Cpu0 architecture and LLVM structure</a>&#160;&#160;»
+        </p>
+
+      </div>
+
+    <div class="footer">
+        &copy; Copyright 2013, LLVM.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
+    </div>
+  </body>
+</html>
