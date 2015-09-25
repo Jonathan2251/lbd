@@ -38,7 +38,7 @@ as the following will generate these exception handler IRs both on iMac and Linu
   JonathantekiiMac:input Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
   Debug/bin/llvm-dis ch12_eh.bc -o -
   
-.. literalinclude:: ../output/ch12_eh.ll
+.. literalinclude:: ../lbdex/output/ch12_eh.ll
 
 .. code-block:: bash
 
@@ -74,7 +74,7 @@ exception C++ keywords. It can compile ch12_eh.bc as follows,
   JonathantekiiMac:input Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
   Debug/bin/llc -march=cpu0 -relocation-model=static -filetype=asm ch12_eh.bc -o -
   
-.. literalinclude:: ../output/ch12_eh.cpu0.s
+.. literalinclude:: ../lbdex/output/ch12_eh.cpu0.s
 
 
 Thread variable
@@ -265,7 +265,7 @@ programming.
   JonathantekiiMac:input Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
   Debug/bin/llvm-dis ch12_thread_var.bc -o -
   
-.. literalinclude:: ../output/ch12_thread_var.ll
+.. literalinclude:: ../lbdex/output/ch12_thread_var.ll
 
 .. code-block:: bash
 
@@ -273,7 +273,7 @@ programming.
   Debug/bin/llc -march=cpu0 -relocation-model=pic -filetype=asm ch12_thread_var.bc 
   -o -
   
-.. literalinclude:: ../output/ch12_thread_var.cpu0.pic.s
+.. literalinclude:: ../lbdex/output/ch12_thread_var.cpu0.pic.s
 
 
 In pic mode, the __thread variable access by call function __tls_get_addr with 
@@ -289,7 +289,7 @@ In static mode, the thread variable is accessed by machine instructions as follo
   Debug/bin/llc -march=cpu0 -relocation-model=static -filetype=asm 
   ch12_thread_var.bc -o -
   
-.. literalinclude:: ../output/ch12_thread_var.cpu0.static.s
+.. literalinclude:: ../lbdex/output/ch12_thread_var.cpu0.static.s
 
 
 While Mips uses rdhwr instruction to access thread varaible as below, 

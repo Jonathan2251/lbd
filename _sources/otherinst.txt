@@ -317,7 +317,7 @@ Now, let's build Chapter4_1/ and run with input file ch4_math.ll as follows,
 .. code-block:: bash
 
   118-165-78-12:input Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
-  Debug/bin/llc -march=cpu0 -relocation-model=pic -filetype=asm ch4_math.bc -o -
+  Debug/bin/llc -march=cpu0 -relocation-model=pic -filetype=asm ch4_math.ll -o -
 
 .. rubric:: lbdex/output/ch4_math.s
 .. literalinclude:: ../lbdex/output/ch4_math.s
