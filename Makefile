@@ -15,7 +15,7 @@ ALLSPHINXOPTS   = -d $(BUILDDIR)/doctrees $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) sou
 I18NSPHINXOPTS  = $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) source
 
 # Custom
-GH_PAGES_SOURCES = source lbdex Fig gen-ch12-output.sh Makefile
+GH_PAGES_SOURCES = source lbdex Fig gen-ch12-output.sh rungenexample.sh clean.sh Makefile
 
 .PHONY: help clean html dirhtml singlehtml pickle json htmlhelp qthelp devhelp epub latex latexpdf text man changes linkcheck doctest gettext gh-pages
 
