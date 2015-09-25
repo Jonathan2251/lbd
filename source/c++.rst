@@ -58,10 +58,10 @@ Chapter12_1 supports the llvm IRs of corresponding **try** and **catch**
 exception C++ keywords. It can compile ch12_eh.bc as follows,
 
 .. rubric:: lbdex/chapters/Chapter12_1/Cpu0ISelLowering.cpp
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.cpp
     :start-after: //@Cpu0TargetLowering {
     :end-before: #if CH >= CH3_2
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.cpp
     :start-after: #if CH >= CH12_1 //2
     :end-before: #endif
 	
@@ -97,10 +97,10 @@ variable created by OS or language library which support multi-threads
 programming.
 
 .. rubric:: lbdex/chapters/Chapter12_1/AsmParser/Cpu0AsmParser.cpp
-.. literalinclude:: ../../../lib/Target/Cpu0/AsmParser/Cpu0AsmParser.cpp
+.. literalinclude:: ../lbdex/Cpu0/AsmParser/Cpu0AsmParser.cpp
     :start-after: //@getVariantKind {
     :end-before: //@getVariantKind body {
-.. literalinclude:: ../../../lib/Target/Cpu0/AsmParser/Cpu0AsmParser.cpp
+.. literalinclude:: ../lbdex/Cpu0/AsmParser/Cpu0AsmParser.cpp
     :start-after: #if CH >= CH12_1
     :end-before: #endif
 	
@@ -110,10 +110,10 @@ programming.
   }
 
 .. rubric:: lbdex/chapters/Chapter12_1/InstPrinter/Cpu0InstPrinter.cpp
-.. literalinclude:: ../../../lib/Target/Cpu0/InstPrinter/Cpu0InstPrinter.cpp
+.. literalinclude:: ../lbdex/Cpu0/InstPrinter/Cpu0InstPrinter.cpp
     :start-after: //@printExpr {
     :end-before: //@printExpr body {
-.. literalinclude:: ../../../lib/Target/Cpu0/InstPrinter/Cpu0InstPrinter.cpp
+.. literalinclude:: ../lbdex/Cpu0/InstPrinter/Cpu0InstPrinter.cpp
     :start-after: #if CH >= CH12_1
     :end-before: #endif
 	
@@ -123,10 +123,10 @@ programming.
   }
 
 .. rubric:: lbdex/chapters/Chapter12_1/MCTargetDesc/Cpu0AsmBackend.cpp
-.. literalinclude:: ../../../lib/Target/Cpu0/MCTargetDesc/Cpu0AsmBackend.cpp
+.. literalinclude:: ../lbdex/Cpu0/MCTargetDesc/Cpu0AsmBackend.cpp
     :start-after: //@getFixupKindInfo {
     :end-before: { "fixup_Cpu0_32",             0,     32,   0 },
-.. literalinclude:: ../../../lib/Target/Cpu0/MCTargetDesc/Cpu0AsmBackend.cpp
+.. literalinclude:: ../lbdex/Cpu0/MCTargetDesc/Cpu0AsmBackend.cpp
     :start-after: #if CH >= CH12_1
     :end-before: #endif
 	
@@ -138,10 +138,10 @@ programming.
   }
 
 .. rubric:: lbdex/chapters/Chapter12_1/MCTargetDesc/Cpu0BaseInfo.h
-.. literalinclude:: ../../../lib/Target/Cpu0/MCTargetDesc/Cpu0BaseInfo.h
+.. literalinclude:: ../lbdex/Cpu0/MCTargetDesc/Cpu0BaseInfo.h
     :start-after: //@Cpu0II
     :end-before: MO_NO_FLAG,
-.. literalinclude:: ../../../lib/Target/Cpu0/MCTargetDesc/Cpu0BaseInfo.h
+.. literalinclude:: ../lbdex/Cpu0/MCTargetDesc/Cpu0BaseInfo.h
     :start-after: #if CH >= CH12_1
     :end-before: #endif
 	
@@ -153,10 +153,10 @@ programming.
   }
 
 .. rubric:: lbdex/chapters/Chapter12_1/MCTargetDesc/Cpu0ELFObjectWriter.cpp
-.. literalinclude:: ../../../lib/Target/Cpu0/MCTargetDesc/Cpu0ELFObjectWriter.cpp
+.. literalinclude:: ../lbdex/Cpu0/MCTargetDesc/Cpu0ELFObjectWriter.cpp
     :start-after: //@GetRelocType {
     :end-before: default:
-.. literalinclude:: ../../../lib/Target/Cpu0/MCTargetDesc/Cpu0ELFObjectWriter.cpp
+.. literalinclude:: ../lbdex/Cpu0/MCTargetDesc/Cpu0ELFObjectWriter.cpp
     :start-after: #if CH >= CH12_1
     :end-before: #endif
 	
@@ -166,10 +166,10 @@ programming.
   }
 
 .. rubric:: lbdex/chapters/Chapter12_1/MCTargetDesc/Cpu0FixupKinds.h
-.. literalinclude:: ../../../lib/Target/Cpu0/MCTargetDesc/Cpu0FixupKinds.h
+.. literalinclude:: ../lbdex/Cpu0/MCTargetDesc/Cpu0FixupKinds.h
     :start-after: //@Fixups {
     :end-before: //@ Pure upper 32 bit fixup resulting in - R_CPU0_32.
-.. literalinclude:: ../../../lib/Target/Cpu0/MCTargetDesc/Cpu0FixupKinds.h
+.. literalinclude:: ../lbdex/Cpu0/MCTargetDesc/Cpu0FixupKinds.h
     :start-after: #if CH >= CH12_1
     :end-before: #endif
 	
@@ -179,10 +179,10 @@ programming.
     };
 
 .. rubric:: lbdex/chapters/Chapter12_1/MCTargetDesc/Cpu0MCCodeEmitter.cpp
-.. literalinclude:: ../../../lib/Target/Cpu0/MCTargetDesc/Cpu0MCCodeEmitter.cpp
+.. literalinclude:: ../lbdex/Cpu0/MCTargetDesc/Cpu0MCCodeEmitter.cpp
     :start-after: //@getExprOpValue {
     :end-before: //@getExprOpValue body {
-.. literalinclude:: ../../../lib/Target/Cpu0/MCTargetDesc/Cpu0MCCodeEmitter.cpp
+.. literalinclude:: ../lbdex/Cpu0/MCTargetDesc/Cpu0MCCodeEmitter.cpp
     :start-after: #if CH >= CH12_1
     :end-before: #endif
 	
@@ -192,24 +192,24 @@ programming.
   }
 
 .. rubric:: lbdex/chapters/Chapter12_1/Cpu0InstrInfo.td
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.td
+.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td
     :start-after: #if CH >= CH12_1 1
     :end-before: #endif
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.td
+.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td
     :start-after: #if CH >= CH12_1 2
     :end-before: #endif
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.td
+.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td
     :start-after: #if CH >= CH12_1 3
     :end-before: #endif
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.td
+.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td
     :start-after: #if CH >= CH12_1 4
     :end-before: #endif
 
 .. rubric:: lbdex/chapters/Chapter12_1/Cpu0SelLowering.cpp
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.cpp
     :start-after: //@Cpu0TargetLowering {
     :end-before: #if CH >= CH3_2
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.cpp
     :start-after: #if CH >= CH12_1 //1
     :end-before: #endif
 	
@@ -218,10 +218,10 @@ programming.
     ...
   }
   
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.cpp
     :start-after: #if CH >= CH6_1 //3
     :end-before: #if CH >= CH8_1 //6
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.cpp
     :start-after: #if CH >= CH12_1 //3
     :end-before: #endif
 	
@@ -232,21 +232,21 @@ programming.
     ...
   }
   
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.cpp
     :start-after: #if CH >= CH12_1 //4
     :end-before: #endif
 
 
 .. rubric:: lbdex/chapters/Chapter12_1/Cpu0SelLowering.h
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.h
+.. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.h
     :start-after: #if CH >= CH12_1
     :end-before: #endif
 
 .. rubric:: lbdex/chapters/Chapter12_1/Cpu0MCInstLower.cpp
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0MCInstLower.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0MCInstLower.cpp
     :start-after: //@LowerSymbolOperand {
     :end-before: default:
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0MCInstLower.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0MCInstLower.cpp
     :start-after: #if CH >= CH12_1
     :end-before: #endif
     
@@ -369,10 +369,10 @@ In order to support atomic in C++ and java, llvm provides the atomic IRs here
 To support llvm atomic IRs, the following code added to Chapter12_1.
 
 .. rubric:: lbdex/chapters/Chapter12_1/AsmParser/Cpu0AsmParser.cpp
-.. literalinclude:: ../../../lib/Target/Cpu0/AsmParser/Cpu0AsmParser.cpp
+.. literalinclude:: ../lbdex/Cpu0/AsmParser/Cpu0AsmParser.cpp
     :start-after: //@getVariantKind {
     :end-before: //@getVariantKind body {
-.. literalinclude:: ../../../lib/Target/Cpu0/AsmParser/Cpu0AsmParser.cpp
+.. literalinclude:: ../lbdex/Cpu0/AsmParser/Cpu0AsmParser.cpp
     :start-after: #if CH >= CH12_1
     :end-before: #endif
 
@@ -382,10 +382,10 @@ To support llvm atomic IRs, the following code added to Chapter12_1.
   }
 
 .. rubric:: lbdex/chapters/Chapter12_1/Disassembler/Cpu0Disassembler.cpp
-.. literalinclude:: ../../../lib/Target/Cpu0/Disassembler/Cpu0Disassembler.cpp
+.. literalinclude:: ../lbdex/Cpu0/Disassembler/Cpu0Disassembler.cpp
     :start-after: //@DecodeMem {
     :end-before: //@DecodeMem body {
-.. literalinclude:: ../../../lib/Target/Cpu0/Disassembler/Cpu0Disassembler.cpp
+.. literalinclude:: ../lbdex/Cpu0/Disassembler/Cpu0Disassembler.cpp
     :start-after: #if CH >= CH12_1 //1
     :end-before: #endif
 
@@ -395,50 +395,50 @@ To support llvm atomic IRs, the following code added to Chapter12_1.
   }
 
 .. rubric:: lbdex/chapters/Chapter12_1/Cpu0InstrInfo.td
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.td
+.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td
     :start-after: #if CH >= CH12_1 5
     :end-before: #endif
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.td
+.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td
     :start-after: #if CH >= CH12_1 6
     :end-before: #endif
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.td
+.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td
     :start-after: #if CH >= CH12_1 7
     :end-before: #endif
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.td
+.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td
     :start-after: #if CH >= CH12_1 8
     :end-before: #endif
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.td
+.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td
     :start-after: #if CH >= CH12_1 9
     :end-before: #endif
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.td
+.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td
     :start-after: #if CH >= CH12_1 10
     :end-before: #endif
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.td
+.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td
     :start-after: #if CH >= CH12_1 11
     :end-before: #endif
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.td
+.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td
     :start-after: #if CH >= CH12_1 12
     :end-before: #endif
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.td
+.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td
     :start-after: #if CH >= CH12_1 13
     :end-before: #endif
 
 .. rubric:: lbdex/chapters/Chapter12_1/Cpu0SelLowering.h
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.h
+.. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.h
     :start-after: #if CH >= CH12_1 //2
     :end-before: #endif
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.h
+.. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.h
     :start-after: #if CH >= CH12_1 //3
     :end-before: #endif
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.h
+.. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.h
     :start-after: #if CH >= CH12_1 //4
     :end-before: #endif
 
 .. rubric:: lbdex/chapters/Chapter12_1/Cpu0SelLowering.cpp
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.cpp
     :start-after: //@3_1 1 {
     :end-before: switch (Opcode) {
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.cpp
     :start-after: #if CH >= CH12_1 //5
     :end-before: #endif //#if CH >= CH12_1 //5
 
@@ -447,17 +447,17 @@ To support llvm atomic IRs, the following code added to Chapter12_1.
     ...
   }
 
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.cpp
     :start-after: //@Cpu0TargetLowering {
     :end-before: #if CH >= CH3_2
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.cpp
     :start-after: #if CH >= CH12_1 //6
     :end-before: #endif
 
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.cpp
     :start-after: #if CH >= CH6_1 //3
     :end-before: #if CH >= CH8_1 //6
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.cpp
     :start-after: #if CH >= CH12_1 //7
     :end-before: #endif //#if CH >= CH12_1 //7
 
@@ -466,29 +466,29 @@ To support llvm atomic IRs, the following code added to Chapter12_1.
     ...
   }
 
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.cpp
     :start-after: #if CH >= CH12_1 //8
     :end-before: #endif
 
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.cpp
     :start-after: #if CH >= CH12_1 //9
     :end-before: #endif
 
 .. rubric:: lbdex/chapters/Chapter12_1/Cpu0RegisterInfo.h
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0RegisterInfo.h
+.. literalinclude:: ../lbdex/Cpu0/Cpu0RegisterInfo.h
     :start-after: #if CH >= CH12_1 //1
     :end-before: #endif
 
 .. rubric:: lbdex/chapters/Chapter12_1/Cpu0RegisterInfo.cpp
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0RegisterInfo.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0RegisterInfo.cpp
     :start-after: #if CH >= CH12_1 //1
     :end-before: #endif
 
 .. rubric:: lbdex/chapters/Chapter12_1/Cpu0SEISelLowering.cpp
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0SEISelLowering.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0SEISelLowering.cpp
     :start-after: //@Cpu0SETargetLowering {
     :end-before: //@Cpu0SETargetLowering body {
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0SEISelLowering.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0SEISelLowering.cpp
     :start-after: #if CH >= CH12_1 //1
     :end-before: #endif
 
@@ -499,10 +499,10 @@ To support llvm atomic IRs, the following code added to Chapter12_1.
 
 
 .. rubric:: lbdex/chapters/Chapter12_1/Cpu0TargetMachine.cpp
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0TargetMachine.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0TargetMachine.cpp
     :start-after: //@Cpu0PassConfig {
     :end-before: public:
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0TargetMachine.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0TargetMachine.cpp
     :start-after: #if CH >= CH12_1 //1
     :end-before: #endif
 
@@ -511,7 +511,7 @@ To support llvm atomic IRs, the following code added to Chapter12_1.
     ...
   };
 
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0TargetMachine.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0TargetMachine.cpp
     :start-after: #if CH >= CH12_1 //2
     :end-before: #endif
 

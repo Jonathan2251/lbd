@@ -224,25 +224,25 @@ Function LowerFormalArguments() is in charge of incoming arguments creation.
 We define it as follows,
 
 .. rubric:: lbdex/chapters/Chapter9_1/Cpu0ISelLowering.h
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.h
+.. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.h
     :start-after: //@class Cpu0TargetLowering
     :end-before: public:
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.h
+.. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.h
     :start-after: //@CH3_4 1 {
     :end-before: public:
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.h
+.. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.h
     :start-after: #if CH >= CH9_1 //1
     :end-before: #endif
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.h
+.. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.h
     :start-after: #if CH >= CH9_1 //2
     :end-before: #endif
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.h
+.. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.h
     :start-after: #if CH >= CH9_1 //3
     :end-before: #endif
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.h
+.. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.h
     :start-after: #if CH >= CH9_1 //4
     :end-before: #endif
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.h
+.. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.h
     :start-after: #if CH >= CH9_1 //5
     :end-before: #endif
 
@@ -251,13 +251,13 @@ We define it as follows,
     };
     ...
 
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.h
+.. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.h
     :start-after: #if CH >= CH9_1 //6
     :end-before: #endif
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.h
+.. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.h
     :start-after: #if CH >= CH9_1 //7
     :end-before: #endif
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.h
+.. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.h
     :start-after: #if CH >= CH9_1 //8
     :end-before: #endif
 
@@ -268,22 +268,22 @@ We define it as follows,
 
 
 .. rubric:: lbdex/chapters/Chapter9_1/Cpu0ISelLowering.cpp
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.cpp
     :start-after: #if CH >= CH9_1 //2
     :end-before: #endif
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.cpp
     :start-after: #if CH >= CH9_1 //3
     :end-before: #endif
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.cpp
     :start-after: #if CH >= CH9_1 //4
     :end-before: #endif
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.cpp
     :start-after: #if CH >= CH9_1 //5
     :end-before: #if CH >= CH9_2
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.cpp
     :start-after: #if CH >= CH9_1 //5
     :end-before: #if CH >= CH9_2
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.cpp
     :start-after: #else // CH >= CH9_2
     :end-before: #endif
 
@@ -294,16 +294,16 @@ We define it as follows,
 .. literalinclude:: ../lbdex/chapters/Chapter9_1/Cpu0ISelLowering.cpp
     :start-after: //@            Formal Arguments Calling Convention Implementation
     :end-before: //@              Return Value Calling Convention Implementation
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.cpp
     :start-after: #if CH >= CH9_1 //7
     :end-before: #endif // #if CH >= CH9_1
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.cpp
     :start-after: #if CH >= CH9_1 //8
     :end-before: #endif // #if CH >= CH9_1
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.cpp
     :start-after: #if CH >= CH9_1 //9
     :end-before: #endif // #if CH >= CH9_1
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.cpp
     :start-after: #if CH >= CH9_1 //10
     :end-before: #endif
 
@@ -400,28 +400,28 @@ the following code for the instruction selection and printing of Cpu0
 instructions **swi** (Software Interrupt), **jsub** and **jalr** (function call).
     
 .. rubric:: lbdex/chapters/Chapter9_1/Cpu0InstrInfo.td
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.td
+.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td
     :start-after: #if CH >= CH9_1 //1
     :end-before: #endif
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.td
+.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td
     :start-after: #if CH >= CH9_1 //2
     :end-before: #endif
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.td
+.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td
     :start-after: #if CH >= CH9_1 //4
     :end-before: #endif
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.td
+.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td
     :start-after: #if CH >= CH9_1 //5
     :end-before: #endif
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.td
+.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td
     :start-after: #if CH >= CH9_1 //6
     :end-before: //@class TailCall
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.td
+.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td
     :start-after: #if CH >= CH9_1 //7
     :end-before: #endif
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.td
+.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td
     :start-after: #if CH >= CH9_1 //8
     :end-before: #endif
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.td
+.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td
     :start-after: #if CH >= CH9_1 //10
     :end-before: //@Pat<Cpu0TailCall>
 
@@ -430,10 +430,10 @@ instructions **swi** (Software Interrupt), **jsub** and **jalr** (function call)
   }
     
 .. rubric:: lbdex/chapters/Chapter9_1/Cpu0MCInstLower.cpp
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0MCInstLower.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0MCInstLower.cpp
     :start-after: //@LowerSymbolOperand {
     :end-before: default:                   llvm_unreachable("Invalid target flag!");
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0MCInstLower.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0MCInstLower.cpp
     :start-after: #if CH >= CH9_1 //1
     :end-before: #endif
 
@@ -444,7 +444,7 @@ instructions **swi** (Software Interrupt), **jsub** and **jalr** (function call)
     switch (MOTy) {
   . ...
 
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0MCInstLower.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0MCInstLower.cpp
     :start-after: #if CH >= CH9_1 //2
     :end-before: #endif
 
@@ -455,13 +455,13 @@ instructions **swi** (Software Interrupt), **jsub** and **jalr** (function call)
     ...
   }
 
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0MCInstLower.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0MCInstLower.cpp
     :start-after: //@LowerOperand {
     :end-before: default: llvm_unreachable("unknown operand type");
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0MCInstLower.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0MCInstLower.cpp
     :start-after: #if CH >= CH9_1 //3
     :end-before: #endif
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0MCInstLower.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0MCInstLower.cpp
     :start-after: //@1
     :end-before: #endif
 
@@ -473,7 +473,7 @@ instructions **swi** (Software Interrupt), **jsub** and **jalr** (function call)
   }
 
 .. rubric:: lbdex/chapters/Chapter9_1/InstPrinter/Cpu0InstPrinter.cpp
-.. literalinclude:: ../../../lib/Target/Cpu0/InstPrinter/Cpu0InstPrinter.cpp
+.. literalinclude:: ../lbdex/Cpu0/InstPrinter/Cpu0InstPrinter.cpp
     :start-after: //@printExpr {
     :end-before: //@printExpr body {
 
@@ -483,7 +483,7 @@ instructions **swi** (Software Interrupt), **jsub** and **jalr** (function call)
     switch (Kind) {
     ...
 
-.. literalinclude:: ../../../lib/Target/Cpu0/InstPrinter/Cpu0InstPrinter.cpp
+.. literalinclude:: ../lbdex/Cpu0/InstPrinter/Cpu0InstPrinter.cpp
     :start-after: #if CH >= CH9_1
     :end-before: #endif
 
@@ -495,10 +495,10 @@ instructions **swi** (Software Interrupt), **jsub** and **jalr** (function call)
   }
 
 .. rubric:: lbdex/chapters/Chapter9_1/MCTargetDesc/Cpu0AsmBackend.cpp
-.. literalinclude:: ../../../lib/Target/Cpu0/MCTargetDesc/Cpu0AsmBackend.cpp
+.. literalinclude:: ../lbdex/Cpu0/MCTargetDesc/Cpu0AsmBackend.cpp
     :start-after: //@adjustFixupValue {
     :end-before: default:
-.. literalinclude:: ../../../lib/Target/Cpu0/MCTargetDesc/Cpu0AsmBackend.cpp
+.. literalinclude:: ../lbdex/Cpu0/MCTargetDesc/Cpu0AsmBackend.cpp
     :start-after: #if CH >= CH9_1
     :end-before: #endif
 
@@ -510,10 +510,10 @@ instructions **swi** (Software Interrupt), **jsub** and **jalr** (function call)
   }
 
 .. rubric:: lbdex/chapters/Chapter9_1/MCTargetDesc/Cpu0ELFObjectWriter.cpp
-.. literalinclude:: ../../../lib/Target/Cpu0/MCTargetDesc/Cpu0ELFObjectWriter.cpp
+.. literalinclude:: ../lbdex/Cpu0/MCTargetDesc/Cpu0ELFObjectWriter.cpp
     :start-after: //@GetRelocType {
     :end-before: default:
-.. literalinclude:: ../../../lib/Target/Cpu0/MCTargetDesc/Cpu0ELFObjectWriter.cpp
+.. literalinclude:: ../lbdex/Cpu0/MCTargetDesc/Cpu0ELFObjectWriter.cpp
     :start-after: #if CH >= CH9_1
     :end-before: #endif
 
@@ -525,10 +525,10 @@ instructions **swi** (Software Interrupt), **jsub** and **jalr** (function call)
   }
 
 .. rubric:: lbdex/chapters/Chapter9_1/MCTargetDesc/Cpu0FixupKinds.h
-.. literalinclude:: ../../../lib/Target/Cpu0/MCTargetDesc/Cpu0FixupKinds.h
+.. literalinclude:: ../lbdex/Cpu0/MCTargetDesc/Cpu0FixupKinds.h
     :start-after: //@Fixups {
     :end-before: //@ Pure upper 32 bit fixup resulting in - R_CPU0_32.
-.. literalinclude:: ../../../lib/Target/Cpu0/MCTargetDesc/Cpu0FixupKinds.h
+.. literalinclude:: ../lbdex/Cpu0/MCTargetDesc/Cpu0FixupKinds.h
     :start-after: #if CH >= CH9_1
     :end-before: #endif
 
@@ -538,13 +538,13 @@ instructions **swi** (Software Interrupt), **jsub** and **jalr** (function call)
   . }
 
 .. rubric:: lbdex/chapters/Chapter9_1/MCTargetDesc/Cpu0MCCodeEmitter.cpp
-.. literalinclude:: ../../../lib/Target/Cpu0/MCTargetDesc/Cpu0MCCodeEmitter.cpp
+.. literalinclude:: ../lbdex/Cpu0/MCTargetDesc/Cpu0MCCodeEmitter.cpp
     :start-after: //@getJumpTargetOpValue {
     :end-before: #if CH >= CH8_1 //3
-.. literalinclude:: ../../../lib/Target/Cpu0/MCTargetDesc/Cpu0MCCodeEmitter.cpp
+.. literalinclude:: ../lbdex/Cpu0/MCTargetDesc/Cpu0MCCodeEmitter.cpp
     :start-after: #if CH >= CH9_1 //1
     :end-before: #else
-.. literalinclude:: ../../../lib/Target/Cpu0/MCTargetDesc/Cpu0MCCodeEmitter.cpp
+.. literalinclude:: ../lbdex/Cpu0/MCTargetDesc/Cpu0MCCodeEmitter.cpp
     :start-after: #endif //#if CH >= CH9_1 //1
     :end-before: else
 
@@ -553,13 +553,13 @@ instructions **swi** (Software Interrupt), **jsub** and **jalr** (function call)
     ...
   }
 
-.. literalinclude:: ../../../lib/Target/Cpu0/MCTargetDesc/Cpu0MCCodeEmitter.cpp
+.. literalinclude:: ../lbdex/Cpu0/MCTargetDesc/Cpu0MCCodeEmitter.cpp
     :start-after: //@getExprOpValue {
     :end-before: //@getExprOpValue body {
-.. literalinclude:: ../../../lib/Target/Cpu0/MCTargetDesc/Cpu0MCCodeEmitter.cpp
+.. literalinclude:: ../lbdex/Cpu0/MCTargetDesc/Cpu0MCCodeEmitter.cpp
     :start-after: //@switch {
     :end-before: //@switch }
-.. literalinclude:: ../../../lib/Target/Cpu0/MCTargetDesc/Cpu0MCCodeEmitter.cpp
+.. literalinclude:: ../lbdex/Cpu0/MCTargetDesc/Cpu0MCCodeEmitter.cpp
     :start-after: #if CH >= CH9_1 //2
     :end-before: #endif
 
@@ -571,25 +571,25 @@ instructions **swi** (Software Interrupt), **jsub** and **jalr** (function call)
   }
  
 .. rubric:: lbdex/chapters/Chapter9_1/Cpu0MachineFunction.h
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0MachineFunction.h
+.. literalinclude:: ../lbdex/Cpu0/Cpu0MachineFunction.h
     :start-after: //@1 {
     :end-before: #if CH >= CH3_4 //1
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0MachineFunction.h
+.. literalinclude:: ../lbdex/Cpu0/Cpu0MachineFunction.h
     :start-after: #if CH >= CH9_1 //1
     :end-before: #endif
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0MachineFunction.h
+.. literalinclude:: ../lbdex/Cpu0/Cpu0MachineFunction.h
     :start-after: #if CH >= CH9_1 //2
     :end-before: #endif
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0MachineFunction.h
+.. literalinclude:: ../lbdex/Cpu0/Cpu0MachineFunction.h
     :start-after: #if CH >= CH9_1 //3
     :end-before: #if CH >= CH9_3
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0MachineFunction.h
+.. literalinclude:: ../lbdex/Cpu0/Cpu0MachineFunction.h
     :start-after: #endif //#if CH >= CH9_3
     :end-before: #endif
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0MachineFunction.h
+.. literalinclude:: ../lbdex/Cpu0/Cpu0MachineFunction.h
     :start-after: #if CH >= CH9_1 //4
     :end-before: #endif
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0MachineFunction.h
+.. literalinclude:: ../lbdex/Cpu0/Cpu0MachineFunction.h
     :start-after: #if CH >= CH9_1 //5
     :end-before: #endif
 
@@ -604,7 +604,7 @@ node. They are distinguishable since JSUB use "imm" operand while
 JALR uses register operand.
 
 .. rubric:: lbdex/chapters/Chapter9_1/Cpu0InstrInfo.td
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.td
+.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td
     :start-after: //#if CH >= CH9_1 //10
     :end-before: //@Pat<Cpu0TailCall>
 
@@ -707,23 +707,23 @@ Now, we will finish **“store outgoing arguments”** in caller function.
 LowerCall() is responsible to do this. The implementation as follows,
 
 .. rubric:: lbdex/chapters/Chapter9_2/Cpu0MachineFunction.h
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0MachineFunction.h
+.. literalinclude:: ../lbdex/Cpu0/Cpu0MachineFunction.h
     :start-after: #if CH >= CH9_2
     :end-before: #endif
 
 .. rubric:: lbdex/chapters/Chapter9_2/Cpu0MachineFunction.cpp
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0MachineFunction.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0MachineFunction.cpp
     :start-after: #if CH >= CH9_2
     :end-before: #endif
 
 .. rubric:: lbdex/chapters/Chapter9_2/Cpu0ISelLowering.h
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.h
+.. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.h
     :start-after: #if CH >= CH9_2 //1
     :end-before: #endif
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.h
+.. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.h
     :start-after: //@CH3_4 1 {
     :end-before: public:
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.h
+.. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.h
     :start-after: #if CH >= CH9_2 //2
     :end-before: #endif
 
@@ -731,36 +731,36 @@ LowerCall() is responsible to do this. The implementation as follows,
 
   .  };
 
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.h
+.. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.h
     :start-after: #if CH >= CH9_2 //3
     :end-before: #endif
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.h
+.. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.h
     :start-after: #if CH >= CH9_2 //4
     :end-before: #endif
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.h
+.. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.h
     :start-after: #if CH >= CH9_2 //5
     :end-before: #endif
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.h
+.. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.h
     :start-after: #if CH >= CH9_2 //6
     :end-before: #endif
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.h
+.. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.h
     :start-after: #if CH >= CH9_2 //7
     :end-before: #endif
 
 .. rubric:: lbdex/chapters/Chapter9_2/Cpu0ISelLowering.cpp
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.cpp
     :start-after: #if CH >= CH9_2 //1
     :end-before: #endif // #if CH >= CH9_2 //1
 .. literalinclude:: ../lbdex/chapters/Chapter9_2/Cpu0ISelLowering.cpp
     :start-after: //@LowerCall {
     :end-before: //@LowerCall }
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.cpp
     :start-after: #if CH >= CH9_2 //3
     :end-before: #endif
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.cpp
     :start-after: #if CH >= CH9_2 //4
     :end-before: #endif
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.cpp
     :start-after: #if CH >= CH9_2 //5
     :end-before: #endif
 .. literalinclude:: ../lbdex/chapters/Chapter9_2/Cpu0ISelLowering.cpp
@@ -790,13 +790,13 @@ CALLSEQ_START, CALLSEQ_END, and translate them into pseudo machine instructions
 as follows.
 
 .. rubric:: lbdex/chapters/Chapter9_2/Cpu0InstrInfo.td
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.td
+.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td
     :start-after: #if CH >= CH9_2 //1
     :end-before: #endif
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.td
+.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td
     :start-after: #if CH >= CH9_2 //2
     :end-before: #endif
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.td
+.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td
     :start-after: #if CH >= CH9_2 //3
     :end-before: #endif
 
@@ -807,20 +807,20 @@ It just discard these 2 pseudo instructions, and llvm will add offset to
 stack. 
 
 .. rubric:: lbdex/chapters/Chapter9_2/Cpu0InstrInfo.cpp
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.cpp
     :start-after: //@Cpu0InstrInfo {
     :end-before: #if CH >= CH9_2
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.cpp
     :start-after: #if CH >= CH9_2
     :end-before: #endif
   
 .. rubric:: lbdex/chapters/Chapter9_2/Cpu0SEFrameLowering.h
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0SEFrameLowering.h
+.. literalinclude:: ../lbdex/Cpu0/Cpu0SEFrameLowering.h
     :start-after: #if CH >= CH9_2
     :end-before: #endif
 
 .. rubric:: lbdex/chapters/Chapter9_2/Cpu0SEFrameLowering.cpp
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0SEFrameLowering.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0SEFrameLowering.cpp
     :start-after: #if CH >= CH9_2
     :end-before: #endif
 
@@ -1189,10 +1189,10 @@ The following code in Chapter9_1/ and Chapter3_4/ support the ordinary
 structure type in function call. 
 
 .. rubric:: lbdex/chapters/Chapter9_1/Cpu0ISelLowering.cpp
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.cpp
     :start-after: //@LowerFormalArguments {
     :end-before: #if CH >= CH3_4
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.cpp
     :start-after: //@Ordinary struct type: 1 {
     :end-before: //@Ordinary struct type: 1 }
 
@@ -1200,10 +1200,10 @@ structure type in function call.
 
   }
 
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.cpp
     :start-after: #if CH >= CH3_1 //LowerReturn
     :end-before: #if CH >= CH3_4 //in LowerReturn
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.cpp
     :start-after: //@Ordinary struct type: 2 {
     :end-before: //@Ordinary struct type: 2 }
 
@@ -1216,7 +1216,7 @@ In addition to above code, we had defined the calling convention in early
 chapter as follows,
 
 .. rubric:: lbdex/chapters/Chapter3_4/Cpu0CallingConv.td
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0CallingConv.td
+.. literalinclude:: ../lbdex/Cpu0/Cpu0CallingConv.td
     :start-after: //#if CH >= CH3_4 1
     :end-before: //#endif
 
@@ -1373,16 +1373,16 @@ The following code in Chapter9_1/ and Chapter9_2/ support the byval structure
 type in function call. 
 
 .. rubric:: lbdex/chapters/Chapter9_1/Cpu0ISelLowering.cpp
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.cpp
     :start-after: #if CH >= CH9_1 //11
     :end-before: #endif
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.cpp
     :start-after: //@LowerFormalArguments {
     :end-before: #if CH >= CH3_4
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.cpp
     :start-after: //@2 {
     :end-before: //@2 }
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.cpp
     :start-after: //@byval pass {
     :end-before: //@byval pass }
 
@@ -1391,7 +1391,7 @@ type in function call.
       ...
   . }
 
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.cpp
     :start-after: //@Ordinary struct type: 1 {
     :end-before: //@Ordinary struct type: 1 }
 
@@ -1401,16 +1401,16 @@ type in function call.
   }
 
 .. rubric:: lbdex/chapters/Chapter9_2/Cpu0ISelLowering.cpp
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.cpp
     :start-after: #if CH >= CH9_2 //7
     :end-before: #endif // #if CH >= CH9_2 //7
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.cpp
     :start-after: //@LowerCall {
     :end-before: #if CH >= CH9_2 //2
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.cpp
     :start-after: //@1 {
     :end-before: //@1 }
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.cpp
     :start-after: //@ByVal Arg {
     :end-before: //@ByVal Arg }
 
@@ -1574,21 +1574,21 @@ FI.getIncomingArgSize() in isEligibleForTailCallOptimization(), and return
 false for this function as follows,
 
 .. rubric:: lbdex/chapters/Chapter9_2/Cpu0SEISelLowering.cpp
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0SEISelLowering.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0SEISelLowering.cpp
     :start-after: #if CH >= CH9_1
     :end-before: #endif
 
 .. rubric:: lbdex/chapters/Chapter9_2/Cpu0ISelLowering.cpp
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.cpp
     :start-after: //@LowerCall {
     :end-before: #if CH >= CH9_2 //2
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.cpp
     :start-after: //@TailCall 1 {
     :end-before: //@TailCall 1 }
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.cpp
     :start-after: //@TailCall 2 {
     :end-before: //@TailCall 2 }
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.cpp
     :start-after: //@TailCall 3 {
     :end-before: //@TailCall 3 }
 
@@ -1627,10 +1627,10 @@ Finally, the tail call DAG process as the following table.
 note 1: by Cpu0InstrInfo.td as follows,
 
 .. rubric:: lbdex/chapters/Chapter9_1/Cpu0InstrInfo.td
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.td
+.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td
     :start-after: #if CH >= CH9_1 //3
     :end-before: #endif
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.td
+.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td
     :start-after: //@Pat<Cpu0TailCall>
     :end-before: }
 
@@ -1639,15 +1639,15 @@ note 2: by Cpu0InstrInfo.td and emitPseudoExpansionLowering() of
 Cpu0AsmPrinter.cpp as follows,
 
 .. rubric:: lbdex/chapters/Chapter9_1/Cpu0InstrInfo.td
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.td
+.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td
     :start-after: //@class TailCall
     :end-before: } // let Predicates = [Ch9_1]
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.td
+.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td
     :start-after: #if CH >= CH9_1 //9
     :end-before: #endif
 
 .. rubric:: lbdex/chapters/Chapter9_1/Cpu0AsmPrinter.h
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0AsmPrinter.h
+.. literalinclude:: ../lbdex/Cpu0/Cpu0AsmPrinter.h
     :start-after: #if CH >= CH9_1
     :end-before: #endif
 
@@ -2060,10 +2060,10 @@ The following code added in Chapter9_3/ to issue **“.cprestore”** or the
 corresponding machine code before the first time of PIC function call.
 
 .. rubric:: lbdex/chapters/Chapter9_3/Cpu0ISelLowering.cpp
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.cpp
     :start-after: //@LowerCall {
     :end-before: #if CH >= CH9_2 //2
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.cpp
     :start-after: #if CH >= CH9_3 //6
     :end-before: #endif //#if CH >= CH9_3 //6
 
@@ -2073,15 +2073,15 @@ corresponding machine code before the first time of PIC function call.
   }
 
 .. rubric:: lbdex/chapters/Chapter9_3/Cpu0MachineFunction.h
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0MachineFunction.h
+.. literalinclude:: ../lbdex/Cpu0/Cpu0MachineFunction.h
     :start-after: #if CH >= CH9_3
     :end-before: #endif //#if CH >= CH9_3
 
 .. rubric:: lbdex/chapters/Chapter9_3/Cpu0SEFrameLowering.cpp
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0SEFrameLowering.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0SEFrameLowering.cpp
     :start-after: //@emitPrologue {
     :end-before: #if CH >= CH3_5 //1
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0SEFrameLowering.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0SEFrameLowering.cpp
     :start-after: //@ENABLE_GPRESTORE {
     :end-before: //@ENABLE_GPRESTORE }
 	
@@ -2090,10 +2090,10 @@ corresponding machine code before the first time of PIC function call.
   }
 
 .. rubric:: lbdex/chapters/Chapter9_3/Cpu0RegisterInfo.cpp
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0RegisterInfo.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0RegisterInfo.cpp
     :start-after: //@eliminateFrameIndex {
     :end-before: #if CH >= CH3_4
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0RegisterInfo.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0RegisterInfo.cpp
     :start-after: #if CH >= CH9_3 //1
     :end-before: #endif //#if CH >= CH9_3 //1
 	
@@ -2103,18 +2103,18 @@ corresponding machine code before the first time of PIC function call.
   }
 
 .. rubric:: lbdex/chapters/Chapter9_3/Cpu0InstrInfo.td
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.td
+.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td
     :start-after: //@def CPRESTORE {
     :end-before: } // let Predicates = [Ch9_2]
   
 .. rubric:: lbdex/chapters/Chapter9_3/Cpu0AsmPrinter.cpp
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0AsmPrinter.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0AsmPrinter.cpp
     :start-after: #if CH >= CH9_3 //1
     :end-before: #endif //#if CH >= CH9_3 //1
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0AsmPrinter.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0AsmPrinter.cpp
     :start-after: //@EmitInstruction {
     :end-before: //@EmitInstruction body {
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0AsmPrinter.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0AsmPrinter.cpp
     :start-after: #if CH >= CH9_3 //2
     :end-before: #endif //#if CH >= CH9_3 //2
 	
@@ -2124,12 +2124,12 @@ corresponding machine code before the first time of PIC function call.
   }
   
 .. rubric:: lbdex/chapters/Chapter9_3/Cpu0MCInstLower.h
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0MCInstLower.h
+.. literalinclude:: ../lbdex/Cpu0/Cpu0MCInstLower.h
     :start-after: #if CH >= CH9_3
     :end-before: #endif //#if CH >= CH9_3
 
 .. rubric:: lbdex/chapters/Chapter9_3/Cpu0MCInstLower.cpp
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0MCInstLower.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0MCInstLower.cpp
     :start-after: #if CH >= CH9_3
     :end-before: #endif //#if CH >= CH9_3
 
@@ -2192,29 +2192,29 @@ The following code will emit "ld $gp, ($gp save slot on stack)" after jalr by
 create file Cpu0EmitGPRestore.cpp which run as a function pass.
 
 .. rubric:: lbdex/chapters/Chapter9_3/CMakeLists.txt
-.. literalinclude:: ../../../lib/Target/Cpu0/CMakeLists.txt
+.. literalinclude:: ../lbdex/Cpu0/CMakeLists.txt
     :start-after: #if CH >= CH9_3
     :end-before: #endif
   
 .. rubric:: lbdex/chapters/Chapter9_3/Cpu0TargetMachine.cpp
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0TargetMachine.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0TargetMachine.cpp
     :start-after: //@Cpu0PassConfig {
     :end-before: public:
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0TargetMachine.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0TargetMachine.cpp
     :start-after: #if CH >= CH9_3 //1
     :end-before: #endif //#if CH >= CH9_3 //1
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0TargetMachine.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0TargetMachine.cpp
     :start-after: #if CH >= CH9_3 //2
     :end-before: #endif //#if CH >= CH9_3 //2
 
   
 .. rubric:: lbdex/chapters/Chapter9_3/Cpu0.h
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0.h
+.. literalinclude:: ../lbdex/Cpu0/Cpu0.h
     :start-after: #if CH >= CH9_3
     :end-before: #endif //#if CH >= CH9_3
   
 .. rubric:: lbdex/chapters/Chapter9_3/Cpu0EmitGPRestore.cpp
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0EmitGPRestore.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0EmitGPRestore.cpp
 
 
 Variable number of arguments
@@ -2363,13 +2363,13 @@ The ch9_3_2.cpp is C++ template example code, it can be translated into cpu0
 backend code too.
 
 .. rubric:: lbdex/chapters/Chapter9_3/Cpu0ISelLowering.h
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.h
+.. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.h
     :start-after: //@class Cpu0TargetLowering
     :end-before: public:
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.h
+.. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.h
     :start-after: //@CH3_4 1 {
     :end-before: public:
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.h
+.. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.h
     :start-after: #if CH >= CH9_3 //1
     :end-before: #endif
 	
@@ -2378,11 +2378,11 @@ backend code too.
         ...
   .   };
 
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.h
+.. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.h
     :start-after: #if CH >= CH9_3 //2
     :end-before: #endif
 	
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.h
+.. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.h
     :start-after: #if CH >= CH9_3 //3
     :end-before: #endif
 	
@@ -2392,13 +2392,13 @@ backend code too.
   . };
 
 .. rubric:: lbdex/chapters/Chapter9_3/Cpu0ISelLowering.cpp
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.cpp
     :start-after: //@Cpu0TargetLowering {
     :end-before: #if CH >= CH3_2
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.cpp
     :start-after: #if CH >= CH9_3 //1
     :end-before: #endif
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.cpp
     :start-after: //@vararg 1 {
     :end-before: #endif
 	
@@ -2407,22 +2407,22 @@ backend code too.
     ...
   }
 
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.cpp
     :start-after: #if CH >= CH6_1 //3
     :end-before: #if CH >= CH8_1 //6
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.cpp
     :start-after: #if CH >= CH9_3 //4
     :end-before: #endif //#if CH >= CH9_3 //4
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.cpp
     :start-after: #endif //#if CH >= CH12_1 //7
     :end-before: #endif
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.cpp
     :start-after: #if CH >= CH9_3 //5
     :end-before: #endif
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.cpp
     :start-after: //@LowerFormalArguments {
     :end-before: #if CH >= CH3_4
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.cpp
     :start-after: #if CH >= CH9_3 //7
     :end-before: #endif
 	
@@ -2431,16 +2431,16 @@ backend code too.
     ...
   }
 
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.cpp
     :start-after: //@#if CH >= CH9_2 //6 {
     :end-before: //@analyzeCallOperands body {
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.cpp
     :start-after: #if CH >= CH9_3 //8
     :end-before: #endif
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.cpp
     :start-after: //@3 {
     :end-before: //@3 }
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.cpp
     :start-after: #if CH >= CH9_3 //9
     :end-before: #endif
 	
@@ -2451,11 +2451,11 @@ backend code too.
     ...
   }
   
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.cpp
     :start-after: #if CH >= CH9_3 //10
     :end-before: #endif
 
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.cpp
     :start-after: #if CH >= CH9_3 //11
     :end-before: #endif // #if CH >= CH9_3
 
@@ -2478,44 +2478,44 @@ languages use it frequently. The following C example code use it.
 Chapter9_3 support dynamic stack allocation with the following code added.
 
 .. rubric:: lbdex/chapters/Chapter9_3/Cpu0SEFrameLowering.h
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0SEFrameLowering.h
+.. literalinclude:: ../lbdex/Cpu0/Cpu0SEFrameLowering.h
     :start-after: #if CH >= CH9_3
     :end-before: #endif
 
 .. rubric:: lbdex/chapters/Chapter9_3/Cpu0SEFrameLowering.cpp
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0SEFrameLowering.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0SEFrameLowering.cpp
     :start-after: //@emitPrologue {
     :end-before: #if CH >= CH3_5 //1
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0SEFrameLowering.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0SEFrameLowering.cpp
     :start-after: #if CH >= CH9_3 //1
     :end-before: #endif
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0SEFrameLowering.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0SEFrameLowering.cpp
     :start-after: #if CH >= CH9_3 //2
     :end-before: //@ENABLE_GPRESTORE {
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0SEFrameLowering.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0SEFrameLowering.cpp
     :start-after: #endif // #if CH >= CH3_5 //1
     :end-before: //}
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0SEFrameLowering.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0SEFrameLowering.cpp
     :start-after: //@emitEpilogue {
     :end-before: #if CH >= CH3_5 //2
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0SEFrameLowering.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0SEFrameLowering.cpp
     :start-after: #if CH >= CH9_3 //3
     :end-before: #endif
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0SEFrameLowering.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0SEFrameLowering.cpp
     :start-after: #endif // #if CH >= CH3_5 //2
     :end-before: //}
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0SEFrameLowering.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0SEFrameLowering.cpp
     :start-after: #if CH >= CH9_3 //4
     :end-before: #endif
 
 .. rubric:: lbdex/chapters/Chapter9_3/Cpu0ISelLowering.cpp
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.cpp
     :start-after: //@Cpu0TargetLowering {
     :end-before: #if CH >= CH3_2
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.cpp
     :start-after: #if CH >= CH9_3 //2
     :end-before: //@vararg 1 {
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.cpp
     :start-after: #if CH >= CH9_3 //3
     :end-before: #endif
 
@@ -2524,16 +2524,16 @@ Chapter9_3 support dynamic stack allocation with the following code added.
   }
 
 .. rubric:: lbdex/chapters/Chapter9_3/Cpu0RegisterInfo.cpp
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0RegisterInfo.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0RegisterInfo.cpp
     :start-after: //@getReservedRegs {
     :end-before: //@getReservedRegs body {
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0RegisterInfo.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0RegisterInfo.cpp
     :start-after: #if CH >= CH9_3 //2
     :end-before: #endif
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0RegisterInfo.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0RegisterInfo.cpp
     :start-after: //@eliminateFrameIndex {
     :end-before: #if CH >= CH3_4
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0RegisterInfo.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0RegisterInfo.cpp
     :start-after: #ifdef ENABLE_GPRESTORE //2
     :end-before: #endif
 	
@@ -2733,15 +2733,15 @@ follows,
 
 
 .. rubric:: lbdex/chapters/Chapter3_2/InstPrinter/Cpu0InstPrinter.cpp
-.. literalinclude:: ../../../lib/Target/Cpu0/InstPrinter/Cpu0InstPrinter.cpp
+.. literalinclude:: ../lbdex/Cpu0/InstPrinter/Cpu0InstPrinter.cpp
     :start-after: //@1 {
     :end-before: //@1 }
 
 .. rubric:: lbdex/chapters/Chapter3_5/Cpu0InstrInfo.td
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.td
+.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td
     :start-after: //#if CH >= CH3_4 1
     :end-before: //#endif
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.td
+.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td
     :start-after: //#if CH >= CH3_4 13
     :end-before: //#endif
 

@@ -59,10 +59,10 @@ TargetMachine structure
   
 
 .. rubric:: lbdex/chapters/Chapter3_1/Cpu0.td
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0.td
+.. literalinclude:: ../lbdex/Cpu0/Cpu0.td
     :start-after: #if CH >= CH3_1 1
     :end-before: #endif
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0.td
+.. literalinclude:: ../lbdex/Cpu0/Cpu0.td
     :start-after: #if CH >= CH3_1 2
     :end-before: #endif
 
@@ -88,7 +88,7 @@ TargetMachine structure
 .. literalinclude:: ../lbdex/chapters/Chapter3_1/Cpu0InstrInfo.cpp
 
 .. rubric:: lbdex/chapters/Chapter3_1/Cpu0InstrInfo.td
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.td
+.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td
     :start-after: #if CH >= CH3_1
     :end-before: #endif
 
@@ -117,16 +117,16 @@ TargetMachine structure
 .. literalinclude:: ../lbdex/chapters/Chapter3_1/MCTargetDesc/Cpu0ABIInfo.cpp
 
 .. rubric:: lbdex/chapters/Chapter3_1/Cpu0Subtarget.h
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0Subtarget.h
+.. literalinclude:: ../lbdex/Cpu0/Cpu0Subtarget.h
     :start-after: #if CH >= CH3_1
     :end-before: #if CH >= CH6_1
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0Subtarget.h
+.. literalinclude:: ../lbdex/Cpu0/Cpu0Subtarget.h
     :start-after: //@1
     :end-before: #if CH >= CH6_1 //RM
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0Subtarget.h
+.. literalinclude:: ../lbdex/Cpu0/Cpu0Subtarget.h
     :start-after: #endif //TM
     :end-before: #if CH >= CH6_1 //hasSlt
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0Subtarget.h
+.. literalinclude:: ../lbdex/Cpu0/Cpu0Subtarget.h
     :start-after: #endif //abiUsesSoftFloat
     :end-before: #endif // #if CH >= CH3_1
 
@@ -239,10 +239,10 @@ Reference "Write An LLVM Backend" web site [#]_.
 Chapter3_1/CMakeLists.txt  modified with these new added \*.cpp as follows,
 
 .. rubric:: lbdex/chapters/Chapter3_1/CMakeLists.txt
-.. literalinclude:: ../../../lib/Target/Cpu0/CMakeLists.txt
+.. literalinclude:: ../lbdex/Cpu0/CMakeLists.txt
     :start-after: #if CH >= CH3_1 1
     :end-before: #endif
-.. literalinclude:: ../../../lib/Target/Cpu0/CMakeLists.txt
+.. literalinclude:: ../lbdex/Cpu0/CMakeLists.txt
     :start-after: #if CH >= CH3_1 2
     :end-before: #endif
 
@@ -338,7 +338,7 @@ instructions can be enabled by define CH to greater than or equal to CH4_1 as
 follows,
 
 .. rubric:: lbdex/Cpu0/Cpu0InstrInfo.td
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.td
+.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td
     :start-after: #if CH >= CH4_1 3
     :end-before: #endif
 
@@ -457,10 +457,10 @@ sub-directory MCTargetDesc as follows,
 .. literalinclude:: ../lbdex/chapters/Chapter3_2/MCTargetDesc/Cpu0BaseInfo.h
 
 .. rubric:: lbdex/chapters/Chapter3_2/Cpu0MCAsmInfo.h
-.. literalinclude:: ../../../lib/Target/Cpu0/MCTargetDesc/Cpu0MCAsmInfo.h
+.. literalinclude:: ../lbdex/Cpu0/MCTargetDesc/Cpu0MCAsmInfo.h
 
 .. rubric:: lbdex/chapters/Chapter3_2/Cpu0MCAsmInfo.cpp
-.. literalinclude:: ../../../lib/Target/Cpu0/MCTargetDesc/Cpu0MCAsmInfo.cpp
+.. literalinclude:: ../lbdex/Cpu0/MCTargetDesc/Cpu0MCAsmInfo.cpp
 
 
 Finally, add code in Cpu0MCTargetDesc.cpp to register Cpu0InstPrinter as 
@@ -485,19 +485,19 @@ subtarget) defined in Chapter3_1 at this point.
   }
 
 .. rubric:: lbdex/chapters/Chapter3_2/MCTargetDesc/Cpu0MCTargetDesc.cpp
-.. literalinclude:: ../../../lib/Target/Cpu0/MCTargetDesc/Cpu0MCTargetDesc.cpp
+.. literalinclude:: ../lbdex/Cpu0/MCTargetDesc/Cpu0MCTargetDesc.cpp
     :start-after: #if CH >= CH3_2 //1
     :end-before: #endif
 .. literalinclude:: ../lbdex/chapters/Chapter3_2/MCTargetDesc/Cpu0MCTargetDesc.cpp
     :start-after: //@1 {
 
 .. rubric:: lbdex/chapters/Chapter3_2/MCTargetDesc/CMakeLists.txt
-.. literalinclude:: ../../../lib/Target/Cpu0/MCTargetDesc/CMakeLists.txt
+.. literalinclude:: ../lbdex/Cpu0/MCTargetDesc/CMakeLists.txt
     :start-after: #if CH >= CH3_2
     :end-before: #endif
 
 .. rubric:: lbdex/chapters/Chapter3_2/MCTargetDesc/LLVMBuild.txt
-.. literalinclude:: ../../../lib/Target/Cpu0/MCTargetDesc/LLVMBuild.txt
+.. literalinclude:: ../lbdex/Cpu0/MCTargetDesc/LLVMBuild.txt
     :start-after: #if CH >= CH3_2
     :end-before: #endif
 
@@ -601,7 +601,7 @@ subdirectory InstPrinter, enable asmprinter, adding libraries AsmPrinter and
 Cpu0AsmPrinter to LLVMBuild.txt as follows,
 
 .. rubric:: lbdex/chapters/Chapter3_2/CMakeLists.txt
-.. literalinclude:: ../../../lib/Target/Cpu0/CMakeLists.txt
+.. literalinclude:: ../lbdex/Cpu0/CMakeLists.txt
     :start-after: #if CH >= CH3_2 1
     :end-before: #endif
 
@@ -610,7 +610,7 @@ Cpu0AsmPrinter to LLVMBuild.txt as follows,
   ...
   add_llvm_target(Cpu0CodeGen
 
-.. literalinclude:: ../../../lib/Target/Cpu0/CMakeLists.txt
+.. literalinclude:: ../lbdex/Cpu0/CMakeLists.txt
     :start-after: #if CH >= CH3_2 2
     :end-before: #endif
 
@@ -620,7 +620,7 @@ Cpu0AsmPrinter to LLVMBuild.txt as follows,
     )
   ...
  
-.. literalinclude:: ../../../lib/Target/Cpu0/CMakeLists.txt
+.. literalinclude:: ../lbdex/Cpu0/CMakeLists.txt
     :start-after: #if CH >= CH3_2 3
     :end-before: #endif
 
@@ -712,7 +712,7 @@ the following fragment to Cpu0TargetMachine.cpp,
   add_llvm_target(
     ...
   
-.. literalinclude:: ../../../lib/Target/Cpu0/CMakeLists.txt
+.. literalinclude:: ../lbdex/Cpu0/CMakeLists.txt
     :start-after: #if CH >= CH3_3
     :end-before: #endif
   
@@ -731,7 +731,7 @@ selection stage.
   public:
     ...
 
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0TargetMachine.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0TargetMachine.cpp
     :start-after: #if CH >= CH3_3 //1
     :end-before: #endif
 	
@@ -740,7 +740,7 @@ selection stage.
   };
   ...
 
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0TargetMachine.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0TargetMachine.cpp
     :start-after: #if CH >= CH3_3 //2
     :end-before: #endif
 
@@ -805,12 +805,12 @@ Chapter3_3 adding the following code in Cpu0InstInfo.cpp to enable debug
 information which called by llvm at proper time.
 
 .. rubric:: lbdex/chapters/Chapter3_3/Cpu0InstrInfo.h
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.h
+.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.h
     :start-after: #if CH >= CH3_3
     :end-before: #endif
 
 .. rubric:: lbdex/chapters/Chapter3_3/Cpu0InstrInfo.cpp
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.cpp
     :start-after: #if CH >= CH3_3
     :end-before: #endif
 
@@ -833,10 +833,10 @@ Above can display the error message DAG node "Cpu0ISD::Ret" because the followin
 code added in Chapter3_1/Cpu0ISelLowering.cpp.
 
 .. rubric:: lbdex/chapters/Chapter3_1/Cpu0ISelLowering.cpp
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.cpp
     :start-after: //@3_1 1 {
     :end-before: #if CH >= CH12_1 //5
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.cpp
     :start-after: #endif //#if CH >= CH12_1 //5
     :end-before: //@3_1 1 }
 
@@ -850,7 +850,7 @@ Handle return register lr
   add_llvm_target(
     ...
   
-.. literalinclude:: ../../../lib/Target/Cpu0/CMakeLists.txt
+.. literalinclude:: ../lbdex/Cpu0/CMakeLists.txt
     :start-after: #if CH >= CH3_4
     :end-before: #endif
   
@@ -860,104 +860,104 @@ Handle return register lr
   )
 
 .. rubric:: lbdex/chapters/Chapter3_4/Cpu0AnalyzeImmediate.h
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0AnalyzeImmediate.h
+.. literalinclude:: ../lbdex/Cpu0/Cpu0AnalyzeImmediate.h
 
 .. rubric:: lbdex/chapters/Chapter3_4/Cpu0AnalyzeImmediate.cpp
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0AnalyzeImmediate.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0AnalyzeImmediate.cpp
 
 .. rubric:: lbdex/chapters/Chapter3_4/Cpu0CallingConv.td
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0CallingConv.td
+.. literalinclude:: ../lbdex/Cpu0/Cpu0CallingConv.td
     :start-after: #if CH >= CH3_4 1
     :end-before: #endif
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0CallingConv.td
+.. literalinclude:: ../lbdex/Cpu0/Cpu0CallingConv.td
     :start-after: #if CH >= CH3_4 2
     :end-before: #endif
 
 .. rubric:: lbdex/chapters/Chapter3_4/Cpu0FrameLowering.h
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0FrameLowering.h
+.. literalinclude:: ../lbdex/Cpu0/Cpu0FrameLowering.h
     :start-after: #if CH >= CH3_4
     :end-before: #endif
 
 .. rubric:: lbdex/chapters/Chapter3_4/Cpu0FrameLowering.cpp
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0FrameLowering.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0FrameLowering.cpp
     :start-after: #if CH >= CH3_4 //1
     :end-before: #endif
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0FrameLowering.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0FrameLowering.cpp
     :start-after: #if CH >= CH3_4 //2
     :end-before: #endif
 
 .. rubric:: lbdex/chapters/Chapter3_4/Cpu0SEFrameLowering.cpp
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0SEFrameLowering.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0SEFrameLowering.cpp
     :start-after: #if CH >= CH3_4
     :end-before: #endif
 
 .. rubric:: lbdex/chapters/Chapter3_4/Cpu0InstrFormats.td
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrFormats.td
+.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrFormats.td
     :start-after: #if CH >= CH3_4
     :end-before: #endif
 
 .. rubric:: lbdex/chapters/Chapter3_4/Cpu0InstrInfo.td
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.td
+.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td
     :start-after: #if CH >= CH3_4 1
     :end-before: #endif
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.td
+.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td
     :start-after: #if CH >= CH3_4 2
     :end-before: #endif
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.td
+.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td
     :start-after: #if CH >= CH3_4 3
     :end-before: #endif
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.td
+.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td
     :start-after: #if CH >= CH3_4 4
     :end-before: #endif
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.td
+.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td
     :start-after: #if CH >= CH3_4 5
     :end-before: #endif
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.td
+.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td
     :start-after: #if CH >= CH3_4 6
     :end-before: #endif
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.td
+.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td
     :start-after: #if CH >= CH3_4 7
     :end-before: #endif
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.td
+.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td
     :start-after: #if CH >= CH3_4 8
     :end-before: #endif
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.td
+.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td
     :start-after: #if CH >= CH3_4 9
     :end-before: #endif
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.td
+.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td
     :start-after: #if CH >= CH3_4 10
     :end-before: #endif
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.td
+.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td
     :start-after: #if CH >= CH3_4 11
     :end-before: #endif
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.td
+.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td
     :start-after: #if CH >= CH3_4 12
     :end-before: #endif
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.td
+.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td
     :start-after: #if CH >= CH3_4 13
     :end-before: #endif
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.td
+.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td
     :start-after: #if CH >= CH3_4 14
     :end-before: #endif
 
 .. rubric:: lbdex/chapters/Chapter3_4/Cpu0InstrInfo.h
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.h
+.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.h
     :start-after: #if CH >= CH3_4 //1
     :end-before: #endif
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.h
+.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.h
     :start-after: #if CH >= CH3_4 //2
     :end-before: #endif
 
 .. rubric:: lbdex/chapters/Chapter3_4/Cpu0SEInstrInfo.h
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0SEInstrInfo.h
+.. literalinclude:: ../lbdex/Cpu0/Cpu0SEInstrInfo.h
     :start-after: #if CH >= CH3_4
     :end-before: #endif
 
 .. rubric:: lbdex/chapters/Chapter3_4/Cpu0SEInstrInfo.cpp
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0SEInstrInfo.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0SEInstrInfo.cpp
     :start-after: #if CH >= CH3_4 //1
     :end-before: #endif //1
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0SEInstrInfo.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0SEInstrInfo.cpp
     :start-after: #if CH >= CH3_4 //2
     :end-before: #endif //2
 
@@ -967,10 +967,10 @@ Handle return register lr
     :end-before: //@CH3_4 1 }
 
 .. rubric:: lbdex/chapters/Chapter3_4/Cpu0ISelLowering.cpp
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.cpp
     :start-after: #if CH >= CH3_1 //LowerReturn
     :end-before: #if CH >= CH3_4 //in LowerReturn
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.cpp
     :start-after: #if CH >= CH3_4 //in LowerReturn
     :end-before: #else // #if CH >= CH3_4
 
@@ -978,35 +978,35 @@ Handle return register lr
 
   }
 
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.cpp
     :start-after: #if CH >= CH3_4 //analyzeReturn
     :end-before: #endif // #if CH >= CH3_4 //analyzeReturn
 
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.cpp
     :start-after: #if CH >= CH3_4 //reservedArgArea
     :end-before: #endif
 
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.cpp
     :start-after: #if CH >= CH3_4 //getRegVT
     :end-before: #endif
 
 .. rubric:: lbdex/chapters/Chapter3_4/Cpu0MachineFunction.h
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0MachineFunction.h
+.. literalinclude:: ../lbdex/Cpu0/Cpu0MachineFunction.h
     :start-after: //@1 {
     :end-before: public:
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0MachineFunction.h
+.. literalinclude:: ../lbdex/Cpu0/Cpu0MachineFunction.h
     :start-after: #if CH >= CH3_4 //1
     :end-before: #endif
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0MachineFunction.h
+.. literalinclude:: ../lbdex/Cpu0/Cpu0MachineFunction.h
     :start-after: #if CH >= CH3_4 //2
     :end-before: #endif
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0MachineFunction.h
+.. literalinclude:: ../lbdex/Cpu0/Cpu0MachineFunction.h
     :start-after: #if CH >= CH3_4 //3
     :end-before: #endif
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0MachineFunction.h
+.. literalinclude:: ../lbdex/Cpu0/Cpu0MachineFunction.h
     :start-after: #if CH >= CH3_4 //4
     :end-before: #endif
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0MachineFunction.h
+.. literalinclude:: ../lbdex/Cpu0/Cpu0MachineFunction.h
     :start-after: #if CH >= CH3_4 //5
     :end-before: #endif
 
@@ -1021,7 +1021,7 @@ Handle return register lr
     :end-before: //}
 
 .. rubric:: lbdex/chapters/Chapter3_4/Cpu0SEISelDAGToDAG.cpp
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0SEISelDAGToDAG.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0SEISelDAGToDAG.cpp
     :start-after: #if CH >= CH3_4
     :end-before: #endif
 
@@ -1032,10 +1032,10 @@ To handle IR ret, these code in Cpu0InstrInfo.td do things as below.
 following code,
 
 .. rubric:: lbdex/chapters/Chapter3_4/Cpu0InstrInfo.td
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.td
+.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td
     :start-after: //#if CH >= CH2 2
     :end-before: //#endif
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.td
+.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td
     :start-after: //#if CH >= CH3_4 12
     :end-before: //#endif
 
@@ -1079,10 +1079,10 @@ following code,
    Printer" stage.
 
 .. rubric:: lbdex/chapters/Chapter2/Cpu0InstrInfo.td
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.td
+.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td
     :start-after: //#if CH >= CH2 12
     :end-before: //#endif
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.td
+.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td
     :start-after: //#if CH >= CH2 15
     :end-before: //#endif
 
@@ -1307,7 +1307,7 @@ bottom) as follows,
 The Prologue and Epilogue functions as follows,
 
 .. rubric:: lbdex/chapters/Chapter3_5/Cpu0SEFrameLowering.h
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0SEFrameLowering.h
+.. literalinclude:: ../lbdex/Cpu0/Cpu0SEFrameLowering.h
     :start-after: #if CH >= CH3_5
     :end-before: #endif
 
@@ -1326,7 +1326,7 @@ The Prologue and Epilogue functions as follows,
     :end-before: //}
 
 .. rubric:: lbdex/chapters/Chapter3_5/Cpu0MachineFunction.h
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0MachineFunction.h
+.. literalinclude:: ../lbdex/Cpu0/Cpu0MachineFunction.h
     :start-after: #if CH >= CH3_5
     :end-before: #endif
 
@@ -1485,12 +1485,12 @@ pattern defined in Cpu0InstrInfo.td.
 
 
 .. rubric:: lbdex/chapters/Chapter2/Cpu0InstrInfo.td
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.td
+.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td
     :start-after: //#if CH >= CH2 17
     :end-before: //#endif
 
 .. rubric:: lbdex/chapters/Chapter3_4/Cpu0InstrInfo.td
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.td
+.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td
     :start-after: //#if CH >= CH3_4 14
     :end-before: //#endif
 
@@ -1679,13 +1679,13 @@ List some of data DAGs we understand and occured until now as follows,
   }
 
 .. rubric:: lbdex/chapters/Chapter3_5/Cpu0InstrInfo.td
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.td
+.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td
     :start-after: //#if CH >= CH2 4
     :end-before: //#endif
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.td
+.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td
     :start-after: //#if CH >= CH3_4 2
     :end-before: //#endif
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.td
+.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td
     :start-after: //#if CH >= CH2 5
     :end-before: //#if CH >= CH11_1 2
 
@@ -1693,22 +1693,22 @@ List some of data DAGs we understand and occured until now as follows,
 
   }
 
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.td
+.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td
     :start-after: //#if CH >= CH3_4 3
     :end-before: //#endif
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.td
+.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td
     :start-after: //#if CH >= CH2 6
     :end-before: //#endif
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.td
+.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td
     :start-after: //#if CH >= CH3_4 4
     :end-before: //#endif
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.td
+.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td
     :start-after: //#if CH >= CH2 7
     :end-before: //#endif
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.td
+.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td
     :start-after: //#if CH >= CH2 8
     :end-before: //#endif
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.td
+.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td
     :start-after: //#if CH >= CH2 9
     :end-before: //#endif
 

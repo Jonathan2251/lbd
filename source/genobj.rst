@@ -114,7 +114,7 @@ To support elf obj generation, the following code changed and added to
 Chapter5_1.
 
 .. rubric:: lbdex/chapters/Chapter5_1/MCTargetDesc/CMakeLists.txt
-.. literalinclude:: ../../../lib/Target/Cpu0/MCTargetDesc/CMakeLists.txt
+.. literalinclude:: ../lbdex/Cpu0/MCTargetDesc/CMakeLists.txt
     :start-after: #if CH >= CH5_1
     :end-before: #endif
 
@@ -125,7 +125,7 @@ Chapter5_1.
 .. literalinclude:: ../lbdex/chapters/Chapter5_1/MCTargetDesc/Cpu0AsmBackend.cpp
 
 .. rubric:: lbdex/chapters/Chapter5_1/MCTargetDesc/Cpu0BaseInfo.h
-.. literalinclude:: ../../../lib/Target/Cpu0/MCTargetDesc/Cpu0BaseInfo.h
+.. literalinclude:: ../lbdex/Cpu0/MCTargetDesc/Cpu0BaseInfo.h
     :start-after: #if CH >= CH5_1
     :end-before: #endif
 
@@ -142,21 +142,21 @@ Chapter5_1.
 .. literalinclude:: ../lbdex/chapters/Chapter5_1/MCTargetDesc/Cpu0MCCodeEmitter.cpp
 
 .. rubric:: lbdex/chapters/Chapter5_1/MCTargetDesc/Cpu0MCTargetDesc.h
-.. literalinclude:: ../../../lib/Target/Cpu0/MCTargetDesc/Cpu0MCTargetDesc.h
+.. literalinclude:: ../lbdex/Cpu0/MCTargetDesc/Cpu0MCTargetDesc.h
     :start-after: #if CH >= CH5_1
     :end-before: #endif
 
 .. rubric:: lbdex/chapters/Chapter5_1/MCTargetDesc/Cpu0MCTargetDesc.cpp
-.. literalinclude:: ../../../lib/Target/Cpu0/MCTargetDesc/Cpu0MCTargetDesc.cpp
+.. literalinclude:: ../lbdex/Cpu0/MCTargetDesc/Cpu0MCTargetDesc.cpp
     :start-after: #if CH >= CH5_1 //1
     :end-before: #endif
-.. literalinclude:: ../../../lib/Target/Cpu0/MCTargetDesc/Cpu0MCTargetDesc.cpp
+.. literalinclude:: ../lbdex/Cpu0/MCTargetDesc/Cpu0MCTargetDesc.cpp
     :start-after: //@2 {
     :end-before: #if CH >= CH3_2
-.. literalinclude:: ../../../lib/Target/Cpu0/MCTargetDesc/Cpu0MCTargetDesc.cpp
+.. literalinclude:: ../lbdex/Cpu0/MCTargetDesc/Cpu0MCTargetDesc.cpp
     :start-after: #if CH >= CH5_1 //2
     :end-before: #endif
-.. literalinclude:: ../../../lib/Target/Cpu0/MCTargetDesc/Cpu0MCTargetDesc.cpp
+.. literalinclude:: ../lbdex/Cpu0/MCTargetDesc/Cpu0MCTargetDesc.cpp
     :start-after: #endif // #if CH >= CH3_2
     :end-before: //@2 }
 
@@ -177,13 +177,13 @@ Cpu0MCCodeEmitter.cpp will be called since it override the same name of
 function in parent class MCCodeEmitter. 
 
 .. rubric:: lbdex/chapters/Chapter2/Cpu0InstrInfo.td
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.td
+.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td
     :start-after: //#if CH >= CH2 5
     :end-before: //#if CH >= CH11_1
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.td
+.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td
     :start-after: //#endif //#if CH >= CH11_1 2
     :end-before: //#endif //#if CH >= CH2 5
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.td
+.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td
     :start-after: //@ 32-bit load.
     :end-before: //#endif
 

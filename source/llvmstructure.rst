@@ -1166,18 +1166,18 @@ Now, let's recall the ADDiu instruction defined in Cpu0InstrInfo.td of the
 previous chapter. Listing them again as follows,
 
 .. rubric:: lbdex/chapters/Chapter2/Cpu0InstrFormats.td
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrFormats.td
+.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrFormats.td
     :start-after: //@class FL {
     :end-before: //@class FL }
 
 .. rubric:: lbdex/chapters/Chapter2/Cpu0InstrInfo.td
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.td
+.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td
     :start-after: //#if CH >= CH2 6
     :end-before: #endif
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.td
+.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td
     :start-after: //#if CH >= CH2 10
     :end-before: #endif
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.td
+.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td
     :start-after: //#if CH >= CH2 14
     :end-before: #endif
 
@@ -1862,13 +1862,13 @@ big endian and TheCpu0elTarget for little endian, as follows.
 .. literalinclude:: ../lbdex/chapters/Chapter2/Cpu0.h
 
 .. rubric:: lbdex/chapters/Chapter2/TargetInfo/Cpu0TargetInfo.cpp
-.. literalinclude:: ../../../lib/Target/Cpu0/TargetInfo/Cpu0TargetInfo.cpp
+.. literalinclude:: ../lbdex/Cpu0/TargetInfo/Cpu0TargetInfo.cpp
 
 .. rubric:: lbdex/chapters/Chapter2/TargetInfo/CMakeLists.txt
-.. literalinclude:: ../../../lib/Target/Cpu0/TargetInfo/CMakeLists.txt
+.. literalinclude:: ../lbdex/Cpu0/TargetInfo/CMakeLists.txt
 
 .. rubric:: lbdex/chapters/Chapter2/TargetInfo/LLVMBuild.txt
-.. literalinclude:: ../../../lib/Target/Cpu0/TargetInfo/LLVMBuild.txt
+.. literalinclude:: ../lbdex/Cpu0/TargetInfo/LLVMBuild.txt
 
 Files Cpu0TargetMachine.cpp and MCTargetDesc/Cpu0MCTargetDesc.cpp just define 
 the empty initialize function since we register nothing in them for this moment.

@@ -31,7 +31,7 @@ Arithmetic
 The code added in Chapter4_1/ to support arithmetic instructions as follows,
 
 .. rubric:: lbdex/chapters/Chapter4_1/MCTargetDesc/Cpu0BaseInfo.h
-.. literalinclude:: ../../../lib/Target/Cpu0/MCTargetDesc/Cpu0BaseInfo.h
+.. literalinclude:: ../lbdex/Cpu0/MCTargetDesc/Cpu0BaseInfo.h
     :start-after: //@get register number
     :end-before: //@1
 
@@ -39,7 +39,7 @@ The code added in Chapter4_1/ to support arithmetic instructions as follows,
 
     ...
   
-.. literalinclude:: ../../../lib/Target/Cpu0/MCTargetDesc/Cpu0BaseInfo.h
+.. literalinclude:: ../lbdex/Cpu0/MCTargetDesc/Cpu0BaseInfo.h
     :start-after: #if CH >= CH4_1
     :end-before: #endif
 
@@ -50,10 +50,10 @@ The code added in Chapter4_1/ to support arithmetic instructions as follows,
   }
 
 .. rubric:: lbdex/chapters/Chapter4_1/Cpu0Subtarget.cpp
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0Subtarget.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0Subtarget.cpp
     :start-after: #if CH >= CH4_1 //1
     :end-before: #endif
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0Subtarget.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0Subtarget.cpp
     :start-after: //@1 {
     :end-before: //@1 }
 	
@@ -61,7 +61,7 @@ The code added in Chapter4_1/ to support arithmetic instructions as follows,
   
     ...
   
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0Subtarget.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0Subtarget.cpp
     :start-after: #if CH >= CH4_1 //2
     :end-before: #endif
 	
@@ -71,44 +71,44 @@ The code added in Chapter4_1/ to support arithmetic instructions as follows,
   }
 
 .. rubric:: lbdex/chapters/Chapter4_1/Cpu0InstrInfo.td
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.td
+.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td
     :start-after: //#if CH >= CH4_1 1
     :end-before: //#endif
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.td
+.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td
     :start-after: //#if CH >= CH4_1 2
     :end-before: //#endif
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.td
+.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td
     :start-after: //#if CH >= CH4_1 3
     :end-before: //#endif
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.td
+.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td
     :start-after: //#if CH >= CH4_1 4
     :end-before: //#endif
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.td
+.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td
     :start-after: //#if CH >= CH4_1 5
     :end-before: //#endif
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.td
+.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td
     :start-after: //#if CH >= CH4_1 6
     :end-before: //#endif
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.td
+.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td
     :start-after: //#if CH >= CH4_1 7
     :end-before: //#endif
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.td
+.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td
     :start-after: //#if CH >= CH4_1 8
     :end-before: //#endif
 
 .. rubric:: lbdex/chapters/Chapter4_1/Cpu0ISelLowering.h
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.h
+.. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.h
     :start-after: #if CH >= CH4_1
     :end-before: #endif
 
 .. rubric:: lbdex/chapters/Chapter4_1/Cpu0ISelLowering.cpp
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.cpp
     :start-after: //@Cpu0TargetLowering {
     :end-before: #if CH >= CH3_2
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.cpp
     :start-after: #if CH >= CH4_1 //1
     :end-before: #endif
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.cpp
     :start-after: #if CH >= CH4_1 //2
     :end-before: #endif
 
@@ -118,15 +118,15 @@ The code added in Chapter4_1/ to support arithmetic instructions as follows,
   }
   ...
 
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.cpp
     :start-after: #if CH >= CH4_1 //3
     :end-before: #endif
 
 .. rubric:: lbdex/chapters/Chapter4_1/Cpu0RegisterInfo.td
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0RegisterInfo.td
+.. literalinclude:: ../lbdex/Cpu0/Cpu0RegisterInfo.td
     :start-after: //@ All registers definition
     :end-before: //@ General Purpose Registers
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0RegisterInfo.td
+.. literalinclude:: ../lbdex/Cpu0/Cpu0RegisterInfo.td
     :start-after: //#if CH >= CH4_1 1
     :end-before: //#endif
 	
@@ -135,18 +135,18 @@ The code added in Chapter4_1/ to support arithmetic instructions as follows,
   }
   ...
 
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0RegisterInfo.td
+.. literalinclude:: ../lbdex/Cpu0/Cpu0RegisterInfo.td
     :start-after: //#if CH >= CH4_1 2
     :end-before: //#endif
 
 .. rubric:: lbdex/chapters/Chapter4_1/Cpu0Schedule.td
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0Schedule.td
+.. literalinclude:: ../lbdex/Cpu0/Cpu0Schedule.td
     :start-after: //#if CH >= CH4_1 1
     :end-before: //#endif
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0Schedule.td
+.. literalinclude:: ../lbdex/Cpu0/Cpu0Schedule.td
     :start-after: //@ http://llvm.org/docs/doxygen/html/structllvm_1_1InstrStage.html
     :end-before: //@2
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0Schedule.td
+.. literalinclude:: ../lbdex/Cpu0/Cpu0Schedule.td
     :start-after: //#if CH >= CH4_1 2
     :end-before: //#endif
 
@@ -155,18 +155,18 @@ The code added in Chapter4_1/ to support arithmetic instructions as follows,
   ]>;
 
 .. rubric:: lbdex/chapters/Chapter4_1/Cpu0SEISelDAGToDAG.h
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0SEISelDAGToDAG.h
+.. literalinclude:: ../lbdex/Cpu0/Cpu0SEISelDAGToDAG.h
     :start-after: #if CH >= CH4_1
     :end-before: #endif
 
 .. rubric:: lbdex/chapters/Chapter4_1/Cpu0SEISelDAGToDAG.cpp
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0SEISelDAGToDAG.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0SEISelDAGToDAG.cpp
     :start-after: #if CH >= CH4_1 //1
     :end-before: #endif
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0SEISelDAGToDAG.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0SEISelDAGToDAG.cpp
     :start-after: //@selectNode
     :end-before: #if CH >= CH7_1 //2
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0SEISelDAGToDAG.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0SEISelDAGToDAG.cpp
     :start-after: #if CH >= CH4_1 //2
     :end-before: #endif
 	
@@ -177,12 +177,12 @@ The code added in Chapter4_1/ to support arithmetic instructions as follows,
     }
 
 .. rubric:: lbdex/chapters/Chapter4_1/Cpu0SEInstrInfo.h
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0SEInstrInfo.h
+.. literalinclude:: ../lbdex/Cpu0/Cpu0SEInstrInfo.h
     :start-after: #if CH >= CH4_1
     :end-before: #endif
 
 .. rubric:: lbdex/chapters/Chapter4_1/Cpu0SEInstrInfo.cpp
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0SEInstrInfo.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0SEInstrInfo.cpp
     :start-after: #if CH >= CH4_1
     :end-before: #endif
 
@@ -1214,39 +1214,39 @@ these operators IR, DAG and instructions as below. Please check them with the
 run result of bc and asm instructions for ch4_5.cpp as below.
 
 .. rubric:: lbdex/chapters/Chapter4_2/Cpu0InstrInfo.td
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.td
+.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td
     :start-after: //#if CH >= CH4_2 1
     :end-before: //#endif
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.td
+.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td
     :start-after: //#if CH >= CH4_2 2
     :end-before: //#endif
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.td
+.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td
     :start-after: //#if CH >= CH4_2 3
     :end-before: //#endif
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.td
+.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td
     :start-after: //#if CH >= CH4_2 4
     :end-before: //#endif
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.td
+.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td
     :start-after: //#if CH >= CH4_2 5
     :end-before: //#endif
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.td
+.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td
     :start-after: //#if CH >= CH4_2 6
     :end-before: //#endif
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.td
+.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td
     :start-after: //#if CH >= CH4_2 7
     :end-before: //#endif
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.td
+.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td
     :start-after: //#if CH >= CH4_2 8
     :end-before: //#endif
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.td
+.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td
     :start-after: //#if CH >= CH4_2 9
     :end-before: //#endif
 
 .. rubric:: lbdex/chapters/Chapter4_2/Cpu0ISelLowering.cpp
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.cpp
     :start-after: //@Cpu0TargetLowering {
     :end-before: #if CH >= CH3_2
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.cpp
     :start-after: #if CH >= CH4_2
     :end-before: #endif
 

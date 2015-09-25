@@ -42,13 +42,13 @@ Directory AsmParser handle the assembly to obj translation.
 The Chapter11_1/ include AsmParser implementation as follows,
 
 .. rubric:: lbdex/chapters/Chapter11_1/AsmParser/Cpu0AsmParser.cpp
-.. literalinclude:: ../../../lib/Target/Cpu0/AsmParser/Cpu0AsmParser.cpp
+.. literalinclude:: ../lbdex/Cpu0/AsmParser/Cpu0AsmParser.cpp
 
 .. rubric:: lbdex/chapters/Chapter11_1/AsmParser/CMakeLists.txt
-.. literalinclude:: ../../../lib/Target/Cpu0/AsmParser/CMakeLists.txt
+.. literalinclude:: ../lbdex/Cpu0/AsmParser/CMakeLists.txt
 
 .. rubric:: lbdex/chapters/Chapter11_1/AsmParser/LLVMBuild.txt
-.. literalinclude:: ../../../lib/Target/Cpu0/AsmParser/LLVMBuild.txt
+.. literalinclude:: ../lbdex/Cpu0/AsmParser/LLVMBuild.txt
 
 
 The Cpu0AsmParser.cpp contains one thousand lines of code which do the assembly 
@@ -57,28 +57,28 @@ To let file directory of AsmParser be built, modify CMakeLists.txt and
 LLVMBuild.txt as follows,
 
 .. rubric:: lbdex/chapters/Chapter11_1/CMakeLists.txt
-.. literalinclude:: ../../../lib/Target/Cpu0/CMakeLists.txt
+.. literalinclude:: ../lbdex/Cpu0/CMakeLists.txt
     :start-after: #if CH >= CH11_1 1
     :end-before: #endif
 
 
   
 .. rubric:: lbdex/chapters/Chapter11_1/LLVMBuild.txt
-.. literalinclude:: ../../../lib/Target/Cpu0/LLVMBuild.txt
+.. literalinclude:: ../lbdex/Cpu0/LLVMBuild.txt
     :start-after: [common]
     :end-before: #if CH >= CH11_1 1
-.. literalinclude:: ../../../lib/Target/Cpu0/LLVMBuild.txt
+.. literalinclude:: ../lbdex/Cpu0/LLVMBuild.txt
     :start-after: #if CH >= CH11_1 1
     :end-before: #endif
-.. literalinclude:: ../../../lib/Target/Cpu0/LLVMBuild.txt
+.. literalinclude:: ../lbdex/Cpu0/LLVMBuild.txt
     :start-after: #if CH >= CH11_1 2
     :end-before: #endif
 
 .. rubric:: lbdex/chapters/Chapter11_1/Cpu0Asm.td
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0Asm.td
+.. literalinclude:: ../lbdex/Cpu0/Cpu0Asm.td
 
 .. rubric:: lbdex/chapters/Chapter11_1/Cpu0RegisterInfoGPROutForAsm.td
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0RegisterInfoGPROutForAsm.td
+.. literalinclude:: ../lbdex/Cpu0/Cpu0RegisterInfoGPROutForAsm.td
 
 
 The CMakeLists.txt add code as above to generate Cpu0GenAsmMatcher.inc 
@@ -110,7 +110,7 @@ def CPURegs : RegisterClass<"Cpu0", [i32], 32, (add
   , PC, EPC)>;
 
 .. rubric:: lbdex/chapters/Chapter11_1/Cpu0.td
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0.td
+.. literalinclude:: ../lbdex/Cpu0/Cpu0.td
     :start-after: #if CH >= CH11_1 1
     :end-before: //#endif
     
@@ -119,7 +119,7 @@ def CPURegs : RegisterClass<"Cpu0", [i32], 32, (add
   def Cpu0 : Target {
     ...
 
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0.td
+.. literalinclude:: ../lbdex/Cpu0/Cpu0.td
     :start-after: #if CH >= CH11_1 2
     :end-before: //#endif
 
@@ -128,7 +128,7 @@ def CPURegs : RegisterClass<"Cpu0", [i32], 32, (add
   }
   
 .. rubric:: lbdex/chapters/Chapter11_1/Cpu0InstrFormats.td
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrFormats.td
+.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrFormats.td
     :start-after: #if CH >= CH11_1
     :end-before: //#endif
   
@@ -147,7 +147,7 @@ def CPURegs : RegisterClass<"Cpu0", [i32], 32, (add
   }
   ...
 
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.td
+.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td
     :start-after: #if CH >= CH11_1 3
     :end-before: //#endif
 
@@ -208,10 +208,10 @@ Above three Pseudo Instruction definitions in Cpu0InstrInfo.td, such as
 LoadImm32Reg, are handled by Cpu0AsmParser.cpp as follows,
 
 .. rubric:: lbdex/chapters/Chapter11_1/AsmParser/Cpu0AsmParser.cpp
-.. literalinclude:: ../../../lib/Target/Cpu0/AsmParser/Cpu0AsmParser.cpp
+.. literalinclude:: ../lbdex/Cpu0/AsmParser/Cpu0AsmParser.cpp
     :start-after: //@1 {
     :end-before: //@1 }
-.. literalinclude:: ../../../lib/Target/Cpu0/AsmParser/Cpu0AsmParser.cpp
+.. literalinclude:: ../lbdex/Cpu0/AsmParser/Cpu0AsmParser.cpp
     :start-after: //@2 {
     :end-before: //@2 }
 
@@ -224,7 +224,7 @@ Finally, remind the CPURegs as below must follow the order of register number
 because AsmParser uses them when do register number encode.
 
 .. rubric:: lbdex/chapters/Chapter11_1/Cpu0RegisterInfo.td
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0RegisterInfo.td
+.. literalinclude:: ../lbdex/Cpu0/Cpu0RegisterInfo.td
     :start-after: //@Registers
     :end-before: //#if CH >= CH4_1 2
 
@@ -338,42 +338,42 @@ assembly language. Reference here [#]_. Chapter11_2 support inline assembly
 as follows,
 
 .. rubric:: lbdex/chapters/Chapter11_2/Cpu0AsmPrinter.h
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0AsmPrinter.h
+.. literalinclude:: ../lbdex/Cpu0/Cpu0AsmPrinter.h
     :start-after: #if CH >= CH11_2
     :end-before: #endif
 
 .. rubric:: lbdex/chapters/Chapter11_2/Cpu0AsmPrinter.cpp
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0AsmPrinter.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0AsmPrinter.cpp
     :start-after: #if CH >= CH11_2
     :end-before: #endif // #if CH >= CH11_2
 
 .. rubric:: lbdex/chapters/Chapter11_2/Cpu0InstrInfo.h
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.h
+.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.h
     :start-after: #if CH >= CH11_2
     :end-before: #endif
 
 .. rubric:: lbdex/chapters/Chapter11_2/Cpu0InstrInfo.cpp
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.cpp
     :start-after: #if CH >= CH11_2
     :end-before: #endif
 
 .. rubric:: lbdex/chapters/Chapter11_2/Cpu0ISelDAGToDAG.h
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelDAGToDAG.h
+.. literalinclude:: ../lbdex/Cpu0/Cpu0ISelDAGToDAG.h
     :start-after: #if CH >= CH11_2
     :end-before: #endif
 
 .. rubric:: lbdex/chapters/Chapter11_2/Cpu0ISelDAGToDAG.cpp
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelDAGToDAG.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0ISelDAGToDAG.cpp
     :start-after: #if CH >= CH11_2
     :end-before: #endif
 
 .. rubric:: lbdex/chapters/Chapter11_2/Cpu0ISelLowering.h
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.h
+.. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.h
     :start-after: #if CH >= CH11_2
     :end-before: #endif
 
 .. rubric:: lbdex/chapters/Chapter11_2/Cpu0ISelLowering.cpp
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.cpp
     :start-after: #if CH >= CH11_2
     :end-before: #endif // #if CH >= CH11_2
 

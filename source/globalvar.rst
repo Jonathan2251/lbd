@@ -364,7 +364,7 @@ The default of **UseSmallSectionOpt** is false if without specify it further.
 About the **cl::opt** command line variable, you can refer to here [#]_ further.
 
 .. rubric:: lbdex/chapters/Chapter6_1/Cpu0Subtarget.h
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0Subtarget.h
+.. literalinclude:: ../lbdex/Cpu0/Cpu0Subtarget.h
     :start-after: #if CH >= CH6_1 //1
     :end-before: #endif
 
@@ -373,10 +373,10 @@ About the **cl::opt** command line variable, you can refer to here [#]_ further.
   class Cpu0Subtarget : public Cpu0GenSubtargetInfo {
     ...
 
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0Subtarget.h
+.. literalinclude:: ../lbdex/Cpu0/Cpu0Subtarget.h
     :start-after: #if CH >= CH6_1 //RM
     :end-before: #endif //TM
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0Subtarget.h
+.. literalinclude:: ../lbdex/Cpu0/Cpu0Subtarget.h
     :start-after: #if CH >= CH6_1 //hasSlt
     :end-before: #endif //abiUsesSoftFloat
 
@@ -386,13 +386,13 @@ About the **cl::opt** command line variable, you can refer to here [#]_ further.
   };
 
 .. rubric:: lbdex/chapters/Chapter6_1/Cpu0Subtarget.cpp
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0Subtarget.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0Subtarget.cpp
     :start-after: #if CH >= CH6_1 //1
     :end-before: #endif
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0Subtarget.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0Subtarget.cpp
     :start-after: //@1 {
     :end-before: //@1 }
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0Subtarget.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0Subtarget.cpp
     :start-after: #if CH >= CH6_1 //2
     :end-before: #ifdef ENABLE_GPRESTORE
 
@@ -420,12 +420,12 @@ Cpu0TargetObjectFile.cpp, Cpu0RegisterInfo.cpp and Cpu0ISelLowering.cpp.
   }; // enum TOF {
 
 .. rubric:: lbdex/chapters/Chapter6_1/Cpu0TargetObjectFile.h
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0TargetObjectFile.h
+.. literalinclude:: ../lbdex/Cpu0/Cpu0TargetObjectFile.h
     :start-after: #if CH >= CH6_1
     :end-before: #endif
 
 .. rubric:: lbdex/chapters/Chapter6_1/Cpu0TargetObjectFile.cpp
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0TargetObjectFile.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0TargetObjectFile.cpp
     :start-after: #if CH >= CH6_1
     :end-before: #endif
 
@@ -440,19 +440,19 @@ Cpu0TargetObjectFile.cpp, Cpu0RegisterInfo.cpp and Cpu0ISelLowering.cpp.
   }
 
 .. rubric:: lbdex/chapters/Chapter6_1/Cpu0ISelLowering.h
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.h
+.. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.h
     :start-after: #if CH >= CH6_1 //getGlobalReg
     :end-before: #endif
 
 
 .. rubric:: lbdex/chapters/Chapter6_1/Cpu0ISelLowering.cpp
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.cpp
     :start-after: #if CH >= CH6_1 //1
     :end-before: #endif
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.cpp
     :start-after: //@Cpu0TargetLowering {
     :end-before: #if CH >= CH3_2
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.cpp
     :start-after: #if CH >= CH6_1 //2
     :end-before: #endif
 
@@ -460,16 +460,16 @@ Cpu0TargetObjectFile.cpp, Cpu0RegisterInfo.cpp and Cpu0ISelLowering.cpp.
 
   }
 
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.cpp
     :start-after: #if CH >= CH6_1 //3
     :end-before: #if CH >= CH8_1
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.cpp
     :start-after: #endif //#if CH >= CH8_1
     :end-before: #if CH >= CH12_1
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.cpp
     :start-after: #endif //#if CH >= CH12_1 //7
     :end-before: #endif
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.cpp
     :start-after: #if CH >= CH6_1 //4
     :end-before: #endif
 
@@ -488,18 +488,18 @@ of DAG Node is ISD::GlobalAddress or not, furthmore.
 Finally, add the following code in Cpu0ISelDAGToDAG.cpp and Cpu0InstrInfo.td.
 
 .. rubric:: lbdex/chapters/Chapter6_1/Cpu0ISelDAGToDAG.h
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelDAGToDAG.h
+.. literalinclude:: ../lbdex/Cpu0/Cpu0ISelDAGToDAG.h
     :start-after: #if CH >= CH6_1 //1
     :end-before: #endif
 
 .. rubric:: lbdex/chapters/Chapter6_1/Cpu0ISelDAGToDAG.cpp
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelDAGToDAG.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0ISelDAGToDAG.cpp
     :start-after: #if CH >= CH6_1 //1
     :end-before: #endif
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelDAGToDAG.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0ISelDAGToDAG.cpp
     :start-after: //@SelectAddr {
     :end-before: //@SelectAddr }
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelDAGToDAG.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0ISelDAGToDAG.cpp
     :start-after: #if CH >= CH6_1 //2
     :end-before: #endif
 
@@ -508,10 +508,10 @@ Finally, add the following code in Cpu0ISelDAGToDAG.cpp and Cpu0InstrInfo.td.
     ...
   }
 
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelDAGToDAG.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0ISelDAGToDAG.cpp
     :start-after: //@Select {
     :end-before: //@Select }
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelDAGToDAG.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0ISelDAGToDAG.cpp
     :start-after: #if CH >= CH6_1 //3
     :end-before: #endif
 
@@ -521,22 +521,22 @@ Finally, add the following code in Cpu0ISelDAGToDAG.cpp and Cpu0InstrInfo.td.
   }
 
 .. rubric:: lbdex/chapters/Chapter6_1/Cpu0InstrInfo.td
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.td
+.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td
     :start-after: //#if CH >= CH6_1 1
     :end-before: //#endif
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.td
+.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td
     :start-after: //#if CH >= CH6_1 2
     :end-before: //#endif
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.td
+.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td
     :start-after: //#if CH >= CH6_1 3
     :end-before: //#endif
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.td
+.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td
     :start-after: //#if CH >= CH6_1 4
     :end-before: //#endif
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.td
+.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td
     :start-after: //#if CH >= CH6_1 5
     :end-before: //#endif
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.td
+.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td
     :start-after: //#if CH >= CH6_1 6
     :end-before: //#endif
 
@@ -608,12 +608,12 @@ The code fragment of lowerGlobalAddress() as the following corresponding option
 stage "Legalized selection DAG" as below.
 
 .. rubric:: lbdex/chapters/Chapter6_1/Cpu0ISelLowering.h
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.h
+.. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.h
     :start-after: //@getAddrNonPIC
     :end-before: #endif // #if CH >= CH6_1
 
 .. rubric:: lbdex/chapters/Chapter6_1/Cpu0ISelLowering.cpp
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.cpp
     :start-after: //@getTargetNode(GlobalAddressSDNode
     :end-before: //@getTargetNode(ExternalSymbolSDNode
 
@@ -684,13 +684,13 @@ DAG (add Cpu0ISD::Hi<gI offset Hi16> Cpu0ISD::Lo<gI offset Lo16>) into Cpu0
 instructions as below.
 
 .. rubric:: lbdex/chapters/Chapter6_1/Cpu0InstrInfo.td
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.td
+.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td
     :start-after: //#if CH >= CH6_1 1
     :end-before: def Cpu0GPRel
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.td
+.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td
     :start-after: //#if CH >= CH6_1 4
     :end-before: //#endif
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.td
+.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td
     :start-after: //#if CH >= CH6_1 5
     :end-before: //#endif
 
@@ -745,7 +745,7 @@ The code fragment of lowerGlobalAddress() as the following corresponding option
 stage "Legalized selection DAG" as below.
 
 .. rubric:: lbdex/chapters/Chapter6_1/Cpu0ISelLowering.cpp
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.cpp
     :start-after: #if CH >= CH6_1 //4
     :end-before: //@ %hi/%lo relocation
 
@@ -798,10 +798,10 @@ DAG (add register %GP Cpu0ISD::GPRel<gI offset>) into Cpu0
 instruction as below. 
 
 .. rubric:: lbdex/chapters/Chapter6_1/Cpu0InstrInfo.td
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.td
+.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td
     :start-after: def Cpu0Lo
     :end-before: //#endif
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.td
+.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td
     :start-after: //#if CH >= CH6_1 6
     :end-before: //@ wrapper_pic
 
@@ -828,10 +828,10 @@ loaded. As a result, the $gp cannot be allocated as a general purpose for
 variables. The following code tells llvm never allocate $gp for variables.
 
 .. rubric:: lbdex/chapters/Chapter6_1/Cpu0Subtarget.cpp
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0Subtarget.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0Subtarget.cpp
     :start-after: //@1 {
     :end-before: //@1 }
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0Subtarget.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0Subtarget.cpp
     :start-after: #if CH >= CH6_1 //2
     :end-before: #endif //#if CH >= CH6_1
 
@@ -840,10 +840,10 @@ variables. The following code tells llvm never allocate $gp for variables.
   }
 
 .. rubric:: lbdex/chapters/Chapter6_1/Cpu0RegisterInfo.cpp
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0RegisterInfo.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0RegisterInfo.cpp
     :start-after: //@getReservedRegs {
     :end-before: static const uint16_t ReservedCPURegs[] = {
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0RegisterInfo.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0RegisterInfo.cpp
     :start-after: #if CH >= CH6_1
     :end-before: #endif //#if CH >= CH6_1
 
@@ -891,19 +891,19 @@ The following code fragment of Cpu0AsmPrinter.cpp will emit **.cpload** asm
 pseudo instruction at function entry point as below.
 
 .. rubric:: lbdex/chapters/Chapter6_1/Cpu0MachineFunction.h
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0MachineFunction.h
+.. literalinclude:: ../lbdex/Cpu0/Cpu0MachineFunction.h
     :start-after: //@1 {
     :end-before: #if CH >= CH3_4 //1
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0MachineFunction.h
+.. literalinclude:: ../lbdex/Cpu0/Cpu0MachineFunction.h
     :start-after: #if CH >= CH6_1 //1
     :end-before: #endif
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0MachineFunction.h
+.. literalinclude:: ../lbdex/Cpu0/Cpu0MachineFunction.h
     :start-after: #if CH >= CH6_1 //2
     :end-before: #endif
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0MachineFunction.h
+.. literalinclude:: ../lbdex/Cpu0/Cpu0MachineFunction.h
     :start-after: #if CH >= CH6_1 //3
     :end-before: #endif
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0MachineFunction.h
+.. literalinclude:: ../lbdex/Cpu0/Cpu0MachineFunction.h
     :start-after: #if CH >= CH6_1 //4
     :end-before: #endif
 
@@ -913,21 +913,21 @@ pseudo instruction at function entry point as below.
   };
 
 .. rubric:: lbdex/chapters/Chapter6_1/Cpu0MachineFunction.cpp
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0MachineFunction.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0MachineFunction.cpp
     :start-after: #if CH >= CH6_1
     :end-before: #endif
 
 .. rubric:: lbdex/chapters/Chapter6_1/Cpu0AsmPrinter.cpp
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0AsmPrinter.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0AsmPrinter.cpp
     :start-after: //@-> .set  nomacro
     :end-before: MCInstLowering.Initialize(&MF->getContext());
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0AsmPrinter.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0AsmPrinter.cpp
     :start-after: #if CH >= CH6_1 //1
     :end-before: #endif
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0AsmPrinter.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0AsmPrinter.cpp
     :start-after: #if CH >= CH6_1 //2
     :end-before: #endif
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0AsmPrinter.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0AsmPrinter.cpp
     :start-after: #if CH >= CH6_1 //3
     :end-before: #endif
 
@@ -955,13 +955,13 @@ Following code will exspand .cpload into machine instructions as below.
 displayed in comments of Cpu0MCInstLower.cpp.
 
 .. rubric:: lbdex/chapters/Chapter6_1/Cpu0MCInstLower.h
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0MCInstLower.h
+.. literalinclude:: ../lbdex/Cpu0/Cpu0MCInstLower.h
     :start-after: //@1 {
     :end-before: //@2
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0MCInstLower.h
+.. literalinclude:: ../lbdex/Cpu0/Cpu0MCInstLower.h
     :start-after: #if CH >= CH6_1 //1
     :end-before: #endif
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0MCInstLower.h
+.. literalinclude:: ../lbdex/Cpu0/Cpu0MCInstLower.h
     :start-after: #if CH >= CH6_1 //2
     :end-before: #endif
 
@@ -971,7 +971,7 @@ displayed in comments of Cpu0MCInstLower.cpp.
   }
 
 .. rubric:: lbdex/chapters/Chapter6_1/Cpu0MCInstLower.cpp
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0MCInstLower.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0MCInstLower.cpp
     :start-after: #if CH >= CH6_1 //2
     :end-before: #endif
 
@@ -1034,18 +1034,18 @@ The code fragment of lowerGlobalAddress() as the following corresponding option
 in stage "Legalized selection DAG" as below.
 
 .. rubric:: lbdex/chapters/Chapter6_1/Cpu0ISelLowering.h
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.h
+.. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.h
     :start-after: //@getAddrGlobal {
     :end-before: //@getAddrGlobal }
 
 .. rubric:: lbdex/chapters/Chapter6_1/Cpu0ISelLowering.cpp
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.cpp
     :start-after: #if CH >= CH6_1 //4
     :end-before: //@lowerGlobalAddress }
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.cpp
     :start-after: //@lga 1 {
     :end-before: //@lga 1 }
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.cpp
     :start-after: //@ %gp_rel relocation
     :end-before: //@ %hi/%lo relocation
 
@@ -1055,10 +1055,10 @@ in stage "Legalized selection DAG" as below.
   }
     
 .. rubric:: lbdex/chapters/Chapter6_1/Cpu0ISelDAGToDAG.cpp
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelDAGToDAG.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0ISelDAGToDAG.cpp
     :start-after: //@SelectAddr {
     :end-before: //@SelectAddr }
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelDAGToDAG.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0ISelDAGToDAG.cpp
     :start-after: #if CH >= CH6_1 //2
     :end-before: //@static
 
@@ -1145,18 +1145,18 @@ TargetGlobalAddress<i32* @gI> 0))
 in stage "Legalized selection DAG" as below.
 
 .. rubric:: lbdex/chapters/Chapter6_1/Cpu0ISelLowering.h
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.h
+.. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.h
     :start-after: //@getAddrGlobalLargeGOT {
     :end-before: //@getAddrGlobalLargeGOT }
 
 .. rubric:: lbdex/chapters/Chapter6_1/Cpu0ISelLowering.cpp
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.cpp
     :start-after: #if CH >= CH6_1 //4
     :end-before: //@lowerGlobalAddress }
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.cpp
     :start-after: //@lga 1 {
     :end-before: //@lga 1 }
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.cpp
     :start-after: //@large section
     :end-before: #endif
 
@@ -1224,10 +1224,10 @@ Since ch8_5.cpp uses llvm IR **select**, it cannot be run at this point. It
 will be run in later Chapter Control flow statements.
 
 .. rubric:: lbdex/chapters/Chapter6_1/Cpu0InstrInfo.td
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.td
+.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td
     :start-after: //#if CH >= CH6_1 2
     :end-before: //#endif
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.td
+.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td
     :start-after: //@ wrapper_pic
     :end-before: //#endif
 
@@ -1247,10 +1247,10 @@ Cpu0ISelLowering.cpp for global variable printing operand function.
 .. literalinclude:: ../lbdex/chapters/Chapter6_1/Cpu0MCInstLower.cpp
     :start-after: //@LowerSymbolOperand {
     :end-before: //@LowerSymbolOperand }
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0MCInstLower.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0MCInstLower.cpp
     :start-after: //@LowerOperand {
     :end-before: //@2
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0MCInstLower.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0MCInstLower.cpp
     :start-after: #if CH >= CH6_1 //3
     :end-before: #endif
 
@@ -1262,13 +1262,13 @@ Cpu0ISelLowering.cpp for global variable printing operand function.
   }
     
 .. rubric:: lbdex/chapters/Chapter6_1/InstPrinter/Cpu0InstPrinter.cpp
-.. literalinclude:: ../../../lib/Target/Cpu0/InstPrinter/Cpu0InstPrinter.cpp
+.. literalinclude:: ../lbdex/Cpu0/InstPrinter/Cpu0InstPrinter.cpp
     :start-after: //@printExpr {
     :end-before: //@printExpr body {
-.. literalinclude:: ../../../lib/Target/Cpu0/InstPrinter/Cpu0InstPrinter.cpp
+.. literalinclude:: ../lbdex/Cpu0/InstPrinter/Cpu0InstPrinter.cpp
     :start-after: #if CH >= CH6_1 //VK_Cpu0_GPREL
     :end-before: #endif
-.. literalinclude:: ../../../lib/Target/Cpu0/InstPrinter/Cpu0InstPrinter.cpp
+.. literalinclude:: ../lbdex/Cpu0/InstPrinter/Cpu0InstPrinter.cpp
     :start-after: #if CH >= CH6_1 //VK_Cpu0_GOT16
     :end-before: #endif
 

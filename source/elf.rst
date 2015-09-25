@@ -524,37 +524,37 @@ To support llvm-objdump, the following code added to Chapter10_1/
 (the DecoderMethod for brtarget24 has been added in previous chapter).
 
 .. rubric:: lbdex/chapters/Chapter10_1/CMakeLists.txt
-.. literalinclude:: ../../../lib/Target/Cpu0/CMakeLists.txt
+.. literalinclude:: ../lbdex/Cpu0/CMakeLists.txt
     :start-after: #if CH >= CH10_1 1
     :end-before: #endif
-.. literalinclude:: ../../../lib/Target/Cpu0/CMakeLists.txt
+.. literalinclude:: ../lbdex/Cpu0/CMakeLists.txt
     :start-after: #if CH >= CH10_1 2
     :end-before: #endif
   
 .. rubric:: lbdex/chapters/Chapter10_1/LLVMBuild.txt
-.. literalinclude:: ../../../lib/Target/Cpu0/LLVMBuild.txt
+.. literalinclude:: ../lbdex/Cpu0/LLVMBuild.txt
     :start-after: [common]
     :end-before: #if CH >= CH11_1
-.. literalinclude:: ../../../lib/Target/Cpu0/LLVMBuild.txt
+.. literalinclude:: ../lbdex/Cpu0/LLVMBuild.txt
     :start-after: #if CH >= CH10_1 1
     :end-before: #endif
-.. literalinclude:: ../../../lib/Target/Cpu0/LLVMBuild.txt
+.. literalinclude:: ../lbdex/Cpu0/LLVMBuild.txt
     :start-after: #if CH >= CH10_1 2
     :end-before: #endif
 
 .. rubric:: lbdex/chapters/Chapter10_1/Cpu0InstrInfo.td
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.td
+.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td
     :start-after: //#if CH >= CH4_2 1
     :end-before: //#endif //#if CH >= CH4_2 1
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.td
+.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td
     :start-after: //@JumpLink {
     :end-before: //@JumpLink }
   
 .. rubric:: lbdex/chapters/Chapter10_1/Disassembler/CMakeLists.txt
-.. literalinclude:: ../../../lib/Target/Cpu0/Disassembler/CMakeLists.txt
+.. literalinclude:: ../lbdex/Cpu0/Disassembler/CMakeLists.txt
   
 .. rubric:: lbdex/chapters/Chapter10_1/Disassembler/LLVMBuild.txt
-.. literalinclude:: ../../../lib/Target/Cpu0/Disassembler/LLVMBuild.txt
+.. literalinclude:: ../lbdex/Cpu0/Disassembler/LLVMBuild.txt
 
 .. rubric:: lbdex/chapters/Chapter10_1/Disassembler/Cpu0Disassembler.cpp
 .. literalinclude:: ../lbdex/chapters/Chapter10_1/Disassembler/Cpu0Disassembler.cpp
@@ -612,7 +612,7 @@ all instructions (cpu032II include all cpu032I instructions and add some new
 instructions).
 
 .. rubric:: lbdex/chapters/Chapter10_1/MCTargetDesc/Cpu0MCTargetDesc.cpp
-.. literalinclude:: ../../../lib/Target/Cpu0/MCTargetDesc/Cpu0MCTargetDesc.cpp
+.. literalinclude:: ../lbdex/Cpu0/MCTargetDesc/Cpu0MCTargetDesc.cpp
     :start-after: //@1 {
     :end-before: //@1 }
 

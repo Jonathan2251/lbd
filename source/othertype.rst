@@ -19,23 +19,23 @@ To support pointer to local variable, add this code fragment in
 Cpu0InstrInfo.td and Cpu0InstPrinter.cpp as follows,
 
 .. rubric:: lbdex/chapters/Chapter7_1/Cpu0InstrInfo.td
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.td
+.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td
     :start-after: //#if CH >= CH7_1 1
     :end-before: //#endif
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.td
+.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td
     :start-after: //@EffectiveAddress
     :end-before: //#endif
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.td
+.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td
     :start-after: //@def LEA_ADDiu {
     :end-before: //@def LEA_ADDiu }
   
 .. rubric:: lbdex/chapters/Chapter3_2/InstPrinter/Cpu0InstPrinter.h
-.. literalinclude:: ../../../lib/Target/Cpu0/InstPrinter/Cpu0InstPrinter.h
+.. literalinclude:: ../lbdex/Cpu0/InstPrinter/Cpu0InstPrinter.h
     :start-after: //#if CH >= CH7_1
     :end-before: //#endif
 
 .. rubric:: lbdex/chapters/Chapter3_2/InstPrinter/Cpu0InstPrinter.cpp
-.. literalinclude:: ../../../lib/Target/Cpu0/InstPrinter/Cpu0InstPrinter.cpp
+.. literalinclude:: ../lbdex/Cpu0/InstPrinter/Cpu0InstPrinter.cpp
     :start-after: //#if CH >= CH7_1
     :end-before: //#endif
 
@@ -89,13 +89,13 @@ To support signed/unsigned type of char and short int, adding the following
 code to Chapter7_1/.
 
 .. rubric:: lbdex/chapters/Chapter7_1/Cpu0InstrInfo.td
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.td
+.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td
     :start-after: //#if CH >= CH7_1 2
     :end-before: //#endif
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.td
+.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td
     :start-after: //#if CH >= CH7_1 3
     :end-before: //#endif
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.td
+.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td
     :start-after: //#if CH >= CH7_1 5
     :end-before: //#endif
 
@@ -273,10 +273,10 @@ Their differences have been explained in Chapter 2.
 To support load bool type, the following code added.
 
 .. rubric:: lbdex/chapters/Chapter7_1/Cpu0ISelLowering.cpp
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.cpp
     :start-after: //@Cpu0TargetLowering {
     :end-before: #if CH >= CH3_2
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.cpp
     :start-after: #if CH >= CH7_1 //1
     :end-before: #endif
 
@@ -403,13 +403,13 @@ language. To support type long long, we add the following code to
 Chapter7_1/.
 
 .. rubric:: lbdex/chapters/Chapter7_1/Cpu0SEISelDAGToDAG.cpp
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0SEISelDAGToDAG.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0SEISelDAGToDAG.cpp
     :start-after: #if CH >= CH7_1 //1
     :end-before: #endif
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0SEISelDAGToDAG.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0SEISelDAGToDAG.cpp
     :start-after: //@selectNode
     :end-before: #if CH >= CH7_1 //2
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0SEISelDAGToDAG.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0SEISelDAGToDAG.cpp
     :start-after: #if CH >= CH7_1 //2
     :end-before: #endif
 
@@ -419,10 +419,10 @@ Chapter7_1/.
   }
 
 .. rubric:: lbdex/chapters/Chapter7_1/Cpu0ISelLowering.h
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.h
+.. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.h
     :start-after: //@class Cpu0TargetLowering
     :end-before: public:
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.h
+.. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.h
     :start-after: #if CH >= CH7_1 //2
     :end-before: #endif
 
@@ -432,10 +432,10 @@ Chapter7_1/.
     }
 
 .. rubric:: lbdex/chapters/Chapter7_1/Cpu0ISelLowering.cpp
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.cpp
     :start-after: //@Cpu0TargetLowering {
     :end-before: #if CH >= CH3_2
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.cpp
     :start-after: #if CH >= CH7_1 //2
     :end-before: #endif
 
@@ -754,17 +754,17 @@ mechanism as below.
   }
     
 .. rubric:: lbdex/chapters/Chapter7_1/Cpu0ISelLowering.cpp
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.cpp
     :start-after: #if CH >= CH7_1 //4
     :end-before: #endif
 
 Beyond that, we need to add the following code fragment to Cpu0ISelDAGToDAG.cpp,
 
 .. rubric:: lbdex/chapters/Chapter7_1/Cpu0ISelDAGToDAG.cpp
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelDAGToDAG.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0ISelDAGToDAG.cpp
     :start-after: //@SelectAddr {
     :end-before: //@SelectAddr }
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelDAGToDAG.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0ISelDAGToDAG.cpp
     :start-after: #if CH >= CH7_1 //1
     :end-before: #endif
 
@@ -779,7 +779,7 @@ Recall we have translated DAG list for date.day
 Constant<8>) by the following code in Cpu0ISelLowering.cpp.
 
 .. rubric:: lbdex/chapters/Chapter6_1/Cpu0ISelLowering.h
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.h
+.. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.h
     :start-after: //@getAddrNonPIC
     :end-before: #endif // #if CH >= CH6_1
 

@@ -69,7 +69,7 @@ For the last IR br, we translate unconditional branch (br BasicBlock_01) into
 jmp BasicBlock_01 by the following pattern definition,
 
 .. rubric:: lbdex/chapters/Chapter8_1/Cpu0InstrInfo.td
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.td
+.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td
     :start-after: //#if CH >= CH8_1 3
     :end-before: //#endif
 
@@ -108,7 +108,7 @@ following ADDiu pattern defined in Chapter2 will generate instruction
 **setcc(%2, Constant<c>, setne)**, as above.
 
 .. rubric:: lbdex/chapters/Chapter2/Cpu0InstrInfo.td
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.td
+.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td
     :start-after: //#if CH >= CH2 17
     :end-before: //#endif
 
@@ -164,16 +164,16 @@ The copyPhysReg() is called when DestReg and SrcReg are belonging to different
 Register Class. 
 
 .. rubric:: lbdex/chapters/Chapter2/Cpu0RegisterInfo.td
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0RegisterInfo.td
+.. literalinclude:: ../lbdex/Cpu0/Cpu0RegisterInfo.td
     :start-after: //@Register Classes
     :end-before: //#if CH >= CH4_1 2
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0RegisterInfo.td
+.. literalinclude:: ../lbdex/Cpu0/Cpu0RegisterInfo.td
     :start-after: //@Status Registers class
     :end-before: //@Co-processor 0 Registers class
   
 
 .. rubric:: lbdex/chapters/Chapter2/Cpu0RegisterInfoGPROutForOther.td
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0RegisterInfoGPROutForOther.td
+.. literalinclude:: ../lbdex/Cpu0/Cpu0RegisterInfoGPROutForOther.td
 
 
 Chapter8_1/ include support for control flow statement. 
@@ -320,20 +320,20 @@ Chapter8_2/ supports "delete useless jmp" optimization algorithm which add
 codes as follows,
 
 .. rubric:: lbdex/chapters/Chapter8_2/CMakeLists.txt
-.. literalinclude:: ../../../lib/Target/Cpu0/CMakeLists.txt
+.. literalinclude:: ../lbdex/Cpu0/CMakeLists.txt
     :start-after: #if CH >= CH8_2 //2
     :end-before: #endif
   
 .. rubric:: lbdex/chapters/Chapter8_2/Cpu0.h
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0.h
+.. literalinclude:: ../lbdex/Cpu0/Cpu0.h
     :start-after: #if CH >= CH8_2 //2
     :end-before: #endif
   
 .. rubric:: lbdex/chapters/Chapter8_2/Cpu0TargetMachine.cpp
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0TargetMachine.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0TargetMachine.cpp
     :start-after: //@Cpu0PassConfig {
     :end-before: public:
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0TargetMachine.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0TargetMachine.cpp
     :start-after: #if CH >= CH8_2 //1
     :end-before: #endif
 
@@ -342,10 +342,10 @@ codes as follows,
   };
   ...
 
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0TargetMachine.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0TargetMachine.cpp
     :start-after: #if CH >= CH8_2 //2
     :end-before: //@8_2 1{
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0TargetMachine.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0TargetMachine.cpp
     :start-after: //@8_2 1{
     :end-before: //@8_2 1}
 
@@ -354,7 +354,7 @@ codes as follows,
   }
 
 .. rubric:: lbdex/chapters/Chapter8_2/Cpu0DelUselessJMP.cpp
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0DelUselessJMP.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0DelUselessJMP.cpp
 
 
 As above code, except Cpu0DelUselessJMP.cpp, other files changed for registering  
@@ -422,20 +422,20 @@ Following code added in Chapter8_2 for NOP fill in Branch Delay Slot.
 
 
 .. rubric:: lbdex/chapters/Chapter8_2/CMakeLists.txt
-.. literalinclude:: ../../../lib/Target/Cpu0/CMakeLists.txt
+.. literalinclude:: ../lbdex/Cpu0/CMakeLists.txt
     :start-after: #if CH >= CH8_2 //1
     :end-before: #endif
   
 .. rubric:: lbdex/chapters/Chapter8_2/Cpu0.h
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0.h
+.. literalinclude:: ../lbdex/Cpu0/Cpu0.h
     :start-after: #if CH >= CH8_2 //1
     :end-before: #endif
 
 .. rubric:: lbdex/chapters/Chapter8_2/Cpu0TargetMachine.cpp
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0TargetMachine.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0TargetMachine.cpp
     :start-after: #if CH >= CH8_2 //2
     :end-before: //@8_2 1{
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0TargetMachine.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0TargetMachine.cpp
     :start-after: //@8_2 1}
     :end-before: //@8_2 2}
 
@@ -444,7 +444,7 @@ Following code added in Chapter8_2 for NOP fill in Branch Delay Slot.
   }
 
 .. rubric:: lbdex/chapters/Chapter8_2/Cpu0DelaySlotFiller.cpp
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0DelaySlotFiller.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0DelaySlotFiller.cpp
 
 
 To make the basic block label remains same, statement MIBundleBuilder() needs 
@@ -453,13 +453,13 @@ MIBundleBuilder() make both the branch instruction and NOP are bundled into one
 instruction (first part is branch instruction and second part is NOP).
 
 .. rubric:: lbdex/chapters/Chapter3_2/Cpu0AsmPrinter.cpp
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0AsmPrinter.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0AsmPrinter.cpp
     :start-after: //@EmitInstruction {
     :end-before: //@EmitInstruction body {
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0AsmPrinter.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0AsmPrinter.cpp
     :start-after: #endif //#if CH >= CH9_3 //2
     :end-before: #if CH >= CH9_1
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0AsmPrinter.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0AsmPrinter.cpp
     :start-after: #endif //#if CH >= CH9_1
     :end-before: //@EmitInstruction }
 
@@ -537,27 +537,27 @@ And from above llc command debug trace message, IR **select** is changed to
 Chapter8_2 supports **select** with the following code added and changed.
 
 .. rubric:: lbdex/chapters/Chapter8_2/Cpu0InstrInfo.td
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.td
+.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td
     :start-after: //#if CH >= CH8_2
     :end-before: //#endif
 
 .. rubric:: lbdex/chapters/Chapter8_2/Cpu0CondMov.td
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0CondMov.td
+.. literalinclude:: ../lbdex/Cpu0/Cpu0CondMov.td
 
 
 .. rubric:: lbdex/chapters/Chapter8_2/Cpu0ISelLowering.h
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.h
+.. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.h
     :start-after: #if CH >= CH8_2
     :end-before: #endif
 
 .. rubric:: lbdex/chapters/Chapter8_2/Cpu0ISelLowering.cpp
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.cpp
     :start-after: //@Cpu0TargetLowering {
     :end-before: #if CH >= CH3_2
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.cpp
     :start-after: #if CH >= CH8_2 //1
     :end-before: #endif
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.cpp
     :start-after: #if CH >= CH8_2 //2
     :end-before: #endif
 
@@ -565,10 +565,10 @@ Chapter8_2 supports **select** with the following code added and changed.
 
   }
 
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.cpp
     :start-after: #if CH >= CH6_1 //3
     :end-before: #if CH >= CH8_1 //6
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.cpp
     :start-after: #if CH >= CH8_2 //3
     :end-before: #endif
 
@@ -578,7 +578,7 @@ Chapter8_2 supports **select** with the following code added and changed.
     ...
   }
 
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.cpp
     :start-after: #if CH >= CH8_2 //4
     :end-before: #endif
 
