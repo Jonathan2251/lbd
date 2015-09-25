@@ -10,6 +10,7 @@
     
     <link rel="stylesheet" href="_static/haiku.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="_static/print.css" type="text/css" />
     
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
@@ -24,6 +25,7 @@
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
     <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="_static/theme_extras.js"></script>
     <link rel="author" title="About these documents" href="about.html" />
     <link rel="top" title="Tutorial: Creating an LLVM Backend for the Cpu0 Architecture" href="index.html" />
     <link rel="next" title="Function call" href="funccall.html" />
@@ -155,18 +157,18 @@ jmp BasicBlock_01
 <p>For the last IR br, we translate unconditional branch (br BasicBlock_01) into
 jmp BasicBlock_01 by the following pattern definition,</p>
 <p class="rubric">lbdex/chapters/Chapter8_1/Cpu0InstrInfo.td</p>
-<div class="highlight-c++"><div class="highlight"><pre>// Unconditional branch, such as JMP
+<div class="highlight-c++"><pre>// Unconditional branch, such as JMP
 let Predicates = [Ch8_1] in {
 class UncondBranch&lt;bits&lt;8&gt; op, string instr_asm&gt;:
   FJ&lt;op, (outs), (ins jmptarget:$addr),
-             !strconcat(instr_asm, &quot;\t$addr&quot;), [(br bb:$addr)], IIBranch&gt; {
+             !strconcat(instr_asm, "\t$addr"), [(br bb:$addr)], IIBranch&gt; {
   let isBranch = 1;
   let isTerminator = 1;
   let isBarrier = 1;
   let hasDelaySlot = 1;
 }
 }
-</pre></div>
+</pre>
 </div>
 <div class="highlight-c++"><div class="highlight"><pre><span class="p">...</span>
 <span class="n">def</span> <span class="n">JMP</span>     <span class="o">:</span> <span class="n">UncondBranch</span><span class="o">&lt;</span><span class="mh">0x26</span><span class="p">,</span> <span class="s">&quot;jmp&quot;</span><span class="o">&gt;</span><span class="p">;</span>
@@ -180,7 +182,7 @@ one-to-one IR to machine instruction translation we have experienced until now.
 To solve this chained IR to machine instructions translation, we define the
 following pattern,</p>
 <p class="rubric">lbdex/chapters/Chapter8_1/Cpu0InstrInfo.td</p>
-<div class="highlight-c++"><div class="highlight"><pre>// brcond patterns
+<div class="highlight-c++"><pre>// brcond patterns
 multiclass BrcondPatsCmp&lt;RegisterClass RC, Instruction JEQOp, Instruction JNEOp,
   Instruction JLTOp, Instruction JGTOp, Instruction JLEOp, Instruction JGEOp,
   Instruction CMPOp&gt; {
@@ -191,18 +193,17 @@ def : Pat&lt;(brcond (i32 (setne RC:$lhs, RC:$rhs)), bb:$dst),
 def : Pat&lt;(brcond RC:$cond, bb:$dst),
           (JNEOp (CMPOp RC:$cond, ZEROReg), bb:$dst)&gt;;
 ...
-}
-</pre></div>
+}</pre>
 </div>
 <p>Since the BrcondPats pattern as above uses RC (Register Class) as operand, the
 following ADDiu pattern defined in Chapter2 will generate instruction
 <strong>addiu</strong> before the instruction <strong>cmp</strong> for the first IR,
 <strong>setcc(%2, Constant&lt;c&gt;, setne)</strong>, as above.</p>
 <p class="rubric">lbdex/chapters/Chapter2/Cpu0InstrInfo.td</p>
-<div class="highlight-c++"><div class="highlight"><pre>// Small immediates
+<div class="highlight-c++"><pre>// Small immediates
 def : Pat&lt;(i32 immSExt16:$in),
           (ADDiu ZERO, imm:$in)&gt;;
-</pre></div>
+</pre>
 </div>
 <p>The definition of BrcondPats supports setne, seteq, setlt, ..., register operand
 compare and setult, setugt, ..., for unsigned int type. In addition to seteq
@@ -222,13 +223,12 @@ correct even an instruction is inserted between CMP and JNE as follows,</p>
 <a class="reference internal image-reference" href="_images/12.png"><img alt="_images/12.png" src="_images/12.png" style="width: 312.2px; height: 325.5px;" /></a>
 <p class="caption">Figure 1: JNE (CMP $r2, $r3),</p>
 </div>
-<div class="highlight-c++"><div class="highlight"><pre>cmp %2, %3
+<div class="highlight-c++"><pre>cmp %2, %3
 addiu $r1, $r2, 3   // $r1 register never be allocated to $SW because in
                     //  class ArithLogicI, GPROut is the output register
                     //  class and the GPROut is defined without $SW in
                     //  Cpu0RegisterInforGPROutForOther.td
-jne BasicBlock_02
-</pre></div>
+jne BasicBlock_02</pre>
 </div>
 <p>The reserved registers setting by the following
 function code we defined before,</p>
@@ -879,7 +879,7 @@ And from above llc command debug trace message, IR <strong>select</strong> is ch
 </pre></div>
 </div>
 <p class="rubric">lbdex/chapters/Chapter8_2/Cpu0CondMov.td</p>
-<div class="highlight-c++"><div class="highlight"><pre>//===-- Cpu0CondMov.td - Describe Cpu0 Conditional Moves --*- tablegen -*--===//
+<div class="highlight-c++"><pre>//===-- Cpu0CondMov.td - Describe Cpu0 Conditional Moves --*- tablegen -*--===//
 //
 //                     The LLVM Compiler Infrastructure
 //
@@ -900,9 +900,9 @@ And from above llc command debug trace message, IR <strong>select</strong> is ch
 class CondMovIntInt&lt;RegisterClass CRC, RegisterClass DRC, bits&lt;8&gt; op,
                     string instr_asm&gt; :
   FA&lt;op, (outs DRC:$ra), (ins DRC:$rb, CRC:$rc, DRC:$F),
-     !strconcat(instr_asm, &quot;\t$ra, $rb, $rc&quot;), [], IIAlu&gt; {
+     !strconcat(instr_asm, "\t$ra, $rb, $rc"), [], IIAlu&gt; {
   let shamt = 0;
-  let Constraints = &quot;$F = $ra&quot;;
+  let Constraints = "$F = $ra";
 }
 
 // select patterns
@@ -943,9 +943,9 @@ multiclass MovnPats&lt;RegisterClass CRC, RegisterClass DRC, Instruction MOVNIns
 }
 
 // Instantiation of instructions.
-def MOVZ_I_I     : CondMovIntInt&lt;CPURegs, CPURegs, 0x0a, &quot;movz&quot;&gt;;
+def MOVZ_I_I     : CondMovIntInt&lt;CPURegs, CPURegs, 0x0a, "movz"&gt;;
 
-def MOVN_I_I     : CondMovIntInt&lt;CPURegs, CPURegs, 0x0b, &quot;movn&quot;&gt;;
+def MOVN_I_I     : CondMovIntInt&lt;CPURegs, CPURegs, 0x0b, "movn"&gt;;
 
 // Instantiation of conditional move patterns.
 let Predicates = [HasSlt] in {
@@ -955,7 +955,7 @@ defm : MovzPats0Slt&lt;CPURegs, CPURegs, MOVZ_I_I, SLT, SLTu, SLTi, SLTiu&gt;;
 defm : MovzPats1&lt;CPURegs, CPURegs, MOVZ_I_I, XOR&gt;;
 
 defm : MovnPats&lt;CPURegs, CPURegs, MOVN_I_I, XOR&gt;;
-</pre></div>
+</pre>
 </div>
 <p class="rubric">lbdex/chapters/Chapter8_2/Cpu0ISelLowering.h</p>
 <div class="highlight-c++"><div class="highlight"><pre>    <span class="n">SDValue</span> <span class="n">lowerSELECT</span><span class="p">(</span><span class="n">SDValue</span> <span class="n">Op</span><span class="p">,</span> <span class="n">SelectionDAG</span> <span class="o">&amp;</span><span class="n">DAG</span><span class="p">)</span> <span class="k">const</span><span class="p">;</span>
@@ -1283,7 +1283,7 @@ Morgan Kaufmann Series in Computer Architecture and Design)</td></tr>
 
     <div class="footer">
         &copy; Copyright 2013, LLVM.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.
     </div>
   </body>
 </html>

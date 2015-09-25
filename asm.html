@@ -10,6 +10,7 @@
     
     <link rel="stylesheet" href="_static/haiku.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="_static/print.css" type="text/css" />
     
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
@@ -24,6 +25,7 @@
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
     <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="_static/theme_extras.js"></script>
     <link rel="author" title="About these documents" href="about.html" />
     <link rel="top" title="Tutorial: Creating an LLVM Backend for the Cpu0 Architecture" href="index.html" />
     <link rel="next" title="C++ support" href="c++.html" />
@@ -103,14 +105,13 @@ explanation. Please refer here <a class="footnote-reference" href="#id4" id="id1
 <span class="k">asm</span><span class="p">(</span><span class="s">&quot;la $3, 0x00900000&quot;</span><span class="p">);</span>
 </pre></div>
 </div>
-<div class="highlight-bash"><div class="highlight"><pre>JonathantekiiMac:input Jonathan$ clang -c ch11_1.cpp -emit-llvm -o
+<div class="highlight-bash"><pre>JonathantekiiMac:input Jonathan$ clang -c ch11_1.cpp -emit-llvm -o
 ch11_1.bc
 JonathantekiiMac:input Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_
 build/Debug/bin/llc -march=cpu0 -relocation-model=pic -filetype=obj ch11_1.bc
 -o ch11_1.cpu0.o
-LLVM ERROR: Inline asm not supported by this streamer because we don&#39;t have
-an asm parser for this target
-</pre></div>
+LLVM ERROR: Inline asm not supported by this streamer because we don't have
+an asm parser for this target</pre>
 </div>
 <p>Since we don&#8217;t implement cpu0 assembler, it has the error message as above.
 The cpu0 can translate LLVM IR into assembly and obj directly, but it cannot
@@ -1337,27 +1338,27 @@ MatchAndEmitInstruction() will return fail for &#8220;asm(&#8220;mfc0 $pc, $epc&
 <span class="p">...</span>
 </pre></div>
 </div>
-<div class="highlight-c++"><div class="highlight"><pre>//===----------------------------------------------------------------------===//
+<div class="highlight-c++"><pre>//===----------------------------------------------------------------------===//
 // Pseudo Instruction definition
 //===----------------------------------------------------------------------===//
 
 let Predicates = [Ch11_1] in {
 class LoadImm32&lt; string instr_asm, Operand Od, RegisterClass RC&gt; :
   Cpu0AsmPseudoInst&lt;(outs RC:$ra), (ins Od:$imm32),
-                     !strconcat(instr_asm, &quot;\t$ra, $imm32&quot;)&gt; ;
-def LoadImm32Reg : LoadImm32&lt;&quot;li&quot;, shamt, GPROut&gt;;
+                     !strconcat(instr_asm, "\t$ra, $imm32")&gt; ;
+def LoadImm32Reg : LoadImm32&lt;"li", shamt, GPROut&gt;;
 
 class LoadAddress&lt;string instr_asm, Operand MemOpnd, RegisterClass RC&gt; :
   Cpu0AsmPseudoInst&lt;(outs RC:$ra), (ins MemOpnd:$addr),
-                     !strconcat(instr_asm, &quot;\t$ra, $addr&quot;)&gt; ;
-def LoadAddr32Reg : LoadAddress&lt;&quot;la&quot;, mem, GPROut&gt;;
+                     !strconcat(instr_asm, "\t$ra, $addr")&gt; ;
+def LoadAddr32Reg : LoadAddress&lt;"la", mem, GPROut&gt;;
 
 class LoadAddressImm&lt;string instr_asm, Operand Od, RegisterClass RC&gt; :
   Cpu0AsmPseudoInst&lt;(outs RC:$ra), (ins Od:$imm32),
-                     !strconcat(instr_asm, &quot;\t$ra, $imm32&quot;)&gt; ;
-def LoadAddr32Imm : LoadAddressImm&lt;&quot;la&quot;, shamt, GPROut&gt;;
+                     !strconcat(instr_asm, "\t$ra, $imm32")&gt; ;
+def LoadAddr32Imm : LoadAddressImm&lt;"la", shamt, GPROut&gt;;
 }
-</pre></div>
+</pre>
 </div>
 <p>Above declare the <strong>ParserMethod = &#8220;parseMemOperand&#8221;</strong> and implement the
 parseMemOperand() in Cpu0AsmParser.cpp to handle the <strong>&#8220;mem&#8221;</strong> operand which
@@ -1746,13 +1747,12 @@ of Cpu0AsmParser as follows,</p>
 <span class="p">}</span>
 </pre></div>
 </div>
-<div class="highlight-bash"><div class="highlight"><pre>1-160-129-73:input Jonathan$ ~/llvm/test/cmake_debug_build/Debug/bin/llc
+<div class="highlight-bash"><pre>1-160-129-73:input Jonathan$ ~/llvm/test/cmake_debug_build/Debug/bin/llc
 -march=cpu0 -relocation-model=static -filetype=asm ch11_2.bc -o -
   .section .mdebug.abi32
   .previous
-  .file &quot;ch11_2.bc&quot;
-error: couldn&#39;t allocate output register for constraint &#39;r&#39;
-</pre></div>
+  .file "ch11_2.bc"
+error: couldn't allocate output register for constraint 'r'</pre>
 </div>
 <p>The ch11_2.cpp is a inline assembly example. The clang supports inline
 assembly like gcc.
@@ -2756,27 +2756,26 @@ functions LowerAsmOperandForConstraint() and getSingleConstraintMatchWeight()
 of Cpu0ISelLowering.cpp will create different range of const operand by I, J,
 K, L, N, O, or P, and register operand by r . For instance, the following
 __asm__ will create the llvm asm immediately after it.</p>
-<div class="highlight-c++"><div class="highlight"><pre>__asm__ __volatile__(&quot;addiu %0,%1,%2&quot;
-                     :&quot;=r&quot;(foo) // 15
-                     :&quot;r&quot;(foo), &quot;I&quot;(n_5)
+<div class="highlight-c++"><pre>__asm__ __volatile__("addiu %0,%1,%2"
+                     :"=r"(foo) // 15
+                     :"r"(foo), "I"(n_5)
                      );
 
-%2 = call i32 asm sideeffect &quot;addiu $0,$1,$2&quot;, &quot;=r,r,I&quot;(i32 %1, i32 -5) #0, !srcloc !1
+%2 = call i32 asm sideeffect "addiu $0,$1,$2", "=r,r,I"(i32 %1, i32 -5) #0, !srcloc !1
 
-__asm__ __volatile__(&quot;addiu %0,%1,%2&quot;
-                     :&quot;=r&quot;(foo) // 15
-                     :&quot;r&quot;(foo), &quot;N&quot;(n_65531)
+__asm__ __volatile__("addiu %0,%1,%2"
+                     :"=r"(foo) // 15
+                     :"r"(foo), "N"(n_65531)
                      );
 
-%10 = call i32 asm sideeffect &quot;addiu $0,$1,$2&quot;, &quot;=r,r,N&quot;(i32 %9, i32 -65531) #0, !srcloc !5
+%10 = call i32 asm sideeffect "addiu $0,$1,$2", "=r,r,N"(i32 %9, i32 -65531) #0, !srcloc !5
 
-__asm__ __volatile__(&quot;addiu %0,%1,%2&quot;
-                     :&quot;=r&quot;(foo) // 15
-                     :&quot;r&quot;(foo), &quot;P&quot;(un5)
+__asm__ __volatile__("addiu %0,%1,%2"
+                     :"=r"(foo) // 15
+                     :"r"(foo), "P"(un5)
                      );
 
-%14 = call i32 asm sideeffect &quot;addiu $0,$1,$2&quot;, &quot;=r,r,P&quot;(i32 %13, i32 5) #0, !srcloc !7
-</pre></div>
+%14 = call i32 asm sideeffect "addiu $0,$1,$2", "=r,r,P"(i32 %13, i32 5) #0, !srcloc !7</pre>
 </div>
 <p>The r in __asm__ will generate register, %1, in llvm IR asm while I
 in __asm__ will generate const operand, -5, in llvm IR asm. Remind,
@@ -2823,7 +2822,7 @@ since FL instruction format has 16 bits limitation.</p>
 
     <div class="footer">
         &copy; Copyright 2013, LLVM.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.
     </div>
   </body>
 </html>

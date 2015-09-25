@@ -10,6 +10,7 @@
     
     <link rel="stylesheet" href="_static/haiku.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="_static/print.css" type="text/css" />
     
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
@@ -24,6 +25,7 @@
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
     <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="_static/theme_extras.js"></script>
     <link rel="author" title="About these documents" href="about.html" />
     <link rel="top" title="Tutorial: Creating an LLVM Backend for the Cpu0 Architecture" href="index.html" />
     <link rel="next" title="Other data type" href="othertype.html" />
@@ -897,19 +899,19 @@ of DAG Node is ISD::GlobalAddress or not, furthmore.</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="n">def</span> <span class="n">RelocPIC</span>    <span class="o">:</span>     <span class="n">Predicate</span><span class="o">&lt;</span><span class="s">&quot;TM.getRelocationModel() == Reloc::PIC_&quot;</span><span class="o">&gt;</span><span class="p">;</span>
 </pre></div>
 </div>
-<div class="highlight-c++"><div class="highlight"><pre>// hi/lo relocs
+<div class="highlight-c++"><pre>// hi/lo relocs
 let Predicates = [Ch6_1] in {
 def : Pat&lt;(Cpu0Hi tglobaladdr:$in), (LUi tglobaladdr:$in)&gt;;
 }
-</pre></div>
+</pre>
 </div>
-<div class="highlight-c++"><div class="highlight"><pre>let Predicates = [Ch6_1] in {
+<div class="highlight-c++"><pre>let Predicates = [Ch6_1] in {
 def : Pat&lt;(add CPURegs:$hi, (Cpu0Lo tglobaladdr:$lo)),
           (ORi CPURegs:$hi, tglobaladdr:$lo)&gt;;
 }
-</pre></div>
+</pre>
 </div>
-<div class="highlight-c++"><div class="highlight"><pre>// gp_rel relocs
+<div class="highlight-c++"><pre>// gp_rel relocs
 let Predicates = [Ch6_1] in {
 def : Pat&lt;(add CPURegs:$gp, (Cpu0GPRel tglobaladdr:$in)),
           (ORi CPURegs:$gp, tglobaladdr:$in)&gt;;
@@ -923,7 +925,7 @@ class WrapperPat&lt;SDNode node, Instruction ORiOp, RegisterClass RC&gt;:
 
 def : WrapperPat&lt;tglobaladdr, ORi, GPROut&gt;;
 }
-</pre></div>
+</pre>
 </div>
 </div>
 <div class="section" id="static-mode">
@@ -1078,17 +1080,17 @@ instructions as below.</p>
 <span class="n">def</span> <span class="n">Cpu0Lo</span>    <span class="o">:</span> <span class="n">SDNode</span><span class="o">&lt;</span><span class="s">&quot;Cpu0ISD::Lo&quot;</span><span class="p">,</span> <span class="n">SDTIntUnaryOp</span><span class="o">&gt;</span><span class="p">;</span>
 </pre></div>
 </div>
-<div class="highlight-c++"><div class="highlight"><pre>// hi/lo relocs
+<div class="highlight-c++"><pre>// hi/lo relocs
 let Predicates = [Ch6_1] in {
 def : Pat&lt;(Cpu0Hi tglobaladdr:$in), (LUi tglobaladdr:$in)&gt;;
 }
-</pre></div>
+</pre>
 </div>
-<div class="highlight-c++"><div class="highlight"><pre>let Predicates = [Ch6_1] in {
+<div class="highlight-c++"><pre>let Predicates = [Ch6_1] in {
 def : Pat&lt;(add CPURegs:$hi, (Cpu0Lo tglobaladdr:$lo)),
           (ORi CPURegs:$hi, tglobaladdr:$lo)&gt;;
 }
-</pre></div>
+</pre>
 </div>
 <div class="highlight-bash"><div class="highlight"><pre>...
 lui <span class="nv">$2</span>, %hi<span class="o">(</span>gI<span class="o">)</span>
@@ -1206,12 +1208,13 @@ instruction as below.</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="n">def</span> <span class="n">Cpu0GPRel</span> <span class="o">:</span> <span class="n">SDNode</span><span class="o">&lt;</span><span class="s">&quot;Cpu0ISD::GPRel&quot;</span><span class="p">,</span> <span class="n">SDTIntUnaryOp</span><span class="o">&gt;</span><span class="p">;</span>
 </pre></div>
 </div>
-<div class="highlight-c++"><div class="highlight"><pre>// gp_rel relocs
+<div class="highlight-c++"><pre>// gp_rel relocs
 let Predicates = [Ch6_1] in {
 def : Pat&lt;(add CPURegs:$gp, (Cpu0GPRel tglobaladdr:$in)),
           (ORi CPURegs:$gp, tglobaladdr:$in)&gt;;
 }
-</pre></div>
+
+</pre>
 </div>
 <div class="highlight-bash"><div class="highlight"><pre>ori <span class="nv">$2</span>, <span class="nv">$gp</span>, %gp_rel<span class="o">(</span>gI<span class="o">)</span>
 ...
@@ -1719,14 +1722,14 @@ will be run in later Chapter Control flow statements.</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="n">def</span> <span class="n">Cpu0Wrapper</span>    <span class="o">:</span> <span class="n">SDNode</span><span class="o">&lt;</span><span class="s">&quot;Cpu0ISD::Wrapper&quot;</span><span class="p">,</span> <span class="n">SDTIntBinOp</span><span class="o">&gt;</span><span class="p">;</span>
 </pre></div>
 </div>
-<div class="highlight-c++"><div class="highlight"><pre>let Predicates = [Ch6_1] in {
+<div class="highlight-c++"><pre>let Predicates = [Ch6_1] in {
 class WrapperPat&lt;SDNode node, Instruction ORiOp, RegisterClass RC&gt;:
       Pat&lt;(Cpu0Wrapper RC:$gp, node:$in),
               (ORiOp RC:$gp, node:$in)&gt;;
 
 def : WrapperPat&lt;tglobaladdr, ORi, GPROut&gt;;
 }
-</pre></div>
+</pre>
 </div>
 <p class="rubric">lbdex/input/ch8_5.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="kt">int</span> <span class="nf">test_select_global_pic</span><span class="p">()</span>
@@ -1919,7 +1922,7 @@ variables in small 16 addressable area&#8221;.</p>
 
     <div class="footer">
         &copy; Copyright 2013, LLVM.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.
     </div>
   </body>
 </html>

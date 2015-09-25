@@ -10,6 +10,7 @@
     
     <link rel="stylesheet" href="_static/haiku.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="_static/print.css" type="text/css" />
     
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
@@ -24,6 +25,7 @@
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
     <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="_static/theme_extras.js"></script>
     <link rel="author" title="About these documents" href="about.html" />
     <link rel="top" title="Tutorial: Creating an LLVM Backend for the Cpu0 Architecture" href="index.html" />
     <link rel="next" title="Backend structure" href="backendstructure.html" />
@@ -899,7 +901,7 @@ transformations, etc.
 The most important aspect of it, though, is that it is itself defined as a
 first class language with well-defined semantics.
 To make this concrete, here is a simple example of a .ll file:</p>
-<div class="highlight-c++"><div class="highlight"><pre>define i32 @add1(i32 %a, i32 %b) {
+<div class="highlight-c++"><pre>define i32 @add1(i32 %a, i32 %b) {
 entry:
   %tmp1 = add i32 %a, %b
   ret i32 %tmp1
@@ -925,8 +927,7 @@ unsigned add1(unsigned a, unsigned b) {
 unsigned add2(unsigned a, unsigned b) {
   if (a == 0) return b;
   return add2(a-1, b+1);
-}
-</pre></div>
+}</pre>
 </div>
 <p>As you can see from this example, LLVM IR is a low-level RISC-like virtual
 instruction set.
@@ -1263,15 +1264,14 @@ block into DAG <a class="footnote-reference" href="#dragonbooks-8-5" id="id20">[
 For example, the basic block code and it&#8217;s corresponding DAG as
 <a class="pageref" href="#llvmstructure-f10">Figure  8</a>.</p>
 <div class="figure align-center" id="llvmstructure-f10">
-<a class="reference internal image-reference" href="_images/103.png"><img alt="_images/103.png" src="_images/103.png" style="width: 331.8px; height: 124.6px;" /></a>
+<a class="reference internal image-reference" href="_images/103.png"><img alt="_images/103.png" src="_images/103.png" /></a>
 <p class="caption">Figure 8: DAG example</p>
 </div>
 <p>If b is not live on exit from the block, then we can do &#8220;common expression
 remove&#8221; to get the following code.</p>
-<div class="highlight-c++"><div class="highlight"><pre>a = b + c
+<div class="highlight-c++"><pre>a = b + c
 d = a – d
-c = d + c
-</pre></div>
+c = d + c</pre>
 </div>
 <p>As you can imagine, the &#8220;common expression remove&#8221; can apply in IR or machine
 code.</p>
@@ -1285,7 +1285,7 @@ For example, (+ b, c), (+ b, 1) is IR DAG representation.</p>
 <p>The major function of backend is translating IR code into machine code at
 stage of Instruction Selection as <a class="pageref" href="#llvmstructure-f11">Figure  9</a>.</p>
 <div class="figure align-center" id="llvmstructure-f11">
-<a class="reference internal image-reference" href="_images/112.png"><img alt="_images/112.png" src="_images/112.png" style="width: 247.5px; height: 58.0px;" /></a>
+<a class="reference internal image-reference" href="_images/112.png"><img alt="_images/112.png" src="_images/112.png" /></a>
 <p class="caption">Figure 9: IR and it&#8217;s corresponding machine instruction</p>
 </div>
 <p>For machine instruction selection, the best solution is representing IR and
@@ -1295,7 +1295,7 @@ To simplify in view, the register leaf is skipped in
 The rj + rk is IR DAG representation (for symbol notation, not llvm SSA form).
 ADD is machine instruction.</p>
 <div class="figure align-center" id="llvmstructure-f12">
-<a class="reference internal image-reference" href="_images/122.png"><img alt="_images/122.png" src="_images/122.png" style="width: 493.0px; height: 304.5px;" /></a>
+<a class="reference internal image-reference" href="_images/122.png"><img alt="_images/122.png" src="_images/122.png" /></a>
 <p class="caption">Figure 10: Instruction DAG representation</p>
 </div>
 <p>The IR DAG and machine instruction DAG can also represented as list.
@@ -1329,15 +1329,15 @@ previous chapter. Listing them again as follows,</p>
 <span class="n">def</span> <span class="n">immSExt16</span>  <span class="o">:</span> <span class="n">PatLeaf</span><span class="o">&lt;</span><span class="p">(</span><span class="n">imm</span><span class="p">),</span> <span class="p">[{</span> <span class="k">return</span> <span class="n">isInt</span><span class="o">&lt;</span><span class="mi">16</span><span class="o">&gt;</span><span class="p">(</span><span class="n">N</span><span class="o">-&gt;</span><span class="n">getSExtValue</span><span class="p">());</span> <span class="p">}]</span><span class="o">&gt;</span><span class="p">;</span>
 </pre></div>
 </div>
-<div class="highlight-c++"><div class="highlight"><pre>// Arithmetic and logical instructions with 2 register operands.
+<div class="highlight-c++"><pre>// Arithmetic and logical instructions with 2 register operands.
 class ArithLogicI&lt;bits&lt;8&gt; op, string instr_asm, SDNode OpNode,
                   Operand Od, PatLeaf imm_type, RegisterClass RC&gt; :
   FL&lt;op, (outs GPROut:$ra), (ins RC:$rb, Od:$imm16),
-     !strconcat(instr_asm, &quot;\t$ra, $rb, $imm16&quot;),
+     !strconcat(instr_asm, "\t$ra, $rb, $imm16"),
      [(set GPROut:$ra, (OpNode RC:$rb, imm_type:$imm16))], IIAlu&gt; {
   let isReMaterializable = 1;
 }
-</pre></div>
+</pre>
 </div>
 <div class="highlight-c++"><div class="highlight"><pre><span class="c1">// IR &quot;add&quot; defined in include/llvm/Target/TargetSelectionDAG.td, line 315 (def add).</span>
 <span class="n">def</span> <span class="n">ADDiu</span>   <span class="o">:</span> <span class="n">ArithLogicI</span><span class="o">&lt;</span><span class="mh">0x09</span><span class="p">,</span> <span class="s">&quot;addiu&quot;</span><span class="p">,</span> <span class="n">add</span><span class="p">,</span> <span class="n">simm16</span><span class="p">,</span> <span class="n">immSExt16</span><span class="p">,</span> <span class="n">CPURegs</span><span class="o">&gt;</span><span class="p">;</span>
@@ -1357,7 +1357,7 @@ Similarly, the machine instruction DAG node LD and ST can be translated from IR
 DAG node <strong>load</strong> and <strong>store</strong>. Notice that the $r1 in this case is virtual
 register name (not machine register).</p>
 <div class="figure align-center" id="llvmstructure-f13">
-<a class="reference internal image-reference" href="_images/132.png"><img alt="_images/132.png" src="_images/132.png" style="width: 402.0px; height: 294.0px;" /></a>
+<a class="reference internal image-reference" href="_images/132.png"><img alt="_images/132.png" src="_images/132.png" /></a>
 <p class="caption">Figure 11: Pattern match for ADDiu instruction and IR node add</p>
 </div>
 <p>From DAG instruction selection we mentioned, the leaf node must be a Data Node.
@@ -1371,12 +1371,11 @@ instruction, fmadd.
 It can be represented by DAG list (fadd (fmul ra, rc), rb).
 For this implementation, we can assign fmadd DAG pattern to instruction td as
 follows,</p>
-<div class="highlight-c++"><div class="highlight"><pre>def FMADDS : AForm_1&lt;59, 29,
+<div class="highlight-c++"><pre>def FMADDS : AForm_1&lt;59, 29,
           (ops F4RC:$FRT, F4RC:$FRA, F4RC:$FRC, F4RC:$FRB),
-          &quot;fmadds $FRT, $FRA, $FRC, $FRB&quot;,
+          "fmadds $FRT, $FRA, $FRC, $FRB",
           [(set F4RC:$FRT, (fadd (fmul F4RC:$FRA, F4RC:$FRC),
-                       F4RC:$FRB))]&gt;;
-</pre></div>
+                       F4RC:$FRB))]&gt;;</pre>
 </div>
 <p>Similar with ADDiu, [(set F4RC:$FRT, (fadd (fmul F4RC:$FRA, F4RC:$FRC),
 F4RC:$FRB))] is the pattern which include nodes <strong>fmul</strong> and <strong>fadd</strong>.</p>
@@ -1403,10 +1402,9 @@ file.</p>
 IR form.
 So, this notation form is used in this book sometimes.</p>
 <p>For the following basic block code,</p>
-<div class="highlight-c++"><div class="highlight"><pre>a = b + c   // in notation IR form
+<div class="highlight-c++"><pre>a = b + c   // in notation IR form
 d = a – d
-%e = fmadd %a, %c, %b // in llvm SSA IR form
-</pre></div>
+%e = fmadd %a, %c, %b // in llvm SSA IR form</pre>
 </div>
 <p>We can apply <a class="pageref" href="#llvmstructure-f8">Figure  6</a> Instruction Tree Patterns to get the
 following machine code,</p>
@@ -1961,7 +1959,7 @@ The Cpu0RegisterInfo.td also defines that <strong>CPURegs</strong> is an instanc
 <strong>Register</strong> instances, thus <strong>CPURegs</strong> can be described as a set of registers.</p>
 <p>The Cpu0 instructions td is named to Cpu0InstrInfo.td which contents as follows,</p>
 <p class="rubric">lbdex/chapters/Chapter2/Cpu0InstrInfo.td</p>
-<div class="highlight-c++"><div class="highlight"><pre>//===- Cpu0InstrInfo.td - Target Description for Cpu0 Target -*- tablegen -*-=//
+<div class="highlight-c++"><pre>//===- Cpu0InstrInfo.td - Target Description for Cpu0 Target -*- tablegen -*-=//
 //
 //                     The LLVM Compiler Infrastructure
 //
@@ -1981,14 +1979,14 @@ The Cpu0RegisterInfo.td also defines that <strong>CPURegs</strong> is an instanc
 def SDT_Cpu0Ret          : SDTypeProfile&lt;0, 1, [SDTCisInt&lt;0&gt;]&gt;;
 
 // Return
-def Cpu0Ret : SDNode&lt;&quot;Cpu0ISD::Ret&quot;, SDTNone,
+def Cpu0Ret : SDNode&lt;"Cpu0ISD::Ret", SDTNone,
                      [SDNPHasChain, SDNPOptInGlue, SDNPVariadic]&gt;;
 
 //===----------------------------------------------------------------------===//
 // Instruction format superclass
 //===----------------------------------------------------------------------===//
 
-include &quot;Cpu0InstrFormats.td&quot;
+include "Cpu0InstrFormats.td"
 
 //===----------------------------------------------------------------------===//
 // Cpu0 Operand, Complex Patterns and Transformations Definitions.
@@ -1997,14 +1995,14 @@ include &quot;Cpu0InstrFormats.td&quot;
 
 // Signed Operand
 def simm16      : Operand&lt;i32&gt; {
-  let DecoderMethod= &quot;DecodeSimm16&quot;;
+  let DecoderMethod= "DecodeSimm16";
 }
 
 // Address operand
 def mem : Operand&lt;i32&gt; {
-  let PrintMethod = &quot;printMemOperand&quot;;
+  let PrintMethod = "printMemOperand";
   let MIOperandInfo = (ops CPURegs, simm16);
-  let EncoderMethod = &quot;getMemEncoding&quot;;
+  let EncoderMethod = "getMemEncoding";
 }
 
 // Node immediate fits as 16-bit sign extended on target immediate.
@@ -2013,7 +2011,7 @@ def immSExt16  : PatLeaf&lt;(imm), [{ return isInt&lt;16&gt;(N-&gt;getSExtValue(
 
 // Cpu0 Address Mode! SDNode frameindex could possibily be a match
 // since load and store instructions from stack used it.
-def addr : ComplexPattern&lt;iPTR, 2, &quot;SelectAddr&quot;, [frameindex], [SDNPWantParent]&gt;;
+def addr : ComplexPattern&lt;iPTR, 2, "SelectAddr", [frameindex], [SDNPWantParent]&gt;;
 
 //===----------------------------------------------------------------------===//
 // Pattern fragment for load/store
@@ -2043,7 +2041,7 @@ def store_a         : AlignedStore&lt;store&gt;;
 class ArithLogicI&lt;bits&lt;8&gt; op, string instr_asm, SDNode OpNode,
                   Operand Od, PatLeaf imm_type, RegisterClass RC&gt; :
   FL&lt;op, (outs GPROut:$ra), (ins RC:$rb, Od:$imm16),
-     !strconcat(instr_asm, &quot;\t$ra, $rb, $imm16&quot;),
+     !strconcat(instr_asm, "\t$ra, $rb, $imm16"),
      [(set GPROut:$ra, (OpNode RC:$rb, imm_type:$imm16))], IIAlu&gt; {
   let isReMaterializable = 1;
 }
@@ -2053,7 +2051,7 @@ class FMem&lt;bits&lt;8&gt; op, dag outs, dag ins, string asmstr, list&lt;dag&gt
   bits&lt;20&gt; addr;
   let Inst{19-16} = addr{19-16};
   let Inst{15-0}  = addr{15-0};
-  let DecoderMethod = &quot;DecodeMem&quot;;
+  let DecoderMethod = "DecodeMem";
 }
 
 // Memory Load/Store
@@ -2061,7 +2059,7 @@ let canFoldAsLoad = 1 in
 class LoadM&lt;bits&lt;8&gt; op, string instr_asm, PatFrag OpNode, RegisterClass RC,
             Operand MemOpnd, bit Pseudo&gt;:
   FMem&lt;op, (outs RC:$ra), (ins MemOpnd:$addr),
-     !strconcat(instr_asm, &quot;\t$ra, $addr&quot;),
+     !strconcat(instr_asm, "\t$ra, $addr"),
      [(set RC:$ra, (OpNode addr:$addr))], IILoad&gt; {
   let isPseudo = Pseudo;
 }
@@ -2069,7 +2067,7 @@ class LoadM&lt;bits&lt;8&gt; op, string instr_asm, PatFrag OpNode, RegisterClass
 class StoreM&lt;bits&lt;8&gt; op, string instr_asm, PatFrag OpNode, RegisterClass RC,
              Operand MemOpnd, bit Pseudo&gt;:
   FMem&lt;op, (outs), (ins RC:$ra, MemOpnd:$addr),
-     !strconcat(instr_asm, &quot;\t$ra, $addr&quot;),
+     !strconcat(instr_asm, "\t$ra, $addr"),
      [(OpNode RC:$ra, addr:$addr)], IIStore&gt; {
   let isPseudo = Pseudo;
 }
@@ -2090,13 +2088,13 @@ let isBranch=1, isTerminator=1, isBarrier=1, imm16=0, hasDelaySlot = 1,
     isIndirectBranch = 1 in
 class JumpFR&lt;bits&lt;8&gt; op, string instr_asm, RegisterClass RC&gt;:
   FL&lt;op, (outs), (ins RC:$ra),
-     !strconcat(instr_asm, &quot;\t$ra&quot;), [(brind RC:$ra)], IIBranch&gt; {
+     !strconcat(instr_asm, "\t$ra"), [(brind RC:$ra)], IIBranch&gt; {
   let rb = 0;
   let imm16 = 0;
 }
 
 // Return instruction
-class RetBase&lt;RegisterClass RC&gt;: JumpFR&lt;0x3c, &quot;ret&quot;, RC&gt; {
+class RetBase&lt;RegisterClass RC&gt;: JumpFR&lt;0x3c, "ret", RC&gt; {
   let isReturn = 1;
   let isCodeGenOnly = 1;
   let hasCtrlDep = 1;
@@ -2113,12 +2111,12 @@ class RetBase&lt;RegisterClass RC&gt;: JumpFR&lt;0x3c, &quot;ret&quot;, RC&gt; {
 
 /// Load and Store Instructions
 ///  aligned
-defm LD     : LoadM32&lt;0x01,  &quot;ld&quot;,  load_a&gt;;
-defm ST     : StoreM32&lt;0x02, &quot;st&quot;,  store_a&gt;;
+defm LD     : LoadM32&lt;0x01,  "ld",  load_a&gt;;
+defm ST     : StoreM32&lt;0x02, "st",  store_a&gt;;
 
 /// Arithmetic Instructions (ALU Immediate)
-// IR &quot;add&quot; defined in include/llvm/Target/TargetSelectionDAG.td, line 315 (def add).
-def ADDiu   : ArithLogicI&lt;0x09, &quot;addiu&quot;, add, simm16, immSExt16, CPURegs&gt;;
+// IR "add" defined in include/llvm/Target/TargetSelectionDAG.td, line 315 (def add).
+def ADDiu   : ArithLogicI&lt;0x09, "addiu", add, simm16, immSExt16, CPURegs&gt;;
 
 /// Arithmetic Instructions (3-Operand, R-Type)
 
@@ -2128,7 +2126,7 @@ def RET     : RetBase&lt;GPROut&gt;;
 
 /// No operation
 let addr=0 in
-  def NOP   : FJ&lt;0, (outs), (ins), &quot;nop&quot;, [], IIAlu&gt;;
+  def NOP   : FJ&lt;0, (outs), (ins), "nop", [], IIAlu&gt;;
 
 //===----------------------------------------------------------------------===//
 //  Arbitrary patterns that map to one or more instructions
@@ -2137,7 +2135,8 @@ let addr=0 in
 // Small immediates
 def : Pat&lt;(i32 immSExt16:$in),
           (ADDiu ZERO, imm:$in)&gt;;
-</pre></div>
+
+</pre>
 </div>
 <p>The Cpu0InstrFormats.td is included by Cpu0InstInfo.td as follows,</p>
 <p class="rubric">lbdex/chapters/Chapter2/Cpu0InstrFormats.td</p>
@@ -2270,26 +2269,24 @@ def : Pat&lt;(i32 immSExt16:$in),
 </div>
 <p>ADDiu is a instance of class ArithLogicI which inherited from FL, and can be
 expanded and get member value further as follows,</p>
-<div class="highlight-c++"><div class="highlight"><pre>def ADDiu   : ArithLogicI&lt;0x09, &quot;addiu&quot;, add, simm16, immSExt16, CPURegs&gt;;
+<div class="highlight-c++"><pre>def ADDiu   : ArithLogicI&lt;0x09, "addiu", add, simm16, immSExt16, CPURegs&gt;;
 
 /// Arithmetic and logical instructions with 2 register operands.
 class ArithLogicI&lt;bits&lt;8&gt; op, string instr_asm, SDNode OpNode,
           Operand Od, PatLeaf imm_type, RegisterClass RC&gt; :
   FL&lt;op, (outs GPROut:$ra), (ins RC:$rb, Od:$imm16),
-   !strconcat(instr_asm, &quot;\t$ra, $rb, $imm16&quot;),
+   !strconcat(instr_asm, "\t$ra, $rb, $imm16"),
    [(set GPROut:$ra, (OpNode RC:$rb, imm_type:$imm16))], IIAlu&gt; {
   let isReMaterializable = 1;
-}
-</pre></div>
+}</pre>
 </div>
 <p>So,</p>
-<div class="highlight-c++"><div class="highlight"><pre>op = 0x09
+<div class="highlight-c++"><pre>op = 0x09
 instr_asm = “addiu”
 OpNode = add
 Od = simm16
 imm_type = immSExt16
-RC = CPURegs
-</pre></div>
+RC = CPURegs</pre>
 </div>
 <p>To expand the td, one principle is:</p>
 <ul>
@@ -2847,8 +2844,8 @@ src/include/llvm/Support/ELF.h:  <span class="nv">EF_CPU0_ARCH_64R2</span> <span
 </div>
 <p>Now, run the <tt class="docutils literal"><span class="pre">cmake</span></tt> command and Xcode to build td (the following cmake
 command is for my setting),</p>
-<div class="highlight-bash"><div class="highlight"><pre>118-165-78-230:cmake_debug_build Jonathan$ cmake -DCMAKE_CXX_COMPILER=clang++
--DCMAKE_C_COMPILER=clang -DCMAKE_BUILD_TYPE=Debug -G &quot;Xcode&quot; ../src/
+<div class="highlight-bash"><pre>118-165-78-230:cmake_debug_build Jonathan$ cmake -DCMAKE_CXX_COMPILER=clang++
+-DCMAKE_C_COMPILER=clang -DCMAKE_BUILD_TYPE=Debug -G "Xcode" ../src/
 
 -- Targeting Cpu0
 ...
@@ -2857,8 +2854,7 @@ command is for my setting),</p>
 -- Generating done
 -- Build files have been written to: /Users/Jonathan/llvm/test/cmake_debug_build
 
-118-165-78-230:cmake_debug_build Jonathan$
-</pre></div>
+118-165-78-230:cmake_debug_build Jonathan$</pre>
 </div>
 <p>After build, you can type command <tt class="docutils literal"><span class="pre">llc</span> <span class="pre">–version</span></tt> to find the cpu0 backend,</p>
 <div class="highlight-bash"><div class="highlight"><pre>118-165-78-230:cmake_debug_build Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/test/
@@ -2976,13 +2972,12 @@ define i32 @main<span class="o">()</span> nounwind uwtable <span class="o">{</sp
 </pre></div>
 </div>
 <p>Now, when compiling ch3.bc will get the error message as follows,</p>
-<div class="highlight-c++"><div class="highlight"><pre>118-165-78-230:input Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
+<div class="highlight-c++"><pre>118-165-78-230:input Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
 Debug/bin/llc -march=cpu0 -relocation-model=pic -filetype=asm ch3.bc -o
 ch3.cpu0.s
 ...
-... Assertion `target.get() &amp;&amp; &quot;Could not allocate target machine!&quot;&#39; failed
-...
-</pre></div>
+... Assertion `target.get() &amp;&amp; "Could not allocate target machine!"' failed
+...</pre>
 </div>
 <p>At this point, we finish the Target Registration for Cpu0 backend.
 The backend compiler command <tt class="docutils literal"><span class="pre">llc</span></tt> can recognize Cpu0 backend now.
@@ -3142,7 +3137,7 @@ Techniques, and Tools (2nd Edition)</td></tr>
 
     <div class="footer">
         &copy; Copyright 2013, LLVM.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.
     </div>
   </body>
 </html>

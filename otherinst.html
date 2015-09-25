@@ -10,6 +10,7 @@
     
     <link rel="stylesheet" href="_static/haiku.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="_static/print.css" type="text/css" />
     
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
@@ -24,6 +25,7 @@
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
     <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="_static/theme_extras.js"></script>
     <link rel="author" title="About these documents" href="about.html" />
     <link rel="top" title="Tutorial: Creating an LLVM Backend for the Cpu0 Architecture" href="index.html" />
     <link rel="next" title="Generating object files" href="genobj.html" />
@@ -147,23 +149,23 @@ purpose register class, and why need them, from this chapter.</p>
                            <span class="p">[</span><span class="n">SDNPOutGlue</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
 </pre></div>
 </div>
-<div class="highlight-c++"><div class="highlight"><pre>let Predicates = [Ch4_1] in {
+<div class="highlight-c++"><pre>let Predicates = [Ch4_1] in {
 class shift_rotate_reg&lt;bits&lt;8&gt; op, bits&lt;4&gt; isRotate, string instr_asm,
                        SDNode OpNode, RegisterClass RC&gt;:
   FA&lt;op, (outs GPROut:$ra), (ins RC:$rb, RC:$rc),
-     !strconcat(instr_asm, &quot;\t$ra, $rb, $rc&quot;),
+     !strconcat(instr_asm, "\t$ra, $rb, $rc"),
      [(set GPROut:$ra, (OpNode RC:$rb, RC:$rc))], IIAlu&gt; {
   let shamt = 0;
 }
 }
-</pre></div>
+</pre>
 </div>
-<div class="highlight-c++"><div class="highlight"><pre>let Predicates = [Ch4_1] in {
+<div class="highlight-c++"><pre>let Predicates = [Ch4_1] in {
 // Mul, Div
 class Mult&lt;bits&lt;8&gt; op, string instr_asm, InstrItinClass itin,
            RegisterClass RC, list&lt;Register&gt; DefRegs&gt;:
   FL&lt;op, (outs), (ins RC:$ra, RC:$rb),
-     !strconcat(instr_asm, &quot;\t$ra, $rb&quot;), [], itin&gt; {
+     !strconcat(instr_asm, "\t$ra, $rb"), [], itin&gt; {
   let imm16 = 0;
   let isCommutable = 1;
   let Defs = DefRegs;
@@ -176,7 +178,7 @@ class Mult32&lt;bits&lt;8&gt; op, string instr_asm, InstrItinClass itin&gt;:
 class Div&lt;SDNode opNode, bits&lt;8&gt; op, string instr_asm, InstrItinClass itin,
           RegisterClass RC, list&lt;Register&gt; DefRegs&gt;:
   FL&lt;op, (outs), (ins RC:$ra, RC:$rb),
-     !strconcat(instr_asm, &quot;\t$ra, $rb&quot;),
+     !strconcat(instr_asm, "\t$ra, $rb"),
      [(opNode RC:$ra, RC:$rb)], itin&gt; {
   let imm16 = 0;
   let Defs = DefRegs;
@@ -189,7 +191,7 @@ class Div32&lt;SDNode opNode, bits&lt;8&gt; op, string instr_asm, InstrItinClass
 class MoveFromLOHI&lt;bits&lt;8&gt; op, string instr_asm, RegisterClass RC,
                    list&lt;Register&gt; UseRegs&gt;:
   FL&lt;op, (outs RC:$ra), (ins),
-     !strconcat(instr_asm, &quot;\t$ra&quot;), [], IIHiLo&gt; {
+     !strconcat(instr_asm, "\t$ra"), [], IIHiLo&gt; {
   let rb = 0;
   let imm16 = 0;
   let Uses = UseRegs;
@@ -200,7 +202,7 @@ class MoveFromLOHI&lt;bits&lt;8&gt; op, string instr_asm, RegisterClass RC,
 class MoveToLOHI&lt;bits&lt;8&gt; op, string instr_asm, RegisterClass RC,
                  list&lt;Register&gt; DefRegs&gt;:
   FL&lt;op, (outs), (ins RC:$ra),
-     !strconcat(instr_asm, &quot;\t$ra&quot;), [], IIHiLo&gt; {
+     !strconcat(instr_asm, "\t$ra"), [], IIHiLo&gt; {
   let rb = 0;
   let imm16 = 0;
   let Defs = DefRegs;
@@ -210,7 +212,7 @@ class MoveToLOHI&lt;bits&lt;8&gt; op, string instr_asm, RegisterClass RC,
 // Move from C0 (co-processor 0) Register
 class MoveFromC0&lt;bits&lt;8&gt; op, string instr_asm, RegisterClass RC&gt;:
   FL&lt;op, (outs), (ins RC:$ra, C0Regs:$rb),
-     !strconcat(instr_asm, &quot;\t$ra, $rb&quot;), [], IIAlu&gt; {
+     !strconcat(instr_asm, "\t$ra, $rb"), [], IIAlu&gt; {
   let imm16 = 0;
   let hasSideEffects = 0;
 }
@@ -218,7 +220,7 @@ class MoveFromC0&lt;bits&lt;8&gt; op, string instr_asm, RegisterClass RC&gt;:
 // Move to C0 Register
 class MoveToC0&lt;bits&lt;8&gt; op, string instr_asm, RegisterClass RC&gt;:
   FL&lt;op, (outs C0Regs:$ra), (ins RC:$rb),
-     !strconcat(instr_asm, &quot;\t$ra, $rb&quot;), [], IIAlu&gt; {
+     !strconcat(instr_asm, "\t$ra, $rb"), [], IIAlu&gt; {
   let imm16 = 0;
   let hasSideEffects = 0;
 }
@@ -226,12 +228,12 @@ class MoveToC0&lt;bits&lt;8&gt; op, string instr_asm, RegisterClass RC&gt;:
 // Move from C0 register to C0 register
 class C0Move&lt;bits&lt;8&gt; op, string instr_asm&gt;:
   FL&lt;op, (outs C0Regs:$ra), (ins C0Regs:$rb),
-     !strconcat(instr_asm, &quot;\t$ra, $rb&quot;), [], IIAlu&gt; {
+     !strconcat(instr_asm, "\t$ra, $rb"), [], IIAlu&gt; {
   let imm16 = 0;
   let hasSideEffects = 0;
 }
 } // let Predicates = [Ch4_1]
-</pre></div>
+</pre>
 </div>
 <div class="highlight-c++"><div class="highlight"><pre><span class="n">let</span> <span class="n">Predicates</span> <span class="o">=</span> <span class="p">[</span><span class="n">Ch4_1</span><span class="p">]</span> <span class="n">in</span> <span class="p">{</span>
 <span class="n">let</span> <span class="n">Predicates</span> <span class="o">=</span> <span class="p">[</span><span class="n">DisableOverflow</span><span class="p">]</span> <span class="n">in</span> <span class="p">{</span>
@@ -675,7 +677,8 @@ or unsigned integer.</p>
 the sra, ... are for 1 virtual input registers and 1 constant input operands.</p>
 <p>Now, let&#8217;s build Chapter4_1/ and run with input file ch4_math.ll as follows,</p>
 <p class="rubric">lbdex/input/ch4_math.ll</p>
-<div class="highlight-c++"><div class="highlight"><pre>; Function Attrs: nounwind
+<div class="highlight-c++"><pre>
+; Function Attrs: nounwind
 define i32 @_Z9test_mathv() #0 {
   %a = alloca i32, align 4
   %b = alloca i32, align 4
@@ -703,17 +706,19 @@ define i32 @_Z9test_mathv() #0 {
 
   ret i32 %19
 }
-</pre></div>
+
+</pre>
 </div>
 <div class="highlight-bash"><div class="highlight"><pre>118-165-78-12:input Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/test/cmake_debug_build/
 Debug/bin/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>pic -filetype<span class="o">=</span>asm ch4_math.ll -o -
 </pre></div>
 </div>
 <p class="rubric">lbdex/output/ch4_math.s</p>
-<div class="highlight-c++"><div class="highlight"><pre>  .text
+<div class="highlight-c++"><pre>  .text
+  .macosx_version_min 14, 3
   .section .mdebug.abiO32
   .previous
-  .file  &quot;input/ch4_math.ll&quot;
+  .file  "input/ch4_math.ll"
   .globl  _Z9test_mathv
   .align  2
   .type  _Z9test_mathv,@function
@@ -758,7 +763,9 @@ $tmp0:
 $func_end0:
   .size  _Z9test_mathv, ($func_end0)-_Z9test_mathv
   .cfi_endproc
-</pre></div>
+
+
+</pre>
 </div>
 <p>File ch4_1_1.cpp as the following is the C file which include <strong>+, -, *, &lt;&lt;,</strong>
 and <strong>&gt;&gt;</strong> operators. It will generate corresponding llvm IR instructions,
@@ -1682,24 +1689,24 @@ They are trivial and easy. Listing the added code with comments and table for
 these operators IR, DAG and instructions as below. Please check them with the
 run result of bc and asm instructions for ch4_5.cpp as below.</p>
 <p class="rubric">lbdex/chapters/Chapter4_2/Cpu0InstrInfo.td</p>
-<div class="highlight-c++"><div class="highlight"><pre>let Predicates = [Ch4_2] in {
+<div class="highlight-c++"><pre>let Predicates = [Ch4_2] in {
 class CmpInstr&lt;bits&lt;8&gt; op, string instr_asm, 
                InstrItinClass itin, RegisterClass RC, RegisterClass RD, 
                bit isComm = 0&gt;:
   FA&lt;op, (outs RD:$ra), (ins RC:$rb, RC:$rc),
-     !strconcat(instr_asm, &quot;\t$ra, $rb, $rc&quot;), [], itin&gt; {
+     !strconcat(instr_asm, "\t$ra, $rb, $rc"), [], itin&gt; {
   let shamt = 0;
   let isCommutable = isComm;
 //#if CH &gt;= CH10_1
-  let DecoderMethod = &quot;DecodeCMPInstruction&quot;;
-</pre></div>
+  let DecoderMethod = "DecodeCMPInstruction";
+</pre>
 </div>
-<div class="highlight-c++"><div class="highlight"><pre>// SetCC
+<div class="highlight-c++"><pre>// SetCC
 let Predicates = [Ch4_2] in {
 class SetCC_R&lt;bits&lt;8&gt; op, string instr_asm, PatFrag cond_op,
               RegisterClass RC&gt;:
   FA&lt;op, (outs GPROut:$ra), (ins RC:$rb, RC:$rc),
-     !strconcat(instr_asm, &quot;\t$ra, $rb, $rc&quot;),
+     !strconcat(instr_asm, "\t$ra, $rb, $rc"),
      [(set GPROut:$ra, (cond_op RC:$rb, RC:$rc))],
      IIAlu&gt;, Requires&lt;[HasSlt]&gt; {
   let shamt = 0;
@@ -1708,12 +1715,12 @@ class SetCC_R&lt;bits&lt;8&gt; op, string instr_asm, PatFrag cond_op,
 class SetCC_I&lt;bits&lt;8&gt; op, string instr_asm, PatFrag cond_op, Operand Od,
               PatLeaf imm_type, RegisterClass RC&gt;:
   FL&lt;op, (outs GPROut:$ra), (ins RC:$rb, Od:$imm16),
-     !strconcat(instr_asm, &quot;\t$ra, $rb, $imm16&quot;),
+     !strconcat(instr_asm, "\t$ra, $rb, $imm16"),
      [(set GPROut:$ra, (cond_op RC:$rb, imm_type:$imm16))],
      IIAlu&gt;, Requires&lt;[HasSlt]&gt; {
 }
 }
-</pre></div>
+</pre>
 </div>
 <div class="highlight-c++"><div class="highlight"><pre><span class="n">let</span> <span class="n">Predicates</span> <span class="o">=</span> <span class="p">[</span><span class="n">Ch4_2</span><span class="p">]</span> <span class="n">in</span> <span class="p">{</span>
 <span class="n">def</span> <span class="n">ANDi</span>    <span class="o">:</span> <span class="n">ArithLogicI</span><span class="o">&lt;</span><span class="mh">0x0c</span><span class="p">,</span> <span class="s">&quot;andi&quot;</span><span class="p">,</span> <span class="n">and</span><span class="p">,</span> <span class="n">uimm16</span><span class="p">,</span> <span class="n">immZExt16</span><span class="p">,</span> <span class="n">CPURegs</span><span class="o">&gt;</span><span class="p">;</span>
@@ -1749,14 +1756,14 @@ class SetCC_I&lt;bits&lt;8&gt; op, string instr_asm, PatFrag cond_op, Operand Od
 <span class="p">}</span>
 </pre></div>
 </div>
-<div class="highlight-c++"><div class="highlight"><pre>let Predicates = [Ch4_2] in {
+<div class="highlight-c++"><pre>let Predicates = [Ch4_2] in {
 def : Pat&lt;(not CPURegs:$in),
 // 1: in == 0; 0: in != 0
           (XORi CPURegs:$in, 1)&gt;;
 }
-</pre></div>
+</pre>
 </div>
-<div class="highlight-c++"><div class="highlight"><pre>// setcc patterns
+<div class="highlight-c++"><pre>// setcc patterns
 
 let Predicates = [Ch4_2] in {
 // setcc for cmp instruction
@@ -1869,7 +1876,7 @@ defm : SetgtPatsCmp&lt;CPURegs&gt;;
 defm : SetgePatsCmp&lt;CPURegs&gt;;
 }
 } // let Predicates = [Ch4_2]
-</pre></div>
+</pre>
 </div>
 <p class="rubric">lbdex/chapters/Chapter4_2/Cpu0ISelLowering.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="n">Cpu0TargetLowering</span><span class="o">::</span><span class="n">Cpu0TargetLowering</span><span class="p">(</span><span class="k">const</span> <span class="n">Cpu0TargetMachine</span> <span class="o">&amp;</span><span class="n">TM</span><span class="p">,</span>
@@ -2626,7 +2633,7 @@ Kaufmann Series in Computer Architecture and Design)</td></tr>
 
     <div class="footer">
         &copy; Copyright 2013, LLVM.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.
     </div>
   </body>
 </html>

@@ -10,6 +10,7 @@
     
     <link rel="stylesheet" href="_static/haiku.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="_static/print.css" type="text/css" />
     
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
@@ -24,6 +25,7 @@
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
     <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="_static/theme_extras.js"></script>
     <link rel="author" title="About these documents" href="about.html" />
     <link rel="top" title="Tutorial: Creating an LLVM Backend for the Cpu0 Architecture" href="index.html" />
     <link rel="next" title="Arithmetic and logic instructions" href="otherinst.html" />
@@ -2284,14 +2286,13 @@ Code between &#8220;#if def  GET_INSTRINFO_HEADER&#8221; and
 After that, building Chapter3_1 by <strong>&#8220;#define CH  CH2&#8221;</strong> in Cpu0Config.h as
 follows, and do building with Xcode on iMac or make on linux again.</p>
 <p class="rubric">~/llvm/test/src/lib/Target/Cpu0SetChapter.h</p>
-<div class="highlight-c++"><div class="highlight"><pre>#define CH       CH3_1
+<div class="highlight-c++"><pre>#define CH       CH3_1
 
 118-165-78-230:input Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
 Debug/bin/llc -march=cpu0 -relocation-model=pic -filetype=asm ch3.bc -o
 ch3.cpu0.s
-... Assertion `AsmInfo &amp;&amp; &quot;MCAsmInfo not initialized. &quot;
-...
-</pre></div>
+... Assertion `AsmInfo &amp;&amp; "MCAsmInfo not initialized. "
+...</pre>
 </div>
 <p>With Chapter3_1 implementation, the Chapter2 error message
 &#8220;Could not allocate target machine!&#8221; has gone.
@@ -2365,16 +2366,16 @@ Cpu0InstrInfo.td can be enabled or disabled. For example, the shift-rotate
 instructions can be enabled by define CH to greater than or equal to CH4_1 as
 follows,</p>
 <p class="rubric">lbdex/Cpu0/Cpu0InstrInfo.td</p>
-<div class="highlight-c++"><div class="highlight"><pre>let Predicates = [Ch4_1] in {
+<div class="highlight-c++"><pre>let Predicates = [Ch4_1] in {
 class shift_rotate_reg&lt;bits&lt;8&gt; op, bits&lt;4&gt; isRotate, string instr_asm,
                        SDNode OpNode, RegisterClass RC&gt;:
   FA&lt;op, (outs GPROut:$ra), (ins RC:$rb, RC:$rc),
-     !strconcat(instr_asm, &quot;\t$ra, $rb, $rc&quot;),
+     !strconcat(instr_asm, "\t$ra, $rb, $rc"),
      [(set GPROut:$ra, (OpNode RC:$rb, RC:$rc))], IIAlu&gt; {
   let shamt = 0;
 }
 }
-</pre></div>
+</pre>
 </div>
 <p class="rubric">~/llvm/test/src/lib/Target/Cpu0SetChapter.h</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="cp">#define CH       CH4_1</span>
@@ -2646,11 +2647,11 @@ and call the auto-generated functions from TableGen.</p>
 Cpu0InstPrinter.cpp as above. It will be triggered since Cpu0InstrInfo.td
 defined <strong>&#8216;let PrintMethod = &#8220;printMemOperand&#8221;;&#8217;</strong> as follows,</p>
 <p class="rubric">lbdex/chapters/Chapter2/Cpu0InstrInfo.td</p>
-<div class="highlight-c++"><div class="highlight"><pre>// Address operand
+<div class="highlight-c++"><pre>// Address operand
 def mem : Operand&lt;i32&gt; {
-  let PrintMethod = &quot;printMemOperand&quot;;
+  let PrintMethod = "printMemOperand";
   let MIOperandInfo = (ops CPURegs, simm16);
-  let EncoderMethod = &quot;getMemEncoding&quot;;
+  let EncoderMethod = "getMemEncoding";
 //#if CH &gt;= CH11_1
   let ParserMatchClass = Cpu0MemAsmOperand;
 //#endif
@@ -2668,9 +2669,8 @@ multiclass StoreM32&lt;bits&lt;8&gt; op, string instr_asm, PatFrag OpNode,
   def #NAME# : StoreM&lt;op, instr_asm, OpNode, CPURegs, mem, Pseudo&gt;;
 }
 
-defm LD     : LoadM32&lt;0x01,  &quot;ld&quot;,  load_a&gt;;
-defm ST     : StoreM32&lt;0x02, &quot;st&quot;,  store_a&gt;;
-</pre></div>
+defm LD     : LoadM32&lt;0x01,  "ld",  load_a&gt;;
+defm ST     : StoreM32&lt;0x02, "st",  store_a&gt;;</pre>
 </div>
 <p>Cpu0InstPrinter::printMemOperand() will print backend operands for &#8220;local
 variable access&#8221;, which like the following,</p>
@@ -3174,15 +3174,15 @@ subtarget) defined in Chapter3_1 at this point.</p>
 <p>To make the registration clearly, list it in <a class="pageref" href="#backendstructure-f3">Figure  3</a>,
 <a class="pageref" href="#backendstructure-f4">Figure  4</a> and <a class="pageref" href="#backendstructure-f5">Figure  5</a>.</p>
 <div class="figure align-center" id="backendstructure-f3">
-<a class="reference internal image-reference" href="_images/3.png"><img alt="_images/3.png" src="_images/3.png" style="width: 852.0px; height: 391.2px;" /></a>
+<a class="reference internal image-reference" href="_images/3.png"><img alt="_images/3.png" src="_images/3.png" /></a>
 <p class="caption">Figure 3: Cpu0 InstrInfo, RegisterInfo and SubtargetInfo register function</p>
 </div>
 <div class="figure align-center" id="backendstructure-f4">
-<a class="reference internal image-reference" href="_images/4.png"><img alt="_images/4.png" src="_images/4.png" style="width: 573.6px; height: 422.4px;" /></a>
+<a class="reference internal image-reference" href="_images/4.png"><img alt="_images/4.png" src="_images/4.png" /></a>
 <p class="caption">Figure 4: Cpu0MCAsmInfo and Cpu0InstPrinter register function</p>
 </div>
 <div class="figure align-center" id="backendstructure-f5">
-<a class="reference internal image-reference" href="_images/5.png"><img alt="_images/5.png" src="_images/5.png" style="width: 487.2px; height: 381.6px;" /></a>
+<a class="reference internal image-reference" href="_images/5.png"><img alt="_images/5.png" src="_images/5.png" /></a>
 <p class="caption">Figure 5: LLVMInitializeCpu0TargetMC() dynamic register</p>
 </div>
 <p>According &#8220;section Target Registration&#8221; <a class="footnote-reference" href="#id4" id="id2">[2]</a>, we can register Cpu0 backend
@@ -3641,13 +3641,12 @@ class Cpu0DAGToDAGISel.</p>
 <p>The IR DAG to machine instruction DAG transformation is introduced in the
 previous chapter.
 Now, let&#8217;s check what IR DAG nodes the file ch3.bc has. List ch3.ll as follows,</p>
-<div class="highlight-c++"><div class="highlight"><pre>// ch3.ll
+<div class="highlight-c++"><pre>// ch3.ll
 define i32 @main() nounwind uwtable {
 %1 = alloca i32, align 4
 store i32 0, i32* %1
 ret i32 0
-}
-</pre></div>
+}</pre>
 </div>
 <p>As above, ch3.ll uses the IR DAG node <strong>store</strong>, <strong>ret</strong>.
 So, the definitions in Cpu0InstrInfo.td as below is enough.
@@ -3711,7 +3710,7 @@ selection stage.</p>
 </pre></div>
 </div>
 <p class="rubric">lbdex/chapters/Chapter3_3/Cpu0ISelDAGToDAG.h</p>
-<div class="highlight-c++"><div class="highlight"><pre>//===---- Cpu0ISelDAGToDAG.h - A Dag to Dag Inst Selector for Cpu0 --------===//
+<div class="highlight-c++"><pre>//===---- Cpu0ISelDAGToDAG.h - A Dag to Dag Inst Selector for Cpu0 --------===//
 //
 //                     The LLVM Compiler Infrastructure
 //
@@ -3727,14 +3726,14 @@ selection stage.</p>
 #ifndef CPU0ISELDAGTODAG_H
 #define CPU0ISELDAGTODAG_H
 
-#include &quot;Cpu0Config.h&quot;
+#include "Cpu0Config.h"
 
-#include &quot;Cpu0.h&quot;
-#include &quot;Cpu0Subtarget.h&quot;
-#include &quot;Cpu0TargetMachine.h&quot;
-#include &quot;llvm/CodeGen/SelectionDAGISel.h&quot;
-#include &quot;llvm/IR/Type.h&quot;
-#include &quot;llvm/Support/Debug.h&quot;
+#include "Cpu0.h"
+#include "Cpu0Subtarget.h"
+#include "Cpu0TargetMachine.h"
+#include "llvm/CodeGen/SelectionDAGISel.h"
+#include "llvm/IR/Type.h"
+#include "llvm/Support/Debug.h"
 
 //===----------------------------------------------------------------------===//
 // Instruction Selector Implementation
@@ -3753,7 +3752,7 @@ public:
 
   // Pass Name
   const char *getPassName() const override {
-    return &quot;CPU0 DAG-&gt;DAG Pattern Instruction Selection&quot;;
+    return "CPU0 DAG-&gt;DAG Pattern Instruction Selection";
   }
 
   bool runOnMachineFunction(MachineFunction &amp;MF) override;
@@ -3766,7 +3765,7 @@ protected:
 
 private:
   // Include the pieces autogenerated from the target description.
-  #include &quot;Cpu0GenDAGISel.inc&quot;
+  #include "Cpu0GenDAGISel.inc"
 
   /// getTargetMachine - Return a reference to the TargetMachine, casted
   /// to the target-specific type.
@@ -3797,7 +3796,8 @@ FunctionPass *createCpu0ISelDag(Cpu0TargetMachine &amp;TM);
 }
 
 #endif
-</pre></div>
+
+</pre>
 </div>
 <p class="rubric">lbdex/chapters/Chapter3_3/Cpu0ISelDAGToDAG.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="c1">//===-- Cpu0ISelDAGToDAG.cpp - A Dag to Dag Inst Selector for Cpu0 --------===//</span>
@@ -4518,27 +4518,27 @@ code added in Chapter3_1/Cpu0ISelLowering.cpp.</p>
 <span class="n">def</span> <span class="n">immZExt5</span> <span class="o">:</span> <span class="n">ImmLeaf</span><span class="o">&lt;</span><span class="n">i32</span><span class="p">,</span> <span class="p">[{</span><span class="k">return</span> <span class="n">Imm</span> <span class="o">==</span> <span class="p">(</span><span class="n">Imm</span> <span class="o">&amp;</span> <span class="mh">0x1f</span><span class="p">);}]</span><span class="o">&gt;</span><span class="p">;</span>
 </pre></div>
 </div>
-<div class="highlight-c++"><div class="highlight"><pre>let Predicates = [Ch3_4] in {
+<div class="highlight-c++"><pre>let Predicates = [Ch3_4] in {
 // Arithmetic and logical instructions with 3 register operands.
 class ArithLogicR&lt;bits&lt;8&gt; op, string instr_asm, SDNode OpNode,
                   InstrItinClass itin, RegisterClass RC, bit isComm = 0&gt;:
   FA&lt;op, (outs GPROut:$ra), (ins RC:$rb, RC:$rc),
-     !strconcat(instr_asm, &quot;\t$ra, $rb, $rc&quot;),
+     !strconcat(instr_asm, "\t$ra, $rb, $rc"),
      [(set GPROut:$ra, (OpNode RC:$rb, RC:$rc))], itin&gt; {
   let shamt = 0;
   let isCommutable = isComm;	// e.g. add rb rc =  add rc rb
   let isReMaterializable = 1;
 }
 }
-</pre></div>
+</pre>
 </div>
-<div class="highlight-c++"><div class="highlight"><pre>let Predicates = [Ch3_4] in {
+<div class="highlight-c++"><pre>let Predicates = [Ch3_4] in {
 // Shifts
 class shift_rotate_imm&lt;bits&lt;8&gt; op, bits&lt;4&gt; isRotate, string instr_asm,
                        SDNode OpNode, PatFrag PF, Operand ImmOpnd,
                        RegisterClass RC&gt;:
   FA&lt;op, (outs GPROut:$ra), (ins RC:$rb, ImmOpnd:$shamt),
-     !strconcat(instr_asm, &quot;\t$ra, $rb, $shamt&quot;),
+     !strconcat(instr_asm, "\t$ra, $rb, $shamt"),
      [(set GPROut:$ra, (OpNode RC:$rb, PF:$shamt))], IIAlu&gt; {
   let rc = 0;
   let shamt = shamt;
@@ -4549,18 +4549,18 @@ class shift_rotate_imm32&lt;bits&lt;8&gt; op, bits&lt;4&gt; isRotate, string ins
                          SDNode OpNode&gt;:
   shift_rotate_imm&lt;op, isRotate, instr_asm, OpNode, immZExt5, shamt, CPURegs&gt;;
 }
-</pre></div>
+</pre>
 </div>
-<div class="highlight-c++"><div class="highlight"><pre>let Predicates = [Ch3_4] in {
+<div class="highlight-c++"><pre>let Predicates = [Ch3_4] in {
 // Load Upper Imediate
 class LoadUpper&lt;bits&lt;8&gt; op, string instr_asm, RegisterClass RC, Operand Imm&gt;:
   FL&lt;op, (outs RC:$ra), (ins Imm:$imm16),
-     !strconcat(instr_asm, &quot;\t$ra, $imm16&quot;), [], IIAlu&gt; {
+     !strconcat(instr_asm, "\t$ra, $imm16"), [], IIAlu&gt; {
   let rb = 0;
   let isReMaterializable = 1;
 }
 }
-</pre></div>
+</pre>
 </div>
 <div class="highlight-c++"><div class="highlight"><pre><span class="n">let</span> <span class="n">Predicates</span> <span class="o">=</span> <span class="p">[</span><span class="n">Ch3_4</span><span class="p">]</span> <span class="n">in</span> <span class="p">{</span>
 <span class="n">def</span> <span class="n">ORi</span>     <span class="o">:</span> <span class="n">ArithLogicI</span><span class="o">&lt;</span><span class="mh">0x0d</span><span class="p">,</span> <span class="s">&quot;ori&quot;</span><span class="p">,</span> <span class="n">or</span><span class="p">,</span> <span class="n">uimm16</span><span class="p">,</span> <span class="n">immZExt16</span><span class="p">,</span> <span class="n">CPURegs</span><span class="o">&gt;</span><span class="p">;</span>
@@ -4590,16 +4590,16 @@ class LoadUpper&lt;bits&lt;8&gt; op, string instr_asm, RegisterClass RC, Operand
 <span class="p">}</span>
 </pre></div>
 </div>
-<div class="highlight-c++"><div class="highlight"><pre>let Predicates = [Ch3_4] in {
+<div class="highlight-c++"><pre>let Predicates = [Ch3_4] in {
 //===----------------------------------------------------------------------===//
 // Instruction aliases
 //===----------------------------------------------------------------------===//
-def : Cpu0InstAlias&lt;&quot;move $dst, $src&quot;,
+def : Cpu0InstAlias&lt;"move $dst, $src",
                     (ADDu GPROut:$dst, GPROut:$src,ZERO), 1&gt;;
 }
-</pre></div>
+</pre>
 </div>
-<div class="highlight-c++"><div class="highlight"><pre>let Predicates = [Ch3_4] in {
+<div class="highlight-c++"><pre>let Predicates = [Ch3_4] in {
 def : Pat&lt;(i32 immZExt16:$in),
           (ORi ZERO, imm:$in)&gt;;
 def : Pat&lt;(i32 immLow16Zero:$in),
@@ -4609,7 +4609,7 @@ def : Pat&lt;(i32 immLow16Zero:$in),
 def : Pat&lt;(i32 imm:$imm),
           (ORi (LUi (HI16 imm:$imm)), (LO16 imm:$imm))&gt;;
 } // let Predicates = [Ch3_4]
-</pre></div>
+</pre>
 </div>
 <p class="rubric">lbdex/chapters/Chapter3_4/Cpu0InstrInfo.h</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="cp">#include &quot;Cpu0AnalyzeImmediate.h&quot;</span>
@@ -5158,23 +5158,23 @@ TableGen from *.td) generated by the following code at &#8220;Cpu0 Assembly
 Printer&#8221; stage.</li>
 </ol>
 <p class="rubric">lbdex/chapters/Chapter2/Cpu0InstrInfo.td</p>
-<div class="highlight-c++"><div class="highlight"><pre>let isBranch=1, isTerminator=1, isBarrier=1, imm16=0, hasDelaySlot = 1,
+<div class="highlight-c++"><pre>let isBranch=1, isTerminator=1, isBarrier=1, imm16=0, hasDelaySlot = 1,
     isIndirectBranch = 1 in
 class JumpFR&lt;bits&lt;8&gt; op, string instr_asm, RegisterClass RC&gt;:
   FL&lt;op, (outs), (ins RC:$ra),
-     !strconcat(instr_asm, &quot;\t$ra&quot;), [(brind RC:$ra)], IIBranch&gt; {
+     !strconcat(instr_asm, "\t$ra"), [(brind RC:$ra)], IIBranch&gt; {
   let rb = 0;
   let imm16 = 0;
 }
 
 // Return instruction
-class RetBase&lt;RegisterClass RC&gt;: JumpFR&lt;0x3c, &quot;ret&quot;, RC&gt; {
+class RetBase&lt;RegisterClass RC&gt;: JumpFR&lt;0x3c, "ret", RC&gt; {
   let isReturn = 1;
   let isCodeGenOnly = 1;
   let hasCtrlDep = 1;
   let hasExtraSrcRegAllocReq = 1;
 }
-</pre></div>
+</pre>
 </div>
 <div class="highlight-c++"><div class="highlight"><pre><span class="n">def</span> <span class="n">RET</span>     <span class="o">:</span> <span class="n">RetBase</span><span class="o">&lt;</span><span class="n">GPROut</span><span class="o">&gt;</span><span class="p">;</span>
 </pre></div>
@@ -5362,8 +5362,7 @@ is assigned to local variables. After that, it calls emitPrologue().
 This function will emit machine instructions to adjust sp (stack pointer
 register) for local variables.
 For our example, it will emit the instructions,</p>
-<div class="highlight-c++"><div class="highlight"><pre>addiu $sp, $sp, -8
-</pre></div>
+<div class="highlight-c++"><pre>addiu $sp, $sp, -8</pre>
 </div>
 <p>The  emitEpilogue will emit “addiu  $sp, $sp, 8”, where 8 is the stack size.</p>
 <p>Since Instruction Selection and Register Allocation occurs before
@@ -5691,13 +5690,13 @@ Since store use <strong>constant 0</strong> (<strong>store i32 0, i32* %1</stron
 constant 0 will be translated into <strong>&#8220;addiu $2, $zero, 0&#8221;</strong> via the following
 pattern defined in Cpu0InstrInfo.td.</p>
 <p class="rubric">lbdex/chapters/Chapter2/Cpu0InstrInfo.td</p>
-<div class="highlight-c++"><div class="highlight"><pre>// Small immediates
+<div class="highlight-c++"><pre>// Small immediates
 def : Pat&lt;(i32 immSExt16:$in),
           (ADDiu ZERO, imm:$in)&gt;;
-</pre></div>
+</pre>
 </div>
 <p class="rubric">lbdex/chapters/Chapter3_4/Cpu0InstrInfo.td</p>
-<div class="highlight-c++"><div class="highlight"><pre>let Predicates = [Ch3_4] in {
+<div class="highlight-c++"><pre>let Predicates = [Ch3_4] in {
 def : Pat&lt;(i32 immZExt16:$in),
           (ORi ZERO, imm:$in)&gt;;
 def : Pat&lt;(i32 immLow16Zero:$in),
@@ -5707,7 +5706,7 @@ def : Pat&lt;(i32 immLow16Zero:$in),
 def : Pat&lt;(i32 imm:$imm),
           (ORi (LUi (HI16 imm:$imm)), (LO16 imm:$imm))&gt;;
 } // let Predicates = [Ch3_4]
-</pre></div>
+</pre>
 </div>
 <p>The ADDiu defined before ORi, so it takes the priority. Of course, if the ORi
 is defined first, the it will translate into &#8220;ori&#8221; intruction.</p>
@@ -6063,9 +6062,9 @@ List some of data DAGs we understand and occured until now as follows,</p>
 <span class="n">def</span> <span class="n">immZExt5</span> <span class="o">:</span> <span class="n">ImmLeaf</span><span class="o">&lt;</span><span class="n">i32</span><span class="p">,</span> <span class="p">[{</span><span class="k">return</span> <span class="n">Imm</span> <span class="o">==</span> <span class="p">(</span><span class="n">Imm</span> <span class="o">&amp;</span> <span class="mh">0x1f</span><span class="p">);}]</span><span class="o">&gt;</span><span class="p">;</span>
 </pre></div>
 </div>
-<div class="highlight-c++"><div class="highlight"><pre>// Cpu0 Address Mode! SDNode frameindex could possibily be a match
+<div class="highlight-c++"><pre>// Cpu0 Address Mode! SDNode frameindex could possibily be a match
 // since load and store instructions from stack used it.
-def addr : ComplexPattern&lt;iPTR, 2, &quot;SelectAddr&quot;, [frameindex], [SDNPWantParent]&gt;;
+def addr : ComplexPattern&lt;iPTR, 2, "SelectAddr", [frameindex], [SDNPWantParent]&gt;;
 
 //===----------------------------------------------------------------------===//
 // Pattern fragment for load/store
@@ -6082,7 +6081,7 @@ class AlignedStore&lt;PatFrag Node&gt; :
   StoreSDNode *SD = cast&lt;StoreSDNode&gt;(N);
   return SD-&gt;getMemoryVT().getSizeInBits()/8 &lt;= SD-&gt;getAlignment();
 }]&gt;;
-</pre></div>
+</pre>
 </div>
 <div class="highlight-c++"><div class="highlight"><pre><span class="n">def</span> <span class="n">load_a</span>          <span class="o">:</span> <span class="n">AlignedLoad</span><span class="o">&lt;</span><span class="n">load</span><span class="o">&gt;</span><span class="p">;</span>
 </pre></div>
@@ -6229,7 +6228,7 @@ as 123.</p>
 
     <div class="footer">
         &copy; Copyright 2013, LLVM.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.
     </div>
   </body>
 </html>

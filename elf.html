@@ -10,6 +10,7 @@
     
     <link rel="stylesheet" href="_static/haiku.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="_static/print.css" type="text/css" />
     
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
@@ -24,6 +25,7 @@
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
     <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="_static/theme_extras.js"></script>
     <link rel="author" title="About these documents" href="about.html" />
     <link rel="top" title="Tutorial: Creating an LLVM Backend for the Cpu0 Architecture" href="index.html" />
     <link rel="next" title="Assembler" href="asm.html" />
@@ -135,13 +137,13 @@ is the link time layout for code and data.</p>
 <h3><a class="toc-backref" href="#id16">ELF header and Section header table</a><a class="headerlink" href="#elf-header-and-section-header-table" title="Permalink to this headline">¶</a></h3>
 <p>Let&#8217;s run Chapter9_3/ with ch6_1.cpp, and dump ELF header information by
 <tt class="docutils literal"><span class="pre">readelf</span> <span class="pre">-h</span></tt> to see what information the ELF header contains.</p>
-<div class="highlight-bash"><div class="highlight"><pre>[Gamma@localhost input]$ ~/llvm/test/cmake_debug_build/bin/llc -march=cpu0
+<div class="highlight-bash"><pre>[Gamma@localhost input]$ ~/llvm/test/cmake_debug_build/bin/llc -march=cpu0
 -relocation-model=pic -filetype=obj ch6_1.bc -o ch6_1.cpu0.o
 
 [Gamma@localhost input]$ readelf -h ch6_1.cpu0.o
   Magic:   7f 45 4c 46 01 02 01 03 00 00 00 00 00 00 00 00
   Class:                             ELF32
-  Data:                              2&#39;s complement, big endian
+  Data:                              2's complement, big endian
   Version:                           1 (current)
   OS/ABI:                            UNIX - GNU
   ABI Version:                       0
@@ -167,7 +169,7 @@ bin/llc -march=mips -relocation-model=pic -filetype=obj ch6_1.bc -o ch6_1.mips.o
 ELF Header:
   Magic:   7f 45 4c 46 01 02 01 03 00 00 00 00 00 00 00 00
   Class:                             ELF32
-  Data:                              2&#39;s complement, big endian
+  Data:                              2's complement, big endian
   Version:                           1 (current)
   OS/ABI:                            UNIX - GNU
   ABI Version:                       0
@@ -184,25 +186,23 @@ ELF Header:
   Size of section headers:           40 (bytes)
   Number of section headers:         9
   Section header string table index: 6
-[Gamma@localhost input]$
-</pre></div>
+[Gamma@localhost input]$</pre>
 </div>
 <p>As above ELF header display, it contains information of magic number, version,
 ABI, ..., . The Machine field of cpu0 is unknown while mips is MIPSR3000.
 It is because cpu0 is not a popular CPU recognized by utility readelf.
 Let&#8217;s check ELF segments information as follows,</p>
-<div class="highlight-bash"><div class="highlight"><pre>[Gamma@localhost input]$ readelf -l ch6_1.cpu0.o
+<div class="highlight-bash"><pre>[Gamma@localhost input]$ readelf -l ch6_1.cpu0.o
 
 There are no program headers in this file.
-[Gamma@localhost input]$
-</pre></div>
+[Gamma@localhost input]$</pre>
 </div>
 <p>The result is in expectation because cpu0 obj is for link only, not for
 execution.
 So, the segments is empty.
 Check ELF sections information as follows.
 Every section contains offset and size information.</p>
-<div class="highlight-bash"><div class="highlight"><pre>[Gamma@localhost input]$ readelf -S ch6_1.cpu0.o
+<div class="highlight-bash"><pre>[Gamma@localhost input]$ readelf -S ch6_1.cpu0.o
 There are 10 section headers, starting at offset 0xd4:
 
 Section Headers:
@@ -221,21 +221,20 @@ Key to Flags:
   W (write), A (alloc), X (execute), M (merge), S (strings)
   I (info), L (link order), G (group), T (TLS), E (exclude), x (unknown)
   O (extra OS processing required) o (OS specific), p (processor specific)
-[Gamma@localhost input]$
-</pre></div>
+[Gamma@localhost input]$</pre>
 </div>
 </div>
 <div class="section" id="relocation-record">
 <h3><a class="toc-backref" href="#id17">Relocation Record</a><a class="headerlink" href="#relocation-record" title="Permalink to this headline">¶</a></h3>
 <p>Cpu0 backend translate global variable as follows,</p>
-<div class="highlight-bash"><div class="highlight"><pre>[Gamma@localhost input]$ clang -target mips-unknown-linux-gnu -c ch6_1.cpp
+<div class="highlight-bash"><pre>[Gamma@localhost input]$ clang -target mips-unknown-linux-gnu -c ch6_1.cpp
 -emit-llvm -o ch6_1.bc
 [Gamma@localhost input]$ ~/llvm/test/cmake_debug_build/
 bin/llc -march=cpu0 -relocation-model=pic -filetype=asm ch6_1.bc -o ch6_1.cpu0.s
 [Gamma@localhost input]$ cat ch6_1.cpu0.s
   .section .mdebug.abi32
   .previous
-  .file &quot;ch6_1.bc&quot;
+  .file "ch6_1.bc"
   .text
   ...
   .cfi_startproc
@@ -267,7 +266,7 @@ Contents of section .text:
 // .cpload machine instruction
  0000 0fa00000 0daa0000 13aa6000 ........  ..............`.
  ...
- 0020 002a0000 00220000 012d0000 0ddd0008  .*...&quot;...-......
+ 0020 002a0000 00220000 012d0000 0ddd0008  .*..."...-......
  ...
 [Gamma@localhost input]$ Jonathan$
 
@@ -303,7 +302,7 @@ Section Headers:
        STRTAB          00000000 000280 000025 00   0   0  1
        [00000000]:
 
-Relocation section &#39;.rel.text&#39; at offset 0x2a8 contains 4 entries:
+Relocation section '.rel.text' at offset 0x2a8 contains 4 entries:
  Offset     Info    Type            Sym.Value  Sym. Name
 00000000  00000805 unrecognized: 5       00000000   _gp_disp
 00000004  00000806 unrecognized: 6       00000000   _gp_disp
@@ -346,12 +345,11 @@ Section Headers:
        STRTAB          00000000 0002d0 000025 00   0   0  1
        [00000000]:
 
-Relocation section &#39;.rel.text&#39; at offset 0x2f8 contains 3 entries:
+Relocation section '.rel.text' at offset 0x2f8 contains 3 entries:
  Offset     Info    Type            Sym.Value  Sym. Name
 00000000  00000905 R_MIPS_HI16       00000000   _gp_disp
 00000004  00000906 R_MIPS_LO16       00000000   _gp_disp
-0000001c  00000709 R_MIPS_GOT16      00000004   gI
-</pre></div>
+0000001c  00000709 R_MIPS_GOT16      00000004   gI</pre>
 </div>
 <p>As depicted in <a class="reference external" href="http://jonathan2251.github.io/lbd/funccall.html#handle-gp-register-in-pic-addressing-mode">section Handle $gp register in PIC addressing mode</a>, it
 translates <strong>“.cpload %reg”</strong> into the following.</p>
@@ -579,31 +577,31 @@ unknown
 </pre></div>
 </div>
 <p class="rubric">lbdex/chapters/Chapter10_1/Cpu0InstrInfo.td</p>
-<div class="highlight-c++"><div class="highlight"><pre>let Predicates = [Ch4_2] in {
+<div class="highlight-c++"><pre>let Predicates = [Ch4_2] in {
 class CmpInstr&lt;bits&lt;8&gt; op, string instr_asm, 
                InstrItinClass itin, RegisterClass RC, RegisterClass RD, 
                bit isComm = 0&gt;:
   FA&lt;op, (outs RD:$ra), (ins RC:$rb, RC:$rc),
-     !strconcat(instr_asm, &quot;\t$ra, $rb, $rc&quot;), [], itin&gt; {
+     !strconcat(instr_asm, "\t$ra, $rb, $rc"), [], itin&gt; {
   let shamt = 0;
   let isCommutable = isComm;
 //#if CH &gt;= CH10_1
-  let DecoderMethod = &quot;DecodeCMPInstruction&quot;;
+  let DecoderMethod = "DecodeCMPInstruction";
 //#endif
   let Predicates = [HasCmp];
 }
 }
-</pre></div>
+</pre>
 </div>
-<div class="highlight-c++"><div class="highlight"><pre>  class JumpLink&lt;bits&lt;8&gt; op, string instr_asm&gt;:
+<div class="highlight-c++"><pre>  class JumpLink&lt;bits&lt;8&gt; op, string instr_asm&gt;:
     FJ&lt;op, (outs), (ins calltarget:$target, variable_ops),
-       !strconcat(instr_asm, &quot;\t$target&quot;), [(Cpu0JmpLink imm:$target)],
+       !strconcat(instr_asm, "\t$target"), [(Cpu0JmpLink imm:$target)],
        IIBranch&gt; {
 //#if CH &gt;= CH10_1
-       let DecoderMethod = &quot;DecodeJumpAbsoluteTarget&quot;;
+       let DecoderMethod = "DecodeJumpAbsoluteTarget";
 //#endif
        }
-</pre></div>
+</pre>
 </div>
 <p class="rubric">lbdex/chapters/Chapter10_1/Disassembler/CMakeLists.txt</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="n">add_llvm_library</span><span class="p">(</span><span class="n">LLVMCpu0Disassembler</span>
@@ -1023,14 +1021,13 @@ Cpu0InstrInfo.td, the assembler will print as $sw, $ra, $rb. ($sw is a
 fixed name operand and won&#8217;t exists in instruction), and encode as &#8220;10230000&#8221;
 in elf binary. Since $sw is a fixed operand, we choose assigning $rc to 0.
 You can define the CmpInstr as follows,</p>
-<div class="highlight-c++"><div class="highlight"><pre>class CmpInstr&lt;bits&lt;8&gt; op, string instr_asm,
+<div class="highlight-c++"><pre>class CmpInstr&lt;bits&lt;8&gt; op, string instr_asm,
                InstrItinClass itin, RegisterClass RC, RegisterClass RD,
                bit isComm = 0&gt;:
   FA&lt;op, (outs RD:$ra), (ins RC:$rb, RC:$rc),
-     !strconcat(instr_asm, &quot;\t$ra, $rb, $rc&quot;), [], itin&gt; {
+     !strconcat(instr_asm, "\t$ra, $rb, $rc"), [], itin&gt; {
   let shamt = 0;
-}
-</pre></div>
+}</pre>
 </div>
 <p>Above definition will encode this CMP instruction &#8220;cmp $sw, $2, $3&#8221; into
 &#8220;10f23000&#8221;.</p>
@@ -1152,7 +1149,7 @@ _Z13test_control1v:
 
     <div class="footer">
         &copy; Copyright 2013, LLVM.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.
     </div>
   </body>
 </html>

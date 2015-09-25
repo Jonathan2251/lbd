@@ -10,6 +10,7 @@
     
     <link rel="stylesheet" href="_static/haiku.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="_static/print.css" type="text/css" />
     
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
@@ -24,6 +25,7 @@
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
     <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="_static/theme_extras.js"></script>
     <link rel="author" title="About these documents" href="about.html" />
     <link rel="top" title="Tutorial: Creating an LLVM Backend for the Cpu0 Architecture" href="index.html" />
     <link rel="next" title="Verify backend on verilog simulator" href="verilog.html" />
@@ -175,9 +177,9 @@ JonathantekiiMac:input Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/te
 Debug/bin/llvm-dis ch12_eh.bc -o -
 </pre></div>
 </div>
-<div class="highlight-c++"><div class="highlight"><pre>; ModuleID = &#39;ch12_eh.bc&#39;
-target datalayout = &quot;E-m:m-p:32:32-i8:8:32-i16:16:32-i64:64-n32-S64&quot;
-target triple = &quot;mips-unknown-linux-gnu&quot;
+<div class="highlight-c++"><pre>; ModuleID = 'ch12_eh.bc'
+target datalayout = "E-m:m-p:32:32-i8:8:32-i16:16:32-i64:64-n32-S64"
+target triple = "mips-unknown-linux-gnu"
 
 %class.Ex1 = type { i8 }
 
@@ -186,12 +188,12 @@ $_ZTS3Ex1 = comdat any
 $_ZTI3Ex1 = comdat any
 
 @_ZTVN10__cxxabiv117__class_type_infoE = external global i8*
-@_ZTS3Ex1 = linkonce_odr constant [5 x i8] c&quot;3Ex1\00&quot;, comdat
+@_ZTS3Ex1 = linkonce_odr constant [5 x i8] c"3Ex1\00", comdat
 @_ZTI3Ex1 = linkonce_odr constant { i8*, i8* } { i8* bitcast (i8** getelementptr
  inbounds (i8*, i8** @_ZTVN10__cxxabiv117__class_type_infoE, i32 2) to i8*), i8*
  getelementptr inbounds ([5 x i8], [5 x i8]* @_ZTS3Ex1, i32 0, i32 0) }, comdat
 
-define void @_Z15throw_exceptionii(i32 signext %a, i32 signext %b) #0 {
+define void @_Z15throw_exceptionii(i32 %a, i32 %b) #0 {
   %1 = alloca i32, align 4
   %2 = alloca i32, align 4
   %ex1 = alloca %class.Ex1, align 1
@@ -222,35 +224,37 @@ personality_v0 to i8*) {
   %1 = alloca i32, align 4
   %2 = alloca i8*
   %3 = alloca i32
-  invoke void @_Z15throw_exceptionii(i32 signext 2, i32 signext 1)
-          to label %4 unwind label %5
-
-; &lt;label&gt;:4                                       ; preds = %0
-  br label %12
+  %4 = alloca i32
+  invoke void @_Z15throw_exceptionii(i32 2, i32 1)
+          to label %5 unwind label %6
 
 ; &lt;label&gt;:5                                       ; preds = %0
-  %6 = landingpad { i8*, i32 }
+  br label %13
+
+; &lt;label&gt;:6                                       ; preds = %0
+  %7 = landingpad { i8*, i32 }
           catch i8* null
-  %7 = extractvalue { i8*, i32 } %6, 0
-  store i8* %7, i8** %2
-  %8 = extractvalue { i8*, i32 } %6, 1
-  store i32 %8, i32* %3
-  br label %9
+  %8 = extractvalue { i8*, i32 } %7, 0
+  store i8* %8, i8** %2
+  %9 = extractvalue { i8*, i32 } %7, 1
+  store i32 %9, i32* %3
+  br label %10
 
-; &lt;label&gt;:9                                       ; preds = %5
-  %10 = load i8*, i8** %2
-  %11 = call i8* @__cxa_begin_catch(i8* %10) #1
+; &lt;label&gt;:10                                      ; preds = %6
+  %11 = load i8*, i8** %2
+  %12 = call i8* @__cxa_begin_catch(i8* %11) #1
   store i32 1, i32* %1
+  store i32 1, i32* %4
   call void @__cxa_end_catch()
-  br label %13
+  br label %14
 
-; &lt;label&gt;:12                                      ; preds = %4
+; &lt;label&gt;:13                                      ; preds = %5
   store i32 0, i32* %1
-  br label %13
+  br label %14
 
-; &lt;label&gt;:13                                      ; preds = %12, %9
-  %14 = load i32, i32* %1
-  ret i32 %14
+; &lt;label&gt;:14                                      ; preds = %13, %10
+  %15 = load i32, i32* %1
+  ret i32 %15
 }
 
 declare i32 @__gxx_personality_v0(...)
@@ -259,29 +263,27 @@ declare i8* @__cxa_begin_catch(i8*)
 
 declare void @__cxa_end_catch()
 
-attributes #0 = { &quot;disable-tail-calls&quot;=&quot;false&quot; &quot;less-precise-fpmad&quot;=&quot;false&quot; &quot;no-
-frame-pointer-elim&quot;=&quot;true&quot; &quot;no-frame-pointer-elim-non-leaf&quot; &quot;no-infs-fp-math&quot;=&quot;f
-alse&quot; &quot;no-nans-fp-math&quot;=&quot;false&quot; &quot;stack-protector-buffer-size&quot;=&quot;8&quot; &quot;target-cpu&quot;=&quot;
-mips32r2&quot; &quot;target-features&quot;=&quot;+mips32r2&quot; &quot;unsafe-fp-math&quot;=&quot;false&quot; &quot;use-soft-float
-&quot;=&quot;false&quot; }
+attributes #0 = { "less-precise-fpmad"="false" "no-frame-pointer-elim"="true" "n
+o-frame-pointer-elim-non-leaf" "no-infs-fp-math"="false" "no-nans-fp-math"="fals
+e" "stack-protector-buffer-size"="8" "unsafe-fp-math"="false" "use-soft-float"="
+false" }
 attributes #1 = { nounwind }
 attributes #2 = { noreturn }
 
 !llvm.ident = !{!0}
 
-!0 = !{!&quot;clang version 3.7.0 (tags/RELEASE_370/final)&quot;}
-</pre></div>
+!0 = !{!"Apple LLVM version 6.1.0 (clang-602.0.53) (based on LLVM 3.6.0svn)"}
+</pre>
 </div>
-<div class="highlight-bash"><div class="highlight"><pre>JonathantekiiMac:input Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
+<div class="highlight-bash"><pre>JonathantekiiMac:input Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
 Debug/bin/llc -march=cpu0 -relocation-model=static -filetype=asm ch12_eh.bc -o -
         .section .mdebug.abi32
         .previous
-        .file &quot;ch12_eh.bc&quot;
+        .file "ch12_eh.bc"
 llc: /Users/Jonathan/llvm/test/src/lib/CodeGen/LiveVariables.cpp:133: void llvm::
 LiveVariables::HandleVirtRegUse(unsigned int, llvm::MachineBasicBlock *, llvm
-::MachineInstr *): Assertion `MRI-&gt;getVRegDef(reg) &amp;&amp; &quot;Register use before
-def!&quot;&#39; failed.
-</pre></div>
+::MachineInstr *): Assertion `MRI-&gt;getVRegDef(reg) &amp;&amp; "Register use before
+def!"' failed.</pre>
 </div>
 <p>About the IRs of LLVM exception handling, please reference here <a class="footnote-reference" href="#exception" id="id1">[1]</a>.
 Chapter12_1 supports the llvm IRs of corresponding <strong>try</strong> and <strong>catch</strong>
@@ -303,10 +305,10 @@ exception C++ keywords. It can compile ch12_eh.bc as follows,</p>
 Debug/bin/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>static -filetype<span class="o">=</span>asm ch12_eh.bc -o -
 </pre></div>
 </div>
-<div class="highlight-c++"><div class="highlight"><pre>  .text
+<div class="highlight-c++"><pre>  .text
   .section .mdebug.abiO32
   .previous
-  .file  &quot;ch12_eh.bc&quot;
+  .file  "ch12_eh.bc"
   .globl  _Z15throw_exceptionii
   .align  2
   .type  _Z15throw_exceptionii,@function
@@ -373,17 +375,17 @@ $func_begin0 = ($tmp7)
   .cfi_startproc
   .cfi_personality 0, __gxx_personality_v0
   .cfi_lsda 0, $exception0
-  .frame  $fp,32,$lr
+  .frame  $fp,40,$lr
   .mask   0x00005200,-4
   .set  noreorder
   .set  nomacro
 # BB#0:
-  addiu  $sp, $sp, -32
+  addiu  $sp, $sp, -40
 $tmp8:
-  .cfi_def_cfa_offset 32
-  st  $lr, 28($sp)            # 4-byte Folded Spill
-  st  $fp, 24($sp)            # 4-byte Folded Spill
-  st  $9, 20($sp)             # 4-byte Folded Spill
+  .cfi_def_cfa_offset 40
+  st  $lr, 36($sp)            # 4-byte Folded Spill
+  st  $fp, 32($sp)            # 4-byte Folded Spill
+  st  $9, 28($sp)             # 4-byte Folded Spill
 $tmp9:
   .cfi_offset 14, -4
 $tmp10:
@@ -402,24 +404,25 @@ $tmp4:
 $tmp5:
 # BB#2:
   addiu  $2, $zero, 0
-  st  $2, 16($fp)
+  st  $2, 24($fp)
 LBB1_3:
-  ld  $2, 16($fp)
+  ld  $2, 24($fp)
   move   $sp, $fp
-  ld  $9, 20($sp)             # 4-byte Folded Reload
-  ld  $fp, 24($sp)            # 4-byte Folded Reload
-  ld  $lr, 28($sp)            # 4-byte Folded Reload
-  addiu  $sp, $sp, 32
+  ld  $9, 28($sp)             # 4-byte Folded Reload
+  ld  $fp, 32($sp)            # 4-byte Folded Reload
+  ld  $lr, 36($sp)            # 4-byte Folded Reload
+  addiu  $sp, $sp, 40
   ret  $lr
   nop
 LBB1_1:
 $tmp6:
-  st  $4, 12($fp)
-  st  $5, 8($fp)
-  ld  $4, 12($fp)
+  st  $4, 20($fp)
+  st  $5, 16($fp)
+  ld  $4, 20($fp)
   jsub  __cxa_begin_catch
   nop
-  st  $9, 16($fp)
+  st  $9, 24($fp)
+  st  $9, 12($fp)
   jsub  __cxa_end_catch
   nop
   jmp  LBB1_3
@@ -430,13 +433,13 @@ $tmp6:
 $func_end1:
   .size  _Z14test_try_catchv, ($func_end1)-_Z14test_try_catchv
   .cfi_endproc
-  .section  .gcc_except_table,&quot;a&quot;,@progbits
+  .section  .gcc_except_table,"a",@progbits
   .align  2
 GCC_except_table1:
 $exception0:
   .byte  255                     # @LPStart Encoding = omit
   .byte  0                       # @TType Encoding = absptr
-  .asciz  &quot;\242\200\200&quot;          # @TType base offset
+  .asciz  "\242\200\200"          # @TType base offset
   .byte  3                       # Call site Encoding = udata4
   .byte  26                      # Call site table length
   .4byte  ($tmp4)-($func_begin0)  # &gt;&gt; Call Site 1 &lt;&lt;
@@ -455,22 +458,24 @@ $exception0:
   .align  2
 
   .type  _ZTS3Ex1,@object        # @_ZTS3Ex1
-  .section  .rodata._ZTS3Ex1,&quot;aG&quot;,@progbits,_ZTS3Ex1,comdat
+  .section  .rodata._ZTS3Ex1,"aG",@progbits,_ZTS3Ex1,comdat
   .weak  _ZTS3Ex1
   .align  2
 _ZTS3Ex1:
-  .asciz  &quot;3Ex1&quot;
+  .asciz  "3Ex1"
   .size  _ZTS3Ex1, 5
 
   .type  _ZTI3Ex1,@object        # @_ZTI3Ex1
-  .section  .rodata._ZTI3Ex1,&quot;aG&quot;,@progbits,_ZTI3Ex1,comdat
+  .section  .rodata._ZTI3Ex1,"aG",@progbits,_ZTI3Ex1,comdat
   .weak  _ZTI3Ex1
   .align  3
 _ZTI3Ex1:
   .4byte  _ZTVN10__cxxabiv117__class_type_infoE+8
   .4byte  _ZTS3Ex1
   .size  _ZTI3Ex1, 8
-</pre></div>
+
+
+</pre>
 </div>
 </div>
 <div class="section" id="thread-variable">
@@ -690,15 +695,15 @@ programming.</p>
 <span class="n">def</span> <span class="n">Cpu0TpLo</span>  <span class="o">:</span> <span class="n">SDNode</span><span class="o">&lt;</span><span class="s">&quot;Cpu0ISD::TpLo&quot;</span><span class="p">,</span> <span class="n">SDTIntUnaryOp</span><span class="o">&gt;</span><span class="p">;</span>
 </pre></div>
 </div>
-<div class="highlight-c++"><div class="highlight"><pre>let Predicates = [Ch12_1] in {
+<div class="highlight-c++"><pre>let Predicates = [Ch12_1] in {
 def : Pat&lt;(Cpu0Hi tglobaltlsaddr:$in), (LUi tglobaltlsaddr:$in)&gt;;
 }
-</pre></div>
+</pre>
 </div>
-<div class="highlight-c++"><div class="highlight"><pre>let Predicates = [Ch12_1] in {
+<div class="highlight-c++"><pre>let Predicates = [Ch12_1] in {
 def : Pat&lt;(Cpu0Lo tglobaltlsaddr:$in), (ORi ZERO, tglobaltlsaddr:$in)&gt;;
 }
-</pre></div>
+</pre>
 </div>
 <div class="highlight-c++"><div class="highlight"><pre><span class="n">let</span> <span class="n">Predicates</span> <span class="o">=</span> <span class="p">[</span><span class="n">Ch12_1</span><span class="p">]</span> <span class="n">in</span> <span class="p">{</span>
 <span class="n">def</span> <span class="o">:</span> <span class="n">WrapperPat</span><span class="o">&lt;</span><span class="n">tglobaltlsaddr</span><span class="p">,</span> <span class="n">ORi</span><span class="p">,</span> <span class="n">CPURegs</span><span class="o">&gt;</span><span class="p">;</span>
@@ -849,9 +854,9 @@ JonathantekiiMac:input Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/te
 Debug/bin/llvm-dis ch12_thread_var.bc -o -
 </pre></div>
 </div>
-<div class="highlight-c++"><div class="highlight"><pre>; ModuleID = &#39;ch12_thread_var.bc&#39;
-target datalayout = &quot;E-m:m-p:32:32-i8:8:32-i16:16:32-i64:64-n32-S64&quot;
-target triple = &quot;mips-unknown-linux-gnu&quot;
+<div class="highlight-c++"><pre>; ModuleID = 'ch12_thread_var.bc'
+target datalayout = "E-m:m-p:32:32-i8:8:32-i16:16:32-i64:64-n32-S64"
+target triple = "mips-unknown-linux-gnu"
 
 @a = thread_local global i32 0, align 4
 @b = thread_local global i32 0, align 4
@@ -875,31 +880,29 @@ define weak_odr hidden i32* @_ZTW1b() {
   ret i32* @b
 }
 
-attributes #0 = { nounwind &quot;disable-tail-calls&quot;=&quot;false&quot; &quot;less-precise-fpmad&quot;=&quot;fa
-lse&quot; &quot;no-frame-pointer-elim&quot;=&quot;true&quot; &quot;no-frame-pointer-elim-non-leaf&quot; &quot;no-infs-fp
--math&quot;=&quot;false&quot; &quot;no-nans-fp-math&quot;=&quot;false&quot; &quot;stack-protector-buffer-size&quot;=&quot;8&quot; &quot;targ
-et-cpu&quot;=&quot;mips32r2&quot; &quot;target-features&quot;=&quot;+mips32r2&quot; &quot;unsafe-fp-math&quot;=&quot;false&quot; &quot;use-s
-oft-float&quot;=&quot;false&quot; }
-attributes #1 = { &quot;disable-tail-calls&quot;=&quot;false&quot; &quot;less-precise-fpmad&quot;=&quot;false&quot; &quot;no-
-frame-pointer-elim&quot;=&quot;true&quot; &quot;no-frame-pointer-elim-non-leaf&quot; &quot;no-infs-fp-math&quot;=&quot;f
-alse&quot; &quot;no-nans-fp-math&quot;=&quot;false&quot; &quot;stack-protector-buffer-size&quot;=&quot;8&quot; &quot;target-cpu&quot;=&quot;
-mips32r2&quot; &quot;target-features&quot;=&quot;+mips32r2&quot; &quot;unsafe-fp-math&quot;=&quot;false&quot; &quot;use-soft-float
-&quot;=&quot;false&quot; }
+attributes #0 = { nounwind "less-precise-fpmad"="false" "no-frame-pointer-elim"=
+"true" "no-frame-pointer-elim-non-leaf" "no-infs-fp-math"="false" "no-nans-fp-ma
+th"="false" "stack-protector-buffer-size"="8" "unsafe-fp-math"="false" "use-soft
+-float"="false" }
+attributes #1 = { "less-precise-fpmad"="false" "no-frame-pointer-elim"="true" "n
+o-frame-pointer-elim-non-leaf" "no-infs-fp-math"="false" "no-nans-fp-math"="fals
+e" "stack-protector-buffer-size"="8" "unsafe-fp-math"="false" "use-soft-float"="
+false" }
 
 !llvm.ident = !{!0}
 
-!0 = !{!&quot;clang version 3.7.0 (tags/RELEASE_370/final)&quot;}
-</pre></div>
+!0 = !{!"Apple LLVM version 6.1.0 (clang-602.0.53) (based on LLVM 3.6.0svn)"}
+</pre>
 </div>
 <div class="highlight-bash"><div class="highlight"><pre>JonathantekiiMac:input Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/test/cmake_debug_build/
 Debug/bin/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>pic -filetype<span class="o">=</span>asm ch12_thread_var.bc
 -o -
 </pre></div>
 </div>
-<div class="highlight-c++"><div class="highlight"><pre>  .text
+<div class="highlight-c++"><pre>  .text
   .section .mdebug.abiO32
   .previous
-  .file  &quot;ch12_thread_var.bc&quot;
+  .file  "ch12_thread_var.bc"
   .globl  _Z15test_thread_varv
   .align  2
   .type  _Z15test_thread_varv,@function
@@ -1022,7 +1025,7 @@ $func_end2:
   .cfi_endproc
 
   .type  a,@object               # @a
-  .section  .tbss,&quot;awT&quot;,@nobits
+  .section  .tbss,"awT",@nobits
   .globl  a
   .align  2
 a:
@@ -1035,7 +1038,9 @@ a:
 b:
   .4byte  0                       # 0x0
   .size  b, 4
-</pre></div>
+
+
+</pre>
 </div>
 <p>In pic mode, the __thread variable access by call function __tls_get_addr with
 the address of thread variable.
@@ -1048,10 +1053,10 @@ Debug/bin/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o
 ch12_thread_var.bc -o -
 </pre></div>
 </div>
-<div class="highlight-c++"><div class="highlight"><pre>  .text
+<div class="highlight-c++"><pre>  .text
   .section .mdebug.abiO32
   .previous
-  .file  &quot;ch12_thread_var.bc&quot;
+  .file  "ch12_thread_var.bc"
   .globl  _Z15test_thread_varv
   .align  2
   .type  _Z15test_thread_varv,@function
@@ -1149,7 +1154,7 @@ $func_end2:
   .cfi_endproc
 
   .type  a,@object               # @a
-  .section  .tbss,&quot;awT&quot;,@nobits
+  .section  .tbss,"awT",@nobits
   .globl  a
   .align  2
 a:
@@ -1162,7 +1167,9 @@ a:
 b:
   .4byte  0                       # 0x0
   .size  b, 4
-</pre></div>
+
+
+</pre>
 </div>
 <p>While Mips uses rdhwr instruction to access thread varaible as below,
 Cpu0 access thread varaible without inventing any new instruction.
@@ -1325,7 +1332,7 @@ lock() function only <a class="footnote-reference" href="#atomic-wiki" id="id3">
 <span class="p">}</span>
 </pre></div>
 </div>
-<div class="highlight-c++"><div class="highlight"><pre>// Atomic instructions with 2 source operands (ATOMIC_SWAP &amp; ATOMIC_LOAD_*).
+<div class="highlight-c++"><pre>// Atomic instructions with 2 source operands (ATOMIC_SWAP &amp; ATOMIC_LOAD_*).
 class Atomic2Ops&lt;PatFrag Op, RegisterClass DRC&gt; :
   PseudoSE&lt;(outs DRC:$dst), (ins PtrRC:$ptr, DRC:$incr),
            [(set DRC:$dst, (Op iPTR:$ptr, DRC:$incr))]&gt;;
@@ -1334,21 +1341,21 @@ class Atomic2Ops&lt;PatFrag Op, RegisterClass DRC&gt; :
 class AtomicCmpSwap&lt;PatFrag Op, RegisterClass DRC&gt; :
   PseudoSE&lt;(outs DRC:$dst), (ins PtrRC:$ptr, DRC:$cmp, DRC:$swap),
            [(set DRC:$dst, (Op iPTR:$ptr, DRC:$cmp, DRC:$swap))]&gt;;
-</pre></div>
+</pre>
 </div>
-<div class="highlight-c++"><div class="highlight"><pre>class LLBase&lt;bits&lt;8&gt; Opc, string opstring, RegisterClass RC, Operand Mem&gt; :
+<div class="highlight-c++"><pre>class LLBase&lt;bits&lt;8&gt; Opc, string opstring, RegisterClass RC, Operand Mem&gt; :
   FMem&lt;Opc, (outs RC:$ra), (ins Mem:$addr),
-       !strconcat(opstring, &quot;\t$ra, $addr&quot;), [], IILoad&gt; {
+       !strconcat(opstring, "\t$ra, $addr"), [], IILoad&gt; {
   let mayLoad = 1;
 }
 
 class SCBase&lt;bits&lt;8&gt; Opc, string opstring, RegisterOperand RO, Operand Mem&gt; :
   FMem&lt;Opc, (outs RO:$dst), (ins RO:$ra, Mem:$addr),
-       !strconcat(opstring, &quot;\t$ra, $addr&quot;), [], IIStore&gt; {
+       !strconcat(opstring, "\t$ra, $addr"), [], IIStore&gt; {
   let mayStore = 1;
-  let Constraints = &quot;$ra = $dst&quot;;
+  let Constraints = "$ra = $dst";
 }
-</pre></div>
+</pre>
 </div>
 <div class="highlight-c++"><div class="highlight"><pre><span class="n">let</span> <span class="n">Predicates</span> <span class="o">=</span> <span class="p">[</span><span class="n">Ch12_1</span><span class="p">]</span> <span class="n">in</span> <span class="p">{</span>
 <span class="n">let</span> <span class="n">usesCustomInserter</span> <span class="o">=</span> <span class="mi">1</span> <span class="n">in</span> <span class="p">{</span>
@@ -1382,9 +1389,9 @@ class SCBase&lt;bits&lt;8&gt; Opc, string opstring, RegisterOperand RO, Operand 
 <span class="p">}</span>
 </pre></div>
 </div>
-<div class="highlight-c++"><div class="highlight"><pre>let Predicates = [Ch12_1] in {
+<div class="highlight-c++"><pre>let Predicates = [Ch12_1] in {
 let hasSideEffects = 1 in
-def SYNC : Cpu0Inst&lt;(outs), (ins i32imm:$stype), &quot;sync $stype&quot;,
+def SYNC : Cpu0Inst&lt;(outs), (ins i32imm:$stype), "sync $stype",
                     [(Cpu0Sync imm:$stype)], NoItinerary, FrmOther&gt;
 {
   bits&lt;5&gt; stype;
@@ -1394,7 +1401,7 @@ def SYNC : Cpu0Inst&lt;(outs), (ins i32imm:$stype), &quot;sync $stype&quot;,
   let Inst{5-0} = 0;
 }
 }
-</pre></div>
+</pre>
 </div>
 <div class="highlight-c++"><div class="highlight"><pre><span class="c1">/// Load-linked, Store-conditional</span>
 <span class="n">def</span> <span class="n">LL</span>      <span class="o">:</span> <span class="n">LLBase</span><span class="o">&lt;</span><span class="mh">0x61</span><span class="p">,</span> <span class="s">&quot;ll&quot;</span><span class="p">,</span> <span class="n">CPURegs</span><span class="p">,</span> <span class="n">mem</span><span class="o">&gt;</span><span class="p">;</span>
@@ -2207,7 +2214,7 @@ options &#8220;clang++ -pthread -std=c++11&#8221;.</p>
 
     <div class="footer">
         &copy; Copyright 2013, LLVM.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.
     </div>
   </body>
 </html>

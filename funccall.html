@@ -10,6 +10,7 @@
     
     <link rel="stylesheet" href="_static/haiku.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="_static/print.css" type="text/css" />
     
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
@@ -24,6 +25,7 @@
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
     <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="_static/theme_extras.js"></script>
     <link rel="author" title="About these documents" href="about.html" />
     <link rel="top" title="Tutorial: Creating an LLVM Backend for the Cpu0 Architecture" href="index.html" />
     <link rel="next" title="ELF Support" href="elf.html" />
@@ -834,16 +836,16 @@ instructions <strong>swi</strong> (Software Interrupt), <strong>jsub</strong> an
 <span class="p">}</span>
 </pre></div>
 </div>
-<div class="highlight-c++"><div class="highlight"><pre>let Predicates = [Ch9_1] in {
+<div class="highlight-c++"><pre>let Predicates = [Ch9_1] in {
 // Jump and Link (Call)
 let isCall=1, hasDelaySlot=1 in {
   //@JumpLink {
   class JumpLink&lt;bits&lt;8&gt; op, string instr_asm&gt;:
     FJ&lt;op, (outs), (ins calltarget:$target, variable_ops),
-       !strconcat(instr_asm, &quot;\t$target&quot;), [(Cpu0JmpLink imm:$target)],
+       !strconcat(instr_asm, "\t$target"), [(Cpu0JmpLink imm:$target)],
        IIBranch&gt; {
 //#if CH &gt;= CH10_1
-       let DecoderMethod = &quot;DecodeJumpAbsoluteTarget&quot;;
+       let DecoderMethod = "DecodeJumpAbsoluteTarget";
 //#endif
        }
   //@JumpLink }
@@ -851,13 +853,14 @@ let isCall=1, hasDelaySlot=1 in {
   class JumpLinkReg&lt;bits&lt;8&gt; op, string instr_asm,
                     RegisterClass RC&gt;:
     FA&lt;op, (outs), (ins RC:$rb, variable_ops),
-       !strconcat(instr_asm, &quot;\t$rb&quot;), [(Cpu0JmpLink RC:$rb)], IIBranch&gt; {
+       !strconcat(instr_asm, "\t$rb"), [(Cpu0JmpLink RC:$rb)], IIBranch&gt; {
     let rc = 0;
     let ra = 14;
     let shamt = 0;
   }
 }
-</pre></div>
+
+</pre>
 </div>
 <div class="highlight-c++"><div class="highlight"><pre><span class="c1">/// Jump &amp; link and Return Instructions</span>
 <span class="n">let</span> <span class="n">Predicates</span> <span class="o">=</span> <span class="p">[</span><span class="n">Ch9_1</span><span class="p">]</span> <span class="n">in</span> <span class="p">{</span>
@@ -873,12 +876,13 @@ let isCall=1, hasDelaySlot=1 in {
 <span class="p">}</span>
 </pre></div>
 </div>
-<div class="highlight-c++"><div class="highlight"><pre>let Predicates = [Ch9_1] in {
+<div class="highlight-c++"><pre>let Predicates = [Ch9_1] in {
 def : Pat&lt;(Cpu0JmpLink (i32 tglobaladdr:$dst)),
           (JSUB tglobaladdr:$dst)&gt;;
 def : Pat&lt;(Cpu0JmpLink (i32 texternalsym:$dst)),
           (JSUB texternalsym:$dst)&gt;;
-</pre></div>
+
+</pre>
 </div>
 <div class="highlight-c++"><div class="highlight"><pre><span class="p">}</span>
 </pre></div>
@@ -1092,12 +1096,13 @@ def : Pat&lt;(Cpu0JmpLink (i32 texternalsym:$dst)),
 node. They are distinguishable since JSUB use &#8220;imm&#8221; operand while
 JALR uses register operand.</p>
 <p class="rubric">lbdex/chapters/Chapter9_1/Cpu0InstrInfo.td</p>
-<div class="highlight-c++"><div class="highlight"><pre>let Predicates = [Ch9_1] in {
+<div class="highlight-c++"><pre>let Predicates = [Ch9_1] in {
 def : Pat&lt;(Cpu0JmpLink (i32 tglobaladdr:$dst)),
           (JSUB tglobaladdr:$dst)&gt;;
 def : Pat&lt;(Cpu0JmpLink (i32 texternalsym:$dst)),
           (JSUB texternalsym:$dst)&gt;;
-</pre></div>
+
+</pre>
 </div>
 <p>The code tells TableGen generating pattern match code that matching the &#8220;imm&#8221; for
 &#8220;tglobaladdr&#8221; pattern first. If it fails then trying to match &#8220;texternalsym&#8221; next.
@@ -1675,7 +1680,7 @@ as follows.</p>
                            <span class="p">[</span><span class="n">SDNPHasChain</span><span class="p">,</span> <span class="n">SDNPOptInGlue</span><span class="p">,</span> <span class="n">SDNPOutGlue</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
 </pre></div>
 </div>
-<div class="highlight-c++"><div class="highlight"><pre>//===----------------------------------------------------------------------===//
+<div class="highlight-c++"><pre>//===----------------------------------------------------------------------===//
 // Pseudo instructions
 //===----------------------------------------------------------------------===//
 
@@ -1683,10 +1688,10 @@ let Predicates = [Ch9_2] in {
 // As stack alignment is always done with addiu, we need a 16-bit immediate
 let Defs = [SP], Uses = [SP] in {
 def ADJCALLSTACKDOWN : Cpu0Pseudo&lt;(outs), (ins uimm16:$amt),
-                                  &quot;!ADJCALLSTACKDOWN $amt&quot;,
+                                  "!ADJCALLSTACKDOWN $amt",
                                   [(callseq_start timm:$amt)]&gt;;
 def ADJCALLSTACKUP   : Cpu0Pseudo&lt;(outs), (ins uimm16:$amt1, uimm16:$amt2),
-                                  &quot;!ADJCALLSTACKUP $amt1&quot;,
+                                  "!ADJCALLSTACKUP $amt1",
                                   [(callseq_end timm:$amt1, timm:$amt2)]&gt;;
 }
 
@@ -1697,9 +1702,9 @@ def ADJCALLSTACKUP   : Cpu0Pseudo&lt;(outs), (ins uimm16:$amt1, uimm16:$amt2),
 // from the assembler.
 let hasSideEffects = 0 in
 def CPRESTORE : Cpu0Pseudo&lt;(outs), (ins i32imm:$loc, CPURegs:$gp),
-                           &quot;.cprestore\t$loc&quot;, []&gt;;
+                           ".cprestore\t$loc", []&gt;;
 } // let Predicates = [Ch9_2]
-</pre></div>
+</pre>
 </div>
 <p>With below definition, eliminateCallFramePseudoInstr() will be called when
 llvm meets pseudo instructions ADJCALLSTACKDOWN and ADJCALLSTACKUP.
@@ -2630,22 +2635,20 @@ type in function call.</p>
 <p>In LowerCall(), Flags.isByVal() will be true if it meets <strong>byval</strong> for struct
 type in caller function as follows,</p>
 <p class="rubric">lbdex/input/tailcall.ll</p>
-<div class="highlight-c++"><div class="highlight"><pre>define internal fastcc i32 @caller9_1() nounwind noinline {
+<div class="highlight-c++"><pre>define internal fastcc i32 @caller9_1() nounwind noinline {
 entry:
   ...
   %call = tail call i32 @callee9(%struct.S* byval @gs1) nounwind
   ret i32 %call
-}
-</pre></div>
+}</pre>
 </div>
 <p>In LowerFormalArguments(), Flags.isByVal() will be true if it meet <strong>byval</strong>
 for in callee function as follows,</p>
 <p class="rubric">lbdex/input/tailcall.ll</p>
-<div class="highlight-c++"><div class="highlight"><pre>define i32 @caller12(%struct.S* nocapture byval %a0) nounwind {
+<div class="highlight-c++"><pre>define i32 @caller12(%struct.S* nocapture byval %a0) nounwind {
 entry:
   ...
-}
-</pre></div>
+}</pre>
 </div>
 <p>At this point, I don&#8217;t know how to create a make clang to generate byval IR with
 C language.</p>
@@ -2876,16 +2879,16 @@ follows,</p>
                           <span class="p">[</span><span class="n">SDNPHasChain</span><span class="p">,</span> <span class="n">SDNPOptInGlue</span><span class="p">,</span> <span class="n">SDNPVariadic</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
 </pre></div>
 </div>
-<div class="highlight-c++"><div class="highlight"><pre>def : Pat&lt;(Cpu0TailCall (iPTR tglobaladdr:$dst)),
+<div class="highlight-c++"><pre>def : Pat&lt;(Cpu0TailCall (iPTR tglobaladdr:$dst)),
               (TAILCALL tglobaladdr:$dst)&gt;;
 def : Pat&lt;(Cpu0TailCall (iPTR texternalsym:$dst)),
               (TAILCALL texternalsym:$dst)&gt;;
-</pre></div>
+</pre>
 </div>
 <p>note 2: by Cpu0InstrInfo.td and emitPseudoExpansionLowering() of
 Cpu0AsmPrinter.cpp as follows,</p>
 <p class="rubric">lbdex/chapters/Chapter9_1/Cpu0InstrInfo.td</p>
-<div class="highlight-c++"><div class="highlight"><pre>let isCall = 1, isTerminator = 1, isReturn = 1, isBarrier = 1, hasDelaySlot = 1,
+<div class="highlight-c++"><pre>let isCall = 1, isTerminator = 1, isReturn = 1, isBarrier = 1, hasDelaySlot = 1,
     hasExtraSrcRegAllocReq = 1, Defs = [AT] in {
   class TailCall&lt;Instruction JumpInst&gt; :
     PseudoSE&lt;(outs), (ins calltarget:$target), [], IIBranch&gt;,
@@ -2896,7 +2899,7 @@ Cpu0AsmPrinter.cpp as follows,</p>
     PseudoSE&lt;(outs), (ins RO:$rs), [(Cpu0TailCall RO:$rs)], IIBranch&gt;,
     PseudoInstExpansion&lt;(JRInst ResRO:$rs)&gt;;
 }
-</pre></div>
+</pre>
 </div>
 <div class="highlight-c++"><div class="highlight"><pre><span class="n">let</span> <span class="n">Predicates</span> <span class="o">=</span> <span class="p">[</span><span class="n">Ch9_1</span><span class="p">]</span> <span class="n">in</span> <span class="p">{</span>
 <span class="n">def</span> <span class="n">TAILCALL</span> <span class="o">:</span> <span class="n">TailCall</span><span class="o">&lt;</span><span class="n">JMP</span><span class="o">&gt;</span><span class="p">;</span>
@@ -3442,14 +3445,14 @@ corresponding machine code before the first time of PIC function call.</p>
 </pre></div>
 </div>
 <p class="rubric">lbdex/chapters/Chapter9_3/Cpu0InstrInfo.td</p>
-<div class="highlight-c++"><div class="highlight"><pre>// When handling PIC code the assembler needs .cpload and .cprestore
+<div class="highlight-c++"><pre>// When handling PIC code the assembler needs .cpload and .cprestore
 // directives. If the real instructions corresponding these directives
 // are used, we have the same behavior, but get also a bunch of warnings
 // from the assembler.
 let hasSideEffects = 0 in
 def CPRESTORE : Cpu0Pseudo&lt;(outs), (ins i32imm:$loc, CPURegs:$gp),
-                           &quot;.cprestore\t$loc&quot;, []&gt;;
-</pre></div>
+                           ".cprestore\t$loc", []&gt;;
+</pre>
 </div>
 <p class="rubric">lbdex/chapters/Chapter9_3/Cpu0AsmPrinter.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="cp">#ifdef ENABLE_GPRESTORE</span>
@@ -4407,14 +4410,14 @@ follows,</p>
   <span class="n">InstAlias</span><span class="o">&lt;</span><span class="n">Asm</span><span class="p">,</span> <span class="n">Result</span><span class="p">,</span> <span class="n">Emit</span><span class="o">&gt;</span><span class="p">;</span>
 </pre></div>
 </div>
-<div class="highlight-c++"><div class="highlight"><pre>let Predicates = [Ch3_4] in {
+<div class="highlight-c++"><pre>let Predicates = [Ch3_4] in {
 //===----------------------------------------------------------------------===//
 // Instruction aliases
 //===----------------------------------------------------------------------===//
-def : Cpu0InstAlias&lt;&quot;move $dst, $src&quot;,
+def : Cpu0InstAlias&lt;"move $dst, $src",
                     (ADDu GPROut:$dst, GPROut:$src,ZERO), 1&gt;;
 }
-</pre></div>
+</pre>
 </div>
 <p>File ch9_7.cpp which is for type &#8220;long long shift operations&#8221; support can be
 tested now as follows.</p>
@@ -4665,7 +4668,7 @@ front end has not add any new IR for a new language.</p>
 
     <div class="footer">
         &copy; Copyright 2013, LLVM.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.
     </div>
   </body>
 </html>

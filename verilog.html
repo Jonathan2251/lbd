@@ -10,6 +10,7 @@
     
     <link rel="stylesheet" href="_static/haiku.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="_static/print.css" type="text/css" />
     
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
@@ -24,6 +25,7 @@
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
     <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="_static/theme_extras.js"></script>
     <link rel="author" title="About these documents" href="about.html" />
     <link rel="top" title="Tutorial: Creating an LLVM Backend for the Cpu0 Architecture" href="index.html" />
     <link rel="next" title="Appendix A: Getting Started: Installing LLVM and the Cpu0 example code" href="install.html" />
@@ -61,7 +63,7 @@
 <a class="pageref" href="#runbackend-f1">Figure  1</a>. If without global variable, the elf obj can be
 dumped to hex file via <tt class="docutils literal"><span class="pre">llvm-objdump</span> <span class="pre">-d</span></tt> which finished in Chapter ELF Support.</p>
 <div class="figure align-center" id="runbackend-f1">
-<a class="reference internal image-reference" href="_images/18.png"><img alt="_images/18.png" src="_images/18.png" style="width: 629.0px; height: 91.0px;" /></a>
+<a class="reference internal image-reference" href="_images/18.png"><img alt="_images/18.png" src="_images/18.png" /></a>
 <p class="caption">Figure 1: Cpu0 backend without linker</p>
 </div>
 <p>This chapter will implement Cpu0 instructions by Verilog language as the red
@@ -98,29 +100,28 @@ One is memory mapped I/O, the other is instruction I/O.
 Cpu0 use memory mapped I/O where memory address 0x80000 as the output port.
 When meet the instruction <strong>&#8220;st $ra, cx($rb)&#8221;</strong>, where cx($rb) is
 0x80000, Cpu0 display the content as follows,</p>
-<div class="highlight-c++"><div class="highlight"><pre>ST : begin
+<div class="highlight-c++"><pre>ST : begin
   ...
   if (R[b]+c16 == `IOADDR) begin
-    outw(R[a]);
-</pre></div>
+    outw(R[a]);</pre>
 </div>
 <p class="rubric">lbdex/verilog/cpu0.v</p>
-<div class="highlight-c++"><div class="highlight"><pre>`define MEMSIZE   &#39;h80000
-`define MEMEMPTY   8&#39;hFF
-`define NULL       8&#39;h00
-`define IOADDR    &#39;h80000  // IO mapping address
+<div class="highlight-c++"><pre>`define MEMSIZE   'h80000
+`define MEMEMPTY   8'hFF
+`define NULL       8'h00
+`define IOADDR    'h80000  // IO mapping address
 
 // Operand width
-`define INT32 2&#39;b11     // 32 bits
-`define INT24 2&#39;b10     // 24 bits
-`define INT16 2&#39;b01     // 16 bits
-`define BYTE  2&#39;b00     // 8  bits
+`define INT32 2'b11     // 32 bits
+`define INT24 2'b10     // 24 bits
+`define INT16 2'b01     // 16 bits
+`define BYTE  2'b00     // 8  bits
 
-`define EXE 3&#39;b000
-`define RESET 3&#39;b001
-`define ABORT 3&#39;b010
-`define IRQ 3&#39;b011
-`define ERROR 3&#39;b100
+`define EXE 3'b000
+`define RESET 3'b001
+`define ABORT 3'b010
+`define IRQ 3'b011
+`define ERROR 3'b100
 
 // Reference web: http://ccckmit.wikidot.com/ocs:cpu0
 module cpu0(input clock, reset, input [2:0] itype, output reg [2:0] tick, 
@@ -166,30 +167,30 @@ module cpu0(input clock, reset, input [2:0] itype, output reg [2:0] tick,
   
   `define LE   CF[0]  // Endian bit, Big Endian:0, Little Endian:1
   // Instruction Opcode 
-  parameter [7:0] NOP=8&#39;h00,LD=8&#39;h01,ST=8&#39;h02,LB=8&#39;h03,LBu=8&#39;h04,SB=8&#39;h05,
-  LH=8&#39;h06,LHu=8&#39;h07,SH=8&#39;h08,ADDiu=8&#39;h09,MOVZ=8&#39;h0A,MOVN=8&#39;h0B,ANDi=8&#39;h0C,
-  ORi=8&#39;h0D,XORi=8&#39;h0E,LUi=8&#39;h0F,
-  CMP=8&#39;h10,
-  ADDu=8&#39;h11,SUBu=8&#39;h12,ADD=8&#39;h13,SUB=8&#39;h14,CLZ=8&#39;h15,CLO=8&#39;h16,MUL=8&#39;h17,
-  AND=8&#39;h18,OR=8&#39;h19,XOR=8&#39;h1A,
-  ROL=8&#39;h1B,ROR=8&#39;h1C,SRA=8&#39;h1D,SHL=8&#39;h1E,SHR=8&#39;h1F,
-  SRAV=8&#39;h20,SHLV=8&#39;h21,SHRV=8&#39;h22,ROLV=8&#39;h23,RORV=8&#39;h24,
+  parameter [7:0] NOP=8'h00,LD=8'h01,ST=8'h02,LB=8'h03,LBu=8'h04,SB=8'h05,
+  LH=8'h06,LHu=8'h07,SH=8'h08,ADDiu=8'h09,MOVZ=8'h0A,MOVN=8'h0B,ANDi=8'h0C,
+  ORi=8'h0D,XORi=8'h0E,LUi=8'h0F,
+  CMP=8'h10,
+  ADDu=8'h11,SUBu=8'h12,ADD=8'h13,SUB=8'h14,CLZ=8'h15,CLO=8'h16,MUL=8'h17,
+  AND=8'h18,OR=8'h19,XOR=8'h1A,
+  ROL=8'h1B,ROR=8'h1C,SRA=8'h1D,SHL=8'h1E,SHR=8'h1F,
+  SRAV=8'h20,SHLV=8'h21,SHRV=8'h22,ROLV=8'h23,RORV=8'h24,
 `ifdef CPU0II
-  SLTi=8&#39;h26,SLTiu=8&#39;h27, SLT=8&#39;h28,SLTu=8&#39;h29,
-  BEQ=8&#39;h37,BNE=8&#39;h38,
+  SLTi=8'h26,SLTiu=8'h27, SLT=8'h28,SLTu=8'h29,
+  BEQ=8'h37,BNE=8'h38,
 `endif
-  JEQ=8&#39;h30,JNE=8&#39;h31,JLT=8&#39;h32,JGT=8&#39;h33,JLE=8&#39;h34,JGE=8&#39;h35,
-  JMP=8&#39;h36,
-  JALR=8&#39;h39,JSUB=8&#39;h3B,RET=8&#39;h3C,
-  MULT=8&#39;h41,MULTu=8&#39;h42,DIV=8&#39;h43,DIVu=8&#39;h44,
-  MFHI=8&#39;h46,MFLO=8&#39;h47,MTHI=8&#39;h48,MTLO=8&#39;h49,
-  MFC0=8&#39;h50,MTC0=8&#39;h51,C0MOV=8&#39;h52;
+  JEQ=8'h30,JNE=8'h31,JLT=8'h32,JGT=8'h33,JLE=8'h34,JGE=8'h35,
+  JMP=8'h36,
+  JALR=8'h39,JSUB=8'h3B,RET=8'h3C,
+  MULT=8'h41,MULTu=8'h42,DIV=8'h43,DIVu=8'h44,
+  MFHI=8'h46,MFLO=8'h47,MTHI=8'h48,MTLO=8'h49,
+  MFC0=8'h50,MTC0=8'h51,C0MOV=8'h52;
 
   reg [0:0] inExe = 0;
   reg [2:0] state, next_state; 
   reg [2:0] st_taskInt, ns_taskInt; 
-  parameter Reset=3&#39;h0, Fetch=3&#39;h1, Decode=3&#39;h2, Execute=3&#39;h3, MemAccess=3&#39;h4, 
-            WriteBack=3&#39;h5;
+  parameter Reset=3'h0, Fetch=3'h1, Decode=3'h2, Execute=3'h3, MemAccess=3'h4, 
+            WriteBack=3'h5;
   integer i;
 
   //transform data from the memory to little-endian form
@@ -244,20 +245,20 @@ module cpu0(input clock, reset, input [2:0] itype, output reg [2:0] tick,
     if (`LE) begin // Little Endian
       changeEndian(data, data);
     end 
-    if (data[7:0] != 8&#39;h00) begin
-      $write(&quot;%c&quot;, data[7:0]);
-      if (data[15:8] != 8&#39;h00) 
-        $write(&quot;%c&quot;, data[15:8]);
-      if (data[23:16] != 8&#39;h00) 
-        $write(&quot;%c&quot;, data[23:16]);
-      if (data[31:24] != 8&#39;h00) 
-        $write(&quot;%c&quot;, data[31:24]);
+    if (data[7:0] != 8'h00) begin
+      $write("%c", data[7:0]);
+      if (data[15:8] != 8'h00) 
+        $write("%c", data[15:8]);
+      if (data[23:16] != 8'h00) 
+        $write("%c", data[23:16]);
+      if (data[31:24] != 8'h00) 
+        $write("%c", data[31:24]);
     end
   end endtask
 
   // output a character (a byte)
   task outc(input [7:0] data); begin
-    $write(&quot;%c&quot;, data);
+    $write("%c", data);
   end endtask
 
   task taskInterrupt(input [2:0] iMode); begin
@@ -275,7 +276,7 @@ module cpu0(input clock, reset, input [2:0] itype, output reg [2:0] tick,
       `ERROR: begin `PC = 12; end
     endcase
   end
-  $display(&quot;taskInterrupt(%3b)&quot;, iMode);
+  $display("taskInterrupt(%3b)", iMode);
   end endtask
 
   task taskExecute; begin
@@ -338,13 +339,13 @@ module cpu0(input clock, reset, input [2:0] itype, output reg [2:0] tick,
         if (`V) begin `I0 = 1; `I = 1; end
       end         // SUB Ra,Rb,Rc; Ra&lt;=Rb-Rc
       CLZ:   begin
-        for (i=0; (i&lt;32)&amp;&amp;((Rb&amp;32&#39;h80000000)==32&#39;h00000000); i=i+1) begin
+        for (i=0; (i&lt;32)&amp;&amp;((Rb&amp;32'h80000000)==32'h00000000); i=i+1) begin
             Rb=Rb&lt;&lt;1;
         end
         regSet(a, i);
       end
       CLO:   begin
-        for (i=0; (i&lt;32)&amp;&amp;((Rb&amp;32&#39;h80000000)==32&#39;h80000000); i=i+1) begin
+        for (i=0; (i&lt;32)&amp;&amp;((Rb&amp;32'h80000000)==32'h80000000); i=i+1) begin
             Rb=Rb&lt;&lt;1;
         end
         regSet(a, i);
@@ -364,13 +365,13 @@ module cpu0(input clock, reset, input [2:0] itype, output reg [2:0] tick,
       XORi:  regSet(a, Rb^uc16);             // XORi Ra,Rb,c16; Ra&lt;=(Rb xor c16)
       LUi:   regSet(a, uc16&lt;&lt;16);
       SHL:   regSet(a, Rb&lt;&lt;c5);     // Shift Left; SHL Ra,Rb,Cx; Ra&lt;=(Rb &lt;&lt; Cx)
-      SRA:   regSet(a, (Rb&amp;&#39;h80000000)|(Rb&gt;&gt;c5)); 
+      SRA:   regSet(a, (Rb&amp;'h80000000)|(Rb&gt;&gt;c5)); 
                                 // Shift Right with signed bit fill;
                                 // SHR Ra,Rb,Cx; Ra&lt;=(Rb&amp;0x80000000)|(Rb&gt;&gt;Cx)
       SHR:   regSet(a, Rb&gt;&gt;c5);     // Shift Right with 0 fill; 
                                     // SHR Ra,Rb,Cx; Ra&lt;=(Rb &gt;&gt; Cx)
       SHLV:  regSet(a, Rb&lt;&lt;Rc);     // Shift Left; SHLV Ra,Rb,Rc; Ra&lt;=(Rb &lt;&lt; Rc)
-      SRAV:  regSet(a, (Rb&amp;&#39;h80000000)|(Rb&gt;&gt;Rc)); 
+      SRAV:  regSet(a, (Rb&amp;'h80000000)|(Rb&gt;&gt;Rc)); 
                                 // Shift Right with signed bit fill;
                                 // SHRV Ra,Rb,Rc; Ra&lt;=(Rb&amp;0x80000000)|(Rb&gt;&gt;Rc)
       SHRV:  regSet(a, Rb&gt;&gt;Rc);     // Shift Right with 0 fill; 
@@ -422,7 +423,7 @@ module cpu0(input clock, reset, input [2:0] itype, output reg [2:0] tick,
       JALR:  begin R[a] =`PC;`PC=Rb; end // JALR Ra,Rb; Ra&lt;=PC; PC&lt;=Rb
       RET:   begin `PC=Ra; end               // RET; PC &lt;= Ra
       default : 
-        $display(&quot;%4dns %8x : OP code %8x not support&quot;, $stime, pc0, op);
+        $display("%4dns %8x : OP code %8x not support", $stime, pc0, op);
       endcase
       if (`IE &amp;&amp; `I &amp;&amp; (`I0E &amp;&amp; `I0 || `I1E &amp;&amp; `I1 || `I2E &amp;&amp; `I2)) begin
         `EPC = `PC;
@@ -447,26 +448,26 @@ module cpu0(input clock, reset, input [2:0] itype, output reg [2:0] tick,
       LD  : begin
         memReadEnd(R[a]);
         if (`D)
-          $display(&quot;%4dns %8x : %8x m[%-04x+%-04x]=%8x  SW=%8x&quot;, $stime, pc0, 
+          $display("%4dns %8x : %8x m[%-04x+%-04x]=%8x  SW=%8x", $stime, pc0, 
                    ir, R[b], c16, R[a], `SW);
       end
       endcase
       case (op)
       LB  : begin 
-        if (R[a] &gt; 8&#39;h7f) R[a]=R[a]|32&#39;hffffff80;
+        if (R[a] &gt; 8'h7f) R[a]=R[a]|32'hffffff80;
       end
       LH  : begin 
-        if (R[a] &gt; 16&#39;h7fff) R[a]=R[a]|32&#39;hffff8000;
+        if (R[a] &gt; 16'h7fff) R[a]=R[a]|32'hffff8000;
       end
       endcase
       case (op)
       MULT, MULTu, DIV, DIVu, MTHI, MTLO :
         if (`D)
-          $display(&quot;%4dns %8x : %8x HI=%8x LO=%8x SW=%8x&quot;, $stime, pc0, ir, HI, 
+          $display("%4dns %8x : %8x HI=%8x LO=%8x SW=%8x", $stime, pc0, ir, HI, 
                    LO, `SW);
       ST : begin
         if (`D)
-          $display(&quot;%4dns %8x : %8x m[%-04x+%-04x]=%8x  SW=%8x&quot;, $stime, pc0, 
+          $display("%4dns %8x : %8x m[%-04x+%-04x]=%8x  SW=%8x", $stime, pc0, 
                    ir, R[b], c16, R[a], `SW);
         if (R[b]+c16 == `IOADDR) begin
           outw(R[a]);
@@ -474,7 +475,7 @@ module cpu0(input clock, reset, input [2:0] itype, output reg [2:0] tick,
       end
       SB : begin
         if (`D)
-          $display(&quot;%4dns %8x : %8x m[%-04x+%-04x]=%c  SW=%8x, R[a]=%8x&quot;, 
+          $display("%4dns %8x : %8x m[%-04x+%-04x]=%c  SW=%8x, R[a]=%8x", 
                    $stime, pc0, ir, R[b], c16, R[a][7:0], `SW, R[a]);
         if (R[b]+c16 == `IOADDR) begin
           if (`LE)
@@ -485,20 +486,20 @@ module cpu0(input clock, reset, input [2:0] itype, output reg [2:0] tick,
       end
       MFC0, MTC0 :
         if (`D)
-          $display(&quot;%4dns %8x : %8x R[%02d]=%-8x  C0R[%02d]=%-8x SW=%8x&quot;, 
+          $display("%4dns %8x : %8x R[%02d]=%-8x  C0R[%02d]=%-8x SW=%8x", 
                    $stime, pc0, ir, a, R[a], a, C0R[a], `SW);
       C0MOV :
         if (`D)
-          $display(&quot;%4dns %8x : %8x C0R[%02d]=%-8x C0R[%02d]=%-8x SW=%8x&quot;, 
+          $display("%4dns %8x : %8x C0R[%02d]=%-8x C0R[%02d]=%-8x SW=%8x", 
                    $stime, pc0, ir, a, C0R[a], b, C0R[b], `SW);
       default :
         if (`D) // Display the written register content
-          $display(&quot;%4dns %8x : %8x R[%02d]=%-8x SW=%8x&quot;, $stime, pc0, ir, 
+          $display("%4dns %8x : %8x R[%02d]=%-8x SW=%8x", $stime, pc0, ir, 
                    a, R[a], `SW);
       endcase
       if (`PC &lt; 0) begin
-        $display(&quot;total cpu cycles = %-d&quot;, cycles);
-        $display(&quot;RET to PC &lt; 0, finished!&quot;);
+        $display("total cpu cycles = %-d", cycles);
+        $display("RET to PC &lt; 0, finished!");
         $finish;
       end
       next_state = Fetch;
@@ -561,7 +562,7 @@ module memory0(input clock, reset, en, rw, input [1:0] m_size,
   `define LE  mconfig[0][0:0]   // Endian bit, Big Endian:0, Little Endian:1
 
 `ifdef DLINKER
-`include &quot;dynlinker.v&quot;
+`include "dynlinker.v"
 `endif
   initial begin
   // erase memory
@@ -569,14 +570,14 @@ module memory0(input clock, reset, en, rw, input [1:0] m_size,
        m[i] = `MEMEMPTY;
     end
   // load config from file to memory
-    $readmemh(&quot;cpu0.config&quot;, mconfig);
+    $readmemh("cpu0.config", mconfig);
   // load program from file to memory
-    $readmemh(&quot;cpu0.hex&quot;, m);
+    $readmemh("cpu0.hex", m);
   // display memory contents
     `ifdef TRACE
       for (i=0; i &lt; `MEMSIZE &amp;&amp; (m[i] != `MEMEMPTY || m[i+1] != `MEMEMPTY || 
          m[i+2] != `MEMEMPTY || m[i+3] != `MEMEMPTY); i=i+4) begin
-        $display(&quot;%8x: %8x&quot;, i, {m[i], m[i+1], m[i+2], m[i+3]});
+        $display("%8x: %8x", i, {m[i], m[i+1], m[i+2], m[i+3]});
       end
     `endif
 `ifdef DLINKER
@@ -610,26 +611,26 @@ module memory0(input clock, reset, en, rw, input [1:0] m_size,
       end else if (en == 1 &amp;&amp; rw == 1) begin // r_w==1:read
         if (`LE) begin // Little Endian
           case (m_size)
-          `BYTE:  data = {8&#39;h00,     8&#39;h00,     8&#39;h00,     m[abus]};
-          `INT16: data = {8&#39;h00,     8&#39;h00,     m[abus+1], m[abus]};
-          `INT24: data = {8&#39;h00,     m[abus+2], m[abus+1], m[abus]};
+          `BYTE:  data = {8'h00,     8'h00,     8'h00,     m[abus]};
+          `INT16: data = {8'h00,     8'h00,     m[abus+1], m[abus]};
+          `INT24: data = {8'h00,     m[abus+2], m[abus+1], m[abus]};
           `INT32: data = {m[abus+3], m[abus+2], m[abus+1], m[abus]};
           endcase
         end else begin // Big Endian
           case (m_size)
-          `BYTE:  data = {8&#39;h00  , 8&#39;h00,     8&#39;h00,     m[abus]  };
-          `INT16: data = {8&#39;h00  , 8&#39;h00,     m[abus],   m[abus+1]};
-          `INT24: data = {8&#39;h00  , m[abus],   m[abus+1], m[abus+2]};
+          `BYTE:  data = {8'h00  , 8'h00,     8'h00,     m[abus]  };
+          `INT16: data = {8'h00  , 8'h00,     m[abus],   m[abus+1]};
+          `INT24: data = {8'h00  , m[abus],   m[abus+1], m[abus+2]};
           `INT32: data = {m[abus], m[abus+1], m[abus+2], m[abus+3]};
           endcase
         end
       end else
-        data = 32&#39;hZZZZZZZZ;
+        data = 32'hZZZZZZZZ;
       `ifdef DLINKER
-      `include &quot;flashio.v&quot;
+      `include "flashio.v"
       `endif
     end else 
-      data = 32&#39;hZZZZZZZZ;
+      data = 32'hZZZZZZZZ;
   end
   assign dbus_out = data;
   assign cfg = mconfig[0][0:0];
@@ -661,14 +662,15 @@ module main;
   always #10 clock=clock+1;
 
 endmodule
-</pre></div>
+</pre>
 </div>
 <p class="rubric">lbdex/verilog/cpu0Is.v</p>
-<div class="highlight-c++"><div class="highlight"><pre>// TRACE: Display the memory contents of the loaded program and data
+<div class="highlight-c++"><pre>// TRACE: Display the memory contents of the loaded program and data
 //`define TRACE 
 
-`include &quot;cpu0.v&quot;
-</pre></div>
+`include "cpu0.v"
+
+</pre>
 </div>
 <p>Since Cpu0 Verilog machine supports both big and little endian, the memory
 and cpu module both have a wire connectting each other.
@@ -809,39 +811,39 @@ at 0x6ffc because assuming cpu0.v uses 0x7000 bytes of memory.</p>
 </pre></div>
 </div>
 <p class="rubric">lbdex/input/ch_nolld.cpp</p>
-<div class="highlight-c++"><div class="highlight"><pre>#define TEST_ROXV
+<div class="highlight-c++"><pre>#define TEST_ROXV
 #define RUN_ON_VERILOG
 
-#include &quot;print.cpp&quot;
+#include "print.cpp"
 
-#include &quot;ch4_1_1.cpp&quot;
-#include &quot;ch4_1_3.cpp&quot;
-#include &quot;ch4_3.cpp&quot;
-#include &quot;ch4_5.cpp&quot;
-#include &quot;ch7_1.cpp&quot;
-#include &quot;ch7_2_2.cpp&quot;
-#include &quot;ch7_3.cpp&quot;
-#include &quot;ch7_4.cpp&quot;
-#include &quot;ch8_1_1.cpp&quot;
-#include &quot;ch8_2.cpp&quot;
-#include &quot;ch8_3.cpp&quot;
-#include &quot;ch9_1_4.cpp&quot;
-#include &quot;ch9_2_3_tailcall.cpp&quot;
-#include &quot;ch9_3.cpp&quot;
-#include &quot;ch11_2.cpp&quot;
+#include "ch4_1_1.cpp"
+#include "ch4_1_3.cpp"
+#include "ch4_3.cpp"
+#include "ch4_5.cpp"
+#include "ch7_1.cpp"
+#include "ch7_2_2.cpp"
+#include "ch7_3.cpp"
+#include "ch7_4.cpp"
+#include "ch8_1_1.cpp"
+#include "ch8_2.cpp"
+#include "ch8_3.cpp"
+#include "ch9_1_4.cpp"
+#include "ch9_2_3_tailcall.cpp"
+#include "ch9_3.cpp"
+#include "ch11_2.cpp"
 
 // Test build only for the following files since it needs lld linker support.
-#include &quot;ch6_1.cpp&quot;
-#include &quot;ch9_2_1.cpp&quot;
-#include &quot;ch9_2_2.cpp&quot;
-#include &quot;ch9_3_2.cpp&quot;
-#include &quot;ch12_inherit.cpp&quot;
+#include "ch6_1.cpp"
+#include "ch9_2_1.cpp"
+#include "ch9_2_2.cpp"
+#include "ch9_3_2.cpp"
+#include "ch12_inherit.cpp"
 
 void test_asm_build()
 {
-  #include &quot;ch11_1.cpp&quot;
+  #include "ch11_1.cpp"
 #ifdef CPU032II
-  #include &quot;ch11_1_2.cpp&quot;
+  #include "ch11_1_2.cpp"
 #endif
 }
 
@@ -955,7 +957,7 @@ int test_nolld()
 ...
 RET to PC &lt; 0, finished!
 */
-</pre></div>
+</pre>
 </div>
 <p class="rubric">lbdex/input/ch_run_backend.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="cp">#include &quot;ch_nolld.h&quot;</span>
@@ -972,77 +974,77 @@ RET to PC &lt; 0, finished!
 </pre></div>
 </div>
 <p class="rubric">lbdex/input/functions.sh</p>
-<div class="highlight-c++"><div class="highlight"><pre>prologue() {
+<div class="highlight-c++"><pre>prologue() {
   if [ $argNum == 0 ]; then
-    echo &quot;useage: bash $sh_name cpu_type endian&quot;
-    echo &quot;  cpu_type: cpu032I or cpu032II&quot;
-    echo &quot;  endian: be (big endian, default) or le (little endian)&quot;
-    echo &quot;for example:&quot;
-    echo &quot;  bash build-slinker.sh cpu032I be&quot;
+    echo "useage: bash $sh_name cpu_type endian"
+    echo "  cpu_type: cpu032I or cpu032II"
+    echo "  endian: be (big endian, default) or le (little endian)"
+    echo "for example:"
+    echo "  bash build-slinker.sh cpu032I be"
     exit 1;
   fi
   if [ $arg1 != cpu032I ] &amp;&amp; [ $arg1 != cpu032II ]; then
-    echo &quot;1st argument is cpu032I or cpu032II&quot;
+    echo "1st argument is cpu032I or cpu032II"
     exit 1
   fi
 
   OS=`uname -s`
-  echo &quot;OS =&quot; ${OS}
+  echo "OS =" ${OS}
 
-  if [ &quot;$OS&quot; == &quot;Linux&quot; ]; then
+  if [ "$OS" == "Linux" ]; then
     TOOLDIR=~/llvm/test/cmake_debug_build/bin
   else
     TOOLDIR=~/llvm/test/cmake_debug_build/Debug/bin
   fi
 
   CPU=$arg1
-  echo &quot;CPU =&quot; &quot;${CPU}&quot;
+  echo "CPU =" "${CPU}"
 
-  if [ &quot;$arg2&quot; != &quot;&quot; ] &amp;&amp; [ $arg2 != le ] &amp;&amp; [ $arg2 != be ]; then
-    echo &quot;2nd argument is be (big endian, default) or le (little endian)&quot;
+  if [ "$arg2" != "" ] &amp;&amp; [ $arg2 != le ] &amp;&amp; [ $arg2 != be ]; then
+    echo "2nd argument is be (big endian, default) or le (little endian)"
     exit 1
   fi
-  if [ &quot;$arg2&quot; == &quot;&quot; ] || [ $arg2 == be ]; then
+  if [ "$arg2" == "" ] || [ $arg2 == be ]; then
     endian=
   else
     endian=el
   fi
-  echo &quot;endian =&quot; &quot;${endian}&quot;
+  echo "endian =" "${endian}"
 
   bash clean.sh
 }
 
 isLittleEndian() {
-  echo &quot;endian = &quot; &quot;$endian&quot;
-  if [ &quot;$endian&quot; == &quot;LittleEndian&quot; ] ; then
-    le=&quot;true&quot;
-  elif [ &quot;$endian&quot; == &quot;BigEndian&quot; ] ; then
-    le=&quot;false&quot;
+  echo "endian = " "$endian"
+  if [ "$endian" == "LittleEndian" ] ; then
+    le="true"
+  elif [ "$endian" == "BigEndian" ] ; then
+    le="false"
   else
-    echo &quot;!endian unknown&quot;
+    echo "!endian unknown"
     exit 1
   fi
 }
 
 elf2hex() {
   ${TOOLDIR}/llvm-objdump -elf2hex -le=${le} a.out &gt; ../verilog/cpu0.hex
-  if [ ${le} == &quot;true&quot; ] ; then
-    echo &quot;1   /* 0: big endian, 1: little endian */&quot; &gt; ../verilog/cpu0.config
+  if [ ${le} == "true" ] ; then
+    echo "1   /* 0: big endian, 1: little endian */" &gt; ../verilog/cpu0.config
   else
-    echo &quot;0   /* 0: big endian, 1: little endian */&quot; &gt; ../verilog/cpu0.config
+    echo "0   /* 0: big endian, 1: little endian */" &gt; ../verilog/cpu0.config
   fi
   cat ../verilog/cpu0.config
 }
 
 epilogue() {
-  endian=`${TOOLDIR}/llvm-readobj -h a.out|grep &quot;DataEncoding&quot;|awk &#39;{print $2}&#39;`
+  endian=`${TOOLDIR}/llvm-readobj -h a.out|grep "DataEncoding"|awk '{print $2}'`
   isLittleEndian;
   elf2hex;
 }
-</pre></div>
+</pre>
 </div>
 <p class="rubric">lbdex/input/build-run_backend.sh</p>
-<div class="highlight-c++"><div class="highlight"><pre>#!/usr/bin/env bash
+<div class="highlight-c++"><pre>#!/usr/bin/env bash
 
 source functions.sh
 
@@ -1051,9 +1053,9 @@ argNum=$#
 arg1=$1
 arg2=$2
 
-DEFFLAGS=&quot;&quot;
-if [ &quot;$arg1&quot; == cpu032II ] ; then
-  DEFFLAGS=${DEFFLAGS}&quot; -DCPU032II&quot;
+DEFFLAGS=""
+if [ "$arg1" == cpu032II ] ; then
+  DEFFLAGS=${DEFFLAGS}" -DCPU032II"
 fi
 echo ${DEFFLAGS}
 
@@ -1070,16 +1072,16 @@ clang ${DEFFLAGS} -target mips-unknown-linux-gnu -c ch_run_backend.cpp \
 ${TOOLDIR}/llc -march=cpu0${endian} -mcpu=${CPU} -relocation-model=static \
 -filetype=obj -enable-cpu0-tail-calls ch_run_backend.bc -o ch_run_backend.cpu0.o
 ${TOOLDIR}/llvm-objdump -d ch_run_backend.cpu0.o | tail -n +12| awk \
-&#39;{print &quot;/* &quot; $1 &quot; */\t&quot; $2 &quot; &quot; $3 &quot; &quot; $4 &quot; &quot; $5 &quot;\t/* &quot; $6&quot;\t&quot; $7&quot; &quot; $8&quot; \
-&quot; $9&quot; &quot; $10 &quot;\t*/&quot;}&#39; &gt; ../verilog/cpu0.hex
+'{print "/* " $1 " */\t" $2 " " $3 " " $4 " " $5 "\t/* " $6"\t" $7" " $8" \
+" $9" " $10 "\t*/"}' &gt; ../verilog/cpu0.hex
 
-if [ &quot;$arg2&quot; == le ] ; then
-  echo &quot;1   /* 0: big endian, 1: little endian */&quot; &gt; ../verilog/cpu0.config
+if [ "$arg2" == le ] ; then
+  echo "1   /* 0: big endian, 1: little endian */" &gt; ../verilog/cpu0.config
 else
-  echo &quot;0   /* 0: big endian, 1: little endian */&quot; &gt; ../verilog/cpu0.config
+  echo "0   /* 0: big endian, 1: little endian */" &gt; ../verilog/cpu0.config
 fi
 cat ../verilog/cpu0.config
-</pre></div>
+</pre>
 </div>
 <p>To run program without linker implementation at this point, the boot.cpp is
 arranaged at the beginning of code and the main() of ch_run_backend.cpp is
@@ -1138,13 +1140,11 @@ You can trace the memory binary code and destination
 register changed at every instruction execution by the following change and
 get the result as below,</p>
 <p class="rubric">lbdex/verilog/cpu0Is.v</p>
-<div class="highlight-c++"><div class="highlight"><pre>`define TRACE
-</pre></div>
+<div class="highlight-c++"><pre>`define TRACE</pre>
 </div>
 <p class="rubric">lbdex/verilog/cpu0.v</p>
-<div class="highlight-c++"><div class="highlight"><pre>...
-`D = 1; // Trace register content at beginning
-</pre></div>
+<div class="highlight-c++"><pre>...
+`D = 1; // Trace register content at beginning</pre>
 </div>
 <div class="highlight-bash"><div class="highlight"><pre>JonathantekiiMac:raw Jonathan<span class="nv">$ </span>./cpu0Is
 WARNING: cpu0.v:386: <span class="nv">$readmemh</span><span class="o">(</span>cpu0.hex<span class="o">)</span>: Not enough words in the file <span class="k">for </span>the
@@ -1236,7 +1236,7 @@ following command. File build-run_backend.sh write the endian information to
 </pre></div>
 </div>
 <p class="rubric">lbdex/input/build-run_backend2.sh</p>
-<div class="highlight-c++"><div class="highlight"><pre>#!/usr/bin/env bash
+<div class="highlight-c++"><pre>#!/usr/bin/env bash
 
 source functions.sh
 
@@ -1245,9 +1245,9 @@ argNum=$#
 arg1=$1
 arg2=$2
 
-DEFFLAGS=&quot;&quot;
-if [ &quot;$arg1&quot; == cpu032II ] ; then
-  DEFFLAGS=${DEFFLAGS}&quot; -DCPU032II&quot;
+DEFFLAGS=""
+if [ "$arg1" == cpu032II ] ; then
+  DEFFLAGS=${DEFFLAGS}" -DCPU032II"
 fi
 echo ${DEFFLAGS}
 
@@ -1258,16 +1258,16 @@ clang ${DEFFLAGS} -c ch_run_backend2.cpp \
 ${TOOLDIR}/llc -march=cpu0${endian} -mcpu=${CPU} -relocation-model=static \
 -filetype=obj ch_run_backend2.bc -o ch_run_backend2.cpu0.o
 ${TOOLDIR}/llvm-objdump -d ch_run_backend2.cpu0.o | tail -n +12| awk \
-&#39;{print &quot;/* &quot; $1 &quot; */\t&quot; $2 &quot; &quot; $3 &quot; &quot; $4 &quot; &quot; $5 &quot;\t/* &quot; $6&quot;\t&quot; $7&quot; &quot; $8&quot; \
-&quot; $9&quot; &quot; $10 &quot;\t*/&quot;}&#39; &gt; ../verilog/cpu0.hex
+'{print "/* " $1 " */\t" $2 " " $3 " " $4 " " $5 "\t/* " $6"\t" $7" " $8" \
+" $9" " $10 "\t*/"}' &gt; ../verilog/cpu0.hex
 
-if [ &quot;$arg2&quot; == le ] ; then
-  echo &quot;1   /* 0: big endian, 1: little endian */&quot; &gt; ../verilog/cpu0.config
+if [ "$arg2" == le ] ; then
+  echo "1   /* 0: big endian, 1: little endian */" &gt; ../verilog/cpu0.config
 else
-  echo &quot;0   /* 0: big endian, 1: little endian */&quot; &gt; ../verilog/cpu0.config
+  echo "0   /* 0: big endian, 1: little endian */" &gt; ../verilog/cpu0.config
 fi
 cat ../verilog/cpu0.config
-</pre></div>
+</pre>
 </div>
 <div class="highlight-bash"><div class="highlight"><pre>JonathantekiiMac:input Jonathan<span class="nv">$ </span>bash build-run_backend.sh cpu032II le
 ...
@@ -1339,7 +1339,7 @@ driver at web: <a class="reference external" href="http://jonathan2251.github.io
 
     <div class="footer">
         &copy; Copyright 2013, LLVM.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.
     </div>
   </body>
 </html>
