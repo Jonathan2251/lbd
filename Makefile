@@ -15,7 +15,7 @@ ALLSPHINXOPTS   = -d $(BUILDDIR)/doctrees $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) sou
 I18NSPHINXOPTS  = $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) source
 
 # Custom
-GH_PAGES_SOURCES = source lbdex Fig gen-ch12-output.sh rungenexample.sh clean.sh Makefile
+GH_PAGES_SOURCES = source lbdex Fig Makefile
 
 .PHONY: help clean html dirhtml singlehtml pickle json htmlhelp qthelp devhelp epub latex latexpdf text man changes linkcheck doctest gettext gh-pages
 
@@ -164,9 +164,8 @@ gh-pages:
 	git checkout gh-pages
 	rm -rf build _sources _static _images
 	git checkout master $(GH_PAGES_SOURCES)
-	git reset HEAD &&\
-  bash ./gen-ch12-output.sh &&\
-	make genexample
+	git reset HEAD
+	make genref
 	make html latexpdf epub
 	tar -zcvf lbdex.tar.gz lbdex
 	mv -fv build/html/* ./
@@ -213,8 +212,8 @@ gh-pages:
 #	git push origin gh-pages &&\
 #	git checkout master
 
-genexample:
-	bash ./rungenexample.sh
+genref:
+  bash ./lbdex/gen-docs-ref.sh
 
 clean:
 	bash ./clean.sh
