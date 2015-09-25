@@ -160,7 +160,6 @@ TMP_PREFIX = tmp
 # 'cd' take effect for the whole command.
 # TODO: is there a nicer way of doing this?
 gh-pages:
-	bash ./clean.sh
 	git checkout gh-pages
 	rm -rf build _sources _static _images
 	git checkout master $(GH_PAGES_SOURCES)
@@ -212,8 +211,8 @@ gh-pages:
 #	git push origin gh-pages &&\
 #	git checkout master
 
-genref:
-  bash ./lbdex/gen-docs-ref.sh
+genexample:
+	bash ./lbdex/gen-docs-ref.sh
 
 clean:
 	bash ./clean.sh
