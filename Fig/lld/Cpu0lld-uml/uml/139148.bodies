@@ -1,0 +1,28 @@
+class Cpu0SoPlt
+!!!170252.cpp!!!	createFunAddr(in context : Cpu0LinkingContext, inout buf : llvm::FileOutputBuffer) : void
+  auto dynsymSection = context.getTargetHandler<Cpu0ELFType>().targetLayout().
+                       findOutputSection(".dynsym");
+  uint64_t dynsymFileOffset, dynsymSize;
+  if (dynsymSection) {
+    dynsymFileOffset = dynsymSection->fileOffset();
+    dynsymSize = dynsymSection->memSize();
+    uint8_t *atomContent = buf.getBufferStart() + dynsymFileOffset;
+    for (uint64_t i = 4; i < dynsymSize; i += 16) {
+      funAddr[funAddrSize] = 
+        *reinterpret_cast<llvm::support::ubig32_t*>((uint32_t*)
+        (atomContent + i));
+      funAddrSize++;
+    }
+  }
+!!!170380.cpp!!!	getDynFunIndexByTargetAddr(in fAddr : uint64_t) : int
+  for (int i = 0; i < funAddrSize; i++) {
+    // Below statement fix the issue that both __tls_get_addr and first 
+    // function has the same file offset 0 issue.
+    if (i < (funAddrSize-1) && funAddr[i] == funAddr[i+1])
+      continue;
+
+    if (fAddr == funAddr[i]) {
+      return i;
+    }
+  }
+  return -1;

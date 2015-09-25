@@ -1,0 +1,53 @@
+class Cpu0LinkingContext
+!!!141196.cpp!!!	addPasses(inout pm : PassManager) : void
+  auto pass = createCpu0RelocationPass(*this);
+  if (pass)
+    pm.add(std::move(pass));
+  ELFLinkingContext::addPasses(pm);
+!!!141836.cpp!!!	createInternalFiles(inout result : std::vector<std::unique_ptr<File> >) : bool
+  ELFLinkingContext::createInternalFiles(result);
+  std::unique_ptr<Cpu0InitFiniFile> initFiniFile(
+      new Cpu0InitFiniFile(*this));
+  for (auto ai : initFunctions())
+    initFiniFile->addInitFunction(ai);
+  for (auto ai:finiFunctions())
+    initFiniFile->addFiniFunction(ai);
+  result.push_back(std::move(initFiniFile));
+  return true;
+!!!141964.cpp!!!	relocKindFromString(in str : StringRef) : ErrorOr<Reference::Kind>
+  int32_t ret = llvm::StringSwitch<int32_t>(str)
+  LLD_CASE(R_CPU0_NONE)
+  LLD_CASE(R_CPU0_24)
+  LLD_CASE(R_CPU0_32)
+  LLD_CASE(R_CPU0_HI16)
+  LLD_CASE(R_CPU0_LO16)
+  LLD_CASE(R_CPU0_GPREL16)
+  LLD_CASE(R_CPU0_LITERAL)
+  LLD_CASE(R_CPU0_GOT16)
+  LLD_CASE(R_CPU0_PC24)
+  LLD_CASE(R_CPU0_CALL16)
+  LLD_CASE(R_CPU0_JUMP_SLOT)
+    .Case("LLD_R_CPU0_GOTRELINDEX", LLD_R_CPU0_GOTRELINDEX)
+    .Default(-1);
+
+  if (ret == -1)
+    return make_error_code(YamlReaderError::illegal_value);
+  return ret;
+!!!142092.cpp!!!	stringFromRelocKind(in kind : Reference::Kind) : ErrorOr<std::string>
+  switch (kind) {
+  LLD_CASE(R_CPU0_NONE)
+  LLD_CASE(R_CPU0_24)
+  LLD_CASE(R_CPU0_32)
+  LLD_CASE(R_CPU0_HI16)
+  LLD_CASE(R_CPU0_LO16)
+  LLD_CASE(R_CPU0_GPREL16)
+  LLD_CASE(R_CPU0_LITERAL)
+  LLD_CASE(R_CPU0_GOT16)
+  LLD_CASE(R_CPU0_PC24)
+  LLD_CASE(R_CPU0_CALL16)
+  LLD_CASE(R_CPU0_JUMP_SLOT)
+  case LLD_R_CPU0_GOTRELINDEX:
+    return std::string("LLD_R_CPU0_GOTRELINDEX");
+  }
+
+  return make_error_code(YamlReaderError::illegal_value);
