@@ -1746,6 +1746,53 @@ def : WrapperPat&lt;tglobaladdr, ORi, GPROut&gt;;
 Next, add the following code to Cpu0MCInstLower.cpp, Cpu0InstPrinter.cpp and
 Cpu0ISelLowering.cpp for global variable printing operand function.</p>
 <p class="rubric">lbdex/chapters/Chapter6_1/Cpu0MCInstLower.cpp</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="n">MCOperand</span> <span class="n">Cpu0MCInstLower</span><span class="o">::</span><span class="n">LowerSymbolOperand</span><span class="p">(</span><span class="k">const</span> <span class="n">MachineOperand</span> <span class="o">&amp;</span><span class="n">MO</span><span class="p">,</span>
+                                              <span class="n">MachineOperandType</span> <span class="n">MOTy</span><span class="p">,</span>
+                                              <span class="kt">unsigned</span> <span class="n">Offset</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
+  <span class="n">MCSymbolRefExpr</span><span class="o">::</span><span class="n">VariantKind</span> <span class="n">Kind</span><span class="p">;</span>
+  <span class="k">const</span> <span class="n">MCSymbol</span> <span class="o">*</span><span class="n">Symbol</span><span class="p">;</span>
+
+  <span class="k">switch</span><span class="p">(</span><span class="n">MO</span><span class="p">.</span><span class="n">getTargetFlags</span><span class="p">())</span> <span class="p">{</span>
+  <span class="nl">default:</span>                   <span class="n">llvm_unreachable</span><span class="p">(</span><span class="s">&quot;Invalid target flag!&quot;</span><span class="p">);</span>
+  <span class="k">case</span> <span class="n">Cpu0II</span>:<span class="o">:</span><span class="n">MO_NO_FLAG</span><span class="o">:</span>   <span class="n">Kind</span> <span class="o">=</span> <span class="n">MCSymbolRefExpr</span><span class="o">::</span><span class="n">VK_None</span><span class="p">;</span> <span class="k">break</span><span class="p">;</span>
+
+<span class="c1">// Cpu0_GPREL is for llc -march=cpu0 -relocation-model=static -cpu0-islinux-</span>
+<span class="c1">//  format=false (global var in .sdata).</span>
+  <span class="k">case</span> <span class="n">Cpu0II</span>:<span class="o">:</span><span class="n">MO_GPREL</span><span class="o">:</span>     <span class="n">Kind</span> <span class="o">=</span> <span class="n">MCSymbolRefExpr</span><span class="o">::</span><span class="n">VK_Cpu0_GPREL</span><span class="p">;</span> <span class="k">break</span><span class="p">;</span>
+
+  <span class="k">case</span> <span class="n">Cpu0II</span>:<span class="o">:</span><span class="n">MO_GOT16</span><span class="o">:</span>     <span class="n">Kind</span> <span class="o">=</span> <span class="n">MCSymbolRefExpr</span><span class="o">::</span><span class="n">VK_Cpu0_GOT16</span><span class="p">;</span> <span class="k">break</span><span class="p">;</span>
+  <span class="k">case</span> <span class="n">Cpu0II</span>:<span class="o">:</span><span class="n">MO_GOT</span><span class="o">:</span>       <span class="n">Kind</span> <span class="o">=</span> <span class="n">MCSymbolRefExpr</span><span class="o">::</span><span class="n">VK_Cpu0_GOT</span><span class="p">;</span> <span class="k">break</span><span class="p">;</span>
+<span class="c1">// ABS_HI and ABS_LO is for llc -march=cpu0 -relocation-model=static (global </span>
+<span class="c1">//  var in .data).</span>
+  <span class="k">case</span> <span class="n">Cpu0II</span>:<span class="o">:</span><span class="n">MO_ABS_HI</span><span class="o">:</span>    <span class="n">Kind</span> <span class="o">=</span> <span class="n">MCSymbolRefExpr</span><span class="o">::</span><span class="n">VK_Cpu0_ABS_HI</span><span class="p">;</span> <span class="k">break</span><span class="p">;</span>
+  <span class="k">case</span> <span class="n">Cpu0II</span>:<span class="o">:</span><span class="n">MO_ABS_LO</span><span class="o">:</span>    <span class="n">Kind</span> <span class="o">=</span> <span class="n">MCSymbolRefExpr</span><span class="o">::</span><span class="n">VK_Cpu0_ABS_LO</span><span class="p">;</span> <span class="k">break</span><span class="p">;</span>
+  <span class="k">case</span> <span class="n">Cpu0II</span>:<span class="o">:</span><span class="n">MO_GOT_HI16</span><span class="o">:</span>  <span class="n">Kind</span> <span class="o">=</span> <span class="n">MCSymbolRefExpr</span><span class="o">::</span><span class="n">VK_Cpu0_GOT_HI16</span><span class="p">;</span> <span class="k">break</span><span class="p">;</span>
+  <span class="k">case</span> <span class="n">Cpu0II</span>:<span class="o">:</span><span class="n">MO_GOT_LO16</span><span class="o">:</span>  <span class="n">Kind</span> <span class="o">=</span> <span class="n">MCSymbolRefExpr</span><span class="o">::</span><span class="n">VK_Cpu0_GOT_LO16</span><span class="p">;</span> <span class="k">break</span><span class="p">;</span>
+  <span class="p">}</span>
+
+  <span class="k">switch</span> <span class="p">(</span><span class="n">MOTy</span><span class="p">)</span> <span class="p">{</span>
+  <span class="k">case</span> <span class="n">MachineOperand</span>:<span class="o">:</span><span class="n">MO_GlobalAddress</span><span class="o">:</span>
+    <span class="n">Symbol</span> <span class="o">=</span> <span class="n">AsmPrinter</span><span class="p">.</span><span class="n">getSymbol</span><span class="p">(</span><span class="n">MO</span><span class="p">.</span><span class="n">getGlobal</span><span class="p">());</span>
+    <span class="k">break</span><span class="p">;</span>
+
+  <span class="nl">default:</span>
+    <span class="n">llvm_unreachable</span><span class="p">(</span><span class="s">&quot;&lt;unknown operand type&gt;&quot;</span><span class="p">);</span>
+  <span class="p">}</span>
+
+  <span class="k">const</span> <span class="n">MCSymbolRefExpr</span> <span class="o">*</span><span class="n">MCSym</span> <span class="o">=</span> <span class="n">MCSymbolRefExpr</span><span class="o">::</span><span class="n">create</span><span class="p">(</span><span class="n">Symbol</span><span class="p">,</span> <span class="n">Kind</span><span class="p">,</span> <span class="o">*</span><span class="n">Ctx</span><span class="p">);</span>
+
+  <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">Offset</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">MCOperand</span><span class="o">::</span><span class="n">createExpr</span><span class="p">(</span><span class="n">MCSym</span><span class="p">);</span>
+
+  <span class="c1">// Assume offset is never negative.</span>
+  <span class="n">assert</span><span class="p">(</span><span class="n">Offset</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">);</span>
+
+  <span class="k">const</span> <span class="n">MCConstantExpr</span> <span class="o">*</span><span class="n">OffsetExpr</span> <span class="o">=</span>  <span class="n">MCConstantExpr</span><span class="o">::</span><span class="n">create</span><span class="p">(</span><span class="n">Offset</span><span class="p">,</span> <span class="o">*</span><span class="n">Ctx</span><span class="p">);</span>
+  <span class="k">const</span> <span class="n">MCBinaryExpr</span> <span class="o">*</span><span class="n">AddExpr</span> <span class="o">=</span> <span class="n">MCBinaryExpr</span><span class="o">::</span><span class="n">createAdd</span><span class="p">(</span><span class="n">MCSym</span><span class="p">,</span> <span class="n">OffsetExpr</span><span class="p">,</span> <span class="o">*</span><span class="n">Ctx</span><span class="p">);</span>
+  <span class="k">return</span> <span class="n">MCOperand</span><span class="o">::</span><span class="n">createExpr</span><span class="p">(</span><span class="n">AddExpr</span><span class="p">);</span>
+<span class="p">}</span>
+</pre></div>
+</div>
 <div class="highlight-c++"><div class="highlight"><pre><span class="n">MCOperand</span> <span class="n">Cpu0MCInstLower</span><span class="o">::</span><span class="n">LowerOperand</span><span class="p">(</span><span class="k">const</span> <span class="n">MachineOperand</span><span class="o">&amp;</span> <span class="n">MO</span><span class="p">,</span>
                                         <span class="kt">unsigned</span> <span class="n">offset</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
   <span class="n">MachineOperandType</span> <span class="n">MOTy</span> <span class="o">=</span> <span class="n">MO</span><span class="p">.</span><span class="n">getType</span><span class="p">();</span>

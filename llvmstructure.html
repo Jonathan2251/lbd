@@ -1797,6 +1797,32 @@ is called Cpu0Other.td, which is shown below:</p>
 </pre></div>
 </div>
 <p class="rubric">lbdex/chapters/Chapter2/Cpu0Other.td</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="c1">//===-- Cpu0Other.td - Describe the Cpu0 Target Machine ----*- tablegen -*-===//</span>
+<span class="c1">//</span>
+<span class="c1">//                     The LLVM Compiler Infrastructure</span>
+<span class="c1">//</span>
+<span class="c1">// This file is distributed under the University of Illinois Open Source</span>
+<span class="c1">// License. See LICENSE.TXT for details.</span>
+<span class="c1">//</span>
+<span class="c1">//===----------------------------------------------------------------------===//</span>
+<span class="c1">// This is the top level entry point for the Cpu0 target.</span>
+<span class="c1">//===----------------------------------------------------------------------===//</span>
+
+<span class="c1">//===----------------------------------------------------------------------===//</span>
+<span class="c1">// Target-independent interfaces</span>
+<span class="c1">//===----------------------------------------------------------------------===//</span>
+
+<span class="n">include</span> <span class="s">&quot;llvm/Target/Target.td&quot;</span>
+
+<span class="c1">//===----------------------------------------------------------------------===//</span>
+<span class="c1">// Target-dependent interfaces</span>
+<span class="c1">//===----------------------------------------------------------------------===//</span>
+
+<span class="n">include</span> <span class="s">&quot;Cpu0RegisterInfo.td&quot;</span>
+<span class="n">include</span> <span class="s">&quot;Cpu0RegisterInfoGPROutForOther.td&quot;</span> <span class="c1">// except AsmParser</span>
+<span class="n">include</span> <span class="s">&quot;Cpu0.td&quot;</span>
+</pre></div>
+</div>
 <p>Cpu0Other.td and Cpu0.td includes a few other .td files.
 Cpu0RegisterInfo.td (shown below) describes the Cpu0&#8217;s set of registers.
 In this file, we see that registers have been given names, i.e. <strong>&#8220;def PC&#8221;</strong>
@@ -1807,7 +1833,97 @@ GPROut defined in Cpu0RegisterInfoGPROutForOther.td which include CPURegs
 except SW, PC and EPC, so SW, PC and EPC won&#8217;t be allocated as the output
 registers in register allocation stage.</p>
 <p class="rubric">lbdex/chapters/Chapter2/Cpu0RegisterInfo.td</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="c1">//===-- Cpu0RegisterInfo.td - Cpu0 Register defs -----------*- tablegen -*-===//</span>
+<span class="c1">//</span>
+<span class="c1">//                     The LLVM Compiler Infrastructure</span>
+<span class="c1">//</span>
+<span class="c1">// This file is distributed under the University of Illinois Open Source</span>
+<span class="c1">// License. See LICENSE.TXT for details.</span>
+<span class="c1">//</span>
+<span class="c1">//===----------------------------------------------------------------------===//</span>
+
+<span class="c1">//===----------------------------------------------------------------------===//</span>
+<span class="c1">//  Declarations that describe the CPU0 register file</span>
+<span class="c1">//===----------------------------------------------------------------------===//</span>
+
+<span class="c1">// We have banks of 16 registers each.</span>
+<span class="k">class</span> <span class="nc">Cpu0Reg</span><span class="o">&lt;</span><span class="n">string</span> <span class="n">n</span><span class="o">&gt;</span> <span class="o">:</span> <span class="n">Register</span><span class="o">&lt;</span><span class="n">n</span><span class="o">&gt;</span> <span class="p">{</span>
+  <span class="n">field</span> <span class="n">bits</span><span class="o">&lt;</span><span class="mi">4</span><span class="o">&gt;</span> <span class="n">Num</span><span class="p">;</span>
+  <span class="n">let</span> <span class="n">Namespace</span> <span class="o">=</span> <span class="s">&quot;Cpu0&quot;</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="c1">// General Purpose Registers</span>
+<span class="k">class</span> <span class="nc">Cpu0GPRReg</span><span class="o">&lt;</span><span class="n">bits</span><span class="o">&lt;</span><span class="mi">4</span><span class="o">&gt;</span> <span class="n">num</span><span class="p">,</span> <span class="n">string</span> <span class="n">n</span><span class="o">&gt;</span> <span class="o">:</span> <span class="n">Cpu0Reg</span><span class="o">&lt;</span><span class="n">n</span><span class="o">&gt;</span> <span class="p">{</span>
+  <span class="n">let</span> <span class="n">Num</span> <span class="o">=</span> <span class="n">num</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="c1">// Co-processor 0 Registers</span>
+<span class="k">class</span> <span class="nc">Cpu0C0Reg</span><span class="o">&lt;</span><span class="n">bits</span><span class="o">&lt;</span><span class="mi">4</span><span class="o">&gt;</span> <span class="n">num</span><span class="p">,</span> <span class="n">string</span> <span class="n">n</span><span class="o">&gt;</span> <span class="o">:</span> <span class="n">Cpu0Reg</span><span class="o">&lt;</span><span class="n">n</span><span class="o">&gt;</span> <span class="p">{</span>
+  <span class="n">let</span> <span class="n">Num</span> <span class="o">=</span> <span class="n">num</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="c1">//===----------------------------------------------------------------------===//</span>
+<span class="c1">//@Registers</span>
+<span class="c1">//===----------------------------------------------------------------------===//</span>
+<span class="c1">// The register string, such as &quot;9&quot; or &quot;gp&quot; will show on &quot;llvm-objdump -d&quot;</span>
+<span class="c1">//@ All registers definition</span>
+<span class="n">let</span> <span class="n">Namespace</span> <span class="o">=</span> <span class="s">&quot;Cpu0&quot;</span> <span class="n">in</span> <span class="p">{</span>
+  <span class="c1">//@ General Purpose Registers</span>
+  <span class="n">def</span> <span class="n">ZERO</span> <span class="o">:</span> <span class="n">Cpu0GPRReg</span><span class="o">&lt;</span><span class="mi">0</span><span class="p">,</span>  <span class="s">&quot;zero&quot;</span><span class="o">&gt;</span><span class="p">,</span> <span class="n">DwarfRegNum</span><span class="o">&lt;</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
+  <span class="n">def</span> <span class="n">AT</span>   <span class="o">:</span> <span class="n">Cpu0GPRReg</span><span class="o">&lt;</span><span class="mi">1</span><span class="p">,</span>  <span class="s">&quot;1&quot;</span><span class="o">&gt;</span><span class="p">,</span>    <span class="n">DwarfRegNum</span><span class="o">&lt;</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
+  <span class="n">def</span> <span class="n">V0</span>   <span class="o">:</span> <span class="n">Cpu0GPRReg</span><span class="o">&lt;</span><span class="mi">2</span><span class="p">,</span>  <span class="s">&quot;2&quot;</span><span class="o">&gt;</span><span class="p">,</span>    <span class="n">DwarfRegNum</span><span class="o">&lt;</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
+  <span class="n">def</span> <span class="n">V1</span>   <span class="o">:</span> <span class="n">Cpu0GPRReg</span><span class="o">&lt;</span><span class="mi">3</span><span class="p">,</span>  <span class="s">&quot;3&quot;</span><span class="o">&gt;</span><span class="p">,</span>    <span class="n">DwarfRegNum</span><span class="o">&lt;</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
+  <span class="n">def</span> <span class="n">A0</span>   <span class="o">:</span> <span class="n">Cpu0GPRReg</span><span class="o">&lt;</span><span class="mi">4</span><span class="p">,</span>  <span class="s">&quot;4&quot;</span><span class="o">&gt;</span><span class="p">,</span>    <span class="n">DwarfRegNum</span><span class="o">&lt;</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
+  <span class="n">def</span> <span class="n">A1</span>   <span class="o">:</span> <span class="n">Cpu0GPRReg</span><span class="o">&lt;</span><span class="mi">5</span><span class="p">,</span>  <span class="s">&quot;5&quot;</span><span class="o">&gt;</span><span class="p">,</span>    <span class="n">DwarfRegNum</span><span class="o">&lt;</span><span class="p">[</span><span class="mi">5</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
+  <span class="n">def</span> <span class="n">T9</span>   <span class="o">:</span> <span class="n">Cpu0GPRReg</span><span class="o">&lt;</span><span class="mi">6</span><span class="p">,</span>  <span class="s">&quot;t9&quot;</span><span class="o">&gt;</span><span class="p">,</span>   <span class="n">DwarfRegNum</span><span class="o">&lt;</span><span class="p">[</span><span class="mi">6</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
+  <span class="n">def</span> <span class="n">T0</span>   <span class="o">:</span> <span class="n">Cpu0GPRReg</span><span class="o">&lt;</span><span class="mi">7</span><span class="p">,</span>  <span class="s">&quot;7&quot;</span><span class="o">&gt;</span><span class="p">,</span>    <span class="n">DwarfRegNum</span><span class="o">&lt;</span><span class="p">[</span><span class="mi">7</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
+  <span class="n">def</span> <span class="n">T1</span>   <span class="o">:</span> <span class="n">Cpu0GPRReg</span><span class="o">&lt;</span><span class="mi">8</span><span class="p">,</span>  <span class="s">&quot;8&quot;</span><span class="o">&gt;</span><span class="p">,</span>    <span class="n">DwarfRegNum</span><span class="o">&lt;</span><span class="p">[</span><span class="mi">8</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
+  <span class="n">def</span> <span class="n">S0</span>   <span class="o">:</span> <span class="n">Cpu0GPRReg</span><span class="o">&lt;</span><span class="mi">9</span><span class="p">,</span>  <span class="s">&quot;9&quot;</span><span class="o">&gt;</span><span class="p">,</span>    <span class="n">DwarfRegNum</span><span class="o">&lt;</span><span class="p">[</span><span class="mi">9</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
+  <span class="n">def</span> <span class="n">S1</span>   <span class="o">:</span> <span class="n">Cpu0GPRReg</span><span class="o">&lt;</span><span class="mi">10</span><span class="p">,</span> <span class="s">&quot;10&quot;</span><span class="o">&gt;</span><span class="p">,</span>   <span class="n">DwarfRegNum</span><span class="o">&lt;</span><span class="p">[</span><span class="mi">10</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
+  <span class="n">def</span> <span class="n">GP</span>   <span class="o">:</span> <span class="n">Cpu0GPRReg</span><span class="o">&lt;</span><span class="mi">11</span><span class="p">,</span> <span class="s">&quot;gp&quot;</span><span class="o">&gt;</span><span class="p">,</span>   <span class="n">DwarfRegNum</span><span class="o">&lt;</span><span class="p">[</span><span class="mi">11</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
+  <span class="n">def</span> <span class="n">FP</span>   <span class="o">:</span> <span class="n">Cpu0GPRReg</span><span class="o">&lt;</span><span class="mi">12</span><span class="p">,</span> <span class="s">&quot;fp&quot;</span><span class="o">&gt;</span><span class="p">,</span>   <span class="n">DwarfRegNum</span><span class="o">&lt;</span><span class="p">[</span><span class="mi">12</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
+  <span class="n">def</span> <span class="n">SP</span>   <span class="o">:</span> <span class="n">Cpu0GPRReg</span><span class="o">&lt;</span><span class="mi">13</span><span class="p">,</span> <span class="s">&quot;sp&quot;</span><span class="o">&gt;</span><span class="p">,</span>   <span class="n">DwarfRegNum</span><span class="o">&lt;</span><span class="p">[</span><span class="mi">13</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
+  <span class="n">def</span> <span class="n">LR</span>   <span class="o">:</span> <span class="n">Cpu0GPRReg</span><span class="o">&lt;</span><span class="mi">14</span><span class="p">,</span> <span class="s">&quot;lr&quot;</span><span class="o">&gt;</span><span class="p">,</span>   <span class="n">DwarfRegNum</span><span class="o">&lt;</span><span class="p">[</span><span class="mi">14</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
+  <span class="n">def</span> <span class="n">SW</span>   <span class="o">:</span> <span class="n">Cpu0GPRReg</span><span class="o">&lt;</span><span class="mi">15</span><span class="p">,</span> <span class="s">&quot;sw&quot;</span><span class="o">&gt;</span><span class="p">,</span>   <span class="n">DwarfRegNum</span><span class="o">&lt;</span><span class="p">[</span><span class="mi">15</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
+<span class="c1">//  def MAR  : Register&lt; 16, &quot;mar&quot;&gt;,  DwarfRegNum&lt;[16]&gt;;</span>
+<span class="c1">//  def MDR  : Register&lt; 17, &quot;mdr&quot;&gt;,  DwarfRegNum&lt;[17]&gt;;</span>
+
+  <span class="n">def</span> <span class="n">PC</span>   <span class="o">:</span> <span class="n">Cpu0C0Reg</span><span class="o">&lt;</span><span class="mi">0</span><span class="p">,</span> <span class="s">&quot;pc&quot;</span><span class="o">&gt;</span><span class="p">,</span>  <span class="n">DwarfRegNum</span><span class="o">&lt;</span><span class="p">[</span><span class="mi">20</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
+  <span class="n">def</span> <span class="n">EPC</span>  <span class="o">:</span> <span class="n">Cpu0C0Reg</span><span class="o">&lt;</span><span class="mi">1</span><span class="p">,</span> <span class="s">&quot;epc&quot;</span><span class="o">&gt;</span><span class="p">,</span> <span class="n">DwarfRegNum</span><span class="o">&lt;</span><span class="p">[</span><span class="mi">21</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="c1">//===----------------------------------------------------------------------===//</span>
+<span class="c1">//@Register Classes</span>
+<span class="c1">//===----------------------------------------------------------------------===//</span>
+
+<span class="n">def</span> <span class="n">CPURegs</span> <span class="o">:</span> <span class="n">RegisterClass</span><span class="o">&lt;</span><span class="s">&quot;Cpu0&quot;</span><span class="p">,</span> <span class="p">[</span><span class="n">i32</span><span class="p">],</span> <span class="mi">32</span><span class="p">,</span> <span class="p">(</span><span class="n">add</span>
+  <span class="c1">// Reserved</span>
+  <span class="n">ZERO</span><span class="p">,</span> <span class="n">AT</span><span class="p">,</span> 
+  <span class="c1">// Return Values and Arguments</span>
+  <span class="n">V0</span><span class="p">,</span> <span class="n">V1</span><span class="p">,</span> <span class="n">A0</span><span class="p">,</span> <span class="n">A1</span><span class="p">,</span> 
+  <span class="c1">// Not preserved across procedure calls</span>
+  <span class="n">T9</span><span class="p">,</span> <span class="n">T0</span><span class="p">,</span> <span class="n">T1</span><span class="p">,</span>
+  <span class="c1">// Callee save</span>
+  <span class="n">S0</span><span class="p">,</span> <span class="n">S1</span><span class="p">,</span>
+  <span class="c1">// Reserved</span>
+  <span class="n">GP</span><span class="p">,</span> <span class="n">FP</span><span class="p">,</span> 
+  <span class="n">SP</span><span class="p">,</span> <span class="n">LR</span><span class="p">,</span> <span class="n">SW</span><span class="p">,</span> <span class="n">PC</span><span class="p">,</span> <span class="n">EPC</span><span class="p">)</span><span class="o">&gt;</span><span class="p">;</span>
+
+<span class="c1">//@Status Registers class</span>
+<span class="n">def</span> <span class="n">SR</span>     <span class="o">:</span> <span class="n">RegisterClass</span><span class="o">&lt;</span><span class="s">&quot;Cpu0&quot;</span><span class="p">,</span> <span class="p">[</span><span class="n">i32</span><span class="p">],</span> <span class="mi">32</span><span class="p">,</span> <span class="p">(</span><span class="n">add</span> <span class="n">SW</span><span class="p">)</span><span class="o">&gt;</span><span class="p">;</span>
+
+<span class="c1">//@Co-processor 0 Registers class</span>
+<span class="n">def</span> <span class="n">C0Regs</span> <span class="o">:</span> <span class="n">RegisterClass</span><span class="o">&lt;</span><span class="s">&quot;Cpu0&quot;</span><span class="p">,</span> <span class="p">[</span><span class="n">i32</span><span class="p">],</span> <span class="mi">32</span><span class="p">,</span> <span class="p">(</span><span class="n">add</span> <span class="n">PC</span><span class="p">,</span> <span class="n">EPC</span><span class="p">)</span><span class="o">&gt;</span><span class="p">;</span>
+</pre></div>
+</div>
 <p class="rubric">lbdex/chapters/Chapter2/Cpu0RegisterInfoGPROutForOther.td</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="c1">//===----------------------------------------------------------------------===//</span>
+<span class="c1">// Register Classes</span>
+<span class="c1">//===----------------------------------------------------------------------===//</span>
+
+<span class="n">def</span> <span class="n">GPROut</span> <span class="o">:</span> <span class="n">RegisterClass</span><span class="o">&lt;</span><span class="s">&quot;Cpu0&quot;</span><span class="p">,</span> <span class="p">[</span><span class="n">i32</span><span class="p">],</span> <span class="mi">32</span><span class="p">,</span> <span class="p">(</span><span class="n">add</span> <span class="p">(</span><span class="n">sub</span> <span class="n">CPURegs</span><span class="p">,</span> <span class="n">SW</span><span class="p">,</span> <span class="n">PC</span><span class="p">,</span> <span class="n">EPC</span><span class="p">))</span><span class="o">&gt;</span><span class="p">;</span>
+</pre></div>
+</div>
 <p>In C++, class typically provide a structure to lay out some data and functions,
 while definitions are used to allocate memory for specific instances of a class.
 For example:</p>
@@ -1845,8 +1961,313 @@ The Cpu0RegisterInfo.td also defines that <strong>CPURegs</strong> is an instanc
 <strong>Register</strong> instances, thus <strong>CPURegs</strong> can be described as a set of registers.</p>
 <p>The Cpu0 instructions td is named to Cpu0InstrInfo.td which contents as follows,</p>
 <p class="rubric">lbdex/chapters/Chapter2/Cpu0InstrInfo.td</p>
+<div class="highlight-c++"><div class="highlight"><pre>//===- Cpu0InstrInfo.td - Target Description for Cpu0 Target -*- tablegen -*-=//
+//
+//                     The LLVM Compiler Infrastructure
+//
+// This file is distributed under the University of Illinois Open Source
+// License. See LICENSE.TXT for details.
+//
+//===----------------------------------------------------------------------===//
+//
+// This file contains the Cpu0 implementation of the TargetInstrInfo class.
+//
+//===----------------------------------------------------------------------===//
+
+//===----------------------------------------------------------------------===//
+// Cpu0 profiles and nodes
+//===----------------------------------------------------------------------===//
+
+def SDT_Cpu0Ret          : SDTypeProfile&lt;0, 1, [SDTCisInt&lt;0&gt;]&gt;;
+
+// Return
+def Cpu0Ret : SDNode&lt;&quot;Cpu0ISD::Ret&quot;, SDTNone,
+                     [SDNPHasChain, SDNPOptInGlue, SDNPVariadic]&gt;;
+
+//===----------------------------------------------------------------------===//
+// Instruction format superclass
+//===----------------------------------------------------------------------===//
+
+include &quot;Cpu0InstrFormats.td&quot;
+
+//===----------------------------------------------------------------------===//
+// Cpu0 Operand, Complex Patterns and Transformations Definitions.
+//===----------------------------------------------------------------------===//
+// Instruction operand types
+
+// Signed Operand
+def simm16      : Operand&lt;i32&gt; {
+  let DecoderMethod= &quot;DecodeSimm16&quot;;
+}
+
+// Address operand
+def mem : Operand&lt;i32&gt; {
+  let PrintMethod = &quot;printMemOperand&quot;;
+  let MIOperandInfo = (ops CPURegs, simm16);
+  let EncoderMethod = &quot;getMemEncoding&quot;;
+}
+
+// Node immediate fits as 16-bit sign extended on target immediate.
+// e.g. addi, andi
+def immSExt16  : PatLeaf&lt;(imm), [{ return isInt&lt;16&gt;(N-&gt;getSExtValue()); }]&gt;;
+
+// Cpu0 Address Mode! SDNode frameindex could possibily be a match
+// since load and store instructions from stack used it.
+def addr : ComplexPattern&lt;iPTR, 2, &quot;SelectAddr&quot;, [frameindex], [SDNPWantParent]&gt;;
+
+//===----------------------------------------------------------------------===//
+// Pattern fragment for load/store
+//===----------------------------------------------------------------------===//
+
+class AlignedLoad&lt;PatFrag Node&gt; :
+  PatFrag&lt;(ops node:$ptr), (Node node:$ptr), [{
+  LoadSDNode *LD = cast&lt;LoadSDNode&gt;(N);
+  return LD-&gt;getMemoryVT().getSizeInBits()/8 &lt;= LD-&gt;getAlignment();
+}]&gt;;
+
+class AlignedStore&lt;PatFrag Node&gt; :
+  PatFrag&lt;(ops node:$val, node:$ptr), (Node node:$val, node:$ptr), [{
+  StoreSDNode *SD = cast&lt;StoreSDNode&gt;(N);
+  return SD-&gt;getMemoryVT().getSizeInBits()/8 &lt;= SD-&gt;getAlignment();
+}]&gt;;
+
+// Load/Store PatFrags.
+def load_a          : AlignedLoad&lt;load&gt;;
+def store_a         : AlignedStore&lt;store&gt;;
+
+//===----------------------------------------------------------------------===//
+// Instructions specific format
+//===----------------------------------------------------------------------===//
+
+// Arithmetic and logical instructions with 2 register operands.
+class ArithLogicI&lt;bits&lt;8&gt; op, string instr_asm, SDNode OpNode,
+                  Operand Od, PatLeaf imm_type, RegisterClass RC&gt; :
+  FL&lt;op, (outs GPROut:$ra), (ins RC:$rb, Od:$imm16),
+     !strconcat(instr_asm, &quot;\t$ra, $rb, $imm16&quot;),
+     [(set GPROut:$ra, (OpNode RC:$rb, imm_type:$imm16))], IIAlu&gt; {
+  let isReMaterializable = 1;
+}
+
+class FMem&lt;bits&lt;8&gt; op, dag outs, dag ins, string asmstr, list&lt;dag&gt; pattern,
+          InstrItinClass itin&gt;: FL&lt;op, outs, ins, asmstr, pattern, itin&gt; {
+  bits&lt;20&gt; addr;
+  let Inst{19-16} = addr{19-16};
+  let Inst{15-0}  = addr{15-0};
+  let DecoderMethod = &quot;DecodeMem&quot;;
+}
+
+// Memory Load/Store
+let canFoldAsLoad = 1 in
+class LoadM&lt;bits&lt;8&gt; op, string instr_asm, PatFrag OpNode, RegisterClass RC,
+            Operand MemOpnd, bit Pseudo&gt;:
+  FMem&lt;op, (outs RC:$ra), (ins MemOpnd:$addr),
+     !strconcat(instr_asm, &quot;\t$ra, $addr&quot;),
+     [(set RC:$ra, (OpNode addr:$addr))], IILoad&gt; {
+  let isPseudo = Pseudo;
+}
+
+class StoreM&lt;bits&lt;8&gt; op, string instr_asm, PatFrag OpNode, RegisterClass RC,
+             Operand MemOpnd, bit Pseudo&gt;:
+  FMem&lt;op, (outs), (ins RC:$ra, MemOpnd:$addr),
+     !strconcat(instr_asm, &quot;\t$ra, $addr&quot;),
+     [(OpNode RC:$ra, addr:$addr)], IIStore&gt; {
+  let isPseudo = Pseudo;
+}
+
+//@ 32-bit load.
+multiclass LoadM32&lt;bits&lt;8&gt; op, string instr_asm, PatFrag OpNode,
+                   bit Pseudo = 0&gt; {
+  def #NAME# : LoadM&lt;op, instr_asm, OpNode, GPROut, mem, Pseudo&gt;;
+}
+
+// 32-bit store.
+multiclass StoreM32&lt;bits&lt;8&gt; op, string instr_asm, PatFrag OpNode,
+                    bit Pseudo = 0&gt; {
+  def #NAME# : StoreM&lt;op, instr_asm, OpNode, CPURegs, mem, Pseudo&gt;;
+}
+
+let isBranch=1, isTerminator=1, isBarrier=1, imm16=0, hasDelaySlot = 1,
+    isIndirectBranch = 1 in
+class JumpFR&lt;bits&lt;8&gt; op, string instr_asm, RegisterClass RC&gt;:
+  FL&lt;op, (outs), (ins RC:$ra),
+     !strconcat(instr_asm, &quot;\t$ra&quot;), [(brind RC:$ra)], IIBranch&gt; {
+  let rb = 0;
+  let imm16 = 0;
+}
+
+// Return instruction
+class RetBase&lt;RegisterClass RC&gt;: JumpFR&lt;0x3c, &quot;ret&quot;, RC&gt; {
+  let isReturn = 1;
+  let isCodeGenOnly = 1;
+  let hasCtrlDep = 1;
+  let hasExtraSrcRegAllocReq = 1;
+}
+
+//===----------------------------------------------------------------------===//
+// Instruction definition
+//===----------------------------------------------------------------------===//
+
+//===----------------------------------------------------------------------===//
+// Cpu0 Instructions
+//===----------------------------------------------------------------------===//
+
+/// Load and Store Instructions
+///  aligned
+defm LD     : LoadM32&lt;0x01,  &quot;ld&quot;,  load_a&gt;;
+defm ST     : StoreM32&lt;0x02, &quot;st&quot;,  store_a&gt;;
+
+/// Arithmetic Instructions (ALU Immediate)
+// IR &quot;add&quot; defined in include/llvm/Target/TargetSelectionDAG.td, line 315 (def add).
+def ADDiu   : ArithLogicI&lt;0x09, &quot;addiu&quot;, add, simm16, immSExt16, CPURegs&gt;;
+
+/// Arithmetic Instructions (3-Operand, R-Type)
+
+/// Shift Instructions
+
+def RET     : RetBase&lt;GPROut&gt;;
+
+/// No operation
+let addr=0 in
+  def NOP   : FJ&lt;0, (outs), (ins), &quot;nop&quot;, [], IIAlu&gt;;
+
+//===----------------------------------------------------------------------===//
+//  Arbitrary patterns that map to one or more instructions
+//===----------------------------------------------------------------------===//
+
+// Small immediates
+def : Pat&lt;(i32 immSExt16:$in),
+          (ADDiu ZERO, imm:$in)&gt;;
+</pre></div>
+</div>
 <p>The Cpu0InstrFormats.td is included by Cpu0InstInfo.td as follows,</p>
 <p class="rubric">lbdex/chapters/Chapter2/Cpu0InstrFormats.td</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="c1">//===-- Cpu0InstrFormats.td - Cpu0 Instruction Formats -----*- tablegen -*-===//</span>
+<span class="c1">//</span>
+<span class="c1">//                     The LLVM Compiler Infrastructure</span>
+<span class="c1">//</span>
+<span class="c1">// This file is distributed under the University of Illinois Open Source</span>
+<span class="c1">// License. See LICENSE.TXT for details.</span>
+<span class="c1">//</span>
+<span class="c1">//===----------------------------------------------------------------------===//</span>
+
+<span class="c1">//===----------------------------------------------------------------------===//</span>
+<span class="c1">//  Describe CPU0 instructions format</span>
+<span class="c1">//</span>
+<span class="c1">//  CPU INSTRUCTION FORMATS</span>
+<span class="c1">//</span>
+<span class="c1">//  opcode  - operation code.</span>
+<span class="c1">//  ra      - dst reg, only used on 3 regs instr.</span>
+<span class="c1">//  rb      - src reg.</span>
+<span class="c1">//  rc      - src reg (on a 3 reg instr).</span>
+<span class="c1">//  cx      - immediate</span>
+<span class="c1">//</span>
+<span class="c1">//===----------------------------------------------------------------------===//</span>
+
+<span class="c1">// Format specifies the encoding used by the instruction.  This is part of the</span>
+<span class="c1">// ad-hoc solution used to emit machine instruction encodings by our machine</span>
+<span class="c1">// code emitter.</span>
+<span class="k">class</span> <span class="nc">Format</span><span class="o">&lt;</span><span class="n">bits</span><span class="o">&lt;</span><span class="mi">4</span><span class="o">&gt;</span> <span class="n">val</span><span class="o">&gt;</span> <span class="p">{</span>
+  <span class="n">bits</span><span class="o">&lt;</span><span class="mi">4</span><span class="o">&gt;</span> <span class="n">Value</span> <span class="o">=</span> <span class="n">val</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="n">def</span> <span class="n">Pseudo</span>    <span class="o">:</span> <span class="n">Format</span><span class="o">&lt;</span><span class="mi">0</span><span class="o">&gt;</span><span class="p">;</span>
+<span class="n">def</span> <span class="n">FrmA</span>      <span class="o">:</span> <span class="n">Format</span><span class="o">&lt;</span><span class="mi">1</span><span class="o">&gt;</span><span class="p">;</span>
+<span class="n">def</span> <span class="n">FrmL</span>      <span class="o">:</span> <span class="n">Format</span><span class="o">&lt;</span><span class="mi">2</span><span class="o">&gt;</span><span class="p">;</span>
+<span class="n">def</span> <span class="n">FrmJ</span>      <span class="o">:</span> <span class="n">Format</span><span class="o">&lt;</span><span class="mi">3</span><span class="o">&gt;</span><span class="p">;</span>
+<span class="n">def</span> <span class="n">FrmOther</span>  <span class="o">:</span> <span class="n">Format</span><span class="o">&lt;</span><span class="mi">4</span><span class="o">&gt;</span><span class="p">;</span> <span class="c1">// Instruction w/ a custom format</span>
+
+<span class="c1">// Generic Cpu0 Format</span>
+<span class="k">class</span> <span class="nc">Cpu0Inst</span><span class="o">&lt;</span><span class="n">dag</span> <span class="n">outs</span><span class="p">,</span> <span class="n">dag</span> <span class="n">ins</span><span class="p">,</span> <span class="n">string</span> <span class="n">asmstr</span><span class="p">,</span> <span class="n">list</span><span class="o">&lt;</span><span class="n">dag</span><span class="o">&gt;</span> <span class="n">pattern</span><span class="p">,</span>
+               <span class="n">InstrItinClass</span> <span class="n">itin</span><span class="p">,</span> <span class="n">Format</span> <span class="n">f</span><span class="o">&gt;:</span> <span class="n">Instruction</span>
+<span class="p">{</span>
+  <span class="n">field</span> <span class="n">bits</span><span class="o">&lt;</span><span class="mi">32</span><span class="o">&gt;</span> <span class="n">Inst</span><span class="p">;</span>
+  <span class="n">Format</span> <span class="n">Form</span> <span class="o">=</span> <span class="n">f</span><span class="p">;</span>
+
+  <span class="n">let</span> <span class="n">Namespace</span> <span class="o">=</span> <span class="s">&quot;Cpu0&quot;</span><span class="p">;</span>
+
+  <span class="n">let</span> <span class="n">Size</span> <span class="o">=</span> <span class="mi">4</span><span class="p">;</span>
+
+  <span class="n">bits</span><span class="o">&lt;</span><span class="mi">8</span><span class="o">&gt;</span> <span class="n">Opcode</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+
+  <span class="c1">// Top 8 bits are the &#39;opcode&#39; field</span>
+  <span class="n">let</span> <span class="n">Inst</span><span class="p">{</span><span class="mi">31</span><span class="o">-</span><span class="mi">24</span><span class="p">}</span> <span class="o">=</span> <span class="n">Opcode</span><span class="p">;</span>
+
+  <span class="n">let</span> <span class="n">OutOperandList</span> <span class="o">=</span> <span class="n">outs</span><span class="p">;</span>
+  <span class="n">let</span> <span class="n">InOperandList</span>  <span class="o">=</span> <span class="n">ins</span><span class="p">;</span>
+
+  <span class="n">let</span> <span class="n">AsmString</span>   <span class="o">=</span> <span class="n">asmstr</span><span class="p">;</span>
+  <span class="n">let</span> <span class="n">Pattern</span>     <span class="o">=</span> <span class="n">pattern</span><span class="p">;</span>
+  <span class="n">let</span> <span class="n">Itinerary</span>   <span class="o">=</span> <span class="n">itin</span><span class="p">;</span>
+
+  <span class="c1">//</span>
+  <span class="c1">// Attributes specific to Cpu0 instructions...</span>
+  <span class="c1">//</span>
+  <span class="n">bits</span><span class="o">&lt;</span><span class="mi">4</span><span class="o">&gt;</span> <span class="n">FormBits</span> <span class="o">=</span> <span class="n">Form</span><span class="p">.</span><span class="n">Value</span><span class="p">;</span>
+
+  <span class="c1">// TSFlags layout should be kept in sync with Cpu0InstrInfo.h.</span>
+  <span class="n">let</span> <span class="n">TSFlags</span><span class="p">{</span><span class="mi">3</span><span class="o">-</span><span class="mi">0</span><span class="p">}</span>   <span class="o">=</span> <span class="n">FormBits</span><span class="p">;</span>
+
+  <span class="n">let</span> <span class="n">DecoderNamespace</span> <span class="o">=</span> <span class="s">&quot;Cpu0&quot;</span><span class="p">;</span>
+
+  <span class="n">field</span> <span class="n">bits</span><span class="o">&lt;</span><span class="mi">32</span><span class="o">&gt;</span> <span class="n">SoftFail</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="c1">//===----------------------------------------------------------------------===//</span>
+<span class="c1">// Format A instruction class in Cpu0 : &lt;|opcode|ra|rb|rc|cx|&gt;</span>
+<span class="c1">//===----------------------------------------------------------------------===//</span>
+
+<span class="k">class</span> <span class="nc">FA</span><span class="o">&lt;</span><span class="n">bits</span><span class="o">&lt;</span><span class="mi">8</span><span class="o">&gt;</span> <span class="n">op</span><span class="p">,</span> <span class="n">dag</span> <span class="n">outs</span><span class="p">,</span> <span class="n">dag</span> <span class="n">ins</span><span class="p">,</span> <span class="n">string</span> <span class="n">asmstr</span><span class="p">,</span>
+         <span class="n">list</span><span class="o">&lt;</span><span class="n">dag</span><span class="o">&gt;</span> <span class="n">pattern</span><span class="p">,</span> <span class="n">InstrItinClass</span> <span class="n">itin</span><span class="o">&gt;:</span>
+      <span class="n">Cpu0Inst</span><span class="o">&lt;</span><span class="n">outs</span><span class="p">,</span> <span class="n">ins</span><span class="p">,</span> <span class="n">asmstr</span><span class="p">,</span> <span class="n">pattern</span><span class="p">,</span> <span class="n">itin</span><span class="p">,</span> <span class="n">FrmA</span><span class="o">&gt;</span>
+<span class="p">{</span>
+  <span class="n">bits</span><span class="o">&lt;</span><span class="mi">4</span><span class="o">&gt;</span>  <span class="n">ra</span><span class="p">;</span>
+  <span class="n">bits</span><span class="o">&lt;</span><span class="mi">4</span><span class="o">&gt;</span>  <span class="n">rb</span><span class="p">;</span>
+  <span class="n">bits</span><span class="o">&lt;</span><span class="mi">4</span><span class="o">&gt;</span>  <span class="n">rc</span><span class="p">;</span>
+  <span class="n">bits</span><span class="o">&lt;</span><span class="mi">12</span><span class="o">&gt;</span> <span class="n">shamt</span><span class="p">;</span>
+
+  <span class="n">let</span> <span class="n">Opcode</span> <span class="o">=</span> <span class="n">op</span><span class="p">;</span>
+
+  <span class="n">let</span> <span class="n">Inst</span><span class="p">{</span><span class="mi">23</span><span class="o">-</span><span class="mi">20</span><span class="p">}</span> <span class="o">=</span> <span class="n">ra</span><span class="p">;</span>
+  <span class="n">let</span> <span class="n">Inst</span><span class="p">{</span><span class="mi">19</span><span class="o">-</span><span class="mi">16</span><span class="p">}</span> <span class="o">=</span> <span class="n">rb</span><span class="p">;</span>
+  <span class="n">let</span> <span class="n">Inst</span><span class="p">{</span><span class="mi">15</span><span class="o">-</span><span class="mi">12</span><span class="p">}</span> <span class="o">=</span> <span class="n">rc</span><span class="p">;</span>
+  <span class="n">let</span> <span class="n">Inst</span><span class="p">{</span><span class="mi">11</span><span class="o">-</span><span class="mi">0</span><span class="p">}</span>  <span class="o">=</span> <span class="n">shamt</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="c1">//@class FL {</span>
+<span class="c1">//===----------------------------------------------------------------------===//</span>
+<span class="c1">// Format L instruction class in Cpu0 : &lt;|opcode|ra|rb|cx|&gt;</span>
+<span class="c1">//===----------------------------------------------------------------------===//</span>
+
+<span class="k">class</span> <span class="nc">FL</span><span class="o">&lt;</span><span class="n">bits</span><span class="o">&lt;</span><span class="mi">8</span><span class="o">&gt;</span> <span class="n">op</span><span class="p">,</span> <span class="n">dag</span> <span class="n">outs</span><span class="p">,</span> <span class="n">dag</span> <span class="n">ins</span><span class="p">,</span> <span class="n">string</span> <span class="n">asmstr</span><span class="p">,</span> <span class="n">list</span><span class="o">&lt;</span><span class="n">dag</span><span class="o">&gt;</span> <span class="n">pattern</span><span class="p">,</span>
+         <span class="n">InstrItinClass</span> <span class="n">itin</span><span class="o">&gt;:</span> <span class="n">Cpu0Inst</span><span class="o">&lt;</span><span class="n">outs</span><span class="p">,</span> <span class="n">ins</span><span class="p">,</span> <span class="n">asmstr</span><span class="p">,</span> <span class="n">pattern</span><span class="p">,</span> <span class="n">itin</span><span class="p">,</span> <span class="n">FrmL</span><span class="o">&gt;</span>
+<span class="p">{</span>
+  <span class="n">bits</span><span class="o">&lt;</span><span class="mi">4</span><span class="o">&gt;</span>  <span class="n">ra</span><span class="p">;</span>
+  <span class="n">bits</span><span class="o">&lt;</span><span class="mi">4</span><span class="o">&gt;</span>  <span class="n">rb</span><span class="p">;</span>
+  <span class="n">bits</span><span class="o">&lt;</span><span class="mi">16</span><span class="o">&gt;</span> <span class="n">imm16</span><span class="p">;</span>
+
+  <span class="n">let</span> <span class="n">Opcode</span> <span class="o">=</span> <span class="n">op</span><span class="p">;</span>
+
+  <span class="n">let</span> <span class="n">Inst</span><span class="p">{</span><span class="mi">23</span><span class="o">-</span><span class="mi">20</span><span class="p">}</span> <span class="o">=</span> <span class="n">ra</span><span class="p">;</span>
+  <span class="n">let</span> <span class="n">Inst</span><span class="p">{</span><span class="mi">19</span><span class="o">-</span><span class="mi">16</span><span class="p">}</span> <span class="o">=</span> <span class="n">rb</span><span class="p">;</span>
+  <span class="n">let</span> <span class="n">Inst</span><span class="p">{</span><span class="mi">15</span><span class="o">-</span><span class="mi">0</span><span class="p">}</span>  <span class="o">=</span> <span class="n">imm16</span><span class="p">;</span>
+<span class="p">}</span>
+<span class="c1">//@class FL }</span>
+
+<span class="c1">//===----------------------------------------------------------------------===//</span>
+<span class="c1">// Format J instruction class in Cpu0 : &lt;|opcode|address|&gt;</span>
+<span class="c1">//===----------------------------------------------------------------------===//</span>
+
+<span class="k">class</span> <span class="nc">FJ</span><span class="o">&lt;</span><span class="n">bits</span><span class="o">&lt;</span><span class="mi">8</span><span class="o">&gt;</span> <span class="n">op</span><span class="p">,</span> <span class="n">dag</span> <span class="n">outs</span><span class="p">,</span> <span class="n">dag</span> <span class="n">ins</span><span class="p">,</span> <span class="n">string</span> <span class="n">asmstr</span><span class="p">,</span> <span class="n">list</span><span class="o">&lt;</span><span class="n">dag</span><span class="o">&gt;</span> <span class="n">pattern</span><span class="p">,</span>
+         <span class="n">InstrItinClass</span> <span class="n">itin</span><span class="o">&gt;:</span> <span class="n">Cpu0Inst</span><span class="o">&lt;</span><span class="n">outs</span><span class="p">,</span> <span class="n">ins</span><span class="p">,</span> <span class="n">asmstr</span><span class="p">,</span> <span class="n">pattern</span><span class="p">,</span> <span class="n">itin</span><span class="p">,</span> <span class="n">FrmJ</span><span class="o">&gt;</span>
+<span class="p">{</span>
+  <span class="n">bits</span><span class="o">&lt;</span><span class="mi">24</span><span class="o">&gt;</span> <span class="n">addr</span><span class="p">;</span>
+
+  <span class="n">let</span> <span class="n">Opcode</span> <span class="o">=</span> <span class="n">op</span><span class="p">;</span>
+
+  <span class="n">let</span> <span class="n">Inst</span><span class="p">{</span><span class="mi">23</span><span class="o">-</span><span class="mi">0</span><span class="p">}</span> <span class="o">=</span> <span class="n">addr</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
 <p>ADDiu is a instance of class ArithLogicI which inherited from FL, and can be
 expanded and get member value further as follows,</p>
 <div class="highlight-c++"><div class="highlight"><pre>def ADDiu   : ArithLogicI&lt;0x09, &quot;addiu&quot;, add, simm16, immSExt16, CPURegs&gt;;
@@ -1975,13 +2396,140 @@ section.</p>
 <p>File Cpu0Schedule.td include the function units and pipeline stages information
 as follows,</p>
 <p class="rubric">lbdex/chapters/Chapter2/Cpu0Schedule.td</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="c1">//===-- Cpu0Schedule.td - Cpu0 Scheduling Definitions ------*- tablegen -*-===//</span>
+<span class="c1">//</span>
+<span class="c1">//                     The LLVM Compiler Infrastructure</span>
+<span class="c1">//</span>
+<span class="c1">// This file is distributed under the University of Illinois Open Source</span>
+<span class="c1">// License. See LICENSE.TXT for details.</span>
+<span class="c1">//</span>
+<span class="c1">//===----------------------------------------------------------------------===//</span>
+
+<span class="c1">//===----------------------------------------------------------------------===//</span>
+<span class="c1">// Functional units across Cpu0 chips sets. Based on GCC/Cpu0 backend files.</span>
+<span class="c1">//===----------------------------------------------------------------------===//</span>
+<span class="n">def</span> <span class="n">ALU</span>     <span class="o">:</span> <span class="n">FuncUnit</span><span class="p">;</span>
+<span class="n">def</span> <span class="n">IMULDIV</span> <span class="o">:</span> <span class="n">FuncUnit</span><span class="p">;</span>
+
+<span class="c1">//===----------------------------------------------------------------------===//</span>
+<span class="c1">// Instruction Itinerary classes used for Cpu0</span>
+<span class="c1">//===----------------------------------------------------------------------===//</span>
+<span class="n">def</span> <span class="n">IIAlu</span>              <span class="o">:</span> <span class="n">InstrItinClass</span><span class="p">;</span>
+<span class="n">def</span> <span class="n">II_CLO</span>             <span class="o">:</span> <span class="n">InstrItinClass</span><span class="p">;</span>
+<span class="n">def</span> <span class="n">II_CLZ</span>             <span class="o">:</span> <span class="n">InstrItinClass</span><span class="p">;</span>
+<span class="n">def</span> <span class="n">IILoad</span>             <span class="o">:</span> <span class="n">InstrItinClass</span><span class="p">;</span>
+<span class="n">def</span> <span class="n">IIStore</span>            <span class="o">:</span> <span class="n">InstrItinClass</span><span class="p">;</span>
+<span class="n">def</span> <span class="n">IIBranch</span>           <span class="o">:</span> <span class="n">InstrItinClass</span><span class="p">;</span>
+
+<span class="n">def</span> <span class="n">IIPseudo</span>           <span class="o">:</span> <span class="n">InstrItinClass</span><span class="p">;</span>
+
+<span class="c1">//===----------------------------------------------------------------------===//</span>
+<span class="c1">// Cpu0 Generic instruction itineraries.</span>
+<span class="c1">//===----------------------------------------------------------------------===//</span>
+<span class="c1">//@ http://llvm.org/docs/doxygen/html/structllvm_1_1InstrStage.html</span>
+<span class="n">def</span> <span class="n">Cpu0GenericItineraries</span> <span class="o">:</span> <span class="n">ProcessorItineraries</span><span class="o">&lt;</span><span class="p">[</span><span class="n">ALU</span><span class="p">,</span> <span class="n">IMULDIV</span><span class="p">],</span> <span class="p">[],</span> <span class="p">[</span>
+<span class="c1">//@2</span>
+  <span class="n">InstrItinData</span><span class="o">&lt;</span><span class="n">IIAlu</span>              <span class="p">,</span> <span class="p">[</span><span class="n">InstrStage</span><span class="o">&lt;</span><span class="mi">1</span><span class="p">,</span>  <span class="p">[</span><span class="n">ALU</span><span class="p">]</span><span class="o">&gt;</span><span class="p">]</span><span class="o">&gt;</span><span class="p">,</span>
+  <span class="n">InstrItinData</span><span class="o">&lt;</span><span class="n">II_CLO</span>             <span class="p">,</span> <span class="p">[</span><span class="n">InstrStage</span><span class="o">&lt;</span><span class="mi">1</span><span class="p">,</span>  <span class="p">[</span><span class="n">ALU</span><span class="p">]</span><span class="o">&gt;</span><span class="p">]</span><span class="o">&gt;</span><span class="p">,</span>
+  <span class="n">InstrItinData</span><span class="o">&lt;</span><span class="n">II_CLZ</span>             <span class="p">,</span> <span class="p">[</span><span class="n">InstrStage</span><span class="o">&lt;</span><span class="mi">1</span><span class="p">,</span>  <span class="p">[</span><span class="n">ALU</span><span class="p">]</span><span class="o">&gt;</span><span class="p">]</span><span class="o">&gt;</span><span class="p">,</span>
+  <span class="n">InstrItinData</span><span class="o">&lt;</span><span class="n">IILoad</span>             <span class="p">,</span> <span class="p">[</span><span class="n">InstrStage</span><span class="o">&lt;</span><span class="mi">3</span><span class="p">,</span>  <span class="p">[</span><span class="n">ALU</span><span class="p">]</span><span class="o">&gt;</span><span class="p">]</span><span class="o">&gt;</span><span class="p">,</span>
+  <span class="n">InstrItinData</span><span class="o">&lt;</span><span class="n">IIStore</span>            <span class="p">,</span> <span class="p">[</span><span class="n">InstrStage</span><span class="o">&lt;</span><span class="mi">1</span><span class="p">,</span>  <span class="p">[</span><span class="n">ALU</span><span class="p">]</span><span class="o">&gt;</span><span class="p">]</span><span class="o">&gt;</span><span class="p">,</span>
+  <span class="n">InstrItinData</span><span class="o">&lt;</span><span class="n">IIBranch</span>           <span class="p">,</span> <span class="p">[</span><span class="n">InstrStage</span><span class="o">&lt;</span><span class="mi">1</span><span class="p">,</span>  <span class="p">[</span><span class="n">ALU</span><span class="p">]</span><span class="o">&gt;</span><span class="p">]</span><span class="o">&gt;</span>
+<span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
+</pre></div>
+</div>
 </div>
 <div class="section" id="write-cmake-file">
 <h3><a class="toc-backref" href="#id48">Write cmake file</a><a class="headerlink" href="#write-cmake-file" title="Permalink to this headline">¶</a></h3>
 <p>Target/Cpu0 directory has two files CMakeLists.txt and LLVMBuild.txt,
 contents as follows,</p>
 <p class="rubric">lbdex/chapters/Chapter2/CMakeLists.txt</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="n">set</span><span class="p">(</span><span class="n">LLVM_TARGET_DEFINITIONS</span> <span class="n">Cpu0Other</span><span class="p">.</span><span class="n">td</span><span class="p">)</span>
+
+<span class="cp"># Generate Cpu0GenRegisterInfo.inc and Cpu0GenInstrInfo.inc which included by </span>
+<span class="cp">#  your hand code C++ files. </span>
+<span class="cp"># Cpu0GenRegisterInfo.inc came from Cpu0RegisterInfo.td, Cpu0GenInstrInfo.inc </span>
+<span class="cp">#  came from Cpu0InstrInfo.td.</span>
+<span class="n">tablegen</span><span class="p">(</span><span class="n">LLVM</span> <span class="n">Cpu0GenRegisterInfo</span><span class="p">.</span><span class="n">inc</span> <span class="o">-</span><span class="n">gen</span><span class="o">-</span><span class="k">register</span><span class="o">-</span><span class="n">info</span><span class="p">)</span>
+<span class="n">tablegen</span><span class="p">(</span><span class="n">LLVM</span> <span class="n">Cpu0GenInstrInfo</span><span class="p">.</span><span class="n">inc</span> <span class="o">-</span><span class="n">gen</span><span class="o">-</span><span class="n">instr</span><span class="o">-</span><span class="n">info</span><span class="p">)</span>
+<span class="n">tablegen</span><span class="p">(</span><span class="n">LLVM</span> <span class="n">Cpu0GenSubtargetInfo</span><span class="p">.</span><span class="n">inc</span> <span class="o">-</span><span class="n">gen</span><span class="o">-</span><span class="n">subtarget</span><span class="p">)</span>
+<span class="n">tablegen</span><span class="p">(</span><span class="n">LLVM</span> <span class="n">Cpu0GenMCPseudoLowering</span><span class="p">.</span><span class="n">inc</span> <span class="o">-</span><span class="n">gen</span><span class="o">-</span><span class="n">pseudo</span><span class="o">-</span><span class="n">lowering</span><span class="p">)</span>
+
+<span class="cp"># Cpu0CommonTableGen must be defined</span>
+<span class="n">add_public_tablegen_target</span><span class="p">(</span><span class="n">Cpu0CommonTableGen</span><span class="p">)</span>
+
+<span class="cp"># Cpu0CodeGen should match with LLVMBuild.txt Cpu0CodeGen</span>
+<span class="n">add_llvm_target</span><span class="p">(</span><span class="n">Cpu0CodeGen</span>
+  <span class="n">Cpu0TargetMachine</span><span class="p">.</span><span class="n">cpp</span>
+  <span class="p">)</span>
+
+<span class="cp"># Should match with &quot;subdirectories =  MCTargetDesc TargetInfo&quot; in LLVMBuild.txt</span>
+<span class="n">add_subdirectory</span><span class="p">(</span><span class="n">TargetInfo</span><span class="p">)</span>
+<span class="n">add_subdirectory</span><span class="p">(</span><span class="n">MCTargetDesc</span><span class="p">)</span>
+</pre></div>
+</div>
 <p class="rubric">lbdex/chapters/Chapter2/LLVMBuild.txt</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="p">;</span><span class="o">===-</span> <span class="p">.</span><span class="o">/</span><span class="n">lib</span><span class="o">/</span><span class="n">Target</span><span class="o">/</span><span class="n">Cpu0</span><span class="o">/</span><span class="n">LLVMBuild</span><span class="p">.</span><span class="n">txt</span> <span class="o">--------------------------*-</span> <span class="n">Conf</span> <span class="o">-*--===</span><span class="p">;</span>
+<span class="p">;</span>
+<span class="p">;</span>                     <span class="n">The</span> <span class="n">LLVM</span> <span class="n">Compiler</span> <span class="n">Infrastructure</span>
+<span class="p">;</span>
+<span class="p">;</span> <span class="n">This</span> <span class="n">file</span> <span class="n">is</span> <span class="n">distributed</span> <span class="n">under</span> <span class="n">the</span> <span class="n">University</span> <span class="n">of</span> <span class="n">Illinois</span> <span class="n">Open</span> <span class="n">Source</span>
+<span class="p">;</span> <span class="n">License</span><span class="p">.</span> <span class="n">See</span> <span class="n">LICENSE</span><span class="p">.</span><span class="n">TXT</span> <span class="k">for</span> <span class="n">details</span><span class="p">.</span>
+<span class="p">;</span>
+<span class="p">;</span><span class="o">===------------------------------------------------------------------------===</span><span class="p">;</span>
+<span class="p">;</span>
+<span class="p">;</span> <span class="n">This</span> <span class="n">is</span> <span class="n">an</span> <span class="n">LLVMBuild</span> <span class="n">description</span> <span class="n">file</span> <span class="k">for</span> <span class="n">the</span> <span class="n">components</span> <span class="n">in</span> <span class="k">this</span> <span class="n">subdirectory</span><span class="p">.</span>
+<span class="p">;</span>
+<span class="p">;</span> <span class="n">For</span> <span class="n">more</span> <span class="n">information</span> <span class="n">on</span> <span class="n">the</span> <span class="n">LLVMBuild</span> <span class="n">system</span><span class="p">,</span> <span class="n">please</span> <span class="n">see</span><span class="o">:</span>
+<span class="p">;</span>
+<span class="p">;</span>   <span class="n">http</span><span class="o">:</span><span class="c1">//llvm.org/docs/LLVMBuild.html</span>
+<span class="p">;</span>
+<span class="p">;</span><span class="o">===------------------------------------------------------------------------===</span><span class="p">;</span>
+
+<span class="cp"># Following comments extracted from http:</span><span class="c1">//llvm.org/docs/LLVMBuild.html</span>
+
+<span class="p">[</span><span class="n">common</span><span class="p">]</span>
+<span class="n">subdirectories</span> <span class="o">=</span> 
+  <span class="n">MCTargetDesc</span> <span class="n">TargetInfo</span>
+
+<span class="p">[</span><span class="n">component_0</span><span class="p">]</span>
+<span class="cp"># TargetGroup components are an extension of LibraryGroups, specifically for </span>
+<span class="cp">#  defining LLVM targets (which are handled specially in a few places).</span>
+<span class="n">type</span> <span class="o">=</span> <span class="n">TargetGroup</span>
+<span class="cp"># The name of the component should always be the name of the target. (should </span>
+<span class="cp">#  match &quot;def Cpu0 : Target&quot; in Cpu0.td)</span>
+<span class="n">name</span> <span class="o">=</span> <span class="n">Cpu0</span>
+<span class="cp"># Cpu0 component is located in directory Target/</span>
+<span class="n">parent</span> <span class="o">=</span> <span class="n">Target</span>
+<span class="cp"># Whether this target defines an assembly parser, assembly printer, disassembler</span>
+<span class="cp">#  , and supports JIT compilation. They are optional.</span>
+
+<span class="p">[</span><span class="n">component_1</span><span class="p">]</span>
+<span class="cp"># component_1 is a Library type and name is Cpu0CodeGen. After build it will </span>
+<span class="cp">#  in lib/libLLVMCpu0CodeGen.a of your build command directory.</span>
+<span class="n">type</span> <span class="o">=</span> <span class="n">Library</span>
+<span class="n">name</span> <span class="o">=</span> <span class="n">Cpu0CodeGen</span>
+<span class="cp"># Cpu0CodeGen component(Library) is located in directory Cpu0/</span>
+<span class="n">parent</span> <span class="o">=</span> <span class="n">Cpu0</span>
+<span class="cp"># If given, a list of the names of Library or LibraryGroup components which </span>
+<span class="cp">#  must also be linked in whenever this library is used. That is, the link time </span>
+<span class="cp">#  dependencies for this component. When tools are built, the build system will </span>
+<span class="cp">#  include the transitive closure of all required_libraries for the components </span>
+<span class="cp">#  the tool needs.</span>
+<span class="n">required_libraries</span> <span class="o">=</span>
+                     <span class="n">CodeGen</span> <span class="n">Core</span> <span class="n">MC</span> 
+                     <span class="n">Cpu0Desc</span> 
+                     <span class="n">Cpu0Info</span> 
+                     <span class="n">SelectionDAG</span> 
+                     <span class="n">Support</span> 
+                     <span class="n">Target</span>
+<span class="cp"># end of required_libraries</span>
+
+<span class="cp"># All LLVMBuild.txt in Target/Cpu0 and subdirectory use &#39;add_to_library_groups </span>
+<span class="cp">#  = Cpu0&#39;</span>
+<span class="n">add_to_library_groups</span> <span class="o">=</span> <span class="n">Cpu0</span>
+</pre></div>
+</div>
 <p>CMakeLists.txt is the make information for cmake and # is comment.
 File LLVMBuild.txt is written in a simple variant of the INI or configuration
 file format.
@@ -2019,6 +2567,38 @@ and use the RegisterTarget template to register the target.
 For example, the file TargetInfo/Cpu0TargetInfo.cpp register TheCpu0Target for
 big endian and TheCpu0elTarget for little endian, as follows.</p>
 <p class="rubric">lbdex/chapters/Chapter2/Cpu0.h</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="c1">//===-- Cpu0.h - Top-level interface for Cpu0 representation ----*- C++ -*-===//</span>
+<span class="c1">//</span>
+<span class="c1">//                     The LLVM Compiler Infrastructure</span>
+<span class="c1">//</span>
+<span class="c1">// This file is distributed under the University of Illinois Open Source</span>
+<span class="c1">// License. See LICENSE.TXT for details.</span>
+<span class="c1">//</span>
+<span class="c1">//===----------------------------------------------------------------------===//</span>
+<span class="c1">//</span>
+<span class="c1">// This file contains the entry points for global functions defined in</span>
+<span class="c1">// the LLVM Cpu0 back-end.</span>
+<span class="c1">//</span>
+<span class="c1">//===----------------------------------------------------------------------===//</span>
+
+<span class="cp">#ifndef TARGET_CPU0_H</span>
+<span class="cp">#define TARGET_CPU0_H</span>
+
+<span class="cp">#include &quot;Cpu0Config.h&quot;</span>
+<span class="cp">#include &quot;MCTargetDesc/Cpu0MCTargetDesc.h&quot;</span>
+<span class="cp">#include &quot;llvm/Target/TargetMachine.h&quot;</span>
+
+<span class="k">namespace</span> <span class="n">llvm</span> <span class="p">{</span>
+  <span class="k">class</span> <span class="nc">Cpu0TargetMachine</span><span class="p">;</span>
+  <span class="k">class</span> <span class="nc">FunctionPass</span><span class="p">;</span>
+
+  <span class="n">FunctionPass</span> <span class="o">*</span><span class="nf">createCpu0ISelDag</span><span class="p">(</span><span class="n">Cpu0TargetMachine</span> <span class="o">&amp;</span><span class="n">TM</span><span class="p">);</span>
+
+<span class="p">}</span> <span class="c1">// end namespace llvm;</span>
+
+<span class="cp">#endif</span>
+</pre></div>
+</div>
 <p class="rubric">lbdex/chapters/Chapter2/TargetInfo/Cpu0TargetInfo.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="c1">//===-- Cpu0TargetInfo.cpp - Cpu0 Target Implementation -------------------===//</span>
 <span class="c1">//</span>
@@ -2080,10 +2660,157 @@ big endian and TheCpu0elTarget for little endian, as follows.</p>
 <p>Files Cpu0TargetMachine.cpp and MCTargetDesc/Cpu0MCTargetDesc.cpp just define
 the empty initialize function since we register nothing in them for this moment.</p>
 <p class="rubric">lbdex/chapters/Chapter2/Cpu0TargetMachine.cpp</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="c1">//===-- Cpu0TargetMachine.cpp - Define TargetMachine for Cpu0 -------------===//</span>
+<span class="c1">//</span>
+<span class="c1">//                     The LLVM Compiler Infrastructure</span>
+<span class="c1">//</span>
+<span class="c1">// This file is distributed under the University of Illinois Open Source</span>
+<span class="c1">// License. See LICENSE.TXT for details.</span>
+<span class="c1">//</span>
+<span class="c1">//===----------------------------------------------------------------------===//</span>
+<span class="c1">//</span>
+<span class="c1">// Implements the info about Cpu0 target spec.</span>
+<span class="c1">//</span>
+<span class="c1">//===----------------------------------------------------------------------===//</span>
+
+<span class="cp">#include &quot;Cpu0TargetMachine.h&quot;</span>
+<span class="cp">#include &quot;Cpu0.h&quot;</span>
+<span class="cp">#include &quot;llvm/IR/LegacyPassManager.h&quot;</span>
+<span class="cp">#include &quot;llvm/CodeGen/Passes.h&quot;</span>
+<span class="cp">#include &quot;llvm/Support/TargetRegistry.h&quot;</span>
+<span class="k">using</span> <span class="k">namespace</span> <span class="n">llvm</span><span class="p">;</span>
+
+<span class="cp">#define DEBUG_TYPE &quot;cpu0&quot;</span>
+
+<span class="k">extern</span> <span class="s">&quot;C&quot;</span> <span class="kt">void</span> <span class="n">LLVMInitializeCpu0Target</span><span class="p">()</span> <span class="p">{</span>
+<span class="p">}</span>
+</pre></div>
+</div>
 <p class="rubric">lbdex/chapters/Chapter2/MCTargetDesc/Cpu0MCTargetDesc.h</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="c1">//===-- Cpu0MCTargetDesc.h - Cpu0 Target Descriptions -----------*- C++ -*-===//</span>
+<span class="c1">//</span>
+<span class="c1">//                     The LLVM Compiler Infrastructure</span>
+<span class="c1">//</span>
+<span class="c1">// This file is distributed under the University of Illinois Open Source</span>
+<span class="c1">// License. See LICENSE.TXT for details.</span>
+<span class="c1">//</span>
+<span class="c1">//===----------------------------------------------------------------------===//</span>
+<span class="c1">//</span>
+<span class="c1">// This file provides Cpu0 specific target descriptions.</span>
+<span class="c1">//</span>
+<span class="c1">//===----------------------------------------------------------------------===//</span>
+
+<span class="cp">#ifndef CPU0MCTARGETDESC_H</span>
+<span class="cp">#define CPU0MCTARGETDESC_H</span>
+
+<span class="cp">#include &quot;Cpu0Config.h&quot;</span>
+<span class="cp">#include &quot;llvm/Support/DataTypes.h&quot;</span>
+
+<span class="k">namespace</span> <span class="n">llvm</span> <span class="p">{</span>
+<span class="k">class</span> <span class="nc">Target</span><span class="p">;</span>
+<span class="k">class</span> <span class="nc">Triple</span><span class="p">;</span>
+
+<span class="k">extern</span> <span class="n">Target</span> <span class="n">TheCpu0Target</span><span class="p">;</span>
+<span class="k">extern</span> <span class="n">Target</span> <span class="n">TheCpu0elTarget</span><span class="p">;</span>
+
+<span class="p">}</span> <span class="c1">// End llvm namespace</span>
+
+<span class="c1">// Defines symbolic names for Cpu0 registers.  This defines a mapping from</span>
+<span class="c1">// register name to register number.</span>
+<span class="cp">#define GET_REGINFO_ENUM</span>
+<span class="cp">#include &quot;Cpu0GenRegisterInfo.inc&quot;</span>
+
+<span class="c1">// Defines symbolic names for the Cpu0 instructions.</span>
+<span class="cp">#define GET_INSTRINFO_ENUM</span>
+<span class="cp">#include &quot;Cpu0GenInstrInfo.inc&quot;</span>
+
+<span class="cp">#define GET_SUBTARGETINFO_ENUM</span>
+<span class="cp">#include &quot;Cpu0GenSubtargetInfo.inc&quot;</span>
+
+<span class="cp">#endif</span>
+</pre></div>
+</div>
 <p class="rubric">lbdex/chapters/Chapter2/MCTargetDesc/Cpu0MCTargetDesc.cpp</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="c1">//===-- Cpu0MCTargetDesc.cpp - Cpu0 Target Descriptions -------------------===//</span>
+<span class="c1">//</span>
+<span class="c1">//                     The LLVM Compiler Infrastructure</span>
+<span class="c1">//</span>
+<span class="c1">// This file is distributed under the University of Illinois Open Source</span>
+<span class="c1">// License. See LICENSE.TXT for details.</span>
+<span class="c1">//</span>
+<span class="c1">//===----------------------------------------------------------------------===//</span>
+<span class="c1">//</span>
+<span class="c1">// This file provides Cpu0 specific target descriptions.</span>
+<span class="c1">//</span>
+<span class="c1">//===----------------------------------------------------------------------===//</span>
+
+<span class="cp">#include &quot;Cpu0MCTargetDesc.h&quot;</span>
+<span class="cp">#include &quot;llvm/MC/MachineLocation.h&quot;</span>
+<span class="cp">#include &quot;llvm/MC/MCCodeGenInfo.h&quot;</span>
+<span class="cp">#include &quot;llvm/MC/MCELFStreamer.h&quot;</span>
+<span class="cp">#include &quot;llvm/MC/MCInstPrinter.h&quot;</span>
+<span class="cp">#include &quot;llvm/MC/MCInstrInfo.h&quot;</span>
+<span class="cp">#include &quot;llvm/MC/MCRegisterInfo.h&quot;</span>
+<span class="cp">#include &quot;llvm/MC/MCSubtargetInfo.h&quot;</span>
+<span class="cp">#include &quot;llvm/MC/MCSymbol.h&quot;</span>
+<span class="cp">#include &quot;llvm/Support/CommandLine.h&quot;</span>
+<span class="cp">#include &quot;llvm/Support/ErrorHandling.h&quot;</span>
+<span class="cp">#include &quot;llvm/Support/FormattedStream.h&quot;</span>
+<span class="cp">#include &quot;llvm/Support/TargetRegistry.h&quot;</span>
+
+<span class="k">using</span> <span class="k">namespace</span> <span class="n">llvm</span><span class="p">;</span>
+
+<span class="cp">#define GET_INSTRINFO_MC_DESC</span>
+<span class="cp">#include &quot;Cpu0GenInstrInfo.inc&quot;</span>
+
+<span class="cp">#define GET_SUBTARGETINFO_MC_DESC</span>
+<span class="cp">#include &quot;Cpu0GenSubtargetInfo.inc&quot;</span>
+
+<span class="cp">#define GET_REGINFO_MC_DESC</span>
+<span class="cp">#include &quot;Cpu0GenRegisterInfo.inc&quot;</span>
+
+<span class="c1">//@2 {</span>
+<span class="k">extern</span> <span class="s">&quot;C&quot;</span> <span class="kt">void</span> <span class="n">LLVMInitializeCpu0TargetMC</span><span class="p">()</span> <span class="p">{</span>
+
+<span class="p">}</span>
+<span class="c1">//@2 }</span>
+</pre></div>
+</div>
 <p class="rubric">lbdex/chapters/Chapter2/MCTargetDesc/CMakeLists.txt</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="cp"># MCTargetDesc/CMakeLists.txt</span>
+<span class="n">add_llvm_library</span><span class="p">(</span><span class="n">LLVMCpu0Desc</span>
+  <span class="n">Cpu0MCTargetDesc</span><span class="p">.</span><span class="n">cpp</span>
+  <span class="p">)</span>
+</pre></div>
+</div>
 <p class="rubric">lbdex/chapters/Chapter2/MCTargetDesc/LLVMBuild.txt</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="p">;</span><span class="o">===-</span> <span class="p">.</span><span class="o">/</span><span class="n">lib</span><span class="o">/</span><span class="n">Target</span><span class="o">/</span><span class="n">Cpu0</span><span class="o">/</span><span class="n">MCTargetDesc</span><span class="o">/</span><span class="n">LLVMBuild</span><span class="p">.</span><span class="n">txt</span> <span class="o">-------------*-</span> <span class="n">Conf</span> <span class="o">-*--===</span><span class="p">;</span>
+<span class="p">;</span>
+<span class="p">;</span>                     <span class="n">The</span> <span class="n">LLVM</span> <span class="n">Compiler</span> <span class="n">Infrastructure</span>
+<span class="p">;</span>
+<span class="p">;</span> <span class="n">This</span> <span class="n">file</span> <span class="n">is</span> <span class="n">distributed</span> <span class="n">under</span> <span class="n">the</span> <span class="n">University</span> <span class="n">of</span> <span class="n">Illinois</span> <span class="n">Open</span> <span class="n">Source</span>
+<span class="p">;</span> <span class="n">License</span><span class="p">.</span> <span class="n">See</span> <span class="n">LICENSE</span><span class="p">.</span><span class="n">TXT</span> <span class="k">for</span> <span class="n">details</span><span class="p">.</span>
+<span class="p">;</span>
+<span class="p">;</span><span class="o">===------------------------------------------------------------------------===</span><span class="p">;</span>
+<span class="p">;</span>
+<span class="p">;</span> <span class="n">This</span> <span class="n">is</span> <span class="n">an</span> <span class="n">LLVMBuild</span> <span class="n">description</span> <span class="n">file</span> <span class="k">for</span> <span class="n">the</span> <span class="n">components</span> <span class="n">in</span> <span class="k">this</span> <span class="n">subdirectory</span><span class="p">.</span>
+<span class="p">;</span>
+<span class="p">;</span> <span class="n">For</span> <span class="n">more</span> <span class="n">information</span> <span class="n">on</span> <span class="n">the</span> <span class="n">LLVMBuild</span> <span class="n">system</span><span class="p">,</span> <span class="n">please</span> <span class="n">see</span><span class="o">:</span>
+<span class="p">;</span>
+<span class="p">;</span>   <span class="n">http</span><span class="o">:</span><span class="c1">//llvm.org/docs/LLVMBuild.html</span>
+<span class="p">;</span>
+<span class="p">;</span><span class="o">===------------------------------------------------------------------------===</span><span class="p">;</span>
+<span class="cp"># MCTargetDesc/LLVMBuild.txt</span>
+<span class="p">[</span><span class="n">component_0</span><span class="p">]</span>
+<span class="n">type</span> <span class="o">=</span> <span class="n">Library</span>
+<span class="n">name</span> <span class="o">=</span> <span class="n">Cpu0Desc</span>
+<span class="n">parent</span> <span class="o">=</span> <span class="n">Cpu0</span>
+<span class="n">required_libraries</span> <span class="o">=</span> <span class="n">MC</span> 
+                     <span class="n">Cpu0Info</span> 
+                     <span class="n">Support</span>
+<span class="n">add_to_library_groups</span> <span class="o">=</span> <span class="n">Cpu0</span>
+</pre></div>
+</div>
 <p>Please see &#8220;Target Registration&#8221; <a class="footnote-reference" href="#target-reg" id="id25">[16]</a> for reference.</p>
 </div>
 <div class="section" id="build-libraries-and-td">
