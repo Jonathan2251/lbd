@@ -1382,7 +1382,6 @@ introduction. The following files are modified to add Cpu0 backend as follows,
     ...
     case ELF::EM_MIPS:
     case ELF::EM_CPU0:	// llvm-objdump -t -r
-    case ELF::EM_CPU0_LE:
       res = *SymName;
       break;
     ...
@@ -1397,7 +1396,6 @@ introduction. The following files are modified to add Cpu0 backend as follows,
       switch (EF.getHeader()->e_machine) {
       ...
       case ELF::EM_CPU0:	// llvm-objdump -t -r
-      case ELF::EM_CPU0_LE:
         return "ELF32-cpu0";
       ...
     }
@@ -1410,7 +1408,6 @@ introduction. The following files are modified to add Cpu0 backend as follows,
     switch (EF.getHeader()->e_machine) {
     ...
     case ELF::EM_CPU0:	// llvm-objdump -t -r
-    case ELF::EM_CPU0_LE:
       switch (EF.getHeader()->e_ident[ELF::EI_CLASS]) {
       case ELF::ELFCLASS32:
       return IsLittleEndian ? Triple::cpu0el : Triple::cpu0;
@@ -1428,8 +1425,7 @@ introduction. The following files are modified to add Cpu0 backend as follows,
     EM_NONE          = 0, // No machine
     EM_M32           = 1, // AT&T WE 32100
     ...
-    EM_CPU0          = 998, // Document LLVM Backend Tutorial Cpu0
-    EM_CPU0_LE       = 999  // EM_CPU0_LE: little endian; EM_CPU0: big endian
+    EM_CPU0          = 999  // Document LLVM Backend Tutorial Cpu0
   };
   ...
   

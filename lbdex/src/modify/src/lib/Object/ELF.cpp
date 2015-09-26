@@ -40,7 +40,6 @@ StringRef getELFRelocationTypeName(uint32_t Machine, uint32_t Type) {
     }
     break;
   case ELF::EM_CPU0:
-  case ELF::EM_CPU0_LE:
     switch (Type) {
 #include "llvm/Support/ELFRelocs/Cpu0.def"
     default:

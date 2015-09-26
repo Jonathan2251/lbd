@@ -816,7 +816,6 @@ StringRef ELFObjectFile<ELFT>::getFileFormatName() const {
     case ELF::EM_MIPS:
       return "ELF32-mips";
     case ELF::EM_CPU0:	// llvm-objdump -t -r
-    case ELF::EM_CPU0_LE:
       return "ELF32-cpu0";
     case ELF::EM_PPC:
       return "ELF32-ppc";
@@ -875,7 +874,6 @@ unsigned ELFObjectFile<ELFT>::getArch() const {
       report_fatal_error("Invalid ELFCLASS!");
     }
   case ELF::EM_CPU0:	// llvm-objdump -t -r
-  case ELF::EM_CPU0_LE:
     switch (EF.getHeader()->e_ident[ELF::EI_CLASS]) {
     case ELF::ELFCLASS32:
       return IsLittleEndian ? Triple::cpu0el : Triple::cpu0;

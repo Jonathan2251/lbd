@@ -310,8 +310,7 @@ enum {
   EM_NORC          = 218, // Nanoradio Optimized RISC
   EM_CSR_KALIMBA   = 219, // CSR Kalimba architecture family
   EM_AMDGPU        = 224, // AMD GPU architecture
-  EM_CPU0          = 998, // Document LLVM Backend Tutorial Cpu0
-  EM_CPU0_LE       = 999  // EM_CPU0_LE: little endian; EM_CPU0: big endian
+  EM_CPU0          = 999  // Document LLVM Backend Tutorial Cpu0
 };
 
 // Object file classes.

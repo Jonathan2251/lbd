@@ -58,6 +58,7 @@ Revision history
 ----------------
 
 Version 3.7.1, Not release yet
+  Remove EM_CPU0_EL.
 
 Version 3.7.0, Released September 24, 2015
   Porting to lld 3.7.
