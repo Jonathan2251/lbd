@@ -80,8 +80,7 @@ Cpu0TargetMachine(const Target &T, const Triple &TT,
                         CPU, FS, Options, RM, CM, OL),
       isLittle(isLittle), TLOF(make_unique<Cpu0TargetObjectFile>()),
       ABI(Cpu0ABIInfo::computeTargetABI()),
-      Subtarget(nullptr), DefaultSubtarget(TT, CPU, FS, isLittle, *this) {
-  Subtarget = &DefaultSubtarget;
+      DefaultSubtarget(TT, CPU, FS, isLittle, *this) {
   // initAsmInfo will display features by llc -march=cpu0 -mcpu=help on 3.7 but
   // not on 3.6
   initAsmInfo();

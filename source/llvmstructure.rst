@@ -1297,8 +1297,6 @@ introduction. The following files are modified to add Cpu0 backend as follows,
 .. code-block:: c++
   
   ...
-  elseif (LLVM_NATIVE_ARCH MATCHES "mips")
-    set(LLVM_NATIVE_ARCH Mips)
   elseif (LLVM_NATIVE_ARCH MATCHES "cpu0")
     set(LLVM_NATIVE_ARCH Cpu0)
   ...
@@ -1308,7 +1306,6 @@ introduction. The following files are modified to add Cpu0 backend as follows,
   
   set(LLVM_ALL_TARGETS
     ...
-    Mips
     Cpu0
     ...
     )
@@ -1324,10 +1321,6 @@ introduction. The following files are modified to add Cpu0 backend as follows,
   public:
     enum ArchType {
       ...
-      mips,       // MIPS: mips, mipsallegrex
-      mipsel,     // MIPSEL: mipsel, mipsallegrexel
-      mips64,     // MIPS64: mips64
-      mips64el,   // MIPS64EL: mips64el
       cpu0,       // For Tutorial Backend Cpu0
       cpu0el,
       ...
@@ -1374,20 +1367,6 @@ introduction. The following files are modified to add Cpu0 backend as follows,
 .. rubric:: lbdex/src/modify/src/include/llvm/Object/ELFObjectFile.h
 .. code-block:: c++
   
-  template <class ELFT>
-  std::error_code ELFObjectFile<ELFT>::getRelocationValueString(
-      DataRefImpl Rel, SmallVectorImpl<char> &Result) const {
-    ...
-    switch (EF.getHeader()->e_machine) {
-    ...
-    case ELF::EM_MIPS:
-    case ELF::EM_CPU0:	// llvm-objdump -t -r
-      res = *SymName;
-      break;
-    ...
-    }
-    ...
-  }
   ...
   template <class ELFT>
   StringRef ELFObjectFile<ELFT>::getFileFormatName() const {
@@ -1422,80 +1401,33 @@ introduction. The following files are modified to add Cpu0 backend as follows,
 .. code-block:: c++
   
   enum {
-    EM_NONE          = 0, // No machine
-    EM_M32           = 1, // AT&T WE 32100
     ...
     EM_CPU0          = 999  // Document LLVM Backend Tutorial Cpu0
   };
   ...
-  
   // Cpu0 Specific e_flags
   enum {
     EF_CPU0_NOREORDER = 0x00000001, // Don't reorder instructions
     EF_CPU0_PIC       = 0x00000002, // Position independent code
-    EF_CPU0_CPIC      = 0x00000004, // Call object with Position independent code
-    EF_CPU0_ARCH_1    = 0x00000000, // CPU01 instruction set
-    EF_CPU0_ARCH_2    = 0x10000000, // CPU02 instruction set
-    EF_CPU0_ARCH_3    = 0x20000000, // CPU03 instruction set
-    EF_CPU0_ARCH_4    = 0x30000000, // CPU04 instruction set
-    EF_CPU0_ARCH_5    = 0x40000000, // CPU05 instruction set
     EF_CPU0_ARCH_32   = 0x50000000, // CPU032 instruction set per linux not elf.h
-    EF_CPU0_ARCH_64   = 0x60000000, // CPU064 instruction set per linux not elf.h
-    EF_CPU0_ARCH_32R2 = 0x70000000, // cpu032r2
-    EF_CPU0_ARCH_64R2 = 0x80000000, // cpu064r2
     EF_CPU0_ARCH      = 0xf0000000  // Mask for applying EF_CPU0_ARCH_ variant
   };
   
-  // ELF Relocation types for Cpu0
-  // .
+  // ELF Relocation types for Mips
   enum {
-    R_CPU0_NONE              =  0,
-    R_CPU0_32                =  2,
-    R_CPU0_HI16              =  5,
-    R_CPU0_LO16              =  6,
-    R_CPU0_GPREL16           =  7,
-    R_CPU0_LITERAL           =  8,
-    R_CPU0_GOT16             =  9,
-    R_CPU0_PC16              = 10,
-    R_CPU0_CALL16            = 11,
-    R_CPU0_GPREL32           = 12,
-    R_CPU0_PC24              = 13,
-    R_CPU0_GOT_HI16          = 22,
-    R_CPU0_GOT_LO16          = 23,
-    R_CPU0_RELGOT            = 36,
-    R_CPU0_TLS_GD            = 42,
-    R_CPU0_TLS_LDM           = 43,
-    R_CPU0_TLS_DTP_HI16      = 44,
-    R_CPU0_TLS_DTP_LO16      = 45,
-    R_CPU0_TLS_GOTTPREL      = 46,
-    R_CPU0_TLS_TPREL32       = 47,
-    R_CPU0_TLS_TP_HI16       = 49,
-    R_CPU0_TLS_TP_LO16       = 50,
-    R_CPU0_GLOB_DAT          = 51,
-    R_CPU0_JUMP_SLOT         = 127
+  #include "ELFRelocs/Cpu0.def"
   };
+  ...
 
 .. rubric:: lbdex/src/modify/src/lib/MC/MCELFStreamer.cpp
 .. code-block:: c++
   
   void MCELFStreamer::fixSymbolsInTLSFixups(const MCExpr *expr) {
-    switch (expr->getKind()) {
     ...
-    case MCExpr::SymbolRef: {
-      const MCSymbolRefExpr &symRef = *cast<MCSymbolRefExpr>(expr);
-      switch (symRef.getKind()) {
-      ...
-      case MCSymbolRefExpr::VK_Mips_TLSGD:
-      case MCSymbolRefExpr::VK_Mips_GOTTPREL:
-      case MCSymbolRefExpr::VK_Mips_TPREL_HI:
-      case MCSymbolRefExpr::VK_Mips_TPREL_LO:
       case MCSymbolRefExpr::VK_Cpu0_TLSGD:
       case MCSymbolRefExpr::VK_Cpu0_GOTTPREL:
       case MCSymbolRefExpr::VK_Cpu0_TP_HI:
       case MCSymbolRefExpr::VK_Cpu0_TP_LO:
-      ...
-        break;
-      }
     ...
   }
 
@@ -1532,6 +1464,60 @@ introduction. The following files are modified to add Cpu0 backend as follows,
     ...
     }
   }
+
+.. rubric:: lbdex/src/modify/src/lib/MC/MCSubtargetInfo.cpp
+.. code-block:: c++
+  
+  bool Cpu0DisableUnreconginizedMessage = false;
+  
+  void MCSubtargetInfo::InitMCProcessorInfo(StringRef CPU, StringRef FS) {
+    #if 1 // Disable reconginized processor message. For Cpu0
+    if (TargetTriple.getArch() == llvm::Triple::cpu0 ||
+        TargetTriple.getArch() == llvm::Triple::cpu0el)
+      Cpu0DisableUnreconginizedMessage = true;
+    #endif
+    ...
+  }
+  ...
+  const MCSchedModel &MCSubtargetInfo::getSchedModelForCPU(StringRef CPU) const {
+    ...
+      #if 1 // Disable reconginized processor message. For Cpu0
+      if (TargetTriple.getArch() != llvm::Triple::cpu0 &&
+          TargetTriple.getArch() != llvm::Triple::cpu0el)
+      #endif
+    ...
+  }
+
+.. rubric:: lbdex/src/modify/src/lib/MC/SubtargetFeature.cpp
+.. code-block:: c++
+  
+  extern bool Cpu0DisableUnreconginizedMessage; // For Cpu0
+  ...
+  FeatureBitset
+  SubtargetFeatures::ToggleFeature(FeatureBitset Bits, StringRef Feature,
+                                   ArrayRef<SubtargetFeatureKV> FeatureTable) {
+    ...
+      if (!Cpu0DisableUnreconginizedMessage) // For Cpu0
+    ...
+  }
+  
+  FeatureBitset
+  SubtargetFeatures::ApplyFeatureFlag(FeatureBitset Bits, StringRef Feature,
+                                      ArrayRef<SubtargetFeatureKV> FeatureTable) {
+    ...
+      if (!Cpu0DisableUnreconginizedMessage) // For Cpu0
+    ...
+  }
+  
+  FeatureBitset
+  SubtargetFeatures::getFeatureBits(StringRef CPU,
+                                    ArrayRef<SubtargetFeatureKV> CPUTable,
+                                    ArrayRef<SubtargetFeatureKV> FeatureTable) {
+    ...
+      if (!Cpu0DisableUnreconginizedMessage) // For Cpu0
+    ...
+  }
+
 
 .. rubric:: lib/object/ELF.cpp
 .. code-block:: c++
@@ -1590,6 +1576,13 @@ introduction. The following files are modified to add Cpu0 backend as follows,
       ...
   }
   ...
+  static Triple::ObjectFormatType getDefaultFormat(const Triple &T) {
+    ...
+    case Triple::cpu0:
+    case Triple::cpu0el:
+    ...
+  }
+  ...
   static unsigned getArchPointerBitWidth(llvm::Triple::ArchType Arch) {
     switch (Arch) {
     ...
@@ -1634,9 +1627,9 @@ is called Cpu0Other.td, which is shown below:
 
 .. code-block:: bash
 
-  118-165-12-177:BackendTutorial Jonathan$ pwd
-  /home/cschen/test/lbd/docs/BackendTutorial
-  118-165-12-177:BackendTutorial Jonathan$ make genexample
+  118-165-12-177:lld Jonathan$ pwd
+  /home/cschen/test/lbd
+  118-165-12-177:lld Jonathan$ make genexample
 
 .. rubric:: lbdex/chapters/Chapter2/Cpu0Other.td
 .. literalinclude:: ../lbdex/chapters/Chapter2/Cpu0Other.td
@@ -2048,7 +2041,7 @@ First step, compile it with clang and get output ch3.bc as follows,
 .. code-block:: bash
 
   118-165-78-230:input Jonathan$ pwd
-  /Users/Jonathan/llvm/test/src/lib/Target/Cpu0/lbdex/input
+  /Users/Jonathan/llvm/test/lbdex/input
   118-165-78-230:input Jonathan$ clang -target mips-unknown-linux-gnu -c 
   ch3.cpp -emit-llvm -o ch3.bc
 

@@ -33,7 +33,6 @@ class Cpu0TargetMachine : public LLVMTargetMachine {
   std::unique_ptr<TargetLoweringObjectFile> TLOF;
   // Selected ABI
   Cpu0ABIInfo ABI;
-  Cpu0Subtarget *Subtarget;
   Cpu0Subtarget DefaultSubtarget;
 
   mutable StringMap<std::unique_ptr<Cpu0Subtarget>> SubtargetMap;
@@ -45,8 +44,6 @@ public:
   ~Cpu0TargetMachine() override;
 
   const Cpu0Subtarget *getSubtargetImpl() const {
-    if (Subtarget)
-      return Subtarget;
     return &DefaultSubtarget;
   }
 

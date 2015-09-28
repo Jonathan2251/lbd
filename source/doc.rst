@@ -52,17 +52,17 @@ follows,
 
 .. code-block:: bash
 
-  [root@localhost BackendTutorial]$ yum list pdfjam
+  [root@localhost lbd]$ yum list pdfjam
   Loaded plugins: langpacks, presto, refresh-packagekit
   Installed Packages
   pdfjam.noarch                        2.08-3.fc17                         @fedora
-  [root@localhost BackendTutorial]$ 
+  [root@localhost lbd]$ 
 
 On Fedora 18, the error as follows,
 
 .. code-block:: bash
 
-  [root@localhost BackendTutorial]$ make latexpdf
+  [root@localhost lld]$ make latexpdf
   ...
   LaTeX Error: File `titlesec.sty' not found
 
@@ -70,7 +70,7 @@ Install all texlive-* (full) as follows,
 
 .. code-block:: bash
 
-  [root@localhost BackendTutorial]$ yum install texlive-*
+  [root@localhost lld]$ yum install texlive-*
 
 
 Generate Cpu0 document

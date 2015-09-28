@@ -152,13 +152,17 @@ Chapter5_1.
     :end-before: #endif
 .. literalinclude:: ../lbdex/Cpu0/MCTargetDesc/Cpu0MCTargetDesc.cpp
     :start-after: //@2 {
-    :end-before: #if CH >= CH3_2
+    :end-before: #if CH >= CH3_2 //3
 .. literalinclude:: ../lbdex/Cpu0/MCTargetDesc/Cpu0MCTargetDesc.cpp
     :start-after: #if CH >= CH5_1 //2
     :end-before: #endif
 .. literalinclude:: ../lbdex/Cpu0/MCTargetDesc/Cpu0MCTargetDesc.cpp
-    :start-after: #endif // #if CH >= CH3_2
-    :end-before: //@2 }
+    :start-after: #if CH >= CH5_1 //3
+    :end-before: #endif
+
+.. code-block:: c++
+
+  }
 
 
 The applyFixup() of Cpu0AsmBackend.cpp will fix up the **jeq**, **jub**, ... 

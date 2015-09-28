@@ -181,7 +181,8 @@ Most classes (like Cpu0InstrInfo, Cpu0RegisterInfo, ...) have Subtarget
 reference member to allow them access other classes through the Cpu0Subtarget
 interface list in :num:`Figure #backendstructure-f1`.
 Classes (maybe added at later chapters) can access Subtarget class
-through Cpu0TargetMachine (usually use TM as symbol) by TM.getSubtargetImpl().
+through Cpu0TargetMachine (usually use TM as symbol) by 
+static_cast<Cpu0TargetMachine &>(TM).getSubtargetImpl().
 Once get Subtarget class, the backend code can accesss other classes through it.
 For those classes name of Cpu0SExx, they mean the standard 32 bits class.
 This arrangement follows llvm 3.5 Mips backend style. In Mips backend, it uses
