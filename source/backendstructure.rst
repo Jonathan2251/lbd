@@ -1697,10 +1697,11 @@ Run Mips backend with above input will get the following result.
   	.size	_Z6callerv, ($func_end0)-_Z6callerv
   	.cfi_endproc
 
-As above assembly output, Mips allocate t1 variable to register $1 and no need
-to spill $1 since $1 is caller register. On the other hand, $ra is callee save
-register, so it spills at beginning of the assembly output since jal uses $ra 
-register. Cpu0 $lr is same register as Mips $ra, so it calls setAliasRegs(MF, 
+As above assembly output, Mips allocates t1 variable to register $1 and no need
+to spill $1 since $1 is caller save register. 
+On the other hand, $ra is callee save register, so it spills at beginning of 
+the assembly output since jal uses $ra register. 
+Cpu0 $lr is the same register as Mips $ra, so it calls setAliasRegs(MF, 
 SavedRegs, Cpu0::LR) in determineCalleeSaves() of Cpu0SEFrameLowering.cpp when
 the function has called another function.
 
