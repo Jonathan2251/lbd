@@ -1639,12 +1639,6 @@ Run Mips backend with above input will get the following result.
 
 .. code-block:: bash
   
-  114-37-151-153:input Jonathan$ clang -O0 -target mips-unknown-linux-gnu -c 
-  ch9_caller_callee_save_registers.cpp -emit-llvm -o 
-  ch9_caller_callee_save_registers.bc
-  114-37-151-153:input Jonathan$ ~/llvm/release/cmake_debug_build/Debug/bin/llc 
-  -O0 -march=mips -relocation-model=static -filetype=asm 
-  ch9_caller_callee_save_registers.bc -o -
   	.text
   	.abicalls
   	.option	pic0
@@ -1652,26 +1646,26 @@ Run Mips backend with above input will get the following result.
   	.nan	legacy
   	.file	"ch9_caller_callee_save_registers.bc"
   	.text
-  	.globl	_Z6calleri
+  	.globl	_Z6callerv
   	.align	2
-  	.type	_Z6calleri,@function
+  	.type	_Z6callerv,@function
   	.set	nomicromips
   	.set	nomips16
-  	.ent	_Z6calleri
-  _Z6calleri:                             # @_Z6calleri
+  	.ent	_Z6callerv
+  _Z6callerv:                             # @_Z6callerv
   	.cfi_startproc
-  	.frame	$fp,40,$ra
+  	.frame	$fp,32,$ra
   	.mask 	0xc0000000,-4
   	.fmask	0x00000000,0
   	.set	noreorder
   	.set	nomacro
   	.set	noat
   # BB#0:
-  	addiu	$sp, $sp, -40
+  	addiu	$sp, $sp, -32
   $tmp0:
-  	.cfi_def_cfa_offset 40
-  	sw	$ra, 36($sp)            # 4-byte Folded Spill
-  	sw	$fp, 32($sp)            # 4-byte Folded Spill
+  	.cfi_def_cfa_offset 32
+  	sw	$ra, 28($sp)            # 4-byte Folded Spill
+  	sw	$fp, 24($sp)            # 4-byte Folded Spill
   $tmp1:
   	.cfi_offset 31, -4
   $tmp2:
@@ -1679,31 +1673,33 @@ Run Mips backend with above input will get the following result.
   	move	 $fp, $sp
   $tmp3:
   	.cfi_def_cfa_register 30
-  	sw	$4, 28($fp)
-  	sw	$4, 24($fp)   # store t1 to 24($fp)
+  	addiu	$1, $zero, 3
+  	sw	$1, 20($fp)   # store t1 to 20($fp)
+  	move	 $4, $1
   	jal	_Z4add1i
   	nop
-  	sw	$2, 20($fp)
-  	lw	$4, 24($fp)   # load t1 from 24($fp)
-  	subu	$2, $2, $4
-  	sw	$2, 20($fp)
+  	sw	$2, 16($fp)
+  	lw	$1, 20($fp)   # load t1 from 20($fp)
+  	subu	$1, $2, $1
+  	sw	$1, 16($fp)
+  	move	 $2, $1
   	move	 $sp, $fp
-  	lw	$fp, 32($sp)            # 4-byte Folded Reload
-  	lw	$ra, 36($sp)            # 4-byte Folded Reload
-  	addiu	$sp, $sp, 40
+  	lw	$fp, 24($sp)            # 4-byte Folded Reload
+  	lw	$ra, 28($sp)            # 4-byte Folded Reload
+  	addiu	$sp, $sp, 32
   	jr	$ra
   	nop
   	.set	at
   	.set	macro
   	.set	reorder
-  	.end	_Z6calleri
+  	.end	_Z6callerv
   $func_end0:
-  	.size	_Z6calleri, ($func_end0)-_Z6calleri
+  	.size	_Z6callerv, ($func_end0)-_Z6callerv
   	.cfi_endproc
 
-As above assembly output, Mips allocate t1 variable to register $4 and no need
-to spill $4 since $4 is caller register. On the other hand, $ra is callee save
-register, so it spill at beginning of the assembly output since jal use $ra 
+As above assembly output, Mips allocate t1 variable to register $1 and no need
+to spill $1 since $1 is caller register. On the other hand, $ra is callee save
+register, so it spills at beginning of the assembly output since jal uses $ra 
 register. Cpu0 $lr is same register as Mips $ra, so it calls setAliasRegs(MF, 
 SavedRegs, Cpu0::LR) in determineCalleeSaves() of Cpu0SEFrameLowering.cpp when
 the function has called another function.
