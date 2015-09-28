@@ -1131,8 +1131,6 @@ Triple Triple::get64BitArchVariant() const {
   case Triple::UnknownArch:
   case Triple::arm:
   case Triple::armeb:
-  case Triple::cpu0:
-  case Triple::cpu0el:
   case Triple::hexagon:
   case Triple::kalimba:
   case Triple::msp430:
