@@ -504,7 +504,7 @@ subtarget) defined in Chapter3_1 at this point.
 
 
 To make the registration clearly, list it in :num:`Figure #backendstructure-f3`, 
-:num:`Figure #backendstructure-f4` and :num:`Figure #backendstructure-f5`.
+and :num:`Figure #backendstructure-f4`.
 
 .. _backendstructure-f3: 
 .. figure:: ../Fig/backendstructure/3.png
@@ -519,13 +519,6 @@ To make the registration clearly, list it in :num:`Figure #backendstructure-f3`,
   :align: center
 
   Cpu0MCAsmInfo and Cpu0InstPrinter register function
-
-.. _backendstructure-f5: 
-.. figure:: ../Fig/backendstructure/5.png
-  :scale: 80 %
-  :align: center
-
-  LLVMInitializeCpu0TargetMC() dynamic register
 
 According "section Target Registration" [#]_, we can register Cpu0 backend 
 classes at LLVMInitializeCpu0TargetMC() on demand by the dynamic register 
@@ -548,7 +541,7 @@ When instruction is ready to print, function Cpu0AsmPrinter::EmitInstruction()
 will be triggered first. And then it will call OutStreamer.EmitInstruction() to 
 print OP code and register according the information from Cpu0GenInstrInfo.inc 
 and Cpu0GenRegisterInfo.inc both registered at dynamic register function,
-LLVMInitializeCpu0TargetMC(), as :num:`Figure #backendstructure-f5` and 
+LLVMInitializeCpu0TargetMC() and 
 :num:`Figure #backendstructure-f3`.
 Notice, file Cpu0InstPrinter.cpp only print operand while the OP code 
 information come from Cpu0InstrInfo.td.
