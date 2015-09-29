@@ -343,7 +343,6 @@ Cpu0 doesn't support the following test items at this point.
   ===================================  =============  =======================================================
   File                                 v:pass x:fail  comment
   ===================================  =============  =======================================================
-  blockaddr.ll                         x              Not C/C++ language
   2008-08-08-bswap.ll                  x              Not support llvm.bswap. The c++ STL swap didn't use it. ?
   2010-04-07-DbgValueOtherTargets.ll   x              Mips cannot pass either ?
   eh-dwraf-cfa.ll                      x
