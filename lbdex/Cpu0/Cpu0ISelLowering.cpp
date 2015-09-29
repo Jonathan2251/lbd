@@ -139,6 +139,7 @@ Cpu0TargetLowering::Cpu0TargetLowering(const Cpu0TargetMachine &TM,
   setOperationAction(ISD::GlobalTLSAddress,   MVT::i32,   Custom);
 #endif
 #if CH >= CH8_1 //3
+  setOperationAction(ISD::BlockAddress,       MVT::i32,   Custom);
   setOperationAction(ISD::JumpTable,          MVT::i32,   Custom);
 #endif
 #if CH >= CH8_2 //1
@@ -303,6 +304,7 @@ LowerOperation(SDValue Op, SelectionDAG &DAG) const
   case ISD::GlobalTLSAddress:   return lowerGlobalTLSAddress(Op, DAG);
 #endif
 #if CH >= CH8_1 //7
+  case ISD::BlockAddress:       return lowerBlockAddress(Op, DAG);
   case ISD::JumpTable:          return lowerJumpTable(Op, DAG);
 #endif
 #if CH >= CH8_2 //3
@@ -1022,6 +1024,17 @@ lowerGlobalTLSAddress(SDValue Op, SelectionDAG &DAG) const
 #endif
 
 #if CH >= CH8_1 //9
+SDValue Cpu0TargetLowering::lowerBlockAddress(SDValue Op,
+                                              SelectionDAG &DAG) const {
+  BlockAddressSDNode *N = cast<BlockAddressSDNode>(Op);
+  EVT Ty = Op.getValueType();
+
+  if (getTargetMachine().getRelocationModel() != Reloc::PIC_)
+    return getAddrNonPIC(N, Ty, DAG);
+
+  return getAddrLocal(N, Ty, DAG);
+}
+
 SDValue Cpu0TargetLowering::
 lowerJumpTable(SDValue Op, SelectionDAG &DAG) const
 {

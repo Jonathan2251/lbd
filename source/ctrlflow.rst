@@ -280,6 +280,7 @@ The ch8_1_2.cpp is for **“nest if”** test. The ch8_1_3.cpp is for the test o
 **“for loop”** as well as **“while loop”**, **“continue”**, **“break”**, 
 **“goto”**. The ch8_1_4.cpp is for the test of **“goto”**. 
 The ch8_1_5.cpp is for **br_jt** and **JumpTable** test.
+The ch8_blockaddr.cpp is for **blockaddress** and **indirectbr** test.
 You can run with them if you like to test more.
 
 List the control flow statements of C, IR, DAG and Cpu0 instructions as the 

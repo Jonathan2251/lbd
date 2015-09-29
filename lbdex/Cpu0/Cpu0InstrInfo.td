@@ -1122,6 +1122,7 @@ def : Pat<(Cpu0Hi tglobaladdr:$in), (LUi tglobaladdr:$in)>;
 //#endif
 //#if CH >= CH8_1 5
 let Predicates = [Ch8_1] in {
+def : Pat<(Cpu0Hi tblockaddress:$in), (LUi tblockaddress:$in)>;
 def : Pat<(Cpu0Hi tjumptable:$in), (LUi tjumptable:$in)>;
 }
 //#endif
@@ -1139,6 +1140,7 @@ def : Pat<(add CPURegs:$hi, (Cpu0Lo tglobaladdr:$lo)),
 //#endif
 //#if CH >= CH8_1 6
 let Predicates = [Ch8_1] in {
+def : Pat<(Cpu0Lo tblockaddress:$in), (ORi ZERO, tblockaddress:$in)>;
 def : Pat<(add CPURegs:$hi, (Cpu0Lo tjumptable:$lo)),
               (ORi CPURegs:$hi, tjumptable:$lo)>;
 }

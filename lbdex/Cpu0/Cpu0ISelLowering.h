@@ -349,12 +349,13 @@ namespace llvm {
 #if CH >= CH8_1 //2
     SDValue lowerBR_JT(SDValue Op, SelectionDAG &DAG) const;
     SDValue lowerBRCOND(SDValue Op, SelectionDAG &DAG) const;
+    SDValue lowerBlockAddress(SDValue Op, SelectionDAG &DAG) const;
+    SDValue lowerJumpTable(SDValue Op, SelectionDAG &DAG) const;
 #endif
     SDValue lowerGlobalAddress(SDValue Op, SelectionDAG &DAG) const;
 #if CH >= CH12_1 //1
     SDValue lowerGlobalTLSAddress(SDValue Op, SelectionDAG &DAG) const;
 #endif
-    SDValue lowerJumpTable(SDValue Op, SelectionDAG &DAG) const;
 #if CH >= CH8_2
     SDValue lowerSELECT(SDValue Op, SelectionDAG &DAG) const;
 #endif
