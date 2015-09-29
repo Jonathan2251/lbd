@@ -168,8 +168,8 @@ Then run as follows for single test case and the whole test cases on iMac.
     Expected Passes    : 1
   1-160-130-77:Cpu0 Jonathan$ ~/llvm/test/cmake_debug_build/Debug/bin/llvm-lit .
   ...
-  PASS: LLVM :: CodeGen/Cpu0/zeroreg.ll (126 of 127)
-  PASS: LLVM :: CodeGen/Cpu0/tailcall.ll (127 of 127)
+  PASS: LLVM :: CodeGen/Cpu0/zeroreg.ll (127 of 128)
+  PASS: LLVM :: CodeGen/Cpu0/tailcall.ll (128 of 128)
   ...
 
 
@@ -186,8 +186,8 @@ Run as follows for single test case and the whole test cases on Linux.
     Expected Passes    : 1
   [Gamma@localhost Cpu0]$ ~/llvm/test/cmake_debug_build/bin/llvm-lit .
   ...
-  PASS: LLVM :: CodeGen/Cpu0/zeroreg.ll (126 of 127)
-  PASS: LLVM :: CodeGen/Cpu0/tailcall.ll (127 of 127)
+  PASS: LLVM :: CodeGen/Cpu0/zeroreg.ll (127 of 128)
+  PASS: LLVM :: CodeGen/Cpu0/tailcall.ll (128 of 128)
   ...
 
 In order to understand which chapter the regression test item test for, 
@@ -231,6 +231,7 @@ Then the regression test items for Cpu0 list as follows,
   atomics-index.ll                 v              atomic                                                   12
   atomics-fence.ll                 v              atomic                                                   12
   br-jmp.ll                        v              br, -> jmp                                               8
+  brockaddress.ll                  v              blockaddress, -> lui, ori                                8
   cmov.ll                          v              select, -> movn, movz                                    8
   cprestore.ll                     v              -> .cprestore                                            9
   div.ll                           v              sdiv, -> div, mflo                                       4
