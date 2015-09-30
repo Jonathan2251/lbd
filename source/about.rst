@@ -61,6 +61,8 @@ Version 3.7.1, Not release yet
   Remove EM_CPU0_EL.
   Add subsection Caller and callee saved registers.
   Add IR blockaddress and indirectbr support.
+  Correct tglobaladdr, tblockaddress, tjumptable and tglobaltlsaddr of 
+  Cpu0InstrInfo.td.
 
 Version 3.7.0, Released September 24, 2015
   Porting to lld 3.7.

@@ -202,6 +202,9 @@ programming.
     :start-after: #if CH >= CH12_1 3
     :end-before: #endif
 .. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td
+    :start-after: #if CH >= CH12_1 3.1
+    :end-before: #endif
+.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td
     :start-after: #if CH >= CH12_1 4
     :end-before: #endif
 

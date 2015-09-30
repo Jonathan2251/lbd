@@ -539,6 +539,9 @@ Finally, add the following code in Cpu0ISelDAGToDAG.cpp and Cpu0InstrInfo.td.
 .. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td
     :start-after: //#if CH >= CH6_1 6
     :end-before: //#endif
+.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td
+    :start-after: //#if CH >= CH6_1 7
+    :end-before: //#endif
 
 
 Static mode
@@ -693,6 +696,9 @@ instructions as below.
 .. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td
     :start-after: //#if CH >= CH6_1 5
     :end-before: //#endif
+.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td
+    :start-after: //#if CH >= CH6_1 6
+    :end-before: //#endif
 
 .. code-block:: bash
 
@@ -802,7 +808,7 @@ instruction as below.
     :start-after: def Cpu0Lo
     :end-before: //#endif
 .. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td
-    :start-after: //#if CH >= CH6_1 6
+    :start-after: //#if CH >= CH6_1 7
     :end-before: //@ wrapper_pic
 
 .. code-block:: bash

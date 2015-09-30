@@ -1134,15 +1134,13 @@ def : Pat<(Cpu0Hi tglobaltlsaddr:$in), (LUi tglobaltlsaddr:$in)>;
 
 //#if CH >= CH6_1 5
 let Predicates = [Ch6_1] in {
-def : Pat<(add CPURegs:$hi, (Cpu0Lo tglobaladdr:$lo)),
-          (ORi CPURegs:$hi, tglobaladdr:$lo)>;
+def : Pat<(Cpu0Lo tglobaladdr:$in), (ORi ZERO, tglobaladdr:$in)>;
 }
 //#endif
 //#if CH >= CH8_1 6
 let Predicates = [Ch8_1] in {
 def : Pat<(Cpu0Lo tblockaddress:$in), (ORi ZERO, tblockaddress:$in)>;
-def : Pat<(add CPURegs:$hi, (Cpu0Lo tjumptable:$lo)),
-              (ORi CPURegs:$hi, tjumptable:$lo)>;
+def : Pat<(Cpu0Lo tjumptable:$in), (ORi ZERO, tjumptable:$in)>;
 }
 //#endif
 //#if CH >= CH12_1 3
@@ -1152,6 +1150,26 @@ def : Pat<(Cpu0Lo tglobaltlsaddr:$in), (ORi ZERO, tglobaltlsaddr:$in)>;
 //#endif
 
 //#if CH >= CH6_1 6
+let Predicates = [Ch6_1] in {
+def : Pat<(add CPURegs:$hi, (Cpu0Lo tglobaladdr:$lo)),
+          (ORi CPURegs:$hi, tglobaladdr:$lo)>;
+}
+//#endif
+//#if CH >= CH8_1 9
+let Predicates = [Ch8_1] in {
+def : Pat<(add CPURegs:$hi, (Cpu0Lo tblockaddress:$lo)),
+              (ORi CPURegs:$hi, tblockaddress:$lo)>;
+def : Pat<(add CPURegs:$hi, (Cpu0Lo tjumptable:$lo)),
+              (ORi CPURegs:$hi, tjumptable:$lo)>;
+}
+//#endif
+//#if CH >= CH12_1 3.1
+let Predicates = [Ch12_1] in {
+def : Pat<(add CPURegs:$hi, (Cpu0Lo tglobaltlsaddr:$lo)),
+              (ORi CPURegs:$hi, tglobaltlsaddr:$lo)>;
+}
+//#endif
+//#if CH >= CH6_1 7
 // gp_rel relocs
 let Predicates = [Ch6_1] in {
 def : Pat<(add CPURegs:$gp, (Cpu0GPRel tglobaladdr:$in)),
