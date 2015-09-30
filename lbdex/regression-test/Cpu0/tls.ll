@@ -17,10 +17,9 @@ entry:
 ; PIC:   jalr    $t9
 ; PIC:   ld      $2, 0($2)
 
-; STATIC:   ori   $[[R1:[0-9]+|t9]], $zero, %tp_lo(t1)
 ; STATIC:   lui     $[[R0:[0-9]+|t9]], %tp_hi(t1)
-; STATIC:   addu    $[[R2:[0-9]+|t9]], $[[R0]], $[[R1]]
-; STATIC:   ld      $2, 0($[[R2]])
+; STATIC:   ori   $[[R1:[0-9]+|t9]], $[[R0]], %tp_lo(t1)
+; STATIC:   ld      $2, 0($[[R1]])
 }
 
 
@@ -52,7 +51,7 @@ entry:
 ; PIC:   jalr    $t9
 ; PIC:   lui     $[[R0:[0-9]+|t9]], %dtp_hi(f3.i)
 ; PIC:   addu    $[[R1:[0-9]+|t9]], $[[R0]], $2
-; PIC:   ori   ${{[0-9]+|t9}}, $zero, %dtp_lo(f3.i)
+; PIC:   ori   ${{[0-9]+|t9}}, $[[R1]], %dtp_lo(f3.i)
 
   %0 = load i32, i32* @f3.i, align 4
   %inc = add nsw i32 %0, 1
