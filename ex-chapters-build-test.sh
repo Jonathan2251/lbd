@@ -16,7 +16,7 @@ else
 fi
 
 rm -rf ${TOOLDIR}/cmake_debug_build/* ${TOOLDIR}/src/lib/Target/Cpu0/*
-make genexample
+bash ./lbdex/gen-docs-ref.sh
 rm -rf output/*
 
 # Chapter 2

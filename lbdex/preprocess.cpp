@@ -278,8 +278,12 @@ int Preprocess::run(ifstream& in, ofstream& out) {
         out << line << endl;
     }
   } // while
-
-  return SUCCESS;
+  if (stack.empty()) {
+    return SUCCESS;
+  }
+  else {
+    return FAIL;
+  }
 }
 
 void Preprocess::removeSuccessiveEmptyLines(ifstream& in, ofstream& out) {
@@ -345,14 +349,18 @@ int main(int argc, char* argv[]) {
   ofstream out("tmp.txt");
 
   preprocess.currentChapterId = preprocess.getChapterId(argv[3]);
-  preprocess.run(in, out);
+  int result = preprocess.run(in, out);
   in.close();
   out.close();
+  if (result != SUCCESS) {
+    cout << "Fail!!! #if #endif not matched" << endl;
+    return FAIL;
+  }
   in.open("tmp.txt");
   out.open(argv[2]);
   preprocess.removeSuccessiveEmptyLines(in, out);
   in.close();
   out.close();
 
-  return 0;
+  return SUCCESS;
 }

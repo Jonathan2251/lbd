@@ -47,7 +47,6 @@ files="CMakeLists.txt Cpu0.h Cpu0AnalyzeImmediate.cpp Cpu0AnalyzeImmediate.h \
 
 gen_Chapter()
 {
-  fail=1;
   pushd $dest_dir
   mkdir AsmParser Disassembler InstPrinter MCTargetDesc TargetInfo
   popd
@@ -57,8 +56,10 @@ gen_Chapter()
   do
     echo "./preprocess $src_dir/$file $dest_dir/$file CH$ch"
     ./preprocess $src_dir/$file $dest_dir/$file CH$ch
+    if [ "$?" != "0" ]; then
+      return 1;
+    fi
   done
-  fail=0
 }
 
 remove_files()
@@ -342,7 +343,7 @@ do
   dest_dir=$dest_parent_dir/"Chapter"$ch
   mkdir $dest_dir
   gen_Chapter;
-  if [ ${fail} != 0 ]; then
+  if [ "$?" != "0" ]; then
     exit 1;
   fi
 done
