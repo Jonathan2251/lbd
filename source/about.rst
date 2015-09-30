@@ -63,6 +63,7 @@ Version 3.7.1, Not release yet
   Add IR blockaddress and indirectbr support.
   Correct tglobaladdr, tblockaddress, tjumptable and tglobaltlsaddr of 
   Cpu0InstrInfo.td.
+  Add stacksave and stackrestore support.
 
 Version 3.7.0, Released September 24, 2015
   Porting to lld 3.7.

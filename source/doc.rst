@@ -168,8 +168,8 @@ Then run as follows for single test case and the whole test cases on iMac.
     Expected Passes    : 1
   1-160-130-77:Cpu0 Jonathan$ ~/llvm/test/cmake_debug_build/Debug/bin/llvm-lit .
   ...
-  PASS: LLVM :: CodeGen/Cpu0/zeroreg.ll (127 of 128)
-  PASS: LLVM :: CodeGen/Cpu0/tailcall.ll (128 of 128)
+  PASS: LLVM :: CodeGen/Cpu0/zeroreg.ll (127 of 129)
+  PASS: LLVM :: CodeGen/Cpu0/tailcall.ll (128 of 129)
   ...
 
 
@@ -186,8 +186,8 @@ Run as follows for single test case and the whole test cases on Linux.
     Expected Passes    : 1
   [Gamma@localhost Cpu0]$ ~/llvm/test/cmake_debug_build/bin/llvm-lit .
   ...
-  PASS: LLVM :: CodeGen/Cpu0/zeroreg.ll (127 of 128)
-  PASS: LLVM :: CodeGen/Cpu0/tailcall.ll (128 of 128)
+  PASS: LLVM :: CodeGen/Cpu0/zeroreg.ll (127 of 129)
+  PASS: LLVM :: CodeGen/Cpu0/tailcall.ll (128 of 129)
   ...
 
 In order to understand which chapter the regression test item test for, 
@@ -318,6 +318,7 @@ Then the regression test items for Cpu0 list as follows,
   small-section-reserve-gp.ll      v              Cpu0 option -cpu0-use-small-section=true                 6
   sra1.ll                          v              ashr, -> sra                                             4
   sra2.ll                          v              ashr, -> srav                                            4
+  stacksave-restore.ll             v                                                                       9
   stacksize.ll                     v              comment in stacksize.ll                                  9
   stchar.ll                        v              load and store i16, i8                                   7
   stldst.ll                        v              register sp spill                                        9

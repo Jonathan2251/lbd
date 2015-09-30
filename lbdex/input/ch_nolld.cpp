@@ -19,6 +19,7 @@
 #include "ch9_1_4.cpp"
 #include "ch9_2_3_tailcall.cpp"
 #include "ch9_3.cpp"
+#include "ch9_3_stacksave.cpp"
 #include "ch11_2.cpp"
 
 // Test build only for the following files since it needs lld linker support.
@@ -111,6 +112,9 @@ int test_nolld()
   if (a != 120) pass = false;
   a = test_vararg();
   print_integer(a); // a = 15
+  if (a != 15) pass = false;
+  a = test_stacksaverestore(100);
+  print_integer(a); // a = 5
   if (a != 15) pass = false;
   a = test_inlineasm();
   print_integer(a); // a = 49

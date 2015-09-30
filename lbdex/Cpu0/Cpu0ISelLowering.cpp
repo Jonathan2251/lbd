@@ -199,6 +199,11 @@ Cpu0TargetLowering::Cpu0TargetLowering(const Cpu0TargetMachine &TM,
   setOperationAction(ISD::VAARG,             MVT::Other, Expand);
   setOperationAction(ISD::VACOPY,            MVT::Other, Expand);
   setOperationAction(ISD::VAEND,             MVT::Other, Expand);
+  
+  //@llvm.stacksave
+  // Use the default for now
+  setOperationAction(ISD::STACKSAVE,         MVT::Other, Expand);
+  setOperationAction(ISD::STACKRESTORE,      MVT::Other, Expand);
 #endif
 
 #if CH >= CH12_1 //6

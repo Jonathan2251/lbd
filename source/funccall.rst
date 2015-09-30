@@ -2886,6 +2886,51 @@ tested now as follows.
     .size _Z20test_longlong_shift2v, ($tmp1)-_Z20test_longlong_shift2v
 
 
+Variable sized array support
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+LLVM support variable sized arrays in C99 [#stacksave]_. The following code 
+added with this support. Set them to expand, meaning llvm uses other DAGs 
+replace them.
+
+.. rubric:: lbdex/chapters/Chapter9_3/Cpu0ISelLowering.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.cpp
+    :start-after: //@llvm.stacksave
+    :end-before: #endif
+
+.. rubric:: lbdex/input/ch9_3_stacksave.cpp
+.. literalinclude:: ../lbdex/input/ch9_3_stacksave.cpp
+    :start-after: /// start
+
+.. code-block:: bash
+  
+  JonathantekiiMac:input Jonathan$ clang -target mips-unknown-linux-gnu -c 
+  ch9_3_stacksave.cpp -emit-llvm -o ch9_3_stacksave.bc
+  JonathantekiiMac:input Jonathan$ llvm-dis ch9_3_stacksave.bc -o -
+  
+  define i32 @_Z21test_stacksaverestorej(i32 zeroext %x) #0 {
+    %1 = alloca i32, align 4
+    %2 = alloca i8*
+    %3 = alloca i32
+    store i32 %x, i32* %1, align 4
+    %4 = load i32, i32* %1, align 4
+    %5 = call i8* @llvm.stacksave()
+    store i8* %5, i8** %2
+    %6 = alloca i8, i32 %4, align 1
+    %7 = load i32, i32* %1, align 4
+    %8 = getelementptr inbounds i8, i8* %6, i32 %7
+    store i8 5, i8* %8, align 1
+    %9 = load i32, i32* %1, align 4
+    %10 = getelementptr inbounds i8, i8* %6, i32 %9
+    %11 = load i8, i8* %10, align 1
+    %12 = sext i8 %11 to i32
+    store i32 1, i32* %3
+    %13 = load i8*, i8** %2
+    call void @llvm.stackrestore(i8* %13)
+    ret i32 %12
+  }
+
+
 Summary
 -------
 
@@ -2923,4 +2968,7 @@ front end has not add any new IR for a new language.
 .. [#] http://math-atlas.sourceforge.net/devel/assembly/007-2418-003.pdf
 
 .. [#] http://developer.mips.com/clang-llvm/
+
+.. [#stacksave] http://www.llvm.org/docs/LangRef.html#llvm-stacksave-intrinsic
+
 

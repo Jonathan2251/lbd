@@ -188,15 +188,16 @@ no differences between this option and default option.
   7
   120
   15
+  5
   49
-  total cpu cycles = 41670               
+  total cpu cycles = 44580               
   RET to PC < 0, finished!
 
   JonathantekiiMac:input Jonathan$ bash build-run_backend.sh cpu032II be
   JonathantekiiMac:input Jonathan$ cd ../verilog
   JonathantekiiMac:verilog Jonathan$ ./cpu0IIs
   ...
-  total cpu cycles = 39790               
+  total cpu cycles = 42570               
   RET to PC < 0, finished!
 
 The "total cpu cycles" can be calculated in this verilog simualtor, and the 
