@@ -104,6 +104,8 @@ example code can be generated with chapter by chapter through commands as follws
 Beside chapters example code, above html and pdf of Cpu0 documents also include
 files \*.ll and \*.s in lbd/lbdex/output.
   
+.. code-block:: bash
+
   JonathantekiiMac:lbd Jonathan$ ls lbdex/output/
   ch12_eh.cpu0.s			ch12_thread_var.cpu0.pic.s	ch12_thread_var.ll
   ch12_eh.ll			ch12_thread_var.cpu0.static.s	ch4_math.s
