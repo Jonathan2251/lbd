@@ -1,4 +1,4 @@
-; RUN: llc -march=mipsel < %s | FileCheck %s
+; RUN: llc -march=cpu0el < %s | FileCheck %s
 
 declare i8* @llvm.frameaddress(i32) nounwind readnone
 
@@ -7,6 +7,5 @@ entry:
   %0 = call i8* @llvm.frameaddress(i32 0)
   ret i8* %0
 
-; CHECK:   move    $fp, $sp
-; CHECK:   or    $2, $fp, $zero
+; CHECK:   addu    $2, $zero, $fp
 }

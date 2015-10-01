@@ -238,6 +238,8 @@ protected:
   std::unique_ptr<const Cpu0TargetLowering> TLInfo;
 
 public:
+  const Cpu0ABIInfo &getABI() const;
+
   /// This constructor initializes the data members to match that
   /// of the specified triple.
   Cpu0Subtarget(const Triple &TT, const std::string &CPU, const std::string &FS,
@@ -266,21 +268,27 @@ public:
 
   bool abiUsesSoftFloat() const;
 
-  const InstrItineraryData *getInstrItineraryData() const { return &InstrItins; }
-
   unsigned stackAlignment() const { return 8; }
 
   Cpu0Subtarget &initializeSubtargetDependencies(StringRef CPU, StringRef FS,
                                                  const TargetMachine &TM);
 
-  const Cpu0InstrInfo *getInstrInfo() const { return InstrInfo.get(); }
-  const TargetFrameLowering *getFrameLowering() const {
+  const TargetSelectionDAGInfo *getSelectionDAGInfo() const override {
+    return &TSInfo;
+  }
+  const Cpu0InstrInfo *getInstrInfo() const override { return InstrInfo.get(); }
+  const TargetFrameLowering *getFrameLowering() const override {
     return FrameLowering.get();
   }
-  const Cpu0RegisterInfo *getRegisterInfo() const {
+  const Cpu0RegisterInfo *getRegisterInfo() const override {
     return &InstrInfo->getRegisterInfo();
   }
-  const Cpu0TargetLowering *getTargetLowering() const { return TLInfo.get(); }
+  const Cpu0TargetLowering *getTargetLowering() const override {
+    return TLInfo.get();
+  }
+  const InstrItineraryData *getInstrItineraryData() const override {
+    return &InstrItins;
+  }
 };
 } // End llvm namespace
 

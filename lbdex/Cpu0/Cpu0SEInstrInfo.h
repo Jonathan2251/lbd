@@ -67,8 +67,11 @@ public:
                          MachineBasicBlock::iterator II, DebugLoc DL,
                          unsigned *NewImm) const;
 private:
-  void ExpandRetLR(MachineBasicBlock &MBB, MachineBasicBlock::iterator I,
-                   unsigned Opc) const;
+  void expandRetLR(MachineBasicBlock &MBB, MachineBasicBlock::iterator I) const;
+#if CH >= CH9_3
+  void expandEhReturn(MachineBasicBlock &MBB,
+                      MachineBasicBlock::iterator I) const;
+#endif
 #endif
 };
 

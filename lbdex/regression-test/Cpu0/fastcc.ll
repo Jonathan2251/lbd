@@ -1,4 +1,4 @@
-; RUN: llc  < %s -march=mipsel | FileCheck %s 
+; RUN: llc  < %s -march=cpu0el | FileCheck %s
 
 @gi0 = external global i32
 @gi1 = external global i32
@@ -80,20 +80,6 @@
 define void @caller0() nounwind {
 entry:
 ; CHECK: caller0
-; CHECK: lw  $3
-; CHECK: lw  $24
-; CHECK: lw  $15
-; CHECK: lw  $14
-; CHECK: lw  $13
-; CHECK: lw  $12
-; CHECK: lw  $11
-; CHECK: lw  $10
-; CHECK: lw  $9
-; CHECK: lw  $8
-; CHECK: lw  $7
-; CHECK: lw  $6
-; CHECK: lw  $5
-; CHECK: lw  $4
 
   %0 = load i32, i32* @gi0, align 4
   %1 = load i32, i32* @gi1, align 4
@@ -119,20 +105,6 @@ entry:
 define internal fastcc void @callee0(i32 %a0, i32 %a1, i32 %a2, i32 %a3, i32 %a4, i32 %a5, i32 %a6, i32 %a7, i32 %a8, i32 %a9, i32 %a10, i32 %a11, i32 %a12, i32 %a13, i32 %a14, i32 %a15, i32 %a16) nounwind noinline {
 entry:
 ; CHECK: callee0
-; CHECK: sw  $4
-; CHECK: sw  $5
-; CHECK: sw  $6
-; CHECK: sw  $7
-; CHECK: sw  $8
-; CHECK: sw  $9
-; CHECK: sw  $10
-; CHECK: sw  $11
-; CHECK: sw  $12
-; CHECK: sw  $13
-; CHECK: sw  $14
-; CHECK: sw  $15
-; CHECK: sw  $24
-; CHECK: sw  $3
 
   store i32 %a0, i32* @g0, align 4
   store i32 %a1, i32* @g1, align 4
@@ -157,26 +129,6 @@ entry:
 define void @caller1(float %a0, float %a1, float %a2, float %a3, float %a4, float %a5, float %a6, float %a7, float %a8, float %a9, float %a10, float %a11, float %a12, float %a13, float %a14, float %a15, float %a16, float %a17, float %a18, float %a19, float %a20) nounwind {
 entry:
 ; CHECK: caller1
-; CHECK: lwc1  $f19
-; CHECK: lwc1  $f18
-; CHECK: lwc1  $f17
-; CHECK: lwc1  $f16
-; CHECK: lwc1  $f15
-; CHECK: lwc1  $f14
-; CHECK: lwc1  $f13
-; CHECK: lwc1  $f12
-; CHECK: lwc1  $f11
-; CHECK: lwc1  $f10
-; CHECK: lwc1  $f9
-; CHECK: lwc1  $f8
-; CHECK: lwc1  $f7
-; CHECK: lwc1  $f6
-; CHECK: lwc1  $f5
-; CHECK: lwc1  $f4
-; CHECK: lwc1  $f3
-; CHECK: lwc1  $f2
-; CHECK: lwc1  $f1
-; CHECK: lwc1  $f0
 
   %0 = load float, float* @gfa0, align 4
   %1 = load float, float* @gfa1, align 4
@@ -206,26 +158,6 @@ entry:
 define internal fastcc void @callee1(float %a0, float %a1, float %a2, float %a3, float %a4, float %a5, float %a6, float %a7, float %a8, float %a9, float %a10, float %a11, float %a12, float %a13, float %a14, float %a15, float %a16, float %a17, float %a18, float %a19, float %a20) nounwind noinline {
 entry:
 ; CHECK: callee1
-; CHECK: swc1  $f0
-; CHECK: swc1  $f1
-; CHECK: swc1  $f2
-; CHECK: swc1  $f3
-; CHECK: swc1  $f4
-; CHECK: swc1  $f5
-; CHECK: swc1  $f6
-; CHECK: swc1  $f7
-; CHECK: swc1  $f8
-; CHECK: swc1  $f9
-; CHECK: swc1  $f10
-; CHECK: swc1  $f11
-; CHECK: swc1  $f12
-; CHECK: swc1  $f13
-; CHECK: swc1  $f14
-; CHECK: swc1  $f15
-; CHECK: swc1  $f16
-; CHECK: swc1  $f17
-; CHECK: swc1  $f18
-; CHECK: swc1  $f19
 
   store float %a0, float* @gf0, align 4
   store float %a1, float* @gf1, align 4

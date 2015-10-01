@@ -20,6 +20,7 @@
 #include "ch9_2_3_tailcall.cpp"
 #include "ch9_3.cpp"
 #include "ch9_3_stacksave.cpp"
+#include "ch9_3_frame_return_addr.cpp"
 #include "ch11_2.cpp"
 
 // Test build only for the following files since it needs lld linker support.
@@ -115,7 +116,10 @@ int test_nolld()
   if (a != 15) pass = false;
   a = test_stacksaverestore(100);
   print_integer(a); // a = 5
-  if (a != 15) pass = false;
+  if (a != 5) pass = false;
+  a = test_framereturnaddress();
+  print_integer(a); // a = 0
+  if (a != 0) pass = false;
   a = test_inlineasm();
   print_integer(a); // a = 49
   if (a != 49) pass = false;
@@ -146,6 +150,8 @@ int test_nolld()
 7
 120
 15
+5
+0
 49
 ...
 RET to PC < 0, finished!

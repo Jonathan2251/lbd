@@ -36,7 +36,7 @@ public:
                                   MachineBasicBlock::iterator I) const override;
 #endif
 
-#if CH >= CH9_3
+#if CH >= CH9_1
   bool spillCalleeSavedRegisters(MachineBasicBlock &MBB,
                                  MachineBasicBlock::iterator MI,
                                  const std::vector<CalleeSavedInfo> &CSI,

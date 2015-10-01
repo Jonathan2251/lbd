@@ -85,7 +85,7 @@ unsigned Cpu0FunctionInfo::getGlobalBaseReg() {
 
 #if CH >= CH3_5
 void Cpu0FunctionInfo::createEhDataRegsFI() {
-  for (int I = 0; I < 4; ++I) {
+  for (int I = 0; I < 2; ++I) {
     const TargetRegisterClass *RC = &Cpu0::CPURegsRegClass;
 
     EhDataRegFI[I] = MF.getFrameInfo()->CreateStackObject(RC->getSize(),

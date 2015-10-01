@@ -5,7 +5,7 @@ entry:
   %0 = call i8* @llvm.returnaddress(i32 0)
   ret i8* %0
 
-; CHECK:    addiu	$2, $zero, 0
+; CHECK:    addu	$2, $zero, $lr
 }
 
 define i8* @f2() nounwind {
@@ -15,7 +15,7 @@ entry:
   ret i8* %0
 
 ; CHECK:    jalr
-; CHECK:    addiu	$2, $zero, 0
+; CHECK:    addu	$2, $zero, $lr
 }
 
 declare i8* @llvm.returnaddress(i32) nounwind readnone

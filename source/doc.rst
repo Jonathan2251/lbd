@@ -170,8 +170,8 @@ Then run as follows for single test case and the whole test cases on iMac.
     Expected Passes    : 1
   1-160-130-77:Cpu0 Jonathan$ ~/llvm/test/cmake_debug_build/Debug/bin/llvm-lit .
   ...
-  PASS: LLVM :: CodeGen/Cpu0/zeroreg.ll (127 of 129)
-  PASS: LLVM :: CodeGen/Cpu0/tailcall.ll (128 of 129)
+  PASS: LLVM :: CodeGen/Cpu0/zeroreg.ll
+  PASS: LLVM :: CodeGen/Cpu0/tailcall.ll
   ...
 
 
@@ -188,8 +188,8 @@ Run as follows for single test case and the whole test cases on Linux.
     Expected Passes    : 1
   [Gamma@localhost Cpu0]$ ~/llvm/test/cmake_debug_build/bin/llvm-lit .
   ...
-  PASS: LLVM :: CodeGen/Cpu0/zeroreg.ll (127 of 129)
-  PASS: LLVM :: CodeGen/Cpu0/tailcall.ll (128 of 129)
+  PASS: LLVM :: CodeGen/Cpu0/zeroreg.ll
+  PASS: LLVM :: CodeGen/Cpu0/tailcall.ll
   ...
 
 In order to understand which chapter the regression test item test for, 
@@ -243,9 +243,12 @@ Then the regression test items for Cpu0 list as follows,
   divu_reml.ll                     v              udiv, urem -> div, mflo, mfhi                            4
   double2int.ll                    v              double to int, -> %call16(__fixdfsi)                     7
   eh.ll                            v              c++ exception handling                                   12
+  eh-return32.ll                   v              Spill and reload all registers used for exception        9 
   ex2.ll                           v              c++ exception handling                                   12
+  fastcc.ll                        v              No effect in fastcc but can pass                         9
   fneg.ll                          v              verify Cpu0 don't uses hard float instruction            7
   fp-spill-reload.ll               v              -> st $fp, ld $fp                                        9
+  frame-address.ll                 v              addu $2, $zero, $fp                                      9
   global-address.ll                v              global address, global variable                          6
   global-pointer.ll                v              global register load and retore, -> .cpload, .cprestore  9
   gprestore.ll                     v              global register retore, -> .cprestore                    9
@@ -284,6 +287,7 @@ Then the regression test items for Cpu0 list as follows,
   rem.ll                           v              srem, -> div, mfhi                                       4
   remat-immed-load.ll              v              immediate load                                           3
   remul.ll                         v              urem, -> div, mfhi                                       4
+  return_address.ll                v              llvm.returnaddress, -> addu	$2, $zero, $lr               9
   return-vector.ll                 v              return vector, -> ld ld ..., st st ...                   3
   return-vector-float4.ll          v              return vector, -> lui lui ...                            3
   rotate.ll                        v              rotl, rotr, -> rolv, rol, rorv                           4
@@ -349,9 +353,6 @@ Cpu0 doesn't support the following test items at this point.
   2008-08-08-bswap.ll                  x              Not support llvm.bswap. The c++ STL swap didn't use it. ?
   2010-04-07-DbgValueOtherTargets.ll   x              Mips cannot pass either ?
   eh-dwraf-cfa.ll                      x
-  eh-return32.ll                       x              What is the IR of llvm.eh.return.i32? (not from c++ try & catch). 
-  eh-return64.ll                       x              Same as above.
-  fastcc.ll                            x              Fast Call. No need in Cpu0
   frame-address.ll                     x              Not support @llvm.frameaddress intrinsic function.
   init-array.ll                        x              Don't know the purpose.
   longbranch.ll                        x              Not support and not intend to support.

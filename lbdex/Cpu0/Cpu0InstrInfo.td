@@ -51,7 +51,6 @@ def Cpu0TailCall : SDNode<"Cpu0ISD::TailCall", SDT_Cpu0JmpLink,
                           [SDNPHasChain, SDNPOptInGlue, SDNPVariadic]>;
 //#endif
 
-
 //#if CH >= CH6_1 1
 // Hi and Lo nodes are used to handle global addresses. Used on
 // Cpu0ISelLowering to lower stuff like GlobalAddress, ExternalSymbol
@@ -1029,6 +1028,26 @@ let addr=0 in
 let Predicates = [Ch9_1] in {
 def TAILCALL : TailCall<JMP>;
 def TAILCALL_R : TailCallReg<GPROut, JR>;
+}
+//#endif
+
+//#if CH >= CH9_3 //3
+// Exception handling related node and instructions.
+// The conversion sequence is:
+// ISD::EH_RETURN -> Cpu0ISD::EH_RETURN ->
+// CPU0eh_return -> (stack change + indirect branch)
+//
+// CPU0eh_return takes the place of regular return instruction
+// but takes two arguments (V1, V0) which are used for storing
+// the offset and return address respectively.
+def SDT_Cpu0EHRET : SDTypeProfile<0, 2, [SDTCisInt<0>, SDTCisPtrTy<1>]>;
+
+def CPU0ehret : SDNode<"Cpu0ISD::EH_RETURN", SDT_Cpu0EHRET,
+                      [SDNPHasChain, SDNPOptInGlue, SDNPVariadic]>;
+
+let Uses = [V0, V1], isTerminator = 1, isReturn = 1, isBarrier = 1 in {
+  def CPU0eh_return32 : Cpu0Pseudo<(outs), (ins GPROut:$spoff, GPROut:$dst), "",
+                                [(CPU0ehret GPROut:$spoff, GPROut:$dst)]>;
 }
 //#endif
 

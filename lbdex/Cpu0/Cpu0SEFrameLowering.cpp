@@ -46,15 +46,19 @@ void Cpu0SEFrameLowering::emitPrologue(MachineFunction &MF,
 
   const Cpu0SEInstrInfo &TII =
     *static_cast<const Cpu0SEInstrInfo*>(STI.getInstrInfo());
+  const Cpu0RegisterInfo &RegInfo =
+      *static_cast<const Cpu0RegisterInfo *>(STI.getRegisterInfo());
 
   MachineBasicBlock::iterator MBBI = MBB.begin();
   DebugLoc dl = MBBI != MBB.end() ? MBBI->getDebugLoc() : DebugLoc();
+  Cpu0ABIInfo ABI = STI.getABI();
   unsigned SP = Cpu0::SP;
 #if CH >= CH9_3 //1
   unsigned FP = Cpu0::FP;
   unsigned ZERO = Cpu0::ZERO;
   unsigned ADDu = Cpu0::ADDu;
 #endif
+  const TargetRegisterClass *RC = &Cpu0::GPROutRegClass;
 
   // First, compute final stack size.
   uint64_t StackSize = MFI->getStackSize();
@@ -99,6 +103,28 @@ void Cpu0SEFrameLowering::emitPrologue(MachineFunction &MF,
     }
   }
 
+#if CH >= CH9_3 //1.5
+  if (Cpu0FI->callsEhReturn()) {
+    // Insert instructions that spill eh data registers.
+    for (int I = 0; I < ABI.EhDataRegSize(); ++I) {
+      if (!MBB.isLiveIn(ABI.GetEhDataReg(I)))
+        MBB.addLiveIn(ABI.GetEhDataReg(I));
+      TII.storeRegToStackSlot(MBB, MBBI, ABI.GetEhDataReg(I), false,
+                              Cpu0FI->getEhDataRegFI(I), RC, &RegInfo);
+    }
+
+    // Emit .cfi_offset directives for eh data registers.
+    for (int I = 0; I < ABI.EhDataRegSize(); ++I) {
+      int64_t Offset = MFI->getObjectOffset(Cpu0FI->getEhDataRegFI(I));
+      unsigned Reg = MRI->getDwarfRegNum(ABI.GetEhDataReg(I), true);
+      unsigned CFIIndex = MMI.addFrameInst(
+          MCCFIInstruction::createOffset(nullptr, Reg, Offset));
+      BuildMI(MBB, MBBI, dl, TII.get(TargetOpcode::CFI_INSTRUCTION))
+          .addCFIIndex(CFIIndex);
+    }
+  }
+#endif
+
 #if CH >= CH9_3 //2
   // if framepointer enabled, set it to point to the stack pointer.
   if (hasFP(MF)) {
@@ -136,9 +162,13 @@ void Cpu0SEFrameLowering::emitEpilogue(MachineFunction &MF,
   Cpu0FunctionInfo *Cpu0FI = MF.getInfo<Cpu0FunctionInfo>();
 
   const Cpu0SEInstrInfo &TII =
-    *static_cast<const Cpu0SEInstrInfo*>(MF.getSubtarget().getInstrInfo());
+      *static_cast<const Cpu0SEInstrInfo *>(STI.getInstrInfo());
+  const Cpu0RegisterInfo &RegInfo =
+      *static_cast<const Cpu0RegisterInfo *>(STI.getRegisterInfo());
+
 
   DebugLoc dl = MBBI->getDebugLoc();
+  Cpu0ABIInfo ABI = STI.getABI();
   unsigned SP = Cpu0::SP;
 #if CH >= CH9_3 //3
   unsigned FP = Cpu0::FP;
@@ -158,6 +188,23 @@ void Cpu0SEFrameLowering::emitEpilogue(MachineFunction &MF,
   }
 #endif
 
+#if CH >= CH9_3 //4
+  if (Cpu0FI->callsEhReturn()) {
+    const TargetRegisterClass *RC = &Cpu0::GPROutRegClass;
+
+    // Find first instruction that restores a callee-saved register.
+    MachineBasicBlock::iterator I = MBBI;
+    for (unsigned i = 0; i < MFI->getCalleeSavedInfo().size(); ++i)
+      --I;
+
+    // Insert instructions that restore eh data registers.
+    for (int J = 0; J < ABI.EhDataRegSize(); ++J) {
+      TII.loadRegFromStackSlot(MBB, I, ABI.GetEhDataReg(J),
+                               Cpu0FI->getEhDataRegFI(J), RC, &RegInfo);
+    }
+  }
+#endif
+
   // Get the number of bytes from FrameInfo
   uint64_t StackSize = MFI->getStackSize();
 
@@ -170,7 +217,7 @@ void Cpu0SEFrameLowering::emitEpilogue(MachineFunction &MF,
 }
 //}
 
-#if CH >= CH9_3 //4
+#if CH >= CH9_1 //1
 bool Cpu0SEFrameLowering::
 spillCalleeSavedRegisters(MachineBasicBlock &MBB,
                           MachineBasicBlock::iterator MI,
@@ -182,7 +229,7 @@ spillCalleeSavedRegisters(MachineBasicBlock &MBB,
 
   for (unsigned i = 0, e = CSI.size(); i != e; ++i) {
     // Add the callee-saved register as live-in. Do not add if the register is
-    // RA and return address is taken, because it has already been added in
+    // LR and return address is taken, because it has already been added in
     // method Cpu0TargetLowering::LowerRETURNADDR.
     // It's killed at the spill, unless the register is LR and return address
     // is taken.
@@ -245,6 +292,7 @@ static void setAliasRegs(MachineFunction &MF, BitVector &SavedRegs, unsigned Reg
 void Cpu0SEFrameLowering::determineCalleeSaves(MachineFunction &MF,
                                                BitVector &SavedRegs,
                                                RegScavenger *RS) const {
+//@determineCalleeSaves-body
   TargetFrameLowering::determineCalleeSaves(MF, SavedRegs, RS);
   Cpu0FunctionInfo *Cpu0FI = MF.getInfo<Cpu0FunctionInfo>();
   MachineRegisterInfo& MRI = MF.getRegInfo();
@@ -254,6 +302,11 @@ void Cpu0SEFrameLowering::determineCalleeSaves(MachineFunction &MF,
   // Mark $fp as used if function has dedicated frame pointer.
   if (hasFP(MF))
     setAliasRegs(MF, SavedRegs, FP);
+
+  //@callsEhReturn
+  // Create spill slots for eh data registers if function calls eh_return.
+  if (Cpu0FI->callsEhReturn())
+    Cpu0FI->createEhDataRegsFI();
 #endif
 
   if (MF.getFrameInfo()->hasCalls())

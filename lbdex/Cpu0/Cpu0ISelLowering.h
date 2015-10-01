@@ -57,6 +57,8 @@ namespace llvm {
       // Return
       Ret,
 
+      EH_RETURN,
+
       // DivRem(u)
       DivRem,
       DivRemU,
@@ -361,6 +363,9 @@ namespace llvm {
 #endif
 #if CH >= CH9_3 //2
     SDValue lowerVASTART(SDValue Op, SelectionDAG &DAG) const;
+    SDValue lowerFRAMEADDR(SDValue Op, SelectionDAG &DAG) const;
+    SDValue lowerRETURNADDR(SDValue Op, SelectionDAG &DAG) const;
+    SDValue lowerEH_RETURN(SDValue Op, SelectionDAG &DAG) const;
 #endif
 
 #if CH >= CH12_1 //3

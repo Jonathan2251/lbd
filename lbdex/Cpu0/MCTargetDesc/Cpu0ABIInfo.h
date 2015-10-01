@@ -66,6 +66,7 @@ public:
   unsigned GetNullPtr() const;
 
   unsigned GetEhDataReg(unsigned I) const;
+  int EhDataRegSize() const;
 };
 }
 

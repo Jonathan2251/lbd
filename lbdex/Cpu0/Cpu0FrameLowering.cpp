@@ -19,6 +19,7 @@
 #endif
 #include "Cpu0InstrInfo.h"
 #include "Cpu0MachineFunction.h"
+#include "Cpu0Subtarget.h"
 #include "llvm/CodeGen/MachineFrameInfo.h"
 #include "llvm/CodeGen/MachineFunction.h"
 #include "llvm/CodeGen/MachineInstrBuilder.h"
@@ -95,14 +96,17 @@ const Cpu0FrameLowering *Cpu0FrameLowering::create(const Cpu0Subtarget &ST) {
 // if frame pointer elimination is disabled.
 bool Cpu0FrameLowering::hasFP(const MachineFunction &MF) const {
   const MachineFrameInfo *MFI = MF.getFrameInfo();
+  const TargetRegisterInfo *TRI = STI.getRegisterInfo();
+
   return MF.getTarget().Options.DisableFramePointerElim(MF) ||
-      MFI->hasVarSizedObjects() || MFI->isFrameAddressTaken();
+      MFI->hasVarSizedObjects() || MFI->isFrameAddressTaken() ||
+      TRI->needsStackRealignment(MF);
 }
 
 #if CH >= CH3_4 //2
 uint64_t Cpu0FrameLowering::estimateStackSize(const MachineFunction &MF) const {
   const MachineFrameInfo *MFI = MF.getFrameInfo();
-  const TargetRegisterInfo &TRI = *MF.getSubtarget().getRegisterInfo();
+  const TargetRegisterInfo &TRI = *STI.getRegisterInfo();
 
   int64_t Offset = 0;
 

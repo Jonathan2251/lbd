@@ -125,8 +125,10 @@ public:
   unsigned getIncomingArgSize() const { return IncomingArgSize; }
 
   bool callsEhReturn() const { return CallsEhReturn; }
+  void setCallsEhReturn() { CallsEhReturn = true; }
 
   void createEhDataRegsFI();
+  int getEhDataRegFI(unsigned Reg) const { return EhDataRegFI[Reg]; }
 
   unsigned getMaxCallFrameSize() const { return MaxCallFrameSize; }
   void setMaxCallFrameSize(unsigned S) { MaxCallFrameSize = S; }
@@ -181,7 +183,7 @@ private:
   bool CallsEhReturn;
 
   /// Frame objects for spilling eh data registers.
-  int EhDataRegFI[4];
+  int EhDataRegFI[2];
 #endif
 
 #if CH >= CH9_1 //4

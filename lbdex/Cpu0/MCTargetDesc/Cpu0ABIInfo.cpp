@@ -86,4 +86,10 @@ unsigned Cpu0ABIInfo::GetEhDataReg(unsigned I) const {
   return EhDataReg[I];
 }
 
+int Cpu0ABIInfo::EhDataRegSize() const {
+  if (ThisABI == ABI::S32)
+    return 0;
+  else
+    return 2;
+}
 #endif // CH >= CH3_1

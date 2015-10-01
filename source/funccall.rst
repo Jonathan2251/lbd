@@ -598,6 +598,15 @@ instructions **swi** (Software Interrupt), **jsub** and **jalr** (function call)
     ...
   };
 
+.. rubric:: lbdex/chapters/Chapter9_1/Cpu0SEFrameLowering.h
+.. literalinclude:: ../lbdex/Cpu0/Cpu0SEFrameLowering.h
+    :start-after: #if CH >= CH9_1
+    :end-before: #endif
+
+.. rubric:: lbdex/chapters/Chapter9_1/Cpu0SEFrameLowering.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0SEFrameLowering.cpp
+    :start-after: #if CH >= CH9_1 //1
+    :end-before: #endif
 
 The JSUB and JALR defined in Cpu0InstrInfo.td as above all use Cpu0JmpLink
 node. They are distinguishable since JSUB use "imm" operand while
@@ -1808,6 +1817,11 @@ According above llvm IR, ``clang -O3`` option remove recursion into loop by
 inline the callee recursion function. This is a front end optimization through
 cross over function analysis.
 
+Cpu0 doesn't support fastcc [#callconv]_ but it can pass the fastcc keyword of 
+IR.
+Mips supports fastcc by using as more registers as possible without following
+ABI specification.
+
 
 Other features supporting
 -------------------------
@@ -2477,11 +2491,6 @@ languages use it frequently. The following C example code use it.
 
 Chapter9_3 support dynamic stack allocation with the following code added.
 
-.. rubric:: lbdex/chapters/Chapter9_3/Cpu0SEFrameLowering.h
-.. literalinclude:: ../lbdex/Cpu0/Cpu0SEFrameLowering.h
-    :start-after: #if CH >= CH9_3
-    :end-before: #endif
-
 .. rubric:: lbdex/chapters/Chapter9_3/Cpu0SEFrameLowering.cpp
 .. literalinclude:: ../lbdex/Cpu0/Cpu0SEFrameLowering.cpp
     :start-after: //@emitPrologue {
@@ -2505,8 +2514,8 @@ Chapter9_3 support dynamic stack allocation with the following code added.
     :start-after: #endif // #if CH >= CH3_5 //2
     :end-before: //}
 .. literalinclude:: ../lbdex/Cpu0/Cpu0SEFrameLowering.cpp
-    :start-after: #if CH >= CH9_3 //4
-    :end-before: #endif
+    :start-after: #if CH >= CH9_3 //5
+    :end-before: //@callsEhReturn
 
 .. rubric:: lbdex/chapters/Chapter9_3/Cpu0ISelLowering.cpp
 .. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.cpp
@@ -2895,8 +2904,18 @@ replace them.
 
 .. rubric:: lbdex/chapters/Chapter9_3/Cpu0ISelLowering.cpp
 .. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.cpp
+    :start-after: #if CH >= CH6_1 //3
+    :end-before: #if CH >= CH8_1 //6
+.. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.cpp
     :start-after: //@llvm.stacksave
     :end-before: #endif
+
+.. code-block:: c++
+
+      ...
+    }
+    ...
+  }
 
 .. rubric:: lbdex/input/ch9_3_stacksave.cpp
 .. literalinclude:: ../lbdex/input/ch9_3_stacksave.cpp
@@ -2931,20 +2950,160 @@ replace them.
   }
 
 
+frameaddress, returnaddress and eh.return support
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+I guess these llvm instinsic IRs are for exception handling implementation
+[#excepthandle]_ [#returnaddr]. With these IRs, programmer can recording the
+frame address and return address to be used in implementing program of 
+exception handler.
+
+.. rubric:: lbdex/chapters/Chapter9_3/Cpu0ISelLowering.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.cpp
+    :start-after: //@Cpu0TargetLowering {
+    :end-before: #if CH >= CH3_2
+.. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.cpp
+    :start-after: #if CH >= CH9_3 //0.5
+    :end-before: #endif
+    
+.. code-block:: c++
+
+    ...
+  }
+
+.. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.cpp
+    :start-after: #if CH >= CH6_1 //3
+    :end-before: #if CH >= CH8_1 //6
+.. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.cpp
+    :start-after: #if CH >= CH9_3 //4.5
+    :end-before: #endif
+
+.. code-block:: c++
+
+      ...
+    }
+    ...
+  }
+
+.. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.cpp
+    :start-after: #if CH >= CH9_3 //5.5
+    :end-before: #endif
+
+.. rubric:: lbdex/chapters/Chapter9_3/Cpu0SEFrameLowering.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0SEFrameLowering.cpp
+    :start-after: //@emitPrologue {
+    :end-before: #if CH >= CH3_5 //1
+.. literalinclude:: ../lbdex/Cpu0/Cpu0SEFrameLowering.cpp
+    :start-after: #if CH >= CH9_3 //1.5
+    :end-before: #endif
+    
+.. code-block:: c++
+
+    ...
+  }
+
+.. literalinclude:: ../lbdex/Cpu0/Cpu0SEFrameLowering.cpp
+    :start-after: //@emitEpilogue {
+    :end-before: #if CH >= CH3_5 //2
+.. literalinclude:: ../lbdex/Cpu0/Cpu0SEFrameLowering.cpp
+    :start-after: #if CH >= CH9_3 //4
+    :end-before: #endif
+    
+.. code-block:: c++
+
+    ...
+  }
+
+.. literalinclude:: ../lbdex/Cpu0/Cpu0SEFrameLowering.cpp
+    :start-after: //@determineCalleeSaves {
+    :end-before: //@determineCalleeSaves-body
+.. literalinclude:: ../lbdex/Cpu0/Cpu0SEFrameLowering.cpp
+    :start-after: //@callsEhReturn
+    :end-before: #endif
+    
+.. code-block:: c++
+
+    ...
+  }
+
+.. rubric:: lbdex/chapters/Chapter9_3/Cpu0InstrInfo.td
+.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td
+    :start-after: //#if CH >= CH9_3 //3
+    :end-before: //#endif
+
+.. rubric:: lbdex/chapters/Chapter9_3/Cpu0SEInstrInfo.h
+.. literalinclude:: ../lbdex/Cpu0/Cpu0SEInstrInfo.h
+    :start-after: #if CH >= CH9_3
+    :end-before: #endif
+
+.. rubric:: lbdex/chapters/Chapter9_3/Cpu0SEInstrInfo.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0SEInstrInfo.cpp
+    :start-after: //@expandPostRAPseudo
+    :end-before: //@expandPostRAPseudo-body
+.. literalinclude:: ../lbdex/Cpu0/Cpu0SEInstrInfo.cpp
+    :start-after: #if CH >= CH9_3 //1
+    :end-before: #endif
+    
+.. code-block:: c++
+
+    ...
+  }
+  
+.. literalinclude:: ../lbdex/Cpu0/Cpu0SEInstrInfo.cpp
+    :start-after: #if CH >= CH9_3 //2
+    :end-before: #endif
+
+.. rubric:: lbdex/input/ch9_3_frame_return_addr.cpp
+.. literalinclude:: ../lbdex/input/ch9_3_frame_return_addr.cpp
+    :start-after: /// start
+
+.. code-block:: bash
+
+  define i32 @_Z23test_framereturnaddressv() #0 {
+    %1 = alloca i32, align 4
+    %frameaddr = alloca i32, align 4
+    %returnaddr = alloca i32, align 4
+    %2 = call i8* @llvm.frameaddress(i32 0)
+    %3 = ptrtoint i8* %2 to i32
+    store i32 %3, i32* %frameaddr, align 4
+    %4 = call i8* @llvm.returnaddress(i32 0)
+    %5 = ptrtoint i8* %4 to i32
+    store i32 %5, i32* %returnaddr, align 4
+    %6 = load i32, i32* %frameaddr, align 4
+    %7 = call i8* @llvm.frameaddress(i32 0)
+    %8 = ptrtoint i8* %7 to i32
+    %9 = icmp eq i32 %6, %8
+    br i1 %9, label %10, label %16
+
+  ; <label>:10                                      ; preds = %0
+    %11 = load i32, i32* %returnaddr, align 4
+    %12 = call i8* @llvm.returnaddress(i32 0)
+    %13 = ptrtoint i8* %12 to i32
+    %14 = icmp eq i32 %11, %13
+    br i1 %14, label %15, label %16
+
+  ; <label>:15                                      ; preds = %10
+    store i32 0, i32* %1
+    br label %17
+
+  ; <label>:16                                      ; preds = %10, %0
+    store i32 1, i32* %1
+    br label %17
+
+  ; <label>:17                                      ; preds = %16, %15
+    %18 = load i32, i32* %1
+    ret i32 %18
+  }
+
+
 Summary
 -------
-
-Until now, we have 6,000 lines of source code around in the end of this chapter. 
-The cpu0 backend code now can take care the integer function call and control 
+ 
+Now, Cpu0 backend code now can take care the integer function call and control 
 statement just like the llvm front end tutorial example code. 
-Look back the chapter of “Back end structure”, there are 3,100 lines of source 
-code with taking three instructions only. 
-With this 95% more of code, it can translate tens of instructions, global 
-variable, control flow statement and function call.
-Now the cpu0 backend is not just a toy. 
-It can translate some of the C++ OOP language into Cpu0 instructions without 
-much effort in backend.
-Because the most complex things in language, such as C++ syntex, is handled by 
+It can translate some of the C++ OOP language into Cpu0 instructions also 
+without much effort in backend,
+because the most complex things in language, such as C++ syntex, is handled by 
 front end. 
 LLVM is a real structure following the compiler theory, any backend of LLVM can 
 benefit from this structure.
@@ -2965,10 +3124,16 @@ front end has not add any new IR for a new language.
 
 .. [#] http://llvm.org/docs/CodeGenerator.html#tail-call-optimization
 
+.. [#callconv] http://llvm.org/docs/LangRef.html#calling-conventions
+
 .. [#] http://math-atlas.sourceforge.net/devel/assembly/007-2418-003.pdf
 
 .. [#] http://developer.mips.com/clang-llvm/
 
 .. [#stacksave] http://www.llvm.org/docs/LangRef.html#llvm-stacksave-intrinsic
+
+.. [#excepthandle] http://llvm.org/docs/ExceptionHandling.html#overview
+
+.. [#returnaddr] http://llvm.org/docs/LangRef.html#llvm-returnaddress-intrinsic
 
 

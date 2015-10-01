@@ -101,7 +101,7 @@ storeRegToStack(MachineBasicBlock &MBB, MachineBasicBlock::iterator I,
   Opc = Cpu0::ST;
   assert(Opc && "Register class not handled!");
   BuildMI(MBB, I, DL, get(Opc)).addReg(SrcReg, getKillRegState(isKill))
-    .addFrameIndex(FI).addImm(0).addMemOperand(MMO);
+    .addFrameIndex(FI).addImm(Offset).addMemOperand(MMO);
 }
 
 void Cpu0SEInstrInfo::
@@ -115,20 +115,26 @@ loadRegFromStack(MachineBasicBlock &MBB, MachineBasicBlock::iterator I,
 
   Opc = Cpu0::LD;
   assert(Opc && "Register class not handled!");
-  BuildMI(MBB, I, DL, get(Opc), DestReg).addFrameIndex(FI).addImm(0)
+  BuildMI(MBB, I, DL, get(Opc), DestReg).addFrameIndex(FI).addImm(Offset)
     .addMemOperand(MMO);
 }
 
-// Cpu0SEInstrInfo::expandPostRAPseudo
+//@expandPostRAPseudo
 /// Expand Pseudo instructions into real backend instructions
 bool Cpu0SEInstrInfo::expandPostRAPseudo(MachineBasicBlock::iterator MI) const {
+//@expandPostRAPseudo-body
   MachineBasicBlock &MBB = *MI->getParent();
 
   switch(MI->getDesc().getOpcode()) {
   default:
     return false;
   case Cpu0::RetLR:
-    ExpandRetLR(MBB, MI, Cpu0::RET);
+    expandRetLR(MBB, MI);
+    break;
+#if CH >= CH9_3 //1
+  case Cpu0::CPU0eh_return32:
+    expandEhReturn(MBB, MI);
+#endif
     break;
   }
 
@@ -192,12 +198,41 @@ Cpu0SEInstrInfo::loadImmediate(int64_t Imm, MachineBasicBlock &MBB,
   return ATReg;
 }
 
-void Cpu0SEInstrInfo::ExpandRetLR(MachineBasicBlock &MBB,
-                                MachineBasicBlock::iterator I,
-                                unsigned Opc) const {
-  BuildMI(MBB, I, I->getDebugLoc(), get(Opc)).addReg(Cpu0::LR);
+void Cpu0SEInstrInfo::expandRetLR(MachineBasicBlock &MBB,
+                                MachineBasicBlock::iterator I) const {
+  BuildMI(MBB, I, I->getDebugLoc(), get(Cpu0::RET)).addReg(Cpu0::LR);
 }
 #endif //2 CH >= CH3_4
+
+#if CH >= CH9_3 //2
+void Cpu0SEInstrInfo::expandEhReturn(MachineBasicBlock &MBB,
+                                     MachineBasicBlock::iterator I) const {
+  // This pseudo instruction is generated as part of the lowering of
+  // ISD::EH_RETURN. We convert it to a stack increment by OffsetReg, and
+  // indirect jump to TargetReg
+  unsigned ADDU = Cpu0::ADDu;
+  unsigned SP = Cpu0::SP;
+  unsigned LR = Cpu0::LR;
+  unsigned T9 = Cpu0::T9;
+  unsigned ZERO = Cpu0::ZERO;
+  unsigned OffsetReg = I->getOperand(0).getReg();
+  unsigned TargetReg = I->getOperand(1).getReg();
+
+  // addu $lr, $v0, $zero
+  // addu $sp, $sp, $v1
+  // jr   $lr (via RetLR)
+  const TargetMachine &TM = MBB.getParent()->getTarget();
+  if (TM.getRelocationModel() == Reloc::PIC_)
+    BuildMI(MBB, I, I->getDebugLoc(), get(ADDU), T9)
+        .addReg(TargetReg)
+        .addReg(ZERO);
+  BuildMI(MBB, I, I->getDebugLoc(), get(ADDU), LR)
+      .addReg(TargetReg)
+      .addReg(ZERO);
+  BuildMI(MBB, I, I->getDebugLoc(), get(ADDU), SP).addReg(SP).addReg(OffsetReg);
+  expandRetLR(MBB, I);
+}
+#endif
 
 const Cpu0InstrInfo *llvm::createCpu0SEInstrInfo(const Cpu0Subtarget &STI) {
   return new Cpu0SEInstrInfo(STI);

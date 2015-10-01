@@ -89,6 +89,7 @@ const char *Cpu0TargetLowering::getTargetNodeName(unsigned Opcode) const {
   case Cpu0ISD::Lo:                return "Cpu0ISD::Lo";
   case Cpu0ISD::GPRel:             return "Cpu0ISD::GPRel";
   case Cpu0ISD::Ret:               return "Cpu0ISD::Ret";
+  case Cpu0ISD::EH_RETURN:         return "Cpu0ISD::EH_RETURN";
   case Cpu0ISD::DivRem:            return "Cpu0ISD::DivRem";
   case Cpu0ISD::DivRemU:           return "Cpu0ISD::DivRemU";
   case Cpu0ISD::Wrapper:           return "Cpu0ISD::Wrapper";
@@ -147,6 +148,9 @@ Cpu0TargetLowering::Cpu0TargetLowering(const Cpu0TargetMachine &TM,
 #endif
 #if CH >= CH8_1 //4
   setOperationAction(ISD::BRCOND,             MVT::Other, Custom);
+#endif
+#if CH >= CH9_3 //0.5
+  setOperationAction(ISD::EH_RETURN, MVT::Other, Custom);
 #endif
 #if CH >= CH9_3 //1
   setOperationAction(ISD::VASTART,            MVT::Other, Custom);
@@ -318,6 +322,11 @@ LowerOperation(SDValue Op, SelectionDAG &DAG) const
 #if CH >= CH9_3 //4
   case ISD::VASTART:            return lowerVASTART(Op, DAG);
 #endif //#if CH >= CH9_3 //4
+#if CH >= CH9_3 //4.5
+  case ISD::FRAMEADDR:          return lowerFRAMEADDR(Op, DAG);
+  case ISD::RETURNADDR:         return lowerRETURNADDR(Op, DAG);
+  case ISD::EH_RETURN:          return lowerEH_RETURN(Op, DAG);
+#endif //#if CH >= CH9_3 //4.5
 #if CH >= CH12_1 //7
   case ISD::ATOMIC_FENCE:       return lowerATOMIC_FENCE(Op, DAG);
 #endif //#if CH >= CH12_1 //7
@@ -1067,6 +1076,71 @@ SDValue Cpu0TargetLowering::lowerVASTART(SDValue Op, SelectionDAG &DAG) const {
   const Value *SV = cast<SrcValueSDNode>(Op.getOperand(2))->getValue();
   return DAG.getStore(Op.getOperand(0), DL, FI, Op.getOperand(1),
                       MachinePointerInfo(SV), false, false, 0);
+}
+#endif
+
+#if CH >= CH9_3 //5.5
+SDValue Cpu0TargetLowering::
+lowerFRAMEADDR(SDValue Op, SelectionDAG &DAG) const {
+  // check the depth
+  assert((cast<ConstantSDNode>(Op.getOperand(0))->getZExtValue() == 0) &&
+         "Frame address can only be determined for current frame.");
+
+  MachineFrameInfo *MFI = DAG.getMachineFunction().getFrameInfo();
+  MFI->setFrameAddressIsTaken(true);
+  EVT VT = Op.getValueType();
+  SDLoc DL(Op);
+  SDValue FrameAddr = DAG.getCopyFromReg(
+      DAG.getEntryNode(), DL, Cpu0::FP, VT);
+  return FrameAddr;
+}
+
+SDValue Cpu0TargetLowering::lowerRETURNADDR(SDValue Op,
+                                            SelectionDAG &DAG) const {
+  if (verifyReturnAddressArgumentIsConstant(Op, DAG))
+    return SDValue();
+
+  // check the depth
+  assert((cast<ConstantSDNode>(Op.getOperand(0))->getZExtValue() == 0) &&
+         "Return address can be determined only for current frame.");
+
+  MachineFunction &MF = DAG.getMachineFunction();
+  MachineFrameInfo *MFI = MF.getFrameInfo();
+  MVT VT = Op.getSimpleValueType();
+  unsigned LR = Cpu0::LR;
+  MFI->setReturnAddressIsTaken(true);
+
+  // Return RA, which contains the return address. Mark it an implicit live-in.
+  unsigned Reg = MF.addLiveIn(LR, getRegClassFor(VT));
+  return DAG.getCopyFromReg(DAG.getEntryNode(), SDLoc(Op), Reg, VT);
+}
+
+// An EH_RETURN is the result of lowering llvm.eh.return which in turn is
+// generated from __builtin_eh_return (offset, handler)
+// The effect of this is to adjust the stack pointer by "offset"
+// and then branch to "handler".
+SDValue Cpu0TargetLowering::lowerEH_RETURN(SDValue Op, SelectionDAG &DAG)
+                                                                     const {
+  MachineFunction &MF = DAG.getMachineFunction();
+  Cpu0FunctionInfo *Cpu0FI = MF.getInfo<Cpu0FunctionInfo>();
+
+  Cpu0FI->setCallsEhReturn();
+  SDValue Chain     = Op.getOperand(0);
+  SDValue Offset    = Op.getOperand(1);
+  SDValue Handler   = Op.getOperand(2);
+  SDLoc DL(Op);
+  EVT Ty = MVT::i32;
+
+  // Store stack offset in V1, store jump target in V0. Glue CopyToReg and
+  // EH_RETURN nodes, so that instructions are emitted back-to-back.
+  unsigned OffsetReg = Cpu0::V1;
+  unsigned AddrReg = Cpu0::V0;
+  Chain = DAG.getCopyToReg(Chain, DL, OffsetReg, Offset, SDValue());
+  Chain = DAG.getCopyToReg(Chain, DL, AddrReg, Handler, Chain.getValue(1));
+  return DAG.getNode(Cpu0ISD::EH_RETURN, DL, MVT::Other, Chain,
+                     DAG.getRegister(OffsetReg, Ty),
+                     DAG.getRegister(AddrReg, getPointerTy(MF.getDataLayout())),
+                     Chain.getValue(1));
 }
 #endif
 
