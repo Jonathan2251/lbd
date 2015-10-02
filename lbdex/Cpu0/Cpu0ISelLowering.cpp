@@ -107,8 +107,6 @@ Cpu0TargetLowering::Cpu0TargetLowering(const Cpu0TargetMachine &TM,
     : TargetLowering(TM), Subtarget(STI), ABI(TM.getABI()) {
 
 #if CH >= CH3_2
-  // Set up the register classes
-  addRegisterClass(MVT::i32, &Cpu0::CPURegsRegClass);
 
 #if CH >= CH7_1 //1
   // Cpu0 does not have i1 type, so use i32 for

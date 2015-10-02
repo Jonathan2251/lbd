@@ -50,12 +50,12 @@ Cpu0RegisterInfo::getPointerRegClass(const MachineFunction &MF,
 // def CSR_O32 : CalleeSavedRegs<(add LR, FP,
 //                                   (sequence "S%u", 2, 0))>;
 // llc create CSR_O32_SaveList and CSR_O32_RegMask from above defined.
-const uint16_t* Cpu0RegisterInfo::
-getCalleeSavedRegs(const MachineFunction *MF) const {
+const MCPhysReg *
+Cpu0RegisterInfo::getCalleeSavedRegs(const MachineFunction *MF) const {
   return CSR_O32_SaveList;
 }
 
-const uint32_t*
+const uint32_t *
 Cpu0RegisterInfo::getCallPreservedMask(const MachineFunction &MF,
                                        CallingConv::ID) const {
   return CSR_O32_RegMask; 

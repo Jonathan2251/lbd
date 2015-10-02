@@ -2949,6 +2949,10 @@ replace them.
     ret i32 %12
   }
 
+  JonathantekiiMac:input Jonathan$ ~/llvm/test/cmake_debug_build/Debug/bin/llc 
+  -march=cpu0 -mcpu=cpu032I -relocation-model=static -filetype=asm 
+  ch9_3_stacksave.bc -o -
+  ...
 
 frameaddress, returnaddress and eh.return support
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -3059,6 +3063,11 @@ exception handler.
 
 .. code-block:: bash
 
+  JonathantekiiMac:input Jonathan$ clang -target mips-unknown-linux-gnu -c 
+  ch9_3_frame_return_addr.cpp -emit-llvm -o ch9_3_frame_return_addr.bc
+  JonathantekiiMac:input Jonathan$ llvm-dis ch9_3_frame_return_addr.bc -o -
+
+  ...
   define i32 @_Z23test_framereturnaddressv() #0 {
     %1 = alloca i32, align 4
     %frameaddr = alloca i32, align 4
@@ -3094,6 +3103,132 @@ exception handler.
     %18 = load i32, i32* %1
     ret i32 %18
   }
+
+  JonathantekiiMac:input Jonathan$ ~/llvm/test/cmake_debug_build/Debug/bin/llc 
+  -march=cpu0 -mcpu=cpu032I -relocation-model=static -filetype=asm 
+  ch9_3_frame_return_addr.bc -o -
+  ...
+
+.. rubric:: lbdex/input/ch9_3_eh_return.cpp
+.. literalinclude:: ../lbdex/input/ch9_3_eh_return.cpp
+    :start-after: /// start
+
+.. code-block:: bash
+
+  JonathantekiiMac:input Jonathan$ clang -target mips-unknown-linux-gnu -c 
+  ch9_3_eh_return.cpp -emit-llvm -o ch9_3_eh_return.bc
+  JonathantekiiMac:input Jonathan$ llvm-dis ch9_3_eh_return.bc -o -
+
+  ...
+  ; Function Attrs: nounwind
+  define i32 @_Z17exception_handlerv() #0 {
+    ret i32 3
+  }
+
+  define weak i32 @_Z13test_ehreturnv() #1 {
+    %1 = alloca i32, align 4
+    %handler = alloca i8*, align 4
+    store i8* bitcast (i32 ()* @_Z17exception_handlerv to i8*), i8** %handler, align 4
+    %2 = load i8*, i8** %handler, align 4
+    call void @llvm.eh.return.i32(i32 0, i8* %2)
+    unreachable
+                                                    ; No predecessors!
+    %4 = load i32, i32* %1
+    ret i32 %4
+  }
+
+  ; Function Attrs: nounwind
+  declare void @llvm.eh.return.i32(i32, i8*) #2
+
+  attributes #0 = { nounwind "disable-tail-calls"="false" ... }
+  attributes #1 = { "disable-tail-calls"="false" ... }
+  attributes #2 = { nounwind }
+
+  JonathantekiiMac:input Jonathan$ ~/llvm/test/cmake_debug_build/Debug/bin/llc 
+  -march=cpu0 -mcpu=cpu032I -relocation-model=static -filetype=asm 
+  ch9_3_eh_return.bc -o -
+  ...
+    .text
+    .section .mdebug.abiO32
+    .previous
+    .file "ch9_3_eh_return.bc"
+    .globl  _Z17exception_handlerv
+    .align  2
+    .type _Z17exception_handlerv,@function
+    .ent  _Z17exception_handlerv  # @_Z17exception_handlerv
+  _Z17exception_handlerv:
+    .frame  $fp,8,$lr
+    .mask   0x00001000,-4
+    .set  noreorder
+    .set  nomacro
+  # BB#0:
+    addiu $sp, $sp, -8
+    st  $fp, 4($sp)             # 4-byte Folded Spill
+    move   $fp, $sp
+    addiu $2, $zero, 3
+    move   $sp, $fp
+    ld  $fp, 4($sp)             # 4-byte Folded Reload
+    addiu $sp, $sp, 8
+    ret $lr
+    nop
+    .set  macro
+    .set  reorder
+    .end  _Z17exception_handlerv
+  $func_end0:
+    .size _Z17exception_handlerv, ($func_end0)-_Z17exception_handlerv
+
+    .weak _Z13test_ehreturnv
+    .align  2
+    .type _Z13test_ehreturnv,@function
+    .ent  _Z13test_ehreturnv      # @_Z13test_ehreturnv
+  _Z13test_ehreturnv:
+    .cfi_startproc
+    .frame  $fp,24,$lr
+    .mask   0x00001000,-4
+    .set  noreorder
+    .cpload $t9
+    .set  nomacro
+  # BB#0:
+    addiu $sp, $sp, -24
+  $tmp0:
+    .cfi_def_cfa_offset 24
+    st  $fp, 20($sp)            # 4-byte Folded Spill
+  $tmp1:
+    .cfi_offset 12, -4
+    st  $4, 8($fp)
+    st  $5, 4($fp)
+  $tmp2:
+    .cfi_offset 4, -16
+  $tmp3:
+    .cfi_offset 5, -20
+    move   $fp, $sp
+  $tmp4:
+    .cfi_def_cfa_register 12
+    lui $2, %got_hi(_Z17exception_handlerv)
+    addu  $2, $2, $gp
+    ld  $2, %got_lo(_Z17exception_handlerv)($2)
+    st  $2, 12($fp)
+    addiu $3, $zero, 0
+    move   $sp, $fp
+    ld  $4, 8($fp)
+    ld  $5, 4($fp)
+    ld  $fp, 20($sp)            # 4-byte Folded Reload
+    addiu $sp, $sp, 24
+    move   $t9, $2
+    move   $lr, $2
+    addu  $sp, $sp, $3
+    ret $lr
+    nop
+    .set  macro
+    .set  reorder
+    .end  _Z13test_ehreturnv
+  $func_end1:
+    .size _Z13test_ehreturnv, ($func_end1)-_Z13test_ehreturnv
+    .cfi_endproc
+
+If you disable "__attribute__ ((weak))" in the c file, then the IR will has
+"nounwind" in attributes \#0. The side effect in asm output is "No .cfi_offset
+issued".
 
 
 Summary

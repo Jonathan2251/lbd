@@ -168,24 +168,24 @@ The following table details the cpu032I instruction set:
     - Store byte
     - SB Ra, [Rb+Cx]
     - [Rb+Cx] <= (byte)Ra
-  * - A
+  * - L
     - LH
     - 06
     - Load half word
     - LH Ra, [Rb+Cx]
     - Ra <= (2bytes)[Rb+Cx] [#lb-note]_
-  * - A
+  * - L
     - LHu
     - 07
     - Load half word unsigned
     - LHu Ra, [Rb+Cx]
     - Ra <= (2bytes)[Rb+Cx] [#lb-note]_
-  * - A
+  * - L
     - SH
     - 08
     - Store half word
     - SH Ra, [Rb+Cx]
-    - [Rb+Rc] <= Ra
+    - [Rb+Cx] <= Ra
   * - L
     - ADDiu
     - 09

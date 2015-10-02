@@ -11,8 +11,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef CPU0SEISELLOWERING_H
-#define CPU0SEISELLOWERING_H
+#ifndef LLVM_LIB_TARGET_CPU0_CPU0SEISELLOWERING_H
+#define LLVM_LIB_TARGET_CPU0_CPU0SEISELLOWERING_H
 
 #include "Cpu0Config.h"
 #if CH >= CH3_1

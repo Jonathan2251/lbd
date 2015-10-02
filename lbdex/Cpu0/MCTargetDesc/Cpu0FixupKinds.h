@@ -7,8 +7,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef LLVM_CPU0_CPU0FIXUPKINDS_H
-#define LLVM_CPU0_CPU0FIXUPKINDS_H
+#ifndef LLVM_LIB_TARGET_CPU0_MCTARGETDESC_CPU0FIXUPKINDS_H
+#define LLVM_LIB_TARGET_CPU0_MCTARGETDESC_CPU0FIXUPKINDS_H
 
 #include "Cpu0Config.h"
 #if CH >= CH5_1
@@ -35,7 +35,7 @@ namespace Cpu0 {
     // Pure lower 16 bit fixup resulting in - R_CPU0_LO16.
     fixup_Cpu0_LO16,
 
-    // Pure lower 16 bit fixup resulting in - R_CPU0_GPREL16.
+    // 16 bit fixup for GP offest resulting in - R_CPU0_GPREL16.
     fixup_Cpu0_GPREL16,
 
     // Global symbol fixup resulting in - R_CPU0_GOT16.

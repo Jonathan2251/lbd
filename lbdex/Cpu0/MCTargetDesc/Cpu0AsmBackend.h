@@ -12,15 +12,15 @@
 //===----------------------------------------------------------------------===//
 //
 
-#ifndef CPU0ASMBACKEND_H
-#define CPU0ASMBACKEND_H
+#ifndef LLVM_LIB_TARGET_CPU0_MCTARGETDESC_CPU0ASMBACKEND_H
+#define LLVM_LIB_TARGET_CPU0_MCTARGETDESC_CPU0ASMBACKEND_H
 
 #include "Cpu0Config.h"
 #if CH >= CH5_1
 
 #include "MCTargetDesc/Cpu0FixupKinds.h"
-#include "llvm/MC/MCAsmBackend.h"
 #include "llvm/ADT/Triple.h"
+#include "llvm/MC/MCAsmBackend.h"
 
 namespace llvm {
 
@@ -34,8 +34,8 @@ class Cpu0AsmBackend : public MCAsmBackend {
   bool IsLittle; // Big or little endian
 
 public:
-  Cpu0AsmBackend(const Target &T, Triple::OSType _OSType, bool _isLittle)
-      : MCAsmBackend(), OSType(_OSType), IsLittle(_isLittle) {}
+  Cpu0AsmBackend(const Target &T, Triple::OSType _OSType, bool IsLittle)
+      : MCAsmBackend(), OSType(_OSType), IsLittle(IsLittle) {}
 
   MCObjectWriter *createObjectWriter(raw_pwrite_stream &OS) const override;
 

@@ -11,8 +11,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef CPU0_MACHINE_FUNCTION_INFO_H
-#define CPU0_MACHINE_FUNCTION_INFO_H
+#ifndef LLVM_LIB_TARGET_CPU0_CPU0MACHINEFUNCTION_H
+#define LLVM_LIB_TARGET_CPU0_CPU0MACHINEFUNCTION_H
 
 #include "Cpu0Config.h"
 #if CH >= CH3_1
@@ -36,7 +36,7 @@ namespace llvm {
 /// resolved by lazy-binding.
 class Cpu0CallEntry : public PseudoSourceValue {
 public:
-  explicit Cpu0CallEntry(const StringRef &N);
+  explicit Cpu0CallEntry(StringRef N);
   explicit Cpu0CallEntry(const GlobalValue *V);
   bool isConstant(const MachineFrameInfo *) const override;
   bool isAliased(const MachineFrameInfo *) const override;
@@ -141,7 +141,7 @@ public:
 #if CH >= CH9_2
   /// \brief Create a MachinePointerInfo that has a Cpu0CallEntr object
   /// representing a GOT entry for an external function.
-  MachinePointerInfo callPtrInfo(const StringRef &Name);
+  MachinePointerInfo callPtrInfo(StringRef Name);
 
   /// \brief Create a MachinePointerInfo that has a Cpu0CallEntr object
   /// representing a GOT entry for a global function.
@@ -207,8 +207,9 @@ private:
   unsigned MaxCallFrameSize;
 
   /// Cpu0CallEntry maps.
-  StringMap<const Cpu0CallEntry *> ExternalCallEntries;
-  ValueMap<const GlobalValue *, const Cpu0CallEntry *> GlobalCallEntries;
+  StringMap<std::unique_ptr<const Cpu0CallEntry>> ExternalCallEntries;
+  ValueMap<const GlobalValue *, std::unique_ptr<const Cpu0CallEntry>>
+      GlobalCallEntries;
 };
 //@1 }
 

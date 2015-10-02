@@ -11,8 +11,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef CPU0SUBTARGET_H
-#define CPU0SUBTARGET_H
+#ifndef LLVM_LIB_TARGET_CPU0_CPU0SUBTARGET_H
+#define LLVM_LIB_TARGET_CPU0_CPU0SUBTARGET_H
 
 #include "Cpu0Config.h"
 #if CH >= CH3_1

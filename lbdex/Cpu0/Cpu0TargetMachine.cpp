@@ -14,6 +14,7 @@
 #include "Cpu0TargetMachine.h"
 #include "Cpu0.h"
 #if CH >= CH3_1
+#include "Cpu0SEISelDAGToDAG.h"
 #include "Cpu0Subtarget.h"
 #include "Cpu0TargetObjectFile.h"
 #endif
@@ -69,12 +70,11 @@ static std::string computeDataLayout(const Triple &TT, StringRef CPU,
 // offset from the stack/frame pointer, using StackGrowsUp enables
 // an easier handling.
 // Using CodeModel::Large enables different CALL behavior.
-Cpu0TargetMachine::
-Cpu0TargetMachine(const Target &T, const Triple &TT,
-                  StringRef CPU, StringRef FS, const TargetOptions &Options,
-                  Reloc::Model RM, CodeModel::Model CM,
-                  CodeGenOpt::Level OL,
-                  bool isLittle)
+Cpu0TargetMachine::Cpu0TargetMachine(const Target &T, const Triple &TT,
+                                     StringRef CPU, StringRef FS,
+                                     const TargetOptions &Options,
+                                     Reloc::Model RM, CodeModel::Model CM,
+                                     CodeGenOpt::Level OL, bool isLittle)
   //- Default is big endian
     : LLVMTargetMachine(T, computeDataLayout(TT, CPU, Options, isLittle), TT,
                         CPU, FS, Options, RM, CM, OL),
@@ -95,7 +95,7 @@ Cpu0ebTargetMachine::Cpu0ebTargetMachine(const Target &T, const Triple &TT,
                                          const TargetOptions &Options,
                                          Reloc::Model RM, CodeModel::Model CM,
                                          CodeGenOpt::Level OL)
-  : Cpu0TargetMachine(T, TT, CPU, FS, Options, RM, CM, OL, false) {}
+    : Cpu0TargetMachine(T, TT, CPU, FS, Options, RM, CM, OL, false) {}
 
 void Cpu0elTargetMachine::anchor() { }
 
@@ -104,8 +104,7 @@ Cpu0elTargetMachine::Cpu0elTargetMachine(const Target &T, const Triple &TT,
                                          const TargetOptions &Options,
                                          Reloc::Model RM, CodeModel::Model CM,
                                          CodeGenOpt::Level OL)
-  : Cpu0TargetMachine(T, TT, CPU, FS, Options, RM, CM, OL, true) {}
-
+    : Cpu0TargetMachine(T, TT, CPU, FS, Options, RM, CM, OL, true) {}
 
 const Cpu0Subtarget *
 Cpu0TargetMachine::getSubtargetImpl(const Function &F) const {
@@ -152,14 +151,14 @@ public:
 #if CH >= CH3_3 //1
   bool addInstSelector() override;
 #endif
+#if CH >= CH8_2 //1
+  void addPreEmitPass() override;
+#endif
 #if CH >= CH9_3 //1
 #ifdef ENABLE_GPRESTORE
   void addPreRegAlloc() override;
 #endif
 #endif //#if CH >= CH9_3 //1
-#if CH >= CH8_2 //1
-  void addPreEmitPass() override;
-#endif
 };
 } // namespace
 
@@ -178,7 +177,7 @@ void Cpu0PassConfig::addIRPasses() {
 // Install an instruction selector pass using
 // the ISelDag to gen Cpu0 code.
 bool Cpu0PassConfig::addInstSelector() {
-  addPass(createCpu0ISelDag(getCpu0TargetMachine()));
+  addPass(createCpu0SEISelDag(getCpu0TargetMachine()));
   return false;
 }
 #endif

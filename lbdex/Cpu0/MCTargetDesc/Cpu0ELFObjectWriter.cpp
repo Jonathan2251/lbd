@@ -28,7 +28,7 @@ namespace {
   public:
     Cpu0ELFObjectWriter(uint8_t OSABI);
 
-    virtual ~Cpu0ELFObjectWriter();
+    ~Cpu0ELFObjectWriter() override;
 
     unsigned GetRelocType(const MCValue &Target, const MCFixup &Fixup,
                           bool IsPCRel) const override;

@@ -30,8 +30,8 @@ using namespace llvm;
 #include "Cpu0GenAsmWriter.inc"
 
 void Cpu0InstPrinter::printRegName(raw_ostream &OS, unsigned RegNo) const {
-//- getRegisterName(RegNo) defined in Cpu0GenAsmWriter.inc which came from 
-//   Cpu0.td indicate.
+//- getRegisterName(RegNo) defined in Cpu0GenAsmWriter.inc which indicate in 
+//   Cpu0.td.
   OS << '$' << StringRef(getRegisterName(RegNo)).lower();
 }
 
@@ -48,7 +48,8 @@ void Cpu0InstPrinter::printInst(const MCInst *MI, raw_ostream &O,
 }
 
 //@printExpr {
-static void printExpr(const MCExpr *Expr, raw_ostream &OS) {
+static void printExpr(const MCExpr *Expr, const MCAsmInfo *MAI,
+                      raw_ostream &OS) {
 //@printExpr body {
   int Offset = 0;
   const MCSymbolRefExpr *SRE;
@@ -95,7 +96,7 @@ static void printExpr(const MCExpr *Expr, raw_ostream &OS) {
 #endif
   }
 
-  OS << SRE->getSymbol();
+  SRE->getSymbol().print(OS, MAI);
 
   if (Offset) {
     if (Offset > 0)
@@ -124,7 +125,7 @@ void Cpu0InstPrinter::printOperand(const MCInst *MI, unsigned OpNo,
   }
 
   assert(Op.isExpr() && "unknown operand kind in printOperand");
-  printExpr(Op.getExpr(), O);
+  printExpr(Op.getExpr(), &MAI, O);
 }
 
 void Cpu0InstPrinter::printUnsignedImm(const MCInst *MI, int opNum,

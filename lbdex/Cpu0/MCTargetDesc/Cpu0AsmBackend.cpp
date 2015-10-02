@@ -1,4 +1,4 @@
-//===-- Cpu0ASMBackend.cpp - Cpu0 Asm Backend  ----------------------------===//
+//===-- Cpu0AsmBackend.cpp - Cpu0 Asm Backend  ----------------------------===//
 //
 //                     The LLVM Compiler Infrastructure
 //
@@ -7,7 +7,7 @@
 //
 //===----------------------------------------------------------------------===//
 //
-// This file implements the Cpu0AsmBackend and Cpu0ELFObjectWriter classes.
+// This file implements the Cpu0AsmBackend class.
 //
 //===----------------------------------------------------------------------===//
 //
@@ -79,7 +79,7 @@ Cpu0AsmBackend::createObjectWriter(raw_pwrite_stream &OS) const {
     MCELFObjectTargetWriter::getOSABI(OSType), IsLittle);
 }
 
-/// ApplyFixup - Apply the \arg Value for given \arg Fixup into the provided
+/// ApplyFixup - Apply the \p Value for given \p Fixup into the provided
 /// data fragment, at the offset specified by the fixup and following the
 /// fixup kind as appropriate.
 void Cpu0AsmBackend::applyFixup(const MCFixup &Fixup, char *Data,
@@ -112,7 +112,8 @@ void Cpu0AsmBackend::applyFixup(const MCFixup &Fixup, char *Data,
     CurVal |= (uint64_t)((uint8_t)Data[Offset + Idx]) << (i*8);
   }
 
-  uint64_t Mask = ((uint64_t)(-1) >> (64 - getFixupKindInfo(Kind).TargetSize));
+  uint64_t Mask = ((uint64_t)(-1) >>
+                    (64 - getFixupKindInfo(Kind).TargetSize));
   CurVal |= Value & Mask;
 
   // Write out the fixed up bytes back to the code/data bits.

@@ -11,8 +11,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef CPU0SEINSTRUCTIONINFO_H
-#define CPU0SEINSTRUCTIONINFO_H
+#ifndef LLVM_LIB_TARGET_CPU0_CPU0SEINSTRINFO_H
+#define LLVM_LIB_TARGET_CPU0_CPU0SEINSTRINFO_H
 
 #include "Cpu0Config.h"
 #if CH >= CH3_1

@@ -18,25 +18,23 @@
 #include "Cpu0MachineFunction.h"
 #include "Cpu0RegisterInfo.h"
 #include "Cpu0SEISelDAGToDAG.h"
-#include "Cpu0Subtarget.h"
 #include "Cpu0TargetMachine.h"
-#include "MCTargetDesc/Cpu0BaseInfo.h"
+#include "llvm/CodeGen/MachineConstantPool.h"
+#include "llvm/CodeGen/MachineFrameInfo.h"
+#include "llvm/CodeGen/MachineFunction.h"
+#include "llvm/CodeGen/MachineInstrBuilder.h"
+#include "llvm/CodeGen/MachineRegisterInfo.h"
+#include "llvm/CodeGen/SelectionDAGISel.h"
+#include "llvm/CodeGen/SelectionDAGNodes.h"
 #include "llvm/IR/CFG.h"
 #include "llvm/IR/GlobalValue.h"
 #include "llvm/IR/Instructions.h"
 #include "llvm/IR/Intrinsics.h"
 #include "llvm/IR/Type.h"
-#include "llvm/CodeGen/MachineConstantPool.h"
-#include "llvm/CodeGen/MachineFunction.h"
-#include "llvm/CodeGen/MachineFrameInfo.h"
-#include "llvm/CodeGen/MachineInstrBuilder.h"
-#include "llvm/CodeGen/MachineRegisterInfo.h"
-#include "llvm/CodeGen/SelectionDAGISel.h"
-#include "llvm/CodeGen/SelectionDAGNodes.h"
-#include "llvm/Target/TargetMachine.h"
 #include "llvm/Support/Debug.h"
 #include "llvm/Support/ErrorHandling.h"
 #include "llvm/Support/raw_ostream.h"
+#include "llvm/Target/TargetMachine.h"
 using namespace llvm;
 
 #define DEBUG_TYPE "cpu0-isel"
@@ -142,12 +140,15 @@ SelectAddr(SDNode *Parent, SDValue Addr, SDValue &Base, SDValue &Offset) {
 /// expanded, promoted and normal instructions
 SDNode* Cpu0DAGToDAGISel::Select(SDNode *Node) {
 //@Select }
+  unsigned Opcode = Node->getOpcode();
+
   // Dump information about the Node being selected
   DEBUG(errs() << "Selecting: "; Node->dump(CurDAG); errs() << "\n");
 
   // If we have a custom node, we already have selected!
   if (Node->isMachineOpcode()) {
-    DEBUG(errs() << "== "; Node->dump(CurDAG); errs() << "\n");    Node->setNodeId(-1);
+    DEBUG(errs() << "== "; Node->dump(CurDAG); errs() << "\n");
+    Node->setNodeId(-1);
     return nullptr;
   }
 
@@ -156,8 +157,6 @@ SDNode* Cpu0DAGToDAGISel::Select(SDNode *Node) {
 
   if (Ret.first)
     return Ret.second;
-
-  unsigned Opcode = Node->getOpcode();
 
   switch(Opcode) {
   default: break;
@@ -184,7 +183,7 @@ SDNode* Cpu0DAGToDAGISel::Select(SDNode *Node) {
   SDNode *ResNode = SelectCode(Node);
 
   DEBUG(errs() << "=> ");
-  if (ResNode == NULL || ResNode == Node)
+  if (ResNode == nullptr || ResNode == Node)
     DEBUG(Node->dump(CurDAG));
   else
     DEBUG(ResNode->dump(CurDAG));
@@ -209,11 +208,5 @@ SelectInlineAsmMemoryOperand(const SDValue &Op, unsigned ConstraintID,
 }
 // inlineasm end
 #endif
-
-/// createCpu0ISelDag - This pass converts a legalized DAG into a
-/// CPU0-specific DAG, ready for instruction scheduling.
-FunctionPass *llvm::createCpu0ISelDag(Cpu0TargetMachine &TM) {
-  return llvm::createCpu0SEISelDag(TM);
-}
 
 #endif // #if CH >= CH3_3

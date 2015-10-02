@@ -7,8 +7,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef LLVM_TARGET_CPU0_TARGETOBJECTFILE_H
-#define LLVM_TARGET_CPU0_TARGETOBJECTFILE_H
+#ifndef LLVM_LIB_TARGET_CPU0_CPU0TARGETOBJECTFILE_H
+#define LLVM_LIB_TARGET_CPU0_CPU0TARGETOBJECTFILE_H
 
 #include "Cpu0Config.h"
 #if CH >= CH3_1

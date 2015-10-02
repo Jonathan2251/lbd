@@ -12,8 +12,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef CPU0SEREGISTERINFO_H
-#define CPU0SEREGISTERINFO_H
+#ifndef LLVM_LIB_TARGET_CPU0_CPU0SEREGISTERINFO_H
+#define LLVM_LIB_TARGET_CPU0_CPU0SEREGISTERINFO_H
 
 #include "Cpu0Config.h"
 #if CH >= CH3_1

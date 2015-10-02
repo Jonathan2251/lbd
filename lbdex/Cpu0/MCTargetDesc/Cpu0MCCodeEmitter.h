@@ -12,13 +12,12 @@
 //===----------------------------------------------------------------------===//
 //
 
+#ifndef LLVM_LIB_TARGET_CPU0_MCTARGETDESC_CPU0MCCODEEMITTER_H
+#define LLVM_LIB_TARGET_CPU0_MCTARGETDESC_CPU0MCCODEEMITTER_H
+
 #include "Cpu0Config.h"
 #if CH >= CH5_1
 
-#ifndef CPU0_MC_CODE_EMITTER_H
-#define CPU0_MC_CODE_EMITTER_H
-
-#include "Cpu0Config.h"
 #include "llvm/MC/MCCodeEmitter.h"
 #include "llvm/Support/DataTypes.h"
 
@@ -38,11 +37,12 @@ class Cpu0MCCodeEmitter : public MCCodeEmitter {
   Cpu0MCCodeEmitter(const Cpu0MCCodeEmitter &) = delete;
   void operator=(const Cpu0MCCodeEmitter &) = delete;
   const MCInstrInfo &MCII;
+  MCContext &Ctx;
   bool IsLittleEndian;
 
 public:
   Cpu0MCCodeEmitter(const MCInstrInfo &mcii, MCContext &Ctx_, bool IsLittle)
-      : MCII(mcii), IsLittleEndian(IsLittle) {}
+      : MCII(mcii), Ctx(Ctx_), IsLittleEndian(IsLittle) {}
 
   ~Cpu0MCCodeEmitter() override {}
 

@@ -11,8 +11,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef CPU0SE_FRAMEINFO_H
-#define CPU0SE_FRAMEINFO_H
+#ifndef LLVM_LIB_TARGET_CPU0_CPU0SEFRAMELOWERING_H
+#define LLVM_LIB_TARGET_CPU0_CPU0SEFRAMELOWERING_H
 
 #include "Cpu0Config.h"
 #if CH >= CH3_1

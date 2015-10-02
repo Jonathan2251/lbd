@@ -11,8 +11,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef CPU0TARGETMACHINE_H
-#define CPU0TARGETMACHINE_H
+#ifndef LLVM_LIB_TARGET_CPU0_CPU0TARGETMACHINE_H
+#define LLVM_LIB_TARGET_CPU0_CPU0TARGETMACHINE_H
 
 #include "Cpu0Config.h"
 #if CH >= CH3_1
@@ -37,10 +37,9 @@ class Cpu0TargetMachine : public LLVMTargetMachine {
 
   mutable StringMap<std::unique_ptr<Cpu0Subtarget>> SubtargetMap;
 public:
-  Cpu0TargetMachine(const Target &T, const Triple &TT, StringRef CPU, 
-                    StringRef FS, const TargetOptions &Options, 
-                    Reloc::Model RM, CodeModel::Model CM, 
-                    CodeGenOpt::Level OL, bool isLittle);
+  Cpu0TargetMachine(const Target &T, const Triple &TT, StringRef CPU,
+                    StringRef FS, const TargetOptions &Options, Reloc::Model RM,
+                    CodeModel::Model CM, CodeGenOpt::Level OL, bool isLittle);
   ~Cpu0TargetMachine() override;
 
   const Cpu0Subtarget *getSubtargetImpl() const {
@@ -64,8 +63,8 @@ public:
 class Cpu0ebTargetMachine : public Cpu0TargetMachine {
   virtual void anchor();
 public:
-  Cpu0ebTargetMachine(const Target &T, const Triple &TT,
-                      StringRef CPU, StringRef FS, const TargetOptions &Options,
+  Cpu0ebTargetMachine(const Target &T, const Triple &TT, StringRef CPU,
+                      StringRef FS, const TargetOptions &Options,
                       Reloc::Model RM, CodeModel::Model CM,
                       CodeGenOpt::Level OL);
 };
@@ -75,8 +74,8 @@ public:
 class Cpu0elTargetMachine : public Cpu0TargetMachine {
   virtual void anchor();
 public:
-  Cpu0elTargetMachine(const Target &T, const Triple &TT,
-                      StringRef CPU, StringRef FS, const TargetOptions &Options,
+  Cpu0elTargetMachine(const Target &T, const Triple &TT, StringRef CPU,
+                      StringRef FS, const TargetOptions &Options,
                       Reloc::Model RM, CodeModel::Model CM,
                       CodeGenOpt::Level OL);
 };

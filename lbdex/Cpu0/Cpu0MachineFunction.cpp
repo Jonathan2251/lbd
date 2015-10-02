@@ -24,7 +24,7 @@ using namespace llvm;
 bool FixGlobalBaseReg;
 
 // class Cpu0CallEntry.
-Cpu0CallEntry::Cpu0CallEntry(const StringRef &N) {
+Cpu0CallEntry::Cpu0CallEntry(StringRef N) {
 #ifndef NDEBUG
   Name = N;
   Val = nullptr;
@@ -59,15 +59,7 @@ void Cpu0CallEntry::printCustom(raw_ostream &O) const {
 #endif
 }
 
-Cpu0FunctionInfo::~Cpu0FunctionInfo() {
-  for (StringMap<const Cpu0CallEntry *>::iterator
-       I = ExternalCallEntries.begin(), E = ExternalCallEntries.end(); I != E;
-       ++I)
-    delete I->getValue();
-
-  for (const auto &Entry : GlobalCallEntries)
-    delete Entry.second;
-}
+Cpu0FunctionInfo::~Cpu0FunctionInfo() {}
 
 #if CH >= CH6_1
 bool Cpu0FunctionInfo::globalBaseRegFixed() const {
@@ -95,22 +87,22 @@ void Cpu0FunctionInfo::createEhDataRegsFI() {
 #endif
 
 #if CH >= CH9_2
-MachinePointerInfo Cpu0FunctionInfo::callPtrInfo(const StringRef &Name) {
-  const Cpu0CallEntry *&E = ExternalCallEntries[Name];
+MachinePointerInfo Cpu0FunctionInfo::callPtrInfo(StringRef Name) {
+  std::unique_ptr<const Cpu0CallEntry> &E = ExternalCallEntries[Name];
 
   if (!E)
-    E = new Cpu0CallEntry(Name);
+    E = llvm::make_unique<Cpu0CallEntry>(Name);
 
-  return MachinePointerInfo(E);
+  return MachinePointerInfo(E.get());
 }
 
 MachinePointerInfo Cpu0FunctionInfo::callPtrInfo(const GlobalValue *Val) {
-  const Cpu0CallEntry *&E = GlobalCallEntries[Val];
+  std::unique_ptr<const Cpu0CallEntry> &E = GlobalCallEntries[Val];
 
   if (!E)
-    E = new Cpu0CallEntry(Val);
+    E = llvm::make_unique<Cpu0CallEntry>(Val);
 
-  return MachinePointerInfo(E);
+  return MachinePointerInfo(E.get());
 }
 #endif
 

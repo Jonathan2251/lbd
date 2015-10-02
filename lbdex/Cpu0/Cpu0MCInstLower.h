@@ -7,8 +7,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef CPU0MCINSTLOWER_H
-#define CPU0MCINSTLOWER_H
+#ifndef LLVM_LIB_TARGET_CPU0_CPU0MCINSTLOWER_H
+#define LLVM_LIB_TARGET_CPU0_CPU0MCINSTLOWER_H
 
 #include "Cpu0Config.h"
 #if CH >= CH3_2

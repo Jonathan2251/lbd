@@ -11,8 +11,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef CPU0ISELDAGTODAG_H
-#define CPU0ISELDAGTODAG_H
+#ifndef LLVM_LIB_TARGET_CPU0_CPU0ISELDAGTODAG_H
+#define LLVM_LIB_TARGET_CPU0_CPU0ISELDAGTODAG_H
 
 #include "Cpu0Config.h"
 #if CH >= CH3_3

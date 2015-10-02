@@ -37,11 +37,10 @@ const Cpu0RegisterInfo &Cpu0SEInstrInfo::getRegisterInfo() const {
 }
 
 #if CH >= CH4_1
-void Cpu0SEInstrInfo::
-copyPhysReg(MachineBasicBlock &MBB,
-            MachineBasicBlock::iterator I, DebugLoc DL,
-            unsigned DestReg, unsigned SrcReg,
-            bool KillSrc) const {
+void Cpu0SEInstrInfo::copyPhysReg(MachineBasicBlock &MBB,
+                                  MachineBasicBlock::iterator I, DebugLoc DL,
+                                  unsigned DestReg, unsigned SrcReg,
+                                  bool KillSrc) const {
   unsigned Opc = 0, ZeroReg = 0;
 
   if (Cpu0::CPURegsRegClass.contains(DestReg)) { // Copy to CPU Reg.

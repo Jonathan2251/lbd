@@ -239,7 +239,7 @@ def Cpu0MemAsmOperand : AsmOperandClass {
 
 //#if CH >= CH2 5
 // Address operand
-def mem : Operand<i32> {
+def mem : Operand<iPTR> {
   let PrintMethod = "printMemOperand";
   let MIOperandInfo = (ops CPURegs, simm16);
   let EncoderMethod = "getMemEncoding";
@@ -250,7 +250,7 @@ def mem : Operand<i32> {
 //#endif //#if CH >= CH2 5
 
 //#if CH >= CH7_1 1
-def mem_ea : Operand<i32> {
+def mem_ea : Operand<iPTR> {
   let PrintMethod = "printMemOperandEA";
   let MIOperandInfo = (ops CPURegs, simm16);
   let EncoderMethod = "getMemEncoding";
@@ -307,7 +307,8 @@ def immZExt5 : ImmLeaf<i32, [{return Imm == (Imm & 0x1f);}]>;
 //#if CH >= CH2 7
 // Cpu0 Address Mode! SDNode frameindex could possibily be a match
 // since load and store instructions from stack used it.
-def addr : ComplexPattern<iPTR, 2, "SelectAddr", [frameindex], [SDNPWantParent]>;
+def addr : 
+  ComplexPattern<iPTR, 2, "SelectAddr", [frameindex], [SDNPWantParent]>;
 
 //===----------------------------------------------------------------------===//
 // Pattern fragment for load/store

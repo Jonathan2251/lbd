@@ -11,8 +11,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef CPU0ASMPRINTER_H
-#define CPU0ASMPRINTER_H
+#ifndef LLVM_LIB_TARGET_CPU0_CPU0ASMPRINTER_H
+#define LLVM_LIB_TARGET_CPU0_CPU0ASMPRINTER_H
 
 #include "Cpu0Config.h"
 #if CH >= CH3_2

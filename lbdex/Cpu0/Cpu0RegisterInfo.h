@@ -11,8 +11,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef CPU0REGISTERINFO_H
-#define CPU0REGISTERINFO_H
+#ifndef LLVM_LIB_TARGET_CPU0_CPU0REGISTERINFO_H
+#define LLVM_LIB_TARGET_CPU0_CPU0REGISTERINFO_H
 
 #include "Cpu0Config.h"
 #if CH >= CH3_1
@@ -45,11 +45,10 @@ public:
                                                 unsigned Kind) const override;
 #endif
 
-  const MCPhysReg *
-  getCalleeSavedRegs(const MachineFunction *MF = nullptr) const override;
+  const MCPhysReg *getCalleeSavedRegs(const MachineFunction *MF) const override;
+
   const uint32_t *getCallPreservedMask(const MachineFunction &MF,
                                        CallingConv::ID) const override;
-
 
   BitVector getReservedRegs(const MachineFunction &MF) const override;
 

@@ -11,20 +11,19 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef CPU0TARGETASMINFO_H
-#define CPU0TARGETASMINFO_H
+#ifndef LLVM_LIB_TARGET_CPU0_MCTARGETDESC_CPU0MCASMINFO_H
+#define LLVM_LIB_TARGET_CPU0_MCTARGETDESC_CPU0MCASMINFO_H
 
 #include "Cpu0Config.h"
 #if CH >= CH3_2
 
-#include "llvm/MC/MCAsmInfo.h"
+#include "llvm/MC/MCAsmInfoELF.h"
 
 namespace llvm {
   class Triple;
-  class Target;
 
-  class Cpu0MCAsmInfo : public MCAsmInfo {
-    virtual void anchor();
+  class Cpu0MCAsmInfo : public MCAsmInfoELF {
+    void anchor() override;
   public:
     explicit Cpu0MCAsmInfo(const Triple &TheTriple);
   };

@@ -11,8 +11,8 @@
 // the Cpu0 target useful for the compiler back-end and the MC libraries.
 //
 //===----------------------------------------------------------------------===//
-#ifndef CPU0BASEINFO_H
-#define CPU0BASEINFO_H
+#ifndef LLVM_LIB_TARGET_CPU0_MCTARGETDESC_CPU0BASEINFO_H
+#define LLVM_LIB_TARGET_CPU0_MCTARGETDESC_CPU0BASEINFO_H
 
 #include "Cpu0Config.h"
 #if CH >= CH3_2
