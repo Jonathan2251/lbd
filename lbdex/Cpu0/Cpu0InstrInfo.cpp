@@ -41,6 +41,18 @@ const Cpu0InstrInfo *Cpu0InstrInfo::create(Cpu0Subtarget &STI) {
   return llvm::createCpu0SEInstrInfo(STI);
 }
 
+#if CH >= CH3_4 //1
+MachineMemOperand *Cpu0InstrInfo::GetMemOperand(MachineBasicBlock &MBB, int FI,
+                                                unsigned Flag) const {
+  MachineFunction &MF = *MBB.getParent();
+  MachineFrameInfo &MFI = *MF.getFrameInfo();
+  unsigned Align = MFI.getObjectAlignment(FI);
+
+  return MF.getMachineMemOperand(MachinePointerInfo::getFixedStack(FI), Flag,
+                                 MFI.getObjectSize(FI), Align);
+}
+#endif
+
 #if CH >= CH3_3
 MachineInstr*
 Cpu0InstrInfo::emitFrameIndexDebugValue(MachineFunction &MF, int FrameIx,

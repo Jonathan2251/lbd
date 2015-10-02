@@ -28,18 +28,6 @@
 
 using namespace llvm;
 
-#if CH >= CH3_4 //1
-static MachineMemOperand* GetMemOperand(MachineBasicBlock &MBB, int FI,
-                                        unsigned Flag) {
-  MachineFunction &MF = *MBB.getParent();
-  MachineFrameInfo &MFI = *MF.getFrameInfo();
-  unsigned Align = MFI.getObjectAlignment(FI);
-
-  return MF.getMachineMemOperand(MachinePointerInfo::getFixedStack(FI), Flag,
-                                 MFI.getObjectSize(FI), Align);
-}
-#endif //1
-
 Cpu0SEInstrInfo::Cpu0SEInstrInfo(const Cpu0Subtarget &STI)
     : Cpu0InstrInfo(STI),
       RI(STI) {}
@@ -134,8 +122,8 @@ bool Cpu0SEInstrInfo::expandPostRAPseudo(MachineBasicBlock::iterator MI) const {
 #if CH >= CH9_3 //1
   case Cpu0::CPU0eh_return32:
     expandEhReturn(MBB, MI);
-#endif
     break;
+#endif //#if CH >= CH9_3 //1
   }
 
   MBB.erase(MI);
@@ -202,7 +190,7 @@ void Cpu0SEInstrInfo::expandRetLR(MachineBasicBlock &MBB,
                                 MachineBasicBlock::iterator I) const {
   BuildMI(MBB, I, I->getDebugLoc(), get(Cpu0::RET)).addReg(Cpu0::LR);
 }
-#endif //2 CH >= CH3_4
+#endif //#if CH >= CH3_4 //2
 
 #if CH >= CH9_3 //2
 void Cpu0SEInstrInfo::expandEhReturn(MachineBasicBlock &MBB,

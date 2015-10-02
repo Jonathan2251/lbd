@@ -941,19 +941,26 @@ Handle return register lr
 .. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.h
     :start-after: #if CH >= CH3_4 //2
     :end-before: #endif
+.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.h
+    :start-after: #if CH >= CH3_4 //3
+    :end-before: #endif
 
+.. rubric:: lbdex/chapters/Chapter3_4/Cpu0InstrInfo.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.cpp
+    :start-after: #if CH >= CH3_4 //1
+    :end-before: #endif
+    
 .. rubric:: lbdex/chapters/Chapter3_4/Cpu0SEInstrInfo.h
 .. literalinclude:: ../lbdex/Cpu0/Cpu0SEInstrInfo.h
     :start-after: #if CH >= CH3_4
-    :end-before: #endif
+    :end-before: #if CH >= CH9_3
 
-.. rubric:: lbdex/chapters/Chapter3_4/Cpu0SEInstrInfo.cpp
-.. literalinclude:: ../lbdex/Cpu0/Cpu0SEInstrInfo.cpp
-    :start-after: #if CH >= CH3_4 //1
-    :end-before: #endif //1
 .. literalinclude:: ../lbdex/Cpu0/Cpu0SEInstrInfo.cpp
     :start-after: #if CH >= CH3_4 //2
-    :end-before: #endif //2
+    :end-before: #if CH >= CH9_3 //1
+.. literalinclude:: ../lbdex/Cpu0/Cpu0SEInstrInfo.cpp
+    :start-after: #endif //#if CH >= CH9_3 //1
+    :end-before: #endif //#if CH >= CH3_4 //2
 
 .. rubric:: lbdex/chapters/Chapter3_4/Cpu0ISelLowering.h
 .. literalinclude:: ../lbdex/chapters/Chapter3_4/Cpu0ISelLowering.h

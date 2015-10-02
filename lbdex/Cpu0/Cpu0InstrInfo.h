@@ -87,6 +87,12 @@ public:
                                                  const MDNode *MDPtr,
                                                  DebugLoc DL) const;
 #endif
+
+protected:
+#if CH >= CH3_4 //3
+  MachineMemOperand *GetMemOperand(MachineBasicBlock &MBB, int FI,
+                                   unsigned Flag) const;
+#endif
 };
 const Cpu0InstrInfo *createCpu0SEInstrInfo(const Cpu0Subtarget &STI);
 }
