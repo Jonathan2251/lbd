@@ -35,10 +35,6 @@ protected:
 public:
   Cpu0RegisterInfo(const Cpu0Subtarget &Subtarget);
 
-  /// getRegisterNumbering - Given the enum value for some register, e.g.
-  /// Cpu0::LR, return the number that it corresponds to (e.g. 14).
-  static unsigned getRegisterNumbering(unsigned RegEnum);
-
 #if CH >= CH12_1 //1
   /// Code Generation virtual methods...
   const TargetRegisterClass *getPointerRegClass(const MachineFunction &MF,
