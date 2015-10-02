@@ -254,7 +254,7 @@ getMachineOpValue(const MCInst &MI, const MCOperand &MO,
                   const MCSubtargetInfo &STI) const {
   if (MO.isReg()) {
     unsigned Reg = MO.getReg();
-    unsigned RegNo = getCpu0RegisterNumbering(Reg);
+    unsigned RegNo = Ctx.getRegisterInfo()->getEncodingValue(Reg);
     return RegNo;
   } else if (MO.isImm()) {
     return static_cast<unsigned>(MO.getImm());

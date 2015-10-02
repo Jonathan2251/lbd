@@ -13,20 +13,16 @@
 
 
 // We have banks of 16 registers each.
-class Cpu0Reg<string n> : Register<n> {
-  field bits<4> Num;
+class Cpu0Reg<bits<16> Enc, string n> : Register<n> {
+  let HWEncoding = Enc;
   let Namespace = "Cpu0";
 }
 
-// General Purpose Registers
-class Cpu0GPRReg<bits<4> num, string n> : Cpu0Reg<n> {
-  let Num = num;
-}
+// Cpu0 CPU Registers
+class Cpu0GPRReg<bits<16> Enc, string n> : Cpu0Reg<Enc, n>;
 
 // Co-processor 0 Registers
-class Cpu0C0Reg<bits<4> num, string n> : Cpu0Reg<n> {
-  let Num = num;
-}
+class Cpu0C0Reg<bits<16> Enc, string n> : Cpu0Reg<Enc, n>;
 
 //===----------------------------------------------------------------------===//
 //@Registers
@@ -56,8 +52,8 @@ let Namespace = "Cpu0" in {
 
 //#if CH >= CH4_1 1
   // Hi/Lo registers number and name
-  def HI   : Register<"hi">, DwarfRegNum<[18]>;
-  def LO   : Register<"lo">, DwarfRegNum<[19]>;
+  def HI   : Cpu0Reg<0, "ac0">, DwarfRegNum<[18]>;
+  def LO   : Cpu0Reg<0, "ac0">, DwarfRegNum<[19]>;
 //#endif
   def PC   : Cpu0C0Reg<0, "pc">,  DwarfRegNum<[20]>;
   def EPC  : Cpu0C0Reg<1, "epc">, DwarfRegNum<[21]>;
@@ -78,7 +74,7 @@ def CPURegs : RegisterClass<"Cpu0", [i32], 32, (add
   S0, S1,
   // Reserved
   GP, FP, 
-  SP, LR, SW, PC, EPC)>;
+  SP, LR, SW)>;
 
 //#if CH >= CH4_1 2
 // Hi/Lo Registers class

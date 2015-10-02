@@ -73,7 +73,7 @@ static MCInstrInfo *createCpu0MCInstrInfo() {
 
 static MCRegisterInfo *createCpu0MCRegisterInfo(const Triple &TT) {
   MCRegisterInfo *X = new MCRegisterInfo();
-  InitCpu0MCRegisterInfo(X, Cpu0::LR); // defined in Cpu0GenRegisterInfo.inc
+  InitCpu0MCRegisterInfo(X, Cpu0::SW); // defined in Cpu0GenRegisterInfo.inc
   return X;
 }
 

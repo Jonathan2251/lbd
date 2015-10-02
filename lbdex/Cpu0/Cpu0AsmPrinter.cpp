@@ -185,6 +185,7 @@ void Cpu0AsmPrinter::printSavedRegsBitmask(raw_ostream &O) {
 
   // Set the CPU and FPU Bitmasks
   const MachineFrameInfo *MFI = MF->getFrameInfo();
+  const TargetRegisterInfo *TRI = MF->getSubtarget().getRegisterInfo();
   const std::vector<CalleeSavedInfo> &CSI = MFI->getCalleeSavedInfo();
   // size of stack area to which FP callee-saved regs are saved.
   unsigned CPURegSize = Cpu0::CPURegsRegClass.getSize();
@@ -193,7 +194,7 @@ void Cpu0AsmPrinter::printSavedRegsBitmask(raw_ostream &O) {
   // Set CPU Bitmask.
   for (; i != e; ++i) {
     unsigned Reg = CSI[i].getReg();
-    unsigned RegNum = getCpu0RegisterNumbering(Reg);
+    unsigned RegNum = TRI->getEncodingValue(Reg);
     CPUBitmask |= (1 << RegNum);
   }
 

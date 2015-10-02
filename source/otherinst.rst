@@ -30,25 +30,6 @@ Arithmetic
 
 The code added in Chapter4_1/ to support arithmetic instructions as follows,
 
-.. rubric:: lbdex/chapters/Chapter4_1/MCTargetDesc/Cpu0BaseInfo.h
-.. literalinclude:: ../lbdex/Cpu0/MCTargetDesc/Cpu0BaseInfo.h
-    :start-after: //@get register number
-    :end-before: //@1
-
-.. code-block:: c++
-
-    ...
-  
-.. literalinclude:: ../lbdex/Cpu0/MCTargetDesc/Cpu0BaseInfo.h
-    :start-after: #if CH >= CH4_1
-    :end-before: #endif
-
-.. code-block:: c++
-
-    ...
-    }
-  }
-
 .. rubric:: lbdex/chapters/Chapter4_1/Cpu0Subtarget.cpp
 .. literalinclude:: ../lbdex/Cpu0/Cpu0Subtarget.cpp
     :start-after: #if CH >= CH4_1 //1

@@ -119,59 +119,6 @@ namespace Cpu0II {
   };
 }
 
-//@get register number
-/// getCpu0RegisterNumbering - Given the enum value for some register,
-/// return the number that it corresponds to.
-inline static unsigned getCpu0RegisterNumbering(unsigned RegEnum)
-{
-  switch (RegEnum) {
-  //@1
-  case Cpu0::ZERO:
-    return 0;
-  case Cpu0::AT:
-    return 1;
-  case Cpu0::V0:
-    return 2;
-  case Cpu0::V1:
-    return 3;
-  case Cpu0::A0:
-    return 4;
-  case Cpu0::A1:
-    return 5;
-  case Cpu0::T9:
-    return 6;
-  case Cpu0::T0:
-    return 7;
-  case Cpu0::T1:
-    return 8;
-  case Cpu0::S0:
-    return 9;
-  case Cpu0::S1:
-    return 10;
-  case Cpu0::GP:
-    return 11;
-  case Cpu0::FP:
-    return 12;
-  case Cpu0::SP:
-    return 13;
-  case Cpu0::LR:
-    return 14;
-  case Cpu0::SW:
-    return 15;
-#if CH >= CH4_1
-  case Cpu0::HI:
-    return 18;
-  case Cpu0::LO:
-    return 19;
-#endif
-  case Cpu0::PC:
-    return 0;
-  case Cpu0::EPC:
-    return 1;
-  default: llvm_unreachable("Unknown register number!");
-  }
-}
-
 }
 
 #endif // #if CH >= CH3_2
