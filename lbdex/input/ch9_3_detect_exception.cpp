@@ -9,8 +9,8 @@ void* returnAddr;
 // it will be used in real exception handler implementation. Because in real
 // implementation, the exception handler keep a table and decide which function
 // has should be triggered for a specific exception and hand over to it.
-// The hand over process needs unwinding the stack frame by calling 
-// __builtin_frame_address.
+// The hand over process needs unwinding the stack frame. The stack frame address
+// can be gotten by calling __builtin_frame_address in the charged function.
 void exception_handler() {
   exceptionOccur = true;
   int frameaddr = (int)__builtin_frame_address(0);
