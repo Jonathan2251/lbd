@@ -6,7 +6,7 @@ bool exceptionOccur = false;
 void* returnAddr;
 
 // Even though __builtin_frame_address is useless in this example, I believe
-// it will used in real exception handler implementation.
+// it will be used in real exception handler implementation.
 void exception_handler() {
   exceptionOccur = true;
   int frameaddr = (int)__builtin_frame_address(0);
