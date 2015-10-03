@@ -2957,10 +2957,11 @@ replace them.
 frameaddress, returnaddress and eh.return support
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-I guess these llvm instinsic IRs are for exception handling implementation
+I think these llvm instinsic IRs are for exception handling implementation
 [#excepthandle]_ [#returnaddr]. With these IRs, programmer can recording the
 frame address and return address to be used in implementing program of 
-exception handler.
+exception handler by C++ as the example below. In order to support these llvm
+intrinsic IRs, the following code added to Cpu0 backend.
 
 .. rubric:: lbdex/chapters/Chapter9_3/Cpu0ISelLowering.cpp
 .. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.cpp
@@ -3057,118 +3058,116 @@ exception handler.
     :start-after: #if CH >= CH9_3 //2
     :end-before: #endif
 
-.. rubric:: lbdex/input/ch9_3_frame_return_addr.cpp
-.. literalinclude:: ../lbdex/input/ch9_3_frame_return_addr.cpp
+.. rubric:: lbdex/input/ch9_3_detect_exception.cpp
+.. literalinclude:: ../lbdex/input/ch9_3_detect_exception.cpp
     :start-after: /// start
 
 .. code-block:: bash
-
-  JonathantekiiMac:input Jonathan$ clang -target mips-unknown-linux-gnu -c 
-  ch9_3_frame_return_addr.cpp -emit-llvm -o ch9_3_frame_return_addr.bc
-  JonathantekiiMac:input Jonathan$ llvm-dis ch9_3_frame_return_addr.bc -o -
-
-  ...
-  define i32 @_Z23test_framereturnaddressv() #0 {
-    %1 = alloca i32, align 4
-    %frameaddr = alloca i32, align 4
-    %returnaddr = alloca i32, align 4
-    %2 = call i8* @llvm.frameaddress(i32 0)
-    %3 = ptrtoint i8* %2 to i32
-    store i32 %3, i32* %frameaddr, align 4
-    %4 = call i8* @llvm.returnaddress(i32 0)
-    %5 = ptrtoint i8* %4 to i32
-    store i32 %5, i32* %returnaddr, align 4
-    %6 = load i32, i32* %frameaddr, align 4
-    %7 = call i8* @llvm.frameaddress(i32 0)
-    %8 = ptrtoint i8* %7 to i32
-    %9 = icmp eq i32 %6, %8
-    br i1 %9, label %10, label %16
-
-  ; <label>:10                                      ; preds = %0
-    %11 = load i32, i32* %returnaddr, align 4
-    %12 = call i8* @llvm.returnaddress(i32 0)
-    %13 = ptrtoint i8* %12 to i32
-    %14 = icmp eq i32 %11, %13
-    br i1 %14, label %15, label %16
-
-  ; <label>:15                                      ; preds = %10
-    store i32 0, i32* %1
-    br label %17
-
-  ; <label>:16                                      ; preds = %10, %0
-    store i32 1, i32* %1
-    br label %17
-
-  ; <label>:17                                      ; preds = %16, %15
-    %18 = load i32, i32* %1
-    ret i32 %18
-  }
-
-  JonathantekiiMac:input Jonathan$ ~/llvm/test/cmake_debug_build/Debug/bin/llc 
-  -march=cpu0 -mcpu=cpu032I -relocation-model=static -filetype=asm 
-  ch9_3_frame_return_addr.bc -o -
-  ...
-
-.. rubric:: lbdex/input/ch9_3_eh_return.cpp
-.. literalinclude:: ../lbdex/input/ch9_3_eh_return.cpp
-    :start-after: /// start
-
-.. code-block:: bash
-
-  JonathantekiiMac:input Jonathan$ clang -target mips-unknown-linux-gnu -c 
-  ch9_3_eh_return.cpp -emit-llvm -o ch9_3_eh_return.bc
-  JonathantekiiMac:input Jonathan$ llvm-dis ch9_3_eh_return.bc -o -
-
-  ...
+  
+  114-37-150-48:input Jonathan$ clang -target mips-unknown-linux-gnu -c 
+  ch9_3_detect_exception.cpp -emit-llvm -o ch9_3_detect_exception.bc
+  114-37-150-48:input Jonathan$ ~/llvm/test/cmake_debug_build/Debug/bin/llvm-dis 
+  ch9_3_detect_exception.bc -o -
+  ; ModuleID = 'ch9_3_detect_exception.bc'
+  target datalayout = "E-m:m-p:32:32-i8:8:32-i16:16:32-i64:64-n32-S64"
+  target triple = "mips-unknown-linux-gnu"
+  
+  @exceptionOccur = global i8 0, align 1
+  @returnAddr = global i8* null, align 4
+  
   ; Function Attrs: nounwind
-  define i32 @_Z17exception_handlerv() #0 {
-    ret i32 3
-  }
-
-  define weak i32 @_Z13test_ehreturnv() #1 {
-    %1 = alloca i32, align 4
-    %handler = alloca i8*, align 4
-    store i8* bitcast (i32 ()* @_Z17exception_handlerv to i8*), i8** %handler, align 4
-    %2 = load i8*, i8** %handler, align 4
-    call void @llvm.eh.return.i32(i32 0, i8* %2)
+  define void @_Z17exception_handlerv() #0 {
+    %frameaddr = alloca i32, align 4
+    store i8 1, i8* @exceptionOccur, align 1
+    %1 = call i8* @llvm.frameaddress(i32 0)
+    %2 = ptrtoint i8* %1 to i32
+    store i32 %2, i32* %frameaddr, align 4
+    %3 = load i8*, i8** @returnAddr, align 4
+    call void @llvm.eh.return.i32(i32 0, i8* %3)
     unreachable
                                                     ; No predecessors!
-    %4 = load i32, i32* %1
-    ret i32 %4
+    ret void
   }
-
+  
+  ; Function Attrs: nounwind readnone
+  declare i8* @llvm.frameaddress(i32) #1
+  
   ; Function Attrs: nounwind
   declare void @llvm.eh.return.i32(i32, i8*) #2
-
-  attributes #0 = { nounwind "disable-tail-calls"="false" ... }
-  attributes #1 = { "disable-tail-calls"="false" ... }
+  
+  define weak i32 @_Z21test_detect_exceptionb(i1 zeroext %exception) #3 {
+    %1 = alloca i8, align 1
+    %handler = alloca i8*, align 4
+    %2 = zext i1 %exception to i8
+    store i8 %2, i8* %1, align 1
+    store i8 0, i8* @exceptionOccur, align 1
+    store i8* bitcast (void ()* @_Z17exception_handlerv to i8*), i8** %handler, align 4
+    %3 = load i8, i8* %1, align 1
+    %4 = trunc i8 %3 to i1
+    br i1 %4, label %5, label %8
+  
+  ; <label>:5                                       ; preds = %0
+    %6 = call i8* @llvm.returnaddress(i32 0)
+    store i8* %6, i8** @returnAddr, align 4
+    %7 = load i8*, i8** %handler, align 4
+    call void @llvm.eh.return.i32(i32 0, i8* %7)
+    unreachable
+  
+  ; <label>:8                                       ; preds = %0
+    ret i32 0
+  }
+  
+  ; Function Attrs: nounwind readnone
+  declare i8* @llvm.returnaddress(i32) #1
+  
+  attributes #0 = { nounwind ... }
+  attributes #1 = { nounwind readnone }
   attributes #2 = { nounwind }
-
-  JonathantekiiMac:input Jonathan$ ~/llvm/test/cmake_debug_build/Debug/bin/llc 
-  -march=cpu0 -mcpu=cpu032I -relocation-model=static -filetype=asm 
-  ch9_3_eh_return.bc -o -
+  attributes #3 = { "less-precise-fpmad"="false" ... }
   ...
+  
+  114-37-150-48:input Jonathan$ ~/llvm/test/cmake_debug_build/Debug/bin/llc 
+  -march=cpu0 -mcpu=cpu032II -relocation-model=pic -filetype=asm 
+  ch9_3_detect_exception.bc -o -
     .text
     .section .mdebug.abiO32
     .previous
-    .file "ch9_3_eh_return.bc"
+    .file "ch9_3_detect_exception.bc"
     .globl  _Z17exception_handlerv
     .align  2
     .type _Z17exception_handlerv,@function
     .ent  _Z17exception_handlerv  # @_Z17exception_handlerv
   _Z17exception_handlerv:
-    .frame  $fp,8,$lr
+    .frame  $fp,16,$lr
     .mask   0x00001000,-4
     .set  noreorder
+    .cpload $t9
     .set  nomacro
   # BB#0:
-    addiu $sp, $sp, -8
-    st  $fp, 4($sp)             # 4-byte Folded Spill
+    addiu $sp, $sp, -16
+    st  $fp, 12($sp)            # 4-byte Folded Spill
+    st  $4, 4($fp)
+    st  $5, 0($fp)
     move   $fp, $sp
-    addiu $2, $zero, 3
+    lui $2, %got_hi(exceptionOccur)
+    addu  $2, $2, $gp
+    ld  $2, %got_lo(exceptionOccur)($2)
+    addiu $3, $zero, 1
+    sb  $3, 0($2)
+    st  $fp, 8($fp)
+    lui $2, %got_hi(returnAddr)
+    addu  $2, $2, $gp
+    ld  $2, %got_lo(returnAddr)($2)
+    ld  $2, 0($2)
+    addiu $3, $zero, 0
     move   $sp, $fp
-    ld  $fp, 4($sp)             # 4-byte Folded Reload
-    addiu $sp, $sp, 8
+    ld  $4, 4($fp)
+    ld  $5, 0($fp)
+    ld  $fp, 12($sp)            # 4-byte Folded Reload
+    addiu $sp, $sp, 16
+    move   $t9, $2
+    move   $lr, $2
+    addu  $sp, $sp, $3
     ret $lr
     nop
     .set  macro
@@ -3176,12 +3175,12 @@ exception handler.
     .end  _Z17exception_handlerv
   $func_end0:
     .size _Z17exception_handlerv, ($func_end0)-_Z17exception_handlerv
-
-    .weak _Z13test_ehreturnv
+  
+    .weak _Z21test_detect_exceptionb
     .align  2
-    .type _Z13test_ehreturnv,@function
-    .ent  _Z13test_ehreturnv      # @_Z13test_ehreturnv
-  _Z13test_ehreturnv:
+    .type _Z21test_detect_exceptionb,@function
+    .ent  _Z21test_detect_exceptionb # @_Z21test_detect_exceptionb
+  _Z21test_detect_exceptionb:
     .cfi_startproc
     .frame  $fp,24,$lr
     .mask   0x00001000,-4
@@ -3204,10 +3203,37 @@ exception handler.
     move   $fp, $sp
   $tmp4:
     .cfi_def_cfa_register 12
+    sb  $4, 16($fp)
+    lui $2, %got_hi(exceptionOccur)
+    addu  $2, $2, $gp
+    ld  $2, %got_lo(exceptionOccur)($2)
+    addiu $3, $zero, 0
+    sb  $3, 0($2)
     lui $2, %got_hi(_Z17exception_handlerv)
     addu  $2, $2, $gp
     ld  $2, %got_lo(_Z17exception_handlerv)($2)
     st  $2, 12($fp)
+    lbu $2, 16($fp)
+    andi  $2, $2, 1
+    beq $2, $zero, .LBB1_2
+    nop
+    jmp .LBB1_1
+    nop
+  .LBB1_2:
+    addiu $2, $zero, 0
+    move   $sp, $fp
+    ld  $4, 8($fp)
+    ld  $5, 4($fp)
+    ld  $fp, 20($sp)            # 4-byte Folded Reload
+    addiu $sp, $sp, 24
+    ret $lr
+    nop
+  .LBB1_1:
+    lui $2, %got_hi(returnAddr)
+    addu  $2, $2, $gp
+    ld  $2, %got_lo(returnAddr)($2)
+    st  $lr, 0($2)
+    ld  $2, 12($fp)
     addiu $3, $zero, 0
     move   $sp, $fp
     ld  $4, 8($fp)
@@ -3221,14 +3247,38 @@ exception handler.
     nop
     .set  macro
     .set  reorder
-    .end  _Z13test_ehreturnv
+    .end  _Z21test_detect_exceptionb
   $func_end1:
-    .size _Z13test_ehreturnv, ($func_end1)-_Z13test_ehreturnv
+    .size _Z21test_detect_exceptionb, ($func_end1)-_Z21test_detect_exceptionb
     .cfi_endproc
+  
+    .type exceptionOccur,@object  # @exceptionOccur
+    .bss
+    .globl  exceptionOccur
+  exceptionOccur:
+    .byte 0                       # 0x0
+    .size exceptionOccur, 1
+  
+    .type returnAddr,@object      # @returnAddr
+    .globl  returnAddr
+    .align  2
+  returnAddr:
+    .4byte  0
+    .size returnAddr, 4
+    ...
+
 
 If you disable "__attribute__ ((weak))" in the c file, then the IR will has
-"nounwind" in attributes \#0. The side effect in asm output is "No .cfi_offset
+"nounwind" in attributes \#3. The side effect in asm output is "No .cfi_offset
 issued".
+
+This example code of exception handler implementation can get frame, return and
+call exception handler by call __builtin_xxx in clang in C language, without 
+introduce any assembly instruction. 
+And this example can be verified in the Chapter "Cpu0 ELF linker" of my the other 
+book "llvm tool chain for Cpu0" [#cpu0lld]_.
+Through global variable, exceptionOccur, is true or false, whether the control 
+flow to exception_handler() or not can be identified.
 
 
 Summary
@@ -3270,5 +3320,7 @@ front end has not add any new IR for a new language.
 .. [#excepthandle] http://llvm.org/docs/ExceptionHandling.html#overview
 
 .. [#returnaddr] http://llvm.org/docs/LangRef.html#llvm-returnaddress-intrinsic
+
+.. [#cpu0lld] http://jonathan2251.github.io/lbt/lld.html
 
 
