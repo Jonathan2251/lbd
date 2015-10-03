@@ -2993,6 +2993,8 @@ intrinsic IRs, the following code added to Cpu0 backend.
 .. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.cpp
     :start-after: #if CH >= CH9_3 //5.5
     :end-before: #endif
+    
+From above code 
 
 .. rubric:: lbdex/chapters/Chapter9_3/Cpu0SEFrameLowering.cpp
 .. literalinclude:: ../lbdex/Cpu0/Cpu0SEFrameLowering.cpp
@@ -3270,7 +3272,7 @@ intrinsic IRs, the following code added to Cpu0 backend.
 
 If you disable "__attribute__ ((weak))" in the c file, then the IR will has
 "nounwind" in attributes \#3. The side effect in asm output is "No .cfi_offset
-issued".
+issued" like function exception_handler().
 
 This example code of exception handler implementation can get frame, return and
 call exception handler by call __builtin_xxx in clang in C language, without 

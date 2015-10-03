@@ -1641,8 +1641,8 @@ indicates that there is a register called PC.  Also, there is a register class
 named **"CPURegs"** that contains all of the other registers. 
 You may have multiple register classes such as CPURegs, SR, C0Regs and GPROut. 
 GPROut defined in Cpu0RegisterInfoGPROutForOther.td which include CPURegs 
-except SW, PC and EPC, so SW, PC and EPC won't be allocated as the output 
-registers in register allocation stage.
+except SW, so SW won't be allocated as the output registers in register 
+allocation stage.
 
 .. rubric:: lbdex/chapters/Chapter2/Cpu0RegisterInfo.td
 .. literalinclude:: ../lbdex/chapters/Chapter2/Cpu0RegisterInfo.td

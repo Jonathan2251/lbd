@@ -556,9 +556,6 @@ Add the following code to Cpu0ISelLowering.cpp.
     : TargetLowering(TM, new Cpu0TargetObjectFile()),
       Subtarget(&TM.getSubtarget<Cpu0Subtarget>()) {
 
-    // Set up the register classes
-    addRegisterClass(MVT::i32, &Cpu0::CPURegsRegClass);
-
   //- Set .align 2
   // It will emit .align 2 later
     setMinFunctionAlignment(2);
@@ -1645,7 +1642,10 @@ Caller and callee saved registers
 Run Mips backend with above input will get the following result.
 
 .. code-block:: bash
-  
+
+  JonathantekiiMac:input Jonathan$ ~/llvm/release/cmake_debug_build/Debug/bin/llc 
+  -O0 -march=mips -relocation-model=static -filetype=asm 
+  ch9_caller_callee_save_registers.bc -o -
   	.text
   	.abicalls
   	.option	pic0
@@ -1705,8 +1705,8 @@ Run Mips backend with above input will get the following result.
   	.cfi_endproc
 
 As above assembly output, Mips allocates t1 variable to register $1 and no need
-to spill $1 since $1 is caller save register. 
-On the other hand, $ra is callee save register, so it spills at beginning of 
+to spill $1 since $1 is caller saved register. 
+On the other hand, $ra is callee saved register, so it spills at beginning of 
 the assembly output since jal uses $ra register. 
 Cpu0 $lr is the same register as Mips $ra, so it calls setAliasRegs(MF, 
 SavedRegs, Cpu0::LR) in determineCalleeSaves() of Cpu0SEFrameLowering.cpp when

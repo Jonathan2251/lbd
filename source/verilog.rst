@@ -1,4 +1,4 @@
-.. _sec-runbackend:
+.. _sec-verilog:
 
 Verify backend on verilog simulator
 ===================================
