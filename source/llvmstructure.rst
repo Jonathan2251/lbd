@@ -1130,6 +1130,10 @@ const/immediate/offset) is leaf.
 It can also be represented by list as prefix order in tree. 
 For example, (+ b, c), (+ b, 1) is IR DAG representation.
 
+In addition to DAG optimization, the "kill" register has also mentioned in 
+section 8.5.5 of the compiler book [#dragonbooks-8.5]_. This concept also 
+used in llvm implementation.
+
 
 Instruction Selection
 ~~~~~~~~~~~~~~~~~~~~~
@@ -1671,8 +1675,11 @@ In .td files, class describe the structure of how data is laid out, while defini
 act as the specific instances of the class.  If we look back at the Cpu0RegisterInfo.td 
 file, we see a class called **Cpu0Reg<string n>** which is derived from the 
 **Register<n>** class provided by LLVM.  **Cpu0Reg** inherits all the fields that exist 
-in the **Register** class, and also adds a new field called **Num** which is four bits 
-wide.
+in the **Register** class. The "let HWEncoding = Enc" which meaning assign field 
+HWEncoding from parameter Enc. Since Cpu0 reserve 4 bits for 16 registers in 
+instruction format, the assigned value range is from 0 to 15. Assign the 0 to 15 
+to HWEncoding, then the backend register number can be gotten from the function 
+of llvm register class since TableGen will set this number correctly.
 
 The **def** keyword is used to create instances of class.  In the following line, the 
 ZERO register is defined as a member of the **Cpu0GPRReg** class:
