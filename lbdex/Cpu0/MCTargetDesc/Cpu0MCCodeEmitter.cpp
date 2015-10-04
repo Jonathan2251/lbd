@@ -28,27 +28,25 @@
 #include "llvm/MC/MCSubtargetInfo.h"
 #include "llvm/Support/raw_ostream.h"
 
-using namespace llvm;
-
 #define DEBUG_TYPE "mccodeemitter"
 
 #define GET_INSTRMAP_INFO
 #include "Cpu0GenInstrInfo.inc"
 #undef GET_INSTRMAP_INFO
 
+namespace llvm {
 MCCodeEmitter *llvm::createCpu0MCCodeEmitterEB(const MCInstrInfo &MCII,
                                                const MCRegisterInfo &MRI,
-                                               MCContext &Ctx)
-{
+                                               MCContext &Ctx) {
   return new Cpu0MCCodeEmitter(MCII, Ctx, false);
 }
 
 MCCodeEmitter *llvm::createCpu0MCCodeEmitterEL(const MCInstrInfo &MCII,
                                                const MCRegisterInfo &MRI,
-                                               MCContext &Ctx)
-{
+                                               MCContext &Ctx) {
   return new Cpu0MCCodeEmitter(MCII, Ctx, true);
 }
+} // End of namespace llvm
 
 void Cpu0MCCodeEmitter::EmitByte(unsigned char C, raw_ostream &OS) const {
   OS << (char)C;

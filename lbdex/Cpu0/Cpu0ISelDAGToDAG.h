@@ -86,10 +86,6 @@ private:
 #endif
 };
 
-/// createCpu0ISelDag - This pass converts a legalized DAG into a
-/// CPU0-specific DAG, ready for instruction scheduling.
-FunctionPass *createCpu0ISelDag(Cpu0TargetMachine &TM);
-
 }
 
 #endif // #if CH >= CH3_3

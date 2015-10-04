@@ -23,7 +23,6 @@ namespace llvm {
   class Cpu0TargetMachine;
   class FunctionPass;
 
-  FunctionPass *createCpu0ISelDag(Cpu0TargetMachine &TM);
 #if CH >= CH9_3
 #ifdef ENABLE_GPRESTORE
   FunctionPass *createCpu0EmitGPRestorePass(Cpu0TargetMachine &TM);
