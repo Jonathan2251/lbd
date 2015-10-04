@@ -2994,7 +2994,113 @@ intrinsic IRs, the following code added to Cpu0 backend.
     :start-after: #if CH >= CH9_3 //5.5
     :end-before: #endif
     
-From above code 
+Run with the following input to get the following result.
+
+.. rubric:: lbdex/input/ch9_3_frame_return_addr.cpp
+.. literalinclude:: ../lbdex/input/ch9_3_frame_return_addr.cpp
+    :start-after: /// start
+
+.. code-block:: bash
+  
+  JonathantekiiMac:input Jonathan$ ~/llvm/test/cmake_debug_build/Debug/bin/
+  llvm-dis ch9_3_frame_return_addr.bc -o -
+  ...
+  ; Function Attrs: nounwind
+  define i32 @_Z20display_frameaddressv() #0 {
+    %1 = call i8* @llvm.frameaddress(i32 0)
+    %2 = ptrtoint i8* %1 to i32
+    ret i32 %2
+  }
+  
+  ; Function Attrs: nounwind readnone
+  declare i8* @llvm.frameaddress(i32) #1
+  
+  define i32 @_Z22display_returnaddressv() #2 {
+    %a = alloca i32, align 4
+    %1 = call i8* @llvm.returnaddress(i32 0)
+    %2 = ptrtoint i8* %1 to i32
+    store i32 %2, i32* %a, align 4
+    %3 = call i32 @_Z2fnv()
+    %4 = load i32, i32* %a, align 4
+    ret i32 %4
+  }
+  
+  JonathantekiiMac:input Jonathan$ ~/llvm/test/cmake_debug_build/Debug/bin/llc 
+  -march=cpu0 -relocation-model=static -filetype=asm ch9_3_frame_return_addr.bc 
+  -o -
+  	.text
+  	.section .mdebug.abiO32
+  	.previous
+  	.file "ch9_3_frame_return_addr.bc"
+  	.globl	_Z20display_frameaddressv
+  	.align	2
+  	.type _Z20display_frameaddressv,@function
+  	.ent	_Z20display_frameaddressv # @_Z20display_frameaddressv
+  _Z20display_frameaddressv:
+  	.frame	$fp,8,$lr
+  	.mask		0x00001000,-4
+  	.set	noreorder
+  	.set	nomacro
+  # BB#0:
+  	addiu $sp, $sp, -8
+  	st	$fp, 4($sp)							# 4-byte Folded Spill
+  	move	 $fp, $sp
+  	addu	$2, $zero, $fp
+  	move	 $sp, $fp
+  	ld	$fp, 4($sp)							# 4-byte Folded Reload
+  	addiu $sp, $sp, 8
+  	ret $lr
+  	nop
+  	.set	macro
+  	.set	reorder
+  	.end	_Z20display_frameaddressv
+  $func_end0:
+  	.size _Z20display_frameaddressv, ($func_end0)-_Z20display_frameaddressv
+  
+  	.globl	_Z22display_returnaddress1v
+  	.align	2
+  	.type _Z22display_returnaddress1v,@function
+  	.ent	_Z22display_returnaddress1v # @_Z22display_returnaddress1v
+  _Z22display_returnaddress1v:
+  	.cfi_startproc
+  	.frame	$fp,24,$lr
+  	.mask		0x00005000,-4
+  	.set	noreorder
+  	.set	nomacro
+  # BB#0:
+  	addiu $sp, $sp, -24
+  $tmp0:
+  	.cfi_def_cfa_offset 24
+  	st	$lr, 20($sp)						# 4-byte Folded Spill
+  	st	$fp, 16($sp)						# 4-byte Folded Spill
+  $tmp1:
+  	.cfi_offset 14, -4
+  $tmp2:
+  	.cfi_offset 12, -8
+  	move	 $fp, $sp
+  $tmp3:
+  	.cfi_def_cfa_register 12
+  	st	$lr, 12($fp)
+  	jsub	_Z2fnv
+  	nop
+  	ld	$2, 12($fp)
+  	move	 $sp, $fp
+  	ld	$fp, 16($sp)						# 4-byte Folded Reload
+  	ld	$lr, 20($sp)						# 4-byte Folded Reload
+  	addiu $sp, $sp, 24
+  	ret $lr
+  	nop
+  	.set	macro
+  	.set	reorder
+  	.end	_Z22display_returnaddress1v
+  $func_end1:
+  	.size _Z22display_returnaddress1v, ($func_end1)-_Z22display_returnaddress1v
+  	.cfi_endproc
+
+
+The following code is for the eh.return supporting only, and it can run with 
+input ch9_3_detect_exception.cpp as below.
+
 
 .. rubric:: lbdex/chapters/Chapter9_3/Cpu0SEFrameLowering.cpp
 .. literalinclude:: ../lbdex/Cpu0/Cpu0SEFrameLowering.cpp
@@ -3276,7 +3382,7 @@ issued" like function exception_handler().
 
 This example code of exception handler implementation can get frame, return and
 call exception handler by call __builtin_xxx in clang in C language, without 
-introduce any assembly instruction. 
+introduces any assembly instruction. 
 And this example can be verified in the Chapter "Cpu0 ELF linker" of my the other 
 book "llvm tool chain for Cpu0" [#cpu0lld]_.
 Through global variable, exceptionOccur, is true or false, whether the control 
