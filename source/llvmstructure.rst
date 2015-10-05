@@ -390,67 +390,67 @@ The following table details the cpu032I instruction set:
     - Return from subroutine
     - RET LR
     - PC <= LR
-  * - L
+  * - A
     - MULT
     - 41
     - Multiply for 64 bits result
     - MULT Ra, Rb
     - (HI,LO) <= MULT(Ra,Rb)
-  * - L
+  * - A
     - MULTU
     - 42
     - MULT for unsigned 64 bits
     - MULTU Ra, Rb
     - (HI,LO) <= MULTU(Ra,Rb)
-  * - L
+  * - A
     - DIV
     - 43
     - Divide
     - DIV Ra, Rb
     - HI<=Ra%Rb, LO<=Ra/Rb
-  * - L
+  * - A
     - DIVU
     - 44
     - Divide unsigned
     - DIVU Ra, Rb
     - HI<=Ra%Rb, LO<=Ra/Rb
-  * - L
+  * - A
     - MFHI
     - 46
     - Move HI to GPR
     - MFHI Ra
     - Ra <= HI
-  * - L
+  * - A
     - MFLO
     - 47
     - Move LO to GPR
     - MFLO Ra
     - Ra <= LO
-  * - L
+  * - A
     - MTHI
     - 48
     - Move GPR to HI
     - MTHI Ra
     - HI <= Ra
-  * - L
+  * - A
     - MTLO
     - 49
     - Move GPR to LO
     - MTLO Ra
     - LO <= Ra
-  * - L
+  * - A
     - MFC0
     - 50
     - Move C0R to GPR
     - MFC0 Ra, Rb
     - Ra <= Rb
-  * - L
+  * - A
     - MTC0
     - 51
     - Move GPR to C0R
     - MTC0 Ra, Rb
     - Ra <= Rb
-  * - L
+  * - A
     - C0MOV
     - 52
     - Move C0R to C0R
@@ -529,7 +529,7 @@ ADD as follows,
 Since Mips uses 32 bits to represent int type of C language, if B is the 
 value of -2G, then
 
-- (A - (-2G) = (A + (2G))
+- (A - (-2G)) = (A + (2G))
 
 But the problem is value -2G can be represented in 32 bits machine while 2G 
 cannot, 
@@ -619,8 +619,8 @@ Cpu0's Interrupt Vector
 LLVM Structure
 --------------
 
-This section introduce the compiler data structure, algorithm and mechanism that
-llvm uses.
+This section introduces the compiler data structure, algorithm and mechanism 
+that llvm uses.
 
 Three-phase design
 ~~~~~~~~~~~~~~~~~~

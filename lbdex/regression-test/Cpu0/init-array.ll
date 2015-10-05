@@ -1,4 +1,4 @@
-; RUN: llc -march=cpu0el -mtriple mipsel-unknown-linux -use-init-array < %s | FileCheck  %s
+; RUN: llc -march=cpu0el < %s | FileCheck  %s
 
 target triple = "mipsel-unknown-linux"
 

@@ -67,6 +67,7 @@ Version 3.7.1, Not release yet
   Add sub-section frameaddress, returnaddress and eh.return support of chapter
   Function call.
   Match Mips 3.7 style.
+  Add bswap in Chapter C++.
 
 Version 3.7.0, Released September 24, 2015
   Porting to lld 3.7.

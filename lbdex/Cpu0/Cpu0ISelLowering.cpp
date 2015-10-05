@@ -93,9 +93,9 @@ const char *Cpu0TargetLowering::getTargetNodeName(unsigned Opcode) const {
   case Cpu0ISD::DivRem:            return "Cpu0ISD::DivRem";
   case Cpu0ISD::DivRemU:           return "Cpu0ISD::DivRemU";
   case Cpu0ISD::Wrapper:           return "Cpu0ISD::Wrapper";
-#if CH >= CH12_1 //5
+#if CH >= CH12_1 //0.5
   case Cpu0ISD::Sync:              return "Cpu0ISD::Sync";
-#endif //#if CH >= CH12_1 //5
+#endif //#if CH >= CH12_1 //0.5
   default:                         return NULL;
   }
 }
@@ -183,7 +183,7 @@ Cpu0TargetLowering::Cpu0TargetLowering(const Cpu0TargetMachine &TM,
   setOperationAction(ISD::CTTZ_ZERO_UNDEF,   MVT::i32,   Expand);
   setOperationAction(ISD::CTLZ_ZERO_UNDEF,   MVT::i32,   Expand);
 #endif
-#if CH >= CH4_2
+#if CH >= CH4_2 //1.2
   // Cpu0 doesn't have sext_inreg, replace them with shl/sra.
   setOperationAction(ISD::SIGN_EXTEND_INREG, MVT::i1 , Expand);
   setOperationAction(ISD::SIGN_EXTEND_INREG, MVT::i8 , Expand);
@@ -208,12 +208,16 @@ Cpu0TargetLowering::Cpu0TargetLowering(const Cpu0TargetMachine &TM,
   setOperationAction(ISD::STACKRESTORE,      MVT::Other, Expand);
 #endif
 
-#if CH >= CH12_1 //6
+#if CH >= CH12_1 //1.5
   setOperationAction(ISD::ATOMIC_LOAD,       MVT::i32,    Expand);
   setOperationAction(ISD::ATOMIC_LOAD,       MVT::i64,    Expand);
   setOperationAction(ISD::ATOMIC_STORE,      MVT::i32,    Expand);
   setOperationAction(ISD::ATOMIC_STORE,      MVT::i64,    Expand);
 
+#if CH >= CH12_1 //1.6
+  setOperationAction(ISD::BSWAP, MVT::i32, Expand);
+  setOperationAction(ISD::BSWAP, MVT::i64, Expand);
+#endif
   setInsertFencesForAtomic(true);
 #endif
 

@@ -602,9 +602,10 @@ let Predicates = [Ch4_1] in {
 // Mul, Div
 class Mult<bits<8> op, string instr_asm, InstrItinClass itin,
            RegisterClass RC, list<Register> DefRegs>:
-  FL<op, (outs), (ins RC:$ra, RC:$rb),
+  FA<op, (outs), (ins RC:$ra, RC:$rb),
      !strconcat(instr_asm, "\t$ra, $rb"), [], itin> {
-  let imm16 = 0;
+  let rc = 0;
+  let shamt = 0;
   let isCommutable = 1;
   let Defs = DefRegs;
   let hasSideEffects = 0;
@@ -615,10 +616,11 @@ class Mult32<bits<8> op, string instr_asm, InstrItinClass itin>:
 
 class Div<SDNode opNode, bits<8> op, string instr_asm, InstrItinClass itin,
           RegisterClass RC, list<Register> DefRegs>:
-  FL<op, (outs), (ins RC:$ra, RC:$rb),
+  FA<op, (outs), (ins RC:$ra, RC:$rb),
      !strconcat(instr_asm, "\t$ra, $rb"),
      [(opNode RC:$ra, RC:$rb)], itin> {
-  let imm16 = 0;
+  let rc = 0;
+  let shamt = 0;
   let Defs = DefRegs;
 }
 
@@ -628,10 +630,11 @@ class Div32<SDNode opNode, bits<8> op, string instr_asm, InstrItinClass itin>:
 // Move from Lo/Hi
 class MoveFromLOHI<bits<8> op, string instr_asm, RegisterClass RC,
                    list<Register> UseRegs>:
-  FL<op, (outs RC:$ra), (ins),
+  FA<op, (outs RC:$ra), (ins),
      !strconcat(instr_asm, "\t$ra"), [], IIHiLo> {
   let rb = 0;
-  let imm16 = 0;
+  let rc = 0;
+  let shamt = 0;
   let Uses = UseRegs;
   let hasSideEffects = 0;
 }
@@ -639,35 +642,39 @@ class MoveFromLOHI<bits<8> op, string instr_asm, RegisterClass RC,
 // Move to Lo/Hi
 class MoveToLOHI<bits<8> op, string instr_asm, RegisterClass RC,
                  list<Register> DefRegs>:
-  FL<op, (outs), (ins RC:$ra),
+  FA<op, (outs), (ins RC:$ra),
      !strconcat(instr_asm, "\t$ra"), [], IIHiLo> {
   let rb = 0;
-  let imm16 = 0;
+  let rc = 0;
+  let shamt = 0;
   let Defs = DefRegs;
   let hasSideEffects = 0;
 }
 
 // Move from C0 (co-processor 0) Register
 class MoveFromC0<bits<8> op, string instr_asm, RegisterClass RC>:
-  FL<op, (outs), (ins RC:$ra, C0Regs:$rb),
+  FA<op, (outs), (ins RC:$ra, C0Regs:$rb),
      !strconcat(instr_asm, "\t$ra, $rb"), [], IIAlu> {
-  let imm16 = 0;
+  let rc = 0;
+  let shamt = 0;
   let hasSideEffects = 0;
 }
 
 // Move to C0 Register
 class MoveToC0<bits<8> op, string instr_asm, RegisterClass RC>:
-  FL<op, (outs C0Regs:$ra), (ins RC:$rb),
+  FA<op, (outs C0Regs:$ra), (ins RC:$rb),
      !strconcat(instr_asm, "\t$ra, $rb"), [], IIAlu> {
-  let imm16 = 0;
+  let rc = 0;
+  let shamt = 0;
   let hasSideEffects = 0;
 }
 
 // Move from C0 register to C0 register
 class C0Move<bits<8> op, string instr_asm>:
-  FL<op, (outs C0Regs:$ra), (ins C0Regs:$rb),
+  FA<op, (outs C0Regs:$ra), (ins C0Regs:$rb),
      !strconcat(instr_asm, "\t$ra, $rb"), [], IIAlu> {
-  let imm16 = 0;
+  let rc = 0;
+  let shamt = 0;
   let hasSideEffects = 0;
 }
 } // let Predicates = [Ch4_1]
@@ -681,6 +688,7 @@ class CountLeading0<bits<8> op, string instr_asm, RegisterClass RC>:
      !strconcat(instr_asm, "\t$ra, $rb"),
      [(set GPROut:$ra, (ctlz RC:$rb))], II_CLZ> {
   let rc = 0;
+  let shamt = 0;
 }
 
 class CountLeading1<bits<8> op, string instr_asm, RegisterClass RC>:
@@ -688,6 +696,7 @@ class CountLeading1<bits<8> op, string instr_asm, RegisterClass RC>:
      !strconcat(instr_asm, "\t$ra, $rb"),
      [(set GPROut:$ra, (ctlz (not RC:$rb)))], II_CLO> {
   let rc = 0;
+  let shamt = 0;
 }
 
 //#if CH >= CH12_1 8

@@ -220,6 +220,19 @@ Then the regression test items for Cpu0 list as follows,
   ===============================  =============  =======================================================  ===========
   File                             v:pass x:fail  test ir, -> output asm                                   chapter
   ===============================  =============  =======================================================  ===========
+  2008-07-15-InternalConstant.ll   v                                                                       6
+  2008-07-15-SmallSection.ll       v                                                                       6
+  2008-07-03-SRet.ll               v                                                                       9
+  2008-07-29-icmp.ll               v                                                                       8
+  2008-08-06-Alloca.ll             v                                                                       9
+  2008-06-05-Carry.ll              v                                                                       7
+  2008-08-01-AsmInline.ll          v                                                                       11
+  2008-08-08-ctlz.ll               v                                                                       7
+  2008-08-08-bswap.ll              v              bswap                                                    12
+  2008-10-13-LegalizerBug.ll       v                                                                       8
+  2010-11-09-Mul.ll                v                                                                       4                         
+  2010-11-09-CountLeading.ll       v                                                                       7
+  2008-11-10-xint_to_fp.ll         v                                                                       7
   addc.ll                          v              64-bit add                                               7
   addi.ll                          v              32-bit add, sub                                          4
   address-mode.ll                  v              br, -> BB0_2:                                            8
@@ -258,6 +271,7 @@ Then the regression test items for Cpu0 list as follows,
   i64arg.ll                        v              argument of constant 64-bit passing in register          9 
   imm.ll                           v              return constant 32-bit in register                       9 
   indirectcall.ll                  v              indirect function call                                   9
+  init-array.ll                    v              check .init                                              6
   inlineasm_constraint.ll          v              inline asm                                               11
   inlineasm-cnstrnt-reg.ll         v              -                                                        11
   inlineasmmemop.ll                v              -                                                        11
@@ -338,6 +352,7 @@ Then the regression test items for Cpu0 list as follows,
   unalignedload.ll                 v              unalignment init, -> sb sb ...                           6
   weak.ll                          v              extern_weak function, -> .weak                           9
   xor1.ll                          v              xor, -> xor                                              4
+  tls-alias.ll                     v              thread_local global and thread local alias               12
   zeroreg.ll                       v              check register $zero                                     4
   ===============================  =============  =======================================================  ===========
   
@@ -353,10 +368,7 @@ Cpu0 doesn't support the following test items at this point.
   2008-08-08-bswap.ll                  x              Not support llvm.bswap. The c++ STL swap didn't use it. ?
   2010-04-07-DbgValueOtherTargets.ll   x              Mips cannot pass either ?
   eh-dwraf-cfa.ll                      x
-  frame-address.ll                     x              Not support @llvm.frameaddress intrinsic function.
-  init-array.ll                        x              Don't know the purpose.
   longbranch.ll                        x              Not support and not intend to support.
-  tls-alias.ll                         x              Mips 3.5 cannot pass either.
   vector-setcc.ll                      x              Not support vector.
   ===================================  =============  =======================================================
 

@@ -3098,6 +3098,43 @@ Run with the following input to get the following result.
   	.cfi_endproc
 
 
+The asm "ld	$2, 12($fp)" in function _Z22display_returnaddress1v reload $lr 
+to $2 after "jsub _Z3fnv". Cpu0 doesn't produce "addiu $2, $zero, $lr" because
+if _Z3fnv change $lr value without following ABI then it will get the wrong $lr
+to $2. The following code kills $lr register and make the reference to $lr by
+loading from stack slot rather than uses register directly. 
+
+.. rubric:: lbdex/chapters/Chapter9_3/Cpu0SEFrameLowering.cpp
+.. code-block:: c++
+  
+  bool Cpu0SEFrameLowering::
+  spillCalleeSavedRegisters(MachineBasicBlock &MBB,
+                            MachineBasicBlock::iterator MI,
+                            const std::vector<CalleeSavedInfo> &CSI,
+                            const TargetRegisterInfo *TRI) const { 
+    ...
+    for (unsigned i = 0, e = CSI.size(); i != e; ++i) {
+      // Add the callee-saved register as live-in. Do not add if the register is
+      // LR and return address is taken, because it has already been added in
+      // method Cpu0TargetLowering::LowerRETURNADDR.
+      // It's killed at the spill, unless the register is LR and return address
+      // is taken.
+      unsigned Reg = CSI[i].getReg();
+      bool IsRAAndRetAddrIsTaken = (Reg == Cpu0::LR)
+          && MF->getFrameInfo()->isReturnAddressTaken();
+      if (!IsRAAndRetAddrIsTaken)
+        EntryBlock->addLiveIn(Reg);
+  
+      // Insert the spill to the stack frame.
+      bool IsKill = !IsRAAndRetAddrIsTaken;
+      const TargetRegisterClass *RC = TRI->getMinimalPhysRegClass(Reg);
+      TII.storeRegToStackSlot(*EntryBlock, MI, Reg, IsKill,
+                              CSI[i].getFrameIdx(), RC, TRI);
+    }
+    ...
+  }
+
+
 The following code is for the eh.return supporting only, and it can run with 
 input ch9_3_detect_exception.cpp as below.
 

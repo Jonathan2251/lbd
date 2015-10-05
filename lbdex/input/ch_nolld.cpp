@@ -28,6 +28,7 @@
 #include "ch9_2_2.cpp"
 #include "ch9_3_2.cpp"
 #include "ch12_inherit.cpp"
+#include "ch12_1_intrinsics.cpp"
 
 void test_asm_build()
 {
@@ -119,6 +120,9 @@ int test_nolld()
   a = test_inlineasm();
   print_integer(a); // a = 49
   if (a != 49) pass = false;
+  a = test_bswap();
+  print_integer(a); // a = 0
+  if (a != 0) pass = false;
 
   return pass;
 }

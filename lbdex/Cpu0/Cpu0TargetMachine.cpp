@@ -13,8 +13,11 @@
 
 #include "Cpu0TargetMachine.h"
 #include "Cpu0.h"
-#if CH >= CH3_1
+
+#if CH >= CH3_3 //0.5
 #include "Cpu0SEISelDAGToDAG.h"
+#endif
+#if CH >= CH3_1
 #include "Cpu0Subtarget.h"
 #include "Cpu0TargetObjectFile.h"
 #endif

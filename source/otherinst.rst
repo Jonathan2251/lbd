@@ -1228,7 +1228,7 @@ run result of bc and asm instructions for ch4_5.cpp as below.
     :start-after: //@Cpu0TargetLowering {
     :end-before: #if CH >= CH3_2
 .. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.cpp
-    :start-after: #if CH >= CH4_2
+    :start-after: #if CH >= CH4_2 //1.2
     :end-before: #endif
 
 .. code-block:: c++
@@ -1551,4 +1551,5 @@ this chapter and spend 4xx lines of source code.
 
 .. [#Quantitative] See book Computer Architecture: A Quantitative Approach (The Morgan 
        Kaufmann Series in Computer Architecture and Design) 
+
 

@@ -716,8 +716,13 @@ The following code in Cpu0TargetMachine.cpp will create a pass in instruction
 selection stage.
 
 .. rubric:: lbdex/chapters/Chapter3_3/Cpu0TargetMachine.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0TargetMachine.cpp
+    :start-after: #if CH >= CH3_3 //0.5
+    :end-before: #endif
+
 .. code-block:: c++
 
+  ...
   class Cpu0PassConfig : public TargetPassConfig {
   public:
     ...
@@ -826,9 +831,9 @@ code added in Chapter3_1/Cpu0ISelLowering.cpp.
 .. rubric:: lbdex/chapters/Chapter3_1/Cpu0ISelLowering.cpp
 .. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.cpp
     :start-after: //@3_1 1 {
-    :end-before: #if CH >= CH12_1 //5
+    :end-before: #if CH >= CH12_1 //0.5
 .. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.cpp
-    :start-after: #endif //#if CH >= CH12_1 //5
+    :start-after: #endif //#if CH >= CH12_1 //0.5
     :end-before: //@3_1 1 }
 
 
