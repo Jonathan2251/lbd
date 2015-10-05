@@ -220,12 +220,12 @@ Then the regression test items for Cpu0 list as follows,
   ===============================  =============  =======================================================  ===========
   File                             v:pass x:fail  test ir, -> output asm                                   chapter
   ===============================  =============  =======================================================  ===========
+  2008-06-05-Carry.ll              v                                                                       7
   2008-07-15-InternalConstant.ll   v                                                                       6
   2008-07-15-SmallSection.ll       v                                                                       6
   2008-07-03-SRet.ll               v                                                                       9
   2008-07-29-icmp.ll               v                                                                       8
   2008-08-06-Alloca.ll             v                                                                       9
-  2008-06-05-Carry.ll              v                                                                       7
   2008-08-01-AsmInline.ll          v                                                                       11
   2008-08-08-ctlz.ll               v                                                                       7
   2008-08-08-bswap.ll              v              bswap                                                    12
@@ -255,8 +255,8 @@ Then the regression test items for Cpu0 list as follows,
   divu.ll                          v              udiv, -> divu, mflo                                      4
   divu_reml.ll                     v              udiv, urem -> div, mflo, mfhi                            4
   double2int.ll                    v              double to int, -> %call16(__fixdfsi)                     7
-  eh.ll                            v              c++ exception handling                                   12
   eh-return32.ll                   v              Spill and reload all registers used for exception        9 
+  eh.ll                            v              c++ exception handling                                   12
   ex2.ll                           v              c++ exception handling                                   12
   fastcc.ll                        v              No effect in fastcc but can pass                         9
   fneg.ll                          v              verify Cpu0 don't uses hard float instruction            7
@@ -290,6 +290,7 @@ Then the regression test items for Cpu0 list as follows,
   mipslopat.ll                     v              no check output (comment in mipslopat.ll)                6
   misha.ll                         v              miss alignment half word access                          7
   module-asm.ll                    v              module asm                                               11
+  module-asm-cpu032II.ll           v              module asm                                               11
   mul.ll                           v              mul                                                      4
   mulll.ll                         v              64-bit mul                                               4
   mulull.ll                        v              64-bit mul                                               4
@@ -301,9 +302,9 @@ Then the regression test items for Cpu0 list as follows,
   rem.ll                           v              srem, -> div, mfhi                                       4
   remat-immed-load.ll              v              immediate load                                           3
   remul.ll                         v              urem, -> div, mfhi                                       4
-  return_address.ll                v              llvm.returnaddress, -> addu	$2, $zero, $lr               9
-  return-vector.ll                 v              return vector, -> ld ld ..., st st ...                   3
   return-vector-float4.ll          v              return vector, -> lui lui ...                            3
+  return-vector.ll                 v              return vector, -> ld ld ..., st st ...                   3
+  return_address.ll                v              llvm.returnaddress, -> addu	$2, $zero, $lr             9
   rotate.ll                        v              rotl, rotr, -> rolv, rol, rorv                           4
   sb1.ll                           v              store i8, sb                                             7
   select.ll                        v              select, -> movn, movz                                    8
@@ -346,13 +347,13 @@ Then the regression test items for Cpu0 list as follows,
   sub2.ll                          v              sub, -> sub                                              4
   tailcall.ll                      v              tail call                                                9
   tls.ll                           v              ir thread_local global is for c++ "__thread int b;"      12
+  tls-alias.ll                     v              thread_local global and thread local alias               12
   tls-models.ll                    v              ir external/internal thread_local global                 12
   uitofp.ll                        v              integer2float, uitofp, -> jsub __floatunsisf             9
   uli.ll                           v              unalignment init, -> sb sb ...                           6
   unalignedload.ll                 v              unalignment init, -> sb sb ...                           6
   weak.ll                          v              extern_weak function, -> .weak                           9
   xor1.ll                          v              xor, -> xor                                              4
-  tls-alias.ll                     v              thread_local global and thread local alias               12
   zeroreg.ll                       v              check register $zero                                     4
   ===============================  =============  =======================================================  ===========
   
@@ -365,8 +366,6 @@ Cpu0 doesn't support the following test items at this point.
   ===================================  =============  =======================================================
   File                                 v:pass x:fail  comment
   ===================================  =============  =======================================================
-  2008-08-08-bswap.ll                  x              Not support llvm.bswap. The c++ STL swap didn't use it. ?
-  2010-04-07-DbgValueOtherTargets.ll   x              Mips cannot pass either ?
   eh-dwraf-cfa.ll                      x
   longbranch.ll                        x              Not support and not intend to support.
   vector-setcc.ll                      x              Not support vector.
