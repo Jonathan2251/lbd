@@ -20,8 +20,8 @@ code from mips and replace the name with cpu0. In addition to knowing the DAGs
 pattern match in theoretic compiler and realistic llvm code generation phase, 
 please focus on the classes relationship in this backend structure. 
 Once knowing the structure, you can 
-create your backend structure as quickly as we did, even though there are 3100 
-lines of code in this chapter.
+create your backend structure as quickly as we did, even though there are 5000 
+lines of code around in this chapter.
 
 TargetMachine structure
 -----------------------

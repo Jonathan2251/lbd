@@ -214,11 +214,12 @@ Cpu0TargetLowering::Cpu0TargetLowering(const Cpu0TargetMachine &TM,
   setOperationAction(ISD::ATOMIC_STORE,      MVT::i32,    Expand);
   setOperationAction(ISD::ATOMIC_STORE,      MVT::i64,    Expand);
 
-#if CH >= CH12_1 //1.6
+  setInsertFencesForAtomic(true);
+#endif
+
+#if CH >= CH9_3 //2.5
   setOperationAction(ISD::BSWAP, MVT::i32, Expand);
   setOperationAction(ISD::BSWAP, MVT::i64, Expand);
-#endif
-  setInsertFencesForAtomic(true);
 #endif
 
 #if CH >= CH4_1 //2

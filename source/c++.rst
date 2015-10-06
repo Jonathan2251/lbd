@@ -564,28 +564,6 @@ files for generating llvm atomic IRs. The C++ files need to run with clang
 options "clang++ -pthread -std=c++11".
 
 
-Other intrinsics
------------------
-
-Cpu0 supports llvm instrinsics bswap intrinsics [#bswapintrnsic]_ and .
-
-.. rubric:: lbdex/chapters/Chapter12_1/Cpu0ISelLowering.cpp
-.. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.cpp
-    :start-after: //@Cpu0TargetLowering {
-    :end-before: #if CH >= CH3_2
-.. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.cpp
-    :start-after: #if CH >= CH12_1 //1.6
-    :end-before: #endif
-
-.. code-block:: c++
-
-    ...
-  }
-
-.. rubric:: lbdex/input/ch12_1_intrinsics.cpp
-.. literalinclude:: ../lbdex/input/ch12_1_intrinsics.cpp
-    :start-after: /// start
-
 .. [#exception] http://llvm.org/docs/ExceptionHandling.html
 
 .. [#thread-wiki] http://en.wikipedia.org/wiki/Thread-local_storage
@@ -599,5 +577,3 @@ Cpu0 supports llvm instrinsics bswap intrinsics [#bswapintrnsic]_ and .
 .. [#atomics-llvm] http://llvm.org/docs/Atomics.html
 
 .. [#llvmlang-ordering] http://llvm.org/docs/LangRef.html#ordering
-
-.. [#bswapintrnsic] http://llvm.org/docs/LangRef.html#llvm-bswap-intrinsics

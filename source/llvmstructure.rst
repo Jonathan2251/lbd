@@ -876,7 +876,7 @@ next 2 sections for DAG and Instruction Selection.
       %d = ld i32* %c
   
   // Transfer above instructions order as follows. In RISC CPU of Mips, the ld 
-  //  %c use the result of the previous instruction st %c. So it must wait 1
+  //  %c uses the result of the previous instruction st %c. So it must wait 1
   //  cycles more. Meaning the ld cannot follow st immediately.
   =>  st %b, i32* %c, i16 0
       st i32 %a, i16* %b,  i16 5
@@ -899,7 +899,7 @@ next 2 sections for DAG and Instruction Selection.
       st %a,  i32* %c, 1
       st %b,  i32* %c, 2
   
-  // The reorder version need 2 registers only (by allocate %a and %b in the same
+  // The reorder version needs 2 registers only (by allocate %a and %b in the same
   //  register)
   => %a = add i32 1, i32 0
       st %a,  i32* %c, 1
@@ -1054,7 +1054,7 @@ assigned exactly once and is keeped in different virtual register).
 As the result, the optimization steps used in code generation sequence which 
 include stages of **Instruction Selection**, **Scheduling and Formation** and 
 **Register Allocation**, won't loss any optimization opportunity. 
-For example, if use limited virtual registers to generate the following code,
+For example, if using limited virtual registers to generate the following code,
 
 .. code-block:: c++
 
@@ -1122,10 +1122,10 @@ remove" to get the following code.
   d = a – d
   c = d + c
 
-As you can imagine, the "common expression remove" can apply in IR or machine 
-code.
+As you can imagine, the "common expression remove" can apply both in IR or 
+machine code.
 
-DAG like a tree which opcode is the node and operand (register and 
+DAG likes a tree which opcode is the node and operand (register and 
 const/immediate/offset) is leaf. 
 It can also be represented by list as prefix order in tree. 
 For example, (+ b, c), (+ b, 1) is IR DAG representation.
@@ -1163,7 +1163,7 @@ ADD is machine instruction.
   Instruction DAG representation
 
 The IR DAG and machine instruction DAG can also represented as list. 
-For example, (+ ri, rj), (- ri, 1) are lists for IR DAG; (ADD ri, rj), 
+For example, (+ ri, rj) and (- ri, 1) are lists for IR DAG; (ADD ri, rj) and 
 (SUBI ri, 1) are lists for machine instruction DAG.
 
 Now, let's recall the ADDiu instruction defined in Cpu0InstrInfo.td of the 
@@ -1196,8 +1196,8 @@ match, the .td also set assembly string "addiu" and op code 0x09.
 With this information, the LLVM TableGen will generate instruction both in 
 assembly and binary automatically (the binary instruction issued in obj file of 
 ELF format which will be explained at later chapter). 
-Similarly, the machine instruction DAG node LD and ST can be translated from IR 
-DAG node **load** and **store**. Notice that the $r1 in this case is virtual 
+Similarly, the machine instruction DAG nodes LD and ST can be translated from IR 
+DAG nodes **load** and **store**. Notice that the $r1 in this case is virtual 
 register name (not machine register). 
  
 .. _llvmstructure-f13: 
@@ -1243,7 +1243,7 @@ Now, for the following basic block notation IR and llvm SSA IR code,
   %e = fadd %d, %b
   ...
 
-The Instruction Selection Process will translate this two IR DAG node 
+the Instruction Selection Process will translate this two IR DAG node 
 (fmul %a, %c) (fadd %d, %b) into one machine instruction DAG node (**fmadd** 
 %a, %c, %b), rather than translate them into two machine instruction nodes 
 **fmul** and **fadd** if the FMADDS is appear before FMUL and FADD in your td 
@@ -1282,9 +1282,8 @@ following machine code,
 Create Cpu0 backend
 --------------------
 
-From now on, the Cpu0 backend will be created from scratch step by step and
-chapter by chapter.
-To make readers easily understanding the backend structure step by step, Cpu0 
+From now on, the Cpu0 backend will be created from scratch step by step.
+To make readers easily understanding the backend structure, Cpu0 
 example code can be generated with chapter by chapter through command here 
 [#chapters-ex]_.
 
@@ -1293,7 +1292,7 @@ Cpu0 backend machine ID and relocation records
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 To create a new backend, there are some files in <<llvm root dir>> need to be 
-modified. The added information include both the ID and name of machine and 
+modified. The added information include both the ID and name of machine, and 
 relocation records. Chapter "ELF Support" include the relocation records 
 introduction. The following files are modified to add Cpu0 backend as follows,
 
@@ -1614,8 +1613,8 @@ introduction. The following files are modified to add Cpu0 backend as follows,
 Creating the Initial Cpu0 .td Files
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-As it has been discussed in the previous section, LLVM use target description 
-files (which use the .td file extension) to describe various components of a 
+As it has been discussed in the previous section, LLVM uses target description 
+files (which uses the .td file extension) to describe various components of a 
 target's backend. 
 For example, these .td files may describe a target's register set, instruction 
 set, scheduling information for instructions, and calling conventions.  
@@ -1624,8 +1623,8 @@ will translate these .td files into C++ source code written to files that have
 a .inc extension.  
 Please refer to [#tblgen]_ for more information regarding how to use tablegen.
 
-Every backend has a .td which defines some target information, including what 
-other .td files are used by the backend. 
+Every backend has a .td which defines some target information, which including 
+what other .td files are used by the backend. 
 These files have a similar syntax to C++. For Cpu0, the target description file 
 is called Cpu0Other.td, which is shown below:
 
@@ -1666,41 +1665,47 @@ For example:
   }; 
   Date birthday;  // define birthday, an instance of Date
 
-The class **Date** has the members **year**, **month**, and **day**, however these do not  
-yet belong to an actual object.  By defining an instance of **Date** called **birthday**, 
-you have allocated memory for a specific object, and can set the **year**, **month**, and 
+The class **Date** has the members **year**, **month**, and **day**, however 
+these do not yet belong to an actual object. 
+By defining an instance of **Date** called **birthday**, you have allocated 
+memory for a specific object, and can set the **year**, **month**, and 
 **day** of this instance of the class.
 
-In .td files, class describe the structure of how data is laid out, while definitions 
-act as the specific instances of the class.  If we look back at the Cpu0RegisterInfo.td 
-file, we see a class called **Cpu0Reg<string n>** which is derived from the 
-**Register<n>** class provided by LLVM.  **Cpu0Reg** inherits all the fields that exist 
+In .td files, class describe the structure of how data is laid out, while 
+definitions act as the specific instances of the class. 
+If we look back at the Cpu0RegisterInfo.td file, we see a class called 
+**Cpu0Reg<string n>** which is derived from the **Register<n>** class provided 
+by LLVM.  **Cpu0Reg** inherits all the fields that exist 
 in the **Register** class. The "let HWEncoding = Enc" which meaning assign field 
 HWEncoding from parameter Enc. Since Cpu0 reserve 4 bits for 16 registers in 
 instruction format, the assigned value range is from 0 to 15. Assign the 0 to 15 
 to HWEncoding, then the backend register number can be gotten from the function 
 of llvm register class since TableGen will set this number correctly.
 
-The **def** keyword is used to create instances of class.  In the following line, the 
-ZERO register is defined as a member of the **Cpu0GPRReg** class:
+The **def** keyword is used to create instances of class. 
+In the following line, the ZERO register is defined as a member of the 
+**Cpu0GPRReg** class:
 
 .. code-block:: c++
 
   def ZERO : Cpu0GPRReg< 0, "ZERO">, DwarfRegNum<[0]>;
 
 The **def ZERO** indicates the name of this register.  **< 0, "ZERO">** are the 
-parameters used when creating this specific instance of the **Cpu0GPRReg** class, thus 
-the four bit **Num** field is set to 0, and the string **n** is set to **ZERO**.
+parameters used when creating this specific instance of the **Cpu0GPRReg** 
+class, thus the field **Enc** is set to 0, and the string **n** is set 
+to **ZERO**.
 
-As the register lives in the **Cpu0** namespace, you can refer to the ZERO register in 
-C++ code in a backend using **Cpu0::ZERO**.
+As the register lives in the **Cpu0** namespace, you can refer to the ZERO 
+register in C++ code in a backend using **Cpu0::ZERO**.
 
-Notice the use of the **let** expressions: these allow you to override values that are 
-initially defined in a superclass. For example, **let Namespace = “Cpu0”** in the 
-**Cpu0Reg** class will override the default namespace declared in **Register** class. 
-The Cpu0RegisterInfo.td also defines that **CPURegs** is an instance of the class 
-**RegisterClass**, which is an built-in LLVM class.  A **RegisterClass** is a set of 
-**Register** instances, thus **CPURegs** can be described as a set of registers.
+Notice the use of the **let** expressions: these allow you to override values 
+that are initially defined in a superclass. 
+For example, **let Namespace = “Cpu0”** in the **Cpu0Reg** class will override 
+the default namespace declared in **Register** class. 
+The Cpu0RegisterInfo.td also defines that **CPURegs** is an instance of the 
+class **RegisterClass**, which is an built-in LLVM class. 
+A **RegisterClass** is a set of **Register** instances, thus **CPURegs** can be 
+described as a set of registers.
 
 The Cpu0 instructions td is named to Cpu0InstrInfo.td which contents as follows,
 
@@ -1744,8 +1749,8 @@ To expand the td, one principle is:
 
 - let: meaning override the existed field from parent class.
 
-  For instance: let isReMaterializable = 1; override the isReMaterializable from class 
-  instruction of Target.td.
+  For instance: let isReMaterializable = 1; override the isReMaterializable 
+  from class instruction of Target.td.
 
 - declaration: meaning declare a new field for this class.
 
@@ -1825,7 +1830,7 @@ by chapter and even section by section.
 Don't try to understand everything in the text of book, the code added in each 
 chapter is a reading material too. 
 To understand the computer related knowledge in concept, you can ignore source 
-code, but implementation based on an existed open software cannot. 
+code, but implementing based on an existed open software cannot. 
 In programming, documentation cannot replace the source code totally. 
 Reading source code is a big opportunity in the open source development. 
 
@@ -1835,8 +1840,7 @@ Their contents indicate they will generate Cpu0Desc and Cpu0Info libraries.
 After building, you will find three libraries: **libLLVMCpu0CodeGen.a**, 
 **libLLVMCpu0Desc.a** and **libLLVMCpu0Info.a** in lib/ of your build 
 directory. 
-For more details please see 
-"Building LLVM with CMake" [#cmake]_ and 
+For more details please see "Building LLVM with CMake" [#cmake]_ and 
 "LLVMBuild Guide" [#llvmbuild]_.
 
 Target Registration
@@ -1900,7 +1904,7 @@ Sub-directories src is for source code and cmake_debug_build is for debug
 build directory.
 
 Beside directory src/lib/Target/Cpu0, there are a couple of files modified to 
-support cpu0 new Target. It include both the ID and name of machine and 
+support cpu0 new Target, which includes both the ID and name of machine and 
 relocation records listed in the early sub-section.
 You can update your llvm working copy and find the modified files by 
 commands, cp -rf lbdex/src/modify/src/* <yourllvm/workingcopy/sourcedir>/.
@@ -1987,7 +1991,7 @@ Let's build lbdex/chapters/Chapter2 code as follows,
   -- Build files have been written to: /Users/Jonathan/llvm/test/cmake_debug_build
 
 To save time, we build Cpu0 target only by option -DLLVM_TARGETS_TO_BUILD=Cpu0.
-After cmake please open Xcode and build the Xcode project file as appendix A,
+After cmake, please open Xcode and build the Xcode project file as appendix A,
 or refer appendix A to build it on linux if you work on unix/linux platform.
 After that, you can find the \*.inc files in directory 
 /Users/Jonathan/llvm/test/cmake_debug_build/lib/Target/Cpu0 as follows,
@@ -1999,28 +2003,33 @@ After that, you can find the \*.inc files in directory
   enum {
     NoRegister,
     AT = 1,
-    FP = 2,
-    GP = 3,
-    LR = 4,
-    PC = 5,
-    SP = 6,
-    SW = 7,
-    ZERO = 8,
-    A0 = 9,
-    A1 = 10,
-    S0 = 11,
-    S1 = 12,
-    T0 = 13,
-    T9 = 14,
-    V0 = 15,
-    V1 = 16,
-    NUM_TARGET_REGS 	// 17
+    EPC = 2,
+    FP = 3,
+    GP = 4,
+    HI = 5,
+    LO = 6,
+    LR = 7,
+    PC = 8,
+    SP = 9,
+    SW = 10,
+    ZERO = 11,
+    A0 = 12,
+    A1 = 13,
+    S0 = 14,
+    S1 = 15,
+    T0 = 16,
+    T1 = 17,
+    T9 = 18,
+    V0 = 19,
+    V1 = 20,
+    NUM_TARGET_REGS 	// 21
   };
   }
   ...
 
-These \*.inc are created by llvm-tblgen from directory cmake_debug_build/bin 
-where input files are the Cpu0 backend \*.td files. 
+These \*.inc are created by llvm-tblgen from directory 
+cmake_debug_build/lib/Target/Cpu0 where input files are the Cpu0 backend \*.td 
+files. 
 The llvm-tblgen is invoked by **tablegen** of 
 /Users/Jonathan/llvm/test/src/lib/Target/Cpu0/CMakeLists.txt. 
 These \*.inc files will be included by Cpu0 backend \*.cpp or \*.h files and 
@@ -2112,7 +2121,7 @@ the Target Registration.
 
 .. [#aosa-book] Chris Lattner, **LLVM**. Published in The Architecture of Open Source Applications. http://www.aosabook.org/en/llvm.html
 
-.. [#chapters-ex] http://jonathan2251.github.io/lbd/install.html#cpu0-document
+.. [#chapters-ex] file:///home/cschen/test/lbd/build/html/doc.html#generate-cpu0-document
 
 .. [#codegen] http://llvm.org/docs/CodeGenerator.html
 

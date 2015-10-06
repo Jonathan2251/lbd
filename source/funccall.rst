@@ -3425,6 +3425,27 @@ book "llvm tool chain for Cpu0" [#cpu0lld]_.
 Through global variable, exceptionOccur, is true or false, whether the control 
 flow to exception_handler() or not can be identified.
 
+bswap intrinsics
+~~~~~~~~~~~~~~~~~
+
+Cpu0 supports llvm instrinsics bswap intrinsics [#bswapintrnsic]_ and .
+
+.. rubric:: lbdex/chapters/Chapter12_1/Cpu0ISelLowering.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.cpp
+    :start-after: //@Cpu0TargetLowering {
+    :end-before: #if CH >= CH3_2
+.. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.cpp
+    :start-after: #if CH >= CH9_3 //2.5
+    :end-before: #endif
+
+.. code-block:: c++
+
+    ...
+  }
+
+.. rubric:: lbdex/input/ch12_1_intrinsics.cpp
+.. literalinclude:: ../lbdex/input/ch12_1_intrinsics.cpp
+    :start-after: /// start
 
 Summary
 -------
@@ -3468,4 +3489,5 @@ front end has not add any new IR for a new language.
 
 .. [#cpu0lld] http://jonathan2251.github.io/lbt/lld.html
 
+.. [#bswapintrnsic] http://llvm.org/docs/LangRef.html#llvm-bswap-intrinsics
 
