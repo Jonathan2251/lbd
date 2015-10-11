@@ -817,6 +817,8 @@ follows,
 
 .. code-block:: bash
 
+  118-165-79-206:input Jonathan$ clang -target mips-unknown-linux-gnu -c 
+  ch7_5_2.cpp -emit-llvm -o ch7_5_2.bc
   118-165-79-206:input Jonathan$ llvm-dis ch7_5_2.bc -o -
   ...
   define i32 @main() nounwind ssp {
@@ -860,4 +862,50 @@ follows,
 	  .size	$_ZZ4mainE1a, 12
 
 
+Vector type (SIMD) support
+---------------------------
+
+Vector types are used when multiple primitive data are operated in parallel 
+using a single instruction (SIMD) [#vector]_. Since Mips supports the 
+following llvm IRs "icmp slt" and "sext" for vector type, Cpu0 supports them
+too.
+
+.. rubric:: lbdex/input/ch7_1_vector.cpp
+.. literalinclude:: ../lbdex/input/ch7_1_vector.cpp
+    :start-after: /// start
+
+.. code-block:: bash
+
+  118-165-79-206:input Jonathan$ clang -target mips-unknown-linux-gnu -c 
+  ch7_1_vector.cpp -emit-llvm -o ch7_1_vector.bc
+  118-165-79-206:input Jonathan$ ~/llvm/test/cmake_debug_build/Debug/bin/
+  llvm-dis ch7_1_vector.bc -o -
+  
+  ...
+  @vsc = global <8 x i32> zeroinitializer, align 32
+  @vbc = global <8 x i32> zeroinitializer, align 32
+  
+  ; Function Attrs: nounwind
+  define void @_Z10test_cmpltv() #0 {
+    %1 = load volatile <8 x i32>, <8 x i32>* @vbc, align 32
+    %2 = load volatile <8 x i32>, <8 x i32>* @vsc, align 32
+    %3 = icmp slt <8 x i32> %1, %2
+    %4 = sext <8 x i1> %3 to <8 x i32>
+    store volatile <8 x i32> %4, <8 x i32>* @vbc, align 32
+    ret void
+  }
+
+.. rubric:: lbdex/chapters/Chapter7_1/Cpu0ISelLowering.h
+.. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.h
+    :start-after: #if CH >= CH7_1 //0.5
+    :end-before: #endif
+    
+.. rubric:: lbdex/chapters/Chapter7_1/Cpu0ISelLowering.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.cpp
+    :start-after: #if CH >= CH7_1 //3.5
+    :end-before: #endif
+
+
 .. [#] http://llvm.org/docs/LangRef.html#getelementptr-instruction
+
+.. [#vector] http://llvm.org/docs/LangRef.html#vector-type

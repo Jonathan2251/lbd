@@ -248,6 +248,15 @@ const Cpu0TargetLowering *Cpu0TargetLowering::create(const Cpu0TargetMachine &TM
   return llvm::createCpu0SETargetLowering(TM, STI);
 }
 
+#if CH >= CH7_1 //3.5
+EVT Cpu0TargetLowering::getSetCCResultType(const DataLayout &, LLVMContext &,
+                                           EVT VT) const {
+  if (!VT.isVector())
+    return MVT::i32;
+  return VT.changeVectorElementTypeToInteger();
+}
+#endif
+
 #if CH >= CH4_1 //3
 static SDValue performDivRemCombine(SDNode *N, SelectionDAG& DAG,
                                     TargetLowering::DAGCombinerInfo &DCI,

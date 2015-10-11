@@ -94,6 +94,12 @@ namespace llvm {
     //  DAG node.
     const char *getTargetNodeName(unsigned Opcode) const override;
 
+#if CH >= CH7_1 //0.5
+    /// getSetCCResultType - get the ISD::SETCC result ValueType
+    EVT getSetCCResultType(const DataLayout &DL, LLVMContext &Context,
+                           EVT VT) const override;
+#endif
+
 #if CH >= CH4_1
     SDValue PerformDAGCombine(SDNode *N, DAGCombinerInfo &DCI) const override;
 #endif
