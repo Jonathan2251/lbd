@@ -13,6 +13,7 @@
 #include "ch7_2_2.cpp"
 #include "ch7_3.cpp"
 #include "ch7_4.cpp"
+#include "ch7_1_vector.cpp"
 #include "ch8_1_1.cpp"
 #include "ch8_2.cpp"
 #include "ch8_3.cpp"
@@ -91,6 +92,12 @@ int test_nolld()
   if ((int)(b >> 32) != 393307) pass = false;
   print_integer((int)b); // 16777222
   if ((int)(b) != 16777222) pass = false;
+  a = test_cmplt_short();
+  print_integer(a); // a = 0
+  if (a != 0) pass = false;
+  a = test_cmplt_long();
+  print_integer(a); // a = 0
+  if (a != 0) pass = false;
   a = test_control1();
   print_integer(a);	// a = 51
   if (a != 51) pass = false;

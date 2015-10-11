@@ -882,18 +882,70 @@ too.
   llvm-dis ch7_1_vector.bc -o -
   
   ...
-  @vsc = global <8 x i32> zeroinitializer, align 32
-  @vbc = global <8 x i32> zeroinitializer, align 32
+  ; Function Attrs: nounwind
+  define i32 @_Z16test_cmplt_shortv() #0 {
+    %a0 = alloca <4 x i32>, align 16
+    %b0 = alloca <4 x i32>, align 16
+    %c0 = alloca <4 x i32>, align 16
+    store volatile <4 x i32> <i32 0, i32 1, i32 2, i32 3>, <4 x i32>* %a0, align 16
+    store volatile <4 x i32> <i32 2, i32 2, i32 2, i32 2>, <4 x i32>* %b0, align 16
+    %1 = load volatile <4 x i32>, <4 x i32>* %a0, align 16
+    %2 = load volatile <4 x i32>, <4 x i32>* %b0, align 16
+    %3 = icmp slt <4 x i32> %1, %2
+    %4 = sext <4 x i1> %3 to <4 x i32>
+    store volatile <4 x i32> %4, <4 x i32>* %c0, align 16
+    %5 = load volatile <4 x i32>, <4 x i32>* %c0, align 16
+    %6 = extractelement <4 x i32> %5, i32 0
+    %7 = load volatile <4 x i32>, <4 x i32>* %c0, align 16
+    %8 = extractelement <4 x i32> %7, i32 1
+    %9 = add nsw i32 %6, %8
+    %10 = load volatile <4 x i32>, <4 x i32>* %c0, align 16
+    %11 = extractelement <4 x i32> %10, i32 2
+    %12 = add nsw i32 %9, %11
+    %13 = load volatile <4 x i32>, <4 x i32>* %c0, align 16
+    %14 = extractelement <4 x i32> %13, i32 3
+    %15 = add nsw i32 %12, %14
+    ret i32 %15
+  }
   
   ; Function Attrs: nounwind
-  define void @_Z10test_cmpltv() #0 {
-    %1 = load volatile <8 x i32>, <8 x i32>* @vbc, align 32
-    %2 = load volatile <8 x i32>, <8 x i32>* @vsc, align 32
+  define i32 @_Z15test_cmplt_longv() #0 {
+    %a0 = alloca <8 x i32>, align 32
+    %b0 = alloca <8 x i32>, align 32
+    %c0 = alloca <8 x i32>, align 32
+    store volatile <8 x i32> <i32 2, i32 2, i32 2, i32 2, i32 1, i32 1, i32 1, i32 1>, <8 x i32>* %a0, align 32
+    store volatile <8 x i32> <i32 1, i32 1, i32 1, i32 1, i32 2, i32 2, i32 2, i32 2>, <8 x i32>* %b0, align 32
+    %1 = load volatile <8 x i32>, <8 x i32>* %a0, align 32
+    %2 = load volatile <8 x i32>, <8 x i32>* %b0, align 32
     %3 = icmp slt <8 x i32> %1, %2
     %4 = sext <8 x i1> %3 to <8 x i32>
-    store volatile <8 x i32> %4, <8 x i32>* @vbc, align 32
-    ret void
+    store volatile <8 x i32> %4, <8 x i32>* %c0, align 32
+    %5 = load volatile <8 x i32>, <8 x i32>* %c0, align 32
+    %6 = extractelement <8 x i32> %5, i32 0
+    %7 = load volatile <8 x i32>, <8 x i32>* %c0, align 32
+    %8 = extractelement <8 x i32> %7, i32 1
+    %9 = add nsw i32 %6, %8
+    %10 = load volatile <8 x i32>, <8 x i32>* %c0, align 32
+    %11 = extractelement <8 x i32> %10, i32 2
+    %12 = add nsw i32 %9, %11
+    %13 = load volatile <8 x i32>, <8 x i32>* %c0, align 32
+    %14 = extractelement <8 x i32> %13, i32 3
+    %15 = add nsw i32 %12, %14
+    %16 = load volatile <8 x i32>, <8 x i32>* %c0, align 32
+    %17 = extractelement <8 x i32> %16, i32 4
+    %18 = add nsw i32 %15, %17
+    %19 = load volatile <8 x i32>, <8 x i32>* %c0, align 32
+    %20 = extractelement <8 x i32> %19, i32 5
+    %21 = add nsw i32 %18, %20
+    %22 = load volatile <8 x i32>, <8 x i32>* %c0, align 32
+    %23 = extractelement <8 x i32> %22, i32 6
+    %24 = add nsw i32 %21, %23
+    %25 = load volatile <8 x i32>, <8 x i32>* %c0, align 32
+    %26 = extractelement <8 x i32> %25, i32 7
+    %27 = add nsw i32 %24, %26
+    ret i32 %27
   }
+
 
 .. rubric:: lbdex/chapters/Chapter7_1/Cpu0ISelLowering.h
 .. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.h
