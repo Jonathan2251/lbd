@@ -90,6 +90,9 @@ void Cpu0AsmPrinter::emitPseudoCPRestore(MCStreamer &OutStreamer,
       EmitInstrWithMacroNoAT(MI);
       return;
     }
+    MCInst TmpInst0;
+    MCInstLowering.Lower(MI, TmpInst0);
+    OutStreamer.EmitInstruction(TmpInst0, getSubtargetInfo());
   } else {
     MCInstLowering.LowerCPRESTORE(Offset, MCInsts);
 
