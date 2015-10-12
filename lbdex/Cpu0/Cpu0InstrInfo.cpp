@@ -62,19 +62,21 @@ Cpu0InstrInfo::emitFrameIndexDebugValue(MachineFunction &MF, int FrameIx,
     .addFrameIndex(FrameIx).addImm(0).addImm(Offset).addMetadata(MDPtr);
   return &*MIB;
 }
-#endif
 
-#if CH >= CH11_2
+//@GetInstSizeInBytes {
 /// Return the number of bytes of code the specified instruction may be.
 unsigned Cpu0InstrInfo::GetInstSizeInBytes(const MachineInstr *MI) const {
+//@GetInstSizeInBytes - body
   switch (MI->getOpcode()) {
   default:
     return MI->getDesc().getSize();
+#if CH >= CH11_2
   case  TargetOpcode::INLINEASM: {       // Inline Asm: Variable size.
     const MachineFunction *MF = MI->getParent()->getParent();
     const char *AsmStr = MI->getOperand(0).getSymbolName();
     return getInlineAsmLength(AsmStr, *MF->getTarget().getMCAsmInfo());
   }
+#endif
   }
 }
 #endif

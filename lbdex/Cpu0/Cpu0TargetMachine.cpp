@@ -208,6 +208,7 @@ void Cpu0PassConfig::addPreEmitPass() {
 //@8_2 1}
   addPass(createCpu0DelaySlotFillerPass(TM));
 //@8_2 2}
+  addPass(createCpu0LongBranchPass(TM));
   return;
 }
 #endif

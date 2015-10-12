@@ -34,6 +34,9 @@ namespace llvm {
 #if CH >= CH8_2 //2
   FunctionPass *createCpu0DelJmpPass(Cpu0TargetMachine &TM);
 #endif
+#if CH >= CH8_2 //3
+  FunctionPass *createCpu0LongBranchPass(Cpu0TargetMachine &TM);
+#endif
 
 } // end namespace llvm;
 

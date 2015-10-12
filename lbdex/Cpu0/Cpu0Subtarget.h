@@ -268,6 +268,10 @@ public:
 
   bool abiUsesSoftFloat() const;
 
+  bool enableLongBranchPass() const {
+    return hasCpu032II();
+  }
+  
   unsigned stackAlignment() const { return 8; }
 
   Cpu0Subtarget &initializeSubtargetDependencies(StringRef CPU, StringRef FS,

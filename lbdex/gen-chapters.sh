@@ -8,8 +8,9 @@ files="CMakeLists.txt Cpu0.h Cpu0AnalyzeImmediate.cpp Cpu0AnalyzeImmediate.h \
        Cpu0DelaySlotFiller.cpp Cpu0DelUselessJMP.cpp Cpu0EmitGPRestore.cpp \
        Cpu0FrameLowering.cpp Cpu0FrameLowering.h Cpu0InstrInfo.cpp \
        Cpu0InstrInfo.h Cpu0ISelDAGToDAG.cpp Cpu0ISelDAGToDAG.h \
-       Cpu0ISelLowering.cpp Cpu0ISelLowering.h Cpu0MachineFunction.cpp \
-       Cpu0MachineFunction.h Cpu0MCInstLower.cpp Cpu0MCInstLower.h \
+       Cpu0ISelLowering.cpp Cpu0ISelLowering.h Cpu0LongBranch.cpp \
+       Cpu0MachineFunction.cpp Cpu0MachineFunction.h \
+       Cpu0MCInstLower.cpp Cpu0MCInstLower.h \
        Cpu0RegisterInfo.cpp Cpu0RegisterInfo.h \
        Cpu0SEFrameLowering.cpp Cpu0SEFrameLowering.h \
        Cpu0SEInstrInfo.cpp Cpu0SEInstrInfo.h \
@@ -34,6 +35,7 @@ files="CMakeLists.txt Cpu0.h Cpu0AnalyzeImmediate.cpp Cpu0AnalyzeImmediate.h \
        MCTargetDesc/Cpu0ABIInfo.cpp MCTargetDesc/Cpu0ABIInfo.h \
        MCTargetDesc/Cpu0MCAsmInfo.cpp MCTargetDesc/Cpu0MCAsmInfo.h \
        MCTargetDesc/Cpu0MCCodeEmitter.cpp MCTargetDesc/Cpu0MCCodeEmitter.h \
+       MCTargetDesc/Cpu0MCExpr.cpp MCTargetDesc/Cpu0MCExpr.h \
        MCTargetDesc/Cpu0MCTargetDesc.cpp MCTargetDesc/Cpu0MCTargetDesc.h \
        MCTargetDesc/Cpu0TargetStreamer.cpp \
        MCTargetDesc/CMakeLists.txt MCTargetDesc/LLVMBuild.txt \
@@ -78,6 +80,8 @@ remove_files()
   rm -f $dest_parent_dir/"Chapter2/MCTargetDesc/Cpu0MCAsmInfo.h"
   rm -f $dest_parent_dir/"Chapter2/MCTargetDesc/Cpu0MCCodeEmitter.cpp"
   rm -f $dest_parent_dir/"Chapter2/MCTargetDesc/Cpu0MCCodeEmitter.h"
+  rm -f $dest_parent_dir/"Chapter2/MCTargetDesc/Cpu0MCExpr.cpp"
+  rm -f $dest_parent_dir/"Chapter2/MCTargetDesc/Cpu0MCExpr.h"
   rm -f $dest_parent_dir/"Chapter2/MCTargetDesc/Cpu0TargetStreamer.cpp"
   rm -f $dest_parent_dir/"Chapter2/Cpu0AnalyzeImmediate.cpp"
   rm -f $dest_parent_dir/"Chapter2/Cpu0AnalyzeImmediate.h"
@@ -97,6 +101,7 @@ remove_files()
   rm -f $dest_parent_dir/"Chapter2/Cpu0ISelDAGToDAG.h"
   rm -f $dest_parent_dir/"Chapter2/Cpu0ISelLowering.cpp"
   rm -f $dest_parent_dir/"Chapter2/Cpu0ISelLowering.h"
+  rm -f $dest_parent_dir/"Chapter2/Cpu0LongBranch.cpp"
   rm -f $dest_parent_dir/"Chapter2/Cpu0MachineFunction.cpp"
   rm -f $dest_parent_dir/"Chapter2/Cpu0MachineFunction.h"
   rm -f $dest_parent_dir/"Chapter2/Cpu0MCInstLower.cpp"
@@ -134,6 +139,8 @@ remove_files()
   rm -f $dest_parent_dir/"Chapter3_1/MCTargetDesc/Cpu0MCAsmInfo.h"
   rm -f $dest_parent_dir/"Chapter3_1/MCTargetDesc/Cpu0MCCodeEmitter.cpp"
   rm -f $dest_parent_dir/"Chapter3_1/MCTargetDesc/Cpu0MCCodeEmitter.h"
+  rm -f $dest_parent_dir/"Chapter3_1/MCTargetDesc/Cpu0MCExpr.cpp"
+  rm -f $dest_parent_dir/"Chapter3_1/MCTargetDesc/Cpu0MCExpr.h"
   rm -f $dest_parent_dir/"Chapter3_1/MCTargetDesc/Cpu0TargetStreamer.cpp"
   rm -f $dest_parent_dir/"Chapter3_1/Cpu0AnalyzeImmediate.cpp"
   rm -f $dest_parent_dir/"Chapter3_1/Cpu0AnalyzeImmediate.h"
@@ -146,6 +153,7 @@ remove_files()
   rm -f $dest_parent_dir/"Chapter3_1/Cpu0EmitGPRestore.cpp"
   rm -f $dest_parent_dir/"Chapter3_1/Cpu0ISelDAGToDAG.cpp"
   rm -f $dest_parent_dir/"Chapter3_1/Cpu0ISelDAGToDAG.h"
+  rm -f $dest_parent_dir/"Chapter3_1/Cpu0LongBranch.cpp"
   rm -f $dest_parent_dir/"Chapter3_1/Cpu0MCInstLower.cpp"
   rm -f $dest_parent_dir/"Chapter3_1/Cpu0MCInstLower.h"
   rm -f $dest_parent_dir/"Chapter3_1/Cpu0RegisterInfoGPROutForAsm.td"
@@ -161,6 +169,8 @@ remove_files()
   rm -f $dest_parent_dir/"Chapter3_2/MCTargetDesc/Cpu0FixupKinds.h"
   rm -f $dest_parent_dir/"Chapter3_2/MCTargetDesc/Cpu0MCCodeEmitter.cpp"
   rm -f $dest_parent_dir/"Chapter3_2/MCTargetDesc/Cpu0MCCodeEmitter.h"
+  rm -f $dest_parent_dir/"Chapter3_2/MCTargetDesc/Cpu0MCExpr.cpp"
+  rm -f $dest_parent_dir/"Chapter3_2/MCTargetDesc/Cpu0MCExpr.h"
   rm -f $dest_parent_dir/"Chapter3_2/MCTargetDesc/Cpu0TargetStreamer.cpp"
   rm -f $dest_parent_dir/"Chapter3_2/Cpu0AnalyzeImmediate.cpp"
   rm -f $dest_parent_dir/"Chapter3_2/Cpu0AnalyzeImmediate.h"
@@ -171,6 +181,7 @@ remove_files()
   rm -f $dest_parent_dir/"Chapter3_2/Cpu0EmitGPRestore.cpp"
   rm -f $dest_parent_dir/"Chapter3_2/Cpu0ISelDAGToDAG.cpp"
   rm -f $dest_parent_dir/"Chapter3_2/Cpu0ISelDAGToDAG.h"
+  rm -f $dest_parent_dir/"Chapter3_2/Cpu0LongBranch.cpp"
   rm -f $dest_parent_dir/"Chapter2/Cpu0RegisterInfoGPROutForAsm.td"
   rm -f $dest_parent_dir/"Chapter3_2/Cpu0SEISelDAGToDAG.cpp"
   rm -f $dest_parent_dir/"Chapter3_2/Cpu0SEISelDAGToDAG.h"
@@ -184,6 +195,8 @@ remove_files()
   rm -f $dest_parent_dir/"Chapter3_3/MCTargetDesc/Cpu0FixupKinds.h"
   rm -f $dest_parent_dir/"Chapter3_3/MCTargetDesc/Cpu0MCCodeEmitter.cpp"
   rm -f $dest_parent_dir/"Chapter3_3/MCTargetDesc/Cpu0MCCodeEmitter.h"
+  rm -f $dest_parent_dir/"Chapter3_3/MCTargetDesc/Cpu0MCExpr.cpp"
+  rm -f $dest_parent_dir/"Chapter3_3/MCTargetDesc/Cpu0MCExpr.h"
   rm -f $dest_parent_dir/"Chapter3_3/MCTargetDesc/Cpu0TargetStreamer.cpp"
   rm -f $dest_parent_dir/"Chapter3_3/Cpu0AnalyzeImmediate.cpp"
   rm -f $dest_parent_dir/"Chapter3_3/Cpu0AnalyzeImmediate.h"
@@ -192,6 +205,7 @@ remove_files()
   rm -f $dest_parent_dir/"Chapter3_3/Cpu0DelaySlotFiller.cpp"
   rm -f $dest_parent_dir/"Chapter3_3/Cpu0DelUselessJMP.cpp"
   rm -f $dest_parent_dir/"Chapter3_3/Cpu0EmitGPRestore.cpp"
+  rm -f $dest_parent_dir/"Chapter3_3/Cpu0LongBranch.cpp"
   rm -f $dest_parent_dir/"Chapter3_3/Cpu0RegisterInfoGPROutForAsm.td"
   rm -f $dest_parent_dir/"Chapter3_3/Cpu0TargetStreamer.h"
 
@@ -203,12 +217,15 @@ remove_files()
   rm -f $dest_parent_dir/"Chapter3_4/MCTargetDesc/Cpu0FixupKinds.h"
   rm -f $dest_parent_dir/"Chapter3_4/MCTargetDesc/Cpu0MCCodeEmitter.cpp"
   rm -f $dest_parent_dir/"Chapter3_4/MCTargetDesc/Cpu0MCCodeEmitter.h"
+  rm -f $dest_parent_dir/"Chapter3_4/MCTargetDesc/Cpu0MCExpr.cpp"
+  rm -f $dest_parent_dir/"Chapter3_4/MCTargetDesc/Cpu0MCExpr.h"
   rm -f $dest_parent_dir/"Chapter3_4/MCTargetDesc/Cpu0TargetStreamer.cpp"
   rm -f $dest_parent_dir/"Chapter3_4/Cpu0Asm.td"
   rm -f $dest_parent_dir/"Chapter3_4/Cpu0CondMov.td"
   rm -f $dest_parent_dir/"Chapter3_4/Cpu0DelaySlotFiller.cpp"
   rm -f $dest_parent_dir/"Chapter3_4/Cpu0DelUselessJMP.cpp"
   rm -f $dest_parent_dir/"Chapter3_4/Cpu0EmitGPRestore.cpp"
+  rm -f $dest_parent_dir/"Chapter3_4/Cpu0LongBranch.cpp"
   rm -f $dest_parent_dir/"Chapter3_4/Cpu0RegisterInfoGPROutForAsm.td"
   rm -f $dest_parent_dir/"Chapter3_4/Cpu0TargetStreamer.h"
 
@@ -220,12 +237,15 @@ remove_files()
   rm -f $dest_parent_dir/"Chapter3_5/MCTargetDesc/Cpu0FixupKinds.h"
   rm -f $dest_parent_dir/"Chapter3_5/MCTargetDesc/Cpu0MCCodeEmitter.cpp"
   rm -f $dest_parent_dir/"Chapter3_5/MCTargetDesc/Cpu0MCCodeEmitter.h"
+  rm -f $dest_parent_dir/"Chapter3_5/MCTargetDesc/Cpu0MCExpr.cpp"
+  rm -f $dest_parent_dir/"Chapter3_5/MCTargetDesc/Cpu0MCExpr.h"
   rm -f $dest_parent_dir/"Chapter3_5/MCTargetDesc/Cpu0TargetStreamer.cpp"
   rm -f $dest_parent_dir/"Chapter3_5/Cpu0Asm.td"
   rm -f $dest_parent_dir/"Chapter3_5/Cpu0CondMov.td"
   rm -f $dest_parent_dir/"Chapter3_5/Cpu0DelaySlotFiller.cpp"
   rm -f $dest_parent_dir/"Chapter3_5/Cpu0DelUselessJMP.cpp"
   rm -f $dest_parent_dir/"Chapter3_5/Cpu0EmitGPRestore.cpp"
+  rm -f $dest_parent_dir/"Chapter3_5/Cpu0LongBranch.cpp"
   rm -f $dest_parent_dir/"Chapter3_5/Cpu0RegisterInfoGPROutForAsm.td"
   rm -f $dest_parent_dir/"Chapter3_5/Cpu0TargetStreamer.h"
 
@@ -237,12 +257,15 @@ remove_files()
   rm -f $dest_parent_dir/"Chapter4_1/MCTargetDesc/Cpu0FixupKinds.h"
   rm -f $dest_parent_dir/"Chapter4_1/MCTargetDesc/Cpu0MCCodeEmitter.cpp"
   rm -f $dest_parent_dir/"Chapter4_1/MCTargetDesc/Cpu0MCCodeEmitter.h"
+  rm -f $dest_parent_dir/"Chapter4_1/MCTargetDesc/Cpu0MCExpr.cpp"
+  rm -f $dest_parent_dir/"Chapter4_1/MCTargetDesc/Cpu0MCExpr.h"
   rm -f $dest_parent_dir/"Chapter4_1/MCTargetDesc/Cpu0TargetStreamer.cpp"
   rm -f $dest_parent_dir/"Chapter4_1/Cpu0Asm.td"
   rm -f $dest_parent_dir/"Chapter4_1/Cpu0CondMov.td"
   rm -f $dest_parent_dir/"Chapter4_1/Cpu0DelaySlotFiller.cpp"
   rm -f $dest_parent_dir/"Chapter4_1/Cpu0DelUselessJMP.cpp"
   rm -f $dest_parent_dir/"Chapter4_1/Cpu0EmitGPRestore.cpp"
+  rm -f $dest_parent_dir/"Chapter4_1/Cpu0LongBranch.cpp"
   rm -f $dest_parent_dir/"Chapter4_1/Cpu0RegisterInfoGPROutForAsm.td"
   rm -f $dest_parent_dir/"Chapter4_1/Cpu0TargetStreamer.h"
 
@@ -254,12 +277,15 @@ remove_files()
   rm -f $dest_parent_dir/"Chapter4_2/MCTargetDesc/Cpu0FixupKinds.h"
   rm -f $dest_parent_dir/"Chapter4_2/MCTargetDesc/Cpu0MCCodeEmitter.cpp"
   rm -f $dest_parent_dir/"Chapter4_2/MCTargetDesc/Cpu0MCCodeEmitter.h"
+  rm -f $dest_parent_dir/"Chapter4_2/MCTargetDesc/Cpu0MCExpr.cpp"
+  rm -f $dest_parent_dir/"Chapter4_2/MCTargetDesc/Cpu0MCExpr.h"
   rm -f $dest_parent_dir/"Chapter4_2/MCTargetDesc/Cpu0TargetStreamer.cpp"
   rm -f $dest_parent_dir/"Chapter4_2/Cpu0Asm.td"
   rm -f $dest_parent_dir/"Chapter4_2/Cpu0CondMov.td"
   rm -f $dest_parent_dir/"Chapter4_2/Cpu0DelaySlotFiller.cpp"
   rm -f $dest_parent_dir/"Chapter4_2/Cpu0DelUselessJMP.cpp"
   rm -f $dest_parent_dir/"Chapter4_2/Cpu0EmitGPRestore.cpp"
+  rm -f $dest_parent_dir/"Chapter4_2/Cpu0LongBranch.cpp"
   rm -f $dest_parent_dir/"Chapter4_2/Cpu0RegisterInfoGPROutForAsm.td"
   rm -f $dest_parent_dir/"Chapter4_2/Cpu0TargetStreamer.h"
 
@@ -270,6 +296,7 @@ remove_files()
   rm -f $dest_parent_dir/"Chapter5_1/Cpu0DelaySlotFiller.cpp"
   rm -f $dest_parent_dir/"Chapter5_1/Cpu0DelUselessJMP.cpp"
   rm -f $dest_parent_dir/"Chapter5_1/Cpu0EmitGPRestore.cpp"
+  rm -f $dest_parent_dir/"Chapter5_1/Cpu0LongBranch.cpp"
   rm -f $dest_parent_dir/"Chapter5_1/Cpu0RegisterInfoGPROutForAsm.td"
 
   rm -rf $dest_parent_dir/"Chapter6_1/AsmParser"
@@ -279,6 +306,7 @@ remove_files()
   rm -f $dest_parent_dir/"Chapter6_1/Cpu0DelaySlotFiller.cpp"
   rm -f $dest_parent_dir/"Chapter6_1/Cpu0DelUselessJMP.cpp"
   rm -f $dest_parent_dir/"Chapter6_1/Cpu0EmitGPRestore.cpp"
+  rm -f $dest_parent_dir/"Chapter6_1/Cpu0LongBranch.cpp"
   rm -f $dest_parent_dir/"Chapter6_1/Cpu0RegisterInfoGPROutForAsm.td"
 
   rm -rf $dest_parent_dir/"Chapter7_1/AsmParser"
@@ -288,6 +316,7 @@ remove_files()
   rm -f $dest_parent_dir/"Chapter7_1/Cpu0DelaySlotFiller.cpp"
   rm -f $dest_parent_dir/"Chapter7_1/Cpu0DelUselessJMP.cpp"
   rm -f $dest_parent_dir/"Chapter7_1/Cpu0EmitGPRestore.cpp"
+  rm -f $dest_parent_dir/"Chapter7_1/Cpu0LongBranch.cpp"
   rm -f $dest_parent_dir/"Chapter7_1/Cpu0RegisterInfoGPROutForAsm.td"
 
   rm -rf $dest_parent_dir/"Chapter8_1/AsmParser"

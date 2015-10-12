@@ -44,8 +44,19 @@ private:
                                    const MachineInstr *MI);
 #endif
 
+#if CH >= CH9_3 //1
+#ifdef ENABLE_GPRESTORE
+  void emitPseudoCPRestore(MCStreamer &OutStreamer,
+                           const MachineInstr *MI);
+#endif
+#endif //#if CH >= CH9_3 //1
+
   // lowerOperand - Convert a MachineOperand into the equivalent MCOperand.
   bool lowerOperand(const MachineOperand &MO, MCOperand &MCOp);
+
+#if CH >= CH8_2 //1
+  bool isLongBranchPseudo(int Opcode) const;
+#endif
 
 public:
 

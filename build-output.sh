@@ -52,13 +52,13 @@ pushd ${TOOLDIR}/cmake_debug_build
 echo "#define CH       CH4_1" > ../src/lib/Target/Cpu0/Cpu0SetChapter.h
 make -j$procs -l$procs
 popd
-clang -target mips-unknown-linux-gnu -c lbdex/input/ch4_1.cpp -emit-llvm \
+clang -target mips-unknown-linux-gnu -c lbdex/input/ch4_1_1.cpp -emit-llvm \
 -o ch4_1.bc
-${TOOLDIR}/cmake_debug_build/bin/llvm-dis ch4_1.bc -o - |awk \
-'{gsub("\t","  ",$0); print;}' |fold -w 80 > output/ch4_1.ll
+${TOOLDIR}/cmake_debug_build/bin/llvm-dis ch4_1_1.bc -o - |awk \
+'{gsub("\t","  ",$0); print;}' |fold -w 80 > output/ch4_1_1.ll
 ${TOOLDIR}/cmake_debug_build/bin/llc -march=cpu0 -relocation-model=pic \
--filetype=asm ch4_1.bc -o - |awk '{gsub("\t","  ",$0); print;}' |fold -w 80 \
-|awk '{gsub("\t","  ",$0); print;}' > output/ch4_1.pic.cpu0.s
+-filetype=asm ch4_1_1.bc -o - |awk '{gsub("\t","  ",$0); print;}' |fold -w 80 \
+|awk '{gsub("\t","  ",$0); print;}' > output/ch4_1_1.pic.cpu0.s
 
 pushd ${TOOLDIR}/cmake_debug_build
 echo "#define CH       CH4_2" > ../src/lib/Target/Cpu0/Cpu0SetChapter.h
@@ -163,6 +163,14 @@ ${TOOLDIR}/cmake_debug_build/bin/llc -march=cpu0 -mcpu=cpu032I \
 -relocation-model=pic -filetype=asm ch7_5_2.bc -o - |awk \
 '{gsub("\t","  ",$0); print;}' |fold -w 80 > output/ch7_5_2.pic.cpu0.s
 
+clang -target mips-unknown-linux-gnu -c lbdex/input/ch7_1_vector.cpp -emit-llvm \
+-o ch7_1_vector.bc
+${TOOLDIR}/cmake_debug_build/bin/llvm-dis ch7_1_vector.bc -o - |awk \
+'{gsub("\t","  ",$0); print;}' |fold -w 80 > output/ch7_1_vector.ll
+${TOOLDIR}/cmake_debug_build/bin/llc -march=cpu0 -mcpu=cpu032I \
+-relocation-model=pic -filetype=asm ch7_1_vector.bc -o - |awk \
+'{gsub("\t","  ",$0); print;}' |fold -w 80 > output/ch7_1_vector.pic.cpu0.s
+
 # Chapter 8
 pushd ${TOOLDIR}/cmake_debug_build
 echo "#define CH       CH8_2" > ../src/lib/Target/Cpu0/Cpu0SetChapter.h
@@ -175,6 +183,14 @@ ${TOOLDIR}/cmake_debug_build/bin/llvm-dis ch8_2.bc -o - |awk \
 ${TOOLDIR}/cmake_debug_build/bin/llc -march=cpu0 -mcpu=cpu032I \
 -relocation-model=static -filetype=asm -stats ch8_2.bc -o - |awk \
 '{gsub("\t","  ",$0); print;}' |fold -w 80 > output/ch8_2.static.cpu0.s
+
+clang -target mips-unknown-linux-gnu -c lbdex/input/ch8_2_longbranch.cpp -emit-llvm \
+-o ch8_2_longbranch.bc
+${TOOLDIR}/cmake_debug_build/bin/llvm-dis ch8_2_longbranch.bc -o - |awk \
+'{gsub("\t","  ",$0); print;}' |fold -w 80 > output/ch8_2_longbranch.ll
+${TOOLDIR}/cmake_debug_build/bin/llc -march=cpu0 -mcpu=cpu032II \
+-relocation-model=pic -filetype=asm -force-cpu0-long-branch ch8_2_longbranch.bc -o - |awk \
+'{gsub("\t","  ",$0); print;}' |fold -w 80 > output/ch8_2_longbranch.pic.cpu0.s
 
 clang -O1 -target mips-unknown-linux-gnu -c lbdex/input/ch8_3.cpp -emit-llvm \
 -o ch8_3.bc
@@ -196,6 +212,32 @@ ${TOOLDIR}/cmake_debug_build/bin/llvm-dis ch9_1.bc -o - |awk \
 ${TOOLDIR}/cmake_debug_build/bin/llc -march=cpu0 -mcpu=cpu032I \
 -relocation-model=pic -filetype=asm ch9_1.bc -o - |awk \
 '{gsub("\t","  ",$0); print;}' |fold -w 80 > output/ch9_1.pic.cpu0.s
+
+pushd ${TOOLDIR}/cmake_debug_build
+echo "#define CH       CH9_3" > ../src/lib/Target/Cpu0/Cpu0SetChapter.h
+make -j$procs -l$procs
+popd
+clang -target mips-unknown-linux-gnu -c lbdex/input/ch9_3_bswap.cpp -emit-llvm \
+-o ch9_3_bswap.bc
+${TOOLDIR}/cmake_debug_build/bin/llvm-dis ch9_3_bswap.bc -o - |awk \
+'{gsub("\t","  ",$0); print;}' |fold -w 80 > output/ch9_3_bswap.ll
+${TOOLDIR}/cmake_debug_build/bin/llc -march=cpu0 -mcpu=cpu032I \
+-relocation-model=pic -filetype=asm ch9_3_bswap.bc -o - |awk \
+'{gsub("\t","  ",$0); print;}' |fold -w 80 > output/ch9_3_bswap.pic.cpu0.s
+clang -target mips-unknown-linux-gnu -c lbdex/input/ch9_3_detect_exception.cpp -emit-llvm \
+-o ch9_3_detect_exception.bc
+${TOOLDIR}/cmake_debug_build/bin/llvm-dis ch9_3_detect_exception.bc -o - |awk \
+'{gsub("\t","  ",$0); print;}' |fold -w 80 > output/ch9_3_detect_exception.ll
+${TOOLDIR}/cmake_debug_build/bin/llc -march=cpu0 -mcpu=cpu032I \
+-relocation-model=pic -filetype=asm ch9_3_detect_exception.bc -o - |awk \
+'{gsub("\t","  ",$0); print;}' |fold -w 80 > output/ch9_3_detect_exception.pic.cpu0.s
+clang -target mips-unknown-linux-gnu -c lbdex/input/ch9_3_frame_return_addr.cpp -emit-llvm \
+-o ch9_3_frame_return_addr.bc
+${TOOLDIR}/cmake_debug_build/bin/llvm-dis ch9_3_frame_return_addr.bc -o - |awk \
+'{gsub("\t","  ",$0); print;}' |fold -w 80 > output/ch9_3_frame_return_addr.ll
+${TOOLDIR}/cmake_debug_build/bin/llc -march=cpu0 -mcpu=cpu032I \
+-relocation-model=pic -filetype=asm ch9_3_frame_return_addr.bc -o - |awk \
+'{gsub("\t","  ",$0); print;}' |fold -w 80 > output/ch9_3_frame_return_addr.pic.cpu0.s
 
 # Chapter 10
 pushd ${TOOLDIR}/cmake_debug_build

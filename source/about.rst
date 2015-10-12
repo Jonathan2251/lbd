@@ -68,6 +68,8 @@ Version 3.7.1, Not release yet
   Function call.
   Match Mips 3.7 style.
   Add bswap in Chapter Function call.
+  Add section "Vector type (SIMD) support" of Chapter "Other data type".
+  Add section "Long branch support" of Chapter "Control flow statements".
 
 Version 3.7.0, Released September 24, 2015
   Porting to lld 3.7.

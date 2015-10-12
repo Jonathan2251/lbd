@@ -347,12 +347,10 @@ as follows,
     :start-after: #if CH >= CH11_2
     :end-before: #endif // #if CH >= CH11_2
 
-.. rubric:: lbdex/chapters/Chapter11_2/Cpu0InstrInfo.h
-.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.h
-    :start-after: #if CH >= CH11_2
-    :end-before: #endif
-
 .. rubric:: lbdex/chapters/Chapter11_2/Cpu0InstrInfo.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.cpp
+    :start-after: //@GetInstSizeInBytes {
+    :end-before: //@GetInstSizeInBytes - body
 .. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.cpp
     :start-after: #if CH >= CH11_2
     :end-before: #endif

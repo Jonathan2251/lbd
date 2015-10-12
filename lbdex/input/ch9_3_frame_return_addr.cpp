@@ -2,9 +2,9 @@
 // ~/llvm/test/cmake_debug_build/Debug/bin/llc -march=cpu0 -relocation-model=static -filetype=asm ch9_3_frame_return_addr.bc -o -
 
 /// start
-/*int display_frameaddress() {
+int display_frameaddress() {
   return (int)__builtin_frame_address(0);
-}*/
+}
 
 extern int fn();
 

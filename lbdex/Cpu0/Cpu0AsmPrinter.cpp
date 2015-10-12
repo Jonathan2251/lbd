@@ -75,6 +75,34 @@ bool Cpu0AsmPrinter::lowerOperand(const MachineOperand &MO, MCOperand &MCOp) {
 #include "Cpu0GenMCPseudoLowering.inc"
 #endif
 
+#if CH >= CH9_3 //2
+#ifdef ENABLE_GPRESTORE
+void Cpu0AsmPrinter::emitPseudoCPRestore(MCStreamer &OutStreamer,
+                                              const MachineInstr *MI) {
+  unsigned Opc = MI->getOpcode();
+  SmallVector<MCInst, 4> MCInsts;
+  const MachineOperand &MO = MI->getOperand(0);
+  assert(MO.isImm() && "CPRESTORE's operand must be an immediate.");
+  int64_t Offset = MO.getImm();
+
+  if (OutStreamer.hasRawTextSupport()) {
+    if (!isInt<16>(Offset)) {
+      EmitInstrWithMacroNoAT(MI);
+      return;
+    }
+  } else {
+    MCInstLowering.LowerCPRESTORE(Offset, MCInsts);
+
+    for (SmallVector<MCInst, 4>::iterator I = MCInsts.begin();
+         I != MCInsts.end(); ++I)
+      OutStreamer.EmitInstruction(*I, getSubtargetInfo());
+
+    return;
+  }
+}
+#endif
+#endif //#if CH >= CH9_3 //2
+
 //@EmitInstruction {
 //- EmitInstruction() must exists or will have run time error.
 void Cpu0AsmPrinter::EmitInstruction(const MachineInstr *MI) {
@@ -87,50 +115,35 @@ void Cpu0AsmPrinter::EmitInstruction(const MachineInstr *MI) {
     return;
   }
 
-#if CH >= CH9_3 //2
-#ifdef ENABLE_GPRESTORE
-  unsigned Opc = MI->getOpcode();
-  SmallVector<MCInst, 4> MCInsts;
-
-  switch (Opc) {
-  case Cpu0::CPRESTORE: {
-    const MachineOperand &MO = MI->getOperand(0);
-    assert(MO.isImm() && "CPRESTORE's operand must be an immediate.");
-    int64_t Offset = MO.getImm();
-
-    if (OutStreamer->hasRawTextSupport()) {
-      if (!isInt<16>(Offset)) {
-        EmitInstrWithMacroNoAT(MI);
-        return;
-      }
-    } else {
-      MCInstLowering.LowerCPRESTORE(Offset, MCInsts);
-
-      for (SmallVector<MCInst, 4>::iterator I = MCInsts.begin();
-           I != MCInsts.end(); ++I)
-        OutStreamer->EmitInstruction(*I, getSubtargetInfo());
-
-      return;
-    }
-
-    break;
-  }
-  default:
-    break;
-  }
-#endif
-#endif //#if CH >= CH9_3 //2
-
+  //@print out instruction:
+  //  Print out both ordinary instruction and boudle instruction
   MachineBasicBlock::const_instr_iterator I = MI;
   MachineBasicBlock::const_instr_iterator E = MI->getParent()->instr_end();
 
-  MCInst TmpInst0;
   do {
 #if CH >= CH9_1
     // Do any auto-generated pseudo lowerings.
     if (emitPseudoExpansionLowering(*OutStreamer, &*I))
       continue;
 #endif //#if CH >= CH9_1
+
+#if CH >= CH9_3 //3
+#ifdef ENABLE_GPRESTORE
+    if (I->getOpcode() == Cpu0::CPRESTORE) {
+      emitPseudoCPRestore(*OutStreamer, &*I);
+      continue;
+    }
+#endif
+#endif //#if CH >= CH9_3 //3
+
+#if CH >= CH8_2 //1
+    if (I->isPseudo() && !isLongBranchPseudo(I->getOpcode()))
+#else
+    if (I->isPseudo())
+#endif //#if CH >= CH8_2 //1
+      llvm_unreachable("Pseudo opcode found in EmitInstruction()");
+
+    MCInst TmpInst0;
     MCInstLowering.Lower(I, TmpInst0);
     OutStreamer->EmitInstruction(TmpInst0, getSubtargetInfo());
   } while ((++I != E) && I->isInsideBundle()); // Delay slot check
@@ -471,6 +484,13 @@ void Cpu0AsmPrinter::PrintDebugValueComment(const MachineInstr *MI,
   OS << "PrintDebugValueComment()";
 }
 #endif // #if CH >= CH3_2
+
+#if CH >= CH8_2 //2
+bool Cpu0AsmPrinter::isLongBranchPseudo(int Opcode) const {
+  return (Opcode == Cpu0::LONG_BRANCH_LUi
+          || Opcode == Cpu0::LONG_BRANCH_ADDiu);
+}
+#endif
 
 // Force static initialization.
 extern "C" void LLVMInitializeCpu0AsmPrinter() {

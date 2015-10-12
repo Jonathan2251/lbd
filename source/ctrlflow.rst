@@ -298,6 +298,178 @@ following table.
   ==================  ============================================================
 
 
+Long branch support
+---------------------
+
+As last section, cpu032II uses beq and bne to improve performance but the jump
+offset reduces from 24 bits to 16 bits. If program exists more than 16 bits, 
+cpu032II will fail to generate code. Mips backend has solution and Cpu0 hire 
+the solution from it.
+
+To support long branch the following code added in Chapter8_1.
+
+.. rubric:: lbdex/chapters/Chapter8_2/CMakeLists.txt
+.. literalinclude:: ../lbdex/Cpu0/CMakeLists.txt
+    :start-after: #if CH >= CH8_2 //3
+    :end-before: #endif
+
+.. rubric:: lbdex/chapters/Chapter8_2/Cpu0.h
+.. literalinclude:: ../lbdex/Cpu0/Cpu0.h
+    :start-after: #if CH >= CH8_2 //3
+    :end-before: #endif
+
+.. rubric:: lbdex/chapters/Chapter8_2/Cpu0AsmPrinter.h
+.. literalinclude:: ../lbdex/Cpu0/Cpu0AsmPrinter.h
+    :start-after: #if CH >= CH8_2 //1
+    :end-before: #endif
+
+.. rubric:: lbdex/chapters/Chapter8_2/Cpu0AsmPrinter.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0AsmPrinter.cpp
+    :start-after: //@EmitInstruction {
+    :end-before: //@EmitInstruction body {
+.. literalinclude:: ../lbdex/Cpu0/Cpu0AsmPrinter.cpp
+    :start-after: #if CH >= CH8_2 //1
+    :end-before: #else
+	
+.. code-block:: c++
+
+    ...
+  }
+
+.. literalinclude:: ../lbdex/Cpu0/Cpu0AsmPrinter.cpp
+    :start-after: #if CH >= CH8_2 //2
+    :end-before: #endif
+
+.. rubric:: lbdex/chapters/Chapter8_2/Cpu0InstrInfo.h
+.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.h
+    :start-after: #if CH >= CH8_2 //1
+    :end-before: #endif
+
+.. rubric:: lbdex/chapters/Chapter8_2/Cpu0InstrInfo.td
+.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td
+    :start-after: //#if CH >= CH8_2 1
+    :end-before: //#endif
+.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td
+    :start-after: //@ long branch support //1
+    :end-before: //#endif
+
+.. rubric:: lbdex/chapters/Chapter8_2/Cpu0LongBranch.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0LongBranch.cpp
+
+.. rubric:: lbdex/chapters/Chapter8_2/Cpu0MCInstLower.h
+.. literalinclude:: ../lbdex/Cpu0/Cpu0MCInstLower.h
+    :start-after: #if CH >= CH8_2 //1
+    :end-before: #endif
+
+.. rubric:: lbdex/chapters/Chapter8_2/Cpu0MCInstLower.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0MCInstLower.cpp
+    :start-after: #if CH >= CH8_2 //1
+    :end-before: #endif
+	
+.. code-block:: c++
+
+  void Cpu0MCInstLower::Lower(const MachineInstr *MI, MCInst &OutMI) const {
+
+.. literalinclude:: ../lbdex/Cpu0/Cpu0MCInstLower.cpp
+    :start-after: #if CH >= CH8_2 //2
+    :end-before: #endif
+	
+.. code-block:: c++
+
+    ...
+  }
+
+.. rubric:: lbdex/chapters/Chapter8_2/Cpu0SEInstrInfo.h
+.. literalinclude:: ../lbdex/Cpu0/Cpu0SEInstrInfo.h
+    :start-after: #if CH >= CH8_2 //1
+    :end-before: #endif
+
+.. rubric:: lbdex/chapters/Chapter8_2/Cpu0SEInstrInfo.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0SEInstrInfo.cpp
+    :start-after: #if CH >= CH8_2 //1
+    :end-before: #endif
+
+.. rubric:: lbdex/chapters/Chapter8_2/Cpu0TargetMachine.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0TargetMachine.cpp
+    :start-after: #if CH >= CH8_2 //1
+    :end-before: #endif
+.. literalinclude:: ../lbdex/Cpu0/Cpu0TargetMachine.cpp
+    :start-after: #if CH >= CH8_2 //2
+    :end-before: //@8_2 1{
+.. literalinclude:: ../lbdex/Cpu0/Cpu0TargetMachine.cpp
+    :start-after: //@8_2 2}
+    :end-before: #endif
+
+
+The code of Chapter8_2 will compile the following example as follows,
+
+.. rubric:: lbdex/input/ch8_2_longbranch.cpp
+.. literalinclude:: ../lbdex/input/ch8_2_longbranch.cpp
+    :start-after: /// start
+
+.. code-block:: bash
+
+  118-165-78-10:input Jonathan$ ~/llvm/test/cmake_debug_build/Debug/bin/llc 
+  -march=cpu0 -mcpu=cpu032II -relocation-model=pic -filetype=asm 
+  -force-cpu0-long-branch ch8_2_longbranch.bc -o -
+    ...
+	  .text
+	  .section .mdebug.abiO32
+	  .previous
+	  .file	"ch8_2_longbranch.bc"
+	  .globl	_Z15test_longbranchv
+	  .align	2
+	  .type	_Z15test_longbranchv,@function
+	  .ent	_Z15test_longbranchv    # @_Z15test_longbranchv
+  _Z15test_longbranchv:
+	  .frame	$fp,16,$lr
+	  .mask 	0x00001000,-4
+	  .set	noreorder
+	  .set	nomacro
+  # BB#0:
+	  addiu	$sp, $sp, -16
+	  st	$fp, 12($sp)            # 4-byte Folded Spill
+	  move	 $fp, $sp
+	  addiu	$2, $zero, 1
+	  st	$2, 8($fp)
+	  addiu	$3, $zero, 2
+	  st	$3, 4($fp)
+	  addiu	$3, $zero, 0
+	  st	$3, 0($fp)
+	  ld	$3, 8($fp)
+	  ld	$4, 4($fp)
+	  slt	$3, $3, $4
+	  bne	$3, $zero, .LBB0_3
+	  nop
+  # BB#1:
+	  addiu	$sp, $sp, -8
+	  st	$lr, 0($sp)
+	  lui	$1, %hi(.LBB0_4-.LBB0_2)
+	  addiu	$1, $1, %lo(.LBB0_4-.LBB0_2)
+	  bal	.LBB0_2
+	  nop
+  .LBB0_2:
+	  addu	$1, $lr, $1
+	  addiu	$1, $1, 4
+	  ld	$lr, 0($sp)
+	  addiu	$sp, $sp, 8
+	  ret	$1
+	  nop
+  .LBB0_3:
+	  st	$2, 0($fp)
+  .LBB0_4:
+	  ld	$2, 0($fp)
+	  move	 $sp, $fp
+	  ld	$fp, 12($sp)            # 4-byte Folded Reload
+	  addiu	$sp, $sp, 16
+	  ret	$lr
+	  nop
+	  .set	macro
+	  .set	reorder
+	  .end	_Z15test_longbranchv
+  $func_end0:
+	  .size	_Z15test_longbranchv, ($func_end0)-_Z15test_longbranchv
+
 
 Cpu0 backend Optimization: Remove useless JMP
 ---------------------------------------------
@@ -331,18 +503,6 @@ codes as follows,
     :end-before: #endif
   
 .. rubric:: lbdex/chapters/Chapter8_2/Cpu0TargetMachine.cpp
-.. literalinclude:: ../lbdex/Cpu0/Cpu0TargetMachine.cpp
-    :start-after: //@Cpu0PassConfig {
-    :end-before: public:
-.. literalinclude:: ../lbdex/Cpu0/Cpu0TargetMachine.cpp
-    :start-after: #if CH >= CH8_2 //1
-    :end-before: #endif
-
-.. code-block:: c++
-
-  };
-  ...
-
 .. literalinclude:: ../lbdex/Cpu0/Cpu0TargetMachine.cpp
     :start-after: #if CH >= CH8_2 //2
     :end-before: //@8_2 1{
@@ -458,10 +618,13 @@ instruction (first part is branch instruction and second part is NOP).
     :start-after: //@EmitInstruction {
     :end-before: //@EmitInstruction body {
 .. literalinclude:: ../lbdex/Cpu0/Cpu0AsmPrinter.cpp
-    :start-after: #endif //#if CH >= CH9_3 //2
+    :start-after: //@print out instruction:
     :end-before: #if CH >= CH9_1
 .. literalinclude:: ../lbdex/Cpu0/Cpu0AsmPrinter.cpp
-    :start-after: #endif //#if CH >= CH9_1
+    :start-after: #if CH >= CH8_2 //1
+    :end-before: #else
+.. literalinclude:: ../lbdex/Cpu0/Cpu0AsmPrinter.cpp
+    :start-after: #endif //#if CH >= CH8_2 //1
     :end-before: //@EmitInstruction }
 
 To print the NOP, the Cpu0AsmPrinter.cpp of Chapter3_2 has printed all bundle
@@ -539,7 +702,7 @@ Chapter8_2 supports **select** with the following code added and changed.
 
 .. rubric:: lbdex/chapters/Chapter8_2/Cpu0InstrInfo.td
 .. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td
-    :start-after: //#if CH >= CH8_2
+    :start-after: //#if CH >= CH8_2 2
     :end-before: //#endif
 
 .. rubric:: lbdex/chapters/Chapter8_2/Cpu0CondMov.td

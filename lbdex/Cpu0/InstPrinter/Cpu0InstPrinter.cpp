@@ -12,8 +12,11 @@
 //===----------------------------------------------------------------------===//
 
 #include "Cpu0InstPrinter.h"
-#if CH >= CH3_2
 
+#if CH >= CH5_1 //1
+#include "MCTargetDesc/Cpu0MCExpr.h"
+#endif
+#if CH >= CH3_2
 #include "Cpu0InstrInfo.h"
 #include "llvm/ADT/StringExtras.h"
 #include "llvm/MC/MCExpr.h"
@@ -59,9 +62,13 @@ static void printExpr(const MCExpr *Expr, const MCAsmInfo *MAI,
     const MCConstantExpr *CE = dyn_cast<MCConstantExpr>(BE->getRHS());
     assert(SRE && CE && "Binary expression must be sym+const.");
     Offset = CE->getValue();
-  }
-  else if (!(SRE = dyn_cast<MCSymbolRefExpr>(Expr)))
-    assert(false && "Unexpected MCExpr type.");
+#if CH >= CH5_1 //2
+  } else if (const Cpu0MCExpr *ME = dyn_cast<Cpu0MCExpr>(Expr)) {
+    ME->print(OS, MAI);
+    return;
+#endif
+  } else
+    SRE = cast<MCSymbolRefExpr>(Expr);
 
   MCSymbolRefExpr::VariantKind Kind = SRE->getKind();
 

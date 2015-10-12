@@ -50,6 +50,11 @@ add_llvm_target(Cpu0CodeGen
 #endif
 #if CH >= CH3_1 2
   Cpu0FrameLowering.cpp
+#endif
+#if CH >= CH8_2 //3
+  Cpu0LongBranch.cpp
+#endif
+#if CH >= CH3_1 2.5
   Cpu0InstrInfo.cpp
   Cpu0ISelLowering.cpp
   Cpu0MachineFunction.cpp

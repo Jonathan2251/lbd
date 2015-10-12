@@ -191,6 +191,18 @@ void Cpu0SEInstrInfo::expandRetLR(MachineBasicBlock &MBB,
 }
 #endif //#if CH >= CH3_4 //2
 
+#if CH >= CH8_2 //1
+/// getOppositeBranchOpc - Return the inverse of the specified
+/// opcode, e.g. turning BEQ to BNE.
+unsigned Cpu0SEInstrInfo::getOppositeBranchOpc(unsigned Opc) const {
+  switch (Opc) {
+  default:           llvm_unreachable("Illegal opcode!");
+  case Cpu0::BEQ:    return Cpu0::BNE;
+  case Cpu0::BNE:    return Cpu0::BEQ;
+  }
+}
+#endif
+
 #if CH >= CH9_3 //2
 void Cpu0SEInstrInfo::expandEhReturn(MachineBasicBlock &MBB,
                                      MachineBasicBlock::iterator I) const {

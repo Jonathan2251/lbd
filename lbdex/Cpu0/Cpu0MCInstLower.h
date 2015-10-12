@@ -11,8 +11,11 @@
 #define LLVM_LIB_TARGET_CPU0_CPU0MCINSTLOWER_H
 
 #include "Cpu0Config.h"
-#if CH >= CH3_2
 
+#if CH >= CH5_1
+#include "MCTargetDesc/Cpu0MCExpr.h"
+#endif
+#if CH >= CH3_2
 #include "llvm/ADT/SmallVector.h"
 #include "llvm/CodeGen/MachineOperand.h"
 #include "llvm/Support/Compiler.h"
@@ -49,6 +52,15 @@ public:
 private:
   MCOperand LowerSymbolOperand(const MachineOperand &MO,
                                MachineOperandType MOTy, unsigned Offset) const;
+#endif
+#if CH >= CH8_2 //1
+  MCOperand createSub(MachineBasicBlock *BB1, MachineBasicBlock *BB2,
+                      MCSymbolRefExpr::VariantKind Kind) const;
+  void lowerLongBranchLUi(const MachineInstr *MI, MCInst &OutMI) const;
+  void lowerLongBranchADDiu(const MachineInstr *MI, MCInst &OutMI,
+                            int Opcode,
+                            MCSymbolRefExpr::VariantKind Kind) const;
+  bool lowerLongBranch(const MachineInstr *MI, MCInst &OutMI) const;
 #endif
 };
 }

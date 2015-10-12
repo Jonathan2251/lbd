@@ -2126,17 +2126,21 @@ corresponding machine code before the first time of PIC function call.
     :start-after: #if CH >= CH9_3 //1
     :end-before: #endif //#if CH >= CH9_3 //1
 .. literalinclude:: ../lbdex/Cpu0/Cpu0AsmPrinter.cpp
+    :start-after: #if CH >= CH9_3 //2
+    :end-before: #endif //#if CH >= CH9_3 //2
+.. literalinclude:: ../lbdex/Cpu0/Cpu0AsmPrinter.cpp
     :start-after: //@EmitInstruction {
     :end-before: //@EmitInstruction body {
 .. literalinclude:: ../lbdex/Cpu0/Cpu0AsmPrinter.cpp
-    :start-after: #if CH >= CH9_3 //2
-    :end-before: #endif //#if CH >= CH9_3 //2
+    :start-after: #if CH >= CH9_3 //3
+    :end-before: #endif //#if CH >= CH9_3 //3
 	
 .. code-block:: c++
 
     ...
   }
   
+
 .. rubric:: lbdex/chapters/Chapter9_3/Cpu0MCInstLower.h
 .. literalinclude:: ../lbdex/Cpu0/Cpu0MCInstLower.h
     :start-after: #if CH >= CH9_3
@@ -3443,8 +3447,8 @@ Cpu0 supports llvm instrinsics bswap intrinsics [#bswapintrnsic]_ and .
     ...
   }
 
-.. rubric:: lbdex/input/ch12_1_intrinsics.cpp
-.. literalinclude:: ../lbdex/input/ch12_1_intrinsics.cpp
+.. rubric:: lbdex/input/ch9_3_bswap.cpp
+.. literalinclude:: ../lbdex/input/ch9_3_bswap.cpp
     :start-after: /// start
 
 Summary

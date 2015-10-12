@@ -45,10 +45,13 @@ public:
   ///
   virtual const Cpu0RegisterInfo &getRegisterInfo() const = 0;
 
-#if CH >= CH11_2
   /// Return the number of bytes of code the specified instruction may be.
   unsigned GetInstSizeInBytes(const MachineInstr *MI) const;
+
+#if CH >= CH8_2 //1
+  virtual unsigned getOppositeBranchOpc(unsigned Opc) const = 0;
 #endif
+  
 #if CH >= CH3_4 //2
   void storeRegToStackSlot(MachineBasicBlock &MBB,
                            MachineBasicBlock::iterator MBBI,

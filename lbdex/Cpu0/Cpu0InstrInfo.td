@@ -371,7 +371,7 @@ class CmpInstr<bits<8> op, string instr_asm,
      !strconcat(instr_asm, "\t$ra, $rb, $rc"), [], itin> {
   let shamt = 0;
   let isCommutable = isComm;
-//#if CH >= CH10_1
+//#if CH >= CH10_1 1
   let DecoderMethod = "DecodeCMPInstruction";
 //#endif
   let Predicates = [HasCmp];
@@ -566,7 +566,7 @@ let isCall=1, hasDelaySlot=1 in {
     FJ<op, (outs), (ins calltarget:$target, variable_ops),
        !strconcat(instr_asm, "\t$target"), [(Cpu0JmpLink imm:$target)],
        IIBranch> {
-//#if CH >= CH10_1
+//#if CH >= CH10_1 2
        let DecoderMethod = "DecodeJumpAbsoluteTarget";
 //#endif
        }
@@ -793,6 +793,22 @@ let usesCustomInserter = 1 in {
 }
 //#endif
 
+//#if CH >= CH8_2 1
+let Predicates = [Ch8_2] in {
+// We need these two pseudo instructions to avoid offset calculation for long
+// branches.  See the comment in file Cpu0LongBranch.cpp for detailed
+// explanation.
+
+// Expands to: lui $dst, %hi($tgt - $baltgt)
+def LONG_BRANCH_LUi : Cpu0Pseudo<(outs GPROut:$dst),
+  (ins brtarget16:$tgt, brtarget16:$baltgt), "", []>;
+
+// Expands to: addiu $dst, $src, %lo($tgt - $baltgt)
+def LONG_BRANCH_ADDiu : Cpu0Pseudo<(outs GPROut:$dst),
+  (ins GPROut:$src, brtarget16:$tgt, brtarget16:$baltgt), "", []>;
+}
+//#endif
+  
 //===----------------------------------------------------------------------===//
 // Instruction definition
 //===----------------------------------------------------------------------===//
@@ -979,14 +995,18 @@ def BNE     : CBranch16<0x38, "bne", setne, GPROut>;
 
 def JMP     : UncondBranch<0x36, "jmp">;
 }
+
+//@ long branch support //1
+let ra = 0, rb = 0, isBranch = 1, isTerminator = 1, isBarrier = 1,
+    hasDelaySlot = 1, Defs = [LR] in
+def BAL: FL<0x3A, (outs), (ins brtarget16:$imm16), "bal\t$imm16", [], IIBranch>, 
+             Requires<[HasSlt]>;
 //#endif
 
 //#if CH >= CH9_1 //7
 /// Jump & link and Return Instructions
 let Predicates = [Ch9_1] in {
 def JSUB    : JumpLink<0x3b, "jsub">;
-}
-let Predicates = [Ch10_1] in {
 def JR      : JumpFR<0x3c, "ret", GPROut>;
 }
 //#endif
@@ -1443,7 +1463,7 @@ defm : SetgePatsCmp<CPURegs>;
 } // let Predicates = [Ch4_2]
 //#endif
 
-//#if CH >= CH8_2
+//#if CH >= CH8_2 2
 let Predicates = [Ch8_2] in {
 include "Cpu0CondMov.td"
 } // let Predicates = [Ch8_2]

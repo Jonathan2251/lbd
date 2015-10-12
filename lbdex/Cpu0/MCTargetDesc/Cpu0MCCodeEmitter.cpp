@@ -17,6 +17,7 @@
 
 #include "MCTargetDesc/Cpu0BaseInfo.h"
 #include "MCTargetDesc/Cpu0FixupKinds.h"
+#include "MCTargetDesc/Cpu0MCExpr.h"
 #include "MCTargetDesc/Cpu0MCTargetDesc.h"
 #include "llvm/ADT/APFloat.h"
 #include "llvm/MC/MCCodeEmitter.h"
@@ -170,74 +171,96 @@ getExprOpValue(const MCExpr *Expr,SmallVectorImpl<MCFixup> &Fixups,
                const MCSubtargetInfo &STI) const {
 //@getExprOpValue body {
   MCExpr::ExprKind Kind = Expr->getKind();
-
-  if (Kind == MCExpr::Binary) {
-    Expr = static_cast<const MCBinaryExpr*>(Expr)->getLHS();
-    Kind = Expr->getKind();
+  if (Kind == MCExpr::Constant) {
+    return cast<MCConstantExpr>(Expr)->getValue();
   }
 
-  assert (Kind == MCExpr::SymbolRef);
+  if (Kind == MCExpr::Binary) {
+    unsigned Res = getExprOpValue(cast<MCBinaryExpr>(Expr)->getLHS(), Fixups, STI);
+    Res += getExprOpValue(cast<MCBinaryExpr>(Expr)->getRHS(), Fixups, STI);
+    return Res;
+  }
+
+  if (Kind == MCExpr::Target) {
+    const Cpu0MCExpr *Cpu0Expr = cast<Cpu0MCExpr>(Expr);
+
+    Cpu0::Fixups FixupKind = Cpu0::Fixups(0);
+    switch (Cpu0Expr->getKind()) {
+    default: llvm_unreachable("Unsupported fixup kind for target expression!");
+    case Cpu0MCExpr::VK_Cpu0_HI:
+      FixupKind = Cpu0::fixup_Cpu0_HI16;
+      break;
+    case Cpu0MCExpr::VK_Cpu0_LO:
+      FixupKind = Cpu0::fixup_Cpu0_LO16;
+      break;
+    }
+    Fixups.push_back(MCFixup::create(0, Cpu0Expr, MCFixupKind(FixupKind)));
+    return 0;
+  }
 
 #if CH >= CH6_1
-  Cpu0::Fixups FixupKind = Cpu0::Fixups(0);
+  if (Kind == MCExpr::SymbolRef) {
+    Cpu0::Fixups FixupKind = Cpu0::Fixups(0);
 
-//@switch {
-  switch(cast<MCSymbolRefExpr>(Expr)->getKind()) {
-//@switch }
-  case MCSymbolRefExpr::VK_Cpu0_GPREL:
-    FixupKind = Cpu0::fixup_Cpu0_GPREL16;
-    break;
+  //@switch {
+    switch(cast<MCSymbolRefExpr>(Expr)->getKind()) {
+  //@switch }
+    case MCSymbolRefExpr::VK_Cpu0_GPREL:
+      FixupKind = Cpu0::fixup_Cpu0_GPREL16;
+      break;
 #if CH >= CH9_1 //2
-  case MCSymbolRefExpr::VK_Cpu0_GOT_CALL:
-    FixupKind = Cpu0::fixup_Cpu0_CALL16;
-    break;
+    case MCSymbolRefExpr::VK_Cpu0_GOT_CALL:
+      FixupKind = Cpu0::fixup_Cpu0_CALL16;
+      break;
 #endif
-  case MCSymbolRefExpr::VK_Cpu0_GOT16:
-    FixupKind = Cpu0::fixup_Cpu0_GOT_Global;
-    break;
-  case MCSymbolRefExpr::VK_Cpu0_GOT:
-    FixupKind = Cpu0::fixup_Cpu0_GOT_Local;
-    break;
-  case MCSymbolRefExpr::VK_Cpu0_ABS_HI:
-    FixupKind = Cpu0::fixup_Cpu0_HI16;
-    break;
-  case MCSymbolRefExpr::VK_Cpu0_ABS_LO:
-    FixupKind = Cpu0::fixup_Cpu0_LO16;
-    break;
+    case MCSymbolRefExpr::VK_Cpu0_GOT16:
+      FixupKind = Cpu0::fixup_Cpu0_GOT_Global;
+      break;
+    case MCSymbolRefExpr::VK_Cpu0_GOT:
+      FixupKind = Cpu0::fixup_Cpu0_GOT_Local;
+      break;
+    case MCSymbolRefExpr::VK_Cpu0_ABS_HI:
+      FixupKind = Cpu0::fixup_Cpu0_HI16;
+      break;
+    case MCSymbolRefExpr::VK_Cpu0_ABS_LO:
+      FixupKind = Cpu0::fixup_Cpu0_LO16;
+      break;
 #if CH >= CH12_1
-  case MCSymbolRefExpr::VK_Cpu0_TLSGD:
-    FixupKind = Cpu0::fixup_Cpu0_TLSGD;
-    break;
-  case MCSymbolRefExpr::VK_Cpu0_TLSLDM:
-    FixupKind = Cpu0::fixup_Cpu0_TLSLDM;
-    break;
-  case MCSymbolRefExpr::VK_Cpu0_DTP_HI:
-    FixupKind = Cpu0::fixup_Cpu0_DTP_HI;
-    break;
-  case MCSymbolRefExpr::VK_Cpu0_DTP_LO:
-    FixupKind = Cpu0::fixup_Cpu0_DTP_LO;
-    break;
-  case MCSymbolRefExpr::VK_Cpu0_GOTTPREL:
-    FixupKind = Cpu0::fixup_Cpu0_GOTTPREL;
-    break;
-  case MCSymbolRefExpr::VK_Cpu0_TP_HI:
-    FixupKind = Cpu0::fixup_Cpu0_TP_HI;
-    break;
-  case MCSymbolRefExpr::VK_Cpu0_TP_LO:
-    FixupKind = Cpu0::fixup_Cpu0_TP_LO;
-    break;
+    case MCSymbolRefExpr::VK_Cpu0_TLSGD:
+      FixupKind = Cpu0::fixup_Cpu0_TLSGD;
+      break;
+    case MCSymbolRefExpr::VK_Cpu0_TLSLDM:
+      FixupKind = Cpu0::fixup_Cpu0_TLSLDM;
+      break;
+    case MCSymbolRefExpr::VK_Cpu0_DTP_HI:
+      FixupKind = Cpu0::fixup_Cpu0_DTP_HI;
+      break;
+    case MCSymbolRefExpr::VK_Cpu0_DTP_LO:
+      FixupKind = Cpu0::fixup_Cpu0_DTP_LO;
+      break;
+    case MCSymbolRefExpr::VK_Cpu0_GOTTPREL:
+      FixupKind = Cpu0::fixup_Cpu0_GOTTPREL;
+      break;
+    case MCSymbolRefExpr::VK_Cpu0_TP_HI:
+      FixupKind = Cpu0::fixup_Cpu0_TP_HI;
+      break;
+    case MCSymbolRefExpr::VK_Cpu0_TP_LO:
+      FixupKind = Cpu0::fixup_Cpu0_TP_LO;
+      break;
 #endif
-  case MCSymbolRefExpr::VK_Cpu0_GOT_HI16:
-    FixupKind = Cpu0::fixup_Cpu0_GOT_HI16;
-    break;
-  case MCSymbolRefExpr::VK_Cpu0_GOT_LO16:
-    FixupKind = Cpu0::fixup_Cpu0_GOT_LO16;
-    break;
-  default:
-    break;
-  } // switch
+    case MCSymbolRefExpr::VK_Cpu0_GOT_HI16:
+      FixupKind = Cpu0::fixup_Cpu0_GOT_HI16;
+      break;
+    case MCSymbolRefExpr::VK_Cpu0_GOT_LO16:
+      FixupKind = Cpu0::fixup_Cpu0_GOT_LO16;
+      break;
+    default:
+      break;
+    } // switch
 
-  Fixups.push_back(MCFixup::create(0, Expr, MCFixupKind(FixupKind)));
+    Fixups.push_back(MCFixup::create(0, Expr, MCFixupKind(FixupKind)));
+    return 0;
+  }
 #endif // #if CH >= CH6_1
 
   // All of the information is in the fixup.

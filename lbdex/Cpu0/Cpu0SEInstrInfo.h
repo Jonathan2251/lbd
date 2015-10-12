@@ -68,6 +68,11 @@ public:
                          unsigned *NewImm) const;
 private:
   void expandRetLR(MachineBasicBlock &MBB, MachineBasicBlock::iterator I) const;
+
+#if CH >= CH8_2 //1
+  unsigned getOppositeBranchOpc(unsigned Opc) const override;
+#endif
+  
 #if CH >= CH9_3
   void expandEhReturn(MachineBasicBlock &MBB,
                       MachineBasicBlock::iterator I) const;

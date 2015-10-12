@@ -1,4 +1,4 @@
-; RUN: llc -march=cpu0el -mcpu=cpu032I -relocation-model=pic < %s | FileCheck %s
+; RUN: llc -march=cpu0el -mcpu=cpu032II -relocation-model=pic -filetype=asm -force-cpu0-long-branch < %s | FileCheck %s
 
 
 @x = external global i32

@@ -113,6 +113,14 @@ ELF obj related code
 To support elf obj generation, the following code changed and added to 
 Chapter5_1.
 
+.. rubric:: lbdex/chapters/Chapter5_1/InstPrinter/Cpu0InstPrinter.cpp
+.. literalinclude:: ../lbdex/Cpu0/InstPrinter/Cpu0InstPrinter.cpp
+    :start-after: #if CH >= CH5_1 //1
+    :end-before: #endif
+.. literalinclude:: ../lbdex/Cpu0/InstPrinter/Cpu0InstPrinter.cpp
+    :start-after: #if CH >= CH5_1 //2
+    :end-before: #endif
+
 .. rubric:: lbdex/chapters/Chapter5_1/MCTargetDesc/CMakeLists.txt
 .. literalinclude:: ../lbdex/Cpu0/MCTargetDesc/CMakeLists.txt
     :start-after: #if CH >= CH5_1

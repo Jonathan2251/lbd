@@ -9,6 +9,7 @@ add_llvm_library(LLVMCpu0Desc
 #if CH >= CH5_1
   Cpu0AsmBackend.cpp
   Cpu0MCCodeEmitter.cpp
+  Cpu0MCExpr.cpp
   Cpu0ELFObjectWriter.cpp
   Cpu0TargetStreamer.cpp
 #endif
