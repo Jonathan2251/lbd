@@ -286,6 +286,7 @@ Then the regression test items for Cpu0 list as follows,
   lh1.ll                           v              load i16*, sext i16, -> lh                               7
   lhu1.ll                          v              load i16*, zext i16, -> lhu                              7
   llcarry.ll                       v              64-bit add sub                                           7
+  longbranch.ll                    v                                                                       8
   machineverifier.ll               v              delay slot, (comment in machineverifier.ll)              8
   mipslopat.ll                     v              no check output (comment in mipslopat.ll)                6
   misha.ll                         v              miss alignment half word access                          7
@@ -352,6 +353,7 @@ Then the regression test items for Cpu0 list as follows,
   uitofp.ll                        v              integer2float, uitofp, -> jsub __floatunsisf             9
   uli.ll                           v              unalignment init, -> sb sb ...                           6
   unalignedload.ll                 v              unalignment init, -> sb sb ...                           6
+  vector-setcc.ll                  v                                                                       7
   weak.ll                          v              extern_weak function, -> .weak                           9
   xor1.ll                          v              xor, -> xor                                              4
   zeroreg.ll                       v              check register $zero                                     4
@@ -367,8 +369,6 @@ Cpu0 doesn't support the following test items at this point.
   File                                 v:pass x:fail  comment
   ===================================  =============  =======================================================
   eh-dwraf-cfa.ll                      x
-  longbranch.ll                        x              Not support and not intend to support.
-  vector-setcc.ll                      x              Not support vector.
   ===================================  =============  =======================================================
 
 These supported and not supported test items are in 
