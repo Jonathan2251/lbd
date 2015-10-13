@@ -4,8 +4,8 @@
 /// start
 int test_longbranch()
 {
-  volatile int a = 1;
-  volatile int b = 2;
+  volatile int a = 2;
+  volatile int b = 1;
   int result = 0;
 
   if (a < b)

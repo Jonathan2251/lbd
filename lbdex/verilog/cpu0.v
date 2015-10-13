@@ -73,7 +73,7 @@ module cpu0(input clock, reset, input [2:0] itype, output reg [2:0] tick,
 `endif
   JEQ=8'h30,JNE=8'h31,JLT=8'h32,JGT=8'h33,JLE=8'h34,JGE=8'h35,
   JMP=8'h36,
-  JALR=8'h39,JSUB=8'h3B,RET=8'h3C,
+  JALR=8'h39,BAL=8'h3A,JSUB=8'h3B,RET=8'h3C,
   MULT=8'h41,MULTu=8'h42,DIV=8'h43,DIVu=8'h44,
   MFHI=8'h46,MFLO=8'h47,MTHI=8'h48,MTLO=8'h49,
   MFC0=8'h50,MTC0=8'h51,C0MOV=8'h52;
@@ -311,8 +311,9 @@ module cpu0(input clock, reset, input [2:0] itype, output reg [2:0] tick,
       JLE:   if (`N || `Z) `PC=`PC+c24;      // JLE Cx; if SW(<=) PC PC+Cx    
       JGE:   if (!`N || `Z) `PC=`PC+c24;     // JGE Cx; if SW(>=) PC PC+Cx
       JMP:   `PC = `PC+c24;                  // JMP Cx; PC <= PC+Cx
-      JSUB:  begin `LR=`PC;`PC=`PC + c24; end // JSUB Cx; LR<=PC; PC<=PC+Cx
       JALR:  begin R[a] =`PC;`PC=Rb; end // JALR Ra,Rb; Ra<=PC; PC<=Rb
+      BAL:   begin `LR=`PC;`PC=`PC + c16; end // JSUB Cx; LR<=PC; PC<=PC+Cx
+      JSUB:  begin `LR=`PC;`PC=`PC + c24; end // JSUB Cx; LR<=PC; PC<=PC+Cx
       RET:   begin `PC=Ra; end               // RET; PC <= Ra
       default : 
         $display("%4dns %8x : OP code %8x not support", $stime, pc0, op);
