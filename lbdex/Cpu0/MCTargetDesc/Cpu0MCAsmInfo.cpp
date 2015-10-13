@@ -29,6 +29,8 @@ Cpu0MCAsmInfo::Cpu0MCAsmInfo(const Triple &TheTriple) {
   Data32bitsDirective         = "\t.4byte\t";
   Data64bitsDirective         = "\t.8byte\t";
   PrivateGlobalPrefix         = "$";
+// PrivateLabelPrefix: display $BB for the labels of basic block
+  PrivateLabelPrefix          = "$";
   CommentString               = "#";
   ZeroDirective               = "\t.space\t";
   GPRel32Directive            = "\t.gpword\t";

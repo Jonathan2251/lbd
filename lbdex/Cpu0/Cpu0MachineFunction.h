@@ -58,7 +58,7 @@ public:
   Cpu0FunctionInfo(MachineFunction& MF)
   : MF(MF), 
 #if CH >= CH3_4 //1
-    SRetReturnReg(0), CallsEhReturn(false),
+    SRetReturnReg(0), CallsEhReturn(false), CallsEhDwarf(false),
 #endif
 #if CH >= CH6_1 //1
     GlobalBaseReg(0),
@@ -127,6 +127,9 @@ public:
   bool callsEhReturn() const { return CallsEhReturn; }
   void setCallsEhReturn() { CallsEhReturn = true; }
 
+  bool callsEhDwarf() const { return CallsEhDwarf; }
+  void setCallsEhDwarf() { CallsEhDwarf = true; }
+
   void createEhDataRegsFI();
   int getEhDataRegFI(unsigned Reg) const { return EhDataRegFI[Reg]; }
 
@@ -181,6 +184,9 @@ private:
 
   /// CallsEhReturn - Whether the function calls llvm.eh.return.
   bool CallsEhReturn;
+
+  /// CallsEhDwarf - Whether the function calls llvm.eh.dwarf.
+  bool CallsEhDwarf;
 
   /// Frame objects for spilling eh data registers.
   int EhDataRegFI[2];

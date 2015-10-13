@@ -58,14 +58,14 @@ sw.epilog:                                        ; preds = %entry, %sw.bb7, %sw
 
 ; CHECK-STATIC16  lui	$[[R0:[0-9]+|t9]], %hi($JTI{{[0-9]+|t9}}_{{[0-9]+|t9}})
 ; CHECK-STATIC16  ori	${{[0-9]+|t9}}, $[[R0]], %lo($JTI{{[0-9]+|t9}}_{{[0-9]+|t9}})
-; CHECK-STATIC16: $JTI{{[0-9]+|t9}}_{{[0-9]+|t9}}:
-; CHECK-STATIC16: .4byte .LBB0_{{[0-9]+|t9}}
-; CHECK-STATIC16: .4byte .LBB0_{{[0-9]+|t9}}
-; CHECK-STATIC16: .4byte .LBB0_{{[0-9]+|t9}}
-; CHECK-STATIC16: .4byte .LBB0_{{[0-9]+|t9}}
-; CHECK-STATIC16: .4byte .LBB0_{{[0-9]+|t9}}
-; CHECK-STATIC16: .4byte .LBB0_{{[0-9]+|t9}}
-; CHECK-STATIC16: .4byte .LBB0_{{[0-9]+|t9}}
-; CHECK-STATIC16: .4byte .LBB0_{{[0-9]+|t9}}
-; CHECK-STATIC16: .4byte .LBB0_{{[0-9]+|t9}}
-; CHECK-STATIC16: .4byte .LBB0_{{[0-9]+|t9}}
+; CHECK-STATIC16: $JTI{{[0-9]+}}_{{[0-9]+}}:
+; CHECK-STATIC16: .4byte ($BB0_{{[0-9]+}})
+; CHECK-STATIC16: .4byte ($BB0_{{[0-9]+}})
+; CHECK-STATIC16: .4byte ($BB0_{{[0-9]+}})
+; CHECK-STATIC16: .4byte ($BB0_{{[0-9]+}})
+; CHECK-STATIC16: .4byte ($BB0_{{[0-9]+}})
+; CHECK-STATIC16: .4byte ($BB0_{{[0-9]+}})
+; CHECK-STATIC16: .4byte ($BB0_{{[0-9]+}})
+; CHECK-STATIC16: .4byte ($BB0_{{[0-9]+}})
+; CHECK-STATIC16: .4byte ($BB0_{{[0-9]+}})
+; CHECK-STATIC16: .4byte ($BB0_{{[0-9]+}})

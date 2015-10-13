@@ -128,7 +128,11 @@ void Cpu0SEFrameLowering::emitPrologue(MachineFunction &MF,
 #if CH >= CH9_3 //2
   // if framepointer enabled, set it to point to the stack pointer.
   if (hasFP(MF)) {
-    // Insert instruction "move $fp, $sp" at this location.
+    if (Cpu0FI->callsEhDwarf()) {
+      BuildMI(MBB, MBBI, dl, TII.get(ADDu), Cpu0::V0).addReg(FP).addReg(ZERO)
+        .setMIFlag(MachineInstr::FrameSetup);
+    }
+    //@ Insert instruction "move $fp, $sp" at this location.
     BuildMI(MBB, MBBI, dl, TII.get(ADDu), FP).addReg(SP).addReg(ZERO)
       .setMIFlag(MachineInstr::FrameSetup);
 

@@ -161,6 +161,10 @@ Cpu0TargetLowering::Cpu0TargetLowering(const Cpu0TargetMachine &TM,
   setOperationAction(ISD::SRL_PARTS,          MVT::i32,   Expand);
 #endif
 
+#if CH >= CH9_3 //0.7
+  setOperationAction(ISD::ADD,                MVT::i32,   Custom);
+#endif
+
 #if CH >= CH4_1 //1
   setOperationAction(ISD::SDIV, MVT::i32, Expand);
   setOperationAction(ISD::SREM, MVT::i32, Expand);
@@ -338,6 +342,7 @@ LowerOperation(SDValue Op, SelectionDAG &DAG) const
   case ISD::FRAMEADDR:          return lowerFRAMEADDR(Op, DAG);
   case ISD::RETURNADDR:         return lowerRETURNADDR(Op, DAG);
   case ISD::EH_RETURN:          return lowerEH_RETURN(Op, DAG);
+  case ISD::ADD:                return lowerADD(Op, DAG);
 #endif //#if CH >= CH9_3 //4.5
 #if CH >= CH12_1 //7
   case ISD::ATOMIC_FENCE:       return lowerATOMIC_FENCE(Op, DAG);
@@ -1153,6 +1158,20 @@ SDValue Cpu0TargetLowering::lowerEH_RETURN(SDValue Op, SelectionDAG &DAG)
                      DAG.getRegister(OffsetReg, Ty),
                      DAG.getRegister(AddrReg, getPointerTy(MF.getDataLayout())),
                      Chain.getValue(1));
+}
+
+SDValue Cpu0TargetLowering::lowerADD(SDValue Op, SelectionDAG &DAG) const {
+  if (Op->getOperand(0).getOpcode() != ISD::FRAMEADDR
+      || cast<ConstantSDNode>
+        (Op->getOperand(0).getOperand(0))->getZExtValue() != 0
+      || Op->getOperand(1).getOpcode() != ISD::FRAME_TO_ARGS_OFFSET)
+    return SDValue();
+
+  MachineFunction &MF = DAG.getMachineFunction();
+  Cpu0FunctionInfo *Cpu0FI = MF.getInfo<Cpu0FunctionInfo>();
+
+  Cpu0FI->setCallsEhDwarf();
+  return Op;
 }
 #endif
 

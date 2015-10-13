@@ -1640,8 +1640,8 @@ is called Cpu0Other.td, which is shown below:
 Cpu0Other.td and Cpu0.td includes a few other .td files. 
 Cpu0RegisterInfo.td (shown below) describes the Cpu0's set of registers. 
 In this file, we see that registers have been given names, i.e. **"def PC"** 
-indicates that there is a register called PC.  Also, there is a register class 
-named **"CPURegs"** that contains all of the other registers. 
+indicates that there is a register called PC.  Beside of registers, it also 
+define register classes. 
 You may have multiple register classes such as CPURegs, SR, C0Regs and GPROut. 
 GPROut defined in Cpu0RegisterInfoGPROutForOther.td which include CPURegs 
 except SW, so SW won't be allocated as the output registers in register 
@@ -1654,7 +1654,7 @@ allocation stage.
 .. literalinclude:: ../lbdex/chapters/Chapter2/Cpu0RegisterInfoGPROutForOther.td
 
 
-In C++, class typically provide a structure to lay out some data and functions, 
+In C++, class typically provides a structure to lay out some data and functions, 
 while definitions are used to allocate memory for specific instances of a class. 
 For example:
 
@@ -1671,10 +1671,10 @@ By defining an instance of **Date** called **birthday**, you have allocated
 memory for a specific object, and can set the **year**, **month**, and 
 **day** of this instance of the class.
 
-In .td files, class describe the structure of how data is laid out, while 
+In .td files, class describes the structure of how data is laid out, while 
 definitions act as the specific instances of the class. 
 If we look back at the Cpu0RegisterInfo.td file, we see a class called 
-**Cpu0Reg<string n>** which is derived from the **Register<n>** class provided 
+**Cpu0Reg** which is derived from the **Register** class provided 
 by LLVM.  **Cpu0Reg** inherits all the fields that exist 
 in the **Register** class. The "let HWEncoding = Enc" which meaning assign field 
 HWEncoding from parameter Enc. Since Cpu0 reserve 4 bits for 16 registers in 
@@ -1690,7 +1690,7 @@ In the following line, the ZERO register is defined as a member of the
 
   def ZERO : Cpu0GPRReg< 0, "ZERO">, DwarfRegNum<[0]>;
 
-The **def ZERO** indicates the name of this register.  **< 0, "ZERO">** are the 
+The **def ZERO** indicates the name of this register.  **<0, "ZERO">** are the 
 parameters used when creating this specific instance of the **Cpu0GPRReg** 
 class, thus the field **Enc** is set to 0, and the string **n** is set 
 to **ZERO**.
@@ -1846,8 +1846,8 @@ For more details please see "Building LLVM with CMake" [#cmake]_ and
 Target Registration
 ~~~~~~~~~~~~~~~~~~~
 
-You must also register your target with the TargetRegistry, which is what other 
-LLVM tools use to be able to lookup and use your target at runtime. 
+You must also register your target with the TargetRegistry. After registration, 
+llvm tools are able to lookup and use your target at runtime. 
 The TargetRegistry can be used directly, but for most targets there are helper 
 templates which should take care of the work for you.
 
@@ -1871,7 +1871,7 @@ big endian and TheCpu0elTarget for little endian, as follows.
 .. literalinclude:: ../lbdex/Cpu0/TargetInfo/LLVMBuild.txt
 
 Files Cpu0TargetMachine.cpp and MCTargetDesc/Cpu0MCTargetDesc.cpp just define 
-the empty initialize function since we register nothing in them for this moment.
+the empty initialize function since we register nothing for this moment.
 
 .. rubric:: lbdex/chapters/Chapter2/Cpu0TargetMachine.cpp
 .. literalinclude:: ../lbdex/chapters/Chapter2/Cpu0TargetMachine.cpp

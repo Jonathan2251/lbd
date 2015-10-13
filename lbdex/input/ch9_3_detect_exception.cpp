@@ -7,8 +7,8 @@ void* returnAddr;
 
 // Even though __builtin_frame_address is useless in this example, I believe
 // it will be used in real exception handler implementation. Because in real
-// implementation, the exception handler keep a table and decide which function
-// has should be triggered for a specific exception and hand over to it.
+// implementation, the exception handler keeps a table and decide which function
+// should be triggered for a specific exception and hand over to it.
 // The hand over process needs unwinding the stack frame. The stack frame address
 // can be gotten by calling __builtin_frame_address in the charged function.
 void exception_handler() {

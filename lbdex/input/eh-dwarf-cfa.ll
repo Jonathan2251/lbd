@@ -1,6 +1,4 @@
-; RUN: llc -march=mipsel -mcpu=mips32 < %s | FileCheck %s
-; RUN: llc -march=mips64el -mcpu=mips64 < %s | \
-; RUN:      FileCheck %s -check-prefix=CHECK-MIPS64
+; RUN: llc -march=cpu0el -mcpu=cpu032II < %s | FileCheck %s
 
 declare i8* @llvm.eh.dwarf.cfa(i32) nounwind
 declare i8* @llvm.frameaddress(i32) nounwind readnone
@@ -11,8 +9,8 @@ entry:
   %0 = call i8* @llvm.eh.dwarf.cfa(i32 0)
   ret i8* %0
 
-; CHECK:        addiu   $sp, $sp, -32
-; CHECK:        addiu   $2, $sp, 32
+; CHECK:        addiu   $sp, $sp, -40
+; CHECK:        addu    $2,  $zero, $fp
 }
 
 
@@ -28,9 +26,7 @@ entry:
 ; CHECK:        addu    $sp, $sp, $[[R0]]
 
 ; check return value ($sp + stack size)
-; CHECK:        lui     $[[R1:[a-z0-9]+]], 1
-; CHECK:        addu    $[[R1]], $sp, $[[R1]]
-; CHECK:        addiu   $2, $[[R1]], 8
+; CHECK:        addu    $2,  $zero, $fp
 }
 
 
@@ -47,17 +43,7 @@ entry:
 ; CHECK:        addiu   $sp, $sp, -40
 
 ; check return value ($fp + stack size + $fp)
-; CHECK:        addiu   $[[R0:[a-z0-9]+]], $fp, 40
-; CHECK:        addu    $2, $[[R0]], $fp
+; CHECK:        move     $fp, $sp
+; CHECK:        addu    $2, $fp, $fp
 }
 
-
-define i8* @f4() nounwind {
-entry:
-  %x = alloca [32 x i8], align 1
-  %0 = call i8* @llvm.eh.dwarf.cfa(i32 0)
-  ret i8* %0
-
-; CHECK-MIPS64:        daddiu   $sp, $sp, -32
-; CHECK-MIPS64:        daddiu   $2, $sp, 32
-}

@@ -2958,8 +2958,8 @@ replace them.
   ch9_3_stacksave.bc -o -
   ...
 
-frameaddress, returnaddress and eh.return support
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Function related Intrinsics support
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 I think these llvm instinsic IRs are for exception handling implementation
 [#excepthandle]_ [#returnaddr]. With these IRs, programmer can recording the
@@ -2973,6 +2973,9 @@ intrinsic IRs, the following code added to Cpu0 backend.
     :end-before: #if CH >= CH3_2
 .. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.cpp
     :start-after: #if CH >= CH9_3 //0.5
+    :end-before: #endif
+.. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.cpp
+    :start-after: #if CH >= CH9_3 //0.7
     :end-before: #endif
     
 .. code-block:: c++
@@ -2998,6 +3001,10 @@ intrinsic IRs, the following code added to Cpu0 backend.
     :start-after: #if CH >= CH9_3 //5.5
     :end-before: #endif
     
+
+frameaddress and returnaddress intrinsics
+++++++++++++++++++++++++++++++++++++++++++
+
 Run with the following input to get the following result.
 
 .. rubric:: lbdex/input/ch9_3_frame_return_addr.cpp
@@ -3139,9 +3146,12 @@ loading from stack slot rather than uses register directly.
   }
 
 
-The following code is for the eh.return supporting only, and it can run with 
-input ch9_3_detect_exception.cpp as below.
+eh.return intrinsic
+++++++++++++++++++++
 
+Beside lowerRETURNADDR() in Cpu0ISelLowering, the following code is for 
+eh.return supporting only, and it can run with input ch9_3_detect_exception.cpp 
+as below.
 
 .. rubric:: lbdex/chapters/Chapter9_3/Cpu0SEFrameLowering.cpp
 .. literalinclude:: ../lbdex/Cpu0/Cpu0SEFrameLowering.cpp
@@ -3429,10 +3439,31 @@ book "llvm tool chain for Cpu0" [#cpu0lld]_.
 Through global variable, exceptionOccur, is true or false, whether the control 
 flow to exception_handler() or not can be identified.
 
-bswap intrinsics
-~~~~~~~~~~~~~~~~~
 
-Cpu0 supports llvm instrinsics bswap intrinsics [#bswapintrnsic]_ and .
+eh.dwarf intrinsic
+++++++++++++++++++++
+
+Beside lowerADD() in Cpu0ISelLowering, the following code is for the eh.dwarf 
+supporting only, and it can run with input eh-dwarf-cfa.ll as below.
+
+.. rubric:: lbdex/chapters/Chapter9_3/Cpu0SEFrameLowering.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0SEFrameLowering.cpp
+    :start-after: #if CH >= CH9_3 //2
+    :end-before: //@ Insert instruction "move $fp, $sp" at this location.
+    
+.. code-block:: c++
+
+    ...
+  }
+
+.. rubric:: lbdex/input/eh-dwarf-cfa.ll
+.. literalinclude:: ../lbdex/input/eh-dwarf-cfa.ll
+
+
+bswap intrinsic
++++++++++++++++++
+
+Cpu0 supports llvm instrinsics bswap intrinsic [#bswapintrnsic]_.
 
 .. rubric:: lbdex/chapters/Chapter12_1/Cpu0ISelLowering.cpp
 .. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.cpp
@@ -3450,6 +3481,30 @@ Cpu0 supports llvm instrinsics bswap intrinsics [#bswapintrnsic]_ and .
 .. rubric:: lbdex/input/ch9_3_bswap.cpp
 .. literalinclude:: ../lbdex/input/ch9_3_bswap.cpp
     :start-after: /// start
+
+
+.. code-block:: bash
+  
+  114-37-150-48:input Jonathan$ clang -target mips-unknown-linux-gnu -c 
+  ch9_3_bswap.cpp -emit-llvm -o ch9_3_bswap.bc
+  114-37-150-48:input Jonathan$ ~/llvm/test/cmake_debug_build/Debug/bin/llvm-dis 
+  ch9_3_bswap.bc -o -
+  ...
+  define i32 @_Z12test_bswap16v() #0 {
+    %a = alloca i32, align 4
+    %result = alloca i32, align 4
+    store volatile i32 4660, i32* %a, align 4
+    %1 = load volatile i32, i32* %a, align 4
+    %2 = trunc i32 %1 to i16
+    %3 = call i16 @llvm.bswap.i16(i16 %2)
+    %4 = zext i16 %3 to i32
+    %5 = xor i32 %4, 13330
+    store i32 %5, i32* %result, align 4
+    %6 = load i32, i32* %result, align 4
+    ret i32 %6
+  }
+  ...
+
 
 Summary
 -------

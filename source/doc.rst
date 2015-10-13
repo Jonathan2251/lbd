@@ -255,6 +255,7 @@ Then the regression test items for Cpu0 list as follows,
   divu.ll                          v              udiv, -> divu, mflo                                      4
   divu_reml.ll                     v              udiv, urem -> div, mflo, mfhi                            4
   double2int.ll                    v              double to int, -> %call16(__fixdfsi)                     7
+  eh-dwraf-cfa.ll                  v                                                                       9
   eh-return32.ll                   v              Spill and reload all registers used for exception        9 
   eh.ll                            v              c++ exception handling                                   12
   ex2.ll                           v              c++ exception handling                                   12
@@ -360,20 +361,8 @@ Then the regression test items for Cpu0 list as follows,
   ===============================  =============  =======================================================  ===========
   
 
-The Cpu0 regression test items are copied from Mips. 
-Cpu0 doesn't support the following test items at this point.
-
-.. table:: Not supported regression test items for Cpu0
-
-  ===================================  =============  =======================================================
-  File                                 v:pass x:fail  comment
-  ===================================  =============  =======================================================
-  eh-dwraf-cfa.ll                      x
-  ===================================  =============  =======================================================
-
-These supported and not supported test items are in 
-lbdex/regression-test/Cpu0 and lbdex/regression-test/not-support, repectively, 
-which can be got from untar lbdex.tar.gz.
+These supported test items are in lbdex/regression-test/Cpu0 which can be 
+gotten from untar lbdex.tar.gz.
 
 
 .. [#sphinx-install] http://docs.geoserver.org/latest/en/docguide/install.html
