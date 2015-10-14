@@ -889,6 +889,10 @@ ParseInstruction(ParseInstructionInfo &Info, StringRef Name, SMLoc NameLoc,
   // Create the leading tokens for the mnemonic, split by '.' characters.
   size_t Start = 0, Next = Name.find('.');
   StringRef Mnemonic = Name.slice(Start, Next);
+  // Refer to the explanation in source code of function DecodeJumpFR(...) in 
+  // Cpu0Disassembler.cpp
+  if (Mnemonic == "ret")
+    Mnemonic = "jr";
 
   Operands.push_back(Cpu0Operand::CreateToken(Mnemonic, NameLoc));
 

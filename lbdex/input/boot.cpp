@@ -20,5 +20,5 @@
   asm("mfc0 $3, $pc");
   asm("addiu $3, $3, 0x8"); // Assume main() entry point is at the next next 
                              // instruction.
-  asm("ret $3");
+  asm("jr $3");
   asm("nop");

@@ -497,15 +497,21 @@ The following table details the cpu032II instruction set added:
   * - L
     - BEQ
     - 37
-    - Jump if equal
+    - Branch if equal
     - BEQ Ra, Rb, Cx
     - if (Ra==Rb), PC <= PC + Cx
   * - L
     - BNE
     - 38
-    - Jump if not equal
+    - Branch if not equal
     - BNE Ra, Rb, Cx
     - if (Ra!=Rb), PC <= PC + Cx
+  * - J
+    - BAL
+    - 3A
+    - Branch and link
+    - BAL Cx
+    - LR <= PC; PC <= PC + Cx
 
 .. note:: **Cpu0 unsigned instructions**
 

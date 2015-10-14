@@ -4,7 +4,7 @@
 #define STOP \
   asm("lui $t9, 0xffff"); \
   asm("addiu $t9, $zero, 0xffff"); \
-  asm("ret $t9");
+  asm("jr $t9");
 
 #define ENABLE_TRACE \
   asm("ori $sw, $sw, 0x0020");

@@ -204,7 +204,6 @@ def brtarget24    : Operand<OtherVT> {
 def jmptarget    : Operand<OtherVT> {
   let EncoderMethod = "getJumpTargetOpValue";
   let OperandType = "OPERAND_PCREL";
-  let DecoderMethod = "DecodeJumpRelativeTarget";
 }
 //#endif
 
@@ -539,6 +538,7 @@ class UncondBranch<bits<8> op, string instr_asm>:
 //#endif
 
 //#if CH >= CH2 12
+//@JumpFR {
 let isBranch=1, isTerminator=1, isBarrier=1, imm16=0, hasDelaySlot = 1,
     isIndirectBranch = 1 in
 class JumpFR<bits<8> op, string instr_asm, RegisterClass RC>:
@@ -546,7 +546,11 @@ class JumpFR<bits<8> op, string instr_asm, RegisterClass RC>:
      !strconcat(instr_asm, "\t$ra"), [(brind RC:$ra)], IIBranch> {
   let rb = 0;
   let imm16 = 0;
+//#if CH >= CH10_1 1.5
+  let DecoderMethod = "DecodeJumpFR";
+//#endif
 }
+//@JumpFR }
 
 // Return instruction
 class RetBase<RegisterClass RC>: JumpFR<0x3c, "ret", RC> {
@@ -567,7 +571,7 @@ let isCall=1, hasDelaySlot=1 in {
        !strconcat(instr_asm, "\t$target"), [(Cpu0JmpLink imm:$target)],
        IIBranch> {
 //#if CH >= CH10_1 2
-       let DecoderMethod = "DecodeJumpAbsoluteTarget";
+       let DecoderMethod = "DecodeJumpTarget";
 //#endif
        }
   //@JumpLink }
@@ -801,11 +805,11 @@ let Predicates = [Ch8_2] in {
 
 // Expands to: lui $dst, %hi($tgt - $baltgt)
 def LONG_BRANCH_LUi : Cpu0Pseudo<(outs GPROut:$dst),
-  (ins brtarget16:$tgt, brtarget16:$baltgt), "", []>;
+  (ins jmptarget:$tgt, jmptarget:$baltgt), "", []>;
 
 // Expands to: addiu $dst, $src, %lo($tgt - $baltgt)
 def LONG_BRANCH_ADDiu : Cpu0Pseudo<(outs GPROut:$dst),
-  (ins GPROut:$src, brtarget16:$tgt, brtarget16:$baltgt), "", []>;
+  (ins GPROut:$src, jmptarget:$tgt, jmptarget:$baltgt), "", []>;
 }
 //#endif
   
@@ -997,9 +1001,9 @@ def JMP     : UncondBranch<0x36, "jmp">;
 }
 
 //@ long branch support //1
-let ra = 0, rb = 0, isBranch = 1, isTerminator = 1, isBarrier = 1,
+let isBranch = 1, isTerminator = 1, isBarrier = 1,
     hasDelaySlot = 1, Defs = [LR] in
-def BAL: FL<0x3A, (outs), (ins brtarget16:$imm16), "bal\t$imm16", [], IIBranch>, 
+def BAL: FJ<0x3A, (outs), (ins jmptarget:$addr), "bal\t$addr", [], IIBranch>, 
              Requires<[HasSlt]>;
 //#endif
 
@@ -1007,7 +1011,7 @@ def BAL: FL<0x3A, (outs), (ins brtarget16:$imm16), "bal\t$imm16", [], IIBranch>,
 /// Jump & link and Return Instructions
 let Predicates = [Ch9_1] in {
 def JSUB    : JumpLink<0x3b, "jsub">;
-def JR      : JumpFR<0x3c, "ret", GPROut>;
+def JR      : JumpFR<0x3c, "jr", GPROut>;
 }
 //#endif
 

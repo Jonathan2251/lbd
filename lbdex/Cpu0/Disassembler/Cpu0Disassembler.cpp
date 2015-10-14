@@ -102,14 +102,14 @@ static DecodeStatus DecodeBranch24Target(MCInst &Inst,
                                        unsigned Insn,
                                        uint64_t Address,
                                        const void *Decoder);
-static DecodeStatus DecodeJumpRelativeTarget(MCInst &Inst,
-                                       unsigned Insn,
-                                       uint64_t Address,
-                                       const void *Decoder);
-static DecodeStatus DecodeJumpAbsoluteTarget(MCInst &Inst,
+static DecodeStatus DecodeJumpTarget(MCInst &Inst,
                                      unsigned Insn,
                                      uint64_t Address,
                                      const void *Decoder);
+static DecodeStatus DecodeJumpFR(MCInst &Inst,
+                                 unsigned Insn,
+                                 uint64_t Address,
+                                 const void *Decoder);
 
 static DecodeStatus DecodeMem(MCInst &Inst,
                               unsigned Insn,
@@ -337,25 +337,31 @@ static DecodeStatus DecodeBranch24Target(MCInst &Inst,
   return MCDisassembler::Success;
 }
 
-static DecodeStatus DecodeJumpRelativeTarget(MCInst &Inst,
-                                     unsigned Insn,
-                                     uint64_t Address,
-                                     const void *Decoder) {
-
-  int JumpOffset = fieldFromInstruction(Insn, 0, 24);
-  if (JumpOffset > 0x8fffff)
-  	JumpOffset = -1*(0x1000000 - JumpOffset);
-  Inst.addOperand(MCOperand::createImm(JumpOffset));
-  return MCDisassembler::Success;
-}
-
-static DecodeStatus DecodeJumpAbsoluteTarget(MCInst &Inst,
+static DecodeStatus DecodeJumpTarget(MCInst &Inst,
                                      unsigned Insn,
                                      uint64_t Address,
                                      const void *Decoder) {
 
   unsigned JumpOffset = fieldFromInstruction(Insn, 0, 24);
   Inst.addOperand(MCOperand::createImm(JumpOffset));
+  return MCDisassembler::Success;
+}
+
+static DecodeStatus DecodeJumpFR(MCInst &Inst,
+                                     unsigned Insn,
+                                     uint64_t Address,
+                                     const void *Decoder) {
+// Both JR and RET has same opcode (actually they are the same instruction for
+// Cpu0 hardware. But for user read ability, when user write "jr $t9" meaning
+// it jump to address of register $t9; when "jr $lr" meaning it jump back to the
+// caller function (since $lr is the return address). For user read ability,
+// Cpu0 use print "ret $lr" instead of "jr $lr".
+  int Reg_a = (int)fieldFromInstruction(Insn, 20, 4);
+  Inst.addOperand(MCOperand::createReg(CPURegsTable[Reg_a]));
+  if (CPURegsTable[Reg_a] == Cpu0::LR)
+    Inst.setOpcode(Cpu0::RET);
+  else
+    Inst.setOpcode(Cpu0::JR);
   return MCDisassembler::Success;
 }
 

@@ -547,6 +547,9 @@ To support llvm-objdump, the following code added to Chapter10_1/
     :start-after: //#if CH >= CH4_2 1
     :end-before: //#endif //#if CH >= CH4_2 1
 .. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td
+    :start-after: //@JumpFR {
+    :end-before: //@JumpFR }
+.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td
     :start-after: //@JumpLink {
     :end-before: //@JumpLink }
   
@@ -569,11 +572,12 @@ Not every instruction in \*.td can be disassembled without trouble even though
 they can be translated into assembly and obj successfully. 
 For those cannot be disassembled, LLVM supply the **"let DecoderMethod"** 
 keyword to allow programmers implement their decode function. 
-In Cpu0 example, we define function DecodeCMPInstruction(), DecodeBranch24Target()
-and DecodeJumpAbsoluteTarget() in Cpu0Disassembler.cpp and tell the LLVM table 
-driven system by write **"let DecoderMethod = ..."** in the corresponding 
-instruction definitions or ISD node of Cpu0InstrInfo.td. 
-LLVM will call these DecodeMethod when user use Disassembler job in tools, such  
+In Cpu0 example, we define function DecodeCMPInstruction(), 
+DecodeBranch24Target(), DecodeJumpTarget() and DecodeJumpFR() in 
+Cpu0Disassembler.cpp to tell the LLVM table driven system by writing 
+**"let DecoderMethod = ..."** in the corresponding instruction definitions or 
+ISD node of Cpu0InstrInfo.td. 
+LLVM will call these DecodeMethod when user uses Disassembler job in tools, such  
 as ``llvm-objdump -d``.
 You can check the comments above these DecodeMethod functions to see how it 
 works.

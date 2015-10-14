@@ -280,7 +280,7 @@ void Cpu0LongBranch::expandToLongBranch(MBBInfo &I) {
     //  addu $at, $lr, $at
     //  addiu $sp, $sp, 8
     //  ld $lr, 0($sp)
-    //  ret $at
+    //  jr $at
     //  nop
     // $fallthrough:
     //
@@ -328,7 +328,7 @@ void Cpu0LongBranch::expandToLongBranch(MBBInfo &I) {
       .addReg(Cpu0::SP).addImm(8);
 
     MIBundleBuilder(*BalTgtMBB, Pos)
-      .append(BuildMI(*MF, DL, TII->get(Cpu0::RET)).addReg(Cpu0::AT))
+      .append(BuildMI(*MF, DL, TII->get(Cpu0::JR)).addReg(Cpu0::AT))
       .append(BuildMI(*MF, DL, TII->get(Cpu0::NOP)));
 
     assert(LongBrMBB->size() + BalTgtMBB->size() == LongBranchSeqSize);

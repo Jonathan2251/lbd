@@ -312,7 +312,7 @@ module cpu0(input clock, reset, input [2:0] itype, output reg [2:0] tick,
       JGE:   if (!`N || `Z) `PC=`PC+c24;     // JGE Cx; if SW(>=) PC PC+Cx
       JMP:   `PC = `PC+c24;                  // JMP Cx; PC <= PC+Cx
       JALR:  begin R[a] =`PC;`PC=Rb; end // JALR Ra,Rb; Ra<=PC; PC<=Rb
-      BAL:   begin `LR=`PC;`PC=`PC + c16; end // JSUB Cx; LR<=PC; PC<=PC+Cx
+      BAL:   begin `LR=`PC;`PC=`PC + c24; end // BAL Cx; LR<=PC; PC<=PC+Cx
       JSUB:  begin `LR=`PC;`PC=`PC + c24; end // JSUB Cx; LR<=PC; PC<=PC+Cx
       RET:   begin `PC=Ra; end               // RET; PC <= Ra
       default : 

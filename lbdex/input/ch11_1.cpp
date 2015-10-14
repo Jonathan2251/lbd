@@ -32,6 +32,7 @@ asm("jle $sw, -16");
 asm("jgt $sw, -4");
 asm("jge $sw, -12");
 asm("jsub 0x000010000");
+asm("jr $4");
 asm("ret $lr");
 asm("jalr $t9");
 asm("li $3, 0x00700000");
