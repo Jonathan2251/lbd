@@ -19,10 +19,10 @@ struct chapterIdMap {
 };
 
 struct IfCtrType {
-  IfType type;
-  bool hidden;
+  IfType type; // IF_CH: my document definition e.g. #if CH >== CH3_1
+  bool hidden; // true/false: this #if, #elif or #else ative block should be output or not
 #ifdef SUPPORT_ELIF
-  bool satisfied;
+  bool satisfied; // Has any this #if block satisfied in the condition, i.e. has been output
 #endif
 };
 
