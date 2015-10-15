@@ -4,6 +4,7 @@
 #include "cstdio"
 #include "string.h"
 
+#define SUPPORT_ELIF
 //#define DEBUG
 
 using namespace std;
@@ -20,6 +21,9 @@ struct chapterIdMap {
 struct IfCtrType {
   IfType type;
   bool hidden;
+#ifdef SUPPORT_ELIF
+  bool satisfied;
+#endif
 };
 
 const struct chapterIdMap ch[] = {
@@ -34,9 +38,11 @@ class Preprocess {
 private:
   char PatternIf[25];
   char PatternIfSpace[25];
+#ifdef SUPPORT_ELIF
+  char PatternElIfSpace[25];
+#endif
   char PatternElse[25];
   char PatternEndif[25];
-  int skipUntilmatchedEndifOrElse(ifstream& in, ofstream& out, char* line);
   bool inCondition(char* CH, char* compareCondition, char* CHXX);
   
 public:
@@ -52,12 +58,18 @@ void Preprocess::setFileType(FileType fileType) {
       LLVMBUILD_FILE) {
      strcpy(PatternIf, "#if");
      strcpy(PatternIfSpace, "#if ");
+#ifdef SUPPORT_ELIF
+     strcpy(PatternElIfSpace, "#elif ");
+#endif
      strcpy(PatternElse, "#else");
      strcpy(PatternEndif, "#endif");
   }
   else if (fileType == TD_FILE) {
      strcpy(PatternIf, "//#if");
      strcpy(PatternIfSpace, "//#if ");
+#ifdef SUPPORT_ELIF
+     strcpy(PatternElIfSpace, "//#elif ");
+#endif
      strcpy(PatternElse, "//#else");
      strcpy(PatternEndif, "//#endif");
   }
@@ -69,41 +81,6 @@ int Preprocess::getChapterId(char* chapter) {
 	  return ch[i].id;
   }
   return -1;
-}
-
-int Preprocess::skipUntilmatchedEndifOrElse(ifstream& in, ofstream& out, 
-                                            char* line) {
-  int result = SUCCESS;
-  int ifNestCount = 0;
-#ifdef DEBUG
-  cout << "ifNestCount: " << ifNestCount << "in.eof(): " << in.eof() << endl;
-  cout << "result: " << result << endl;
-#endif
-
-  while (ifNestCount >= 0 && !in.eof()) {
-    in.getline(line, 255);
-    if (strncmp(line, PatternIfSpace, strlen(PatternIfSpace)) == 0) {
-      ifNestCount++;
-    }
-    else if (strncmp(line, PatternIf, strlen(PatternIf)) == 0) {
-      ifNestCount++;
-    }
-    else if (strncmp(line, PatternElse, strlen(PatternElse)) == 0) {
-      if (ifNestCount == 0)
-        return result;
-    }
-    else if (strncmp(line, PatternEndif, strlen(PatternEndif)) == 0) {
-      ifNestCount--;
-    }
-  }
-  if (in.eof() && ifNestCount > 0)
-    result = FAIL;
-#ifdef DEBUG
-  cout << "ifNestCount: " << ifNestCount << "in.eof(): " << in.eof() << endl;
-  cout << "result: " << result << endl;
-#endif
-
-  return result;
 }
 
 bool Preprocess::inCondition(char* CH, char* compareCondition, 
@@ -215,67 +192,147 @@ int Preprocess::run(ifstream& in, ofstream& out) {
       #endif
         if (inCondition(CH, compareCond, CHXX)) {
           aa.type = IF_CH;
-          aa.hidden = false;
-          stack.push(aa);
+          if (stack.empty())
+            aa.hidden = false;
+          else
+            aa.hidden = stack.top().hidden;
+#ifdef SUPPORT_ELIF
+          aa.satisfied = true;
+#endif
         }
         else {
-          if (skipUntilmatchedEndifOrElse(in, out, line) == SUCCESS) {
-            if (strncmp(line, PatternElse, strlen(PatternElse)) == 0) {
-              aa.type = IF_CH;
-              aa.hidden = false;
-              stack.push(aa);
-            }
-            else if (strncmp(line, PatternEndif, strlen(PatternEndif)) == 0) {
-              continue;
-            }
-            else
-              return FAIL;
-          }
-          else
-            return FAIL;
+          aa.type = IF_CH;
+          aa.hidden = true;
+#ifdef SUPPORT_ELIF
+          aa.satisfied = false;
+#endif
         }
+        stack.push(aa);
       }
       else {
       // #if ... (other #if pattern)
         out << line << endl;
         aa.type = IF_OTHER;
-        aa.hidden = false;
+        if (stack.empty())
+          aa.hidden = false;
+        else
+          aa.hidden = stack.top().hidden;
+#ifdef SUPPORT_ELIF
+        aa.satisfied = true;
+#endif
         stack.push(aa);
       }
     }
     else if (strncmp(line, PatternIf, strlen(PatternIf)) == 0) {
     // #if ... (other #if pattern)
-      out << line << endl;
+      if (stack.empty() || (stack.top().type != IF_CH) || !(stack.top().hidden))
+        out << line << endl;
       aa.type = IF_OTHER;
-      aa.hidden = false;
+      if (stack.empty())
+        aa.hidden = false;
+      else
+        aa.hidden = stack.top().hidden;
+#ifdef SUPPORT_ELIF
+      aa.satisfied = true;
+#endif
       stack.push(aa);
     }
+#ifdef SUPPORT_ELIF
+    else if (strncmp(line, PatternElIfSpace, strlen(PatternElIfSpace)) == 0) {
+      sscanf(line, "%s %s", If, CH);
+      if (strcmp(CH, "CH") == 0) {
+      // #if CH ... (cpu0 chapter control pattern).
+        sscanf(line, "%s %s %s %s", If, CH, compareCond, CHXX);
+      #ifdef DEBUG
+        printf("if: %s CH: %s compareCond: %s CHXX: %s\n", If, CH, compareCond, CHXX);
+      #endif
+        if (stack.empty())
+          return FAIL;
+        if (stack.top().type == IF_CH) {
+          aa = stack.top();
+          stack.pop();
+          aa.type = IF_CH;
+          if (aa.hidden) {
+            if (inCondition(CH, compareCond, CHXX)) {
+              if (stack.empty()) {
+                aa.hidden = false;
+                aa.satisfied = true;
+              }
+              else {
+                aa.hidden = stack.top().hidden;
+              }
+            }
+            else {
+              aa.hidden = true;
+            }
+            stack.push(aa);
+          }
+          else {
+            aa.hidden = true;
+            stack.push(aa);
+          }
+        }
+      }
+      else {
+      // #if ... (other #elif pattern)
+        out << line << endl;
+        aa.type = IF_OTHER;
+        if (stack.empty())
+          aa.hidden = false;
+        else
+          aa.hidden = stack.top().hidden;
+        aa.satisfied = true;
+        stack.push(aa);
+      }
+    }
+#endif
     else if (strncmp(line, PatternElse, strlen(PatternElse)) == 0) {
       if (stack.empty())
         return FAIL;
-      if (stack.top().type == IF_OTHER)
-        out << line << endl;
-      else if (stack.top().type == IF_CH) {
+      if (stack.top().type == IF_CH) {
         aa = stack.top();
         stack.pop();
         aa.type = IF_CH;
-        aa.hidden = !aa.hidden;
+#ifdef SUPPORT_ELIF
+        if (aa.satisfied) {
+          aa.hidden = true;
+        }
+        else {
+#endif
+          if (stack.empty()) {
+            aa.hidden = !aa.hidden;
+          }
+          else
+            if (stack.top().hidden)
+              aa.hidden = true;
+            else
+              aa.hidden = !aa.hidden;
+#ifdef SUPPORT_ELIF
+        }
+#endif
         stack.push(aa);
+      }
+      else {
+      // stack.top().type == IF_OTHER
+        if (!(stack.top().hidden))
+          out << line << endl;
       }
     }
     else if (strncmp(line, PatternEndif, strlen(PatternEndif)) == 0) {
       if (stack.empty())
         return FAIL;
-      if (stack.top().type == IF_OTHER) {
+      if (!(stack.top().hidden) && (stack.top().type != IF_CH)) {
         out << line << endl;
       }
       stack.pop();
     }
     else {
-      if (stack.empty())
+      if (stack.empty()) {
         out << line << endl;
-      else if ( !(stack.top().type == IF_CH && stack.top().hidden))
+      }
+      else if (!(stack.top().hidden)) {
         out << line << endl;
+      }
     }
   } // while
   if (stack.empty()) {

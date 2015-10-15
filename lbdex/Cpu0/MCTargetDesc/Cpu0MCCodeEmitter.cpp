@@ -153,12 +153,10 @@ getJumpTargetOpValue(const MCInst &MI, unsigned OpNo,
   const MCExpr *Expr = MO.getExpr();
 #if CH >= CH9_1 //1
   if (Opcode == Cpu0::JSUB || Opcode == Cpu0::JMP || Opcode == Cpu0::BAL)
-#else
-#if CH >= CH8_2 //1
+#elif CH >= CH8_2 //1
   if (Opcode == Cpu0::JMP || Opcode == Cpu0::BAL)
 #else
   if (Opcode == Cpu0::JMP)
-#endif
 #endif //#if CH >= CH9_1 //1
     Fixups.push_back(MCFixup::create(0, Expr,
                                      MCFixupKind(Cpu0::fixup_Cpu0_PC24)));
