@@ -43,12 +43,11 @@ private:
 #endif
   char PatternElse[25];
   char PatternEndif[25];
-  bool inCondition(char* CH, char* compareCondition, char* CHXX);
   
 public:
+  int currentChapter;
   void setFileType(FileType fileType);
-  int currentChapterId;
-  int getChapterId(char* chapter);
+  int getChapter(char* chapter);
   int run(ifstream& in, ofstream& out);
   void removeSuccessiveEmptyLines(ifstream& in, ofstream& out);
 };
@@ -75,30 +74,12 @@ void Preprocess::setFileType(FileType fileType) {
   }
 }
 
-int Preprocess::getChapterId(char* chapter) {
+int Preprocess::getChapter(char* chapter) {
   for (int i = 0; ch[i].id != -1; i++) {
     if (strcmp(ch[i].symbol, chapter) == 0)
 	  return ch[i].id;
   }
   return -1;
-}
-
-bool Preprocess::inCondition(char* CH, char* compareCondition, 
-                    char* CHXX) {
-#ifdef DEBUG
-  printf("CH: %s compareCond: %s CHXX: %s currentChapterId: %d, getChapterId(CHXX): %d\n", 
-         CH, compareCondition, CHXX, currentChapterId, getChapterId(CHXX));
-#endif
-  if (strcmp(CH, "CH") != 0)
-    return false;
-  if (strcmp(compareCondition, ">=") != 0)
-    return false;
-  if (currentChapterId >= getChapterId(CHXX)) {
-    return true;
-  }
-  else {
-    return false;
-  }
 }
 
 // expand chapter added code through directive (eg. #if CH > CH3_1)
@@ -183,14 +164,14 @@ int Preprocess::run(ifstream& in, ofstream& out) {
     printf("%s\n", line);
   #endif
     if (strncmp(line, PatternIfSpace, strlen(PatternIfSpace)) == 0) {
-      sscanf(line, "%s %s", If, CH);
-      if (strcmp(CH, "CH") == 0) {
+      sscanf(line, "%s %s %s", If, CH, compareCond);
+      if (strcmp(CH, "CH") == 0 && strcmp(compareCond, ">=") == 0) {
       // #if CH ... (cpu0 chapter control pattern).
         sscanf(line, "%s %s %s %s", If, CH, compareCond, CHXX);
       #ifdef DEBUG
         printf("if: %s CH: %s compareCond: %s CHXX: %s\n", If, CH, compareCond, CHXX);
       #endif
-        if (inCondition(CH, compareCond, CHXX)) {
+        if (currentChapter >= getChapter(CHXX)) {
           aa.type = IF_CH;
           if (stack.empty())
             aa.hidden = false;
@@ -239,8 +220,8 @@ int Preprocess::run(ifstream& in, ofstream& out) {
     }
 #ifdef SUPPORT_ELIF
     else if (strncmp(line, PatternElIfSpace, strlen(PatternElIfSpace)) == 0) {
-      sscanf(line, "%s %s", If, CH);
-      if (strcmp(CH, "CH") == 0) {
+      sscanf(line, "%s %s %s", If, CH, compareCond);
+      if (strcmp(CH, "CH") == 0 && strcmp(compareCond, ">=") == 0) {
       // #if CH ... (cpu0 chapter control pattern).
         sscanf(line, "%s %s %s %s", If, CH, compareCond, CHXX);
       #ifdef DEBUG
@@ -253,7 +234,7 @@ int Preprocess::run(ifstream& in, ofstream& out) {
           stack.pop();
           aa.type = IF_CH;
           if (aa.hidden) {
-            if (inCondition(CH, compareCond, CHXX)) {
+            if (currentChapter >= getChapter(CHXX)) {
               if (stack.empty()) {
                 aa.hidden = false;
                 aa.satisfied = true;
@@ -405,7 +386,7 @@ int main(int argc, char* argv[]) {
 
   ofstream out("tmp.txt");
 
-  preprocess.currentChapterId = preprocess.getChapterId(argv[3]);
+  preprocess.currentChapter = preprocess.getChapter(argv[3]);
   int result = preprocess.run(in, out);
   in.close();
   out.close();
