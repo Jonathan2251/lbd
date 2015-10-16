@@ -351,13 +351,9 @@ static DecodeStatus DecodeJumpFR(MCInst &Inst,
                                      unsigned Insn,
                                      uint64_t Address,
                                      const void *Decoder) {
-// Both JR and RET has same opcode (actually they are the same instruction for
-// Cpu0 hardware. But for user read ability, when user write "jr $t9" meaning
-// it jump to address of register $t9; when "jr $lr" meaning it jump back to the
-// caller function (since $lr is the return address). For user read ability,
-// Cpu0 use print "ret $lr" instead of "jr $lr".
   int Reg_a = (int)fieldFromInstruction(Insn, 20, 4);
   Inst.addOperand(MCOperand::createReg(CPURegsTable[Reg_a]));
+// exapin in http://jonathan2251.github.io/lbd/llvmstructure.html#jr-note.
   if (CPURegsTable[Reg_a] == Cpu0::LR)
     Inst.setOpcode(Cpu0::RET);
   else
