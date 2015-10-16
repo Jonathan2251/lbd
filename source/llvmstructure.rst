@@ -385,11 +385,11 @@ The following table details the cpu032I instruction set:
     - JSUB Cx
     - LR <= PC; PC <= PC + Cx
   * - J
-    - RET
+    - JR/RET
     - 3C
     - Return from subroutine
-    - RET LR
-    - PC <= LR
+    - JR $1 or RET LR
+    - PC <= LR [#jr-note]_
   * - A
     - MULT
     - 41
@@ -1285,6 +1285,126 @@ following machine code,
   fmadd re, ra, rc, rb;
 
 
+Caller and callee saved registers
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. rubric:: lbdex/input/ch9_caller_callee_save_registers.cpp
+.. literalinclude:: ../lbdex/input/ch9_caller_callee_save_registers.cpp
+    :start-after: /// start
+    
+Run Mips backend with above input will get the following result.
+
+.. code-block:: bash
+
+  JonathantekiiMac:input Jonathan$ ~/llvm/release/cmake_debug_build/Debug/bin/llc 
+  -O0 -march=mips -relocation-model=static -filetype=asm 
+  ch9_caller_callee_save_registers.bc -o -
+  	.text
+  	.abicalls
+  	.option	pic0
+  	.section	.mdebug.abi32,"",@progbits
+  	.nan	legacy
+  	.file	"ch9_caller_callee_save_registers.bc"
+  	.text
+  	.globl	_Z6callerv
+  	.align	2
+  	.type	_Z6callerv,@function
+  	.set	nomicromips
+  	.set	nomips16
+  	.ent	_Z6callerv
+  _Z6callerv:                             # @_Z6callerv
+  	.cfi_startproc
+  	.frame	$fp,32,$ra
+  	.mask 	0xc0000000,-4
+  	.fmask	0x00000000,0
+  	.set	noreorder
+  	.set	nomacro
+  	.set	noat
+  # BB#0:
+  	addiu	$sp, $sp, -32
+  $tmp0:
+  	.cfi_def_cfa_offset 32
+  	sw	$ra, 28($sp)            # 4-byte Folded Spill
+  	sw	$fp, 24($sp)            # 4-byte Folded Spill
+  $tmp1:
+  	.cfi_offset 31, -4
+  $tmp2:
+  	.cfi_offset 30, -8
+  	move	 $fp, $sp
+  $tmp3:
+  	.cfi_def_cfa_register 30
+  	addiu	$1, $zero, 3
+  	sw	$1, 20($fp)   # store t1 to 20($fp)
+  	move	 $4, $1
+  	jal	_Z4add1i
+  	nop
+  	sw	$2, 16($fp)   # $2 : the return vaule for fuction add1()
+  	lw	$1, 20($fp)   # load t1 from 20($fp)
+  	subu	$1, $2, $1
+  	sw	$1, 16($fp)
+  	move	 $2, $1     # move result to return register $2
+  	move	 $sp, $fp
+  	lw	$fp, 24($sp)            # 4-byte Folded Reload
+  	lw	$ra, 28($sp)            # 4-byte Folded Reload
+  	addiu	$sp, $sp, 32
+  	jr	$ra
+  	nop
+  	.set	at
+  	.set	macro
+  	.set	reorder
+  	.end	_Z6callerv
+  $func_end0:
+  	.size	_Z6callerv, ($func_end0)-_Z6callerv
+  	.cfi_endproc
+
+As above assembly output, Mips allocates t1 variable to register $1 and no need
+to spill $1 since $1 is caller saved register. 
+On the other hand, $ra is callee saved register, so it spills at beginning of 
+the assembly output since jal uses $ra register. 
+Cpu0 $lr is the same register as Mips $ra, so it calls setAliasRegs(MF, 
+SavedRegs, Cpu0::LR) in determineCalleeSaves() of Cpu0SEFrameLowering.cpp when
+the function has called another function.
+
+
+Live in and live out register
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+As the example of last sub-section. The $ra is "live in" register since the 
+return address is decided by caller. The $2 is "live out" register since the 
+return value of the function is saved in this register, and caller can get the 
+result by read it directly as the comment in above example. 
+Through mark "live in" and "live out" registers, backend provides 
+llvm middle layer information to remove useless instructions in variables 
+access. 
+Of course, llvm applies the DAG analysis mentioned in the previous sub-section 
+to finish it. 
+Since C supports seperate compilation for different functions, the "live in" 
+and "out" information from backend provides the optimization opportunity to 
+llvm. 
+LLVM provides function addLiveIn() to mark "live in" register but no function 
+addLiveOut() provided. 
+For the "live out" register, Mips backend marks it by 
+DAG=DAG.getCopyToReg(..., $2, ...) and return DAG instead, since all local 
+varaiables are not exist after function exit.
+
+
+Phi node
+~~~~~~~~~
+
+Since phi node is popular used in SSA form [#ssa-wiki]_, of course llvm applies 
+phi node in IR for optimization work. 
+Phi node exists for "live variable analysis", an example for C is here 
+[#phi-ex]_. 
+Explaining phi node is more complicate than DAG translation of basic block. 
+This book introduces backend on llvm, so it's fine to ignore it if you don't 
+understand the details and are not interested in it at this point.
+Although Mips backend uses phi in some places, Cpu0 doesn't use it directly
+until this point.
+If you are interested in more details than the wiki web site, please refer book
+here [#phi-book]_ for phi node. Or book here [#dominator-dragonbooks]_ about the 
+dominator tree analysis if you have this book only.
+
+
 Create Cpu0 backend
 --------------------
 
@@ -2125,7 +2245,18 @@ the Target Registration.
 
 .. [#call-note] jsub cx is direct call for 24 bits value of cx while jalr $rb is indirect call for 32 bits value of register $rb.
 
+.. [#jr-note] Both JR and RET has same opcode (actually they are the same instruction for Cpu0 hardware). When user writes "jr $t9" meaning it jumps to address of register $t9; when user writes "jr $lr" meaning it jump back to the caller function (since $lr is the return address). For user read ability, Cpu0 prints "ret $lr" instead of "jr $lr".
+
 .. [#aosa-book] Chris Lattner, **LLVM**. Published in The Architecture of Open Source Applications. http://www.aosabook.org/en/llvm.html
+
+.. [#ssa-wiki] https://en.wikipedia.org/wiki/Static_single_assignment_form
+
+.. [#phi-ex] http://stackoverflow.com/questions/11485531/what-exactly-phi-instruction-does-and-how-to-use-it-in-llvm
+
+.. [#phi-book] Section 8.11 of Muchnick, Steven S. (1997). Advanced Compiler Design and Implementation. Morgan Kaufmann. ISBN 1-55860-320-4.
+
+.. [#dominator-dragonbooks] Refer chapter 9 of book Compilers: Principles, 
+    Techniques, and Tools (2nd Edition) 
 
 .. [#chapters-ex] file:///home/cschen/test/lbd/build/html/doc.html#generate-cpu0-document
 
