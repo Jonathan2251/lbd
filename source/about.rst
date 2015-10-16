@@ -72,6 +72,8 @@ Version 3.7.1, Not release yet
   Add section "Long branch support" of Chapter "Control flow statements".
   Add sub-section "eh.dwarf intrinsic" of Chapter Function call.
   Change display "ret $rx" to "jr $rx" where $rx is not $lr.
+  Move sub-section Caller and callee saved registers.
+  Add sub-sections Live in and live out register and Phi node.
 
 Version 3.7.0, Released September 24, 2015
   Porting to lld 3.7.
