@@ -1127,7 +1127,7 @@ SDValue Cpu0TargetLowering::lowerRETURNADDR(SDValue Op,
   unsigned LR = Cpu0::LR;
   MFI->setReturnAddressIsTaken(true);
 
-  // Return RA, which contains the return address. Mark it an implicit live-in.
+  // Return LR, which contains the return address. Mark it an implicit live-in.
   unsigned Reg = MF.addLiveIn(LR, getRegClassFor(VT));
   return DAG.getCopyFromReg(DAG.getEntryNode(), SDLoc(Op), Reg, VT);
 }
