@@ -54,6 +54,8 @@ structure is illustrated in :num:`Figure #llvmstructure-f1` below.
 
 .. _llvmstructure-f1: 
 .. figure:: ../Fig/llvmstructure/1.png
+  :width: 608 px
+  :height: 360 px
   :align: center
 
   Architectural block diagram of the Cpu0 processor
@@ -108,6 +110,8 @@ for each type of instruction.
 
 .. _llvmstructure-f2: 
 .. figure:: ../Fig/llvmstructure/2.png
+  :width: 601 px
+  :height: 331 px
   :align: center
 
   Cpu0's three instruction formats
@@ -556,6 +560,8 @@ below.
 
 .. _llvmstructure-f3: 
 .. figure:: ../Fig/llvmstructure/3.png
+  :width: 684 px
+  :height: 126 px
   :align: center
 
   Cpu0 status word (SW) register
@@ -644,6 +650,9 @@ the optimizer and back end are run on the code.
 
 .. _llvmstructure-f6: 
 .. figure:: ../Fig/llvmstructure/6.png
+  :width: 470 px
+  :height: 63 px
+  :scale: 70 %
   :align: center
 
   Three Major Components of a Three Phase Compiler
@@ -672,7 +681,9 @@ end can be written for any target that can compile from it, as shown in
 .. _llvmstructure-f7: 
 .. figure:: ../Fig/llvmstructure/7.png
   :align: center
-  :width: 600px
+  :width: 837 px
+  :height: 299 px
+  :scale: 70 %
 
   Retargetablity
 
@@ -803,7 +814,9 @@ The (simplified) build process for the x86 target is shown in
 .. _llvmstructure-f8: 
 .. figure:: ../Fig/llvmstructure/8.png
   :align: center
-  :width: 600px
+  :width: 850 px
+  :height: 428 px
+  :scale: 70 %
 
   Simplified x86 Target Definition
 
@@ -827,6 +840,8 @@ Following diagram come from tricore_llvm.pdf.
 
 .. _llvmstructure-f9: 
 .. figure:: ../Fig/llvmstructure/9.png
+  :width: 1030 px
+  :height: 537 px
   :align: center
 
   tricore_llvm.pdf: Code generation sequence. On the path from LLVM code to 
@@ -1114,7 +1129,9 @@ For example, the basic block code and it's corresponding DAG as
 
 .. _llvmstructure-f10: 
 .. figure:: ../Fig/llvmstructure/10.png
-  :scale: 70 %
+  :width: 474 px
+  :height: 178 px
+  :scale: 80 %
   :align: center
 
   DAG example
@@ -1149,7 +1166,9 @@ stage of Instruction Selection as :num:`Figure #llvmstructure-f11`.
 
 .. _llvmstructure-f11: 
 .. figure:: ../Fig/llvmstructure/11.png
-  :scale: 50 %
+  :width: 495 px
+  :height: 116 px
+  :scale: 70 %
   :align: center
 
   IR and it's corresponding machine instruction
@@ -1163,7 +1182,9 @@ ADD is machine instruction.
 
 .. _llvmstructure-f12: 
 .. figure:: ../Fig/llvmstructure/12.png
-  :scale: 50 %
+  :width: 986 px
+  :height: 609 px
+  :scale: 70 %
   :align: center
 
   Instruction DAG representation
@@ -1208,7 +1229,9 @@ register name (not machine register).
  
 .. _llvmstructure-f13: 
 .. figure:: ../Fig/llvmstructure/13.png
-  :scale: 50 %
+  :width: 804 px
+  :height: 588 px
+  :scale: 70 %
   :align: center
 
   Pattern match for ADDiu instruction and IR node add

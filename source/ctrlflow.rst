@@ -130,9 +130,9 @@ correct even an instruction is inserted between CMP and JNE as follows,
 
 .. _ctrlflow-f1:
 .. figure:: ../Fig/ctrlflow/1.png
-  :height: 465 px
   :width: 446 px
-  :scale: 70 %
+  :height: 465 px
+  :scale: 50 %
   :align: center
 
   JNE (CMP $r2, $r3),
