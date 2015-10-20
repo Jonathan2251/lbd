@@ -1679,6 +1679,8 @@ Run Chapter3_5 with ch3_largeframe.cpp will get the following result.
 
 .. code-block:: bash
 
+  118-165-78-12:input Jonathan$ clang -target mips-unknown-linux-gnu -c 
+  ch3_largeframe.cpp -emit-llvm -o ch3_largeframe.bc
   118-165-78-12:input Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
   Debug/bin/llc -march=cpu0 -relocation-model=pic -filetype=asm 
   ch3_largeframe.bc.bc -o -
