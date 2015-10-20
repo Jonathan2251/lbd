@@ -178,18 +178,18 @@ summaried as :num:`Figure #backendstructure-f1`.
 Class Cpu0Subtarget supply the interface getInstrInfo(), getFrameLowering(), 
 ..., to get other Cpu0 classes.
 Most classes (like Cpu0InstrInfo, Cpu0RegisterInfo, ...) have Subtarget 
-reference member to allow them access other classes through the Cpu0Subtarget
-interface list in :num:`Figure #backendstructure-f1`.
-Classes (maybe added at later chapters) can access Subtarget class
-through Cpu0TargetMachine (usually use TM as symbol) by 
-static_cast<Cpu0TargetMachine &>(TM).getSubtargetImpl().
-Once get Subtarget class, the backend code can accesss other classes through it.
+reference member to allowing them access other classes through the Cpu0Subtarget
+interface.
+Classes can access Subtarget class through Cpu0TargetMachine (usually use TM as 
+symbol) by static_cast<Cpu0TargetMachine &>(TM).getSubtargetImpl().
+Once getting Subtarget class, the backend code can access other classes through 
+it.
 For those classes name of Cpu0SExx, they mean the standard 32 bits class.
 This arrangement follows llvm 3.5 Mips backend style. In Mips backend, it uses
-Mips16, MipsSE and Mips64 files/class name to define class function for 16,
+Mips16, MipsSE and Mips64 files/classes name to define classes functions for 16,
 32 and 64 bits architecture, respectively.
 Since Cpu0Subtarget creates Cpu0InstrInfo, Cpu0RegisterInfo, ..., at constuctor
-function, it can supply the class reference through the interfaces shown in 
+function, it can provide the class reference through the interfaces shown in 
 :num:`Figure #backendstructure-f1`.
 
 Below :num:`Figure #backendstructure-f2` shows Cpu0 TableGen inheritance 
@@ -199,8 +199,8 @@ process.
 Backend class can choose the TableGen generated classes and inherited from it.
 There are more TableGen generated classes, and they all exist in 
 cmake_debug_build/lib/Target/Cpu0/\*.inc. Through C++ inheritance mechanism,
-TableGen provides backend programmer a fexible way to use its generated
-code. Programmer has chance to override this function if it need to. 
+TableGen provides backend programmers a fexible way to use its generated
+code. Programmers have chance to override this function if they need to. 
 
 .. _backendstructure-f2:  
 .. figure:: ../Fig/backendstructure/2.png
@@ -212,7 +212,8 @@ Since llvm has deep inheritance tree, they are not digged here.
 Benefit from the inheritance tree structure, there are not too much code need 
 to be implemented in classes of instruction, frame/stack and select DAG, since 
 many code are implemented by their parent class. 
-The llvm-tblgen generate Cpu0GenInstrInfo.inc from Cpu0InstrInfo.td. 
+The llvm-tblgen generate Cpu0GenInstrInfo.inc based on information from 
+Cpu0InstrInfo.td. 
 Cpu0InstrInfo.h extract those code it needs from Cpu0GenInstrInfo.inc by define 
 “#define GET_INSTRINFO_HEADER”. 
 With TabelGen, the code size in backend is reduced again through the pattern 
@@ -237,7 +238,7 @@ Code between "#if def  GET_INSTRINFO_HEADER" and
 
 Reference "Write An LLVM Backend" web site [#]_.
 
-Chapter3_1/CMakeLists.txt  modified with these new added \*.cpp as follows,
+Chapter3_1/CMakeLists.txt is modified with these new added \*.cpp as follows,
 
 .. rubric:: lbdex/chapters/Chapter3_1/CMakeLists.txt
 .. literalinclude:: ../lbdex/Cpu0/CMakeLists.txt
@@ -265,14 +266,15 @@ follows, and do building with Xcode on iMac or make on linux again.
 
 With Chapter3_1 implementation, the Chapter2 error message 
 "Could not allocate target machine!" has gone.
-The new errors say that we have not Target AsmPrinter. 
+The new error say that we have not Target AsmPrinter. 
 We will add it in next section.
 
 Chapter3_1 create FeatureCpu032I and FeatureCpu032II for CPU cpu032I and 
 cpu032II, repectively.
 Beyond that, it defines two more features, FeatureCmp and FeatureSlt. 
-In order to demostrate the "instruction set design choice" to readers, this book
-create two CPU. Readers will realize why Mips CPU uses instruction SLT instead of
+In order to demostrate the "instruction set designing choice" to readers, this 
+book create two CPU. 
+Readers will realize why Mips CPU uses instruction SLT instead of
 CMP when they go to later Chapter "Control flow statement".
 With the added code of supporting cpu032I and cpu32II in Cpu0.td and 
 Cpu0InstrInfo.td of Chapter3_1, the command ``llc -march=cpu0 -mcpu=help`` can 
@@ -321,16 +323,16 @@ display messages as follows,
   ...
 
 When user input ``-mcpu=cpu032I``, the variable IsCpu032I from Cpu0InstrInfo.td 
-will be true since the function isCpu032I() defined in Cpu0Subtarget.h is true 
-by checking variable CPU in constructor function (the variable CPU is "cpu032I" 
-when user input -mcpu=cpu032I).
+will be true since the function isCpu032I() defined in Cpu0Subtarget.h will be 
+true by checking variable CPU in constructor function (the variable CPU is 
+"cpu032I" when user input -mcpu=cpu032I).
 Please notice variable Cpu0ArchVersion must be initialized in 
 Cpu0Subtarget.cpp, otherwise variable Cpu0ArchVersion can be any value and  
 functions isCpu032I() and isCpu032II() which support ``llc -mcpu=cpu032I`` and 
 ``llc -mcpu=cpu032II``, repectively, will have trouble.
 The value of variables HasCmp and HasSlt are set depend on Cpu0ArchVersion. 
 Instructions slt and beq, ... are supported only in case of HasSlt is true, and
-furthmore, HasSlt is true only when Cpu0ArchVersion is Cpu032II.
+furthermore, HasSlt is true only when Cpu0ArchVersion is Cpu032II.
 Similiarly, Ch4_1, Ch4_2, ..., are used in controlling the enable or disable of 
 instruction definition. Through **Subtarget->hasChapter4_1()** which exists 
 both in Cpu0.td and Cpu0Subtarget.h, the Predicate, such as Ch4_1, defined in 
@@ -396,7 +398,7 @@ Cpu0InstPrinter::printInstruction() and Cpu0InstPrinter::getRegisterName().
 Both of these functions can be auto-generated from the information we defined 
 in Cpu0InstrInfo.td and Cpu0RegisterInfo.td. 
 To let these two functions work in our code, the only thing needed is adding a 
-class Cpu0InstPrinter and include them as did in Chapter3_1.
+class Cpu0InstPrinter and include them as did in Chapter3_2.
 
 File Chapter3_2/Cpu0/InstPrinter/Cpu0InstPrinter.cpp include Cpu0GenAsmWrite.inc 
 and call the auto-generated functions from TableGen.
@@ -465,8 +467,8 @@ sub-directory MCTargetDesc as follows,
 
 
 Finally, add code in Cpu0MCTargetDesc.cpp to register Cpu0InstPrinter as 
-below. By the way, it register other classes (register, instruction and 
-subtarget) defined in Chapter3_1 at this point.
+below. By the way, it registers other classes (register, instruction and 
+subtarget) which defined in Chapter3_1 at this point.
 
 .. rubric:: lbdex/chapters/Chapter3_2/MCTargetDesc/Cpu0MCTargetDesc.h
 .. code-block:: c++
@@ -503,28 +505,105 @@ subtarget) defined in Chapter3_1 at this point.
     :end-before: #endif
 
 
-To make the registration clearly, list it in :num:`Figure #backendstructure-f3`, 
-and :num:`Figure #backendstructure-f4`.
+To make the registration clearly, summary as follows,
 
-.. _backendstructure-f3: 
-.. figure:: ../Fig/backendstructure/3.png
-  :scale: 80 %
-  :align: center
+.. rubric:: Register functions of InstrInfo, RegisterInfo and SubtargetInfo
+.. code-block:: c++
+  
+     static MCInstrInfo *createCpu0MCInstrInfo() {
+     MCInstrInfo *X = new MCInstrInfo();
+     // defined in Cpu0GenInstrInfo.inc
+  |--- InitCpu0MCInstrInfo(X);
+  |    return X;
+  |  }
+  |      // Cpu0GenInstrInfo.inc
+  |      extern const MCInstrDesc Cpu0Insts[] = {
+  |      // Info generated from Cpu0InstrInfo.td
+  |      }
+  |--->  static inline void InitCpu0MCInstrInfo(
+                               MCInstrInfo *II) {
+           II->InitMCInstrInfo(Cpu0Insts, ...);
+         }
+  
+     static MCRegisterInfo *createCpu0MCRegisterInfo(
+     StringRef TT) {
+     MCRegisterInfo *X = new MCRegisterInfo();
+     // defined in Cpu0GenRegisterInfo.inc
+  |--- InitCpu0MCRegisterInfo(X, Cpu0::LR);
+  |    return X;
+  |  }
+  |
+  |      // Cpu0GenRegisterInfo.inc
+  |--->  static inline void InitCpu0MCRegisterInfo(
+         MCRegisterInfo *RI, ...) {
+           RI->InitMCRegisterInfo(Cpu0RegDesc, ...)
+         }
+  
+     static MCSubtargetInfo *createCpu0MCSubtargetInfo(
+                  StringRef TT, StringRef CPU,  StringRef FS) {
+     ...
+     MCSubtargetInfo *X = new MCSubtargetInfo();
+     // defined in Cpu0GenSubtargetInfo.inc
+  |--- InitCpu0MCSubtargetInfo(X, TT, CPU, ArchFS);
+  |     return X;
+  |    }
+  |      // Cpu0GenSubtargetInfo.inc
+  |--->  static inline void InitCpu0MCSubtargetInfo(
+         MCSubtargetInfo *II, StringRef TT, 
+         StringRef CPU, StringRef FS) {
+           II->InitMCSubtargetInfo(TT, CPU, FS, 
+                Cpu0FeatureKV, ...);
+         }
 
-  Cpu0 InstrInfo, RegisterInfo and SubtargetInfo register function
+.. rubric:: Register functions of Cpu0MCAsmInfo and Cpu0InstPrinter
+.. code-block:: c++
 
-.. _backendstructure-f4: 
-.. figure:: ../Fig/backendstructure/4.png
-  :scale: 80 %
-  :align: center
+    static MCAsmInfo *createCpu0MCAsmInfo(const 
+    MCRegisterInfo &MRI, StringRef TT) {
+      MCAsmInfo *MAI = new Cpu0MCAsmInfo(TT);
 
-  Cpu0MCAsmInfo and Cpu0InstPrinter register function
+      unsigned SP = MRI.getDwarfRegNum(Cpu0::SP, true);
+      MCCFIInstruction Inst = MCCFIInstruction::
+    createDefCfa(0, SP, 0);
+      MAI->addInitialFrameState(Inst);
+
+      return MAI;
+    }
+
+    static MCCodeGenInfo *createCpu0MCCodeGenInfo(
+                                          StringRef TT, Reloc::Model RM,
+                                                  CodeModel::Model CM,
+                                                  CodeGenOpt::Level OL) {
+      MCCodeGenInfo *X = new MCCodeGenInfo();
+      ...
+     // defined in lib/MC/MCCodeGenInfo.cpp
+      X->InitMCCodeGenInfo(RM, CM, OL); 
+      return X;
+    }
+
+    static MCInstPrinter *createCpu0MCInstPrinter(
+                                                 const Target &T,
+                                                  unsigned SyntaxVariant,
+                                                  const MCAsmInfo &MAI,
+                                                  const MCInstrInfo &MII,
+                                                  const MCRegisterInfo &MRI,
+                                                  const MCSubtargetInfo &STI)
+    {
+  |--- return new Cpu0InstPrinter(MAI, MII, MRI);
+  |  }
+  |
+  |      // Cpu0InstPrinter.h      
+  |--->  Cpu0InstPrinter(const MCAsmInfo &MAI, 
+                         const MCInstrInfo &MII,
+                          const MCRegisterInfo &MRI)
+            : MCInstPrinter(MAI, MII, MRI) {}
+
 
 According "section Target Registration" [#]_, we can register Cpu0 backend 
 classes at LLVMInitializeCpu0TargetMC() on demand by the dynamic register 
 mechanism as the above function, LLVMInitializeCpu0TargetMC().
 In the last section of later chapter "Generating object files", we will
-review this part and explain some of them more clearly with Figure display.
+review this part and explain some of them more clearly with figure display.
 The whole registration functions will be reivewed and explained at later chapter
 "Generating object files".
 
@@ -541,8 +620,7 @@ When instruction is ready to print, function Cpu0AsmPrinter::EmitInstruction()
 will be triggered first. And then it will call OutStreamer.EmitInstruction() to 
 print OP code and register according the information from Cpu0GenInstrInfo.inc 
 and Cpu0GenRegisterInfo.inc both registered at dynamic register function,
-LLVMInitializeCpu0TargetMC() and 
-:num:`Figure #backendstructure-f3`.
+LLVMInitializeCpu0TargetMC().
 Notice, file Cpu0InstPrinter.cpp only print operand while the OP code 
 information come from Cpu0InstrInfo.td.
 
@@ -670,7 +748,7 @@ Now, let's check what IR DAG nodes the file ch3.bc has. List ch3.ll as follows,
 
 As above, ch3.ll uses the IR DAG node **store**, **ret**. 
 So, the definitions in Cpu0InstrInfo.td as below is enough. 
-The ADDiu used for stack adjustment which will need in later section 
+The ADDiu used for stack adjustment which will needed in later section 
 "Add Prologue/Epilogue functions" of this chapter.
 IR DAG is defined in file  include/llvm/Target/TargetSelectionDAG.td.
 
@@ -753,8 +831,8 @@ selection stage.
 .. literalinclude:: ../lbdex/chapters/Chapter3_3/Cpu0SEISelDAGToDAG.cpp
 
 
-Function Cpu0DAGToDAGISel::Select() of Cpu0ISelDAGToDAG.cpp is for the s
-election of "OP code DAG node" while Cpu0DAGToDAGISel::SelectAddr() is for the
+Function Cpu0DAGToDAGISel::Select() of Cpu0ISelDAGToDAG.cpp is for the 
+selection of "OP code DAG node" while Cpu0DAGToDAGISel::SelectAddr() is for the
 selection of "DATA DAG node with **addr** type" which defined in 
 Chapter2/Cpu0InstrInfo.td. This method name corresponding to 
 Chapter2/Cpu0InstrInfo.td as follows,
@@ -1043,7 +1121,8 @@ following code,
     :end-before: //#endif
 
 2. Create Cpu0ISD::Ret node in LowerReturn() of Cpu0ISelLowering.cpp, which is 
-   called when meets keyword of return in C.
+   called when meets keyword of return in C. Remind, In LowerReturn() put
+   return value in register \$2 (\$v0).
 
 3. After instruction selection, the Cpu0ISD::Ret is replaced by Cpu0::RetLR 
    as below. This effect come from "def RetLR" as step 1.
@@ -1590,52 +1669,48 @@ Verify with the Cpu0 Epilogue instructions with sp = 0x10000000 and stack size =
 2. "addiu $1, $1, -32768" => $1 = (0x90010000 + 0xffff8000) => $1 = 0x90008000.
 3. "addu $sp, $sp, $1" => $sp = (0x10000000 + 0x90008000) => $sp = 0xa0008000.
 
-File ch3-proepilog.ll include the large frame test.
+File ch3_largeframe.cpp include the large frame test.
 
-Run Chapter3_5 with ch3_2.cpp will get the following result.
+Run Chapter3_5 with ch3_largeframe.cpp will get the following result.
+
+.. rubric:: lbdex/input/ch3_largeframe.cpp
+.. literalinclude:: ../lbdex/input/ch3_largeframe.cpp
+    :start-after: /// start
 
 .. code-block:: bash
 
   118-165-78-12:input Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
-  Debug/bin/llc -march=cpu0 -relocation-model=pic -filetype=asm -debug ch3_2.bc 
-  -o -
+  Debug/bin/llc -march=cpu0 -relocation-model=pic -filetype=asm 
+  ch3_largeframe.bc.bc -o -
     ...
-	  .section .mdebug.abi32
+	  .section .mdebug.abiO32
 	  .previous
-	  .file	"ch3_2.bc"
-	  .text
-	  .globl	main
+	  .file	"ch3_largeframe.bc"
+	  .globl	_Z16test_largegframev
 	  .align	2
-	  .type	main,@function
-	  .ent	main                    # @main
-  main:
-	  .frame	$fp,24,$lr
+	  .type	_Z16test_largegframev,@function
+	  .ent	_Z16test_largegframev   # @_Z16test_largegframev
+  _Z16test_largegframev:
+	  .frame	$fp,1879015424,$lr
 	  .mask 	0x00000000,0
 	  .set	noreorder
 	  .set	nomacro
+	  .set	noat
   # BB#0:
-	  addiu	$sp, $sp, -24
+	  lui	$1, 36865
+	  addiu	$1, $1, -32768
+	  addu	$sp, $sp, $1
 	  addiu	$2, $zero, 0
-	  st	$2, 20($fp)
-	  addiu	$2, $zero, 5
-	  st	$2, 16($fp)
-	  addiu	$2, $zero, 2
-	  st	$2, 12($fp)
-	  ld	$2, 16($fp)
-	  addiu	$2, $2, 2
-	  st	$2, 8($fp)
-	  ld	$2, 12($fp)
-	  addiu	$2, $2, 1
-	  st	$2, 4($fp) // $2 = 3
-	  ld	$3, 8($fp) // $3 = 7
-	  addu	$2, $3, $2 // $2 = 7+3
-	  addiu	$sp, $sp, 24
+	  lui	$1, 28672
+	  addiu	$1, $1, -32768
+	  addu	$sp, $sp, $1
 	  ret	$lr
+	  .set	at
 	  .set	macro
 	  .set	reorder
-	  .end	main
-  $tmp1:
-	  .size	main, ($tmp1)-main
+	  .end	_Z16test_largegframev
+  $func_end0:
+	  .size	_Z16test_largegframev, ($func_end0)-_Z16test_largegframev
 
 
 Data operands DAGs
