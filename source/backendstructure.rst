@@ -1683,34 +1683,34 @@ Run Chapter3_5 with ch3_largeframe.cpp will get the following result.
   Debug/bin/llc -march=cpu0 -relocation-model=pic -filetype=asm 
   ch3_largeframe.bc.bc -o -
     ...
-	  .section .mdebug.abiO32
-	  .previous
-	  .file	"ch3_largeframe.bc"
-	  .globl	_Z16test_largegframev
-	  .align	2
-	  .type	_Z16test_largegframev,@function
-	  .ent	_Z16test_largegframev   # @_Z16test_largegframev
+    .section .mdebug.abiO32
+    .previous
+    .file "ch3_largeframe.bc"
+    .globl  _Z16test_largegframev
+    .align  2
+    .type _Z16test_largegframev,@function
+    .ent  _Z16test_largegframev   # @_Z16test_largegframev
   _Z16test_largegframev:
-	  .frame	$fp,1879015424,$lr
-	  .mask 	0x00000000,0
-	  .set	noreorder
-	  .set	nomacro
-	  .set	noat
+    .frame  $fp,1879015424,$lr
+    .mask   0x00000000,0
+    .set  noreorder
+    .set  nomacro
+    .set  noat
   # BB#0:
-	  lui	$1, 36865
-	  addiu	$1, $1, -32768
-	  addu	$sp, $sp, $1
-	  addiu	$2, $zero, 0
-	  lui	$1, 28672
-	  addiu	$1, $1, -32768
-	  addu	$sp, $sp, $1
-	  ret	$lr
-	  .set	at
-	  .set	macro
-	  .set	reorder
-	  .end	_Z16test_largegframev
+    lui $1, 36865
+    addiu $1, $1, -32768
+    addu  $sp, $sp, $1
+    addiu $2, $zero, 0
+    lui $1, 28672
+    addiu $1, $1, -32768
+    addu  $sp, $sp, $1
+    ret $lr
+    .set  at
+    .set  macro
+    .set  reorder
+    .end  _Z16test_largegframev
   $func_end0:
-	  .size	_Z16test_largegframev, ($func_end0)-_Z16test_largegframev
+    .size _Z16test_largegframev, ($func_end0)-_Z16test_largegframev
 
 
 Data operands DAGs

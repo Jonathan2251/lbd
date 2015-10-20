@@ -22,7 +22,7 @@ void Cpu0MCAsmInfo::anchor() { }
 
 Cpu0MCAsmInfo::Cpu0MCAsmInfo(const Triple &TheTriple) {
   if ((TheTriple.getArch() == Triple::cpu0))
-    IsLittleEndian = false;
+    IsLittleEndian = false; // the default of IsLittleEndian is true
 
   AlignmentIsInBytes          = false;
   Data16bitsDirective         = "\t.2byte\t";
