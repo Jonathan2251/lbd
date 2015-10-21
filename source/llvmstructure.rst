@@ -1411,23 +1411,6 @@ DAG=DAG.getCopyToReg(..., $2, ...) and return DAG instead, since all local
 varaiables are not exist after function exit.
 
 
-Phi node
-~~~~~~~~~
-
-Since phi node is popular used in SSA form [#ssa-wiki]_, of course llvm applies 
-phi node in IR for optimization work. 
-Phi node exists for "live variable analysis", an example for C is here 
-[#phi-ex]_. 
-Explaining phi node is more complicate than DAG translation of basic block. 
-This book introduces backend on llvm, so it's fine to ignore it if you don't 
-understand the details and are not interested in it at this point.
-Although Mips backend uses phi in some places, Cpu0 doesn't use it directly
-until this point.
-If you are interested in more details than the wiki web site, please refer book
-here [#phi-book]_ for phi node. Or book here [#dominator-dragonbooks]_ about the 
-dominator tree analysis if you have this book only.
-
-
 Create Cpu0 backend
 --------------------
 
@@ -2271,15 +2254,6 @@ the Target Registration.
 .. [#jr-note] Both JR and RET has same opcode (actually they are the same instruction for Cpu0 hardware). When user writes "jr $t9" meaning it jumps to address of register $t9; when user writes "jr $lr" meaning it jump back to the caller function (since $lr is the return address). For user read ability, Cpu0 prints "ret $lr" instead of "jr $lr".
 
 .. [#aosa-book] Chris Lattner, **LLVM**. Published in The Architecture of Open Source Applications. http://www.aosabook.org/en/llvm.html
-
-.. [#ssa-wiki] https://en.wikipedia.org/wiki/Static_single_assignment_form
-
-.. [#phi-ex] http://stackoverflow.com/questions/11485531/what-exactly-phi-instruction-does-and-how-to-use-it-in-llvm
-
-.. [#phi-book] Section 8.11 of Muchnick, Steven S. (1997). Advanced Compiler Design and Implementation. Morgan Kaufmann. ISBN 1-55860-320-4.
-
-.. [#dominator-dragonbooks] Refer chapter 9 of book Compilers: Principles, 
-    Techniques, and Tools (2nd Edition) 
 
 .. [#chapters-ex] file:///home/cschen/test/lbd/build/html/doc.html#generate-cpu0-document
 

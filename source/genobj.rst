@@ -213,99 +213,35 @@ Backend Target Registration Structure
 
 Now, let's examine Cpu0MCTargetDesc.cpp.
 Cpu0MCTargetDesc.cpp do the target registration as mentioned in 
-"section Target Registration" [#]_ of the last chapter. 
-Drawing the register functions and those classes it registered from 
-:num:`Figure #genobj-f1` to :num:`Figure #genobj-f9` for explanation.
+the previous chapter here [#target-registration]_, and the assembly
+output has explained here [#add-asmprinter]_.
+List the register functions of ELF obj output as follows,
 
-.. _genobj-f1:
-.. figure:: ../Fig/genobj/1.png
-	:height: 634 px
-	:width: 731 px
-	:scale: 100 %
-	:align: center
+.. rubric:: Register function of elf streamer
+.. code-block:: c++
 
-	Register Cpu0MCAsmInfo
+  // Register the elf streamer.
+  TargetRegistry::RegisterELFStreamer(*T, createMCStreamer);
 
+    static MCStreamer *createMCStreamer(const Triple &TT, MCContext &Context, 
+                                        MCAsmBackend &MAB, raw_pwrite_stream &OS, 
+                                        MCCodeEmitter *Emitter, bool RelaxAll) {
+      return createELFStreamer(Context, MAB, OS, Emitter, RelaxAll);
+    }
 
-.. _genobj-f2:
-.. figure:: ../Fig/genobj/2.png
-	:height: 450 px
-	:width: 685 px
-	:scale: 100 %
-	:align: center
+    // MCELFStreamer.cpp
+    MCStreamer *llvm::createELFStreamer(MCContext &Context, MCAsmBackend &MAB,
+                                        raw_pwrite_stream &OS, MCCodeEmitter *CE,
+                                        bool RelaxAll) {
+      MCELFStreamer *S = new MCELFStreamer(Context, MAB, OS, CE);
+      if (RelaxAll)
+        S->getAssembler().setRelaxAll(true);
+      return S;
+    }
 
-	Register MCCodeGenInfo
-
-
-.. _genobj-f3:
-.. figure:: ../Fig/genobj/3.png
-	:height: 313 px
-	:width: 606 px
-	:scale: 100 %
-	:align: center
-
-	Register MCInstrInfo
-
-
-.. _genobj-f4:
-.. figure:: ../Fig/genobj/4.png
-	:height: 678 px
-	:width: 615 px
-	:scale: 100 %
-	:align: center
-
-	Register MCRegisterInfo
-
-
-.. _genobj-f5:
-.. figure:: ../Fig/genobj/5.png
-	:height: 635 px
-	:width: 750 px
-	:scale: 100 %
-	:align: center
-
-	Register Cpu0MCCodeEmitter
-
-
-.. _genobj-f6:
-.. figure:: ../Fig/genobj/6.png
-	:height: 617 px
-	:width: 776 px
-	:scale: 100 %
-	:align: center
-
-	Register MCELFStreamer
-
-
-.. _genobj-f7:
-.. figure:: ../Fig/genobj/7.png
-	:height: 570 px
-	:width: 810 px
-	:scale: 100 %
-	:align: center
-
-	Register Cpu0AsmBackend
-
-
-.. _genobj-f8:
-.. figure:: ../Fig/genobj/8.png
-	:height: 483 px
-	:width: 621 px
-	:scale: 100 %
-	:align: center
-
-	Register Cpu0MCSubtargetInfo
-
-
-.. _genobj-f9:
-.. figure:: ../Fig/genobj/9.png
-	:height: 569 px
-	:width: 794 px
-	:scale: 100 %
-	:align: center
-
-	Register Cpu0InstPrinter
-
+Above createELFStreamer takes care the elf obj streamer. 
+:num:`Figure #genobj-f10` as follow is MCELFStreamer inheritance tree. 
+You can find a lot of operations in that inheritance tree.
 
 .. _genobj-f10:
 .. figure:: ../Fig/genobj/10.png
@@ -316,43 +252,61 @@ Drawing the register functions and those classes it registered from
 
 	MCELFStreamer inherit tree
 
-:num:`Figure #genobj-f1` to :num:`Figure #genobj-f4` had been defined 
-in Chapter4_2/ for assembly file generated support.
+.. rubric:: Register function of asm target streamer
+.. code-block:: c++
 
-In :num:`Figure #genobj-f1`, registering the object of class Cpu0MCAsmInfo for 
-target TheCpu0Target and TheCpu0elTarget. 
-TheCpu0Target is for big endian and TheCpu0elTarget is for little endian. 
-Cpu0MCAsmInfo is derived from MCAsmInfo which is an llvm built-in class. 
-Most code is implemented in it's parent, back end reuses those code by inheritance.
+  // Register the asm target streamer.
+  TargetRegistry::RegisterAsmTargetStreamer(*T, createCpu0AsmTargetStreamer);
 
-In :num:`Figure #genobj-f2`, instancing MCCodeGenInfo, and initialize it by 
-pass RM=Roloc::PIC when user compiling with position-independent code mode 
-through command ``llc -relocation-model=pic`` or ``llc`` (default relocation 
-mode is pic).
-Recall there are two addressing mode in system program book, one is PIC 
-mode, the other is absolute addressing mode. 
-MC stands for Machine Code.
+    static MCTargetStreamer *createCpu0AsmTargetStreamer(MCStreamer &S,
+                                                         formatted_raw_ostream &OS,
+                                                         MCInstPrinter *InstPrint,
+                                                         bool isVerboseAsm) {
+      return new Cpu0TargetAsmStreamer(S, OS);
+    }
 
-In :num:`Figure #genobj-f3`, instancing MCInstrInfo object X, and initialize it 
-by InitCpu0MCInstrInfo(X). 
-Since InitCpu0MCInstrInfo(X) is defined in Cpu0GenInstrInfo.inc, this function 
-will add the information from Cpu0InstrInfo.td we specified. 
-:num:`Figure #genobj-f4` is similar to :num:`Figure #genobj-f3`, but it 
-initialize the register information specified in Cpu0RegisterInfo.td. 
-They share some values from instruction/register td description.
-No need to specify them again in Initilize routine if they are consistant with 
-td description files.
+      // Cpu0TargetStreamer.h
+      class Cpu0TargetStreamer : public MCTargetStreamer {
+      public:
+        Cpu0TargetStreamer(MCStreamer &S);
+      };
 
-:num:`Figure #genobj-f5`, instancing two objects Cpu0MCCodeEmitter, one is for 
+      // This part is for ascii assembly output
+      class Cpu0TargetAsmStreamer : public Cpu0TargetStreamer {
+        formatted_raw_ostream &OS;
+
+      public:
+        Cpu0TargetAsmStreamer(MCStreamer &S, formatted_raw_ostream &OS);
+      };
+
+Above instancing MCTargetStreamer instance.
+
+.. rubric:: Register function of MC Code Emitter
+.. code-block:: c++
+
+  // Register the MC Code Emitter
+  TargetRegistry::RegisterMCCodeEmitter(TheCpu0Target,
+                                        createCpu0MCCodeEmitterEB);
+  TargetRegistry::RegisterMCCodeEmitter(TheCpu0elTarget,
+                                        createCpu0MCCodeEmitterEL);
+
+    // Cpu0MCCodeEmitter.cpp
+    MCCodeEmitter *llvm::createCpu0MCCodeEmitterEB(const MCInstrInfo &MCII,
+                                                   const MCRegisterInfo &MRI,
+                                                   MCContext &Ctx) {
+      return new Cpu0MCCodeEmitter(MCII, Ctx, false);
+    }
+
+    MCCodeEmitter *llvm::createCpu0MCCodeEmitterEL(const MCInstrInfo &MCII,
+                                                   const MCRegisterInfo &MRI,
+                                                   MCContext &Ctx) {
+      return new Cpu0MCCodeEmitter(MCII, Ctx, true);
+    }
+
+Above instancing two objects Cpu0MCCodeEmitter, one is for 
 big endian and the other is for little endian. 
-They take care the obj format generated. 
-These funstions are not defined in Chapter4_2/ which support assembly code only.
-
-:num:`Figure #genobj-f6`, MCELFStreamer takes care the obj format also. 
-:num:`Figure #genobj-f5` Cpu0MCCodeEmitter takes care code emitter while 
-MCELFStreamer takes care the obj output streamer. 
-:num:`Figure #genobj-f10` is MCELFStreamer inheritance tree. 
-You can find a lot of operations in that inheritance tree.
+They take care the obj format generated while RegisterELFStreamer() reuse the
+elf streamer class.
 
 Reader maybe has the question: "What are the actual arguments in 
 createCpu0MCCodeEmitterEB(const MCInstrInfo &MCII,  const MCSubtargetInfo &STI, 
@@ -364,19 +318,41 @@ LLVM keeps a function pointer to createXXX() when we call target registry, and
 will call these createXXX() function back at proper time with arguments 
 assigned during the target registration process, RegisterXXX().
 
-:num:`Figure #genobj-f7`, Cpu0AsmBackend class is the bridge for asm to obj. 
+.. rubric:: Register function of asm backend
+.. code-block:: c++
+
+  // Register the asm backend.
+  TargetRegistry::RegisterMCAsmBackend(TheCpu0Target,
+                                       createCpu0AsmBackendEB32);
+  TargetRegistry::RegisterMCAsmBackend(TheCpu0elTarget,
+                                       createCpu0AsmBackendEL32);
+
+    // Cpu0AsmBackend.cpp
+    MCAsmBackend *llvm::createCpu0AsmBackendEL32(const Target &T,
+                                                 const MCRegisterInfo &MRI,
+                                                 const Triple &TT, StringRef CPU) {
+      return new Cpu0AsmBackend(T, TT.getOS(), /*IsLittle*/true);
+    }
+
+    MCAsmBackend *llvm::createCpu0AsmBackendEB32(const Target &T,
+                                                 const MCRegisterInfo &MRI,
+                                                 const Triple &TT, StringRef CPU) {
+      return new Cpu0AsmBackend(T, TT.getOS(), /*IsLittle*/false);
+    }
+
+      // Cpu0AsmBackend.h
+      class Cpu0AsmBackend : public MCAsmBackend {
+      ...
+      }
+
+Above Cpu0AsmBackend class is the bridge for asm to obj. 
 Two objects take care big endian and little endian, respectively. 
 It derived from MCAsmBackend. 
 Most of code for object file generated is implemented by MCELFStreamer and it's 
 parent, MCAsmBackend.
 
-:num:`Figure #genobj-f8`, instancing MCSubtargetInfo object and initialize with 
-Cpu0.td information. 
-:num:`Figure #genobj-f9`, instancing Cpu0InstPrinter to take care printing 
-function for instructions. 
-Like :num:`Figure #genobj-f1` to :num:`Figure #genobj-f4`, it has been defined 
-before in Chapter4_2/ code for assembly file generated support.
 
 
+.. [#target-registration] http://jonathan2251.github.io/lbd/llvmstructure.html#target-registration
 
-.. [#] http://jonathan2251.github.io/lbd/llvmstructure.html#target-registration
+.. [#add-asmprinter] http://jonathan2251.github.io/lbd/backendstructure.html#add-asmprinter

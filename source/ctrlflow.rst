@@ -298,6 +298,67 @@ following table.
   ==================  ============================================================
 
 
+Phi node
+---------
+
+Since phi node is popular used in SSA form [#ssa-wiki]_, of course llvm applies 
+phi node in IR for optimization work. 
+Phi node exists for "live variable analysis", an example for C is here 
+[#phi-ex]_. 
+Explaining phi node is more complicate than DAG translation of basic block. 
+This book introduces backend on llvm, so it's fine to ignore it if you don't 
+understand the details and are not interested in it at this point.
+Phi node exists in the process of optimization steps only.
+Although Mips backend uses phi in some places, Cpu0 doesn't use it directly
+until this point.
+
+The following input will generate phi node as follows,
+
+.. rubric:: lbdex/input/ch8_1_phinode.cpp
+.. literalinclude:: ../lbdex/input/ch8_1_phinode.cpp
+    :start-after: /// start
+
+.. code-block:: bash
+  
+  114-43-212-251:input Jonathan$ clang -O1 -target mips-unknown-linux-gnu -c 
+  ch8_1_phinode.cpp -emit-llvm -o ch8_1_phinode.bc
+  114-43-212-251:input Jonathan$ ~/llvm/test/cmake_debug_build/Debug/bin/llvm-dis 
+  ch8_1_phinode.bc -o -
+  ...
+  define i32 @_Z12test_phinodeii(i32 signext %a, i32 signext %b) #0 {
+    %1 = icmp eq i32 %a, 0
+    br i1 %1, label %4, label %2
+  
+  ; <label>:2                                       ; preds = %0
+    %not. = icmp ne i32 %b, 0
+    %3 = sext i1 %not. to i32
+    %a. = add nsw i32 %3, %a
+    br label %4
+  
+  ; <label>:4                                       ; preds = %0, %2
+    %.0 = phi i32 [ %a., %2 ], [ 1, %0 ]
+    %5 = add nsw i32 %.0, %b
+    ret i32 %5
+  }
+  ...
+  114-43-212-251:input Jonathan$ ~/llvm/test/cmake_debug_build/Debug/bin/opt -O1 
+  -S ch8_1_phinode.bc -o -
+  ...
+  define i32 @_Z12test_phinodeii(i32 signext %a, i32 signext %b) #0 {
+    %1 = icmp eq i32 %a, 0
+    %not. = icmp ne i32 %b, 0
+    %2 = sext i1 %not. to i32
+    %a. = add nsw i32 %2, %a
+    %.0 = select i1 %1, i32 1, i32 %a.
+    %3 = add nsw i32 %.0, %b
+    ret i32 %3
+  }
+
+If you are interested in more details than the wiki web site, please refer book
+here [#phi-book]_ for phi node. Or book here [#dominator-dragonbooks]_ about the 
+dominator tree analysis if you have this book only.
+
+
 Long branch support
 ---------------------
 
@@ -953,6 +1014,14 @@ ARM System Developer's Guide: Designing and Optimizing System Software
 (The Morgan Kaufmann Series in Computer Architecture and Design).
 
 
+.. [#ssa-wiki] https://en.wikipedia.org/wiki/Static_single_assignment_form
+
+.. [#phi-ex] http://stackoverflow.com/questions/11485531/what-exactly-phi-instruction-does-and-how-to-use-it-in-llvm
+
+.. [#phi-book] Section 8.11 of Muchnick, Steven S. (1997). Advanced Compiler Design and Implementation. Morgan Kaufmann. ISBN 1-55860-320-4.
+
+.. [#dominator-dragonbooks] Refer chapter 9 of book Compilers: Principles, 
+    Techniques, and Tools (2nd Edition) 
 
 .. [#cache-speed] On a platform with cache and DRAM, the cache miss costs 
        serveral tens time of instruction cycle. 

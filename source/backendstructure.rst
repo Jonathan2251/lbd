@@ -507,9 +507,67 @@ subtarget) which defined in Chapter3_1 at this point.
 
 To make the registration clearly, summary as follows,
 
-.. rubric:: Register functions of InstrInfo, RegisterInfo and SubtargetInfo
+.. rubric:: Register function of MC asm info
 .. code-block:: c++
+
+  for (Target *T : {&TheCpu0Target, &TheCpu0elTarget}) {
+    // Register the MC asm info.
+    RegisterMCAsmInfoFn X(*T, createCpu0MCAsmInfo);
+
+
+      static MCAsmInfo *createCpu0MCAsmInfo(const 
+      MCRegisterInfo &MRI, StringRef TT) {
+        MCAsmInfo *MAI = new Cpu0MCAsmInfo(TT);
+
+        unsigned SP = MRI.getDwarfRegNum(Cpu0::SP, true);
+        MCCFIInstruction Inst = MCCFIInstruction::
+      createDefCfa(0, SP, 0);
+        MAI->addInitialFrameState(Inst);
+
+        return MAI;
+      }
+
+Above registering the object of class Cpu0MCAsmInfo for 
+target TheCpu0Target and TheCpu0elTarget. 
+TheCpu0Target is for big endian and TheCpu0elTarget is for little endian. 
+Cpu0MCAsmInfo is derived from MCAsmInfo which is an llvm built-in class. 
+Most code is implemented in it's parent, back end reuses those code by 
+inheritance.
+
+.. rubric:: Register function of MC codegen info
+.. code-block:: c++
+
+  // Register the MC codegen info.
+  TargetRegistry::RegisterMCCodeGenInfo(*T,
+	                                      createCpu0MCCodeGenInfo);
+
+
+      static MCCodeGenInfo *createCpu0MCCodeGenInfo(
+                                            StringRef TT, Reloc::Model RM,
+                                                    CodeModel::Model CM,
+                                                    CodeGenOpt::Level OL) {
+        MCCodeGenInfo *X = new MCCodeGenInfo();
+        ...
+       // defined in lib/MC/MCCodeGenInfo.cpp
+        X->InitMCCodeGenInfo(RM, CM, OL); 
+        return X;
+      }
+
+Above instancing MCCodeGenInfo, and initialize it by 
+pass RM=Roloc::PIC when user compiling with position-independent code mode 
+through command ``llc -relocation-model=pic`` or ``llc`` (default relocation 
+mode is pic).
+Recall there are two addressing mode in system program book, one is PIC 
+mode, the other is absolute addressing mode. 
+MC stands for Machine Code.
+
+.. rubric:: Register function of MC instruction info
+.. code-block:: c++
+
+  // Register the MC instruction info.
+  TargetRegistry::RegisterMCInstrInfo(*T, createCpu0MCInstrInfo);
   
+
      static MCInstrInfo *createCpu0MCInstrInfo() {
      MCInstrInfo *X = new MCInstrInfo();
      // defined in Cpu0GenInstrInfo.inc
@@ -525,6 +583,45 @@ To make the registration clearly, summary as follows,
            II->InitMCInstrInfo(Cpu0Insts, ...);
          }
   
+Above instancing MCInstrInfo object X, and initialize it 
+by InitCpu0MCInstrInfo(X). 
+Since InitCpu0MCInstrInfo(X) is defined in Cpu0GenInstrInfo.inc, this function 
+will add the information from Cpu0InstrInfo.td we specified. 
+
+.. rubric:: Register function of MCInstPrinter
+.. code-block:: c++
+
+  // Register the MC instruction info.
+  TargetRegistry::RegisterMCInstrInfo(*T, createCpu0MCInstrInfo);
+
+
+      static MCInstPrinter *createCpu0MCInstPrinter(
+                                                   const Target &T,
+                                                    unsigned SyntaxVariant,
+                                                    const MCAsmInfo &MAI,
+                                                    const MCInstrInfo &MII,
+                                                    const MCRegisterInfo &MRI,
+                                                    const MCSubtargetInfo &STI)
+      {
+    |--- return new Cpu0InstPrinter(MAI, MII, MRI);
+    |  }
+    |
+    |      // Cpu0InstPrinter.h      
+    |--->  Cpu0InstPrinter(const MCAsmInfo &MAI, 
+                           const MCInstrInfo &MII,
+                            const MCRegisterInfo &MRI)
+              : MCInstPrinter(MAI, MII, MRI) {}
+
+Above instancing Cpu0InstPrinter to take care printing 
+function for instructions. 
+
+.. rubric:: Register function of RegisterInfo
+.. code-block:: c++
+
+  // Register the MC register info.
+  TargetRegistry::RegisterMCRegInfo(*T, createCpu0MCRegisterInfo);
+
+
      static MCRegisterInfo *createCpu0MCRegisterInfo(
      StringRef TT) {
      MCRegisterInfo *X = new MCRegisterInfo();
@@ -539,14 +636,28 @@ To make the registration clearly, summary as follows,
            RI->InitMCRegisterInfo(Cpu0RegDesc, ...)
          }
   
+Above is similar to "Register function of MC instruction info", but it 
+initialize the register information specified in Cpu0RegisterInfo.td. 
+They share some values from instruction/register td description.
+No need to specify them again in Initilize routine if they are consistant with 
+td description files.
+
+.. rubric:: Register function of SubtargetInfo
+.. code-block:: c++
+
+  // Register the MC subtarget info.
+  TargetRegistry::RegisterMCSubtargetInfo(*T,
+                                       createCpu0MCSubtargetInfo);
+
+
      static MCSubtargetInfo *createCpu0MCSubtargetInfo(
-                  StringRef TT, StringRef CPU,  StringRef FS) {
-     ...
-     MCSubtargetInfo *X = new MCSubtargetInfo();
-     // defined in Cpu0GenSubtargetInfo.inc
+                StringRef TT, StringRef CPU,  StringRef FS) {
+       ...
+       MCSubtargetInfo *X = new MCSubtargetInfo();
+       // defined in Cpu0GenSubtargetInfo.inc
   |--- InitCpu0MCSubtargetInfo(X, TT, CPU, ArchFS);
-  |     return X;
-  |    }
+  |    return X;
+  |  }
   |      // Cpu0GenSubtargetInfo.inc
   |--->  static inline void InitCpu0MCSubtargetInfo(
          MCSubtargetInfo *II, StringRef TT, 
@@ -555,57 +666,13 @@ To make the registration clearly, summary as follows,
                 Cpu0FeatureKV, ...);
          }
 
-.. rubric:: Register functions of Cpu0MCAsmInfo and Cpu0InstPrinter
-.. code-block:: c++
-
-    static MCAsmInfo *createCpu0MCAsmInfo(const 
-    MCRegisterInfo &MRI, StringRef TT) {
-      MCAsmInfo *MAI = new Cpu0MCAsmInfo(TT);
-
-      unsigned SP = MRI.getDwarfRegNum(Cpu0::SP, true);
-      MCCFIInstruction Inst = MCCFIInstruction::
-    createDefCfa(0, SP, 0);
-      MAI->addInitialFrameState(Inst);
-
-      return MAI;
-    }
-
-    static MCCodeGenInfo *createCpu0MCCodeGenInfo(
-                                          StringRef TT, Reloc::Model RM,
-                                                  CodeModel::Model CM,
-                                                  CodeGenOpt::Level OL) {
-      MCCodeGenInfo *X = new MCCodeGenInfo();
-      ...
-     // defined in lib/MC/MCCodeGenInfo.cpp
-      X->InitMCCodeGenInfo(RM, CM, OL); 
-      return X;
-    }
-
-    static MCInstPrinter *createCpu0MCInstPrinter(
-                                                 const Target &T,
-                                                  unsigned SyntaxVariant,
-                                                  const MCAsmInfo &MAI,
-                                                  const MCInstrInfo &MII,
-                                                  const MCRegisterInfo &MRI,
-                                                  const MCSubtargetInfo &STI)
-    {
-  |--- return new Cpu0InstPrinter(MAI, MII, MRI);
-  |  }
-  |
-  |      // Cpu0InstPrinter.h      
-  |--->  Cpu0InstPrinter(const MCAsmInfo &MAI, 
-                         const MCInstrInfo &MII,
-                          const MCRegisterInfo &MRI)
-            : MCInstPrinter(MAI, MII, MRI) {}
+Above instancing MCSubtargetInfo object and initialize with 
+Cpu0.td information. 
 
 
 According "section Target Registration" [#]_, we can register Cpu0 backend 
 classes at LLVMInitializeCpu0TargetMC() on demand by the dynamic register 
 mechanism as the above function, LLVMInitializeCpu0TargetMC().
-In the last section of later chapter "Generating object files", we will
-review this part and explain some of them more clearly with figure display.
-The whole registration functions will be reivewed and explained at later chapter
-"Generating object files".
 
 Now, it's time to work with AsmPrinter as follows,
 
