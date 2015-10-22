@@ -1220,14 +1220,20 @@ And it save the return value in register \$2.
 If we only create DAGs directly, then will having the following two problems.
 
 1. LLVM can allocate any register for return value, for instance \$3, rather 
-than keeps it in \$2.
+   than keeps it in \$2.
 
 2. LLVM will allocate a register randomly to "jr" since jr needs one operand.
+
+If Backend uses the "jal sub-routine" and "jr", and put the return address in
+the specific register \$ra, then no the second problem. But in Mips, it allows
+programmer uses "jal $rx, sub-routine" and "jr $rx" whereas \$rx is not \$ra.
+Allowing programmer uses other register but \$ra providing more flexibility in 
+programming of high level language such as C with assembly.
 
 To handle IR ret, these code in Cpu0InstrInfo.td do things as below.
 
 1. Declare a pseudo node Cpu0::RetLR to takes care the IR Cpu0ISD::Ret by the 
-following code,
+   following code,
 
 .. rubric:: lbdex/chapters/Chapter3_4/Cpu0InstrInfo.td
 .. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td
