@@ -1229,6 +1229,69 @@ the specific register \$ra, then no the second problem. But in Mips, it allows
 programmer uses "jal $rx, sub-routine" and "jr $rx" whereas \$rx is not \$ra.
 Allowing programmer uses other register but \$ra providing more flexibility in 
 programming of high level language such as C with assembly.
+File ch8_2_longbranch.cpp in the following is an example, it uses jr $1 without
+spill $ra register. This will save a lot of time if it is in a hot function.
+
+.. rubric:: lbdex/input/ch8_2_longbranch.cpp
+.. literalinclude:: ../lbdex/input/ch8_2_longbranch.cpp
+    :start-after: /// start
+
+.. code-block:: bash
+  
+  JonathantekiiMac:input Jonathan$ clang -target mips-unknown-linux-gnu -c 
+  ch8_2_longbranch.cpp -emit-llvm -o ch8_2_longbranch.bc
+  JonathantekiiMac:input Jonathan$ ~/llvm/release/cmake_debug_build/Debug/bin/llc 
+  -march=mips -relocation-model=pic -filetype=asm -force-mips-long-branch 
+  ch8_2_longbranch.bc -o -
+    ...
+    .ent  _Z15test_longbranchv
+  _Z15test_longbranchv:                   # @_Z15test_longbranchv
+    .frame  $fp,16,$ra
+    .mask   0x40000000,-4
+    .fmask  0x00000000,0
+    .set  noreorder
+    .set  nomacro
+    .set  noat
+  # BB#0:
+    addiu $sp, $sp, -16
+    sw  $fp, 12($sp)            # 4-byte Folded Spill
+    move   $fp, $sp
+    addiu $1, $zero, 2
+    sw  $1, 8($fp)
+    addiu $2, $zero, 1
+    sw  $2, 4($fp)
+    sw  $zero, 0($fp)
+    lw  $1, 8($fp)
+    lw  $3, 4($fp)
+    slt $1, $1, $3
+    bnez  $1, $BB0_3
+    nop
+  # BB#1:
+    addiu $sp, $sp, -8
+    sw  $ra, 0($sp)
+    lui $1, %hi(($BB0_4)-($BB0_2))
+    bal $BB0_2
+    addiu $1, $1, %lo(($BB0_4)-($BB0_2))
+  $BB0_2:
+    addu  $1, $ra, $1
+    lw  $ra, 0($sp)
+    jr  $1
+    addiu $sp, $sp, 8
+  $BB0_3:
+    sw  $2, 0($fp)
+  $BB0_4:
+    lw  $2, 0($fp)
+    move   $sp, $fp
+    lw  $fp, 12($sp)            # 4-byte Folded Reload
+    jr  $ra
+    addiu $sp, $sp, 16
+    .set  at
+    .set  macro
+    .set  reorder
+    .end  _Z15test_longbranchv
+  $func_end0:
+    .size _Z15test_longbranchv, ($func_end0)-_Z15test_longbranchv
+
 
 To handle IR ret, these code in Cpu0InstrInfo.td do things as below.
 
