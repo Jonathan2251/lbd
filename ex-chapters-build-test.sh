@@ -16,8 +16,9 @@ else
 fi
 
 rm -rf ${TOOLDIR}/cmake_debug_build/* ${TOOLDIR}/src/lib/Target/Cpu0/*
-bash ./lbdex/gen-docs-ref.sh
-rm -rf output/*
+pushd ./lbdex
+bash gen-chapters.sh
+popd
 
 # Chapter 2
 cp -rf lbdex/chapters/Chapter2/* ${TOOLDIR}/src/lib/Target/Cpu0/.

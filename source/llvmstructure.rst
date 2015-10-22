@@ -1193,8 +1193,7 @@ The IR DAG and machine instruction DAG can also represented as list.
 For example, (+ ri, rj) and (- ri, 1) are lists for IR DAG; (ADD ri, rj) and 
 (SUBI ri, 1) are lists for machine instruction DAG.
 
-Now, let's recall the ADDiu instruction defined in Cpu0InstrInfo.td of the 
-previous chapter. Listing them again as follows,
+Now, let's check the ADDiu instruction defined in Cpu0InstrInfo.td as follows,
 
 .. rubric:: lbdex/chapters/Chapter2/Cpu0InstrFormats.td
 .. literalinclude:: ../lbdex/Cpu0/Cpu0InstrFormats.td

@@ -370,9 +370,6 @@ class CmpInstr<bits<8> op, string instr_asm,
      !strconcat(instr_asm, "\t$ra, $rb, $rc"), [], itin> {
   let shamt = 0;
   let isCommutable = isComm;
-//#if CH >= CH10_1 1
-  let DecoderMethod = "DecodeCMPInstruction";
-//#endif
   let Predicates = [HasCmp];
 }
 }
@@ -1011,8 +1008,11 @@ def BAL: FJ<0x3A, (outs), (ins jmptarget:$addr), "bal\t$addr", [], IIBranch>,
 /// Jump & link and Return Instructions
 let Predicates = [Ch9_1] in {
 def JSUB    : JumpLink<0x3b, "jsub">;
-def JR      : JumpFR<0x3c, "jr", GPROut>;
 }
+//#endif
+
+//#if CH >= CH2 14.5
+def JR      : JumpFR<0x3c, "jr", GPROut>;
 //#endif
 
 //#if CH >= CH3_4 12
