@@ -1162,7 +1162,6 @@ Handle return register lr
 
   }
 
-
 .. rubric:: lbdex/chapters/Chapter3_4/Cpu0RegisterInfo.cpp
 .. literalinclude:: ../lbdex/chapters/Chapter3_4/Cpu0RegisterInfo.cpp
     :start-after: //@eliminateFrameIndex {
@@ -1173,6 +1172,57 @@ Handle return register lr
     :start-after: #if CH >= CH3_4
     :end-before: #endif
 
+The following code is the result of running Mips backend with ch3.cpp.
+
+.. code-block:: bash
+  
+  JonathantekiiMac:input Jonathan$ ~/llvm/release/cmake_debug_build/Debug/bin/llc 
+  -march=mips -relocation-model=pic -filetype=asm ch3.bc -o -
+    .text
+    .abicalls
+    .section  .mdebug.abi32,"",@progbits
+    .nan  legacy
+    .file "ch3.bc"
+    .text
+    .globl  main
+    .align  2
+    .type main,@function
+    .set  nomicromips
+    .set  nomips16
+    .ent  main
+  main:                                   # @main
+    .frame  $fp,8,$ra
+    .mask   0x40000000,-4
+    .fmask  0x00000000,0
+    .set  noreorder
+    .set  nomacro
+    .set  noat
+  # BB#0:
+    addiu $sp, $sp, -8
+    sw  $fp, 4($sp)             # 4-byte Folded Spill
+    move   $fp, $sp
+    sw  $zero, 0($fp)
+    addiu $2, $zero, 0
+    move   $sp, $fp
+    lw  $fp, 4($sp)             # 4-byte Folded Reload
+    jr  $ra
+    addiu $sp, $sp, 8
+    .set  at
+    .set  macro
+    .set  reorder
+    .end  main
+  $func_end0:
+    .size main, ($func_end0)-main
+
+As you can see, Mips return to the caller by using "jr $ra" where
+\$ra is a specific register which keeps the caller's next instruction address. 
+And it save the return value in register \$2.
+If we only create DAGs directly, then may the following two problems.
+
+1. LLVM can allocate any register for return value, for instance \$3, rather 
+than keep it in \$2.
+
+2. LLVM will allocate a register randomly to "jr" since jr need one operand.
 
 To handle IR ret, these code in Cpu0InstrInfo.td do things as below.
 
