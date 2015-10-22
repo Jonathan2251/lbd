@@ -76,6 +76,7 @@ Version 3.7.1, Not release yet
   Add sub-sections Live in and live out register.
   Add Phi node.
   Replace ch3-proepilog.ll with ch3_largeframe.cpp.
+  Remove DecodeCMPInstruction().
 
 Version 3.7.0, Released September 24, 2015
   Porting to lld 3.7.

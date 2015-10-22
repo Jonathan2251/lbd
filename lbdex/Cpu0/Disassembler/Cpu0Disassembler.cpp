@@ -86,14 +86,14 @@ static DecodeStatus DecodeGPROutRegisterClass(MCInst &Inst,
                                                unsigned RegNo,
                                                uint64_t Address,
                                                const void *Decoder);
+static DecodeStatus DecodeSRRegisterClass(MCInst &Inst,
+                                               unsigned RegNo,
+                                               uint64_t Address,
+                                               const void *Decoder);
 static DecodeStatus DecodeC0RegsRegisterClass(MCInst &Inst,
                                               unsigned RegNo,
                                               uint64_t Address,
                                               const void *Decoder);
-static DecodeStatus DecodeCMPInstruction(MCInst &Inst,
-                                       unsigned Insn,
-                                       uint64_t Address,
-                                       const void *Decoder);
 static DecodeStatus DecodeBranch16Target(MCInst &Inst,
                                        unsigned Insn,
                                        uint64_t Address,
@@ -223,6 +223,13 @@ static DecodeStatus DecodeGPROutRegisterClass(MCInst &Inst,
   return DecodeCPURegsRegisterClass(Inst, RegNo, Address, Decoder);
 }
 
+static DecodeStatus DecodeSRRegisterClass(MCInst &Inst,
+                                               unsigned RegNo,
+                                               uint64_t Address,
+                                               const void *Decoder) {
+  return DecodeCPURegsRegisterClass(Inst, RegNo, Address, Decoder);
+}
+
 static DecodeStatus DecodeC0RegsRegisterClass(MCInst &Inst,
                                               unsigned RegNo,
                                               uint64_t Address,
@@ -254,44 +261,6 @@ static DecodeStatus DecodeMem(MCInst &Inst,
   Inst.addOperand(MCOperand::createReg(CPURegsTable[Base]));
   Inst.addOperand(MCOperand::createImm(Offset));
 
-  return MCDisassembler::Success;
-}
-
-/* CMP instruction define $rc and then $ra, $rb; The printOperand() print 
-operand 1 and operand 2 (operand 0 is $rc and operand 1 is $ra), so we Create 
-register $rc first and create $ra next, as follows,
-
-// Cpu0InstrInfo.td
-class CmpInstr<bits<8> op, string instr_asm, 
-                    InstrItinClass itin, RegisterClass RC, RegisterClass RD, bit isComm = 0>:
-  FA<op, (outs RD:$rc), (ins RC:$ra, RC:$rb),
-     !strconcat(instr_asm, "\t$ra, $rb"), [], itin> {
-
-// Cpu0AsmWriter.inc
-void Cpu0InstPrinter::printInstruction(const MCInst *MI, raw_ostream &O) {
-...
-  case 3:
-    // CMP, JEQ, JGE, JGT, JLE, JLT, JNE
-    printOperand(MI, 1, O); 
-    break;
-...
-  case 1:
-    // CMP
-    printOperand(MI, 2, O); 
-    return;
-    break;
-*/
-static DecodeStatus DecodeCMPInstruction(MCInst &Inst,
-                                       unsigned Insn,
-                                       uint64_t Address,
-                                       const void *Decoder) {
-  int Reg_a = (int)fieldFromInstruction(Insn, 20, 4);
-  int Reg_b = (int)fieldFromInstruction(Insn, 16, 4);
-  int Reg_c = (int)fieldFromInstruction(Insn, 12, 4);
-
-  Inst.addOperand(MCOperand::createReg(CPURegsTable[Reg_a]));
-  Inst.addOperand(MCOperand::createReg(CPURegsTable[Reg_b]));
-  Inst.addOperand(MCOperand::createReg(CPURegsTable[Reg_c]));
   return MCDisassembler::Success;
 }
 
@@ -353,7 +322,7 @@ static DecodeStatus DecodeJumpFR(MCInst &Inst,
                                      const void *Decoder) {
   int Reg_a = (int)fieldFromInstruction(Insn, 20, 4);
   Inst.addOperand(MCOperand::createReg(CPURegsTable[Reg_a]));
-// exapin in http://jonathan2251.github.io/lbd/llvmstructure.html#jr-note.
+// exapin in http://jonathan2251.github.io/lbd/llvmstructure.html#jr-note
   if (CPURegsTable[Reg_a] == Cpu0::LR)
     Inst.setOpcode(Cpu0::RET);
   else
