@@ -927,8 +927,8 @@ As mentioned in wiki web site of reference above, through dominance frontiers
 identify compiler knows where to insert Φ functions.
 The following input let you know the benefits of phi node as follows,
 
-.. rubric:: lbdex/input/ch8_1_phinode.cpp
-.. literalinclude:: ../lbdex/input/ch8_1_phinode.cpp
+.. rubric:: lbdex/input/ch8_2_phinode.cpp
+.. literalinclude:: ../lbdex/input/ch8_2_phinode.cpp
     :start-after: /// start
 
 .. code-block:: bash
