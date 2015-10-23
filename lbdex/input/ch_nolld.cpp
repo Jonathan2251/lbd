@@ -7,6 +7,8 @@
 
 #include "ch4_1_1.cpp"
 #include "ch4_1_3.cpp"
+#include "ch4_2_1.cpp"
+#include "ch4_2_2.cpp"
 #include "ch4_3.cpp"
 #include "ch4_5.cpp"
 #include "ch7_1.cpp"
@@ -22,6 +24,7 @@
 #include "ch9_3.cpp"
 #include "ch9_3_stacksave.cpp"
 #include "ch9_3_bswap.cpp"
+#include "ch9_4.cpp"
 #include "ch11_2.cpp"
 
 // Test build only for the following files since it needs lld linker support.
@@ -41,12 +44,11 @@ void test_asm_build()
 
 int test_rotate()
 {
-  int a = test_rotate_left1(4, 30); // rolv 4, 30 = 1
+  int a = test_rotate_left1(); // rolv 4, 30 = 1
   int b = test_rotate_left(); // rol 8, 30  = 2
-  int c = test_rotate_right(1, 30); // rorv 1, 30 = 4
-  int d = test_rotate_left1(1, 3); // rolv 1, 3 = 8
+  int c = test_rotate_right(); // rorv 1, 30 = 4
   
-  return (a+b+c+d);
+  return (a+b+c);
 }
 
 int test_nolld()
@@ -58,8 +60,14 @@ int test_nolld()
   print_integer(a);  // a = 74
   if (a != 74) pass = false;
   a = test_rotate();
-  print_integer(a);  // a = 15
-  if (a != 15) pass = false;
+  print_integer(a);  // a = 7
+  if (a != 7) pass = false;
+  a = test_mod();
+  print_integer(a);  // a = 0
+  if (a != 0) pass = false;
+  a = test_mod2();
+  print_integer(a);  // a = 0
+  if (a != 0) pass = false;
   a = test_div();
   print_integer(a);  // a = 253
   if (a != 253) pass = false;
@@ -127,6 +135,9 @@ int test_nolld()
   a = test_bswap();
   print_integer(a); // a = 0
   if (a != 0) pass = false;
+  a = test_alloc();
+  print_integer(a); // a = 31
+  if (a != 31) pass = false;
   a = test_inlineasm();
   print_integer(a); // a = 49
   if (a != 49) pass = false;

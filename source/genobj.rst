@@ -18,7 +18,7 @@ Translate into obj file
 ------------------------
 
 Currently, we only support translation of llvm IR code into assembly code. 
-If you try to run Chapter4_2/ to translate it into obj code will get the error 
+If you try running Chapter4_2/ to translate it into obj code will get the error 
 message as follows,
 
 .. code-block:: bash

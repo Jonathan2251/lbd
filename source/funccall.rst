@@ -1853,15 +1853,15 @@ Run Chapter9_2/ with ch9_3.cpp to get the following error,
     :start-after: /// start
 
 
-Run Chapter9_3 with ch9_4.cpp will get the following error.
+Run Chapter9_2 with ch9_4.cpp will get the following error.
 
 .. code-block:: bash
 
-  118-165-72-242:input Jonathan$ clang -target mips-unknown-linux-gnu -I/
-  Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/
-  SDKs/MacOSX10.8.sdk/usr/include/ -c ch9_4.cpp -emit-llvm -o ch9_4.bc
+  118-165-72-242:input Jonathan$ clang -target mips-unknown-linux-gnu -c 
+  ch9_4.cpp -emit-llvm -o ch9_4.bc
   118-165-72-242:input Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
-  Debug/bin/llc -march=cpu0 -relocation-model=pic -filetype=asm ch9_4.bc -o -
+  Debug/bin/llc -march=cpu0 -mcpu=cpu032I -cpu0-s32-calls=false 
+  -relocation-model=pic -filetype=asm ch9_4.bc -o -
   ...
   LLVM ERROR: Cannot select: 0x7ffd8b02ff10: i32,ch = dynamic_stackalloc 
   0x7ffd8b02f910:1, 0x7ffd8b02fe10, 0x7ffd8b02c010 [ORD=12] [ID=48]
@@ -1925,36 +1925,36 @@ We putting the comments in the result for explanation.
   Debug/bin/llc -march=cpu0 -mcpu=cpu032II-cpu0-s32-calls=true
   -relocation-model=pic -filetype=asm ch9_gprestore.bc -o -
   ...
-	  .cpload	$t9
-	  .set	nomacro
+    .cpload $t9
+    .set  nomacro
   # BB#0:                                 # %entry
-	  addiu	$sp, $sp, -24
+    addiu $sp, $sp, -24
   $tmp0:
-	  .cfi_def_cfa_offset 24
-	  st	$lr, 12($sp)            # 4-byte Folded Spill
-	  st	$fp, 16($sp)              # 4-byte Folded Spill
+    .cfi_def_cfa_offset 24
+    st  $lr, 12($sp)            # 4-byte Folded Spill
+    st  $fp, 16($sp)              # 4-byte Folded Spill
   $tmp1:
-	  .cfi_offset 14, -4
+    .cfi_offset 14, -4
   $tmp2:
-	  .cfi_offset 12, -8
-	  .cprestore	8    // save $gp to 8($sp)
-	  ld	$t9, %call16(_Z5sum_ii)($gp)
-	  addiu	$4, $zero, 1
-	  jalr	$t9
-	  nop
-	  ld	$gp, 8($sp)  // restore $gp from 8($sp)
-	  add	$8, $zero, $2
-	  ld	$t9, %call16(_Z5sum_ii)($gp)
-	  addiu	$4, $zero, 2
-	  jalr	$t9
-	  nop
-	  ld	$gp, 8($sp)  // restore $gp from 8($sp)
-	  addu	$2, $2, $8
-	  ld	$8, 8($sp)              # 4-byte Folded Reload
-	  ld	$lr, 12($sp)            # 4-byte Folded Reload
-	  addiu	$sp, $sp, 16
-	  ret	$lr
-	  nop
+    .cfi_offset 12, -8
+    .cprestore  8    // save $gp to 8($sp)
+    ld  $t9, %call16(_Z5sum_ii)($gp)
+    addiu $4, $zero, 1
+    jalr  $t9
+    nop
+    ld  $gp, 8($sp)  // restore $gp from 8($sp)
+    add $8, $zero, $2
+    ld  $t9, %call16(_Z5sum_ii)($gp)
+    addiu $4, $zero, 2
+    jalr  $t9
+    nop
+    ld  $gp, 8($sp)  // restore $gp from 8($sp)
+    addu  $2, $2, $8
+    ld  $8, 8($sp)              # 4-byte Folded Reload
+    ld  $lr, 12($sp)            # 4-byte Folded Reload
+    addiu $sp, $sp, 16
+    ret $lr
+    nop
 
 
 As above code comment, **“.cprestore 8”** is a pseudo instruction for saving 
@@ -1989,36 +1989,36 @@ If enable "-cpu0-no-cpload", and undefine ENABLE_GPRESTORE or enable
   -cpu0-reserve-gp -o -
   ...
   # BB#0:
-	  addiu	$sp, $sp, -24
+    addiu $sp, $sp, -24
   $tmp0:
-	  .cfi_def_cfa_offset 24
-	  st	$lr, 20($sp)            # 4-byte Folded Spill
-	  st	$fp, 16($sp)            # 4-byte Folded Spill
+    .cfi_def_cfa_offset 24
+    st  $lr, 20($sp)            # 4-byte Folded Spill
+    st  $fp, 16($sp)            # 4-byte Folded Spill
   $tmp1:
-	  .cfi_offset 14, -4
+    .cfi_offset 14, -4
   $tmp2:
-	  .cfi_offset 12, -8
-	  move	 $fp, $sp
+    .cfi_offset 12, -8
+    move   $fp, $sp
   $tmp3:
-	  .cfi_def_cfa_register 12
-	  ld	$t9, %call16(_Z5sum_ii)($gp)
-	  addiu	$4, $zero, 1
-	  jalr	$t9
-	  nop
-	  st	$2, 12($fp)
-	  addiu	$4, $zero, 2
-	  ld	$t9, %call16(_Z5sum_ii)($gp)
-	  jalr	$t9
-	  nop
-	  ld	$3, 12($fp)
-	  addu	$2, $3, $2
-	  st	$2, 12($fp)
-	  move	 $sp, $fp
-	  ld	$fp, 16($sp)            # 4-byte Folded Reload
-	  ld	$lr, 20($sp)            # 4-byte Folded Reload
-	  addiu	$sp, $sp, 24
-	  ret	$lr
-	  nop
+    .cfi_def_cfa_register 12
+    ld  $t9, %call16(_Z5sum_ii)($gp)
+    addiu $4, $zero, 1
+    jalr  $t9
+    nop
+    st  $2, 12($fp)
+    addiu $4, $zero, 2
+    ld  $t9, %call16(_Z5sum_ii)($gp)
+    jalr  $t9
+    nop
+    ld  $3, 12($fp)
+    addu  $2, $3, $2
+    st  $2, 12($fp)
+    move   $sp, $fp
+    ld  $fp, 16($sp)            # 4-byte Folded Reload
+    ld  $lr, 20($sp)            # 4-byte Folded Reload
+    addiu $sp, $sp, 24
+    ret $lr
+    nop
 
 
 LLVM Mips 3.1 issues the .cpload and .cprestore and Cpu0 borrow it from that 
@@ -2034,41 +2034,41 @@ follow this document at this point and supply reserve $gp register as option.
   -o -
   ...
   # BB#0:                                 # %entry
-	  lui	$2, %hi(_gp_disp)
-	  ori	$2, $2, %lo(_gp_disp)
-	  addiu	$sp, $sp, -32
+    lui $2, %hi(_gp_disp)
+    ori $2, $2, %lo(_gp_disp)
+    addiu $sp, $sp, -32
   $tmp0:
-	  .cfi_def_cfa_offset 32
-	  sw	$ra, 28($sp)            # 4-byte Folded Spill
-	  sw	$fp, 24($sp)            # 4-byte Folded Spill
-	  sw	$16, 20($sp)            # 4-byte Folded Spill
+    .cfi_def_cfa_offset 32
+    sw  $ra, 28($sp)            # 4-byte Folded Spill
+    sw  $fp, 24($sp)            # 4-byte Folded Spill
+    sw  $16, 20($sp)            # 4-byte Folded Spill
   $tmp1:
-	  .cfi_offset 31, -4
+    .cfi_offset 31, -4
   $tmp2:
-	  .cfi_offset 30, -8
+    .cfi_offset 30, -8
   $tmp3:
-	  .cfi_offset 16, -12
-	  move	 $fp, $sp
+    .cfi_offset 16, -12
+    move   $fp, $sp
   $tmp4:
-	  .cfi_def_cfa_register 30
-	  addu	$16, $2, $25
-	  lw	$25, %call16(_Z5sum_ii)($16)
-	  addiu	$4, $zero, 1
-	  jalr	$25
-	  move	 $gp, $16
-	  sw	$2, 16($fp)
-	  lw	$25, %call16(_Z5sum_ii)($16)
-	  jalr	$25
-	  addiu	$4, $zero, 2
-	  lw	$1, 16($fp)
-	  addu	$2, $1, $2
-	  sw	$2, 16($fp)
-	  move	 $sp, $fp
-	  lw	$16, 20($sp)            # 4-byte Folded Reload
-	  lw	$fp, 24($sp)            # 4-byte Folded Reload
-	  lw	$ra, 28($sp)            # 4-byte Folded Reload
-	  jr	$ra
-	  addiu	$sp, $sp, 32
+    .cfi_def_cfa_register 30
+    addu  $16, $2, $25
+    lw  $25, %call16(_Z5sum_ii)($16)
+    addiu $4, $zero, 1
+    jalr  $25
+    move   $gp, $16
+    sw  $2, 16($fp)
+    lw  $25, %call16(_Z5sum_ii)($16)
+    jalr  $25
+    addiu $4, $zero, 2
+    lw  $1, 16($fp)
+    addu  $2, $1, $2
+    sw  $2, 16($fp)
+    move   $sp, $fp
+    lw  $16, 20($sp)            # 4-byte Folded Reload
+    lw  $fp, 24($sp)            # 4-byte Folded Reload
+    lw  $ra, 28($sp)            # 4-byte Folded Reload
+    jr  $ra
+    addiu $sp, $sp, 32
 
 The following code added in Chapter9_3/ to issue **“.cprestore”** or the 
 corresponding machine code before the first time of PIC function call.
@@ -2558,9 +2558,8 @@ Run Chapter9_3 with ch9_4.cpp will get the following correct result.
 
 .. code-block:: bash
 
-  118-165-72-242:input Jonathan$ clang -I/Applications/Xcode.app/Contents/
-  Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.9.sdk/usr/include/ 
-  -c ch9_4.cpp -emit-llvm -o ch9_4.bc
+  118-165-72-242:input Jonathan$ clang -target mips-unknown-linux-gnu -c 
+  ch9_4.cpp -emit-llvm -o ch9_4.bc
   118-165-72-242:input Jonathan$ llvm-dis ch9_4.bc -o ch9_4.ll
   118-165-72-242:input Jonathan$ cat ch9_4.ll
   ; ModuleID = 'ch9_4.bc'
@@ -2587,111 +2586,85 @@ Run Chapter9_3 with ch9_4.cpp will get the following correct result.
   118-165-72-242:input Jonathan$ cat ch9_4.cpu0.s 
   ...
   _Z10weight_sumiiiiii:
-  	.cfi_startproc
-  	.frame	$fp,80,$lr
-  	.mask 	0x00004080,-4
-  	.set	noreorder
-  	.cpload	$t9
-  	.set	nomacro
+    .frame  $fp,40,$lr
+    .mask   0x00005000,-4
+    .set  noreorder
+    .cpload $t9
+    .set  nomacro
   # BB#0:
-  	addiu	$sp, $sp, -80
-  $tmp6:
-  	.cfi_def_cfa_offset 80
-  	st	$lr, 76($sp)            # 4-byte Folded Spill
-  	st	$7, 72($sp)             # 4-byte Folded Spill
-  $tmp7:
-  	.cfi_offset 14, -4
-  $tmp8:
-  	.cfi_offset 7, -8
-  	move	$sp, $fp
-  $tmp9:
-  	.cfi_def_cfa_register 11
-  	.cprestore	24
-  	ld	$7, %got(__stack_chk_guard)($gp)
-  	ld	$2, 0($7)
-  	st	$2, 68($fp)
-  	ld	$2, 80($fp)
-  	st	$2, 64($fp)
-  	ld	$2, 84($fp)
-  	st	$2, 60($fp)
-  	ld	$2, 88($fp)
-  	st	$2, 56($fp)
-  	ld	$2, 92($fp)
-  	st	$2, 52($fp)
-  	ld	$2, 96($fp)
-  	st	$2, 48($fp)
-  	ld	$2, 100($fp)
-  	st	$2, 44($fp)
-  	ld	$2, 64($fp)	// int *b = (int*)alloca(sizeof(int) * x1);
-  	shl	$2, $2, 2
-  	addiu	$2, $2, 7
-  	addiu	$3, $zero, -8
-  	and	$2, $2, $3
-  	subu	$2, $sp, $2
-  	add	$sp, $zero, $2	// set sp to the bottom of alloca area
-  	st	$2, 40($fp)
-  	addiu	$3, $zero, 1111
-  	st	$3, 0($2)
-  	ld	$2, 64($fp)
-  	ld	$3, 60($fp)
-  	ld	$4, 56($fp)
-  	ld	$5, 52($fp)
-  	ld	$t9, 48($fp)
-  	ld	$t0, 44($fp)
-  	st	$t0, 20($sp)
-  	shl	$t9, $t9, 1
-  	st	$t9, 16($sp)
-  	st	$5, 12($sp)
-  	st	$4, 8($sp)
-  	st	$3, 4($sp)
-  	addiu	$3, $zero, 6
-  	mul	$2, $2, $3
-  	st	$2, 0($sp)
-  	ld	$t9, %call16(_Z3sumiiiiii)($gp)
-  	jalr	$t9
-  	ld	$gp, 24($fp)
-  	st	$2, 36($fp)
-  	ld	$3, 0($7)
-  	ld	$4, 68($fp)
-  	bne	$3, $4, $BB1_2
+    addiu $sp, $sp, -40
+    st  $lr, 36($sp)            # 4-byte Folded Spill
+    st  $fp, 32($sp)            # 4-byte Folded Spill
+    move   $fp, $sp
+    .cprestore  24
+    ld  $2, 60($fp)
+    ld  $3, 56($fp)
+    ld  $t9, 52($fp)
+    ld  $7, 48($fp)
+    st  $4, 28($fp)
+    st  $5, 24($fp)
+    st  $7, 20($fp)
+    st  $t9, 16($fp)
+    st  $3, 12($fp)
+    st  $2, 8($fp)
+    ld  $2, 28($fp) // int *b = (int*)alloca(sizeof(int) * x1);
+    shl $2, $2, 2
+    addiu $2, $2, 7
+    addiu $3, $zero, -8
+    and $2, $2, $3
+    subu  $2, $sp, $2
+    addu  $sp, $zero, $2  // set sp to the bottom of alloca area
+    st  $2, 4($fp)
+    addiu $3, $zero, 1111
+    st  $3, 0($2)
+    ld  $5, 24($fp)
+    ld  $2, 28($fp)
+    ld  $3, 20($fp)
+    ld  $4, 16($fp)
+    ld  $t9, 12($fp)
+    ld  $7, 8($fp)
+    st  $7, 20($sp)
+    shl $t9, $t9, 1
+    st  $t9, 16($sp)
+    st  $4, 12($sp)
+    st  $3, 8($sp)
+    addiu $3, $zero, 6
+    mul $4, $2, $3
+    ld  $t9, %call16(_Z3sumiiiiii)($gp)
+    jalr  $t9
     nop
-  # BB#1:                                 # %SP_return
-  	move	$fp, $sp
-  	ld	$7, 72($sp)             # 4-byte Folded Reload
-  	ld	$lr, 76($sp)            # 4-byte Folded Reload
-  	addiu	$sp, $sp, 80
-  	ret	$2
+    ld  $gp, 24($fp)
+    st  $2, 0($fp)
+    move   $sp, $fp
+    ld  $fp, 32($sp)            # 4-byte Folded Reload
+    ld  $lr, 36($sp)            # 4-byte Folded Reload
+    addiu $sp, $sp, 40
+    ret $lr
     nop
-  $BB1_2:                                 # %CallStackCheckFailBlk
-  	ld	$t9, %call16(__stack_chk_fail)($gp)
-  	jalr	$t9
-    nop
-  	ld	$gp, 24($fp)
-  	.set	macro
-  	.set	reorder
-  	.end	_Z10weight_sumiiiiii
-  $tmp10:
-  	.size	_Z10weight_sumiiiiii, ($tmp10)-_Z10weight_sumiiiiii
-  	.cfi_endproc
+    .set  macro
+    .set  reorder
+    .end  _Z10weight_sumiiiiii
+  $func_end1:
+    .size _Z10weight_sumiiiiii, ($func_end1)-_Z10weight_sumiiiiii
   ...
 
 As you can see, the dynamic stack allocation needs frame pointer register **fp**
-support. As :num:`Figure #funccall-f4`, the sp is adjusted to (sp - 56) when it 
-entered the function as usual by instruction **addiu $sp, $sp, -56**. 
+support. As above assembly, the sp is adjusted to (sp - 40) when it 
+entered the function as usual by instruction **addiu $sp, $sp, -40**. 
 Next, the fp is set to sp where is the position just above alloca() spaces area 
-when meet instruction **addu $fp, $sp, $zero**. 
+as :num:`Figure #funccall-f4` when meet instruction **addu $fp, $sp, $zero**. 
 After that, the sp is changed to the area just below of alloca().
 Remind, the alloca() area which the b point to, 
-**"*b = (int*)alloca(sizeof(int) * x1)"**, is 
+**"*b = (int*)__builtin_alloca(sizeof(int) * x1)"**, is 
 allocated at run time since the spaces is variable size which depend on x1 
 variable and cannot be calculated at link time. 
 
 :num:`Figure #funccall-f5` depicted how the stack pointer changes back to the 
 caller stack bottom. As above, the **fp** is set to the address just above of 
 alloca(). 
-The first step is changing the sp to fp by instruction **addu $sp, $fp, $zero**.
+The first step is changing the sp to fp by instruction **move $sp, $fp**.
 Next, sp is changed back to caller stack bottom by instruction 
-**addiu $sp, $sp, 56**.
+**addiu $sp, $sp, 40**.
 
 .. _funccall-f4:
 .. figure:: ../Fig/funccall/4.png
@@ -2704,8 +2677,8 @@ Next, sp is changed back to caller stack bottom by instruction
 
 .. _funccall-f5:
 .. figure:: ../Fig/funccall/5.png
-    :height: 265 px
-    :width: 476 px
+    :height: 264 px
+    :width: 528 px
     :scale: 50 %
     :align: center
 

@@ -169,7 +169,9 @@ no differences between this option and default option.
   WARNING: cpu0Is.v:386: $readmemh(cpu0.hex): Not enough words in the file for the 
   taskInterrupt(001)
   74
-  15
+  7
+  0
+  0
   253
   3
   1
@@ -192,15 +194,16 @@ no differences between this option and default option.
   15
   5
   0
+  31
   49
-  total cpu cycles = 48830               
+  total cpu cycles = 52060               
   RET to PC < 0, finished!
 
   JonathantekiiMac:input Jonathan$ bash build-run_backend.sh cpu032II be
   JonathantekiiMac:input Jonathan$ cd ../verilog
   JonathantekiiMac:verilog Jonathan$ ./cpu0IIs
   ...
-  total cpu cycles = 46535               
+  total cpu cycles = 49625               
   RET to PC < 0, finished!
 
 The "total cpu cycles" can be calculated in this verilog simualtor, and the 
