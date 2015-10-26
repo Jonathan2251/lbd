@@ -39,15 +39,19 @@ private:
   char PatternIf[25];
   char PatternIfSpace[25];
 #ifdef SUPPORT_ELIF
-  char PatternElIfSpace[25];
+  char PatternElif[25];
+  char PatternElifSpace[25];
 #endif
   char PatternElse[25];
   char PatternEndif[25];
+  enum {IFCH_IN_CONDITION=1, ELIFCH_IN_CONDITION, IFCH_OUT_CONDITION, 
+        ELIFCH_OUT_CONDITION, IF, ELIF, ELSE, ENDIF, OTHER}; 
   
 public:
   int currentChapter;
   void setFileType(FileType fileType);
   int getChapter(char* chapter);
+  int checkPatternIfMacro(char* line);
   int run(ifstream& in, ofstream& out);
   void removeSuccessiveEmptyLines(ifstream& in, ofstream& out);
 };
@@ -58,7 +62,8 @@ void Preprocess::setFileType(FileType fileType) {
      strcpy(PatternIf, "#if");
      strcpy(PatternIfSpace, "#if ");
 #ifdef SUPPORT_ELIF
-     strcpy(PatternElIfSpace, "#elif ");
+     strcpy(PatternElif, "#elif");
+     strcpy(PatternElifSpace, "#elif ");
 #endif
      strcpy(PatternElse, "#else");
      strcpy(PatternEndif, "#endif");
@@ -67,7 +72,8 @@ void Preprocess::setFileType(FileType fileType) {
      strcpy(PatternIf, "//#if");
      strcpy(PatternIfSpace, "//#if ");
 #ifdef SUPPORT_ELIF
-     strcpy(PatternElIfSpace, "//#elif ");
+     strcpy(PatternElif, "//#elif");
+     strcpy(PatternElifSpace, "//#elif ");
 #endif
      strcpy(PatternElse, "//#else");
      strcpy(PatternEndif, "//#endif");
@@ -80,6 +86,72 @@ int Preprocess::getChapter(char* chapter) {
 	  return ch[i].id;
   }
   return -1;
+}
+
+int Preprocess::checkPatternIfMacro(char* line) {
+  char If[20];
+  char CH[20];
+  char compareCond[20];
+  char CHXX[20];
+  int type = OTHER;
+  
+  if (strncmp(line, PatternIfSpace, strlen(PatternIfSpace)) == 0) {
+	  sscanf(line, "%s %s %s", If, CH, compareCond);
+	  if (strcmp(CH, "CH") == 0 && strcmp(compareCond, ">=") == 0) {
+	  // #if CH ... (cpu0 chapter control pattern).
+	    sscanf(line, "%s %s %s %s", If, CH, compareCond, CHXX);
+	  #ifdef DEBUG
+	    printf("if: %s CH: %s compareCond: %s CHXX: %s\n", If, CH, compareCond, CHXX);
+	  #endif
+        if (currentChapter >= getChapter(CHXX)) {
+	      type = IFCH_IN_CONDITION;
+        }	
+        else {
+	      type = IFCH_OUT_CONDITION;
+	    }
+	  }
+	  else {
+	    type = IF;
+	  }
+  }
+  else if (strncmp(line, PatternIf, strlen(PatternIf)) == 0) {
+    type = IF;
+  }
+#ifdef SUPPORT_ELIF
+  else if (strncmp(line, PatternElifSpace, strlen(PatternElifSpace)) == 0) {
+	  sscanf(line, "%s %s %s", If, CH, compareCond);
+	  if (strcmp(CH, "CH") == 0 && strcmp(compareCond, ">=") == 0) {
+	  // #if CH ... (cpu0 chapter control pattern).
+	    sscanf(line, "%s %s %s %s", If, CH, compareCond, CHXX);
+	  #ifdef DEBUG
+	    printf("if: %s CH: %s compareCond: %s CHXX: %s\n", If, CH, compareCond, CHXX);
+	  #endif
+        if (currentChapter >= getChapter(CHXX)) {
+	      type = ELIFCH_IN_CONDITION;
+        }	
+        else {
+	      type = ELIFCH_OUT_CONDITION;
+	    }
+	  }
+	  else {
+	    type = ELIF;
+	  }
+  }
+  else if (strncmp(line, PatternElif, strlen(PatternElif)) == 0) {
+    type = ELIF;
+  }
+ #endif
+  else if (strncmp(line, PatternElse, strlen(PatternElse)) == 0) {
+    type = ELSE;
+  }
+  else if (strncmp(line, PatternEndif, strlen(PatternEndif)) == 0) {
+    type = ENDIF;
+  }
+  else {
+    type = OTHER;
+  }
+  
+  return type;
 }
 
 // expand chapter added code through directive (eg. #if CH > CH3_1)
@@ -148,11 +220,7 @@ int Preprocess::getChapter(char* chapter) {
 
 int Preprocess::run(ifstream& in, ofstream& out) {
   char line[256];
-  char If[20];
-  char CH[20];
-  char compareCond[20];
-  char CHXX[20];
-  IfCtrType aa;
+  IfCtrType data;
   stack<IfCtrType> stack;
   
   // When IfCtrType.hidden == true, meaning don't output statement.
@@ -163,135 +231,107 @@ int Preprocess::run(ifstream& in, ofstream& out) {
     printf("stack.size(): %lu\n", stack.size());
     printf("%s\n", line);
   #endif
-    if (strncmp(line, PatternIfSpace, strlen(PatternIfSpace)) == 0) {
-      sscanf(line, "%s %s %s", If, CH, compareCond);
-      if (strcmp(CH, "CH") == 0 && strcmp(compareCond, ">=") == 0) {
-      // #if CH ... (cpu0 chapter control pattern).
-        sscanf(line, "%s %s %s %s", If, CH, compareCond, CHXX);
-      #ifdef DEBUG
-        printf("if: %s CH: %s compareCond: %s CHXX: %s\n", If, CH, compareCond, CHXX);
-      #endif
-        if (currentChapter >= getChapter(CHXX)) {
-          aa.type = IF_CH;
-          if (stack.empty())
-            aa.hidden = false;
-          else
-            aa.hidden = stack.top().hidden;
+    int type = checkPatternIfMacro(line);
+    if (type == IFCH_IN_CONDITION) {
+      data.type = IF_CH;
+      if (stack.empty())
+        data.hidden = false;
+      else
+        data.hidden = stack.top().hidden;
 #ifdef SUPPORT_ELIF
-          aa.satisfied = true;
+      data.satisfied = true;
 #endif
-        }
-        else {
-          aa.type = IF_CH;
-          aa.hidden = true;
-#ifdef SUPPORT_ELIF
-          aa.satisfied = false;
-#endif
-        }
-        stack.push(aa);
-      }
-      else {
-      // #if ... (other #if pattern)
-        out << line << endl;
-        aa.type = IF_OTHER;
-        if (stack.empty())
-          aa.hidden = false;
-        else
-          aa.hidden = stack.top().hidden;
-#ifdef SUPPORT_ELIF
-        aa.satisfied = true;
-#endif
-        stack.push(aa);
-      }
+      stack.push(data);
     }
-    else if (strncmp(line, PatternIf, strlen(PatternIf)) == 0) {
-    // #if ... (other #if pattern)
+    else if (type == IFCH_OUT_CONDITION) {
+      data.type = IF_CH;
+      data.hidden = true;
+#ifdef SUPPORT_ELIF
+      data.satisfied = false;
+#endif
+      stack.push(data);
+    }
+    else if (type == IF) {
       if (stack.empty() || (stack.top().type != IF_CH) || !(stack.top().hidden))
         out << line << endl;
-      aa.type = IF_OTHER;
+      data.type = IF_OTHER;
       if (stack.empty())
-        aa.hidden = false;
+        data.hidden = false;
       else
-        aa.hidden = stack.top().hidden;
+        data.hidden = stack.top().hidden;
 #ifdef SUPPORT_ELIF
-      aa.satisfied = true;
+      data.satisfied = true;
 #endif
-      stack.push(aa);
+      stack.push(data);
     }
 #ifdef SUPPORT_ELIF
-    else if (strncmp(line, PatternElIfSpace, strlen(PatternElIfSpace)) == 0) {
-      sscanf(line, "%s %s %s", If, CH, compareCond);
-      if (strcmp(CH, "CH") == 0 && strcmp(compareCond, ">=") == 0) {
-      // #if CH ... (cpu0 chapter control pattern).
-        sscanf(line, "%s %s %s %s", If, CH, compareCond, CHXX);
-      #ifdef DEBUG
-        printf("if: %s CH: %s compareCond: %s CHXX: %s\n", If, CH, compareCond, CHXX);
-      #endif
-        if (stack.empty())
-          return FAIL;
-        if (stack.top().type == IF_CH) {
-          aa = stack.top();
-          stack.pop();
-          aa.type = IF_CH;
-          if (aa.hidden) {
-            if (currentChapter >= getChapter(CHXX)) {
-              if (stack.empty()) {
-                aa.hidden = false;
-                aa.satisfied = true;
-              }
-              else {
-                aa.hidden = stack.top().hidden;
-              }
-            }
-            else {
-              aa.hidden = true;
-            }
-            stack.push(aa);
-          }
-          else {
-            aa.hidden = true;
-            stack.push(aa);
-          }
-        }
-      }
-      else {
-      // #if ... (other #elif pattern)
-        out << line << endl;
-        aa.type = IF_OTHER;
-        if (stack.empty())
-          aa.hidden = false;
-        else
-          aa.hidden = stack.top().hidden;
-        aa.satisfied = true;
-        stack.push(aa);
-      }
-    }
-#endif
-    else if (strncmp(line, PatternElse, strlen(PatternElse)) == 0) {
+    else if (type == ELIFCH_IN_CONDITION || type == ELIFCH_OUT_CONDITION) {
       if (stack.empty())
         return FAIL;
       if (stack.top().type == IF_CH) {
-        aa = stack.top();
+        data = stack.top();
         stack.pop();
-        aa.type = IF_CH;
+        data.type = IF_CH;
+        if (data.hidden) {
+          if (type == ELIFCH_IN_CONDITION) {
+            if (stack.empty()) {
+              data.hidden = false;
+              data.satisfied = true;
+            }
+            else {
+              data.hidden = stack.top().hidden;
+            }
+          }
+          else if (type == ELIFCH_OUT_CONDITION) {
+            data.hidden = true;
+          }
+          stack.push(data);
+        }
+        else {
+          data.hidden = true;
+          stack.push(data);
+        }
+      }
+    }
+    else if (type == ELIF) {
+      if (stack.empty())
+        return FAIL;
+      if ((stack.top().type != IF_CH) || !(stack.top().hidden))
+        out << line << endl;
+      data.type = IF_OTHER;
+      if (stack.empty())
+        data.hidden = false;
+      else
+        data.hidden = stack.top().hidden;
+      data.satisfied = true;
+      stack.push(data);
+    }
+#endif
+    else if (type == ELSE) {
+      if (stack.empty())
+        return FAIL;
+      if (stack.top().type == IF_CH) {
+        data = stack.top();
+        stack.pop();
+        data.type = IF_CH;
 #ifdef SUPPORT_ELIF
-        if (aa.satisfied) {
-          aa.hidden = true;
+        if (data.satisfied) {
+          data.hidden = true;
         }
         else {
 #endif
           if (stack.empty()) {
-            aa.hidden = !aa.hidden;
+            data.hidden = !data.hidden;
           }
           else
             if (stack.top().hidden)
-              aa.hidden = true;
+              data.hidden = true;
             else
-              aa.hidden = !aa.hidden;
+              data.hidden = !data.hidden;
 #ifdef SUPPORT_ELIF
         }
 #endif
-        stack.push(aa);
+        stack.push(data);
       }
       else {
       // stack.top().type == IF_OTHER
@@ -299,7 +339,7 @@ int Preprocess::run(ifstream& in, ofstream& out) {
           out << line << endl;
       }
     }
-    else if (strncmp(line, PatternEndif, strlen(PatternEndif)) == 0) {
+    else if (type == ENDIF) {
       if (stack.empty())
         return FAIL;
       if (!(stack.top().hidden) && (stack.top().type != IF_CH)) {
@@ -307,11 +347,8 @@ int Preprocess::run(ifstream& in, ofstream& out) {
       }
       stack.pop();
     }
-    else {
-      if (stack.empty()) {
-        out << line << endl;
-      }
-      else if (!(stack.top().hidden)) {
+    else if (type == OTHER) {
+      if (stack.empty() || !(stack.top().hidden)) {
         out << line << endl;
       }
     }

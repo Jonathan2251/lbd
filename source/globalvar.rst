@@ -10,7 +10,7 @@ Global variables
 In the last three chapters, we only access the local variables. 
 This chapter deals global variable access translation. 
 
-The global variable DAG translation is very different from the previous DAG 
+The global variable DAG translation is different from the previous DAG 
 translations until now we have. 
 It creates IR DAG nodes at run time in backend C++ code according the 
 ``llc -relocation-model`` option while the others of DAG just do IR DAG to 
@@ -21,8 +21,8 @@ how to define the pattern match in td for the run time created DAG nodes.
 In addition, the machine instruction printing function for global variable 
 related assembly directive (macro) should be cared if your backend has it.
 
-Chapter6_1/ supports the global variable, let's compile ch6_1.cpp with this version 
-first, then explain the code changes after that.
+Chapter6_1/ supports the global variable, let's compile ch6_1.cpp with this 
+version first, then explain the code changes after that.
 
 .. rubric:: lbdex/input/ch6_1.cpp
 .. literalinclude:: ../lbdex/input/ch6_1.cpp
@@ -57,7 +57,7 @@ Let's run Chapter6_1/ with ch6_1.cpp via four different options
 ``llc  -relocation-model=static -cpu0-use-small-section=false``, 
 ``llc  -relocation-model=static -cpu0-use-small-section=true``, 
 ``llc  -relocation-model=pic -cpu0-use-small-section=false`` and
-``llc  -relocation-model=pic -cpu0-use-small-section=false`` to tracing the 
+``llc  -relocation-model=pic -cpu0-use-small-section=true`` to tracing the 
 DAGs and Cpu0 instructions.
 
 .. code-block:: bash
@@ -222,10 +222,9 @@ DAGs and Cpu0 instructions.
     0x7fe03c02e328: i32,ch = load 0x7fe03c02e118, 0x7fe03c02ec70, 
     0x7fe03c02e010<LD4[@gI]> [ORD=4] [ID=7]
     ...
-    
-    lui $2, %hi(gI)
-    ori $2, $2, %lo(gI)
-    ld  $2, 0($2)
+	  lui	$2, %got_hi(gI)
+	  addu	$2, $2, $gp
+	  ld	$2, %got_lo(gI)($2)
     ...
       .type gStart,@object          # @gStart
     .data
@@ -329,7 +328,7 @@ Summary above information to Table: Cpu0 global variable options.
    "addressing mode", "absolute", "$gp relative"
    "addressing", "absolute", "$gp+offset"
    "Legalized selection DAG", "(add Cpu0ISD::Hi<gI offset Hi16> Cpu0ISD::Lo<gI offset Lo16>)", "(add register %GP, Cpu0ISD::GPRel<gI offset>)"
-   "Cpu0", "ori $2, $zero, %hi(gI); shl $2, $2, 16; ori $2, $2, %lo(gI);", "ori	$2, $gp, %gp_rel(gI);"
+   "Cpu0", "lui $2, %hi(gI); ori $2, $2, %lo(gI);", "ori	$2, $gp, %gp_rel(gI);"
    "relocation records solved", "link time", "link time"
 
 - In static, cpu0-use-small-section=true, offset between gI and .data can be calculated since the $gp is assigned at fixed address of the start of global address table.
@@ -342,11 +341,14 @@ Summary above information to Table: Cpu0 global variable options.
    "addressing mode","$gp relative", "$gp relative"
    "addressing", "$gp+offset", "$gp+offset"
    "Legalized selection DAG", "(load (Cpu0ISD::Wrapper register %GP, <gI offset>))", "(load EntryToken, (Cpu0ISD::Wrapper (add Cpu0ISD::Hi<gI offset Hi16>, Register %GP), Cpu0ISD::Lo<gI offset Lo16>))"
-   "Cpu0", "ld $2, %got(gI)($gp);", "ori	$2, $zero, %got_hi(gI); shl $2, $2, 16; add $2, $2, $gp; ld $2, %got_lo(gI)($2);"
+   "Cpu0", "ld $2, %got(gI)($gp);", "lui	$2, %got_hi(gI); add $2, $2, $gp; ld $2, %got_lo(gI)($2);"
    "relocation records solved", "link/load time", "link/load time"
 
-- In pic, offset between gI and .data cannot be calculated if the function is loaded at run time (dynamic link); the offset can be calculated if use static link.
-- In C, all variable names binding staticly. In C++, the overload variable or function are binding dynamicly.
+- In pic, offset between gI and .data cannot be calculated if the function is 
+  loaded at run time (dynamic link); the offset can be calculated if use static 
+  link.
+- In C, all variable names binding staticly. In C++, the overload variable or 
+  function are binding dynamicly.
 
 According book of system program, there are Absolute Addressing Mode and 
 Position Independent Addressing Mode. The dynamic function must be compiled with 
@@ -592,21 +594,21 @@ The ``llc -relocation-model=static`` is for absolute address mode which must be
 used in static link mode. The dynamic link must be encoded with Position 
 Independent Addressing. 
 As you can see, the PC relative address can be solved in static link (
-The offset between .data and instruction "ori $2, $zero, %hi(gI)" can be 
+The offset between the address of gI and instruction "lui $2, %hi(gI)" can be 
 caculated). Since Cpu0 uses PC relative address coding, this program can be 
 loaded to any address and run correctly there.
 If this program uses absolute address and can be loaded at a specific address 
 known at link stage, the relocation record of gI variable access instruction 
-such as "ori $2, $zero, %hi(gI)" and "ori	$2, $2, %lo(gI)" can be solved 
+such as "lui $2, %hi(gI)" and "ori	$2, $2, %lo(gI)" can be solved 
 at link time. On the other hand, 
 if this program use absolute address and the loading address is known at load 
-time, then this relocation record will be solved by loader at loading time. 
+time, then this relocation record will be solved by loader at load time. 
 
 IsGlobalInSmallSection() returns true or false depends on UseSmallSectionOpt. 
 
 The code fragment of lowerGlobalAddress() as the following corresponding option 
-``llc -relocation-model=static -cpu0-use-small-section=false`` will translate DAG 
-(GlobalAddress<i32* @gI> 0) into 
+``llc -relocation-model=static -cpu0-use-small-section=false`` will translate 
+DAG (GlobalAddress<i32* @gI> 0) into 
 (add Cpu0ISD::Hi<gI offset Hi16> Cpu0ISD::Lo<gI offset Lo16>) in 
 stage "Legalized selection DAG" as below.
 
@@ -641,8 +643,8 @@ stage "Legalized selection DAG" as below.
 
   118-165-78-166:input Jonathan$ clang -target mips-unknown-linux-gnu -c 
   ch6_1.cpp -emit-llvm -o ch6_1.bc
-  118-165-78-166:input Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
-  Debug/bin/llc -march=cpu0 -relocation-model=static -cpu0-use-small-section=false 
+  118-165-78-166:input Jonathan$ ~/llvm/test/cmake_debug_build/Debug/bin/llc 
+  -march=cpu0 -relocation-model=static -cpu0-use-small-section=false 
   -filetype=asm -debug ch6_1.bc -o -
   
   ...
@@ -821,8 +823,8 @@ ZERO, tglobaladdr:$in))>;" will translate (add register %GP Cpu0ISD::GPRel
 tglobaladdr) into (add $gp, (ori ZERO, tglobaladdr)).
 
 In this mode, the $gp content is assigned at compile/link time, changed only at 
-program be loaded, and is fixed during the program running; on the contrary, when 
--relocation-model=pic the $gp can be changed during program running. 
+program be loaded, and is fixed during the program running; on the contrary, 
+when -relocation-model=pic the $gp can be changed during program running. 
 For this example code, if $gp is assigned to the start address of .sdata by loader 
 when program ch6_1.cpu0.s is loaded, then linker can caculate %gp_rel(gI) (= 
 the relative address distance between gI and start of .sdata section). 
@@ -1318,8 +1320,8 @@ Backend set global address as Custom operation by
 **”setOperationAction(ISD::GlobalAddress, MVT::i32, Custom);”** in 
 Cpu0TargetLowering() constructor. 
 Different address mode create their own DAG list at run time. 
-By set the pattern Pat<> in Cpu0InstrInfo.td, the llvm can apply the compiler 
-mechanism, pattern match, in the Instruction Selection stage.
+By setting the pattern Pat<> in Cpu0InstrInfo.td, the llvm can apply the 
+compiler mechanism, pattern match, in the Instruction Selection stage.
 
 There are three types for setXXXAction(), Promote, Expand and Custom. 
 Except Custom, the other two maybe no need to coding. 
