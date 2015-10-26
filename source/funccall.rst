@@ -2585,60 +2585,65 @@ Run Chapter9_3 with ch9_4.cpp will get the following correct result.
   -relocation-model=pic -filetype=asm ch9_4.bc -o ch9_4.cpu0.s
   118-165-72-242:input Jonathan$ cat ch9_4.cpu0.s 
   ...
+      .globl  _Z10weight_sumiiiiii
+    .align  2
+    .type _Z10weight_sumiiiiii,@function
+    .ent  _Z10weight_sumiiiiii    # @_Z10weight_sumiiiiii
   _Z10weight_sumiiiiii:
-    .frame  $fp,40,$lr
+    .frame  $fp,48,$lr
     .mask   0x00005000,-4
     .set  noreorder
     .cpload $t9
     .set  nomacro
   # BB#0:
-    addiu $sp, $sp, -40
-    st  $lr, 36($sp)            # 4-byte Folded Spill
-    st  $fp, 32($sp)            # 4-byte Folded Spill
+    addiu $sp, $sp, -48
+    st  $lr, 44($sp)            # 4-byte Folded Spill
+    st  $fp, 40($sp)            # 4-byte Folded Spill
     move   $fp, $sp
     .cprestore  24
-    ld  $2, 60($fp)
-    ld  $3, 56($fp)
-    ld  $t9, 52($fp)
-    ld  $7, 48($fp)
-    st  $4, 28($fp)
-    st  $5, 24($fp)
-    st  $7, 20($fp)
-    st  $t9, 16($fp)
-    st  $3, 12($fp)
-    st  $2, 8($fp)
-    ld  $2, 28($fp) // int *b = (int*)alloca(sizeof(int) * x1);
-    shl $2, $2, 2
-    addiu $2, $2, 7
-    addiu $3, $zero, -8
-    and $2, $2, $3
+    ld  $2, 68($fp)
+    ld  $3, 64($fp)
+    ld  $t9, 60($fp)
+    ld  $7, 56($fp)
+    st  $4, 36($fp)
+    st  $5, 32($fp)
+    st  $7, 28($fp)
+    st  $t9, 24($fp)
+    st  $3, 20($fp)
+    st  $2, 16($fp)
+    shl $2, $2, 3    // $2 = sizeof(int) * 2 * x6;
     subu  $2, $sp, $2
     addu  $sp, $zero, $2  // set sp to the bottom of alloca area
-    st  $2, 4($fp)
-    addiu $3, $zero, 1111
-    st  $3, 0($2)
-    ld  $5, 24($fp)
-    ld  $2, 28($fp)
+    st  $2, 12($fp)
+    st  $2, 8($fp)
+    ld  $2, 12($fp)
+    ld  $3, 28($fp)
+    st  $3, 0($2)    // *b = x3
+    ld  $5, 32($fp)
+    ld  $2, 36($fp)
     ld  $3, 20($fp)
-    ld  $4, 16($fp)
-    ld  $t9, 12($fp)
-    ld  $7, 8($fp)
+    ld  $4, 28($fp)
+    ld  $t9, 24($fp)
+    ld  $7, 16($fp)
     st  $7, 20($sp)
-    shl $t9, $t9, 1
-    st  $t9, 16($sp)
-    st  $4, 12($sp)
-    st  $3, 8($sp)
-    addiu $3, $zero, 6
+    st  $t9, 12($sp)
+    st  $4, 8($sp)
+    shl $3, $3, 1
+    st  $3, 16($sp)
+    addiu $3, $zero, 3
     mul $4, $2, $3
     ld  $t9, %call16(_Z3sumiiiiii)($gp)
     jalr  $t9
     nop
     ld  $gp, 24($fp)
-    st  $2, 0($fp)
+    st  $2, 4($fp)
+    ld  $3, 8($fp)
+    ld  $3, 0($3)
+    addu  $2, $2, $3
     move   $sp, $fp
-    ld  $fp, 32($sp)            # 4-byte Folded Reload
-    ld  $lr, 36($sp)            # 4-byte Folded Reload
-    addiu $sp, $sp, 40
+    ld  $fp, 40($sp)            # 4-byte Folded Reload
+    ld  $lr, 44($sp)            # 4-byte Folded Reload
+    addiu $sp, $sp, 48
     ret $lr
     nop
     .set  macro
@@ -2655,7 +2660,7 @@ Next, the fp is set to sp where is the position just above alloca() spaces area
 as :num:`Figure #funccall-f4` when meet instruction **addu $fp, $sp, $zero**. 
 After that, the sp is changed to the area just below of alloca().
 Remind, the alloca() area which the b point to, 
-**"*b = (int*)__builtin_alloca(sizeof(int) * x1)"**, is 
+**"*b = (int*)__builtin_alloca(sizeof(int) * 2 * x6)"**, is 
 allocated at run time since the spaces is variable size which depend on x1 
 variable and cannot be calculated at link time. 
 
