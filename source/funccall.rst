@@ -9,32 +9,27 @@ Function call
 
 The subroutine/function call of backend translation is supported in this 
 chapter. 
-A lot of code needed in function call. They are added according llvm 
+A lot of code needed to support function call. They are added according llvm 
 supplied interface for easy to explanation. 
 This chapter starts from introducing the Mips stack frame structure since we 
 borrow many part of ABI from it. 
-Although each CPU has it's own ABI, most of RISC CPUs ABI are similar. 
+Although each CPU has it's own ABI, most of ABI for RISC CPUs are similar. 
 In addition to support fixed number of arguments in function call, Cpu0 
-supports variable number of arguments either since C/C++ support this feature. 
-Supply Mips ABI and assemble language manual on internet link in this chapter 
-for your reference. 
+supports variable number of arguments either, since C/C++ support this feature.
 The section “4.5 DAG Lowering” of tricore_llvm.pdf contains knowledge 
 about Lowering process. Section “4.5.1 Calling Conventions” of tricore_llvm.pdf 
 is the related materials you can reference furth.
-
-This chapter is more complicate than any of the previous chapters. 
-It include stack frame and the related ABI support. 
+ 
 If you have problem in reading the stack frame illustrated in the first three 
 sections of this chapter, you can read the appendix B of “Procedure Call
-Convention” of book “Computer Organization and Design, 1st Edition” which listed 
-in section “RISC CPU knowledge” of chapter “Control flow statement” [#]_, 
+Convention” of book “Computer Organization and Design, 1st Edition” [#]_, 
 “Run Time Memory” of compiler book, or “Function Call Sequence”  and 
-“Stack Frame” of Mips ABI.
+“Stack Frame” of Mips ABI [#abi]_.
 
 Mips stack frame
 -----------------
 
-The first thing for design the Cpu0 function call is deciding how to pass 
+The first thing for designing the Cpu0 function call is deciding how to pass 
 arguments in function call. There are two options. 
 The first is pass arguments all in stack. 
 Second is pass arguments in the registers which are reserved for function 
@@ -164,7 +159,7 @@ See comment **"//"**.
     .cfi_endproc
 
 
-From the mips assembly code generated as above, we know it save the first 4 
+From the mips assembly code generated as above, we see it saves the first 4 
 arguments to $a0..$a3 and last 2 arguments to 16($sp) and 20($sp). 
 :num:`Figure #funccall-f2` is the arguments location for example code 
 ch9_1.cpp. 
@@ -216,7 +211,7 @@ Since Chapter8_2/ define the LowerFormalArguments() with empty, we get the error
 message as above. 
 Before define LowerFormalArguments(), we have to choose how to pass arguments 
 in function call.
-For demonstration, Cpu0 pass arguments first two arguments in registers as 
+For demonstration, Cpu0 passes first two arguments in registers as 
 default setting of ``llc -cpu0-s32-calls=false``. 
 When ``llc -cpu0-s32-calls=true``, Cpu0 pass all it's arguments in stack.
 
@@ -309,7 +304,7 @@ We define it as follows,
 
 
 Refresh "section Global variable" [#]_, we handled global 
-variable translation by create the IR DAG in LowerGlobalAddress() first, and 
+variable translation by creating the IR DAG in LowerGlobalAddress() first, and 
 then finish the Instruction Selection according their corresponding machine 
 instruction DAGs in Cpu0InstrInfo.td. 
 LowerGlobalAddress() is called when ``llc`` meets the global variable access. 
@@ -320,21 +315,22 @@ before enter **“for loop”**. In ch9_1.cpp, there are 6 arguments in sum_i(..
 function call. 
 So ArgLocs.size() is 6, each argument information is in ArgLocs[i]. 
 When VA.isRegLoc() is true, meaning the arguement pass in register. On the 
-contrary, when VA.isMemLoc() is true, meaning the arguement pass in memory stack.
-When pass in register, it mark the register "live in" and copy directly from the
-register.
-When pass in memory stack, it creates stack offset for this frame index object 
-and load node with the created stack offset, and then puts the load node into 
-vector InVals. 
+contrary, when VA.isMemLoc() is true, meaning the arguement pass in memory 
+stack.
+When passing in registers, it marks the registers "live in" and copy directly 
+from the registers.
+When passing in memory stack, it creates stack offset for this frame index 
+object and load node with the created stack offset, and then puts the load node 
+into vector InVals. 
 
-When ``llc -cpu0-s32-calls=false`` it pass first two arguments registers
+When ``llc -cpu0-s32-calls=false`` it passes first two arguments registers
 and the other arguments in stack frame. When ``llc -cpu0-s32-calls=true`` it 
-pass first all arguments in stack frame.
+passes all arguments in stack frame.
 
-Before take care the arguemnts as above, it call analyzeFormalArguments().
-In analyzeFormalArguments() it call fixedArgFn() which return the function 
+Before taking care the arguemnts as above, it calls analyzeFormalArguments().
+In analyzeFormalArguments() it calls fixedArgFn() which return the function 
 pointer of CC_Cpu0O32() or CC_Cpu0S32(). 
-ArgFlags.isByVal() will be true if when meet "struct pointer byval" keyword
+ArgFlags.isByVal() will be true if it meets "struct pointer byval" keyword,
 such as "%struct.S* byval" in tailcall.ll.
 When ``llc -cpu0-s32-calls=false`` the stack offset begin from 8 (in case the 
 arguement registers need spill out) while ``llc -cpu0-s32-calls=true`` stack 
@@ -342,11 +338,11 @@ offset begin from 0.
  
 For instance of example code ch9_1.cpp with ``llc -cpu0-s32-calls=true`` (use 
 memory stack only to pass arguments), LowerFormalArguments() 
-will be called twice. First time is for sum_i() which will create 6 load DAGs 
+will be called twice. First time is for sum_i() which will create 6 "load DAGs" 
 for 6 incoming arguments passing into this function. 
-Second time is for main() which won't create any load DAG for no incoming 
+Second time is for main() which won't create any "load DAG" for no incoming 
 argument passing into main(). 
-In addition to LowerFormalArguments() which creates the load DAG, we need 
+In addition to LowerFormalArguments() which creates the "load DAG", we need 
 loadRegFromStackSlot() (defined in the early chapter) to issue the machine 
 instruction 
 **“ld $r, offset($sp)”** to load incoming arguments from stack frame offset.
@@ -620,7 +616,7 @@ JALR uses register operand.
 The code tells TableGen generating pattern match code that matching the "imm" for
 "tglobaladdr" pattern first. If it fails then trying to match "texternalsym" next.
 The function you declared belongs to "tglobaladdr", (for instance the function 
-sum_i(...) defined in ch9_1.cpp belong to "tglobaladdr"); the function which 
+sum_i(...) defined in ch9_1.cpp belongs to "tglobaladdr"); the function which 
 implicitly used by llvm belongs to "texternalsym" (for instance the function 
 "memcpy" belongs to "texternalsym"). The "memcpy" will be generated when 
 defining a long string. The ch9_1_2.cpp is an example for generating "memcpy"
@@ -3500,11 +3496,11 @@ automatically through the front end support languages more and more if the
 front end has not add any new IR for a new language.
 
 
-.. [#] http://jonathan2251.github.io/lbd/ctrlflow.html#risc-cpu-knowledge
+.. [#] Computer Organization and Design: The Hardware/Software Interface 1st edition (The Morgan Kaufmann Series in Computer Architecture and Design)
 
 .. [#] https://www.dropbox.com/sh/2pkh1fewlq2zag9/OHnrYn2nOs/doc/MIPSproAssemblyLanguageProgrammerGuide 
 
-.. [#] http://www.linux-mips.org/pub/linux/mips/doc/ABI/mipsabi.pdf
+.. [#abi] http://www.linux-mips.org/pub/linux/mips/doc/ABI/mipsabi.pdf
 
 .. [#] http://jonathan2251.github.io/lbd/globalvar.html#global-variable
 

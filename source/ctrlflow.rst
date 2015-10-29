@@ -1026,19 +1026,20 @@ The following input let you know the benefits of phi node as follows,
 Compile with ``clang -O3`` will generate phi function. The phi function can
 assign virtual register value directly from multi basic blocks.
 Compile with ``clang -O0`` doesn't generate phi, it assign virtual register
-value by loading stack slot where the stack slot is saved in the each of multi 
+value by loading stack slot where the stack slot is saved in each of multi 
 basic blocks before. 
 In this example the pointer of %1 point to the stack slot, and
 "store i32 %8, i32* %1", " store i32 %14, i32* %1", "store i32 %20, i32* %1" 
 in label 6, 12 and 18, respectively. In other words, it needs 3 store 
 instructions. 
 It's possible that the compiler find that the a == 0 is always true after 
-optimization analysis through phi node. If so, phi node version will bring better
+optimization analysis through phi node. 
+If so, the phi node version will bring better
 result because ``clang -O0`` version uses load and store with pointer %1 which
 may cut the optimization opportunity.
 
 If you are interested in more details than the wiki web site, please refer book
-here [#phi-book]_ for phi node. Or book here [#dominator-dragonbooks]_ about the 
+here [#phi-book]_ for phi node, or book here [#dominator-dragonbooks]_ for the 
 dominator tree analysis if you have this book only.
 
 
