@@ -139,4 +139,25 @@ uint64_t Cpu0FrameLowering::estimateStackSize(const MachineFunction &MF) const {
 }
 #endif
 
+#if CH >= CH9_2
+// Eliminate ADJCALLSTACKDOWN, ADJCALLSTACKUP pseudo instructions
+void Cpu0FrameLowering::
+eliminateCallFramePseudoInstr(MachineFunction &MF, MachineBasicBlock &MBB,
+                              MachineBasicBlock::iterator I) const {
+#if CH >= CH9_3 // dynamic alloc
+  unsigned SP = Cpu0::SP;
+
+  if (!hasReservedCallFrame(MF)) {
+    int64_t Amount = I->getOperand(0).getImm();
+    if (I->getOpcode() == Cpu0::ADJCALLSTACKDOWN)
+      Amount = -Amount;
+
+    STI.getInstrInfo()->adjustStackPtr(SP, Amount, MBB, I);
+  }
+#endif // dynamic alloc
+
+  MBB.erase(I);
+}
+#endif // #if CH >= CH9_2
+
 #endif // #if CH >= CH3_1

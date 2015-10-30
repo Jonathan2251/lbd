@@ -22,7 +22,8 @@ is the related materials you can reference furth.
  
 If you have problem in reading the stack frame illustrated in the first three 
 sections of this chapter, you can read the appendix B of “Procedure Call
-Convention” of book “Computer Organization and Design, 1st Edition” [#]_, 
+Convention” of book “Computer Organization and Design, 1st Edition” 
+[#computer_arch_interface]_, 
 “Run Time Memory” of compiler book, or “Function Call Sequence”  and 
 “Stack Frame” of Mips ABI [#abi]_.
 
@@ -178,8 +179,8 @@ argument 5.
     Mips arguments location in stack frame
 
 
-The 007-2418-003.pdf in here [#]_ is the Mips assembly language manual. 
-Here [#]_ is Mips Application Binary Interface which include the 
+The 007-2418-003.pdf in here [#mipsasm]_ is the Mips assembly language manual. 
+Here [#abi]_ is Mips Application Binary Interface which include the 
 :num:`Figure #funccall-f1`.
 
 Load incoming arguments from stack frame
@@ -303,7 +304,7 @@ We define it as follows,
     :end-before: #endif
 
 
-Refresh "section Global variable" [#]_, we handled global 
+Refresh "section Global variable" [#secglobal]_, we handled global 
 variable translation by creating the IR DAG in LowerGlobalAddress() first, and 
 then finish the Instruction Selection according their corresponding machine 
 instruction DAGs in Cpu0InstrInfo.td. 
@@ -819,15 +820,18 @@ stack.
     :start-after: #if CH >= CH9_2
     :end-before: #endif
   
-.. rubric:: lbdex/chapters/Chapter9_2/Cpu0SEFrameLowering.h
-.. literalinclude:: ../lbdex/Cpu0/Cpu0SEFrameLowering.h
+.. rubric:: lbdex/chapters/Chapter9_2/Cpu0FrameLowering.h
+.. literalinclude:: ../lbdex/Cpu0/Cpu0FrameLowering.h
     :start-after: #if CH >= CH9_2
     :end-before: #endif
 
-.. rubric:: lbdex/chapters/Chapter9_2/Cpu0SEFrameLowering.cpp
-.. literalinclude:: ../lbdex/Cpu0/Cpu0SEFrameLowering.cpp
+.. rubric:: lbdex/chapters/Chapter9_2/Cpu0FrameLowering.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0FrameLowering.cpp
     :start-after: #if CH >= CH9_2
-    :end-before: #endif
+    :end-before: #if CH >= CH9_3 // dynamic alloc
+.. literalinclude:: ../lbdex/Cpu0/Cpu0FrameLowering.cpp
+    :start-after: #endif // dynamic alloc
+    :end-before: #endif // #if CH >= CH9_2
 
 
 Read Lowercall() with Graphivz's help
@@ -1464,7 +1468,7 @@ Tail call optimization is used in some situation of function call. For some
 situation, the caller and callee stack can share the same memory stack.
 When this situation applied in recursive function call, it often asymptotically 
 reduces stack space requirements from linear, or O(n), to constant, or O(1) 
-[#]_. LLVM IR supports tailcall here [#]_.
+[#wikitailcall]_. LLVM IR supports tailcall here [#tailcallopt]_.
 
 The **tailcall** appeared in Cpu0ISelLowering.cpp and Cpu0InstrInfo.td are used 
 to make tail call optimization. 
@@ -1956,7 +1960,7 @@ We putting the comments in the result for explanation.
 As above code comment, **“.cprestore 8”** is a pseudo instruction for saving 
 **$gp** to **8($sp)** while Instruction **“ld $gp, 8($sp)”** restore 
 the $gp, reference Table 8-1 of "MIPSpro TM Assembly Language Programmer’s 
-Guide" [#]_. 
+Guide" [#mipsasm]_. 
 In other word, $gp is a caller saved register, so main() need to save/restore 
 $gp before/after call the shared library _Z5sum_ii() function. 
 In llvm Mips 3.5, it removed the .cprestore in mode PIC which meaning $gp
@@ -2477,8 +2481,8 @@ backend code too.
 .. literalinclude:: ../lbdex/input/ch9_3_2.cpp
     :start-after: /// start
 
-Mips qemu reference [#]_, you can download and run it with gcc to verify the 
-result with printf() function at this point. 
+Mips qemu reference [#mipsqemu]_, you can download and run it with gcc to 
+verify the result with printf() function at this point. 
 We will verify the code correction in chapter 
 "Run backend" through the CPU0 Verilog language machine.
 
@@ -2490,6 +2494,11 @@ Even though C language very rare to use dynamic stack allocation, there are
 languages use it frequently. The following C example code use it.
 
 Chapter9_3 support dynamic stack allocation with the following code added.
+
+.. rubric:: lbdex/chapters/Chapter9_2/Cpu0FrameLowering.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0FrameLowering.cpp
+    :start-after: #if CH >= CH9_2
+    :end-before: #endif // #if CH >= CH9_2
 
 .. rubric:: lbdex/chapters/Chapter9_3/Cpu0SEFrameLowering.cpp
 .. literalinclude:: ../lbdex/Cpu0/Cpu0SEFrameLowering.cpp
@@ -2567,11 +2576,9 @@ Run Chapter9_3 with ch9_4.cpp will get the following correct result.
   define i32 @_Z5sum_iiiiiii(i32 %x1, i32 %x2, i32 %x3, i32 %x4, i32 %x5, i32 %x6)
    nounwind uwtable ssp {
     ...
-    %10 = alloca i8, i64 %9	// int *b = (int*)alloca(sizeof(int) * x1);
-    %11 = bitcast i8* %10 to i32*
-    store i32* %11, i32** %b, align 8
-    %12 = load i32** %b, align 8
-    store i32 1111, i32* %12, align 4	// *b = 1111;
+    %9 = alloca i8, i32 %8	// int* b = (int*)__builtin_alloca(sizeof(int) * 1 * x1);
+    %10 = bitcast i8* %9 to i32*
+    store i32* %10, i32** %b, align 4
     ...
   }
   ...
@@ -2607,9 +2614,14 @@ Run Chapter9_3 with ch9_4.cpp will get the following correct result.
     st  $t9, 24($fp)
     st  $3, 20($fp)
     st  $2, 16($fp)
-    shl $2, $2, 3    // $2 = sizeof(int) * 2 * x6;
-    subu  $2, $sp, $2
+    shl $2, $2, 2    // $2 = sizeof(int) * 1 * x2;
+	  addiu	$2, $2, 7
+	  addiu	$3, $zero, -8
+	  and	$2, $2, $3
+	  addiu	$sp, $sp, 0
+    subu	$2, $sp, $2
     addu  $sp, $zero, $2  // set sp to the bottom of alloca area
+    addiu	$sp, $sp, 0
     st  $2, 12($fp)
     st  $2, 8($fp)
     ld  $2, 12($fp)
@@ -2621,6 +2633,7 @@ Run Chapter9_3 with ch9_4.cpp will get the following correct result.
     ld  $4, 28($fp)
     ld  $t9, 24($fp)
     ld  $7, 16($fp)
+    addiu	$sp, $sp, -24
     st  $7, 20($sp)
     st  $t9, 12($sp)
     st  $4, 8($sp)
@@ -2632,6 +2645,7 @@ Run Chapter9_3 with ch9_4.cpp will get the following correct result.
     jalr  $t9
     nop
     ld  $gp, 24($fp)
+    addiu	$sp, $sp, 24
     st  $2, 4($fp)
     ld  $3, 8($fp)
     ld  $3, 0($3)
@@ -2709,11 +2723,11 @@ local variables have better performance compare to use the sp only.
   	ld	$2, 64($fp)
   	st	$3, 4($sp)
   	
-Cpu0 use fp and sp to access the above and below areas of alloca() too. 
+Cpu0 uses fp and sp to access the above and below areas of alloca() too. 
 As ch9_4.cpu0.s, it access local variable (above of alloca()) by fp offset
 and outgoing arguments (below of alloca()) by sp offset.
 
-Finally, the "move $sp, $fp" is the alias instruction of "addu $fp, $sp, $zero".
+And more, the "move $sp, $fp" is the alias instruction of "addu $fp, $sp, $zero".
 The machine code is the latter, and the former is only for easy understand by
 user only. This alias come from added code in Chapter3_2 and Chapter3_4 as 
 follows,
@@ -2732,6 +2746,11 @@ follows,
     :start-after: //#if CH >= CH3_4 13
     :end-before: //#endif
 
+Finally the MFI->hasVarSizedObjects() defined in hasReservedCallFrame() of
+Cpu0SEFrameLowering.cpp is true when it meets "%9 = alloca i8, i32 %8" of IR 
+which corresponding "(int*)__builtin_alloca(sizeof(int) * 1 * x1);" of C.
+It will generate asm "addiu	$sp, $sp, -24" for ch9_4.cpp by calling 
+"adjustStackPtr()" in eliminateCallFramePseudoInstr() of Cpu0FrameLowering.cpp.
 
 File ch9_7.cpp which is for type "long long shift operations" support can be 
 tested now as follows. 
@@ -3496,23 +3515,21 @@ automatically through the front end support languages more and more if the
 front end has not add any new IR for a new language.
 
 
-.. [#] Computer Organization and Design: The Hardware/Software Interface 1st edition (The Morgan Kaufmann Series in Computer Architecture and Design)
+.. [#computer_arch_interface] Computer Organization and Design: The Hardware/Software Interface 1st edition (The Morgan Kaufmann Series in Computer Architecture and Design)
 
-.. [#] https://www.dropbox.com/sh/2pkh1fewlq2zag9/OHnrYn2nOs/doc/MIPSproAssemblyLanguageProgrammerGuide 
+.. [#mipsasm] http://math-atlas.sourceforge.net/devel/assembly/007-2418-003.pdf
 
 .. [#abi] http://www.linux-mips.org/pub/linux/mips/doc/ABI/mipsabi.pdf
 
-.. [#] http://jonathan2251.github.io/lbd/globalvar.html#global-variable
+.. [#secglobal] http://jonathan2251.github.io/lbd/globalvar.html#global-variable
 
-.. [#] http://en.wikipedia.org/wiki/Tail_call
+.. [#wikitailcall] http://en.wikipedia.org/wiki/Tail_call
 
-.. [#] http://llvm.org/docs/CodeGenerator.html#tail-call-optimization
+.. [#tailcallopt] http://llvm.org/docs/CodeGenerator.html#tail-call-optimization
 
 .. [#callconv] http://llvm.org/docs/LangRef.html#calling-conventions
 
-.. [#] http://math-atlas.sourceforge.net/devel/assembly/007-2418-003.pdf
-
-.. [#] http://developer.mips.com/clang-llvm/
+.. [#mipsqemu] http://developer.mips.com/clang-llvm/
 
 .. [#stacksave] http://www.llvm.org/docs/LangRef.html#llvm-stacksave-intrinsic
 

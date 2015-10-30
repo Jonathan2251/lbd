@@ -71,7 +71,7 @@ void Cpu0SEFrameLowering::emitPrologue(MachineFunction &MF,
   MachineLocation DstML, SrcML;
 
   // Adjust stack.
-  TII.adjustStackPtr(Cpu0FI, SP, -StackSize, MBB, MBBI);
+  TII.adjustStackPtr(SP, -StackSize, MBB, MBBI);
 
   // emit ".cfi_def_cfa_offset StackSize"
   unsigned CFIIndex = MMI.addFrameInst(
@@ -216,7 +216,7 @@ void Cpu0SEFrameLowering::emitEpilogue(MachineFunction &MF,
     return;
 
   // Adjust stack.
-  TII.adjustStackPtr(Cpu0FI, SP, StackSize, MBB, MBBI);
+  TII.adjustStackPtr(SP, StackSize, MBB, MBBI);
 #endif // #if CH >= CH3_5 //2
 }
 //}
@@ -269,16 +269,6 @@ Cpu0SEFrameLowering::hasReservedCallFrame(const MachineFunction &MF) const {
 }
 //}
 #endif //#if CH >= CH3_5 //3
-
-#if CH >= CH9_2
-// Eliminate ADJCALLSTACKDOWN, ADJCALLSTACKUP pseudo instructions
-void Cpu0SEFrameLowering::
-eliminateCallFramePseudoInstr(MachineFunction &MF, MachineBasicBlock &MBB,
-                              MachineBasicBlock::iterator I) const {
-  // Simply discard ADJCALLSTACKDOWN, ADJCALLSTACKUP instructions.
-  MBB.erase(I);
-}
-#endif
 
 #if CH >= CH3_5 //4
 

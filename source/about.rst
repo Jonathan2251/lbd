@@ -78,6 +78,7 @@ Version 3.7.1, Not release yet
   Replace ch3-proepilog.ll with ch3_largeframe.cpp.
   Remove DecodeCMPInstruction().
   Re-organize testing ch4_2_1.cpp, ch4_2_2.cpp and ch9_4.cpp.
+  Fix dynamic alloca bug.
 
 Version 3.7.0, Released September 24, 2015
   Porting to lld 3.7.

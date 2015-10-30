@@ -130,8 +130,8 @@ bool Cpu0SEInstrInfo::expandPostRAPseudo(MachineBasicBlock::iterator MI) const {
 }
 
 /// Adjust SP by Amount bytes.
-void Cpu0SEInstrInfo::adjustStackPtr(Cpu0FunctionInfo *Cpu0FI, unsigned SP, 
-                                     int64_t Amount, MachineBasicBlock &MBB,
+void Cpu0SEInstrInfo::adjustStackPtr(unsigned SP, int64_t Amount,
+                                     MachineBasicBlock &MBB,
                                      MachineBasicBlock::iterator I) const {
   DebugLoc DL = I != MBB.end() ? I->getDebugLoc() : DebugLoc();
   unsigned ADDu = Cpu0::ADDu;
@@ -140,9 +140,8 @@ void Cpu0SEInstrInfo::adjustStackPtr(Cpu0FunctionInfo *Cpu0FI, unsigned SP,
   if (isInt<16>(Amount))// addiu sp, sp, amount
     BuildMI(MBB, I, DL, get(ADDiu), SP).addReg(SP).addImm(Amount);
   else { // Expand immediate that doesn't fit in 16-bit.
-    Cpu0FI->setEmitNOAT();
     unsigned Reg = loadImmediate(Amount, MBB, I, DL, nullptr);
-    BuildMI(MBB, I, DL, get(ADDu), SP).addReg(SP).addReg(Reg);
+    BuildMI(MBB, I, DL, get(ADDu), SP).addReg(SP).addReg(Reg, RegState::Kill);
   }
 }
 
