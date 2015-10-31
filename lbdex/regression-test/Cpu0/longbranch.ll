@@ -39,7 +39,7 @@ end:
 ; O32-NEXT:        addiu   $1, $1, 4
 ; O32-NEXT:        ld      $lr, 0($sp)
 ; O32-NEXT:        addiu   $sp, $sp, 8
-; O32-NEXT:        ret      $1
+; O32-NEXT:        jr      $1
 ; O32-NEXT:        nop
 
 ; O32:   $[[BB0]]:

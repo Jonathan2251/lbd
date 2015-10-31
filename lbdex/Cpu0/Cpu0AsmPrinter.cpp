@@ -86,6 +86,7 @@ void Cpu0AsmPrinter::emitPseudoCPRestore(MCStreamer &OutStreamer,
   int64_t Offset = MO.getImm();
 
   if (OutStreamer.hasRawTextSupport()) {
+    // output assembly
     if (!isInt<16>(Offset)) {
       EmitInstrWithMacroNoAT(MI);
       return;
@@ -94,6 +95,7 @@ void Cpu0AsmPrinter::emitPseudoCPRestore(MCStreamer &OutStreamer,
     MCInstLowering.Lower(MI, TmpInst0);
     OutStreamer.EmitInstruction(TmpInst0, getSubtargetInfo());
   } else {
+    // output elf
     MCInstLowering.LowerCPRESTORE(Offset, MCInsts);
 
     for (SmallVector<MCInst, 4>::iterator I = MCInsts.begin();
