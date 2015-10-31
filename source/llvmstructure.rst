@@ -2254,7 +2254,7 @@ the Target Registration.
 
 .. [#aosa-book] Chris Lattner, **LLVM**. Published in The Architecture of Open Source Applications. http://www.aosabook.org/en/llvm.html
 
-.. [#chapters-ex] file:///home/cschen/test/lbd/build/html/doc.html#generate-cpu0-document
+.. [#chapters-ex] http://jonathan2251.github.io/lbd/doc.html#generate-cpu0-document
 
 .. [#codegen] http://llvm.org/docs/CodeGenerator.html
 

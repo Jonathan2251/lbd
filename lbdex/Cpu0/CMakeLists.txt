@@ -32,7 +32,7 @@ add_public_tablegen_target(Cpu0CommonTableGen)
 
 # Cpu0CodeGen should match with LLVMBuild.txt Cpu0CodeGen
 add_llvm_target(Cpu0CodeGen
-#if CH >= CH3_4
+#if CH >= CH3_5
   Cpu0AnalyzeImmediate.cpp
 #endif
 #if CH >= CH3_2 2

@@ -14,7 +14,7 @@
 #include "Cpu0FrameLowering.h"
 #if CH >= CH3_1
 
-#if CH >= CH3_4 //1
+#if CH >= CH3_5 //1
 #include "Cpu0AnalyzeImmediate.h"
 #endif
 #include "Cpu0InstrInfo.h"

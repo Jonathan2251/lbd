@@ -2731,7 +2731,7 @@ and outgoing arguments (below of alloca()) by sp offset.
 
 And more, the "move $sp, $fp" is the alias instruction of "addu $fp, $sp, $zero".
 The machine code is the latter, and the former is only for easy understand by
-user only. This alias come from added code in Chapter3_2 and Chapter3_4 as 
+user only. This alias come from added code in Chapter3_2 and Chapter3_5 as 
 follows,
 
 
@@ -2742,10 +2742,10 @@ follows,
 
 .. rubric:: lbdex/chapters/Chapter3_5/Cpu0InstrInfo.td
 .. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td
-    :start-after: //#if CH >= CH3_4 1
+    :start-after: //#if CH >= CH3_5 1
     :end-before: //#endif
 .. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td
-    :start-after: //#if CH >= CH3_4 13
+    :start-after: //#if CH >= CH3_5 13
     :end-before: //#endif
 
 Finally the MFI->hasVarSizedObjects() defined in hasReservedCallFrame() of

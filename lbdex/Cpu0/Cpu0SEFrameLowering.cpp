@@ -14,7 +14,7 @@
 #include "Cpu0SEFrameLowering.h"
 #if CH >= CH3_1
 
-#if CH >= CH3_4
+#if CH >= CH3_5
 #include "Cpu0AnalyzeImmediate.h"
 #endif
 #include "Cpu0MachineFunction.h"

@@ -55,6 +55,7 @@ public:
 
   bool expandPostRAPseudo(MachineBasicBlock::iterator MI) const override;
 
+#if CH >= CH3_5 //1
   /// Adjust SP by Amount bytes.
   void adjustStackPtr(unsigned SP, int64_t Amount, MachineBasicBlock &MBB,
                       MachineBasicBlock::iterator I) const override;
@@ -65,6 +66,7 @@ public:
   unsigned loadImmediate(int64_t Imm, MachineBasicBlock &MBB,
                          MachineBasicBlock::iterator II, DebugLoc DL,
                          unsigned *NewImm) const;
+#endif //#if CH >= CH3_5 //1
 private:
   void expandRetLR(MachineBasicBlock &MBB, MachineBasicBlock::iterator I) const;
 

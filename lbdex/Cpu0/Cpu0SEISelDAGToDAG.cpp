@@ -16,7 +16,7 @@
 
 #include "MCTargetDesc/Cpu0BaseInfo.h"
 #include "Cpu0.h"
-#if CH >= CH3_4
+#if CH >= CH3_5
 #include "Cpu0AnalyzeImmediate.h"
 #endif
 #include "Cpu0MachineFunction.h"

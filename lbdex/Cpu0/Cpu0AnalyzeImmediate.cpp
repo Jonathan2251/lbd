@@ -8,7 +8,7 @@
 //===----------------------------------------------------------------------===//
 #include "Cpu0AnalyzeImmediate.h"
 #include "Cpu0.h"
-#if CH >= CH3_4
+#if CH >= CH3_5
 
 #include "llvm/Support/MathExtras.h"
 

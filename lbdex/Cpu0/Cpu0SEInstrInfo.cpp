@@ -129,6 +129,7 @@ bool Cpu0SEInstrInfo::expandPostRAPseudo(MachineBasicBlock::iterator MI) const {
   return true;
 }
 
+#if CH >= CH3_5 //1
 /// Adjust SP by Amount bytes.
 void Cpu0SEInstrInfo::adjustStackPtr(unsigned SP, int64_t Amount,
                                      MachineBasicBlock &MBB,
@@ -183,6 +184,7 @@ Cpu0SEInstrInfo::loadImmediate(int64_t Imm, MachineBasicBlock &MBB,
 
   return ATReg;
 }
+#endif //#if CH >= CH3_5 //1
 
 void Cpu0SEInstrInfo::expandRetLR(MachineBasicBlock &MBB,
                                 MachineBasicBlock::iterator I) const {

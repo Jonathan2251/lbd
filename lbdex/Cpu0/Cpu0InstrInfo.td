@@ -156,7 +156,7 @@ def HasSlt      :     Predicate<"Subtarget->hasSlt()">;
 def RelocPIC    :     Predicate<"TM.getRelocationModel() == Reloc::PIC_">;
 //#endif
 
-//#if CH >= CH3_4 1
+//#if CH >= CH3_5 1
 class Cpu0InstAlias<string Asm, dag Result, bit Emit = 0b1> :
   InstAlias<Asm, Result, Emit>;
 //#endif
@@ -220,7 +220,7 @@ def simm16      : Operand<i32> {
 }
 //#endif
 
-//#if CH >= CH3_4 2
+//#if CH >= CH3_5 2
 def shamt       : Operand<i32>;
 
 // Unsigned Operand
@@ -263,7 +263,7 @@ def PtrRC : Operand<iPTR> {
 }
 //#endif
 
-//#if CH >= CH3_4 3
+//#if CH >= CH3_5 3
 // Transformation Function - get the lower 16 bits.
 def LO16 : SDNodeXForm<imm, [{
   return getImm(N, N->getZExtValue() & 0xffff);
@@ -281,7 +281,7 @@ def HI16 : SDNodeXForm<imm, [{
 def immSExt16  : PatLeaf<(imm), [{ return isInt<16>(N->getSExtValue()); }]>;
 //#endif
 
-//#if CH >= CH3_4 4
+//#if CH >= CH3_5 4
 // Node immediate fits as 16-bit zero extended on target immediate.
 // The LO16 param means that only the lower 16 bits of the node
 // immediate are caught.
@@ -346,8 +346,8 @@ def store_a         : AlignedStore<store>;
 // Instructions specific format
 //===----------------------------------------------------------------------===//
 
-//#if CH >= CH3_4 5
-let Predicates = [Ch3_4] in {
+//#if CH >= CH3_5 5
+let Predicates = [Ch3_5] in {
 // Arithmetic and logical instructions with 3 register operands.
 class ArithLogicR<bits<8> op, string instr_asm, SDNode OpNode,
                   InstrItinClass itin, RegisterClass RC, bit isComm = 0>:
@@ -386,8 +386,8 @@ class ArithLogicI<bits<8> op, string instr_asm, SDNode OpNode,
 }
 //#endif
 
-//#if CH >= CH3_4 6
-let Predicates = [Ch3_4] in {
+//#if CH >= CH3_5 6
+let Predicates = [Ch3_5] in {
 // Shifts
 class shift_rotate_imm<bits<8> op, bits<4> isRotate, string instr_asm,
                        SDNode OpNode, PatFrag PF, Operand ImmOpnd,
@@ -418,8 +418,8 @@ class shift_rotate_reg<bits<8> op, bits<4> isRotate, string instr_asm,
 }
 //#endif
 
-//#if CH >= CH3_4 7
-let Predicates = [Ch3_4] in {
+//#if CH >= CH3_5 7
+let Predicates = [Ch3_5] in {
 // Load Upper Imediate
 class LoadUpper<bits<8> op, string instr_asm, RegisterClass RC, Operand Imm>:
   FL<op, (outs RC:$ra), (ins Imm:$imm16),
@@ -889,8 +889,8 @@ let Predicates = [Ch4_2] in {
 def ANDi    : ArithLogicI<0x0c, "andi", and, uimm16, immZExt16, CPURegs>;
 }
 //#endif
-//#if CH >= CH3_4 8
-let Predicates = [Ch3_4] in {
+//#if CH >= CH3_5 8
+let Predicates = [Ch3_5] in {
 def ORi     : ArithLogicI<0x0d, "ori", or, uimm16, immZExt16, CPURegs>;
 }
 //#endif
@@ -899,8 +899,8 @@ let Predicates = [Ch4_2] in {
 def XORi    : ArithLogicI<0x0e, "xori", xor, uimm16, immZExt16, CPURegs>;
 }
 //#endif
-//#if CH >= CH3_4 9
-let Predicates = [Ch3_4] in {
+//#if CH >= CH3_5 9
+let Predicates = [Ch3_5] in {
 def LUi     : LoadUpper<0x0f, "lui", GPROut, uimm16>;
 }
 //#endif
@@ -913,8 +913,8 @@ def CMP     : CmpInstr<0x10, "cmp", IIAlu, CPURegs, SR, 0>;
 }
 }
 //#endif
-//#if CH >= CH3_4 10
-let Predicates = [Ch3_4] in {
+//#if CH >= CH3_5 10
+let Predicates = [Ch3_5] in {
 let Predicates = [DisableOverflow] in {
 def ADDu    : ArithLogicR<0x11, "addu", add, IIAlu, CPURegs, 1>;
 }
@@ -949,8 +949,8 @@ def ROR     : shift_rotate_imm32<0x1c, 0x01, "ror", rotr>;
 def SRA     : shift_rotate_imm32<0x1d, 0x00, "sra", sra>;
 }
 //#endif
-//#if CH >= CH3_4 11
-let Predicates = [Ch3_4] in {
+//#if CH >= CH3_5 11
+let Predicates = [Ch3_5] in {
 def SHL     : shift_rotate_imm32<0x1e, 0x00, "shl", shl>;
 }
 //#endif
@@ -1103,8 +1103,8 @@ def LEA_ADDiu : EffectiveAddress<"addiu\t$ra, $addr", CPURegs, mem_ea> {
 }
 //#endif
 
-//#if CH >= CH3_4 13
-let Predicates = [Ch3_4] in {
+//#if CH >= CH3_5 13
+let Predicates = [Ch3_5] in {
 //===----------------------------------------------------------------------===//
 // Instruction aliases
 //===----------------------------------------------------------------------===//
@@ -1127,8 +1127,8 @@ def : Cpu0InstAlias<"sync",
 def : Pat<(i32 immSExt16:$in),
           (ADDiu ZERO, imm:$in)>;
 //#endif
-//#if CH >= CH3_4 14
-let Predicates = [Ch3_4] in {
+//#if CH >= CH3_5 14
+let Predicates = [Ch3_5] in {
 def : Pat<(i32 immZExt16:$in),
           (ORi ZERO, imm:$in)>;
 def : Pat<(i32 immLow16Zero:$in),

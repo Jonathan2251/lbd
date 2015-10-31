@@ -18,7 +18,7 @@
 #if CH >= CH3_1
 
 #include "Cpu0.h"
-#if CH >= CH3_4 //1
+#if CH >= CH3_5 //1
 #include "Cpu0AnalyzeImmediate.h"
 #endif
 #include "Cpu0RegisterInfo.h"
@@ -82,7 +82,9 @@ public:
                                 const TargetRegisterClass *RC,
                                 const TargetRegisterInfo *TRI,
                                 int64_t Offset) const = 0;
+#endif
 
+#if CH >= CH3_5 //2
   virtual void adjustStackPtr(unsigned SP, int64_t Amount,
                               MachineBasicBlock &MBB,
                               MachineBasicBlock::iterator I) const = 0;

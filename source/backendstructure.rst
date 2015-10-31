@@ -982,109 +982,12 @@ code added in Chapter3_1/Cpu0ISelLowering.cpp.
     :end-before: //@3_1 1 }
 
 
-Handle return register lr 
------------------------------
+Handle stack slot for local variables
+--------------------------------------
 
-.. rubric:: lbdex/chapters/Chapter3_4/CMakeLists.txt
-.. code-block:: c++
-
-  add_llvm_target(
-    ...
-  
-.. literalinclude:: ../lbdex/Cpu0/CMakeLists.txt
-    :start-after: #if CH >= CH3_4
-    :end-before: #endif
-  
-.. code-block:: c++
-
-    ...
-  )
-
-.. rubric:: lbdex/chapters/Chapter3_4/Cpu0AnalyzeImmediate.h
-.. literalinclude:: ../lbdex/Cpu0/Cpu0AnalyzeImmediate.h
-
-.. rubric:: lbdex/chapters/Chapter3_4/Cpu0AnalyzeImmediate.cpp
-.. literalinclude:: ../lbdex/Cpu0/Cpu0AnalyzeImmediate.cpp
-
-.. rubric:: lbdex/chapters/Chapter3_4/Cpu0CallingConv.td
-.. literalinclude:: ../lbdex/Cpu0/Cpu0CallingConv.td
-    :start-after: #if CH >= CH3_4 1
-    :end-before: #endif
-.. literalinclude:: ../lbdex/Cpu0/Cpu0CallingConv.td
-    :start-after: #if CH >= CH3_4 2
-    :end-before: #endif
-
-.. rubric:: lbdex/chapters/Chapter3_4/Cpu0FrameLowering.h
-.. literalinclude:: ../lbdex/Cpu0/Cpu0FrameLowering.h
-    :start-after: #if CH >= CH3_4
-    :end-before: #endif
-
-.. rubric:: lbdex/chapters/Chapter3_4/Cpu0FrameLowering.cpp
-.. literalinclude:: ../lbdex/Cpu0/Cpu0FrameLowering.cpp
-    :start-after: #if CH >= CH3_4 //1
-    :end-before: #endif
-.. literalinclude:: ../lbdex/Cpu0/Cpu0FrameLowering.cpp
-    :start-after: #if CH >= CH3_4 //2
-    :end-before: #endif
-
-.. rubric:: lbdex/chapters/Chapter3_4/Cpu0SEFrameLowering.cpp
-.. literalinclude:: ../lbdex/Cpu0/Cpu0SEFrameLowering.cpp
-    :start-after: #if CH >= CH3_4
-    :end-before: #endif
-
-.. rubric:: lbdex/chapters/Chapter3_4/Cpu0InstrFormats.td
-.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrFormats.td
-    :start-after: #if CH >= CH3_4
-    :end-before: #endif
-
-.. rubric:: lbdex/chapters/Chapter3_4/Cpu0InstrInfo.td
-.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td
-    :start-after: #if CH >= CH3_4 1
-    :end-before: #endif
-.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td
-    :start-after: #if CH >= CH3_4 2
-    :end-before: #endif
-.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td
-    :start-after: #if CH >= CH3_4 3
-    :end-before: #endif
-.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td
-    :start-after: #if CH >= CH3_4 4
-    :end-before: #endif
-.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td
-    :start-after: #if CH >= CH3_4 5
-    :end-before: #endif
-.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td
-    :start-after: #if CH >= CH3_4 6
-    :end-before: #endif
-.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td
-    :start-after: #if CH >= CH3_4 7
-    :end-before: #endif
-.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td
-    :start-after: #if CH >= CH3_4 8
-    :end-before: #endif
-.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td
-    :start-after: #if CH >= CH3_4 9
-    :end-before: #endif
-.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td
-    :start-after: #if CH >= CH3_4 10
-    :end-before: #endif
-.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td
-    :start-after: #if CH >= CH3_4 11
-    :end-before: #endif
-.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td
-    :start-after: #if CH >= CH3_4 12
-    :end-before: #endif
-.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td
-    :start-after: #if CH >= CH3_4 13
-    :end-before: #endif
-.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td
-    :start-after: #if CH >= CH3_4 14
-    :end-before: #endif
+The following code handle the stack slot for local variables.
 
 .. rubric:: lbdex/chapters/Chapter3_4/Cpu0InstrInfo.h
-.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.h
-    :start-after: #if CH >= CH3_4 //1
-    :end-before: #endif
 .. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.h
     :start-after: #if CH >= CH3_4 //2
     :end-before: #endif
@@ -1100,77 +1003,38 @@ Handle return register lr
 .. rubric:: lbdex/chapters/Chapter3_4/Cpu0SEInstrInfo.h
 .. literalinclude:: ../lbdex/Cpu0/Cpu0SEInstrInfo.h
     :start-after: #if CH >= CH3_4
-    :end-before: #if CH >= CH9_3
+    :end-before: #if CH >= CH3_5 //1
 
+.. rubric:: lbdex/chapters/Chapter3_4/Cpu0SEInstrInfo.cpp
 .. literalinclude:: ../lbdex/Cpu0/Cpu0SEInstrInfo.cpp
     :start-after: #if CH >= CH3_4 //2
     :end-before: #if CH >= CH9_3 //1
 .. literalinclude:: ../lbdex/Cpu0/Cpu0SEInstrInfo.cpp
     :start-after: #endif //#if CH >= CH9_3 //1
+    :end-before: #if CH >= CH3_5 //1
+.. literalinclude:: ../lbdex/Cpu0/Cpu0SEInstrInfo.cpp
+    :start-after: #endif //#if CH >= CH3_5 //1
     :end-before: #endif //#if CH >= CH3_4 //2
-
-.. rubric:: lbdex/chapters/Chapter3_4/Cpu0ISelLowering.h
-.. literalinclude:: ../lbdex/chapters/Chapter3_4/Cpu0ISelLowering.h
-    :start-after: //@CH3_4 1 {
-    :end-before: //@CH3_4 1 }
-
-.. rubric:: lbdex/chapters/Chapter3_4/Cpu0ISelLowering.cpp
-.. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.cpp
-    :start-after: #if CH >= CH3_1 //LowerReturn
-    :end-before: #if CH >= CH3_4 //in LowerReturn
-.. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.cpp
-    :start-after: #if CH >= CH3_4 //in LowerReturn
-    :end-before: #else // #if CH >= CH3_4
-
-.. code-block:: c++
-
-  }
-
-.. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.cpp
-    :start-after: #if CH >= CH3_4 //analyzeReturn
-    :end-before: #endif // #if CH >= CH3_4 //analyzeReturn
-
-.. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.cpp
-    :start-after: #if CH >= CH3_4 //reservedArgArea
-    :end-before: #endif
-
-.. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.cpp
-    :start-after: #if CH >= CH3_4 //getRegVT
-    :end-before: #endif
-
-.. rubric:: lbdex/chapters/Chapter3_4/Cpu0MachineFunction.h
-.. literalinclude:: ../lbdex/Cpu0/Cpu0MachineFunction.h
-    :start-after: //@1 {
-    :end-before: public:
-.. literalinclude:: ../lbdex/Cpu0/Cpu0MachineFunction.h
-    :start-after: #if CH >= CH3_4 //1
-    :end-before: #endif
-.. literalinclude:: ../lbdex/Cpu0/Cpu0MachineFunction.h
-    :start-after: #if CH >= CH3_4 //2
-    :end-before: #endif
-.. literalinclude:: ../lbdex/Cpu0/Cpu0MachineFunction.h
-    :start-after: #if CH >= CH3_4 //3
-    :end-before: #endif
-.. literalinclude:: ../lbdex/Cpu0/Cpu0MachineFunction.h
-    :start-after: #if CH >= CH3_4 //4
-    :end-before: #endif
-.. literalinclude:: ../lbdex/Cpu0/Cpu0MachineFunction.h
-    :start-after: #if CH >= CH3_4 //5
-    :end-before: #endif
-
-.. code-block:: c++
-
-  }
 
 .. rubric:: lbdex/chapters/Chapter3_4/Cpu0RegisterInfo.cpp
 .. literalinclude:: ../lbdex/chapters/Chapter3_4/Cpu0RegisterInfo.cpp
     :start-after: //@eliminateFrameIndex {
     :end-before: //}
 
-.. rubric:: lbdex/chapters/Chapter3_4/Cpu0SEISelDAGToDAG.cpp
-.. literalinclude:: ../lbdex/Cpu0/Cpu0SEISelDAGToDAG.cpp
-    :start-after: #if CH >= CH3_4
-    :end-before: #endif
+Function storeRegToStack() and loadRegFromStack() of Cpu0SEInstrInfo.cpp, 
+storeRegToStackSlot() and loadRegFromStackSlot() of Cpu0InstrInfo.cpp are for
+handling the registers spill during register allocation process.
+Since each local variable connecting to a frame index,  ".addFrameIndex(FI).
+addImm(Offset).addMemOperand(MMO); where Offset is 0" in storeRegToStack() and 
+loadRegFromStack().
+The eliminateFrameIndex() of Cpu0RegisterInfo.cpp is called after instruction 
+selection and registers allocated. 
+It translates frame index to correct offset of stack pointer by
+"spOffset = MF.getFrameInfo()->getObjectOffset(FrameIndex);".
+
+
+Handle return register \$lr 
+-----------------------------
 
 The following code is the result of running Mips backend with ch3.cpp.
 
@@ -1292,6 +1156,84 @@ spill $ra register. This will save a lot of time if it is in a hot function.
   $func_end0:
     .size _Z15test_longbranchv, ($func_end0)-_Z15test_longbranchv
 
+The following code handle the return register \$lr.
+
+.. rubric:: lbdex/chapters/Chapter3_4/Cpu0CallingConv.td
+.. literalinclude:: ../lbdex/Cpu0/Cpu0CallingConv.td
+    :start-after: #if CH >= CH3_4 1
+    :end-before: #endif
+.. literalinclude:: ../lbdex/Cpu0/Cpu0CallingConv.td
+    :start-after: #if CH >= CH3_4 2
+    :end-before: #endif
+
+.. rubric:: lbdex/chapters/Chapter3_4/Cpu0FrameLowering.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0FrameLowering.cpp
+    :start-after: #if CH >= CH3_4 //2
+    :end-before: #endif
+
+.. rubric:: lbdex/chapters/Chapter3_4/Cpu0InstrFormats.td
+.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrFormats.td
+    :start-after: #if CH >= CH3_4
+    :end-before: #endif
+
+.. rubric:: lbdex/chapters/Chapter3_4/Cpu0InstrInfo.td
+.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td
+    :start-after: #if CH >= CH3_4 12
+    :end-before: #endif
+
+
+.. rubric:: lbdex/chapters/Chapter3_4/Cpu0ISelLowering.h
+.. literalinclude:: ../lbdex/chapters/Chapter3_4/Cpu0ISelLowering.h
+    :start-after: //@CH3_4 1 {
+    :end-before: //@CH3_4 1 }
+
+.. rubric:: lbdex/chapters/Chapter3_4/Cpu0ISelLowering.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.cpp
+    :start-after: #if CH >= CH3_1 //LowerReturn
+    :end-before: #if CH >= CH3_4 //in LowerReturn
+.. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.cpp
+    :start-after: #if CH >= CH3_4 //in LowerReturn
+    :end-before: #else // #if CH >= CH3_4
+
+.. code-block:: c++
+
+  }
+
+.. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.cpp
+    :start-after: #if CH >= CH3_4 //analyzeReturn
+    :end-before: #endif // #if CH >= CH3_4 //analyzeReturn
+
+.. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.cpp
+    :start-after: #if CH >= CH3_4 //reservedArgArea
+    :end-before: #endif
+
+.. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.cpp
+    :start-after: #if CH >= CH3_4 //getRegVT
+    :end-before: #endif
+
+.. rubric:: lbdex/chapters/Chapter3_4/Cpu0MachineFunction.h
+.. literalinclude:: ../lbdex/Cpu0/Cpu0MachineFunction.h
+    :start-after: //@1 {
+    :end-before: public:
+.. literalinclude:: ../lbdex/Cpu0/Cpu0MachineFunction.h
+    :start-after: #if CH >= CH3_4 //1
+    :end-before: #endif
+.. literalinclude:: ../lbdex/Cpu0/Cpu0MachineFunction.h
+    :start-after: #if CH >= CH3_4 //2
+    :end-before: #endif
+.. literalinclude:: ../lbdex/Cpu0/Cpu0MachineFunction.h
+    :start-after: #if CH >= CH3_4 //3
+    :end-before: #endif
+.. literalinclude:: ../lbdex/Cpu0/Cpu0MachineFunction.h
+    :start-after: #if CH >= CH3_4 //4
+    :end-before: #endif
+.. literalinclude:: ../lbdex/Cpu0/Cpu0MachineFunction.h
+    :start-after: #if CH >= CH3_4 //5
+    :end-before: #endif
+
+.. code-block:: c++
+
+  }
 
 To handle IR ret, these code in Cpu0InstrInfo.td do things as below.
 
@@ -1349,7 +1291,12 @@ To handle IR ret, these code in Cpu0InstrInfo.td do things as below.
 .. rubric:: lbdex/chapters/Chapter2/Cpu0InstrInfo.td
 .. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td
     :start-after: //#if CH >= CH2 12
-    :end-before: //#endif
+    :end-before: //#if CH >= CH10_1 1.5
+
+.. code-block:: c++
+
+  }
+  
 .. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td
     :start-after: //#if CH >= CH2 15
     :end-before: //#endif
@@ -1381,10 +1328,6 @@ Chain, DAG.getRegister(Cpu0::LR, MVT::i32));" instead of "return DAG.getNode
 (Cpu0ISD::Ret, DL, MVT::Other, &RetOps[0], RetOps.size());" then the V0 register
 won't be live out, and the previous DAG (CopyToReg %X, %V0, %Y) will be removed
 at later optimization steps. It ending with the return value is error. 
-
-Function storeRegToStack() and loadRegFromStack() of Cpu0SEInstrInfo.cpp, 
-storeRegToStackSlot() and loadRegFromStackSlot() of Cpu0InstrInfo.cpp are for
-handling the registers spill during register allocation process.
 
 Build Chapter3_4 and run with it, finding the error message in Chapter3_3 is 
 gone. The compile result as follows,
@@ -1546,7 +1489,7 @@ Prologue/Epilogue Code Insertion, eliminateFrameIndex() is called after
 instruction selection and register allocated. 
 It translates the frame index of local variable (%1 and %2 in the following 
 example) into stack offset according the frame index order upward (stack grow 
-up downward from high address to low address, 0($sp) is the top, 52($sp) is the 
+up downward from high address to low address, 52($sp) is the top, 0($sp) is the 
 bottom) as follows,
 
 .. code-block:: bash
@@ -1757,9 +1700,9 @@ pattern defined in Cpu0InstrInfo.td.
     :start-after: //#if CH >= CH2 17
     :end-before: //#endif
 
-.. rubric:: lbdex/chapters/Chapter3_4/Cpu0InstrInfo.td
+.. rubric:: lbdex/chapters/Chapter3_5/Cpu0InstrInfo.td
 .. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td
-    :start-after: //#if CH >= CH3_4 14
+    :start-after: //#if CH >= CH3_5 14
     :end-before: //#endif
 
 
@@ -1769,12 +1712,98 @@ is defined first, the it will translate into "ori" intruction.
 At this point, we have translated the very simple main() function with 
 "return 0;" single instruction. 
 The Cpu0AnalyzeImmediate.cpp and the Cpu0InstrInfo.td instructions defined in 
-Chapter3_4, which take care the 32 bits stack size adjustments.
+Chapter3_5 as the following, which take care the 32 bits stack size adjustments.
 
+.. rubric:: lbdex/chapters/Chapter3_5/CMakeLists.txt
+.. code-block:: c++
+
+  add_llvm_target(
+    ...
+  
+.. literalinclude:: ../lbdex/Cpu0/CMakeLists.txt
+    :start-after: #if CH >= CH3_5
+    :end-before: #endif
+  
+.. code-block:: c++
+
+    ...
+  )
+
+.. rubric:: lbdex/chapters/Chapter3_5/Cpu0AnalyzeImmediate.h
+.. literalinclude:: ../lbdex/Cpu0/Cpu0AnalyzeImmediate.h
+
+.. rubric:: lbdex/chapters/Chapter3_5/Cpu0AnalyzeImmediate.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0AnalyzeImmediate.cpp
+
+.. rubric:: lbdex/chapters/Chapter3_5/Cpu0InstrInfo.h
+.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.h
+    :start-after: #if CH >= CH3_5 //1
+    :end-before: #endif
+.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.h
+    :start-after: #if CH >= CH3_5 //2
+    :end-before: #endif
+
+
+.. rubric:: lbdex/chapters/Chapter3_5/Cpu0InstrInfo.td
+.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td
+    :start-after: #if CH >= CH3_5 1
+    :end-before: #endif
+.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td
+    :start-after: #if CH >= CH3_5 2
+    :end-before: #endif
+.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td
+    :start-after: #if CH >= CH3_5 3
+    :end-before: #endif
+.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td
+    :start-after: #if CH >= CH3_5 4
+    :end-before: #endif
+.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td
+    :start-after: #if CH >= CH3_5 5
+    :end-before: #endif
+.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td
+    :start-after: #if CH >= CH3_5 6
+    :end-before: #endif
+.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td
+    :start-after: #if CH >= CH3_5 7
+    :end-before: #endif
+.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td
+    :start-after: #if CH >= CH3_5 8
+    :end-before: #endif
+.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td
+    :start-after: #if CH >= CH3_5 9
+    :end-before: #endif
+.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td
+    :start-after: #if CH >= CH3_5 10
+    :end-before: #endif
+.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td
+    :start-after: #if CH >= CH3_5 11
+    :end-before: #endif
+.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td
+    :start-after: #if CH >= CH3_5 13
+    :end-before: #endif
+.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td
+    :start-after: #if CH >= CH3_5 14
+    :end-before: #endif
+    
+.. rubric:: lbdex/chapters/Chapter3_5/Cpu0SEFrameLowering.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0SEFrameLowering.cpp
+    :start-after: #if CH >= CH3_5
+    :end-before: #endif
+
+.. rubric:: lbdex/chapters/Chapter3_5/Cpu0SEInstrInfo.h
+.. literalinclude:: ../lbdex/Cpu0/Cpu0SEInstrInfo.h
+    :start-after: #if CH >= CH3_5 //1
+    :end-before: #endif //#if CH >= CH3_5 //1
+
+.. rubric:: lbdex/chapters/Chapter3_5/Cpu0SEInstrInfo.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0SEInstrInfo.cpp
+    :start-after: #if CH >= CH3_5 //1
+    :end-before: #endif //#if CH >= CH3_5 //1
+    
 The Cpu0AnalyzeImmediate.cpp written in recursive with a little complicate in 
-logic. Anyway, the recursive
+logic. However, the recursive
 skills is used in the front end compile book, you should fimiliar with it.
-Instead tracking the code, listing the stack size and the instructions 
+Instead of tracking the code, listing the stack size and the instructions 
 generated in "Table: Cpu0 stack adjustment instructions before replace addiu and 
 shl with lui instruction" as follows and "Table: Cpu0 stack adjustment 
 instructions after replace addiu and shl with lui instruction" at next,
@@ -1949,7 +1978,7 @@ List some of data DAGs we understand and occured until now as follows,
     :start-after: //#if CH >= CH2 4
     :end-before: //#endif
 .. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td
-    :start-after: //#if CH >= CH3_4 2
+    :start-after: //#if CH >= CH3_5 2
     :end-before: //#endif
 .. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td
     :start-after: //#if CH >= CH2 5
@@ -1960,13 +1989,13 @@ List some of data DAGs we understand and occured until now as follows,
   }
 
 .. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td
-    :start-after: //#if CH >= CH3_4 3
+    :start-after: //#if CH >= CH3_5 3
     :end-before: //#endif
 .. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td
     :start-after: //#if CH >= CH2 6
     :end-before: //#endif
 .. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td
-    :start-after: //#if CH >= CH3_4 4
+    :start-after: //#if CH >= CH3_5 4
     :end-before: //#endif
 .. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td
     :start-after: //#if CH >= CH2 7
