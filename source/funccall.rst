@@ -843,16 +843,17 @@ LowerCall() will generate the DAG nodes as
 :num:`Figure #funccall-f-outgoing-arg-lowercal` 
 for ch9_outgoing.cpp with cpu032I. The corresponding code of DAGs Store and 
 TargetGlobalAddress are listed in the figure, user can match the other DAGs
-to function LowerCall() easy.
+to function LowerCall() easily.
 Through Graphivz tool with llc option -view-dag-combine1-dags, you can design
 a small input C or llvm IR source code and check the DAGs to understand the 
-code in LowerCall() and LowerFormalArguments(). In later section of this chapter, 
-there are variable arguments and dynamic stack allocation support. You can design
-the input example with this features and check the DAGs with these two function
+code in LowerCall() and LowerFormalArguments().
+At the sub-sections "variable arguments" and "dynamic stack allocation 
+support" in the later section of this chapter, you can design
+the input example with this features and check the DAGs with these two functions
 again to make sure you know the code in these two function. About Graphivz,
-please reference section "Display llvm IR nodes with Graphviz" of chapter 4, 
+please refer to section "Display llvm IR nodes with Graphviz" of chapter 4, 
 Arithmetic and logic instructions.
-The DAGs diagram can be got by llc option as follows, 
+The DAGs diagram can be gotten by llc option as follows, 
 
 .. rubric:: lbdex/input/ch9_outgoing.cpp
 .. literalinclude:: ../lbdex/input/ch9_outgoing.cpp
@@ -899,8 +900,8 @@ The DAGs diagram can be got by llc option as follows,
     Outgoing arguments DAG created by LowerCall() for ch9_outgoing.cpp with -cpu0-s32-calls=true
 
 
-Mentioned in last section, ``llc -cpu0-s32-calls=true`` uses S32 calling 
-convention which pass all arguements at registers while 
+Mentioned in last section, option ``llc -cpu0-s32-calls=true`` uses S32 calling 
+convention which passes all arguements at registers while option
 ``llc -cpu0-s32-calls=false`` uses O32 pass first two arguments at 
 registers and other arguments at stack. The result as follows,
 
@@ -1575,8 +1576,8 @@ Run Chapter9_2/ with ch9_2_3_tailcall.cpp will get the following result.
    1 cpu0-lower        - Number of tail calls
    ...
 
-The tail call optimization is applied in cpu032II only for this example (it use
-"jmp	_Z9factoriali" instead of "jsub _Z9factoriali").
+The tail call optimization is applied in cpu032II only for this example (it uses
+"jmp _Z9factoriali" instead of "jsub _Z9factoriali").
 Tail call share caller and callee stack but cpu032I (pass all arguments in
 stack) not satisify the following statement, NextStackOffset <= 
 FI.getIncomingArgSize() in isEligibleForTailCallOptimization(), and return 
@@ -1607,8 +1608,8 @@ false for this function as follows,
   }
 
 Since tailcall optimization will translate jmp instruction directly instead of
-jsub. The callseq_start, callseq_end, and the DAGs of LowerCallResult() and 
-LowerReturn() created are needless. It creates DAGs as 
+jsub. The callseq_start, callseq_end, and the DAG nodes created in 
+LowerCallResult() and LowerReturn() are needless. It creates DAGs as 
 :num:`Figure #funccall-f-outgoing-arg-tailcall` for ch9_2_3_tailcall.cpp as 
 follows,
 
@@ -1619,11 +1620,11 @@ follows,
     :scale: 100 %
     :align: center
 
-    Outgoing arguments DAG created for ch9_2_3_tailcall.cpp
+    Outgoing arguments DAGs created for ch9_2_3_tailcall.cpp
 
-Finally, the tail call DAG process as the following table.
+Finally, listing the DAGs translation of tail call as the following table.
 
-.. table:: tail call DAG translation
+.. table:: the DAGs translation of tail call
 
   =============================  =================  =============
   Stage                          DAG                Function
@@ -1673,7 +1674,7 @@ Recursion optimization
 ~~~~~~~~~~~~~~~~~~~~~~
 
 As last section, cpu032I cannot do tail call optimization in 
-ch9_2_3_tailcall.cpp since the limitation of arguments size not satisfied. 
+ch9_2_3_tailcall.cpp since the limitation of arguments size is not satisfied. 
 If run with ``clang -O3`` option, it can get the same or better performance 
 than tail call as follows,
 
@@ -1813,7 +1814,7 @@ than tail call as follows,
 	  .size	_Z13test_tailcalli, ($tmp1)-_Z13test_tailcalli
 
 
-According above llvm IR, ``clang -O3`` option remove recursion into loop by 
+According above llvm IR, ``clang -O3`` option remove recursion to loop by 
 inline the callee recursion function. This is a front end optimization through
 cross over function analysis.
 
@@ -1882,22 +1883,22 @@ Run Chapter9_2 with ch9_4.cpp will get the following error.
 The $gp register caller saved register in PIC addressing mode
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-According the original cpu0 web site information, it only support **“jsub”** 
+According the original cpu0 web site information, it only supports **“jsub”** 
 bits address range access. 
 We add **“jalr”** to cpu0 and expand it to 32 bit address. We did this change for 
 two reasons. One is cpu0 can be expanded to 32 bit address space by only adding 
 this instruction. 
-The other is cpu0 as well as this book are designed for teaching purpose. 
+The other is cpu0 as well as this book are designed for tutorial. 
 We reserve **“jalr”** as PIC mode for dynamic linking function to demonstrates: 
 
 1. How caller handle the caller saved register $gp in calling the function
 
-2. How the code in the shared libray function use $gp to access global variable 
+2. How the code in the shared libray function uses $gp to access global variable 
    address. 
 
 3. The jalr for dynamic linking function is easier in implementation and faster. 
    As we have depicted in section "pic mode" of chapter "Global variables, structs 
-   and arrays, other type". This solution is popular in reality and deserve change 
+   and arrays, other type". This solution is popular in reality and deserve changing 
    cpu0 official design as a compiler book. 
 
 In chapter "Global variable", we mentioned two link 
@@ -1908,7 +1909,7 @@ One example of dynamic link function is used in share library.
 Share library include a lots of dynamic link functions usually can be loaded 
 at run time. 
 Since share library can be loaded in different memory address, the global 
-variable address it access cannot be decided at link time. 
+variable address which it access cannot be decided at link time. 
 Even so, we still can caculate the distance between the global variable address 
 and the start address of shared library function when it be loaded.
 
@@ -1959,13 +1960,14 @@ We putting the comments in the result for explanation.
 
 As above code comment, **“.cprestore 8”** is a pseudo instruction for saving 
 **$gp** to **8($sp)** while Instruction **“ld $gp, 8($sp)”** restore 
-the $gp, reference Table 8-1 of "MIPSpro TM Assembly Language Programmer’s 
+the $gp, refer to Table 8-1 of "MIPSpro TM Assembly Language Programmer’s 
 Guide" [#mipsasm]_. 
 In other word, $gp is a caller saved register, so main() need to save/restore 
 $gp before/after call the shared library _Z5sum_ii() function. 
 In llvm Mips 3.5, it removed the .cprestore in mode PIC which meaning $gp
-is not a caller saved register in PIC anymore. Anyway, it is keeped in Cpu0 and
-make this feature can be removed by not define it in Cpu0Config.h.
+is not a caller saved register in PIC anymore. 
+However, it is still existed in Cpu0 and this feature can be removed by not 
+defining it in Cpu0Config.h.
 The #ifdef ENABLE_GPRESTORE part of code in Cpu0 can be removed but it come with
 the cost of reserve $gp register as a specific register and cannot be allocated
 for the program variable in PIC mode. As explained in early chapter Gloabal 
@@ -2021,7 +2023,7 @@ If enable "-cpu0-no-cpload", and undefine ENABLE_GPRESTORE or enable
     nop
 
 
-LLVM Mips 3.1 issues the .cpload and .cprestore and Cpu0 borrow it from that 
+LLVM Mips 3.1 issues the .cpload and .cprestore and Cpu0 borrows it from that 
 version. But now, llvm Mips replace .cpload with real instructions and remove 
 .cprestore. It treats $gp as reserved register in PIC mode. Since the Mips
 assembly document I reference say $gp is caller save register, Cpu0 stay and
@@ -2615,13 +2617,13 @@ Run Chapter9_3 with ch9_4.cpp will get the following correct result.
     st  $3, 20($fp)
     st  $2, 16($fp)
     shl $2, $2, 2    // $2 = sizeof(int) * 1 * x2;
-	  addiu	$2, $2, 7
-	  addiu	$3, $zero, -8
-	  and	$2, $2, $3
-	  addiu	$sp, $sp, 0
-    subu	$2, $sp, $2
+    addiu $2, $2, 7
+    addiu $3, $zero, -8
+    and $2, $2, $3
+    addiu $sp, $sp, 0
+    subu  $2, $sp, $2
     addu  $sp, $zero, $2  // set sp to the bottom of alloca area
-    addiu	$sp, $sp, 0
+    addiu $sp, $sp, 0
     st  $2, 12($fp)
     st  $2, 8($fp)
     ld  $2, 12($fp)
@@ -2633,7 +2635,7 @@ Run Chapter9_3 with ch9_4.cpp will get the following correct result.
     ld  $4, 28($fp)
     ld  $t9, 24($fp)
     ld  $7, 16($fp)
-    addiu	$sp, $sp, -24
+    addiu $sp, $sp, -24
     st  $7, 20($sp)
     st  $t9, 12($sp)
     st  $4, 8($sp)
@@ -2645,7 +2647,7 @@ Run Chapter9_3 with ch9_4.cpp will get the following correct result.
     jalr  $t9
     nop
     ld  $gp, 24($fp)
-    addiu	$sp, $sp, 24
+    addiu $sp, $sp, 24
     st  $2, 4($fp)
     ld  $3, 8($fp)
     ld  $3, 0($3)
@@ -2765,7 +2767,7 @@ tested now as follows.
   -c ch9_7.cpp -emit-llvm -o ch9_7.bc
   
   114-37-150-209:input Jonathan$ ~/llvm/test/cmake_debug_build/Debug/bin/
-  llvm-dis ch8_4.bc -o -
+  llvm-dis ch9_7.bc -o -
   ...
   ; Function Attrs: nounwind
   define i64 @_Z19test_longlong_shiftv() #0 {

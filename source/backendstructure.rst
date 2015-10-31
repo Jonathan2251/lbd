@@ -236,7 +236,7 @@ Code between "#if def  GET_INSTRINFO_HEADER" and
   } // End llvm namespace 
   #endif // GET_INSTRINFO_HEADER 
 
-Reference "Write An LLVM Backend" web site [#]_.
+Reference web site here [#targetmachine]_ and here [#datalayout]_. 
 
 Chapter3_1/CMakeLists.txt is modified with these new added \*.cpp as follows,
 
@@ -670,9 +670,9 @@ Above instancing MCSubtargetInfo object and initialize with
 Cpu0.td information. 
 
 
-According "section Target Registration" [#]_, we can register Cpu0 backend 
-classes at LLVMInitializeCpu0TargetMC() on demand by the dynamic register 
-mechanism as the above function, LLVMInitializeCpu0TargetMC().
+According "section Target Registration" [#registration]_, we can register Cpu0 
+backend classes at LLVMInitializeCpu0TargetMC() on demand by the dynamic 
+register mechanism as the above function, LLVMInitializeCpu0TargetMC().
 
 Now, it's time to work with AsmPrinter as follows,
 
@@ -2071,7 +2071,9 @@ as 123.
 
 
 
-.. [#] http://llvm.org/docs/WritingAnLLVMBackend.html#target-machine
+.. [#targetmachine] http://llvm.org/docs/WritingAnLLVMBackend.html#target-machine
 
-.. [#] http://jonathan2251.github.io/lbd/llvmstructure.html#target-registration
+.. [#datalayout] http://llvm.org/docs/LangRef.html#data-layout
+
+.. [#registration] http://jonathan2251.github.io/lbd/llvmstructure.html#target-registration
 
