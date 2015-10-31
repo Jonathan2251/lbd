@@ -183,7 +183,7 @@ eliminateFrameIndex(MachineBasicBlock::iterator II, int SPAdj,
 
   MI.getOperand(i).ChangeToRegister(FrameReg, false);
   MI.getOperand(i+1).ChangeToImmediate(Offset);
-#endif // #if CH >= CH3_5
+#endif // #if CH >= CH3_4
 }
 //}
 

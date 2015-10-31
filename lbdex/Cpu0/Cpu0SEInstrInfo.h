@@ -78,7 +78,7 @@ private:
   void expandEhReturn(MachineBasicBlock &MBB,
                       MachineBasicBlock::iterator I) const;
 #endif
-#endif
+#endif //#if CH >= CH3_4
 };
 
 }
