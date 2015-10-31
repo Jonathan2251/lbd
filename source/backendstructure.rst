@@ -1021,8 +1021,8 @@ The following code handle the stack slot for local variables.
     :start-after: //@eliminateFrameIndex {
     :end-before: //}
 
-Function storeRegToStack() and loadRegFromStack() of Cpu0SEInstrInfo.cpp, 
-storeRegToStackSlot() and loadRegFromStackSlot() of Cpu0InstrInfo.cpp are for
+Functions storeRegToStack() and loadRegFromStack() of Cpu0SEInstrInfo.cpp, 
+storeRegToStackSlot() and loadRegFromStackSlot() of Cpu0InstrInfo.cpp are
 handling the registers spill during register allocation process.
 Since each local variable connecting to a frame index,  ".addFrameIndex(FI).
 addImm(Offset).addMemOperand(MMO); where Offset is 0" in storeRegToStack() and 
