@@ -1,4 +1,4 @@
-; /Users/Jonathan/llvm/test/cmake_debug_build/Debug/bin/llc -march=cpu0 -relocation-model=pic -filetype=asm ch7_3.ll -o -
+; /Users/Jonathan/llvm/test/cmake_debug_build/Debug/bin/llc -march=cpu0 -relocation-model=pic -filetype=asm ch7_1_bool2.ll -o -
 
 ; /// start
 define zeroext i1 @verify_load_bool() #0 {

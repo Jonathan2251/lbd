@@ -1,6 +1,6 @@
-// clang -target mips-unknown-linux-gnu -c ch7_2.cpp -emit-llvm -o ch7_2.bc
-// ~/llvm/test/cmake_debug_build/Debug/bin/llc -march=cpu0 -relocation-model=pic -filetype=asm ch7_2.bc -o -
-// ~/llvm/test/cmake_debug_build/Debug/bin/llc -march=cpu0 -relocation-model=static -filetype=asm ch7_2.bc -o -
+// clang -target mips-unknown-linux-gnu -c ch7_1_char_in_struct.cpp -emit-llvm -o ch7_1_char_in_struct.bc
+// ~/llvm/test/cmake_debug_build/Debug/bin/llc -march=cpu0 -relocation-model=pic -filetype=asm ch7_1_char_in_struct.bc -o -
+// ~/llvm/test/cmake_debug_build/Debug/bin/llc -march=cpu0 -relocation-model=static -filetype=asm ch7_1_char_in_struct.bc -o -
 
 /// start
 struct Date

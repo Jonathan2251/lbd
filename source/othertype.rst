@@ -41,19 +41,19 @@ Cpu0InstrInfo.td and Cpu0InstPrinter.cpp as follows,
 
 As comment in Cpu0InstPrinter.cpp, the printMemOperandEA is added at early 
 chapter 3_2 since the DAG data node, mem_ea of Cpu0InstrInfo.td, cannot be 
-disabled by ch7_1, only opcode node can be disabled.
-Run ch7_1.cpp with code Chapter7_1/ which support pointer to local variable, 
+disabled by ch7_1_localpointer, only opcode node can be disabled.
+Run ch7_1_localpointer.cpp with code Chapter7_1/ which support pointer to local variable, 
 will get result as follows,
 
-.. rubric:: lbdex/input/ch7_1.cpp
-.. literalinclude:: ../lbdex/input/ch7_1.cpp
+.. rubric:: lbdex/input/ch7_1_localpointer.cpp
+.. literalinclude:: ../lbdex/input/ch7_1_localpointer.cpp
     :start-after: /// start
 
 .. code-block:: bash
 
   118-165-66-82:input Jonathan$ clang -target mips-unknown-linux-gnu -c 
-  ch7_1.cpp -emit-llvm -o ch7_1.bc
-  118-165-66-82:input Jonathan$ llvm-dis ch7_1.bc -o -
+  ch7_1_localpointer.cpp -emit-llvm -o ch7_1_localpointer.bc
+  118-165-66-82:input Jonathan$ llvm-dis ch7_1_localpointer.bc -o -
   ...
   ; Function Attrs: nounwind
   define i32 @_Z18test_local_pointerv() #0 {
@@ -69,7 +69,7 @@ will get result as follows,
 
   118-165-66-82:input Jonathan$ /Users/Jonathan/llvm/test/cmake_
   debug_build/Debug/bin/llc -march=cpu0 -relocation-model=pic -filetype=asm 
-  ch7_1.bc -o -
+  ch7_1_localpointer.bc -o -
     ...
 	  addiu	$sp, $sp, -8
 	  addiu	$2, $zero, 3
@@ -100,16 +100,16 @@ code to Chapter7_1/.
     :end-before: //#endif
 
 
-Run Chapter7_1/ with ch7_2.cpp will get the following result.
+Run Chapter7_1/ with ch7_1_char_in_struct.cpp will get the following result.
 
-.. rubric:: lbdex/input/ch7_2.cpp
-.. literalinclude:: ../lbdex/input/ch7_2.cpp
+.. rubric:: lbdex/input/ch7_1_char_in_struct.cpp
+.. literalinclude:: ../lbdex/input/ch7_1_char_in_struct.cpp
     :start-after: /// start
 
 .. code-block:: bash
   
   118-165-64-245:input Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
-  Debug/bin/llvm-dis ch7_2.bc -o -
+  Debug/bin/llvm-dis ch7_1_char_in_struct.bc -o -
   define i32 @_Z9test_charv() #0 {
     %a = alloca i8, align 1
     %c = alloca i8, align 1
@@ -133,9 +133,10 @@ Run Chapter7_1/ with ch7_2.cpp will get the following result.
   }
 
   118-165-64-245:input Jonathan$ clang -target mips-unknown-linux-gnu -c 
-  ch7_2.cpp -emit-llvm -o ch7_2.bc
+  ch7_1_char_in_struct.cpp -emit-llvm -o ch7_1_char_in_struct.bc
   118-165-64-245:input Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
-  Debug/bin/llc -march=cpu0 -relocation-model=pic -filetype=asm ch7_2.bc -o -
+  Debug/bin/llc -march=cpu0 -relocation-model=pic -filetype=asm 
+  ch7_1_char_in_struct.bc -o -
     ...
   # BB#0:                                 # %entry
     addiu $sp, $sp, -24
@@ -190,16 +191,16 @@ Run Chapter7_1/ with ch7_2.cpp will get the following result.
     .space  1
     .size $_ZZ9test_charvE5date1, 8
 
-Run Chapter7_1/ with ch7_2_2.cpp will get the following result.
+Run Chapter7_1/ with ch7_1_char_short.cpp will get the following result.
 
-.. rubric:: lbdex/input/ch7_2_2.cpp
-.. literalinclude:: ../lbdex/input/ch7_2_2.cpp
+.. rubric:: lbdex/input/ch7_1_char_short.cpp
+.. literalinclude:: ../lbdex/input/ch7_1_char_short.cpp
     :start-after: /// start
 
 .. code-block:: bash
   
   1-160-136-236:input Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
-  Debug/bin/llvm-dis ch7_2_2.bc -o -
+  Debug/bin/llvm-dis ch7_1_char_short.bc -o -
     ...
   define i32 @_Z16test_signed_charv() #0 {
     ...
@@ -235,7 +236,7 @@ Run Chapter7_1/ with ch7_2_2.cpp will get the following result.
   attributes #0 = { nounwind }
   
   1-160-136-236:input Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
-  Debug/bin/llc -march=cpu0 -relocation-model=static -filetype=asm ch7_2_2.bc -o -
+  Debug/bin/llc -march=cpu0 -relocation-model=static -filetype=asm ch7_1_char_short.bc -o -
     ...
     .globl  _Z16test_signed_charv
     ...
@@ -286,8 +287,8 @@ To support load bool type, the following code added.
   }
 
 The setBooleanContents() purpose as following, but I don't know it well. 
-Without it, the ch7_3.ll still works as below. 
-The IR input file ch7_3.ll is used in testing here since the c++ version
+Without it, the ch7_1_bool2.ll still works as below. 
+The IR input file ch7_1_bool2.ll is used in testing here since the c++ version
 need flow control which is not supported at this point. 
 File ch_run_backend.cpp include the test fragment for bool as below.
 
@@ -311,18 +312,18 @@ File ch_run_backend.cpp include the test fragment for bool as below.
       BooleanVectorContents = Ty;
     }
 
-.. rubric:: lbdex/input/ch7_3.ll
-.. literalinclude:: ../lbdex/input/ch7_3.ll
+.. rubric:: lbdex/input/ch7_1_bool2.ll
+.. literalinclude:: ../lbdex/input/ch7_1_bool2.ll
     :start-after: /// start
 
 .. code-block:: bash
 
     118-165-64-245:input Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
-    Debug/bin/llc -march=cpu0 -relocation-model=pic -filetype=asm ch7_3.ll -o -
+    Debug/bin/llc -march=cpu0 -relocation-model=pic -filetype=asm ch7_1_bool2.ll -o -
 
     .section .mdebug.abi32
     .previous
-    .file "ch7_3.ll"
+    .file "ch7_1_bool2.ll"
     .text
     .globl  verify_load_bool
     .align  2
@@ -350,11 +351,11 @@ File ch_run_backend.cpp include the test fragment for bool as below.
     .cfi_endproc
 
 
-The ch7_3.cpp is the bool test version for C language. 
-You can run with it at Chapter8_1 to get the similar result with ch7_3.ll.
+The ch7_1_bool.cpp is the bool test version for C language. 
+You can run with it at Chapter8_1 to get the similar result with ch7_1_bool2.ll.
 
-.. rubric:: lbdex/input/ch7_3.cpp
-.. literalinclude:: ../lbdex/input/ch7_3.cpp
+.. rubric:: lbdex/input/ch7_1_bool.cpp
+.. literalinclude:: ../lbdex/input/ch7_1_bool.cpp
     :start-after: /// start
     
     
@@ -362,7 +363,7 @@ You can run with it at Chapter8_1 to get the similar result with ch7_3.ll.
 
 Summary as the following table.
 
-.. table:: The C, IR, and DAG translation for char, short and bool translation (ch7_2_2.cpp and ch7_3.ll).
+.. table:: The C, IR, and DAG translation for char, short and bool translation (ch7_1_char_short.cpp and ch7_1_bool2.ll).
 
   ==================================  =================================  ====================================
   C                                   .bc                                Optimized legalized selection DAG
@@ -381,7 +382,7 @@ Summary as the following table.
   ==================================  =================================  ====================================
 
 
-.. table:: The backend translation for char, short and bool translation (ch7_2_2.cpp and ch7_3.ll).
+.. table:: The backend translation for char, short and bool translation (ch7_1_char_short.cpp and ch7_1_bool2.ll).
 
   ====================================  =======  ============================================
   Optimized legalized selection DAG     Cpu0     pattern in Cpu0InstrInfo.td
@@ -452,19 +453,19 @@ DAGs translation.
 File ch9_7.cpp of 64-bit shift operations cannot be run at this 
 point. It will be verified on later chapter "Function call".
 
-Run Chapter7_1 with ch7_4.cpp to get the result as follows,
+Run Chapter7_1 with ch7_1_longlong.cpp to get the result as follows,
 
-.. rubric:: lbdex/input/ch7_4.cpp
-.. literalinclude:: ../lbdex/input/ch7_4.cpp
+.. rubric:: lbdex/input/ch7_1_longlong.cpp
+.. literalinclude:: ../lbdex/input/ch7_1_longlong.cpp
     :start-after: /// start
 
 .. code-block:: bash
 
   1-160-134-62:input Jonathan$ clang -target mips-unknown-linux-gnu -c 
-  ch7_4.cpp -emit-llvm -o ch7_4.bc
+  ch7_1_longlong.cpp -emit-llvm -o ch7_1_longlong.bc
   1-160-134-62:input Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
   Debug/bin/llc -march=cpu0 -mcpu=cpu032I -relocation-model=pic -filetype=asm 
-  ch7_4.bc -o -
+  ch7_1_longlong.bc -o -
     ...
   # BB#0:
 	  addiu	$sp, $sp, -72
@@ -570,16 +571,16 @@ Array and struct support
 
 LLVM uses getelementptr to represent the array and struct type in C. 
 Please reference here [#]_. 
-For ch7_5.cpp, the llvm IR as follows,
+For ch7_1_globalstructoffset.cpp, the llvm IR as follows,
 
-.. rubric:: lbdex/input/ch7_5.cpp
-.. literalinclude:: ../lbdex/input/ch7_5.cpp
+.. rubric:: lbdex/input/ch7_1_globalstructoffset.cpp
+.. literalinclude:: ../lbdex/input/ch7_1_globalstructoffset.cpp
     :start-after: /// start
 
 .. code-block:: bash
 
-  // ch7_5.ll
-  ; ModuleID = 'ch7_5.bc'
+  // ch7_1_globalstructoffset.ll
+  ; ModuleID = 'ch7_1_globalstructoffset.bc'
   ...
   %struct.Date = type { i32, i32, i32 }
 
@@ -600,13 +601,14 @@ For ch7_5.cpp, the llvm IR as follows,
     ret i32 %5
   }
     
-Run Chapter6_1/ with ch7_5.bc on static mode will get the incorrect asm file as 
-follows,
+Run Chapter6_1/ with ch7_1_globalstructoffset.bc on static mode will get the 
+incorrect asm file as follows,
 
 .. code-block:: bash
 
   1-160-134-62:input Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/bin/
-  Debug/llc -march=cpu0 -relocation-model=static -filetype=asm ch7_5.bc -o -
+  Debug/llc -march=cpu0 -relocation-model=static -filetype=asm 
+  ch7_1_globalstructoffset.bc -o -
     ...
     lui $2, %hi(date)
     ori $2, $2, %lo(date)
@@ -796,9 +798,9 @@ After set Base and Offset, the load DAG will translate the global address
 date.day into machine instruction **“ld $r1, 8($r2)”** in Instruction Selection 
 stage.
 
-Chapter7_1/ include these changes as above, you can run it with ch7_5.cpp to get 
-the correct generated instruction **“ld $r1, 8($r2)”** for date.day access, as 
-follows.
+Chapter7_1/ include these changes as above, you can run it with 
+ch7_1_globalstructoffset.cpp to get the correct generated instruction 
+**“ld $r1, 8($r2)”** for date.day access, as follows.
 
 .. code-block:: bash
 
@@ -808,18 +810,18 @@ follows.
 	  ld	$2, 8($2)   // correct
     ...
 
-The ch7_5_2.cpp is for local variable initialization test. The result as 
-follows,
+The ch7_1_localarrayinit.cpp is for local variable initialization test. 
+The result as follows,
 
-.. rubric:: lbdex/input/ch7_5_2.cpp
-.. literalinclude:: ../lbdex/input/ch7_5_2.cpp
+.. rubric:: lbdex/input/ch7_1_localarrayinit.cpp
+.. literalinclude:: ../lbdex/input/ch7_1_localarrayinit.cpp
     :start-after: /// start
 
 .. code-block:: bash
 
   118-165-79-206:input Jonathan$ clang -target mips-unknown-linux-gnu -c 
-  ch7_5_2.cpp -emit-llvm -o ch7_5_2.bc
-  118-165-79-206:input Jonathan$ llvm-dis ch7_5_2.bc -o -
+  ch7_1_localarrayinit.cpp -emit-llvm -o ch7_1_localarrayinit.bc
+  118-165-79-206:input Jonathan$ llvm-dis ch7_1_localarrayinit.bc -o -
   ...
   define i32 @main() nounwind ssp {
   entry:
@@ -835,7 +837,7 @@ follows,
   declare void @llvm.memcpy.p0i8.p0i8.i32(i8* nocapture, i8* nocapture, i32, i32, i1) #1
 
   118-165-79-206:input Jonathan$ ~/llvm/test/cmake_debug_build/
-  bin/llc -march=cpu0 -relocation-model=pic -filetype=asm ch7_5_2.bc -o -
+  bin/llc -march=cpu0 -relocation-model=pic -filetype=asm ch7_1_localarrayinit.bc -o -
 	  ...
   # BB#0:                                 # %entry
 	  addiu	$sp, $sp, -16
@@ -877,7 +879,7 @@ too.
 .. code-block:: bash
 
   118-165-79-206:input Jonathan$ clang -target mips-unknown-linux-gnu -c 
-  ch7_1_vector.cpp -emit-llvm -o ch7_1_vector.bc
+  ch7_1_localpointer_vector.cpp -emit-llvm -o ch7_1_vector.bc
   118-165-79-206:input Jonathan$ ~/llvm/test/cmake_debug_build/Debug/bin/
   llvm-dis ch7_1_vector.bc -o -
   
@@ -913,8 +915,10 @@ too.
     %a0 = alloca <8 x i32>, align 32
     %b0 = alloca <8 x i32>, align 32
     %c0 = alloca <8 x i32>, align 32
-    store volatile <8 x i32> <i32 2, i32 2, i32 2, i32 2, i32 1, i32 1, i32 1, i32 1>, <8 x i32>* %a0, align 32
-    store volatile <8 x i32> <i32 1, i32 1, i32 1, i32 1, i32 2, i32 2, i32 2, i32 2>, <8 x i32>* %b0, align 32
+    store volatile <8 x i32> <i32 2, i32 2, i32 2, i32 2, i32 1, i32 1, i32 1, 
+    i32 1>, <8 x i32>* %a0, align 32
+    store volatile <8 x i32> <i32 1, i32 1, i32 1, i32 1, i32 2, i32 2, i32 2, 
+    i32 2>, <8 x i32>* %b0, align 32
     %1 = load volatile <8 x i32>, <8 x i32>* %a0, align 32
     %2 = load volatile <8 x i32>, <8 x i32>* %b0, align 32
     %3 = icmp slt <8 x i32> %1, %2
