@@ -38,7 +38,7 @@ public:
                    bool KillSrc) const override;
 #endif
 
-#if CH >= CH3_4
+#if CH >= CH3_5 //1
   void storeRegToStack(MachineBasicBlock &MBB,
                        MachineBasicBlock::iterator MI,
                        unsigned SrcReg, bool isKill, int FrameIndex,
@@ -52,11 +52,14 @@ public:
                         const TargetRegisterClass *RC,
                         const TargetRegisterInfo *TRI,
                         int64_t Offset) const override;
-                        
+#endif //#if CH >= CH3_5 //1
+
+#if CH >= CH3_4 //1
 //@expandPostRAPseudo
   bool expandPostRAPseudo(MachineBasicBlock::iterator MI) const override;
+#endif //#if CH >= CH3_4 //1
 
-#if CH >= CH3_5 //1
+#if CH >= CH3_5 //2
   /// Adjust SP by Amount bytes.
   void adjustStackPtr(unsigned SP, int64_t Amount, MachineBasicBlock &MBB,
                       MachineBasicBlock::iterator I) const override;
@@ -67,9 +70,11 @@ public:
   unsigned loadImmediate(int64_t Imm, MachineBasicBlock &MBB,
                          MachineBasicBlock::iterator II, DebugLoc DL,
                          unsigned *NewImm) const;
-#endif //#if CH >= CH3_5 //1
+#endif //#if CH >= CH3_5 //2
+#if CH >= CH3_4 //2
 private:
   void expandRetLR(MachineBasicBlock &MBB, MachineBasicBlock::iterator I) const;
+#endif //#if CH >= CH3_4 //2
 
 #if CH >= CH8_2 //1
   unsigned getOppositeBranchOpc(unsigned Opc) const override;
@@ -79,7 +84,6 @@ private:
   void expandEhReturn(MachineBasicBlock &MBB,
                       MachineBasicBlock::iterator I) const;
 #endif
-#endif //#if CH >= CH3_4
 };
 
 }

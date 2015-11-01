@@ -73,7 +73,7 @@ void Cpu0SEInstrInfo::copyPhysReg(MachineBasicBlock &MBB,
 }
 #endif
 
-#if CH >= CH3_4 //2
+#if CH >= CH3_5 //1
 void Cpu0SEInstrInfo::
 storeRegToStack(MachineBasicBlock &MBB, MachineBasicBlock::iterator I,
                 unsigned SrcReg, bool isKill, int FI,
@@ -105,7 +105,9 @@ loadRegFromStack(MachineBasicBlock &MBB, MachineBasicBlock::iterator I,
   BuildMI(MBB, I, DL, get(Opc), DestReg).addFrameIndex(FI).addImm(Offset)
     .addMemOperand(MMO);
 }
+#endif //#if CH >= CH3_5 //1
 
+#if CH >= CH3_4 //1
 //@expandPostRAPseudo
 /// Expand Pseudo instructions into real backend instructions
 bool Cpu0SEInstrInfo::expandPostRAPseudo(MachineBasicBlock::iterator MI) const {
@@ -128,9 +130,9 @@ bool Cpu0SEInstrInfo::expandPostRAPseudo(MachineBasicBlock::iterator MI) const {
   MBB.erase(MI);
   return true;
 }
-#endif //#if CH >= CH3_4 //2
+#endif //#if CH >= CH3_4 //1
 
-#if CH >= CH3_5 //1
+#if CH >= CH3_5 //2
 /// Adjust SP by Amount bytes.
 void Cpu0SEInstrInfo::adjustStackPtr(unsigned SP, int64_t Amount,
                                      MachineBasicBlock &MBB,
@@ -185,14 +187,14 @@ Cpu0SEInstrInfo::loadImmediate(int64_t Imm, MachineBasicBlock &MBB,
 
   return ATReg;
 }
-#endif //#if CH >= CH3_5 //1
+#endif //#if CH >= CH3_5 //2
 
-#if CH >= CH3_4 //3
+#if CH >= CH3_4 //2
 void Cpu0SEInstrInfo::expandRetLR(MachineBasicBlock &MBB,
                                 MachineBasicBlock::iterator I) const {
   BuildMI(MBB, I, I->getDebugLoc(), get(Cpu0::RET)).addReg(Cpu0::LR);
 }
-#endif //#if CH >= CH3_4 //3
+#endif //#if CH >= CH3_4 //2
 
 #if CH >= CH8_2 //1
 /// getOppositeBranchOpc - Return the inverse of the specified

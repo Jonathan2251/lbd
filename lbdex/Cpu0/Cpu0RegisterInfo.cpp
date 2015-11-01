@@ -102,7 +102,7 @@ getReservedRegs(const MachineFunction &MF) const {
 void Cpu0RegisterInfo::
 eliminateFrameIndex(MachineBasicBlock::iterator II, int SPAdj,
                     unsigned FIOperandNum, RegScavenger *RS) const {
-#if CH >= CH3_4
+#if CH >= CH3_5
   MachineInstr &MI = *II;
   MachineFunction &MF = *MI.getParent()->getParent();
   MachineFrameInfo *MFI = MF.getFrameInfo();
@@ -183,7 +183,7 @@ eliminateFrameIndex(MachineBasicBlock::iterator II, int SPAdj,
 
   MI.getOperand(i).ChangeToRegister(FrameReg, false);
   MI.getOperand(i+1).ChangeToImmediate(Offset);
-#endif // #if CH >= CH3_4
+#endif // #if CH >= CH3_5
 }
 //}
 

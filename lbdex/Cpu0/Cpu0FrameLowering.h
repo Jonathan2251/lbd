@@ -41,11 +41,6 @@ public:
                                   MachineBasicBlock &MBB,
                                   MachineBasicBlock::iterator I) const override;
 #endif
-
-#if CH >= CH3_5
-protected:
-  uint64_t estimateStackSize(const MachineFunction &MF) const;
-#endif
 };
 
 /// Create Cpu0FrameLowering objects.

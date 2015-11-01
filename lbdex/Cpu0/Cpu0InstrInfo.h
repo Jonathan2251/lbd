@@ -52,7 +52,7 @@ public:
   virtual unsigned getOppositeBranchOpc(unsigned Opc) const = 0;
 #endif
   
-#if CH >= CH3_4 //2
+#if CH >= CH3_5 //2
   void storeRegToStackSlot(MachineBasicBlock &MBB,
                            MachineBasicBlock::iterator MBBI,
                            unsigned SrcReg, bool isKill, int FrameIndex,
@@ -84,7 +84,7 @@ public:
                                 int64_t Offset) const = 0;
 #endif
 
-#if CH >= CH3_5 //2
+#if CH >= CH3_5 //3
   virtual void adjustStackPtr(unsigned SP, int64_t Amount,
                               MachineBasicBlock &MBB,
                               MachineBasicBlock::iterator I) const = 0;
@@ -98,7 +98,7 @@ public:
 #endif
 
 protected:
-#if CH >= CH3_4 //3
+#if CH >= CH3_5 //4
   MachineMemOperand *GetMemOperand(MachineBasicBlock &MBB, int FI,
                                    unsigned Flag) const;
 #endif

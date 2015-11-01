@@ -1181,19 +1181,22 @@ The following code handle the return register \$lr.
 
 .. rubric:: lbdex/chapters/Chapter3_4/Cpu0SEInstrInfo.h
 .. literalinclude:: ../lbdex/Cpu0/Cpu0SEInstrInfo.h
-    :start-after: //@expandPostRAPseudo
-    :end-before: #if CH >= CH3_5 //1
+    :start-after: #if CH >= CH3_4 //1
+    :end-before: #endif //#if CH >= CH3_4 //1
+.. literalinclude:: ../lbdex/Cpu0/Cpu0SEInstrInfo.h
+    :start-after: #if CH >= CH3_4 //2
+    :end-before: #endif //#if CH >= CH3_4 //2
 
 .. rubric:: lbdex/chapters/Chapter3_4/Cpu0SEInstrInfo.cpp
 .. literalinclude:: ../lbdex/Cpu0/Cpu0SEInstrInfo.cpp
-    :start-after: //@expandPostRAPseudo
+    :start-after: #if CH >= CH3_4 //1
     :end-before: #if CH >= CH9_3 //1
 .. literalinclude:: ../lbdex/Cpu0/Cpu0SEInstrInfo.cpp
     :start-after: #endif //#if CH >= CH9_3 //1
-    :end-before: #if CH >= CH3_5 //1
+    :end-before: #endif //#if CH >= CH3_4 //1
 .. literalinclude:: ../lbdex/Cpu0/Cpu0SEInstrInfo.cpp
-    :start-after: #if CH >= CH3_4 //3
-    :end-before: #endif //#if CH >= CH3_4 //3
+    :start-after: #if CH >= CH3_4 //2
+    :end-before: #endif //#if CH >= CH3_4 //2
     
 To handle IR ret, these code in Cpu0InstrInfo.td do things as below.
 
@@ -1289,84 +1292,71 @@ Chain, DAG.getRegister(Cpu0::LR, MVT::i32));" instead of "return DAG.getNode
 won't be live out, and the previous DAG (CopyToReg %X, %V0, %Y) will be removed
 at later optimization steps. It ending with the return value is error. 
 
-Handle stack slot for local variables
---------------------------------------
-
-The following code handle the stack slot for local variables.
-
-.. rubric:: lbdex/chapters/Chapter3_4/Cpu0InstrInfo.h
-.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.h
-    :start-after: #if CH >= CH3_4 //2
-    :end-before: #endif
-.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.h
-    :start-after: #if CH >= CH3_4 //3
-    :end-before: #endif
-
-.. rubric:: lbdex/chapters/Chapter3_4/Cpu0InstrInfo.cpp
-.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.cpp
-    :start-after: #if CH >= CH3_4 //1
-    :end-before: #endif
-    
-.. rubric:: lbdex/chapters/Chapter3_4/Cpu0SEInstrInfo.h
-.. literalinclude:: ../lbdex/Cpu0/Cpu0SEInstrInfo.h
-    :start-after: #if CH >= CH3_4
-    :end-before: #if CH >= CH3_5 //1
-
-.. rubric:: lbdex/chapters/Chapter3_4/Cpu0SEInstrInfo.cpp
-.. literalinclude:: ../lbdex/Cpu0/Cpu0SEInstrInfo.cpp
-    :start-after: #if CH >= CH3_4 //2
-    :end-before: //@expandPostRAPseudo
-
-.. rubric:: lbdex/chapters/Chapter3_4/Cpu0RegisterInfo.cpp
-.. literalinclude:: ../lbdex/chapters/Chapter3_4/Cpu0RegisterInfo.cpp
-    :start-after: //@eliminateFrameIndex {
-    :end-before: //}
-
-Functions storeRegToStack() and loadRegFromStack() of Cpu0SEInstrInfo.cpp, 
-storeRegToStackSlot() and loadRegFromStackSlot() of Cpu0InstrInfo.cpp are
-handling the registers spill during register allocation process.
-Since each local variable connecting to a frame index,  ".addFrameIndex(FI).
-addImm(Offset).addMemOperand(MMO); where Offset is 0" in storeRegToStack() and 
-loadRegFromStack().
-The eliminateFrameIndex() of Cpu0RegisterInfo.cpp is called after instruction 
-selection and registers allocated. 
-It translates frame index to correct offset of stack pointer by
-"spOffset = MF.getFrameInfo()->getObjectOffset(FrameIndex);".
-
 Build Chapter3_4 and run with it, finding the error message in Chapter3_3 is 
-gone. The compile result as follows,
+gone. The compile result will hang on and please press "ctrl+C" to escape out 
+as follows,
 
 .. code-block:: bash
+  
+  118-165-78-230:input Jonathan$ clang -target mips-unknown-linux-gnu -c 
+  ch3.cpp -emit-llvm -o ch3.bc
+  118-165-78-230:input Jonathan$ ~/llvm/test/cmake_debug_build/Debug/bin/llvm-dis 
+  ch3.bc -o -
+  ...
+  define i32 @main() #0 {
+    %1 = alloca i32, align 4
+    store i32 0, i32* %1
+    ret i32 0
+  }
 
   118-165-78-230:input Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
   Debug/bin/llc -march=cpu0 -relocation-model=pic -filetype=asm ch3.bc -o -
-	  .text
-	  .section .mdebug.abi32
-	  .previous
-	  .file	"ch3.bc"
-	  .globl	main
-	  .align	2
-	  .type	main,@function
-	  .ent	main                    # @main
+    ...
+    .text
+    .section .mdebug.abiO32
+    .previous
+    .file "ch3.bc"
+  ^C
+  
+It hang on because Cpu0 backend has not handled stack slot for local variables.
+Instruction "store i32 0, i32* %1" in above IR need Cpu0 allocate a stack slot 
+and save to the stack slot.
+However, the ch3.cpp can be run with option ``clang -O2`` as follows,
+
+.. code-block:: bash
+  
+  118-165-78-230:input Jonathan$ clang -O2 -target mips-unknown-linux-gnu -c 
+  ch3.cpp -emit-llvm -o ch3.bc
+  118-165-78-230:input Jonathan$ ~/llvm/test/cmake_debug_build/Debug/bin/llvm-dis 
+  ch3.bc -o -
+  ...
+  define i32 @main() #0 {
+    ret i32 0
+  }
+
+  118-165-78-230:input Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
+  Debug/bin/llc -march=cpu0 -relocation-model=pic -filetype=asm ch3.bc -o -
+    .text
+    .section .mdebug.abiO32
+    .previous
+    .file "ch3.bc"
+    .globl  main
+    .align  2
+    .type main,@function
+    .ent  main                    # @main
   main:
-	  .frame	$fp,8,$lr
-	  .mask 	0x00000000,0
-	  .set	noreorder
-	  .set	nomacro
+    .frame  $sp,0,$lr
+    .mask   0x00000000,0
+    .set  noreorder
+    .set  nomacro
   # BB#0:
-	  addiu	$2, $zero, 0
-	  st	$2, 4($fp)
-	  ret	$lr
-	  .set	macro
-	  .set	reorder
-	  .end	main
-  $tmp0:
-	  .size	main, ($tmp0)-main
-
-
-Although Chapter3_4 can generated asm for ch3.cpp, you will find the 
-** st $2, 4($fp) ** instruction will has trouble since the stack pointer 
-(stack frame) has not addjustment. This problem will be fixed at Chapter3_5.
+    addiu $2, $zero, 0
+    ret $lr
+    .set  macro
+    .set  reorder
+    .end  main
+  $func_end0:
+    .size main, ($func_end0)-main
 
 To see how the **'DAG->DAG Pattern Instruction Selection'** work in llc, let's 
 compile with ``llc -debug`` option and get the following result. 
@@ -1374,90 +1364,66 @@ The DAGs which before and after instruction selection stage are shown as follows
 
 .. code-block:: bash
 
+  118-165-78-230:input Jonathan$ clang -O2 -target mips-unknown-linux-gnu -c 
+  ch3.cpp -emit-llvm -o ch3.bc
   118-165-78-12:input Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
   Debug/bin/llc -march=cpu0 -relocation-model=pic -filetype=asm -debug ch3.bc -o -
-  Args: /Users/Jonathan/llvm/test/cmake_debug_build/Debug/bin/llc -march=cpu0 
-  -relocation-model=pic -filetype=asm -debug ch3.bc -o - 
   ...
   Optimized legalized selection DAG: BB#0 'main:'
-  SelectionDAG has 8 nodes:
-    0x7fbe4082d010: i32 = Constant<0> [ORD=1] [ID=1]
+  SelectionDAG has 5 nodes:
+    0x7fa50b046528: i32 = Register %V0 [ID=2]
   
-    0x7fbe4082d410: i32 = Register %V0 [ID=4]
+      0x7fa50ac15de0: ch = EntryToken [ID=0]
   
-        0x7fbe40410668: ch = EntryToken [ORD=1] [ID=0]
+      0x7fa50b046528: <multiple use>
+      0x7fa50b046400: i32 = Constant<0> [ID=1]
   
-        0x7fbe4082d010: <multiple use>
-        0x7fbe4082d110: i32 = FrameIndex<0> [ORD=1] [ID=2]
+    0x7fa50b046650: ch,glue = CopyToReg 0x7fa50ac15de0, 0x7fa50b046528, 0x7fa50b046400 
+    [ORD=2] [ID=3]
   
-        0x7fbe4082d210: i32 = undef [ORD=1] [ID=3]
-  
-      0x7fbe4082d310: ch = store 0x7fbe40410668, 0x7fbe4082d010, 0x7fbe4082d110, 
-      0x7fbe4082d210<ST4[%1]> [ORD=1] [ID=5]
-  
-      0x7fbe4082d410: <multiple use>
-      0x7fbe4082d010: <multiple use>
-    0x7fbe4082d510: ch,glue = CopyToReg 0x7fbe4082d310, 0x7fbe4082d410, 
-    0x7fbe4082d010 [ID=6]
-  
-      0x7fbe4082d510: <multiple use>
-      0x7fbe4082d410: <multiple use>
-      0x7fbe4082d510: <multiple use>
-    0x7fbe4082d610: ch = Cpu0ISD::Ret 0x7fbe4082d510, 0x7fbe4082d410, 
-    0x7fbe4082d510:1 [ID=7]
-  
-  
-  ===== Instruction selection begins: BB#0 ''
-  Selecting: 0x7fbe4082d610: ch = Cpu0ISD::Ret 0x7fbe4082d510, 0x7fbe4082d410, 
-  0x7fbe4082d510:1 [ID=7]
-  
-  ISEL: Starting pattern match on root node: 0x7fbe4082d610: ch = Cpu0ISD::Ret 
-  0x7fbe4082d510, 0x7fbe4082d410, 0x7fbe4082d510:1 [ID=7]
-  
-    Morphed node: 0x7fbe4082d610: ch = RET 0x7fbe4082d410, 0x7fbe4082d510, 
-    0x7fbe4082d510:1
+      0x7fa50b046650: <multiple use>
+      0x7fa50b046528: <multiple use>
+      0x7fa50b046650: <multiple use>
+    0x7fa50b046778: ch = Cpu0ISD::Ret 0x7fa50b046650, 0x7fa50b046528, 0x7fa50b046650:1 
+    [ORD=2] [ID=4]
     
-  ISEL: Match complete!
-  => 0x7fbe4082d610: ch = RET 0x7fbe4082d410, 0x7fbe4082d510, 0x7fbe4082d510:1
+  ===== Instruction selection begins: BB#0 ''
+  Selecting: 0x7fa50b046778: ch = Cpu0ISD::Ret 0x7fa50b046650, 0x7fa50b046528, 
+  0x7fa50b046650:1 [ORD=2] [ID=4]
   
-  Selecting: 0x7fbe4082d510: ch,glue = CopyToReg 0x7fbe4082d310, 0x7fbe4082d410, 
-  0x7fbe4082d010 [ID=6]
+  ISEL: Starting pattern match on root node: 0x7fa50b046778: ch = Cpu0ISD::Ret 
+  0x7fa50b046650, 0x7fa50b046528, 0x7fa50b046650:1 [ORD=2] [ID=4]
   
-  => 0x7fbe4082d510: ch,glue = CopyToReg 0x7fbe4082d310, 0x7fbe4082d410, 
-  0x7fbe4082d010
-  
-  Selecting: 0x7fbe4082d310: ch = store 0x7fbe40410668, 0x7fbe4082d010, 
-  0x7fbe4082d110, 0x7fbe4082d210<ST4[%1]> [ORD=1] [ID=5]
-  
-  ISEL: Starting pattern match on root node: 0x7fbe4082d310: ch = store 0x7fbe40410668, 
-  0x7fbe4082d010, 0x7fbe4082d110, 0x7fbe4082d210<ST4[%1]> [ORD=1] [ID=5]
-  
-    Initial Opcode index to 166
-    Morphed node: 0x7fbe4082d310: ch = ST 0x7fbe4082d010, 0x7fbe4082d710, 
-    0x7fbe4082d810, 0x7fbe40410668<Mem:ST4[%1]> [ORD=1]
+    Morphed node: 0x7fa50b046778: ch = RetLR 0x7fa50b046528, 0x7fa50b046650, 
+    0x7fa50b046650:1 [ORD=2]
   
   ISEL: Match complete!
-  => 0x7fbe4082d310: ch = ST 0x7fbe4082d010, 0x7fbe4082d710, 0x7fbe4082d810, 
-  0x7fbe40410668<Mem:ST4[%1]> [ORD=1]
+  => 0x7fa50b046778: ch = RetLR 0x7fa50b046528, 0x7fa50b046650, 0x7fa50b046650:1 
+  [ORD=2]
   
-  Selecting: 0x7fbe4082d410: i32 = Register %V0 [ID=4]
+  Selecting: 0x7fa50b046650: ch,glue = CopyToReg 0x7fa50ac15de0, 0x7fa50b046528, 
+  0x7fa50b046400 [ORD=2] [ID=3]
   
-  => 0x7fbe4082d410: i32 = Register %V0
+  => 0x7fa50b046650: ch,glue = CopyToReg 0x7fa50ac15de0, 0x7fa50b046528, 
+  0x7fa50b046400 [ORD=2]
   
-  Selecting: 0x7fbe4082d010: i32 = Constant<0> [ORD=1] [ID=1]
+  Selecting: 0x7fa50b046528: i32 = Register %V0 [ID=2]
   
-  ISEL: Starting pattern match on root node: 0x7fbe4082d010: i32 = 
-  Constant<0> [ORD=1] [ID=1]
+  => 0x7fa50b046528: i32 = Register %V0
   
-    Initial Opcode index to 1201
-    Morphed node: 0x7fbe4082d010: i32 = ADDiu 0x7fbe4082d110, 0x7fbe4082d810 [ORD=1]
+  Selecting: 0x7fa50b046400: i32 = Constant<0> [ID=1]
+  
+  ISEL: Starting pattern match on root node: 0x7fa50b046400: i32 = Constant<0> [ID=1]
+  
+    Initial Opcode index to 3410
+    Morphed node: 0x7fa50b046400: i32 = ADDiu 0x7fa50b0468a0, 0x7fa50b0469c8
   
   ISEL: Match complete!
-  => 0x7fbe4082d010: i32 = ADDiu 0x7fbe4082d110, 0x7fbe4082d810 [ORD=1]
+  => 0x7fa50b046400: i32 = ADDiu 0x7fa50b0468a0, 0x7fa50b0469c8
   
-  Selecting: 0x7fbe40410668: ch = EntryToken [ORD=1] [ID=0]
+  Selecting: 0x7fa50ac15de0: ch = EntryToken [ID=0]
   
-  => 0x7fbe40410668: ch = EntryToken [ORD=1]
+  => 0x7fa50ac15de0: ch = EntryToken
   
   ===== Instruction selection ends:
 
@@ -1469,16 +1435,14 @@ Summary above translation into Table: Chapter 3 .bc IR instructions.
   =============================  ==================================  ==========
   .bc                            Optimized legalized selection DAG   Cpu0
   =============================  ==================================  ==========
-  constant 0                     constant 0                          addiu         
-  store                          store                               st
+  constant 0                     constant 0                          addiu  
   ret                            Cpu0ISD::Ret                        ret
   =============================  ==================================  ==========
 
-From above ``llc -debug`` display, we see the **store** and **ret** are 
-translated into **store** and **Cpu0ISD::Ret** in stage Optimized legalized 
-selection DAG, and then translated into Cpu0 instructions **st** and **ret** 
-finally. 
-Since store use **constant 0** (**store i32 0, i32\* %1** in this example), the 
+From above ``llc -debug`` display, we see **ret** is translated into 
+**Cpu0ISD::Ret** in stage Optimized legalized selection DAG, and then 
+translated into Cpu0 instructions **ret** finally. 
+Since ret use **constant 0** (**ret i32 0** in this example), the 
 constant 0 will be translated into **"addiu $2, $zero, 0"** via the following 
 pattern defined in Cpu0InstrInfo.td.
 
@@ -1491,6 +1455,9 @@ pattern defined in Cpu0InstrInfo.td.
 
 Add Prologue/Epilogue functions
 -------------------------------
+
+Concept
++++++++
 
 Following come from tricore_llvm.pdf section “4.4.2 Non-static Register 
 Information ”.
@@ -1554,11 +1521,44 @@ takes care of all the details.
   If the stack frame has a variable size, slot must be addressed relative to 
   the frame pointer
 
+
+Prologue and Epilogue functions
+++++++++++++++++++++++++++++++++
+
+The Prologue and Epilogue functions as follows,
+    
+.. rubric:: lbdex/chapters/Chapter3_5/Cpu0SEFrameLowering.cpp
+.. literalinclude:: ../lbdex/chapters/Chapter3_5/Cpu0SEFrameLowering.cpp
+    :start-after: //@emitPrologue {
+    :end-before: //}
+.. literalinclude:: ../lbdex/chapters/Chapter3_5/Cpu0SEFrameLowering.cpp
+    :start-after: //@emitEpilogue {
+    :end-before: //}
+.. literalinclude:: ../lbdex/chapters/Chapter3_5/Cpu0SEFrameLowering.cpp
+    :start-after: //@hasReservedCallFrame {
+    :end-before: //}
+
+.. rubric:: lbdex/chapters/Chapter3_5/Cpu0MachineFunction.h
+.. literalinclude:: ../lbdex/Cpu0/Cpu0MachineFunction.h
+    :start-after: #if CH >= CH3_5
+    :end-before: #endif
+
 Now we explain the Prologue and Epilogue further by example code. 
-For the following llvm IR code of ch3.cpp, Cpu0 backend will emit the
-corresponding machine instructions as follows,
+For the following llvm IR code of ch3.cpp, Chapter3_5 of Cpu0 backend will emit 
+the corresponding machine instructions as follows,
 
 .. code-block:: bash
+
+  118-165-78-230:input Jonathan$ clang -target mips-unknown-linux-gnu -c 
+  ch3.cpp -emit-llvm -o ch3.bc
+  118-165-78-230:input Jonathan$ ~/llvm/test/cmake_debug_build/Debug/bin/llvm-dis 
+  ch3.bc -o -
+  ...
+  define i32 @main() #0 {
+    %1 = alloca i32, align 4
+    store i32 0, i32* %1
+    ret i32 0
+  }
 
   define i32 @main() nounwind uwtable { 
     %1 = alloca i32, align 4 
@@ -1566,6 +1566,9 @@ corresponding machine instructions as follows,
     ret i32 0 
   }
   
+  118-165-78-230:input Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
+  Debug/bin/llc -march=cpu0 -relocation-model=pic -filetype=asm ch3.bc -o -
+    ...
     .section .mdebug.abi32
     .previous
     .file "ch3.bc"
@@ -1595,10 +1598,25 @@ corresponding machine instructions as follows,
     .size main, ($tmp2)-main
     .cfi_endproc
 
-LLVM call estimateStackSize() of Cpu0FrameLowering.cpp to get the stack size by 
-counting how many virtual registers is assigned to local variables. 
+LLVM get the stack size by counting how many virtual registers is assigned to 
+local variables. 
 After that, it calls emitPrologue(). 
-This function will emit machine instructions to adjust sp (stack pointer 
+
+.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.h
+    :start-after: #if CH >= CH3_5 //3
+    :end-before: #endif
+    
+.. rubric:: lbdex/chapters/Chapter3_5/Cpu0SEInstrInfo.h
+.. literalinclude:: ../lbdex/Cpu0/Cpu0SEInstrInfo.h
+    :start-after: #if CH >= CH3_5 //2
+    :end-before: #endif //#if CH >= CH3_5 //2
+
+.. rubric:: lbdex/chapters/Chapter3_5/Cpu0SEInstrInfo.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0SEInstrInfo.cpp
+    :start-after: #if CH >= CH3_5 //2
+    :end-before: #endif //#if CH >= CH3_5 //2
+    
+In emitPrologue(), it emits machine instructions to adjust sp (stack pointer 
 register) for local variables. 
 For our example, it will emit the instructions,
 
@@ -1607,116 +1625,6 @@ For our example, it will emit the instructions,
   addiu $sp, $sp, -8
 
 The  emitEpilogue will emit “addiu  $sp, $sp, 8”, where 8 is the stack size.
-
-Since Instruction Selection and Register Allocation occurs before 
-Prologue/Epilogue Code Insertion, eliminateFrameIndex() is called after 
-instruction selection and register allocated. 
-It translates the frame index of local variable (%1 and %2 in the following 
-example) into stack offset according the frame index order upward (stack grow 
-up downward from high address to low address, 52($sp) is the top, 0($sp) is the 
-bottom) as follows,
-
-.. code-block:: bash
-
-  define i32 @main() nounwind uwtable { 
-       %1 = alloca i32, align 4 
-       %2 = alloca i32, align 4 
-      ...
-      store i32 0, i32* %1
-      store i32 5, i32* %2, align 4 
-      ...
-      ret i32 0 
-  
-  => # BB#0: 
-    addiu $sp, $sp, -56 
-  $tmp1: 
-    addiu $3, $zero, 0 
-    st  $3, 52($sp)   // %1 is the first frame index local variable, so allocate
-                      // in 52($sp)
-    addiu $2, $zero, 5 
-    st  $2, 48($sp)   // %2 is the second frame index local variable, so 
-                      // allocate in 48($sp)
-    ...
-    ret $lr
-
-The Prologue and Epilogue functions as follows,
-
-.. rubric:: lbdex/chapters/Chapter3_5/Cpu0FrameLowering.h
-.. literalinclude:: ../lbdex/Cpu0/Cpu0FrameLowering.h
-    :start-after: #if CH >= CH3_5
-    :end-before: #endif
-    
-.. rubric:: lbdex/chapters/Chapter3_5/Cpu0FrameLowering.cpp
-.. literalinclude:: ../lbdex/Cpu0/Cpu0FrameLowering.cpp
-    :start-after: #if CH >= CH3_5 //2
-    :end-before: #endif
-
-.. rubric:: lbdex/chapters/Chapter3_5/Cpu0SEFrameLowering.h
-.. literalinclude:: ../lbdex/Cpu0/Cpu0SEFrameLowering.h
-    :start-after: #if CH >= CH3_5
-    :end-before: #endif
-
-.. rubric:: lbdex/chapters/Chapter3_5/Cpu0SEFrameLowering.cpp
-.. literalinclude:: ../lbdex/chapters/Chapter3_5/Cpu0SEFrameLowering.cpp
-    :start-after: //@emitPrologue {
-    :end-before: //}
-.. literalinclude:: ../lbdex/chapters/Chapter3_5/Cpu0SEFrameLowering.cpp
-    :start-after: //@emitEpilogue {
-    :end-before: //}
-.. literalinclude:: ../lbdex/chapters/Chapter3_5/Cpu0SEFrameLowering.cpp
-    :start-after: //@hasReservedCallFrame {
-    :end-before: //}
-.. literalinclude:: ../lbdex/chapters/Chapter3_5/Cpu0SEFrameLowering.cpp
-    :start-after: //@determineCalleeSaves {
-    :end-before: //}
-
-.. rubric:: lbdex/chapters/Chapter3_5/Cpu0MachineFunction.h
-.. literalinclude:: ../lbdex/Cpu0/Cpu0MachineFunction.h
-    :start-after: #if CH >= CH3_5
-    :end-before: #endif
-
-The determineCalleeSaves() of Cpu0SEFrameLowering.cpp as above determine the
-spill registers. Once the spill registers are determined, the functions 
-storeRegToStack(), loadRegFromStack() and eliminateFrameIndex() defined in last
-section will save/restore registers to/from stack slots.
-After adding these Prologue and Epilogue functions, and build with Chapter3_5/. 
-Now we are ready to compile our example code ch3.bc and ouput cpu0 assembly as
-follows,
-
-.. code-block:: bash
-
-  118-165-78-12:input Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
-  Debug/bin/llc -march=cpu0 -relocation-model=pic -filetype=asm -debug ch3.bc -o -
-    ...
-    .section .mdebug.abi32
-    .previous
-    .file "ch3.bc"
-    .text
-    .globl  main
-    .align  2
-    .type main,@function
-    .ent  main                    # @main
-  main:
-    .cfi_startproc
-    .frame  $sp,8,$lr
-    .mask   0x00000000,0
-    .set  noreorder
-    .set  nomacro
-  # BB#0:
-    addiu $sp, $sp, -8
-  $tmp1:
-    .cfi_def_cfa_offset 8
-    addiu $2, $zero, 0
-    st  $2, 4($sp)
-    addiu $sp, $sp, 8
-    ret $lr
-    .set  macro
-    .set  reorder
-    .end  main
-  $tmp2:
-    .size main, ($tmp2)-main
-    .cfi_endproc
-
 
 In above ch3.cpp assembly output, it generates "addiu $2, $zero, 0" rather than
 "ori $2, $zero, 0" because ADDiu defined before ORi as following, so it takes the 
@@ -1732,6 +1640,66 @@ priority. Of course, if the ORi is defined first, the it will translate into
 .. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td
     :start-after: //#if CH >= CH3_5 14
     :end-before: //#endif
+
+
+Handle stack slot for local variables
++++++++++++++++++++++++++++++++++++++
+
+The following code handle the stack slot for local variables.
+
+.. rubric:: lbdex/chapters/Chapter3_5/Cpu0InstrInfo.h
+.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.h
+    :start-after: #if CH >= CH3_5 //2
+    :end-before: #endif
+.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.h
+    :start-after: #if CH >= CH3_5 //4
+    :end-before: #endif
+
+.. rubric:: lbdex/chapters/Chapter3_5/Cpu0InstrInfo.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.cpp
+    :start-after: #if CH >= CH3_5 //1
+    :end-before: #endif
+    
+.. rubric:: lbdex/chapters/Chapter3_5/Cpu0SEInstrInfo.h
+.. literalinclude:: ../lbdex/Cpu0/Cpu0SEInstrInfo.h
+    :start-after: #if CH >= CH3_5 //1
+    :end-before: #endif //#if CH >= CH3_5 //1
+
+.. rubric:: lbdex/chapters/Chapter3_5/Cpu0SEInstrInfo.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0SEInstrInfo.cpp
+    :start-after: #if CH >= CH3_5 //1
+    :end-before: #endif //#if CH >= CH3_5 //1
+
+.. rubric:: lbdex/chapters/Chapter3_5/Cpu0RegisterInfo.cpp
+.. literalinclude:: ../lbdex/chapters/Chapter3_5/Cpu0RegisterInfo.cpp
+    :start-after: //@eliminateFrameIndex {
+    :end-before: //}
+
+Functions storeRegToStack() and loadRegFromStack() of Cpu0SEInstrInfo.cpp, 
+storeRegToStackSlot() and loadRegFromStackSlot() of Cpu0InstrInfo.cpp are
+handling the registers spill during register allocation process.
+Since each local variable connecting to a frame index,  ".addFrameIndex(FI).
+addImm(Offset).addMemOperand(MMO); where Offset is 0" in storeRegToStack() and 
+loadRegFromStack().
+The eliminateFrameIndex() of Cpu0RegisterInfo.cpp is called after stages 
+"instruction selection" and "registers allocated". 
+It translates frame index to correct offset of stack pointer by
+"spOffset = MF.getFrameInfo()->getObjectOffset(FrameIndex);".
+
+
+.. rubric:: lbdex/chapters/Chapter3_5/Cpu0SEFrameLowering.cpp
+.. literalinclude:: ../lbdex/chapters/Chapter3_5/Cpu0SEFrameLowering.cpp
+    :start-after: //@determineCalleeSaves {
+    :end-before: //}
+
+The determineCalleeSaves() of Cpu0SEFrameLowering.cpp as above determine the
+spill registers. Once the spill registers are determined, the functions 
+storeRegToStack(), loadRegFromStack() and eliminateFrameIndex() defined in last
+section will save/restore registers to/from stack slots.
+
+
+Large stack
++++++++++++
 
 At this point, we have translated the very simple main() function with 
 "return 0;" single instruction. 
@@ -1811,7 +1779,7 @@ Chapter3_5 as the following, which take care the 32 bits stack size adjustments.
     
 .. rubric:: lbdex/chapters/Chapter3_5/Cpu0SEFrameLowering.cpp
 .. literalinclude:: ../lbdex/Cpu0/Cpu0SEFrameLowering.cpp
-    :start-after: #if CH >= CH3_5
+    :start-after: #if CH >= CH3_5 //1
     :end-before: #endif
 
 .. rubric:: lbdex/chapters/Chapter3_5/Cpu0SEInstrInfo.h
