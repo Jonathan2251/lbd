@@ -776,7 +776,7 @@ LowerCall() is responsible to do this. The implementation as follows,
 
 Just like load incoming arguments from stack frame, we call 
 CCInfo(CallConv,..., ArgLocs, ...) to get outgoing arguments information before 
-enter **“for loop”** and set stack alignment with 8 bytes. 
+enter **“for loop”*. 
 They're almost same in **“for loop”** with LowerFormalArguments(), except 
 LowerCall() creates store DAG vector instead of load DAG vector. 
 After the **“for loop”**, it create **“ld $t9, %call16(_Z5sum_iiiiiii)($gp)”** 
@@ -2485,17 +2485,17 @@ backend code too.
 
 Mips qemu reference [#mipsqemu]_, you can download and run it with gcc to 
 verify the result with printf() function at this point. 
-We will verify the code correction in chapter 
-"Run backend" through the CPU0 Verilog language machine.
+We will verify the correction of the code in chapter "Verify backend on 
+Verilog simulator" through the CPU0 Verilog language machine.
 
 
 Dynamic stack allocation support
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Even though C language very rare to use dynamic stack allocation, there are
-languages use it frequently. The following C example code use it.
+languages use it frequently. The following C example code uses it.
 
-Chapter9_3 support dynamic stack allocation with the following code added.
+Chapter9_3 supports dynamic stack allocation with the following code added.
 
 .. rubric:: lbdex/chapters/Chapter9_2/Cpu0FrameLowering.cpp
 .. literalinclude:: ../lbdex/Cpu0/Cpu0FrameLowering.cpp
@@ -3512,9 +3512,9 @@ because the most complex things in language, such as C++ syntex, is handled by
 front end. 
 LLVM is a real structure following the compiler theory, any backend of LLVM can 
 benefit from this structure.
-The best part of 3 tiers compiler structure is the backend will grow up 
+The best part of 3 tiers compiler structure is that backend will grow up 
 automatically through the front end support languages more and more if the 
-front end has not add any new IR for a new language.
+frontend has not add any new IR for a new language.
 
 
 .. [#computer_arch_interface] Computer Organization and Design: The Hardware/Software Interface 1st edition (The Morgan Kaufmann Series in Computer Architecture and Design)

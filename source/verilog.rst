@@ -1,6 +1,6 @@
 .. _sec-verilog:
 
-Verify backend on verilog simulator
+Verify backend on Verilog simulator
 ===================================
 
 .. contents::
