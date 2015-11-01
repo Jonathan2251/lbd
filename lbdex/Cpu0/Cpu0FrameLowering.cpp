@@ -103,7 +103,7 @@ bool Cpu0FrameLowering::hasFP(const MachineFunction &MF) const {
       TRI->needsStackRealignment(MF);
 }
 
-#if CH >= CH3_4 //2
+#if CH >= CH3_5 //2
 uint64_t Cpu0FrameLowering::estimateStackSize(const MachineFunction &MF) const {
   const MachineFrameInfo *MFI = MF.getFrameInfo();
   const TargetRegisterInfo &TRI = *STI.getRegisterInfo();

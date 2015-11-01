@@ -42,7 +42,7 @@ public:
                                   MachineBasicBlock::iterator I) const override;
 #endif
 
-#if CH >= CH3_4
+#if CH >= CH3_5
 protected:
   uint64_t estimateStackSize(const MachineFunction &MF) const;
 #endif

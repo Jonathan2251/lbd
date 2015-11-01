@@ -1115,11 +1115,6 @@ The following code handle the return register \$lr.
     :start-after: #if CH >= CH3_4 2
     :end-before: #endif
 
-.. rubric:: lbdex/chapters/Chapter3_4/Cpu0FrameLowering.cpp
-.. literalinclude:: ../lbdex/Cpu0/Cpu0FrameLowering.cpp
-    :start-after: #if CH >= CH3_4 //2
-    :end-before: #endif
-
 .. rubric:: lbdex/chapters/Chapter3_4/Cpu0InstrFormats.td
 .. literalinclude:: ../lbdex/Cpu0/Cpu0InstrFormats.td
     :start-after: #if CH >= CH3_4
@@ -1600,8 +1595,9 @@ corresponding machine instructions as follows,
     .size main, ($tmp2)-main
     .cfi_endproc
 
-LLVM get the stack size by parsing IRs and counting how many virtual registers 
-is assigned to local variables. After that, it calls emitPrologue(). 
+LLVM call estimateStackSize() of Cpu0FrameLowering.cpp to get the stack size by 
+counting how many virtual registers is assigned to local variables. 
+After that, it calls emitPrologue(). 
 This function will emit machine instructions to adjust sp (stack pointer 
 register) for local variables. 
 For our example, it will emit the instructions,
@@ -1644,6 +1640,16 @@ bottom) as follows,
     ret $lr
 
 The Prologue and Epilogue functions as follows,
+
+.. rubric:: lbdex/chapters/Chapter3_5/Cpu0FrameLowering.h
+.. literalinclude:: ../lbdex/Cpu0/Cpu0FrameLowering.h
+    :start-after: #if CH >= CH3_5
+    :end-before: #endif
+    
+.. rubric:: lbdex/chapters/Chapter3_5/Cpu0FrameLowering.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0FrameLowering.cpp
+    :start-after: #if CH >= CH3_5 //2
+    :end-before: #endif
 
 .. rubric:: lbdex/chapters/Chapter3_5/Cpu0SEFrameLowering.h
 .. literalinclude:: ../lbdex/Cpu0/Cpu0SEFrameLowering.h
@@ -2086,7 +2092,7 @@ Summary the functions for llvm backend stages as the following table.
                                                        - Cpu0SEFrameLowering::emitEpilogue
     - Determine spill callee saved registers           - Cpu0SEFrameLowering::determineCalleeSaves
     - Handle stack slot for local variables            - Cpu0InstrInfo::storeRegToStack
-      (store/retore callee saved registers)            - Cpu0InstrInfo::loadRegFromStack
+                                                       - Cpu0InstrInfo::loadRegFromStack
                                                        - Cpu0RegisterInfo::eliminateFrameIndex
   Post-RA pseudo instruction expansion pass            - Cpu0SEInstrInfo::expandPostRAPseudo
   Cpu0 Assembly Printer                                - Cpu0AsmPrinter.cpp, Cpu0MCInstLower.cpp
