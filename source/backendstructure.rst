@@ -1559,12 +1559,6 @@ the corresponding machine instructions as follows,
     store i32 0, i32* %1
     ret i32 0
   }
-
-  define i32 @main() nounwind uwtable { 
-    %1 = alloca i32, align 4 
-    store i32 0, i32* %1 
-    ret i32 0 
-  }
   
   118-165-78-230:input Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
   Debug/bin/llc -march=cpu0 -relocation-model=pic -filetype=asm ch3.bc -o -
@@ -1618,13 +1612,13 @@ After that, it calls emitPrologue().
     
 In emitPrologue(), it emits machine instructions to adjust sp (stack pointer 
 register) for local variables. 
-For our example, it will emit the instructions,
+For our example, it will emit the instruction,
 
 .. code-block:: c++
 
   addiu $sp, $sp, -8
 
-The  emitEpilogue will emit “addiu  $sp, $sp, 8”, where 8 is the stack size.
+The emitEpilogue() will emit “addiu  $sp, $sp, 8”, where 8 is the stack size.
 
 In above ch3.cpp assembly output, it generates "addiu $2, $zero, 0" rather than
 "ori $2, $zero, 0" because ADDiu defined before ORi as following, so it takes the 
@@ -1731,9 +1725,6 @@ Chapter3_5 as the following, which take care the 32 bits stack size adjustments.
 .. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.h
     :start-after: #if CH >= CH3_5 //1
     :end-before: #endif
-.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.h
-    :start-after: #if CH >= CH3_5 //2
-    :end-before: #endif
 
 
 .. rubric:: lbdex/chapters/Chapter3_5/Cpu0InstrInfo.td
@@ -1776,21 +1767,6 @@ Chapter3_5 as the following, which take care the 32 bits stack size adjustments.
 .. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td
     :start-after: #if CH >= CH3_5 14
     :end-before: #endif
-    
-.. rubric:: lbdex/chapters/Chapter3_5/Cpu0SEFrameLowering.cpp
-.. literalinclude:: ../lbdex/Cpu0/Cpu0SEFrameLowering.cpp
-    :start-after: #if CH >= CH3_5 //1
-    :end-before: #endif
-
-.. rubric:: lbdex/chapters/Chapter3_5/Cpu0SEInstrInfo.h
-.. literalinclude:: ../lbdex/Cpu0/Cpu0SEInstrInfo.h
-    :start-after: #if CH >= CH3_5 //1
-    :end-before: #endif //#if CH >= CH3_5 //1
-
-.. rubric:: lbdex/chapters/Chapter3_5/Cpu0SEInstrInfo.cpp
-.. literalinclude:: ../lbdex/Cpu0/Cpu0SEInstrInfo.cpp
-    :start-after: #if CH >= CH3_5 //1
-    :end-before: #endif //#if CH >= CH3_5 //1
     
 The Cpu0AnalyzeImmediate.cpp written in recursive with a little complicate in 
 logic. However, the recursive
