@@ -1641,40 +1641,11 @@ Handle stack slot for local variables
 
 The following code handle the stack slot for local variables.
 
-.. rubric:: lbdex/chapters/Chapter3_5/Cpu0InstrInfo.h
-.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.h
-    :start-after: #if CH >= CH3_5 //2
-    :end-before: #endif
-.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.h
-    :start-after: #if CH >= CH3_5 //4
-    :end-before: #endif
-
-.. rubric:: lbdex/chapters/Chapter3_5/Cpu0InstrInfo.cpp
-.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.cpp
-    :start-after: #if CH >= CH3_5 //1
-    :end-before: #endif
-    
-.. rubric:: lbdex/chapters/Chapter3_5/Cpu0SEInstrInfo.h
-.. literalinclude:: ../lbdex/Cpu0/Cpu0SEInstrInfo.h
-    :start-after: #if CH >= CH3_5 //1
-    :end-before: #endif //#if CH >= CH3_5 //1
-
-.. rubric:: lbdex/chapters/Chapter3_5/Cpu0SEInstrInfo.cpp
-.. literalinclude:: ../lbdex/Cpu0/Cpu0SEInstrInfo.cpp
-    :start-after: #if CH >= CH3_5 //1
-    :end-before: #endif //#if CH >= CH3_5 //1
-
 .. rubric:: lbdex/chapters/Chapter3_5/Cpu0RegisterInfo.cpp
 .. literalinclude:: ../lbdex/chapters/Chapter3_5/Cpu0RegisterInfo.cpp
     :start-after: //@eliminateFrameIndex {
     :end-before: //}
 
-Functions storeRegToStack() and loadRegFromStack() of Cpu0SEInstrInfo.cpp, 
-storeRegToStackSlot() and loadRegFromStackSlot() of Cpu0InstrInfo.cpp are
-handling the registers spill during register allocation process.
-Since each local variable connecting to a frame index,  ".addFrameIndex(FI).
-addImm(Offset).addMemOperand(MMO); where Offset is 0" in storeRegToStack() and 
-loadRegFromStack().
 The eliminateFrameIndex() of Cpu0RegisterInfo.cpp is called after stages 
 "instruction selection" and "registers allocated". 
 It translates frame index to correct offset of stack pointer by
@@ -1687,9 +1658,8 @@ It translates frame index to correct offset of stack pointer by
     :end-before: //}
 
 The determineCalleeSaves() of Cpu0SEFrameLowering.cpp as above determine the
-spill registers. Once the spill registers are determined, the functions 
-storeRegToStack(), loadRegFromStack() and eliminateFrameIndex() defined in last
-section will save/restore registers to/from stack slots.
+spill registers. Once the spill registers are determined, the function 
+eliminateFrameIndex() will save/restore registers to/from stack slots.
 
 
 Large stack
@@ -2035,9 +2005,7 @@ Summary the functions for llvm backend stages as the following table.
   Prologue/Epilogue Insertion & Frame Finalization     - Cpu0SEFrameLowering::emitPrologue
                                                        - Cpu0SEFrameLowering::emitEpilogue
     - Determine spill callee saved registers           - Cpu0SEFrameLowering::determineCalleeSaves
-    - Handle stack slot for local variables            - Cpu0InstrInfo::storeRegToStack
-                                                       - Cpu0InstrInfo::loadRegFromStack
-                                                       - Cpu0RegisterInfo::eliminateFrameIndex
+    - Handle stack slot for local variables            - Cpu0RegisterInfo::eliminateFrameIndex
   Post-RA pseudo instruction expansion pass            - Cpu0SEInstrInfo::expandPostRAPseudo
   Cpu0 Assembly Printer                                - Cpu0AsmPrinter.cpp, Cpu0MCInstLower.cpp
                                                        - Cpu0InstPrinter.cpp

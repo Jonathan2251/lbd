@@ -38,7 +38,7 @@ public:
                    bool KillSrc) const override;
 #endif
 
-#if CH >= CH3_5 //1
+#if CH >= CH9_1 //1
   void storeRegToStack(MachineBasicBlock &MBB,
                        MachineBasicBlock::iterator MI,
                        unsigned SrcReg, bool isKill, int FrameIndex,
@@ -52,7 +52,7 @@ public:
                         const TargetRegisterClass *RC,
                         const TargetRegisterInfo *TRI,
                         int64_t Offset) const override;
-#endif //#if CH >= CH3_5 //1
+#endif //#if CH >= CH9_1 //1
 
 #if CH >= CH3_4 //1
 //@expandPostRAPseudo
