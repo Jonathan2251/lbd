@@ -2024,7 +2024,7 @@ Summary the functions for llvm backend stages as the following table.
         Cpu0 Assembly Printer
 
 
-.. table:: Functions for llvm backend stage
+.. table:: Functions for llvm backend stages
 
   ===================================================  ===========================================
   Stage                                                Function   
