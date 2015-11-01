@@ -52,7 +52,8 @@ public:
                         const TargetRegisterClass *RC,
                         const TargetRegisterInfo *TRI,
                         int64_t Offset) const override;
-
+                        
+//@expandPostRAPseudo
   bool expandPostRAPseudo(MachineBasicBlock::iterator MI) const override;
 
 #if CH >= CH3_5 //1

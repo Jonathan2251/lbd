@@ -128,6 +128,7 @@ bool Cpu0SEInstrInfo::expandPostRAPseudo(MachineBasicBlock::iterator MI) const {
   MBB.erase(MI);
   return true;
 }
+#endif //#if CH >= CH3_4 //2
 
 #if CH >= CH3_5 //1
 /// Adjust SP by Amount bytes.
@@ -186,11 +187,12 @@ Cpu0SEInstrInfo::loadImmediate(int64_t Imm, MachineBasicBlock &MBB,
 }
 #endif //#if CH >= CH3_5 //1
 
+#if CH >= CH3_4 //3
 void Cpu0SEInstrInfo::expandRetLR(MachineBasicBlock &MBB,
                                 MachineBasicBlock::iterator I) const {
   BuildMI(MBB, I, I->getDebugLoc(), get(Cpu0::RET)).addReg(Cpu0::LR);
 }
-#endif //#if CH >= CH3_4 //2
+#endif //#if CH >= CH3_4 //3
 
 #if CH >= CH8_2 //1
 /// getOppositeBranchOpc - Return the inverse of the specified
