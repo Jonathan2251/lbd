@@ -80,6 +80,7 @@ Version 3.7.1, Not release yet
   Re-organize testing ch4_2_1.cpp, ch4_2_2.cpp and ch9_4.cpp.
   Fix dynamic alloca bug.
   Move Cpu0AnalyzeImmediate.cpp and related functions from Chapter3_4 to Chapter3_5.
+  Rename input files.
 
 Version 3.7.0, Released September 24, 2015
   Porting to lld 3.7.

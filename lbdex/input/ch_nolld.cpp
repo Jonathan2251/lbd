@@ -5,12 +5,12 @@
 
 #include "print.cpp"
 
-#include "ch4_1_1.cpp"
-#include "ch4_1_3.cpp"
-#include "ch4_2_1.cpp"
-#include "ch4_2_2.cpp"
-#include "ch4_3.cpp"
-#include "ch4_5.cpp"
+#include "ch4_1_math.cpp"
+#include "ch4_1_rotate.cpp"
+#include "ch4_1_mult2.cpp"
+#include "ch4_1_mod.cpp"
+#include "ch4_1_div.cpp"
+#include "ch4_2_logic.cpp"
 #include "ch7_1.cpp"
 #include "ch7_2_2.cpp"
 #include "ch7_3.cpp"
@@ -62,10 +62,10 @@ int test_nolld()
   a = test_rotate();
   print_integer(a);  // a = 7
   if (a != 7) pass = false;
-  a = test_mod();
+  a = test_mult();
   print_integer(a);  // a = 0
   if (a != 0) pass = false;
-  a = test_mod2();
+  a = test_mod();
   print_integer(a);  // a = 0
   if (a != 0) pass = false;
   a = test_div();

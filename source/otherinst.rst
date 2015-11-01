@@ -179,7 +179,7 @@ SRA, SRAV, SHR and SHRV are for **>>**.
 In RISC CPU like Mips, the multiply/divide function unit and add/sub/logic unit 
 are designed from two different hardware circuits, and more, their data path are 
 separate. Cpu0 is same, so these two function units can be executed at same 
-time (instruction level parallelism). Reference [#]_ for instruction itineraries.
+time (instruction level parallelism). Reference [#instrstage]_ for instruction itineraries.
 
 Chapter4_1/ can handle **+, -, \*, <<,** and **>>** operators in C 
 language. 
@@ -282,9 +282,9 @@ value in register is OK. You can check that **lshr** satisfy x = x*2, for all
 x << 1 and the x result is not out of range, no matter operand x is signed 
 or unsigned integer.
 
-Micorsoft implementation references here [#]_.
+Micorsoft implementation references here [#msdn]_.
 
-The ‘ashr‘ Instruction" reference here [#]_, ‘lshr‘ reference here [#]_.
+The ‘ashr‘ Instruction" reference here [#ashr]_, ‘lshr‘ reference here [#lshr]_.
 
 The srav, shlv and shrv are for two virtual input registers instructions while 
 the sra, ... are for 1 virtual input registers and 1 constant input operands.
@@ -302,30 +302,30 @@ Now, let's build Chapter4_1/ and run with input file ch4_math.ll as follows,
 .. rubric:: lbdex/output/ch4_math.s
 .. literalinclude:: ../lbdex/output/ch4_math.s
 
-Example input ch4_1_1.cpp as the following is the C file which include **+, -, 
+Example input ch4_1_math.cpp as the following is the C file which include **+, -, 
 \*, <<,** and **>>** operators. 
 It will generate corresponding llvm IR instructions, 
 **add, sub, mul, shl, ashr** by clang as Chapter 3 indicated.
 
-.. rubric:: lbdex/input/ch4_1_1.cpp
-.. literalinclude:: ../lbdex/input/ch4_1_1.cpp
+.. rubric:: lbdex/input/ch4_1_math.cpp
+.. literalinclude:: ../lbdex/input/ch4_1_math.cpp
     :start-after: /// start
 
     
 Cpu0 instructions add and sub will trigger overflow exception while addu and subu
-truncate overflow value directly. Compile ch4_1_2.cpp with 
+truncate overflow value directly. Compile ch4_1_addsuboverflow.cpp with 
 ``llc -cpu0-enable-overflow=true`` will generate add and sub instructions as 
 follows,
 
-.. rubric:: lbdex/input/ch4_1_2.cpp
-.. literalinclude:: ../lbdex/input/ch4_1_2.cpp
+.. rubric:: lbdex/input/ch4_1_addsuboverflow.cpp
+.. literalinclude:: ../lbdex/input/ch4_1_addsuboverflow.cpp
     :start-after: /// start
 
 .. code-block:: bash
 
   118-165-78-12:input Jonathan$ clang -target mips-unknown-linux-gnu -c 
-  ch4_1_2.cpp -emit-llvm -o ch4_1_2.bc
-  118-165-78-12:input Jonathan$ llvm-dis ch4_1_2.bc -o -
+  ch4_1_addsuboverflow.cpp -emit-llvm -o ch4_1_addsuboverflow.bc
+  118-165-78-12:input Jonathan$ llvm-dis ch4_1_addsuboverflow.bc -o -
   ...
   ; Function Attrs: nounwind
   define i32 @_Z13test_overflowv() #0 {
@@ -338,7 +338,7 @@ follows,
 
   118-165-78-12:input Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
   Debug/bin/llc -march=cpu0 -relocation-model=pic -filetype=asm 
-  -cpu0-enable-overflow=true ch4_1_2.bc -o -
+  -cpu0-enable-overflow=true ch4_1_addsuboverflow.bc -o -
 	...
 	add	$3, $4, $3
 	...
@@ -367,7 +367,7 @@ It's not a must-have, but helps a lot especially when you are tired in tracking
 the DAG translation process. 
 List the ``llc`` graphic support options from the sub-section "SelectionDAG 
 Instruction Selection Process" of web "The LLVM Target-Independent Code Generator" 
-[#]_ as follows,
+[#instructionsel]_ as follows,
 
 .. note:: The ``llc`` Graphviz DAG display options
 
@@ -406,7 +406,7 @@ result with Graphviz as follows,
 
   118-165-12-177:input Jonathan$ /Users/Jonathan/llvm/test/
   cmake_debug_build/Debug/bin/llc -view-dag-combine1-dags -march=cpu0 
-  -relocation-model=pic -filetype=asm ch4_2.bc -o ch4_2.cpu0.s
+  -relocation-model=pic -filetype=asm ch4_1_mult.bc -o ch4_1_mult.cpu0.s
   Writing '/tmp/llvm_84ibpm/dag.main.dot'...  done. 
   118-165-12-177:input Jonathan$ Graphviz /tmp/llvm_84ibpm/dag.main.dot 
 
@@ -450,17 +450,17 @@ Operator % and /
 The DAG of %
 +++++++++++++++
 
-Example input code ch4_2.cpp which contains the C operator **“%”** and it's 
+Example input code ch4_1_mult.cpp which contains the C operator **“%”** and it's 
 corresponding llvm IR, as follows,
 
-.. rubric:: lbdex/input/ch4_2.cpp
-.. literalinclude:: ../lbdex/input/ch4_2.cpp
+.. rubric:: lbdex/input/ch4_1_mult.cpp
+.. literalinclude:: ../lbdex/input/ch4_1_mult.cpp
     :start-after: /// start
 
 .. code-block:: bash
 
   ...
-  define i32 @_Z8test_modv() #0 {
+  define i32 @_Z8test_multv() #0 {
     %b = alloca i32, align 4
     store i32 11, i32* %b, align 4
     %1 = load i32* %b, align 4
@@ -471,7 +471,7 @@ corresponding llvm IR, as follows,
     ret i32 %4
   }
 
-LLVM **srem** is the IR of corresponding **“%”**, reference here [#]_. 
+LLVM **srem** is the IR of corresponding **“%”**, reference here [#srem]_. 
 Copy the reference as follows,
 
 .. note:: **'srem'** Instruction 
@@ -510,7 +510,7 @@ Copy the reference as follows,
   <result> = **srem i32 4, %var**      ; yields {i32}:result = 4 % %var
 
 
-Run Chapter3_5/ with input file ch4_2.bc via option ``llc –view-isel-dags``, 
+Run Chapter3_5/ with input file ch4_1_mult.bc via option ``llc –view-isel-dags``, 
 will get the following error message and the llvm DAGs of 
 :num:`Figure #otherinst-f2` below.
 
@@ -518,7 +518,7 @@ will get the following error message and the llvm DAGs of
 
   118-165-79-37:input Jonathan$ /Users/Jonathan/llvm/test/
   cmake_debug_build/Debug/bin/llc -march=cpu0 -view-isel-dags -relocation-model=
-  pic -filetype=asm ch4_2.bc -o -
+  pic -filetype=asm ch4_1_mult.bc -o -
   ...
   LLVM ERROR: Cannot select: 0x7fa73a02ea10: i32 = mulhs 0x7fa73a02c610, 
   0x7fa73a02e910 [ID=12]
@@ -533,7 +533,7 @@ will get the following error message and the llvm DAGs of
   :scale: 100 %
   :align: center
 
-  ch4_2.bc DAG
+  ch4_1_mult.bc DAG
 
 LLVM replaces srem divide operation with multiply operation in DAG optimization 
 because DIV operation costs more in time than MUL. 
@@ -607,7 +607,7 @@ Chapter4_1/ as follows,
   }
 
 
-Let's run above changes with ch4_2.cpp as well as ``llc -view-sched-dags`` option 
+Let's run above changes with ch4_1_mult.cpp as well as ``llc -view-sched-dags`` option 
 to get :num:`Figure #otherinst-f3`. 
 Instruction SMMUL will get the high word of multiply result.
 
@@ -618,60 +618,41 @@ Instruction SMMUL will get the high word of multiply result.
   :scale: 100 %
   :align: center
 
-  DAG for ch4_2.bc with ARM style SMMUL
+  DAG for ch4_1_mult.bc with ARM style SMMUL
 
-The following is the result of run above changes with ch4_2.bc.
+The following is the result of run above changes with ch4_1_mult.bc.
 
 .. code-block:: bash
 
   118-165-66-82:input Jonathan$ /Users/Jonathan/llvm/test/cmake_
   debug_build/Debug/bin/llc -march=cpu0 -relocation-model=pic -filetype=asm 
-  ch4_2.bc -o -
-	  .section .mdebug.abi32
-	  .previous
-	  .file	"ch4_2.bc"
-	  .text
-	  .globl	main
-	  .align	2
-	  .type	main,@function
-	  .ent	main                    # @main
-  main:
-	  .cfi_startproc
-	  .frame	$fp,8,$lr
-	  .mask 	0x00000000,0
-	  .set	noreorder
-	  .set	nomacro
+  ch4_1_mult.bc -o -
+    ...
   # BB#0:                                 # %entry
-	  addiu	$sp, $sp, -8
+    addiu $sp, $sp, -8
   $tmp1:
-	  .cfi_def_cfa_offset 8
-	  addiu	$2, $zero, 0
-	  st	$2, 4($fp)
-	  addiu	$2, $zero, 11
-	  st	$2, 0($fp)
-	  lui	$2, 10922
-	  ori	$3, $2, 43691
-	  addiu	$2, $zero, 12
-	  smmul	$3, $2, $3
-	  shr	$4, $3, 31
-	  sra	$3, $3, 1
-	  addu	$3, $3, $4
-	  mul	$3, $3, $2
-	  subu	$2, $2, $3
-	  st	$2, 0($fp)
-	  addiu	$sp, $sp, 8
-	  ret	$lr
-	  .set	macro
-	  .set	reorder
-	  .end	main
-  $tmp2:
-	  .size	main, ($tmp2)-main
-	  .cfi_endproc
+    .cfi_def_cfa_offset 8
+    addiu $2, $zero, 0
+    st  $2, 4($fp)
+    addiu $2, $zero, 11
+    st  $2, 0($fp)
+    lui $2, 10922
+    ori $3, $2, 43691
+    addiu $2, $zero, 12
+    smmul $3, $2, $3
+    shr $4, $3, 31
+    sra $3, $3, 1
+    addu  $3, $3, $4
+    mul $3, $3, $2
+    subu  $2, $2, $3
+    st  $2, 0($fp)
+    addiu $sp, $sp, 8
+    ret $lr
 
 
 The other instruction UMMUL and llvm IR mulhu are unsigned int type for 
 operator %. 
-You can check it by unmark the **“unsigned int b = 11;”** in ch4_2.cpp.
+You can check it by unmark the **“unsigned int b = 11;”** in ch4_1_mult.cpp.
 
 Using SMMUL instruction to get the high word of multiplication result is adopted 
 in ARM. 
@@ -717,7 +698,8 @@ After that, MFHI instruction moves the HI register to Cpu0 field "a" register,
 $ra. 
 MFHI instruction is FL format and only use Cpu0 field "a" register, we set 
 the $rb and imm16 to 0. 
-:num:`Figure #otherinst-f4` and ch4_2.cpu0.s are the results of compile ch4_2.bc.
+:num:`Figure #otherinst-f4` and ch4_1_mult.cpu0.s are the results of compile 
+ch4_1_mult.bc.
 
 .. _otherinst-f4:
 .. figure:: ../Fig/otherinst/4.png
@@ -726,24 +708,12 @@ the $rb and imm16 to 0.
   :scale: 90 %
   :align: center
 
-  DAG for ch4_2.bc with Mips style MULT
+  DAG for ch4_1_mult.bc with Mips style MULT
 
 .. code-block:: bash
 
-  118-165-66-82:input Jonathan$ cat ch4_2.cpu0.s 
-    .section .mdebug.abi32
-    .previous
-    .file "ch4_2.bc"
-    .text
-    .globl  _Z8test_modv
-    .align  2
-    .type _Z8test_modv,@function
-    .ent  _Z8test_modv            # @_Z8test_modv
-  _Z8test_modv:
-    .frame  $sp,8,$lr
-    .mask   0x00000000,0
-    .set  noreorder
-    .set  nomacro
+  118-165-66-82:input Jonathan$ cat ch4_1_mult.cpu0.s 
+    ...
   # BB#0:
     addiu $sp, $sp, -8
     addiu $2, $zero, 11
@@ -761,12 +731,7 @@ the $rb and imm16 to 0.
     st  $2, 4($sp)
     addiu $sp, $sp, 8
     ret $lr
-    .set  macro
-    .set  reorder
-    .end  _Z8test_modv
-  $tmp1:
-    .size _Z8test_modv, ($tmp1)-_Z8test_modv
-
+    
 
 Full support \%, and /
 ++++++++++++++++++++++
@@ -802,45 +767,45 @@ Chapter4_1.
 The IR instruction **sdiv** stands for signed div while **udiv** stands for 
 unsigned div.
 
-.. rubric:: lbdex/input/ch4_2_1.cpp
-.. literalinclude:: ../lbdex/input/ch4_2_1.cpp
+.. rubric:: lbdex/input/ch4_1_mult2.cpp
+.. literalinclude:: ../lbdex/input/ch4_1_mult2.cpp
     :start-after: /// start
 
-If we run with ch4_2_1.cpp, the **“div”** cannot be gotten for operator 
+If we run with ch4_1_mult2.cpp, the **“div”** cannot be gotten for operator 
 **“%”**. 
-It still uses **"multiplication"** instead of **"div"** in ch4_2_1.cpp because 
+It still uses **"multiplication"** instead of **"div"** in ch4_1_mult2.cpp because 
 llvm do **“Constant Propagation Optimization”** in this. 
-The ch4_2_2.cpp can get the **“div”** for **“%”** result since it makes 
+The ch4_1_mod.cpp can get the **“div”** for **“%”** result since it makes 
 llvm **“Constant Propagation Optimization”** useless in it. 
   
-.. rubric:: lbdex/input/ch4_2_2.cpp
-.. literalinclude:: ../lbdex/input/ch4_2_2.cpp
+.. rubric:: lbdex/input/ch4_1_mod.cpp
+.. literalinclude:: ../lbdex/input/ch4_1_mod.cpp
     :start-after: /// start
 
 .. code-block:: bash
 
   118-165-77-79:input Jonathan$ clang -target mips-unknown-linux-gnu -c 
-  ch4_2_2.cpp -emit-llvm -o ch4_2_2.bc
+  ch4_1_mod.cpp -emit-llvm -o ch4_1_mod.bc
   118-165-77-79:input Jonathan$ /Users/Jonathan/llvm/test/cmake_
   debug_build/Debug/bin/llc -march=cpu0 -relocation-model=pic -filetype=asm 
-  ch4_2_2.bc -o -
+  ch4_1_mod.bc -o -
   ...
   div $zero, $3, $2
   mflo  $2
   ...
 
-To explains how to work with **“div”**, let's run ch4_2_2.cpp with debug option
+To explains how to work with **“div”**, let's run ch4_1_mod.cpp with debug option
 as follows,
 
 .. code-block:: bash
 
   118-165-83-58:input Jonathan$ clang -target mips-unknown-linux-gnu -c 
-  ch4_2_2.cpp -I/Applications/Xcode.app/Contents/Developer/Platforms/
+  ch4_1_mod.cpp -I/Applications/Xcode.app/Contents/Developer/Platforms/
   MacOSX.platform/Developer/SDKs/MacOSX10.8.sdk/usr/include/ -emit-llvm -o 
-  ch4_2_2.bc
+  ch4_1_mod.bc
   118-165-83-58:input Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
   Debug/bin/llc -march=cpu0 -relocation-model=pic -filetype=asm -debug 
-  ch4_2_2.bc -o -
+  ch4_1_mod.bc -o -
   ...
   === _Z8test_modi
   Initial selection DAG: BB#0 '_Z8test_mod2i:'
@@ -986,8 +951,8 @@ translation and pattern match for C operator %.
 
 Step 2 as above, is triggered by code 
 "setOperationAction(ISD::SREM, MVT::i32, Expand);" in Cpu0ISelLowering.cpp. 
-About **Expand** please ref. [#]_ and [#]_. Step 3 is triggered by code 
-"setTargetDAGCombine(ISD::SDIVREM);" in Cpu0ISelLowering.cpp.
+About **Expand** please ref. [#expand]_ and [#legalizetypes]_. Step 3 is 
+triggered by code "setTargetDAGCombine(ISD::SDIVREM);" in Cpu0ISelLowering.cpp.
 Step 4 is did by PerformDivRemCombine() which called by performDAGCombine().
 Since the **%** corresponding **srem** makes the "N->hasAnyUseOfValue(1)" to 
 true in PerformDivRemCombine(), it creates DAG of "CopyFromReg". 
@@ -1000,7 +965,7 @@ match defined in Chapter4_1/Cpu0InstrInfo.td will translate **Cpu0ISD::DivRem**
 into **div**; and **"CopyFromReg xxDAG, Register %H, Cpu0ISD::DivRem"** 
 to **mfhi**.
 
-The ch4_3.cpp is for **/** div operator test.
+The ch4_1_div.cpp is for **/** div operator test.
 
 
 Rotate instructions
@@ -1008,17 +973,17 @@ Rotate instructions
 
 Chapter4_1 include the rotate operations translation. The instructions "rol", 
 "ror", "rolv" and "rorv" defined in Cpu0InstrInfo.td handle the translation.
-Compile ch4_1_3.cpp will get Cpu0 "rol" instruction.
+Compile ch4_1_rotate.cpp will get Cpu0 "rol" instruction.
 
-.. rubric:: lbdex/input/ch4_1_3.cpp
-.. literalinclude:: ../lbdex/input/ch4_1_3.cpp
+.. rubric:: lbdex/input/ch4_1_rotate.cpp
+.. literalinclude:: ../lbdex/input/ch4_1_rotate.cpp
     :start-after: /// start
 
 .. code-block:: bash
   
   114-43-200-122:input Jonathan$ clang -target mips-unknown-linux-gnu -c 
-  ch4_1_3.cpp -emit-llvm -o ch4_1_3.bc
-  114-43-200-122:input Jonathan$ llvm-dis ch4_1_3.bc -o -
+  ch4_1_rotate.cpp -emit-llvm -o ch4_1_rotate.bc
+  114-43-200-122:input Jonathan$ llvm-dis ch4_1_rotate.bc -o -
   
   define i32 @_Z16test_rotate_leftv() #0 {
     %a = alloca i32, align 4
@@ -1035,7 +1000,7 @@ Compile ch4_1_3.cpp will get Cpu0 "rol" instruction.
   }
   
   114-43-200-122:input Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/Debug/
-  bin/llc -march=cpu0 -relocation-model=pic -filetype=asm ch4_1_3.bc -o -
+  bin/llc -march=cpu0 -relocation-model=pic -filetype=asm ch4_1_rotate.bc -o -
     ...
     rol $2, $2, 30
     ...
@@ -1053,7 +1018,7 @@ Logic
 Chapter4_2 supports logic operators **&, |, ^, !, ==, !=, <, <=, > and >=**.
 They are trivial and easy. Listing the added code with comments and table for 
 these operators IR, DAG and instructions as below. Please check them with the
-run result of bc and asm instructions for ch4_5.cpp as below.
+run result of bc and asm instructions for ch4_2_logic.cpp as below.
 
 .. rubric:: lbdex/chapters/Chapter4_2/Cpu0InstrInfo.td
 .. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td
@@ -1097,15 +1062,15 @@ run result of bc and asm instructions for ch4_5.cpp as below.
     ...
   }
 
-.. rubric:: lbdex/input/ch4_5.cpp
-.. literalinclude:: ../lbdex/input/ch4_5.cpp
+.. rubric:: lbdex/input/ch4_2_logic.cpp
+.. literalinclude:: ../lbdex/input/ch4_2_logic.cpp
     :start-after: /// start
 
 .. code-block:: bash
 
   114-43-204-152:input Jonathan$ clang -target mips-unknown-linux-gnu -c 
-  ch4_5.cpp -emit-llvm -o ch4_5.bc
-  114-43-204-152:input Jonathan$ llvm-dis ch4_5.bc -o -
+  ch4_2_logic.cpp -emit-llvm -o ch4_2_logic.bc
+  114-43-204-152:input Jonathan$ llvm-dis ch4_2_logic.bc -o -
   ...
   ; Function Attrs: nounwind uwtable
   define i32 @_Z16test_andorxornotv() #0 {
@@ -1155,7 +1120,7 @@ run result of bc and asm instructions for ch4_5.cpp as below.
   
   114-43-204-152:input Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
   Debug/bin/llc -march=cpu0 -mcpu=cpu032I -relocation-model=pic -filetype=asm 
-  ch4_5.bc -o -
+  ch4_2_logic.bc -o -
 
     .globl  _Z16test_andorxornotv
     ...
@@ -1198,7 +1163,7 @@ run result of bc and asm instructions for ch4_5.cpp as below.
 
   114-43-204-152:input Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
   Debug/bin/llc -march=cpu0 -mcpu=cpu032II -relocation-model=pic -filetype=asm 
-  ch4_5.bc -o -
+  ch4_2_logic.bc -o -
     ...
 	sltiu	$2, $2, 1
 	andi	$2, $2, 1
@@ -1270,7 +1235,7 @@ run result of bc and asm instructions for ch4_5.cpp as below.
                                                                                        - andi $2, $2, 1
   ==========  =================================  ====================================  =======================
 
-In relation operators ==, !=, ..., %0 = $3 = 5, %1 = $2 = 3 for ch4_5.cpp.
+In relation operators ==, !=, ..., %0 = $3 = 5, %1 = $2 = 3 for ch4_2_logic.cpp.
 
 The "Optimized legalized selection DAG" is the last DAG stage just before the 
 "instruction selection" as the previous section mentioned in this chapter. 
@@ -1280,17 +1245,17 @@ From above result, slt spend less instructions than cmp for relation
 operators translation. Beyond that, slt uses general purpose register while 
 cmp uses $sw dedicated register.
 
-.. rubric:: lbdex/input/ch4_6.cpp
-.. literalinclude:: ../lbdex/input/ch4_6.cpp
+.. rubric:: lbdex/input/ch4_2_slt_explain.cpp
+.. literalinclude:: ../lbdex/input/ch4_2_slt_explain.cpp
     :start-after: /// start
 
 .. code-block:: bash
 
   118-165-78-10:input Jonathan$ clang -target mips-unknown-linux-gnu -O2 
-  -c ch4_6.cpp -emit-llvm -o ch4_6.bc
+  -c ch4_2_slt_explain.cpp -emit-llvm -o ch4_2_slt_explain.bc
   118-165-78-10:input Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
   Debug/bin/llc -march=cpu0 -mcpu=cpu032I -relocation-model=static -filetype=asm 
-  ch4_6.bc -o -
+  ch4_2_slt_explain.bc -o -
     ...
     ld  $3, 20($sp)
     cmp $sw, $3, $2
@@ -1304,8 +1269,8 @@ cmp uses $sw dedicated register.
     andi  $2, $2, 1
     ...
   118-165-78-10:input Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
-  Debug/bin/llc -march=cpu0 -mcpu=cpu032I -relocation-model=static -filetype=asm 
-  ch4_6.bc -o -
+  Debug/bin/llc -march=cpu0 -mcpu=cpu032II -relocation-model=static -filetype=asm 
+  ch4_2_slt_explain.bc -o -
     ...
     ld  $2, 20($sp)
     slti  $2, $2, 1
@@ -1317,7 +1282,7 @@ cmp uses $sw dedicated register.
     st  $2, 8($sp)
     ...
 
-Run these two `llc -mcpu` option for Chapter4_2 with ch4_6.cpp to get the 
+Run these two `llc -mcpu` option for Chapter4_2 with ch4_2_slt_explain.cpp to get the 
 above result. Regardless of the move between \$sw and general purpose register 
 in `llc -mcpu=cpu032I`, the two cmp instructions in it will has hazard in 
 instruction reorder since both of them use \$sw register. The  
@@ -1374,41 +1339,30 @@ this chapter and spend 4xx lines of source code.
   ================  =================================  ====================================  ==========
 
 
-.. _section Operator “not” !:
-  http://jonathan2251.github.io/lbd/otherinst.html#operator-not
 
 .. _section Display llvm IR nodes with Graphviz:
   http://jonathan2251.github.io/lbd/otherinst.html#display-llvm-ir-nodes-
   with-graphviz
 
-.. _section Local variable pointer:
-  http://jonathan2251.github.io/lbd/otherinst.html#local-variable-pointer
-
-.. _section Operator mod, %:
-  http://jonathan2251.github.io/lbd/otherinst.html#operator-mod
-
 .. _section Install other tools on iMac:
   http://jonathan2251.github.io/lbd/install.html#install-other-tools-on-imac
 
-.. _section Support arithmetic instructions:
-  http://jonathan2251.github.io/lbd/otherinst.html#support-arithmetic-
-  instructions
 
-.. [#] http://llvm.org/docs/doxygen/html/structllvm_1_1InstrStage.html
+.. [#instrstage] http://llvm.org/docs/doxygen/html/structllvm_1_1InstrStage.html
 
-.. [#] http://msdn.microsoft.com/en-us/library/336xbhcz%28v=vs.80%29.aspx
+.. [#msdn] http://msdn.microsoft.com/en-us/library/336xbhcz%28v=vs.80%29.aspx
 
-.. [#] http://llvm.org/docs/LangRef.html#ashr-instruction
+.. [#ashr] http://llvm.org/docs/LangRef.html#ashr-instruction
 
-.. [#] http://llvm.org/docs/LangRef.html#lshr-instruction
+.. [#lshr] http://llvm.org/docs/LangRef.html#lshr-instruction
 
-.. [#] http://llvm.org/docs/CodeGenerator.html#selectiondag-instruction-selection-process
+.. [#instructionsel] http://llvm.org/docs/CodeGenerator.html#selectiondag-instruction-selection-process
 
-.. [#] http://llvm.org/docs/LangRef.html#srem-instruction
+.. [#srem] http://llvm.org/docs/LangRef.html#srem-instruction
 
-.. [#] http://llvm.org/docs/WritingAnLLVMBackend.html#expand
+.. [#expand] http://llvm.org/docs/WritingAnLLVMBackend.html#expand
 
-.. [#] http://llvm.org/docs/CodeGenerator.html#selectiondag-legalizetypes-phase
+.. [#legalizetypes] http://llvm.org/docs/CodeGenerator.html#selectiondag-legalizetypes-phase
 
 .. [#Quantitative] See book Computer Architecture: A Quantitative Approach (The Morgan 
        Kaufmann Series in Computer Architecture and Design) 
