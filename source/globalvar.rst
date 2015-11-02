@@ -1227,9 +1227,10 @@ instructions as below.
     ld	$2, %got_lo(gI)($2)
     ...
 
-The following code in Cpu0InstrInfo.td is needed for example input ch8_5.cpp. 
-Since ch8_5.cpp uses llvm IR **select**, it cannot be run at this point. It 
-will be run in later Chapter Control flow statements.
+The following code in Cpu0InstrInfo.td is needed for example input 
+ch8_2_select_global_pic.cpp. 
+Since ch8_2_select_global_pic.cpp uses llvm IR **select**, it cannot be run at 
+this point. It will be run in later Chapter Control flow statements.
 
 .. rubric:: lbdex/chapters/Chapter6_1/Cpu0InstrInfo.td
 .. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td
@@ -1239,8 +1240,8 @@ will be run in later Chapter Control flow statements.
     :start-after: //@ wrapper_pic
     :end-before: //#endif
 
-.. rubric:: lbdex/input/ch8_5.cpp
-.. literalinclude:: ../lbdex/input/ch8_5.cpp
+.. rubric:: lbdex/input/ch8_2_select_global_pic.cpp
+.. literalinclude:: ../lbdex/input/ch8_2_select_global_pic.cpp
     :start-after: /// start
 
 
