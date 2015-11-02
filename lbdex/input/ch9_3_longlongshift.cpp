@@ -1,5 +1,7 @@
-// clang -target mips-unknown-linux-gnu -c ch9_7.cpp -emit-llvm -o ch9_7.bc
-// ~/llvm/test/cmake_debug_build/Debug/bin/llc -march=cpu0 -mcpu=cpu032I -relocation-model=pic -filetype=asm ch9_7.bc -o -
+// clang -target mips-unknown-linux-gnu -c ch9_3_longlongshift.cpp -emit-llvm -o ch9_3_longlongshift.bc
+// ~/llvm/test/cmake_debug_build/Debug/bin/llc -march=cpu0 -mcpu=cpu032I -relocation-model=pic -filetype=asm ch9_3_longlongshift.bc -o -
+
+// Need soft float point library support
 
 /// start
 #include "debug.h"

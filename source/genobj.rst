@@ -24,7 +24,8 @@ message as follows,
 .. code-block:: bash
 
   [Gamma@localhost 3]$ ~/llvm/test/cmake_debug_build/bin/
-  llc -march=cpu0 -relocation-model=pic -filetype=obj ch4_1.bc -o ch4_1.cpu0.o
+  llc -march=cpu0 -relocation-model=pic -filetype=obj ch4_1_math_math.bc -o 
+  ch4_1_math.cpu0.o
   ~/llvm/test/cmake_debug_build/bin/llc: target does not 
   support generation of this file type! 
 	
@@ -35,7 +36,7 @@ Run with them will get the obj files as follows,
 
 .. code-block:: bash
 
-  [Gamma@localhost input]$ cat ch4_1.cpu0.s 
+  [Gamma@localhost input]$ cat ch4_1_math.cpu0.s 
   ...
     .set  nomacro
   # BB#0:                                 # %entry
@@ -51,10 +52,11 @@ Run with them will get the obj files as follows,
   ...
   
   [Gamma@localhost 3]$ ~/llvm/test/cmake_debug_build/bin/
-  llc -march=cpu0 -relocation-model=pic -filetype=obj ch4_1.bc -o ch4_1.cpu0.o
-  [Gamma@localhost input]$ objdump -s ch4_1.cpu0.o 
+  llc -march=cpu0 -relocation-model=pic -filetype=obj ch4_1_math.bc -o 
+  ch4_1_math.cpu0.o
+  [Gamma@localhost input]$ objdump -s ch4_1_math.cpu0.o 
   
-  ch4_1.cpu0.o:     file format elf32-big 
+  ch4_1_math.cpu0.o:     file format elf32-big 
   
   Contents of section .text: 
    0000 09ddffc8 09200005 022d0034 09200002  ..... ...-.4. ..
@@ -72,10 +74,10 @@ Run with them will get the obj files as follows,
    
   [Gamma@localhost input]$ ~/llvm/test/
   cmake_debug_build/bin/llc -march=cpu0el -relocation-model=pic -filetype=obj 
-  ch4_1.bc -o ch4_1.cpu0el.o 
-  [Gamma@localhost input]$ objdump -s ch4_1.cpu0el.o 
+  ch4_1_math.bc -o ch4_1_math.cpu0el.o 
+  [Gamma@localhost input]$ objdump -s ch4_1_math.cpu0el.o 
   
-  ch4_1.cpu0el.o:     file format elf32-little 
+  ch4_1_math.cpu0el.o:     file format elf32-little 
   
   Contents of section .text: 
    0000 c8ffdd09 05002009 34002d02 02002009  ...... .4.-... .

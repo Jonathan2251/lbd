@@ -1,6 +1,6 @@
-// clang -target mips-unknown-linux-gnu -c ch9_3.cpp -emit-llvm -o ch9_3.bc
-// ~/llvm/test/cmake_debug_build/Debug/bin/llc -march=cpu0 -relocation-model=pic -filetype=asm ch9_3.bc -o -
-// ~/llvm/test/cmake_debug_build/Debug/bin/llc -march=mips -relocation-model=pic -filetype=asm ch9_3.bc -o -
+// clang -target mips-unknown-linux-gnu -c ch9_3_vararg.cpp -emit-llvm -o ch9_3_vararg.bc
+// ~/llvm/test/cmake_debug_build/Debug/bin/llc -march=cpu0 -relocation-model=pic -filetype=asm ch9_3_vararg.bc -o -
+// ~/llvm/test/cmake_debug_build/Debug/bin/llc -march=mips -relocation-model=pic -filetype=asm ch9_3_vararg.bc -o -
 
 /// start
 #include <stdarg.h>

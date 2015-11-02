@@ -16,22 +16,22 @@
 #include "ch7_1_bool.cpp"
 #include "ch7_1_longlong.cpp"
 #include "ch7_1_vector.cpp"
-#include "ch8_1_1.cpp"
-#include "ch8_2.cpp"
-#include "ch8_3.cpp"
-#include "ch9_1_4.cpp"
-#include "ch9_2_3_tailcall.cpp"
-#include "ch9_3.cpp"
+#include "ch8_1_ctrl.cpp"
+#include "ch8_2_deluselessjmp.cpp"
+#include "ch8_2_select.cpp"
+#include "ch9_3_vararg.cpp"
 #include "ch9_3_stacksave.cpp"
 #include "ch9_3_bswap.cpp"
-#include "ch9_4.cpp"
+#include "ch9_3_alloc.cpp"
 #include "ch11_2.cpp"
 
-// Test build only for the following files since it needs lld linker support.
+// Test build only for the following files on build-run_backend.sh since it 
+// needs lld linker support.
+// Test in build-slink.sh
 #include "ch6_1.cpp"
-#include "ch9_2_1.cpp"
-#include "ch9_2_2.cpp"
-#include "ch9_3_2.cpp"
+#include "ch9_1_struct.cpp"
+#include "ch9_1_constructor.cpp"
+#include "ch9_3_template.cpp"
 #include "ch12_inherit.cpp"
 
 void test_asm_build()
@@ -120,12 +120,6 @@ int test_nolld()
   if (a != 1) pass = false;
   print_integer(2147483647); // test mod % (mult) from itoa.cpp
   print_integer(-2147483648); // test mod % (multu) from itoa.cpp
-  a = test_madd();
-  print_integer(a); // a = 7
-  if (a != 7) pass = false;
-  a = test_tailcall(5);
-  print_integer(a); // a = 120
-  if (a != 120) pass = false;
   a = test_vararg();
   print_integer(a); // a = 15
   if (a != 15) pass = false;

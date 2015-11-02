@@ -1264,21 +1264,21 @@ chapter as follows,
 It meaning for the return value, we keep it in registers V0, V1, A0, A1 if the return 
 value didn't over 4 registers size; If it over 4 registers size, cpu0 will save 
 them with pointer.
-For explanation, let's run Chapter9_2/ with ch9_2_1.cpp and explain with this 
+For explanation, let's run Chapter9_2/ with ch9_1_struct.cpp and explain with this 
 example.
 
-.. rubric:: lbdex/input/ch9_2_1.cpp
-.. literalinclude:: ../lbdex/input/ch9_2_1.cpp
+.. rubric:: lbdex/input/ch9_1_struct.cpp
+.. literalinclude:: ../lbdex/input/ch9_1_struct.cpp
     :start-after: /// start
 
 .. code-block:: bash
 
   JonathantekiiMac:input Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
   Debug/bin/llc -march=cpu0 -mcpu=cpu032I -relocation-model=pic -filetype=asm 
-  ch9_2_1.bc -o -
+  ch9_1_struct.bc -o -
     .section .mdebug.abi32
     .previous
-    .file "ch9_2_1.bc"
+    .file "ch9_1_struct.bc"
     .text
     .globl  _Z7getDatev
     .align  2
@@ -1361,11 +1361,11 @@ example.
     ...
 
 
-The ch9_2_2.cpp include C++ class "Date" implementation. 
+The ch9_1_constructor.cpp include C++ class "Date" implementation. 
 It can be translated into cpu0 backend too since the front end (clang in this 
 example) translate them into C language form.
 If you mark the "if hasStructRetAttr()" part from both of above functions, 
-the output cpu0 code for ch9_2_1.cpp will use $3 instead of $2 as return 
+the output cpu0 code for ch9_1_struct.cpp will use $3 instead of $2 as return 
 register as follows,
 
 .. code-block:: bash
@@ -1373,7 +1373,7 @@ register as follows,
 	  .text
 	  .section .mdebug.abiS32
 	  .previous
-	  .file	"ch9_2_1.bc"
+	  .file	"ch9_1_struct.bc"
 	  .globl	_Z7getDatev
 	  .align	2
 	  .type	_Z7getDatev,@function
@@ -1505,18 +1505,18 @@ reduces stack space requirements from linear, or O(n), to constant, or O(1)
 The **tailcall** appeared in Cpu0ISelLowering.cpp and Cpu0InstrInfo.td are used 
 to make tail call optimization. 
 
-.. rubric:: lbdex/input/ch9_2_3_tailcall.cpp
-.. literalinclude:: ../lbdex/input/ch9_2_3_tailcall.cpp
+.. rubric:: lbdex/input/ch9_2_tailcall.cpp
+.. literalinclude:: ../lbdex/input/ch9_2_tailcall.cpp
     :start-after: /// start
 
-Run Chapter9_2/ with ch9_2_3_tailcall.cpp will get the following result.
+Run Chapter9_2/ with ch9_2_tailcall.cpp will get the following result.
 
 .. code-block:: bash
 
   JonathantekiiMac:input Jonathan$ clang -O1 -target mips-unknown-linux-gnu -c 
-  ch9_2_3_tailcall.cpp -emit-llvm -o ch9_2_3_tailcall.bc
+  ch9_2_tailcall.cpp -emit-llvm -o ch9_2_tailcall.bc
   JonathantekiiMac:input Jonathan$ ~/llvm/test/cmake_debug_build/bin/
-  llvm-dis ch9_2_3_tailcall.bc -o -
+  llvm-dis ch9_2_tailcall.bc -o -
   ...
   ; Function Attrs: nounwind readnone
   define i32 @_Z9factoriali(i32 %x) #0 {
@@ -1544,11 +1544,11 @@ Run Chapter9_2/ with ch9_2_3_tailcall.cpp will get the following result.
   ...
   JonathantekiiMac:input Jonathan$ ~/llvm/test/cmake_debug_build/bin/
   llc -march=cpu0 -mcpu=cpu032II -relocation-model=static -filetype=asm 
-  -enable-cpu0-tail-calls ch9_2_3_tailcall.bc -stats -o -
+  -enable-cpu0-tail-calls ch9_2_tailcall.bc -stats -o -
 	  .text
 	  .section .mdebug.abi32
 	  .previous
-	  .file	"ch9_2_3_tailcall.bc"
+	  .file	"ch9_2_tailcall.bc"
 	  .globl	_Z9factoriali
 	  .align	2
 	  .type	_Z9factoriali,@function
@@ -1641,7 +1641,7 @@ false for this function as follows,
 Since tailcall optimization will translate jmp instruction directly instead of
 jsub. The callseq_start, callseq_end, and the DAG nodes created in 
 LowerCallResult() and LowerReturn() are needless. It creates DAGs as 
-:num:`Figure #funccall-f-outgoing-arg-tailcall` for ch9_2_3_tailcall.cpp as 
+:num:`Figure #funccall-f-outgoing-arg-tailcall` for ch9_2_tailcall.cpp as 
 follows,
 
 .. _funccall-f-outgoing-arg-tailcall:
@@ -1651,7 +1651,7 @@ follows,
     :scale: 100 %
     :align: center
 
-    Outgoing arguments DAGs created for ch9_2_3_tailcall.cpp
+    Outgoing arguments DAGs created for ch9_2_tailcall.cpp
 
 Finally, listing the DAGs translation of tail call as the following table.
 
@@ -1705,16 +1705,16 @@ Recursion optimization
 ~~~~~~~~~~~~~~~~~~~~~~
 
 As last section, cpu032I cannot do tail call optimization in 
-ch9_2_3_tailcall.cpp since the limitation of arguments size is not satisfied. 
+ch9_2_tailcall.cpp since the limitation of arguments size is not satisfied. 
 If run with ``clang -O3`` option, it can get the same or better performance 
 than tail call as follows,
 
 .. code-block:: bash
 
   JonathantekiiMac:input Jonathan$ clang -O1 -target mips-unknown-linux-gnu -c 
-  ch9_2_3_tailcall.cpp -emit-llvm -o ch9_2_3_tailcall.bc
+  ch9_2_tailcall.cpp -emit-llvm -o ch9_2_tailcall.bc
   JonathantekiiMac:input Jonathan$ ~/llvm/test/cmake_debug_build/bin/
-  llvm-dis ch9_2_3_tailcall.bc -o -
+  llvm-dis ch9_2_tailcall.bc -o -
   ...
   ; Function Attrs: nounwind readnone
   define i32 @_Z9factoriali(i32 %x) #0 {
@@ -1775,11 +1775,11 @@ than tail call as follows,
   ...
   JonathantekiiMac:input Jonathan$ ~/llvm/test/cmake_debug_build/bin/
   llc -march=cpu0 -mcpu=cpu032I -relocation-model=static -filetype=asm 
-  ch9_2_3_tailcall.bc -o -
+  ch9_2_tailcall.bc -o -
 	  .text
 	  .section .mdebug.abiS32
 	  .previous
-	  .file	"ch9_2_3_tailcall.bc"
+	  .file	"ch9_2_tailcall.bc"
 	  .globl	_Z9factoriali
 	  .align	2
 	  .type	_Z9factoriali,@function
@@ -1861,18 +1861,18 @@ Other features supporting
 This section support features of $gp register caller saved register in PIC 
 addressing mode, variable number of arguments and dynamic stack allocation.
 
-Run Chapter9_2/ with ch9_3.cpp to get the following error,
+Run Chapter9_2/ with ch9_3_vararg.cpp to get the following error,
 
-.. rubric:: lbdex/input/ch9_3.cpp
-.. literalinclude:: ../lbdex/input/ch9_3.cpp
+.. rubric:: lbdex/input/ch9_3_vararg.cpp
+.. literalinclude:: ../lbdex/input/ch9_3_vararg.cpp
     :start-after: /// start
 
 .. code-block:: bash
 
   118-165-78-230:input Jonathan$ clang -target mips-unknown-linux-gnu -c 
-  ch9_3.cpp -emit-llvm -o ch9_3.bc
+  ch9_3_vararg.cpp -emit-llvm -o ch9_3_vararg.bc
   118-165-78-230:input Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
-  Debug/bin/llc -march=cpu0 -relocation-model=pic -filetype=asm ch9_3.bc -o -
+  Debug/bin/llc -march=cpu0 -relocation-model=pic -filetype=asm ch9_3_vararg.bc -o -
   ...
   LLVM ERROR: Cannot select: 0x7f8b6902fd10: ch = vastart 0x7f8b6902fa10, 
   0x7f8b6902fb10, 0x7f8b6902fc10 [ORD=9] [ID=22]
@@ -1880,20 +1880,20 @@ Run Chapter9_2/ with ch9_3.cpp to get the following error,
   In function: _Z5sum_iiz
 
 
-.. rubric:: lbdex/input/ch9_4.cpp
-.. literalinclude:: ../lbdex/input/ch9_4.cpp
+.. rubric:: lbdex/input/ch9_3_alloc.cpp
+.. literalinclude:: ../lbdex/input/ch9_3_alloc.cpp
     :start-after: /// start
 
 
-Run Chapter9_2 with ch9_4.cpp will get the following error.
+Run Chapter9_2 with ch9_3_alloc.cpp will get the following error.
 
 .. code-block:: bash
 
   118-165-72-242:input Jonathan$ clang -target mips-unknown-linux-gnu -c 
-  ch9_4.cpp -emit-llvm -o ch9_4.bc
+  ch9_3_alloc.cpp -emit-llvm -o ch9_3_alloc.bc
   118-165-72-242:input Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
   Debug/bin/llc -march=cpu0 -mcpu=cpu032I -cpu0-s32-calls=false 
-  -relocation-model=pic -filetype=asm ch9_4.bc -o -
+  -relocation-model=pic -filetype=asm ch9_3_alloc.bc -o -
   ...
   LLVM ERROR: Cannot select: 0x7ffd8b02ff10: i32,ch = dynamic_stackalloc 
   0x7ffd8b02f910:1, 0x7ffd8b02fe10, 0x7ffd8b02c010 [ORD=12] [ID=48]
@@ -2231,7 +2231,6 @@ Run ``llc -static`` will call jsub instruction instead of jalr as follows,
 Run with ``llc -filetype=obj``, you can find the Cx of **“jsub Cx”** is 0 since 
 the Cx is calculated by linker as below. 
 Mips has the same 0 in it's jal instruction. 
-The ch9_1_3.cpp and ch9_1_4.cpp are example code more for test. 
 
 .. code-block:: bash
 
@@ -2276,20 +2275,20 @@ Until now, we support fixed number of arguments in formal function definition
 This subsection support variable number of arguments since C language support 
 this feature.
 
-Run Chapter9_3/ with ch9_3.cpp as well as clang option, 
+Run Chapter9_3/ with ch9_3_vararg.cpp as well as clang option, 
 **clang -target mips-unknown-linux-gnu**, to get the following result,
 
 .. code-block:: bash
 
   118-165-76-131:input Jonathan$ clang -target mips-unknown-linux-gnu -c 
-  ch9_3.cpp -emit-llvm -o ch9_3.bc
+  ch9_3_vararg.cpp -emit-llvm -o ch9_3_vararg.bc
   118-165-76-131:input Jonathan$ /Users/Jonathan/llvm/test/
   cmake_debug_build/Debug/bin/llc -march=cpu0 -mcpu=cpu032I -cpu0-s32-calls=false 
-  -relocation-model=pic -filetype=asm ch9_3.bc -o ch9_3.cpu0.s
-  118-165-76-131:input Jonathan$ cat ch9_3.cpu0.s
+  -relocation-model=pic -filetype=asm ch9_3_vararg.bc -o ch9_3_vararg.cpu0.s
+  118-165-76-131:input Jonathan$ cat ch9_3_vararg.cpu0.s
     .section .mdebug.abi32
     .previous
-    .file "ch9_3.bc"
+    .file "ch9_3_vararg.bc"
     .text
     .globl  _Z5sum_iiz
     .align  2
@@ -2399,7 +2398,7 @@ Run Chapter9_3/ with ch9_3.cpp as well as clang option,
     .size _Z11test_varargv, ($tmp1)-_Z11test_varargv
 
 
-The analysis of output ch9_3.cpu0.s as above in comment. 
+The analysis of output ch9_3_vararg.cpu0.s as above in comment. 
 As above code, in # BB#0, we get the first argument **“amount”** from 
 **“ld $2, 24($fp)”** since the stack size of the callee function 
 **“_Z5sum_iiz()”** is 24. And then set argument pointer, arg_ptr, to 0($fp), 
@@ -2410,7 +2409,7 @@ In # BB#3, do i+=1.
 
 To support variable number of arguments, the following code needed to 
 add in Chapter9_3/. 
-The ch9_3_2.cpp is C++ template example code, it can be translated into cpu0 
+The ch9_3_template.cpp is C++ template example code, it can be translated into cpu0 
 backend code too.
 
 .. rubric:: lbdex/chapters/Chapter9_3/Cpu0ISelLowering.h
@@ -2510,8 +2509,8 @@ backend code too.
     :start-after: #if CH >= CH9_3 //11
     :end-before: #endif // #if CH >= CH9_3
 
-.. rubric:: lbdex/input/ch9_3_2.cpp
-.. literalinclude:: ../lbdex/input/ch9_3_2.cpp
+.. rubric:: lbdex/input/ch9_3_template.cpp
+.. literalinclude:: ../lbdex/input/ch9_3_template.cpp
     :start-after: /// start
 
 Mips qemu reference [#mipsqemu]_, you can download and run it with gcc to 
@@ -2592,15 +2591,15 @@ Chapter9_3 supports dynamic stack allocation with the following code added.
 
   }
 
-Run Chapter9_3 with ch9_4.cpp will get the following correct result.
+Run Chapter9_3 with ch9_3_alloc.cpp will get the following correct result.
 
 .. code-block:: bash
 
   118-165-72-242:input Jonathan$ clang -target mips-unknown-linux-gnu -c 
-  ch9_4.cpp -emit-llvm -o ch9_4.bc
-  118-165-72-242:input Jonathan$ llvm-dis ch9_4.bc -o ch9_4.ll
-  118-165-72-242:input Jonathan$ cat ch9_4.ll
-  ; ModuleID = 'ch9_4.bc'
+  ch9_3_alloc.cpp -emit-llvm -o ch9_3_alloc.bc
+  118-165-72-242:input Jonathan$ llvm-dis ch9_3_alloc.bc -o ch9_3_alloc.ll
+  118-165-72-242:input Jonathan$ cat ch9_3_alloc.ll
+  ; ModuleID = 'ch9_3_alloc.bc'
   target datalayout = "e-p:64:64:64-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:64:64-
   f32:32:32-f64:64:64-v64:64:64-v128:128:128-a0:0:64-s0:64:64-f80:128:128-n8:16:
   32:64-S128"
@@ -2618,8 +2617,8 @@ Run Chapter9_3 with ch9_4.cpp will get the following correct result.
 
   118-165-72-242:input Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
   Debug/bin/llc -march=cpu0 -mcpu=cpu032I -cpu0-s32-calls=false 
-  -relocation-model=pic -filetype=asm ch9_4.bc -o ch9_4.cpu0.s
-  118-165-72-242:input Jonathan$ cat ch9_4.cpu0.s 
+  -relocation-model=pic -filetype=asm ch9_3_alloc.bc -o ch9_3_alloc.cpu0.s
+  118-165-72-242:input Jonathan$ cat ch9_3_alloc.cpu0.s 
   ...
       .globl  _Z10weight_sumiiiiii
     .align  2
@@ -2757,7 +2756,7 @@ local variables have better performance compare to use the sp only.
   	st	$3, 4($sp)
   	
 Cpu0 uses fp and sp to access the above and below areas of alloca() too. 
-As ch9_4.cpu0.s, it access local variable (above of alloca()) by fp offset
+As ch9_3_alloc.cpu0.s, it access local variable (above of alloca()) by fp offset
 and outgoing arguments (below of alloca()) by sp offset.
 
 And more, the "move $sp, $fp" is the alias instruction of "addu $fp, $sp, $zero".
@@ -2782,23 +2781,23 @@ follows,
 Finally the MFI->hasVarSizedObjects() defined in hasReservedCallFrame() of
 Cpu0SEFrameLowering.cpp is true when it meets "%9 = alloca i8, i32 %8" of IR 
 which corresponding "(int*)__builtin_alloca(sizeof(int) * 1 * x1);" of C.
-It will generate asm "addiu	$sp, $sp, -24" for ch9_4.cpp by calling 
+It will generate asm "addiu	$sp, $sp, -24" for ch9_3_alloc.cpp by calling 
 "adjustStackPtr()" in eliminateCallFramePseudoInstr() of Cpu0FrameLowering.cpp.
 
-File ch9_7.cpp which is for type "long long shift operations" support can be 
-tested now as follows. 
+File ch9_3_longlongshift.cpp which is for type "long long shift operations" 
+support can be tested now as follows. 
 
-.. rubric:: lbdex/input/ch9_7.cpp
-.. literalinclude:: ../lbdex/input/ch9_7.cpp
+.. rubric:: lbdex/input/ch9_3_longlongshift.cpp
+.. literalinclude:: ../lbdex/input/ch9_3_longlongshift.cpp
     :start-after: /// start
 
 .. code-block:: bash
 
   114-37-150-209:input Jonathan$ clang -O0 -target mips-unknown-linux-gnu 
-  -c ch9_7.cpp -emit-llvm -o ch9_7.bc
+  -c ch9_3_longlongshift.cpp -emit-llvm -o ch9_3_longlongshift.bc
   
   114-37-150-209:input Jonathan$ ~/llvm/test/cmake_debug_build/Debug/bin/
-  llvm-dis ch9_7.bc -o -
+  llvm-dis ch9_3_longlongshift.bc -o -
   ...
   ; Function Attrs: nounwind
   define i64 @_Z19test_longlong_shiftv() #0 {
@@ -2823,11 +2822,12 @@ tested now as follows.
   }
   ...
   114-37-150-209:input Jonathan$ ~/llvm/test/cmake_debug_build/Debug/bin/llc 
-  -march=cpu0 -mcpu=cpu032I -relocation-model=static -filetype=asm ch9_7.bc -o -
+  -march=cpu0 -mcpu=cpu032I -relocation-model=static -filetype=asm 
+  ch9_3_longlongshift.bc -o -
     .text
     .section .mdebug.abi32
     .previous
-    .file "ch9_7.bc"
+    .file "ch9_3_longlongshift.bc"
     .globl  _Z20test_longlong_shift1v
     .align  2
     .type _Z20test_longlong_shift1v,@function

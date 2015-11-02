@@ -276,11 +276,10 @@ Beside brcond explained in this section, above code also include DAG opcode
 **br_jt** and label **JumpTable** which occurs during DAG translation for
 some kind of program.
 
-The ch8_1_2.cpp is for **“nest if”** test. The ch8_1_3.cpp is for the test of
-**“for loop”** as well as **“while loop”**, **“continue”**, **“break”**, 
-**“goto”**. The ch8_1_4.cpp is for the test of **“goto”**. 
-The ch8_1_5.cpp is for **br_jt** and **JumpTable** test.
-The ch8_blockaddr.cpp is for **blockaddress** and **indirectbr** test.
+The ch8_1_ctrl.cpp include **“nest if”** **“for loop”**, **“while loop”**, 
+**“continue”**, **“break”** and **“goto”**.
+The ch8_1_br_jt.cpp is for **br_jt** and **JumpTable** test.
+The ch8_1_blockaddr.cpp is for **blockaddress** and **indirectbr** test.
 You can run with them if you like to test more.
 
 List the control flow statements of C, IR, DAG and Cpu0 instructions as the 
@@ -528,19 +527,19 @@ its Operand is the next basic block.
 By getMBB() in MachineOperand, you can get the MBB address. 
 For the member functions of MachineOperand, please check 
 include/llvm/CodeGen/MachineOperand.h
-Now, let's run Chapter8_2/ with ch8_2.cpp for explanation.
+Now, let's run Chapter8_2/ with ch8_2_deluselessjmp.cpp for explanation.
 
-.. rubric:: lbdex/input/ch8_2.cpp
-.. literalinclude:: ../lbdex/input/ch8_2.cpp
+.. rubric:: lbdex/input/ch8_2_deluselessjmp.cpp
+.. literalinclude:: ../lbdex/input/ch8_2_deluselessjmp.cpp
     :start-after: /// start
 
 .. code-block:: bash
 
   118-165-78-10:input Jonathan$ clang -target mips-unknown-linux-gnu 
-  -c ch8_2.cpp -emit-llvm -o ch8_2.bc
+  -c ch8_2_deluselessjmp.cpp -emit-llvm -o ch8_2_deluselessjmp.bc
   118-165-78-10:input Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
   Debug/bin/llc -march=cpu0 -relocation-model=static -filetype=asm -stats 
-  ch8_2.bc -o -
+  ch8_2_deluselessjmp.bc -o -
     ...
 	  cmp	$sw, $4, $3
 	  jne	$sw, $BB0_2
@@ -642,18 +641,18 @@ But for some reasons, it changed in llvm some later version and you need doing
 Conditional instruction
 ------------------------
 
-.. rubric:: lbdex/input/ch8_3.cpp
-.. literalinclude:: ../lbdex/input/ch8_3.cpp
+.. rubric:: lbdex/input/ch8_2_select.cpp
+.. literalinclude:: ../lbdex/input/ch8_2_select.cpp
     :start-after: /// start
 
-If you run Chapter8_1 with ch8_3.cpp will get the following result.
+If you run Chapter8_1 with ch8_2_select.cpp will get the following result.
 
 .. code-block:: bash
 
   114-37-150-209:input Jonathan$ clang -O1 -target mips-unknown-linux-gnu 
-  -c ch8_3.cpp -emit-llvm -o ch8_3.bc
+  -c ch8_2_select.cpp -emit-llvm -o ch8_2_select.bc
   114-37-150-209:input Jonathan$ ~/llvm/test/cmake_debug_build/Debug/bin/
-  llvm-dis ch8_3.bc -o -
+  llvm-dis ch8_2_select.bc -o -
   ...
   ; Function Attrs: nounwind uwtable
   define i32 @_Z11test_movx_1v() #0 {
@@ -686,13 +685,14 @@ If you run Chapter8_1 with ch8_3.cpp will get the following result.
   ...
 
   114-37-150-209:input Jonathan$ ~/llvm/test/cmake_debug_build/Debug/bin/llc 
-  -march=cpu0 -mcpu=cpu032I -relocation-model=static -filetype=asm ch8_3.bc -o -
+  -march=cpu0 -mcpu=cpu032I -relocation-model=static -filetype=asm 
+  ch8_2_select.bc -o -
   ...
   LLVM ERROR: Cannot select: 0x39f47c0: i32 = select_cc ...
 
 
-As llvm IR of ch8_3.bc as above, clang generates **select** IR for small 
-basic control block (if statement only include one assign statement). 
+As llvm IR of ch8_2_select.bc as above, clang generates **select** IR for 
+small basic control block (if statement only include one assign statement). 
 This **select** IR is optimization result for CPU which has conditional 
 instructions support. 
 And from above llc command debug trace message, IR **select** is changed to 
@@ -753,14 +753,14 @@ select into one IR select_cc [#wb]_.
 Next the LowerSELECT() return ISD::SELECT as 
 Op code directly. Finally the pattern define in Cpu0CondMov.td will 
 translate the **select** IR into **movz** or **movn** conditional instruction. 
-Let's run Chapter8_2 with ch8_3.cpp to get the following result. 
+Let's run Chapter8_2 with ch8_2_select.cpp to get the following result. 
 Again, the cpu032II uses **slt** instead of **cmp** has a little improved in 
 instructions number.
 
 .. code-block:: bash
 
   114-37-150-209:input Jonathan$ ~/llvm/test/cmake_debug_build/Debug/bin/llc 
-  -march=cpu0 -mcpu=cpu032I -relocation-model=static -filetype=asm ch8_3.bc -o -
+  -march=cpu0 -mcpu=cpu032I -relocation-model=static -filetype=asm ch8_2_select.bc -o -
   ...
 	.type	_Z11test_movx_1v,@function
 	...
@@ -793,10 +793,10 @@ consider **slt** instead **cmp**. Assembly code are rare used in programming,
 beside, the assembly programmer can accept **slt** either since usually they 
 are professional.
 
-File ch8_3_2.cpp will generate IR **select** if compile with ``clang -O1``.
+File ch8_2_select2.cpp will generate IR **select** if compile with ``clang -O1``.
 
-.. rubric:: lbdex/input/ch8_3_2.cpp
-.. literalinclude:: ../lbdex/input/ch8_3_2.cpp
+.. rubric:: lbdex/input/ch8_2_select2.cpp
+.. literalinclude:: ../lbdex/input/ch8_2_select2.cpp
     :start-after: /// start
 
 List the conditional statements of C, IR, DAG and Cpu0 instructions as the 
@@ -813,19 +813,19 @@ following table.
   ==================  ============================================================
 
 
-File ch8_5.cpp for wrapper pic mode of global variable support which mentioned 
+File ch8_2_select_global_pic.cpp for wrapper pic mode of global variable support which mentioned 
 in Chapter Global variables can be tested now as follows. 
 
-.. rubric:: lbdex/input/ch8_5.cpp
-.. literalinclude:: ../lbdex/input/ch8_5.cpp
+.. rubric:: lbdex/input/ch8_2_select_global_pic.cpp
+.. literalinclude:: ../lbdex/input/ch8_2_select_global_pic.cpp
     :start-after: /// start
 
 .. code-block:: bash
   
   JonathantekiiMac:input Jonathan$ clang -O1 -target mips-unknown-linux-gnu 
-  -c ch8_5.cpp -emit-llvm -o ch8_5.bc
+  -c ch8_2_select_global_pic.cpp -emit-llvm -o ch8_2_select_global_pic.bc
   JonathantekiiMac:input Jonathan$ ~/llvm/test/cmake_debug_build/Debug/bin/
-  llvm-dis ch8_5.bc -o -
+  llvm-dis ch8_2_select_global_pic.bc -o -
   ...
   @a1 = global i32 1, align 4
   @b1 = global i32 2, align 4
@@ -844,10 +844,10 @@ in Chapter Global variables can be tested now as follows.
   }
   ...
   JonathantekiiMac:input Jonathan$ ~/llvm/test/cmake_debug_build/Debug/bin/
-  llc -march=cpu0 -mcpu=cpu032I -relocation-model=pic -filetype=asm ch8_5.bc -o -
+  llc -march=cpu0 -mcpu=cpu032I -relocation-model=pic -filetype=asm ch8_2_select_global_pic.bc -o -
     .section .mdebug.abi32
     .previous
-    .file "ch8_5.bc"
+    .file "ch8_2_select_global_pic.bc"
     .text
     .globl  _Z18test_select_globalv
     .align  2

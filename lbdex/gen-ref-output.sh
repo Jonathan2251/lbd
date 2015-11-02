@@ -12,11 +12,6 @@ fi
 rm -rf output
 mkdir output
 
-# Chapter 4
-${TOOLDIR}/llc -march=cpu0 -relocation-model=pic \
--filetype=asm input/ch4_math.ll -o - |awk '{gsub("\t","  ",$0); print;}' |fold -w 80 \
-|awk '{gsub("\t","  ",$0); print;}' > output/ch4_math.s
-
 # Chapter 12
 clang -target mips-unknown-linux-gnu -c input/ch12_eh.cpp -emit-llvm \
 -o ch12_eh.bc

@@ -298,9 +298,31 @@ Now, let's build Chapter4_1/ and run with input file ch4_math.ll as follows,
 
   118-165-78-12:input Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
   Debug/bin/llc -march=cpu0 -relocation-model=pic -filetype=asm ch4_math.ll -o -
+    ...
+	  ld	$2, 0($sp)
+	  ld	$3, 4($sp)
+	  subu	$4, $3, $2
+	  addu	$5, $3, $2
+	  addu	$4, $5, $4
+	  mul	$5, $3, $2
+	  addu	$4, $4, $5
+	  shl	$5, $3, 2
+	  addu	$4, $4, $5
+	  sra	$5, $3, 2
+	  addu	$4, $4, $5
+	  addiu	$5, $zero, 128
+	  shrv	$5, $5, $2
+	  addiu	$t9, $zero, 1
+	  shlv	$t9, $t9, $2
+	  srav	$2, $3, $2
+	  shr	$3, $3, 30
+	  addu	$3, $4, $3
+	  addu	$3, $3, $t9
+	  addu	$3, $3, $5
+	  addu	$2, $3, $2
+	  addiu	$sp, $sp, 8
+	  ret	$lr
 
-.. rubric:: lbdex/output/ch4_math.s
-.. literalinclude:: ../lbdex/output/ch4_math.s
 
 Example input ch4_1_math.cpp as the following is the C file which include **+, -, 
 \*, <<,** and **>>** operators. 

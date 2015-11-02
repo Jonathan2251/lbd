@@ -15,11 +15,12 @@ echo ${DEFFLAGS}
 
 prologue;
 
-# ch8_5.cpp just for compile build test only, without running on verilog.
-clang ${DEFFLAGS} -target mips-unknown-linux-gnu -c ch8_5.cpp \
--emit-llvm -o ch8_5.bc
+# ch8_2_select_global_pic.cpp just for compile build test only, without running 
+# on verilog.
+clang ${DEFFLAGS} -target mips-unknown-linux-gnu -c ch8_2_select_global_pic.cpp \
+-emit-llvm -o ch8_2_select_global_pic.bc
 ${TOOLDIR}/llc -march=cpu0${endian} -mcpu=${CPU} -relocation-model=pic \
--filetype=obj ch8_5.bc -o ch8_5.cpu0.o
+-filetype=obj ch8_2_select_global_pic.bc -o ch8_2_select_global_pic.cpu0.o
 
 clang ${DEFFLAGS} -target mips-unknown-linux-gnu -c ch_run_backend.cpp \
 -emit-llvm -o ch_run_backend.bc
