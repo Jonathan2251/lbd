@@ -57,7 +57,9 @@ Ulrich Weigand <Ulrich.Weigand@de.ibm.com> in AsmParser question answer.
 Revision history
 ----------------
 
-Version 3.7.1, Not release yet
+Version 3.7.2, Not release yet
+
+Version 3.7.1, Released November 7, 2015
   Remove EM_CPU0_EL.
   Add subsection Caller and callee saved registers.
   Add IR blockaddress and indirectbr support.
