@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '3.7.0',
+        VERSION:     '3.7.1',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -68,10 +68,11 @@ this chapter.</p>
 <div class="section" id="translate-into-obj-file">
 <h2><a class="toc-backref" href="#id3">Translate into obj file</a><a class="headerlink" href="#translate-into-obj-file" title="Permalink to this headline">¶</a></h2>
 <p>Currently, we only support translation of llvm IR code into assembly code.
-If you try to run Chapter4_2/ to translate it into obj code will get the error
+If you try running Chapter4_2/ to translate it into obj code will get the error
 message as follows,</p>
 <div class="highlight-bash"><div class="highlight"><pre><span class="o">[</span>Gamma@localhost 3<span class="o">]</span><span class="nv">$ </span>~/llvm/test/cmake_debug_build/bin/
-llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>pic -filetype<span class="o">=</span>obj ch4_1.bc -o ch4_1.cpu0.o
+llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>pic -filetype<span class="o">=</span>obj ch4_1_math_math.bc -o
+ch4_1_math.cpu0.o
 ~/llvm/test/cmake_debug_build/bin/llc: target does not
 support generation of this file <span class="nb">type</span>!
 </pre></div>
@@ -80,7 +81,7 @@ support generation of this file <span class="nb">type</span>!
 It produces obj files both for big endian and little endian with command
 <tt class="docutils literal"><span class="pre">llc</span> <span class="pre">-march=cpu0</span></tt> and <tt class="docutils literal"><span class="pre">llc</span> <span class="pre">-march=cpu0el</span></tt>, respectively.
 Run with them will get the obj files as follows,</p>
-<div class="highlight-bash"><div class="highlight"><pre><span class="o">[</span>Gamma@localhost input<span class="o">]</span><span class="nv">$ </span>cat ch4_1.cpu0.s
+<div class="highlight-bash"><div class="highlight"><pre><span class="o">[</span>Gamma@localhost input<span class="o">]</span><span class="nv">$ </span>cat ch4_1_math.cpu0.s
 ...
   .set  nomacro
 <span class="c"># BB#0:                                 # %entry</span>
@@ -96,10 +97,11 @@ Run with them will get the obj files as follows,</p>
 ...
 
 <span class="o">[</span>Gamma@localhost 3<span class="o">]</span><span class="nv">$ </span>~/llvm/test/cmake_debug_build/bin/
-llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>pic -filetype<span class="o">=</span>obj ch4_1.bc -o ch4_1.cpu0.o
-<span class="o">[</span>Gamma@localhost input<span class="o">]</span><span class="nv">$ </span>objdump -s ch4_1.cpu0.o
+llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>pic -filetype<span class="o">=</span>obj ch4_1_math.bc -o
+ch4_1_math.cpu0.o
+<span class="o">[</span>Gamma@localhost input<span class="o">]</span><span class="nv">$ </span>objdump -s ch4_1_math.cpu0.o
 
-ch4_1.cpu0.o:     file format elf32-big
+ch4_1_math.cpu0.o:     file format elf32-big
 
 Contents of section .text:
  0000 09ddffc8 09200005 022d0034 09200002  ..... ...-.4. ..
@@ -117,10 +119,10 @@ Contents of section .text:
 
 <span class="s2">[Gamma@localhost input]$ ~/llvm/test/</span>
 <span class="s2">cmake_debug_build/bin/llc -march=cpu0el -relocation-model=pic -filetype=obj</span>
-<span class="s2">ch4_1.bc -o ch4_1.cpu0el.o</span>
-<span class="s2">[Gamma@localhost input]$ objdump -s ch4_1.cpu0el.o</span>
+<span class="s2">ch4_1_math.bc -o ch4_1_math.cpu0el.o</span>
+<span class="s2">[Gamma@localhost input]$ objdump -s ch4_1_math.cpu0el.o</span>
 
-<span class="s2">ch4_1.cpu0el.o:     file format elf32-little</span>
+<span class="s2">ch4_1_math.cpu0el.o:     file format elf32-little</span>
 
 <span class="s2">Contents of section .text:</span>
 <span class="s2"> 0000 c8ffdd09 05002009 34002d02 02002009  ...... .4.-... .</span>
@@ -155,9 +157,19 @@ objdump from B0 to B3 is 0xc8ffdd09.</p>
 <h2><a class="toc-backref" href="#id4">ELF obj related code</a><a class="headerlink" href="#elf-obj-related-code" title="Permalink to this headline">¶</a></h2>
 <p>To support elf obj generation, the following code changed and added to
 Chapter5_1.</p>
+<p class="rubric">lbdex/chapters/Chapter5_1/InstPrinter/Cpu0InstPrinter.cpp</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="cp">#include &quot;MCTargetDesc/Cpu0MCExpr.h&quot;</span>
+</pre></div>
+</div>
+<div class="highlight-c++"><div class="highlight"><pre>  <span class="p">}</span> <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="k">const</span> <span class="n">Cpu0MCExpr</span> <span class="o">*</span><span class="n">ME</span> <span class="o">=</span> <span class="n">dyn_cast</span><span class="o">&lt;</span><span class="n">Cpu0MCExpr</span><span class="o">&gt;</span><span class="p">(</span><span class="n">Expr</span><span class="p">))</span> <span class="p">{</span>
+    <span class="n">ME</span><span class="o">-&gt;</span><span class="n">print</span><span class="p">(</span><span class="n">OS</span><span class="p">,</span> <span class="n">MAI</span><span class="p">);</span>
+    <span class="k">return</span><span class="p">;</span>
+</pre></div>
+</div>
 <p class="rubric">lbdex/chapters/Chapter5_1/MCTargetDesc/CMakeLists.txt</p>
 <div class="highlight-c++"><div class="highlight"><pre>  <span class="n">Cpu0AsmBackend</span><span class="p">.</span><span class="n">cpp</span>
   <span class="n">Cpu0MCCodeEmitter</span><span class="p">.</span><span class="n">cpp</span>
+  <span class="n">Cpu0MCExpr</span><span class="p">.</span><span class="n">cpp</span>
   <span class="n">Cpu0ELFObjectWriter</span><span class="p">.</span><span class="n">cpp</span>
   <span class="n">Cpu0TargetStreamer</span><span class="p">.</span><span class="n">cpp</span>
 </pre></div>
@@ -177,14 +189,14 @@ Chapter5_1.</p>
 <span class="c1">//===----------------------------------------------------------------------===//</span>
 <span class="c1">//</span>
 
-<span class="cp">#ifndef CPU0ASMBACKEND_H</span>
-<span class="cp">#define CPU0ASMBACKEND_H</span>
+<span class="cp">#ifndef LLVM_LIB_TARGET_CPU0_MCTARGETDESC_CPU0ASMBACKEND_H</span>
+<span class="cp">#define LLVM_LIB_TARGET_CPU0_MCTARGETDESC_CPU0ASMBACKEND_H</span>
 
 <span class="cp">#include &quot;Cpu0Config.h&quot;</span>
 
 <span class="cp">#include &quot;MCTargetDesc/Cpu0FixupKinds.h&quot;</span>
-<span class="cp">#include &quot;llvm/MC/MCAsmBackend.h&quot;</span>
 <span class="cp">#include &quot;llvm/ADT/Triple.h&quot;</span>
+<span class="cp">#include &quot;llvm/MC/MCAsmBackend.h&quot;</span>
 
 <span class="k">namespace</span> <span class="n">llvm</span> <span class="p">{</span>
 
@@ -198,8 +210,8 @@ Chapter5_1.</p>
   <span class="kt">bool</span> <span class="n">IsLittle</span><span class="p">;</span> <span class="c1">// Big or little endian</span>
 
 <span class="nl">public:</span>
-  <span class="n">Cpu0AsmBackend</span><span class="p">(</span><span class="k">const</span> <span class="n">Target</span> <span class="o">&amp;</span><span class="n">T</span><span class="p">,</span> <span class="n">Triple</span><span class="o">::</span><span class="n">OSType</span> <span class="n">_OSType</span><span class="p">,</span> <span class="kt">bool</span> <span class="n">_isLittle</span><span class="p">)</span>
-      <span class="o">:</span> <span class="n">MCAsmBackend</span><span class="p">(),</span> <span class="n">OSType</span><span class="p">(</span><span class="n">_OSType</span><span class="p">),</span> <span class="n">IsLittle</span><span class="p">(</span><span class="n">_isLittle</span><span class="p">)</span> <span class="p">{}</span>
+  <span class="n">Cpu0AsmBackend</span><span class="p">(</span><span class="k">const</span> <span class="n">Target</span> <span class="o">&amp;</span><span class="n">T</span><span class="p">,</span> <span class="n">Triple</span><span class="o">::</span><span class="n">OSType</span> <span class="n">_OSType</span><span class="p">,</span> <span class="kt">bool</span> <span class="n">IsLittle</span><span class="p">)</span>
+      <span class="o">:</span> <span class="n">MCAsmBackend</span><span class="p">(),</span> <span class="n">OSType</span><span class="p">(</span><span class="n">_OSType</span><span class="p">),</span> <span class="n">IsLittle</span><span class="p">(</span><span class="n">IsLittle</span><span class="p">)</span> <span class="p">{}</span>
 
   <span class="n">MCObjectWriter</span> <span class="o">*</span><span class="n">createObjectWriter</span><span class="p">(</span><span class="n">raw_pwrite_stream</span> <span class="o">&amp;</span><span class="n">OS</span><span class="p">)</span> <span class="k">const</span> <span class="n">override</span><span class="p">;</span>
 
@@ -252,7 +264,7 @@ Chapter5_1.</p>
 </pre></div>
 </div>
 <p class="rubric">lbdex/chapters/Chapter5_1/MCTargetDesc/Cpu0AsmBackend.cpp</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="c1">//===-- Cpu0ASMBackend.cpp - Cpu0 Asm Backend  ----------------------------===//</span>
+<div class="highlight-c++"><div class="highlight"><pre><span class="c1">//===-- Cpu0AsmBackend.cpp - Cpu0 Asm Backend  ----------------------------===//</span>
 <span class="c1">//</span>
 <span class="c1">//                     The LLVM Compiler Infrastructure</span>
 <span class="c1">//</span>
@@ -261,7 +273,7 @@ Chapter5_1.</p>
 <span class="c1">//</span>
 <span class="c1">//===----------------------------------------------------------------------===//</span>
 <span class="c1">//</span>
-<span class="c1">// This file implements the Cpu0AsmBackend and Cpu0ELFObjectWriter classes.</span>
+<span class="c1">// This file implements the Cpu0AsmBackend class.</span>
 <span class="c1">//</span>
 <span class="c1">//===----------------------------------------------------------------------===//</span>
 <span class="c1">//</span>
@@ -314,7 +326,7 @@ Chapter5_1.</p>
     <span class="n">MCELFObjectTargetWriter</span><span class="o">::</span><span class="n">getOSABI</span><span class="p">(</span><span class="n">OSType</span><span class="p">),</span> <span class="n">IsLittle</span><span class="p">);</span>
 <span class="p">}</span>
 
-<span class="c1">/// ApplyFixup - Apply the \arg Value for given \arg Fixup into the provided</span>
+<span class="c1">/// ApplyFixup - Apply the \p Value for given \p Fixup into the provided</span>
 <span class="c1">/// data fragment, at the offset specified by the fixup and following the</span>
 <span class="c1">/// fixup kind as appropriate.</span>
 <span class="kt">void</span> <span class="n">Cpu0AsmBackend</span><span class="o">::</span><span class="n">applyFixup</span><span class="p">(</span><span class="k">const</span> <span class="n">MCFixup</span> <span class="o">&amp;</span><span class="n">Fixup</span><span class="p">,</span> <span class="kt">char</span> <span class="o">*</span><span class="n">Data</span><span class="p">,</span>
@@ -347,7 +359,8 @@ Chapter5_1.</p>
     <span class="n">CurVal</span> <span class="o">|=</span> <span class="p">(</span><span class="kt">uint64_t</span><span class="p">)((</span><span class="kt">uint8_t</span><span class="p">)</span><span class="n">Data</span><span class="p">[</span><span class="n">Offset</span> <span class="o">+</span> <span class="n">Idx</span><span class="p">])</span> <span class="o">&lt;&lt;</span> <span class="p">(</span><span class="n">i</span><span class="o">*</span><span class="mi">8</span><span class="p">);</span>
   <span class="p">}</span>
 
-  <span class="kt">uint64_t</span> <span class="n">Mask</span> <span class="o">=</span> <span class="p">((</span><span class="kt">uint64_t</span><span class="p">)(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="o">&gt;&gt;</span> <span class="p">(</span><span class="mi">64</span> <span class="o">-</span> <span class="n">getFixupKindInfo</span><span class="p">(</span><span class="n">Kind</span><span class="p">).</span><span class="n">TargetSize</span><span class="p">));</span>
+  <span class="kt">uint64_t</span> <span class="n">Mask</span> <span class="o">=</span> <span class="p">((</span><span class="kt">uint64_t</span><span class="p">)(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="o">&gt;&gt;</span>
+                    <span class="p">(</span><span class="mi">64</span> <span class="o">-</span> <span class="n">getFixupKindInfo</span><span class="p">(</span><span class="n">Kind</span><span class="p">).</span><span class="n">TargetSize</span><span class="p">));</span>
   <span class="n">CurVal</span> <span class="o">|=</span> <span class="n">Value</span> <span class="o">&amp;</span> <span class="n">Mask</span><span class="p">;</span>
 
   <span class="c1">// Write out the fixed up bytes back to the code/data bits.</span>
@@ -441,7 +454,7 @@ Chapter5_1.</p>
   <span class="nl">public:</span>
     <span class="n">Cpu0ELFObjectWriter</span><span class="p">(</span><span class="kt">uint8_t</span> <span class="n">OSABI</span><span class="p">);</span>
 
-    <span class="k">virtual</span> <span class="o">~</span><span class="n">Cpu0ELFObjectWriter</span><span class="p">();</span>
+    <span class="o">~</span><span class="n">Cpu0ELFObjectWriter</span><span class="p">()</span> <span class="n">override</span><span class="p">;</span>
 
     <span class="kt">unsigned</span> <span class="n">GetRelocType</span><span class="p">(</span><span class="k">const</span> <span class="n">MCValue</span> <span class="o">&amp;</span><span class="n">Target</span><span class="p">,</span> <span class="k">const</span> <span class="n">MCFixup</span> <span class="o">&amp;</span><span class="n">Fixup</span><span class="p">,</span>
                           <span class="kt">bool</span> <span class="n">IsPCRel</span><span class="p">)</span> <span class="k">const</span> <span class="n">override</span><span class="p">;</span>
@@ -548,8 +561,8 @@ Chapter5_1.</p>
 <span class="c1">//</span>
 <span class="c1">//===----------------------------------------------------------------------===//</span>
 
-<span class="cp">#ifndef LLVM_CPU0_CPU0FIXUPKINDS_H</span>
-<span class="cp">#define LLVM_CPU0_CPU0FIXUPKINDS_H</span>
+<span class="cp">#ifndef LLVM_LIB_TARGET_CPU0_MCTARGETDESC_CPU0FIXUPKINDS_H</span>
+<span class="cp">#define LLVM_LIB_TARGET_CPU0_MCTARGETDESC_CPU0FIXUPKINDS_H</span>
 
 <span class="cp">#include &quot;Cpu0Config.h&quot;</span>
 
@@ -575,7 +588,7 @@ Chapter5_1.</p>
     <span class="c1">// Pure lower 16 bit fixup resulting in - R_CPU0_LO16.</span>
     <span class="n">fixup_Cpu0_LO16</span><span class="p">,</span>
 
-    <span class="c1">// Pure lower 16 bit fixup resulting in - R_CPU0_GPREL16.</span>
+    <span class="c1">// 16 bit fixup for GP offest resulting in - R_CPU0_GPREL16.</span>
     <span class="n">fixup_Cpu0_GPREL16</span><span class="p">,</span>
 
     <span class="c1">// Global symbol fixup resulting in - R_CPU0_GOT16.</span>
@@ -618,12 +631,11 @@ Chapter5_1.</p>
 <span class="c1">//===----------------------------------------------------------------------===//</span>
 <span class="c1">//</span>
 
-<span class="cp">#include &quot;Cpu0Config.h&quot;</span>
-
-<span class="cp">#ifndef CPU0_MC_CODE_EMITTER_H</span>
-<span class="cp">#define CPU0_MC_CODE_EMITTER_H</span>
+<span class="cp">#ifndef LLVM_LIB_TARGET_CPU0_MCTARGETDESC_CPU0MCCODEEMITTER_H</span>
+<span class="cp">#define LLVM_LIB_TARGET_CPU0_MCTARGETDESC_CPU0MCCODEEMITTER_H</span>
 
 <span class="cp">#include &quot;Cpu0Config.h&quot;</span>
+
 <span class="cp">#include &quot;llvm/MC/MCCodeEmitter.h&quot;</span>
 <span class="cp">#include &quot;llvm/Support/DataTypes.h&quot;</span>
 
@@ -643,11 +655,12 @@ Chapter5_1.</p>
   <span class="n">Cpu0MCCodeEmitter</span><span class="p">(</span><span class="k">const</span> <span class="n">Cpu0MCCodeEmitter</span> <span class="o">&amp;</span><span class="p">)</span> <span class="o">=</span> <span class="k">delete</span><span class="p">;</span>
   <span class="kt">void</span> <span class="k">operator</span><span class="o">=</span><span class="p">(</span><span class="k">const</span> <span class="n">Cpu0MCCodeEmitter</span> <span class="o">&amp;</span><span class="p">)</span> <span class="o">=</span> <span class="k">delete</span><span class="p">;</span>
   <span class="k">const</span> <span class="n">MCInstrInfo</span> <span class="o">&amp;</span><span class="n">MCII</span><span class="p">;</span>
+  <span class="n">MCContext</span> <span class="o">&amp;</span><span class="n">Ctx</span><span class="p">;</span>
   <span class="kt">bool</span> <span class="n">IsLittleEndian</span><span class="p">;</span>
 
 <span class="nl">public:</span>
   <span class="n">Cpu0MCCodeEmitter</span><span class="p">(</span><span class="k">const</span> <span class="n">MCInstrInfo</span> <span class="o">&amp;</span><span class="n">mcii</span><span class="p">,</span> <span class="n">MCContext</span> <span class="o">&amp;</span><span class="n">Ctx_</span><span class="p">,</span> <span class="kt">bool</span> <span class="n">IsLittle</span><span class="p">)</span>
-      <span class="o">:</span> <span class="n">MCII</span><span class="p">(</span><span class="n">mcii</span><span class="p">),</span> <span class="n">IsLittleEndian</span><span class="p">(</span><span class="n">IsLittle</span><span class="p">)</span> <span class="p">{}</span>
+      <span class="o">:</span> <span class="n">MCII</span><span class="p">(</span><span class="n">mcii</span><span class="p">),</span> <span class="n">Ctx</span><span class="p">(</span><span class="n">Ctx_</span><span class="p">),</span> <span class="n">IsLittleEndian</span><span class="p">(</span><span class="n">IsLittle</span><span class="p">)</span> <span class="p">{}</span>
 
   <span class="o">~</span><span class="n">Cpu0MCCodeEmitter</span><span class="p">()</span> <span class="n">override</span> <span class="p">{}</span>
 
@@ -702,7 +715,7 @@ Chapter5_1.</p>
 <span class="p">};</span> <span class="c1">// class Cpu0MCCodeEmitter</span>
 <span class="p">}</span> <span class="c1">// namespace llvm.</span>
 
-<span class="cp">#endif </span><span class="c1">// #if CH &gt;= CH5_1</span>
+<span class="cp">#endif</span>
 </pre></div>
 </div>
 <p class="rubric">lbdex/chapters/Chapter5_1/MCTargetDesc/Cpu0MCCodeEmitter.cpp</p>
@@ -724,32 +737,37 @@ Chapter5_1.</p>
 
 <span class="cp">#include &quot;MCTargetDesc/Cpu0BaseInfo.h&quot;</span>
 <span class="cp">#include &quot;MCTargetDesc/Cpu0FixupKinds.h&quot;</span>
+<span class="cp">#include &quot;MCTargetDesc/Cpu0MCExpr.h&quot;</span>
 <span class="cp">#include &quot;MCTargetDesc/Cpu0MCTargetDesc.h&quot;</span>
 <span class="cp">#include &quot;llvm/ADT/APFloat.h&quot;</span>
 <span class="cp">#include &quot;llvm/MC/MCCodeEmitter.h&quot;</span>
+<span class="cp">#include &quot;llvm/MC/MCContext.h&quot;</span>
 <span class="cp">#include &quot;llvm/MC/MCExpr.h&quot;</span>
 <span class="cp">#include &quot;llvm/MC/MCInst.h&quot;</span>
 <span class="cp">#include &quot;llvm/MC/MCInstrInfo.h&quot;</span>
+<span class="cp">#include &quot;llvm/MC/MCRegisterInfo.h&quot;</span>
 <span class="cp">#include &quot;llvm/MC/MCSubtargetInfo.h&quot;</span>
 <span class="cp">#include &quot;llvm/Support/raw_ostream.h&quot;</span>
 
-<span class="k">using</span> <span class="k">namespace</span> <span class="n">llvm</span><span class="p">;</span>
-
 <span class="cp">#define DEBUG_TYPE &quot;mccodeemitter&quot;</span>
 
+<span class="cp">#define GET_INSTRMAP_INFO</span>
+<span class="cp">#include &quot;Cpu0GenInstrInfo.inc&quot;</span>
+<span class="cp">#undef GET_INSTRMAP_INFO</span>
+
+<span class="k">namespace</span> <span class="n">llvm</span> <span class="p">{</span>
 <span class="n">MCCodeEmitter</span> <span class="o">*</span><span class="n">llvm</span><span class="o">::</span><span class="n">createCpu0MCCodeEmitterEB</span><span class="p">(</span><span class="k">const</span> <span class="n">MCInstrInfo</span> <span class="o">&amp;</span><span class="n">MCII</span><span class="p">,</span>
                                                <span class="k">const</span> <span class="n">MCRegisterInfo</span> <span class="o">&amp;</span><span class="n">MRI</span><span class="p">,</span>
-                                               <span class="n">MCContext</span> <span class="o">&amp;</span><span class="n">Ctx</span><span class="p">)</span>
-<span class="p">{</span>
+                                               <span class="n">MCContext</span> <span class="o">&amp;</span><span class="n">Ctx</span><span class="p">)</span> <span class="p">{</span>
   <span class="k">return</span> <span class="k">new</span> <span class="n">Cpu0MCCodeEmitter</span><span class="p">(</span><span class="n">MCII</span><span class="p">,</span> <span class="n">Ctx</span><span class="p">,</span> <span class="nb">false</span><span class="p">);</span>
 <span class="p">}</span>
 
 <span class="n">MCCodeEmitter</span> <span class="o">*</span><span class="n">llvm</span><span class="o">::</span><span class="n">createCpu0MCCodeEmitterEL</span><span class="p">(</span><span class="k">const</span> <span class="n">MCInstrInfo</span> <span class="o">&amp;</span><span class="n">MCII</span><span class="p">,</span>
                                                <span class="k">const</span> <span class="n">MCRegisterInfo</span> <span class="o">&amp;</span><span class="n">MRI</span><span class="p">,</span>
-                                               <span class="n">MCContext</span> <span class="o">&amp;</span><span class="n">Ctx</span><span class="p">)</span>
-<span class="p">{</span>
+                                               <span class="n">MCContext</span> <span class="o">&amp;</span><span class="n">Ctx</span><span class="p">)</span> <span class="p">{</span>
   <span class="k">return</span> <span class="k">new</span> <span class="n">Cpu0MCCodeEmitter</span><span class="p">(</span><span class="n">MCII</span><span class="p">,</span> <span class="n">Ctx</span><span class="p">,</span> <span class="nb">true</span><span class="p">);</span>
 <span class="p">}</span>
+<span class="p">}</span> <span class="c1">// End of namespace llvm</span>
 
 <span class="kt">void</span> <span class="n">Cpu0MCCodeEmitter</span><span class="o">::</span><span class="n">EmitByte</span><span class="p">(</span><span class="kt">unsigned</span> <span class="kt">char</span> <span class="n">C</span><span class="p">,</span> <span class="n">raw_ostream</span> <span class="o">&amp;</span><span class="n">OS</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
   <span class="n">OS</span> <span class="o">&lt;&lt;</span> <span class="p">(</span><span class="kt">char</span><span class="p">)</span><span class="n">C</span><span class="p">;</span>
@@ -833,13 +851,32 @@ Chapter5_1.</p>
                <span class="k">const</span> <span class="n">MCSubtargetInfo</span> <span class="o">&amp;</span><span class="n">STI</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
 <span class="c1">//@getExprOpValue body {</span>
   <span class="n">MCExpr</span><span class="o">::</span><span class="n">ExprKind</span> <span class="n">Kind</span> <span class="o">=</span> <span class="n">Expr</span><span class="o">-&gt;</span><span class="n">getKind</span><span class="p">();</span>
-
-  <span class="k">if</span> <span class="p">(</span><span class="n">Kind</span> <span class="o">==</span> <span class="n">MCExpr</span><span class="o">::</span><span class="n">Binary</span><span class="p">)</span> <span class="p">{</span>
-    <span class="n">Expr</span> <span class="o">=</span> <span class="k">static_cast</span><span class="o">&lt;</span><span class="k">const</span> <span class="n">MCBinaryExpr</span><span class="o">*&gt;</span><span class="p">(</span><span class="n">Expr</span><span class="p">)</span><span class="o">-&gt;</span><span class="n">getLHS</span><span class="p">();</span>
-    <span class="n">Kind</span> <span class="o">=</span> <span class="n">Expr</span><span class="o">-&gt;</span><span class="n">getKind</span><span class="p">();</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">Kind</span> <span class="o">==</span> <span class="n">MCExpr</span><span class="o">::</span><span class="n">Constant</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="n">cast</span><span class="o">&lt;</span><span class="n">MCConstantExpr</span><span class="o">&gt;</span><span class="p">(</span><span class="n">Expr</span><span class="p">)</span><span class="o">-&gt;</span><span class="n">getValue</span><span class="p">();</span>
   <span class="p">}</span>
 
-  <span class="n">assert</span> <span class="p">(</span><span class="n">Kind</span> <span class="o">==</span> <span class="n">MCExpr</span><span class="o">::</span><span class="n">SymbolRef</span><span class="p">);</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">Kind</span> <span class="o">==</span> <span class="n">MCExpr</span><span class="o">::</span><span class="n">Binary</span><span class="p">)</span> <span class="p">{</span>
+    <span class="kt">unsigned</span> <span class="n">Res</span> <span class="o">=</span> <span class="n">getExprOpValue</span><span class="p">(</span><span class="n">cast</span><span class="o">&lt;</span><span class="n">MCBinaryExpr</span><span class="o">&gt;</span><span class="p">(</span><span class="n">Expr</span><span class="p">)</span><span class="o">-&gt;</span><span class="n">getLHS</span><span class="p">(),</span> <span class="n">Fixups</span><span class="p">,</span> <span class="n">STI</span><span class="p">);</span>
+    <span class="n">Res</span> <span class="o">+=</span> <span class="n">getExprOpValue</span><span class="p">(</span><span class="n">cast</span><span class="o">&lt;</span><span class="n">MCBinaryExpr</span><span class="o">&gt;</span><span class="p">(</span><span class="n">Expr</span><span class="p">)</span><span class="o">-&gt;</span><span class="n">getRHS</span><span class="p">(),</span> <span class="n">Fixups</span><span class="p">,</span> <span class="n">STI</span><span class="p">);</span>
+    <span class="k">return</span> <span class="n">Res</span><span class="p">;</span>
+  <span class="p">}</span>
+
+  <span class="k">if</span> <span class="p">(</span><span class="n">Kind</span> <span class="o">==</span> <span class="n">MCExpr</span><span class="o">::</span><span class="n">Target</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">const</span> <span class="n">Cpu0MCExpr</span> <span class="o">*</span><span class="n">Cpu0Expr</span> <span class="o">=</span> <span class="n">cast</span><span class="o">&lt;</span><span class="n">Cpu0MCExpr</span><span class="o">&gt;</span><span class="p">(</span><span class="n">Expr</span><span class="p">);</span>
+
+    <span class="n">Cpu0</span><span class="o">::</span><span class="n">Fixups</span> <span class="n">FixupKind</span> <span class="o">=</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">Fixups</span><span class="p">(</span><span class="mi">0</span><span class="p">);</span>
+    <span class="k">switch</span> <span class="p">(</span><span class="n">Cpu0Expr</span><span class="o">-&gt;</span><span class="n">getKind</span><span class="p">())</span> <span class="p">{</span>
+    <span class="nl">default:</span> <span class="n">llvm_unreachable</span><span class="p">(</span><span class="s">&quot;Unsupported fixup kind for target expression!&quot;</span><span class="p">);</span>
+    <span class="k">case</span> <span class="n">Cpu0MCExpr</span>:<span class="o">:</span><span class="n">VK_Cpu0_HI</span><span class="o">:</span>
+      <span class="n">FixupKind</span> <span class="o">=</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">fixup_Cpu0_HI16</span><span class="p">;</span>
+      <span class="k">break</span><span class="p">;</span>
+    <span class="k">case</span> <span class="n">Cpu0MCExpr</span>:<span class="o">:</span><span class="n">VK_Cpu0_LO</span><span class="o">:</span>
+      <span class="n">FixupKind</span> <span class="o">=</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">fixup_Cpu0_LO16</span><span class="p">;</span>
+      <span class="k">break</span><span class="p">;</span>
+    <span class="p">}</span>
+    <span class="n">Fixups</span><span class="p">.</span><span class="n">push_back</span><span class="p">(</span><span class="n">MCFixup</span><span class="o">::</span><span class="n">create</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">Cpu0Expr</span><span class="p">,</span> <span class="n">MCFixupKind</span><span class="p">(</span><span class="n">FixupKind</span><span class="p">)));</span>
+    <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+  <span class="p">}</span>
 
   <span class="c1">// All of the information is in the fixup.</span>
   <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
@@ -853,7 +890,7 @@ Chapter5_1.</p>
                   <span class="k">const</span> <span class="n">MCSubtargetInfo</span> <span class="o">&amp;</span><span class="n">STI</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
   <span class="k">if</span> <span class="p">(</span><span class="n">MO</span><span class="p">.</span><span class="n">isReg</span><span class="p">())</span> <span class="p">{</span>
     <span class="kt">unsigned</span> <span class="n">Reg</span> <span class="o">=</span> <span class="n">MO</span><span class="p">.</span><span class="n">getReg</span><span class="p">();</span>
-    <span class="kt">unsigned</span> <span class="n">RegNo</span> <span class="o">=</span> <span class="n">getCpu0RegisterNumbering</span><span class="p">(</span><span class="n">Reg</span><span class="p">);</span>
+    <span class="kt">unsigned</span> <span class="n">RegNo</span> <span class="o">=</span> <span class="n">Ctx</span><span class="p">.</span><span class="n">getRegisterInfo</span><span class="p">()</span><span class="o">-&gt;</span><span class="n">getEncodingValue</span><span class="p">(</span><span class="n">Reg</span><span class="p">);</span>
     <span class="k">return</span> <span class="n">RegNo</span><span class="p">;</span>
   <span class="p">}</span> <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="n">MO</span><span class="p">.</span><span class="n">isImm</span><span class="p">())</span> <span class="p">{</span>
     <span class="k">return</span> <span class="k">static_cast</span><span class="o">&lt;</span><span class="kt">unsigned</span><span class="o">&gt;</span><span class="p">(</span><span class="n">MO</span><span class="p">.</span><span class="n">getImm</span><span class="p">());</span>
@@ -928,8 +965,7 @@ Chapter5_1.</p>
     <span class="n">TargetRegistry</span><span class="o">::</span><span class="n">RegisterAsmTargetStreamer</span><span class="p">(</span><span class="o">*</span><span class="n">T</span><span class="p">,</span> <span class="n">createCpu0AsmTargetStreamer</span><span class="p">);</span>
 </pre></div>
 </div>
-<div class="highlight-c++"><div class="highlight"><pre><span class="cp">#if CH &gt;= CH5_1 </span><span class="c1">//3</span>
-  <span class="c1">// Register the MC Code Emitter</span>
+<div class="highlight-c++"><div class="highlight"><pre>  <span class="c1">// Register the MC Code Emitter</span>
   <span class="n">TargetRegistry</span><span class="o">::</span><span class="n">RegisterMCCodeEmitter</span><span class="p">(</span><span class="n">TheCpu0Target</span><span class="p">,</span>
                                         <span class="n">createCpu0MCCodeEmitterEB</span><span class="p">);</span>
   <span class="n">TargetRegistry</span><span class="o">::</span><span class="n">RegisterMCCodeEmitter</span><span class="p">(</span><span class="n">TheCpu0elTarget</span><span class="p">,</span>
@@ -940,8 +976,9 @@ Chapter5_1.</p>
                                        <span class="n">createCpu0AsmBackendEB32</span><span class="p">);</span>
   <span class="n">TargetRegistry</span><span class="o">::</span><span class="n">RegisterMCAsmBackend</span><span class="p">(</span><span class="n">TheCpu0elTarget</span><span class="p">,</span>
                                        <span class="n">createCpu0AsmBackendEL32</span><span class="p">);</span>
-<span class="cp">#endif</span>
-<span class="p">}</span>
+</pre></div>
+</div>
+<div class="highlight-c++"><div class="highlight"><pre><span class="p">}</span>
 </pre></div>
 </div>
 <p>The applyFixup() of Cpu0AsmBackend.cpp will fix up the <strong>jeq</strong>, <strong>jub</strong>, ...
@@ -959,7 +996,7 @@ Cpu0MCCodeEmitter.cpp will be called since it override the same name of
 function in parent class MCCodeEmitter.</p>
 <p class="rubric">lbdex/chapters/Chapter2/Cpu0InstrInfo.td</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="c1">// Address operand</span>
-<span class="n">def</span> <span class="n">mem</span> <span class="o">:</span> <span class="n">Operand</span><span class="o">&lt;</span><span class="n">i32</span><span class="o">&gt;</span> <span class="p">{</span>
+<span class="n">def</span> <span class="n">mem</span> <span class="o">:</span> <span class="n">Operand</span><span class="o">&lt;</span><span class="n">iPTR</span><span class="o">&gt;</span> <span class="p">{</span>
   <span class="n">let</span> <span class="n">PrintMethod</span> <span class="o">=</span> <span class="s">&quot;printMemOperand&quot;</span><span class="p">;</span>
   <span class="n">let</span> <span class="n">MIOperandInfo</span> <span class="o">=</span> <span class="p">(</span><span class="n">ops</span> <span class="n">CPURegs</span><span class="p">,</span> <span class="n">simm16</span><span class="p">);</span>
   <span class="n">let</span> <span class="n">EncoderMethod</span> <span class="o">=</span> <span class="s">&quot;getMemEncoding&quot;</span><span class="p">;</span>
@@ -990,81 +1027,89 @@ Operand.</p>
 <h2><a class="toc-backref" href="#id5">Backend Target Registration Structure</a><a class="headerlink" href="#backend-target-registration-structure" title="Permalink to this headline">¶</a></h2>
 <p>Now, let&#8217;s examine Cpu0MCTargetDesc.cpp.
 Cpu0MCTargetDesc.cpp do the target registration as mentioned in
-&#8220;section Target Registration&#8221; <a class="footnote-reference" href="#id2" id="id1">[1]</a> of the last chapter.
-Drawing the register functions and those classes it registered from
-<a class="pageref" href="#genobj-f1">Figure  1</a> to <a class="pageref" href="#genobj-f9">Figure  9</a> for explanation.</p>
-<div class="figure align-center" id="genobj-f1">
-<a class="reference internal image-reference" href="_images/15.png"><img alt="_images/15.png" src="_images/15.png" style="width: 731.0px; height: 634.0px;" /></a>
-<p class="caption">Figure 1: Register Cpu0MCAsmInfo</p>
+the previous chapter here <a class="footnote-reference" href="#target-registration" id="id1">[1]</a>, and the assembly
+output has explained here <a class="footnote-reference" href="#add-asmprinter" id="id2">[2]</a>.
+List the register functions of ELF obj output as follows,</p>
+<p class="rubric">Register function of elf streamer</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="c1">// Register the elf streamer.</span>
+<span class="n">TargetRegistry</span><span class="o">::</span><span class="n">RegisterELFStreamer</span><span class="p">(</span><span class="o">*</span><span class="n">T</span><span class="p">,</span> <span class="n">createMCStreamer</span><span class="p">);</span>
+
+  <span class="k">static</span> <span class="n">MCStreamer</span> <span class="o">*</span><span class="nf">createMCStreamer</span><span class="p">(</span><span class="k">const</span> <span class="n">Triple</span> <span class="o">&amp;</span><span class="n">TT</span><span class="p">,</span> <span class="n">MCContext</span> <span class="o">&amp;</span><span class="n">Context</span><span class="p">,</span>
+                                      <span class="n">MCAsmBackend</span> <span class="o">&amp;</span><span class="n">MAB</span><span class="p">,</span> <span class="n">raw_pwrite_stream</span> <span class="o">&amp;</span><span class="n">OS</span><span class="p">,</span>
+                                      <span class="n">MCCodeEmitter</span> <span class="o">*</span><span class="n">Emitter</span><span class="p">,</span> <span class="kt">bool</span> <span class="n">RelaxAll</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="n">createELFStreamer</span><span class="p">(</span><span class="n">Context</span><span class="p">,</span> <span class="n">MAB</span><span class="p">,</span> <span class="n">OS</span><span class="p">,</span> <span class="n">Emitter</span><span class="p">,</span> <span class="n">RelaxAll</span><span class="p">);</span>
+  <span class="p">}</span>
+
+  <span class="c1">// MCELFStreamer.cpp</span>
+  <span class="n">MCStreamer</span> <span class="o">*</span><span class="n">llvm</span><span class="o">::</span><span class="n">createELFStreamer</span><span class="p">(</span><span class="n">MCContext</span> <span class="o">&amp;</span><span class="n">Context</span><span class="p">,</span> <span class="n">MCAsmBackend</span> <span class="o">&amp;</span><span class="n">MAB</span><span class="p">,</span>
+                                      <span class="n">raw_pwrite_stream</span> <span class="o">&amp;</span><span class="n">OS</span><span class="p">,</span> <span class="n">MCCodeEmitter</span> <span class="o">*</span><span class="n">CE</span><span class="p">,</span>
+                                      <span class="kt">bool</span> <span class="n">RelaxAll</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">MCELFStreamer</span> <span class="o">*</span><span class="n">S</span> <span class="o">=</span> <span class="k">new</span> <span class="n">MCELFStreamer</span><span class="p">(</span><span class="n">Context</span><span class="p">,</span> <span class="n">MAB</span><span class="p">,</span> <span class="n">OS</span><span class="p">,</span> <span class="n">CE</span><span class="p">);</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">RelaxAll</span><span class="p">)</span>
+      <span class="n">S</span><span class="o">-&gt;</span><span class="n">getAssembler</span><span class="p">().</span><span class="n">setRelaxAll</span><span class="p">(</span><span class="nb">true</span><span class="p">);</span>
+    <span class="k">return</span> <span class="n">S</span><span class="p">;</span>
+  <span class="p">}</span>
+</pre></div>
 </div>
-<div class="figure align-center" id="genobj-f2">
-<a class="reference internal image-reference" href="_images/22.png"><img alt="_images/22.png" src="_images/22.png" style="width: 685.0px; height: 450.0px;" /></a>
-<p class="caption">Figure 2: Register MCCodeGenInfo</p>
-</div>
-<div class="figure align-center" id="genobj-f3">
-<a class="reference internal image-reference" href="_images/31.png"><img alt="_images/31.png" src="_images/31.png" style="width: 606.0px; height: 313.0px;" /></a>
-<p class="caption">Figure 3: Register MCInstrInfo</p>
-</div>
-<div class="figure align-center" id="genobj-f4">
-<a class="reference internal image-reference" href="_images/42.png"><img alt="_images/42.png" src="_images/42.png" style="width: 615.0px; height: 678.0px;" /></a>
-<p class="caption">Figure 4: Register MCRegisterInfo</p>
-</div>
-<div class="figure align-center" id="genobj-f5">
-<a class="reference internal image-reference" href="_images/52.png"><img alt="_images/52.png" src="_images/52.png" style="width: 750.0px; height: 635.0px;" /></a>
-<p class="caption">Figure 5: Register Cpu0MCCodeEmitter</p>
-</div>
-<div class="figure align-center" id="genobj-f6">
-<a class="reference internal image-reference" href="_images/61.png"><img alt="_images/61.png" src="_images/61.png" style="width: 776.0px; height: 617.0px;" /></a>
-<p class="caption">Figure 6: Register MCELFStreamer</p>
-</div>
-<div class="figure align-center" id="genobj-f7">
-<a class="reference internal image-reference" href="_images/7.png"><img alt="_images/7.png" src="_images/7.png" style="width: 810.0px; height: 570.0px;" /></a>
-<p class="caption">Figure 7: Register Cpu0AsmBackend</p>
-</div>
-<div class="figure align-center" id="genobj-f8">
-<a class="reference internal image-reference" href="_images/8.png"><img alt="_images/8.png" src="_images/8.png" style="width: 621.0px; height: 483.0px;" /></a>
-<p class="caption">Figure 8: Register Cpu0MCSubtargetInfo</p>
-</div>
-<div class="figure align-center" id="genobj-f9">
-<a class="reference internal image-reference" href="_images/9.png"><img alt="_images/9.png" src="_images/9.png" style="width: 794.0px; height: 569.0px;" /></a>
-<p class="caption">Figure 9: Register Cpu0InstPrinter</p>
-</div>
+<p>Above createELFStreamer takes care the elf obj streamer.
+<a class="pageref" href="#genobj-f10">Figure  1</a> as follow is MCELFStreamer inheritance tree.
+You can find a lot of operations in that inheritance tree.</p>
 <div class="figure align-center" id="genobj-f10">
 <a class="reference internal image-reference" href="_images/101.png"><img alt="_images/101.png" src="_images/101.png" style="width: 783.0px; height: 596.0px;" /></a>
-<p class="caption">Figure 10: MCELFStreamer inherit tree</p>
+<p class="caption">Figure 1: MCELFStreamer inherit tree</p>
 </div>
-<p><a class="pageref" href="#genobj-f1">Figure  1</a> to <a class="pageref" href="#genobj-f4">Figure  4</a> had been defined
-in Chapter4_2/ for assembly file generated support.</p>
-<p>In <a class="pageref" href="#genobj-f1">Figure  1</a>, registering the object of class Cpu0MCAsmInfo for
-target TheCpu0Target and TheCpu0elTarget.
-TheCpu0Target is for big endian and TheCpu0elTarget is for little endian.
-Cpu0MCAsmInfo is derived from MCAsmInfo which is an llvm built-in class.
-Most code is implemented in it&#8217;s parent, back end reuses those code by inheritance.</p>
-<p>In <a class="pageref" href="#genobj-f2">Figure  2</a>, instancing MCCodeGenInfo, and initialize it by
-pass RM=Roloc::PIC when user compiling with position-independent code mode
-through command <tt class="docutils literal"><span class="pre">llc</span> <span class="pre">-relocation-model=pic</span></tt> or <tt class="docutils literal"><span class="pre">llc</span></tt> (default relocation
-mode is pic).
-Recall there are two addressing mode in system program book, one is PIC
-mode, the other is absolute addressing mode.
-MC stands for Machine Code.</p>
-<p>In <a class="pageref" href="#genobj-f3">Figure  3</a>, instancing MCInstrInfo object X, and initialize it
-by InitCpu0MCInstrInfo(X).
-Since InitCpu0MCInstrInfo(X) is defined in Cpu0GenInstrInfo.inc, this function
-will add the information from Cpu0InstrInfo.td we specified.
-<a class="pageref" href="#genobj-f4">Figure  4</a> is similar to <a class="pageref" href="#genobj-f3">Figure  3</a>, but it
-initialize the register information specified in Cpu0RegisterInfo.td.
-They share some values from instruction/register td description.
-No need to specify them again in Initilize routine if they are consistant with
-td description files.</p>
-<p><a class="pageref" href="#genobj-f5">Figure  5</a>, instancing two objects Cpu0MCCodeEmitter, one is for
+<p class="rubric">Register function of asm target streamer</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="c1">// Register the asm target streamer.</span>
+<span class="n">TargetRegistry</span><span class="o">::</span><span class="n">RegisterAsmTargetStreamer</span><span class="p">(</span><span class="o">*</span><span class="n">T</span><span class="p">,</span> <span class="n">createCpu0AsmTargetStreamer</span><span class="p">);</span>
+
+  <span class="k">static</span> <span class="n">MCTargetStreamer</span> <span class="o">*</span><span class="nf">createCpu0AsmTargetStreamer</span><span class="p">(</span><span class="n">MCStreamer</span> <span class="o">&amp;</span><span class="n">S</span><span class="p">,</span>
+                                                       <span class="n">formatted_raw_ostream</span> <span class="o">&amp;</span><span class="n">OS</span><span class="p">,</span>
+                                                       <span class="n">MCInstPrinter</span> <span class="o">*</span><span class="n">InstPrint</span><span class="p">,</span>
+                                                       <span class="kt">bool</span> <span class="n">isVerboseAsm</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="k">new</span> <span class="n">Cpu0TargetAsmStreamer</span><span class="p">(</span><span class="n">S</span><span class="p">,</span> <span class="n">OS</span><span class="p">);</span>
+  <span class="p">}</span>
+
+    <span class="c1">// Cpu0TargetStreamer.h</span>
+    <span class="k">class</span> <span class="nc">Cpu0TargetStreamer</span> <span class="o">:</span> <span class="k">public</span> <span class="n">MCTargetStreamer</span> <span class="p">{</span>
+    <span class="nl">public:</span>
+      <span class="n">Cpu0TargetStreamer</span><span class="p">(</span><span class="n">MCStreamer</span> <span class="o">&amp;</span><span class="n">S</span><span class="p">);</span>
+    <span class="p">};</span>
+
+    <span class="c1">// This part is for ascii assembly output</span>
+    <span class="k">class</span> <span class="nc">Cpu0TargetAsmStreamer</span> <span class="o">:</span> <span class="k">public</span> <span class="n">Cpu0TargetStreamer</span> <span class="p">{</span>
+      <span class="n">formatted_raw_ostream</span> <span class="o">&amp;</span><span class="n">OS</span><span class="p">;</span>
+
+    <span class="nl">public:</span>
+      <span class="n">Cpu0TargetAsmStreamer</span><span class="p">(</span><span class="n">MCStreamer</span> <span class="o">&amp;</span><span class="n">S</span><span class="p">,</span> <span class="n">formatted_raw_ostream</span> <span class="o">&amp;</span><span class="n">OS</span><span class="p">);</span>
+    <span class="p">};</span>
+</pre></div>
+</div>
+<p>Above instancing MCTargetStreamer instance.</p>
+<p class="rubric">Register function of MC Code Emitter</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="c1">// Register the MC Code Emitter</span>
+<span class="n">TargetRegistry</span><span class="o">::</span><span class="n">RegisterMCCodeEmitter</span><span class="p">(</span><span class="n">TheCpu0Target</span><span class="p">,</span>
+                                      <span class="n">createCpu0MCCodeEmitterEB</span><span class="p">);</span>
+<span class="n">TargetRegistry</span><span class="o">::</span><span class="n">RegisterMCCodeEmitter</span><span class="p">(</span><span class="n">TheCpu0elTarget</span><span class="p">,</span>
+                                      <span class="n">createCpu0MCCodeEmitterEL</span><span class="p">);</span>
+
+  <span class="c1">// Cpu0MCCodeEmitter.cpp</span>
+  <span class="n">MCCodeEmitter</span> <span class="o">*</span><span class="n">llvm</span><span class="o">::</span><span class="n">createCpu0MCCodeEmitterEB</span><span class="p">(</span><span class="k">const</span> <span class="n">MCInstrInfo</span> <span class="o">&amp;</span><span class="n">MCII</span><span class="p">,</span>
+                                                 <span class="k">const</span> <span class="n">MCRegisterInfo</span> <span class="o">&amp;</span><span class="n">MRI</span><span class="p">,</span>
+                                                 <span class="n">MCContext</span> <span class="o">&amp;</span><span class="n">Ctx</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="k">new</span> <span class="n">Cpu0MCCodeEmitter</span><span class="p">(</span><span class="n">MCII</span><span class="p">,</span> <span class="n">Ctx</span><span class="p">,</span> <span class="nb">false</span><span class="p">);</span>
+  <span class="p">}</span>
+
+  <span class="n">MCCodeEmitter</span> <span class="o">*</span><span class="n">llvm</span><span class="o">::</span><span class="n">createCpu0MCCodeEmitterEL</span><span class="p">(</span><span class="k">const</span> <span class="n">MCInstrInfo</span> <span class="o">&amp;</span><span class="n">MCII</span><span class="p">,</span>
+                                                 <span class="k">const</span> <span class="n">MCRegisterInfo</span> <span class="o">&amp;</span><span class="n">MRI</span><span class="p">,</span>
+                                                 <span class="n">MCContext</span> <span class="o">&amp;</span><span class="n">Ctx</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="k">new</span> <span class="n">Cpu0MCCodeEmitter</span><span class="p">(</span><span class="n">MCII</span><span class="p">,</span> <span class="n">Ctx</span><span class="p">,</span> <span class="nb">true</span><span class="p">);</span>
+  <span class="p">}</span>
+</pre></div>
+</div>
+<p>Above instancing two objects Cpu0MCCodeEmitter, one is for
 big endian and the other is for little endian.
-They take care the obj format generated.
-These funstions are not defined in Chapter4_2/ which support assembly code only.</p>
-<p><a class="pageref" href="#genobj-f6">Figure  6</a>, MCELFStreamer takes care the obj format also.
-<a class="pageref" href="#genobj-f5">Figure  5</a> Cpu0MCCodeEmitter takes care code emitter while
-MCELFStreamer takes care the obj output streamer.
-<a class="pageref" href="#genobj-f10">Figure  10</a> is MCELFStreamer inheritance tree.
-You can find a lot of operations in that inheritance tree.</p>
+They take care the obj format generated while RegisterELFStreamer() reuse the
+elf streamer class.</p>
 <p>Reader maybe has the question: &#8220;What are the actual arguments in
 createCpu0MCCodeEmitterEB(const MCInstrInfo &amp;MCII,  const MCSubtargetInfo &amp;STI,
 MCContext &amp;Ctx)?&#8221; and &#8220;When they are assigned?&#8221;
@@ -1074,21 +1119,47 @@ createXXX()) where createXXX is function pointer).
 LLVM keeps a function pointer to createXXX() when we call target registry, and
 will call these createXXX() function back at proper time with arguments
 assigned during the target registration process, RegisterXXX().</p>
-<p><a class="pageref" href="#genobj-f7">Figure  7</a>, Cpu0AsmBackend class is the bridge for asm to obj.
+<p class="rubric">Register function of asm backend</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="c1">// Register the asm backend.</span>
+<span class="n">TargetRegistry</span><span class="o">::</span><span class="n">RegisterMCAsmBackend</span><span class="p">(</span><span class="n">TheCpu0Target</span><span class="p">,</span>
+                                     <span class="n">createCpu0AsmBackendEB32</span><span class="p">);</span>
+<span class="n">TargetRegistry</span><span class="o">::</span><span class="n">RegisterMCAsmBackend</span><span class="p">(</span><span class="n">TheCpu0elTarget</span><span class="p">,</span>
+                                     <span class="n">createCpu0AsmBackendEL32</span><span class="p">);</span>
+
+  <span class="c1">// Cpu0AsmBackend.cpp</span>
+  <span class="n">MCAsmBackend</span> <span class="o">*</span><span class="n">llvm</span><span class="o">::</span><span class="n">createCpu0AsmBackendEL32</span><span class="p">(</span><span class="k">const</span> <span class="n">Target</span> <span class="o">&amp;</span><span class="n">T</span><span class="p">,</span>
+                                               <span class="k">const</span> <span class="n">MCRegisterInfo</span> <span class="o">&amp;</span><span class="n">MRI</span><span class="p">,</span>
+                                               <span class="k">const</span> <span class="n">Triple</span> <span class="o">&amp;</span><span class="n">TT</span><span class="p">,</span> <span class="n">StringRef</span> <span class="n">CPU</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="k">new</span> <span class="n">Cpu0AsmBackend</span><span class="p">(</span><span class="n">T</span><span class="p">,</span> <span class="n">TT</span><span class="p">.</span><span class="n">getOS</span><span class="p">(),</span> <span class="cm">/*IsLittle*/</span><span class="nb">true</span><span class="p">);</span>
+  <span class="p">}</span>
+
+  <span class="n">MCAsmBackend</span> <span class="o">*</span><span class="n">llvm</span><span class="o">::</span><span class="n">createCpu0AsmBackendEB32</span><span class="p">(</span><span class="k">const</span> <span class="n">Target</span> <span class="o">&amp;</span><span class="n">T</span><span class="p">,</span>
+                                               <span class="k">const</span> <span class="n">MCRegisterInfo</span> <span class="o">&amp;</span><span class="n">MRI</span><span class="p">,</span>
+                                               <span class="k">const</span> <span class="n">Triple</span> <span class="o">&amp;</span><span class="n">TT</span><span class="p">,</span> <span class="n">StringRef</span> <span class="n">CPU</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="k">new</span> <span class="n">Cpu0AsmBackend</span><span class="p">(</span><span class="n">T</span><span class="p">,</span> <span class="n">TT</span><span class="p">.</span><span class="n">getOS</span><span class="p">(),</span> <span class="cm">/*IsLittle*/</span><span class="nb">false</span><span class="p">);</span>
+  <span class="p">}</span>
+
+    <span class="c1">// Cpu0AsmBackend.h</span>
+    <span class="k">class</span> <span class="nc">Cpu0AsmBackend</span> <span class="o">:</span> <span class="k">public</span> <span class="n">MCAsmBackend</span> <span class="p">{</span>
+    <span class="p">...</span>
+    <span class="p">}</span>
+</pre></div>
+</div>
+<p>Above Cpu0AsmBackend class is the bridge for asm to obj.
 Two objects take care big endian and little endian, respectively.
 It derived from MCAsmBackend.
 Most of code for object file generated is implemented by MCELFStreamer and it&#8217;s
 parent, MCAsmBackend.</p>
-<p><a class="pageref" href="#genobj-f8">Figure  8</a>, instancing MCSubtargetInfo object and initialize with
-Cpu0.td information.
-<a class="pageref" href="#genobj-f9">Figure  9</a>, instancing Cpu0InstPrinter to take care printing
-function for instructions.
-Like <a class="pageref" href="#genobj-f1">Figure  1</a> to <a class="pageref" href="#genobj-f4">Figure  4</a>, it has been defined
-before in Chapter4_2/ code for assembly file generated support.</p>
-<table class="docutils footnote" frame="void" id="id2" rules="none">
+<table class="docutils footnote" frame="void" id="target-registration" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
 <tr><td class="label"><a class="fn-backref" href="#id1">[1]</a></td><td><a class="reference external" href="http://jonathan2251.github.io/lbd/llvmstructure.html#target-registration">http://jonathan2251.github.io/lbd/llvmstructure.html#target-registration</a></td></tr>
+</tbody>
+</table>
+<table class="docutils footnote" frame="void" id="add-asmprinter" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id2">[2]</a></td><td><a class="reference external" href="http://jonathan2251.github.io/lbd/backendstructure.html#add-asmprinter">http://jonathan2251.github.io/lbd/backendstructure.html#add-asmprinter</a></td></tr>
 </tbody>
 </table>
 </div>

@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '3.7.0',
+        VERSION:     '3.7.1',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -54,32 +54,34 @@
 <span id="sec-llvmstructure"></span><h1>Cpu0 architecture and LLVM structure<a class="headerlink" href="#cpu0-architecture-and-llvm-structure" title="Permalink to this headline">¶</a></h1>
 <div class="contents local topic" id="contents">
 <ul class="simple">
-<li><a class="reference internal" href="#cpu0-processor-architecture-details" id="id31">Cpu0 Processor Architecture Details</a><ul>
-<li><a class="reference internal" href="#brief-introduction" id="id32">Brief introduction</a></li>
-<li><a class="reference internal" href="#the-cpu0-instruction-set" id="id33">The Cpu0 Instruction Set</a><ul>
-<li><a class="reference internal" href="#why-not-using-add-instead-of-sub" id="id34">Why not using ADD instead of SUB?</a></li>
+<li><a class="reference internal" href="#cpu0-processor-architecture-details" id="id33">Cpu0 Processor Architecture Details</a><ul>
+<li><a class="reference internal" href="#brief-introduction" id="id34">Brief introduction</a></li>
+<li><a class="reference internal" href="#the-cpu0-instruction-set" id="id35">The Cpu0 Instruction Set</a><ul>
+<li><a class="reference internal" href="#why-not-using-add-instead-of-sub" id="id36">Why not using ADD instead of SUB?</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#the-status-register" id="id35">The Status Register</a></li>
-<li><a class="reference internal" href="#cpu0-s-stages-of-instruction-execution" id="id36">Cpu0&#8217;s Stages of Instruction Execution</a></li>
-<li><a class="reference internal" href="#cpu0-s-interrupt-vector" id="id37">Cpu0&#8217;s Interrupt Vector</a></li>
+<li><a class="reference internal" href="#the-status-register" id="id37">The Status Register</a></li>
+<li><a class="reference internal" href="#cpu0-s-stages-of-instruction-execution" id="id38">Cpu0&#8217;s Stages of Instruction Execution</a></li>
+<li><a class="reference internal" href="#cpu0-s-interrupt-vector" id="id39">Cpu0&#8217;s Interrupt Vector</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#llvm-structure" id="id38">LLVM Structure</a><ul>
-<li><a class="reference internal" href="#three-phase-design" id="id39">Three-phase design</a></li>
-<li><a class="reference internal" href="#llvm-s-target-description-files-td" id="id40">LLVM&#8217;s Target Description Files: .td</a></li>
-<li><a class="reference internal" href="#llvm-code-generation-sequence" id="id41">LLVM Code Generation Sequence</a></li>
-<li><a class="reference internal" href="#ssa-form" id="id42">SSA form</a></li>
-<li><a class="reference internal" href="#dag-directed-acyclic-graph" id="id43">DAG (Directed Acyclic Graph)</a></li>
-<li><a class="reference internal" href="#instruction-selection" id="id44">Instruction Selection</a></li>
+<li><a class="reference internal" href="#llvm-structure" id="id40">LLVM Structure</a><ul>
+<li><a class="reference internal" href="#three-phase-design" id="id41">Three-phase design</a></li>
+<li><a class="reference internal" href="#llvm-s-target-description-files-td" id="id42">LLVM&#8217;s Target Description Files: .td</a></li>
+<li><a class="reference internal" href="#llvm-code-generation-sequence" id="id43">LLVM Code Generation Sequence</a></li>
+<li><a class="reference internal" href="#ssa-form" id="id44">SSA form</a></li>
+<li><a class="reference internal" href="#dag-directed-acyclic-graph" id="id45">DAG (Directed Acyclic Graph)</a></li>
+<li><a class="reference internal" href="#instruction-selection" id="id46">Instruction Selection</a></li>
+<li><a class="reference internal" href="#caller-and-callee-saved-registers" id="id47">Caller and callee saved registers</a></li>
+<li><a class="reference internal" href="#live-in-and-live-out-register" id="id48">Live in and live out register</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#create-cpu0-backend" id="id45">Create Cpu0 backend</a><ul>
-<li><a class="reference internal" href="#cpu0-backend-machine-id-and-relocation-records" id="id46">Cpu0 backend machine ID and relocation records</a></li>
-<li><a class="reference internal" href="#creating-the-initial-cpu0-td-files" id="id47">Creating the Initial Cpu0 .td Files</a></li>
-<li><a class="reference internal" href="#write-cmake-file" id="id48">Write cmake file</a></li>
-<li><a class="reference internal" href="#target-registration" id="id49">Target Registration</a></li>
-<li><a class="reference internal" href="#build-libraries-and-td" id="id50">Build libraries and td</a></li>
+<li><a class="reference internal" href="#create-cpu0-backend" id="id49">Create Cpu0 backend</a><ul>
+<li><a class="reference internal" href="#cpu0-backend-machine-id-and-relocation-records" id="id50">Cpu0 backend machine ID and relocation records</a></li>
+<li><a class="reference internal" href="#creating-the-initial-cpu0-td-files" id="id51">Creating the Initial Cpu0 .td Files</a></li>
+<li><a class="reference internal" href="#write-cmake-file" id="id52">Write cmake file</a></li>
+<li><a class="reference internal" href="#target-registration" id="id53">Target Registration</a></li>
+<li><a class="reference internal" href="#build-libraries-and-td" id="id54">Build libraries and td</a></li>
 </ul>
 </li>
 </ul>
@@ -103,7 +105,7 @@ complete, and it should help you understand how to debug your backend when it
 produces incorrect machine code using output provided by the compiler.</p>
 <p>This chapter details the Cpu0 instruction set and the structure of LLVM.
 The LLVM structure information is adapted from Chris Lattner&#8217;s LLVM chapter of
-the Architecture of Open Source Applications book <a class="footnote-reference" href="#aosa-book" id="id1">[8]</a>. You can read
+the Architecture of Open Source Applications book <a class="footnote-reference" href="#aosa-book" id="id1">[9]</a>. You can read
 the original article from the AOSA website if you prefer.</p>
 <p>At the end of this Chapter, you will begin to create a new LLVM backend by
 writing register and instruction definitions in the Target Description files
@@ -112,16 +114,16 @@ which will be used in next chapter.</p>
 instruction selection needed in llvm backend design, and they are explained
 here.</p>
 <div class="section" id="cpu0-processor-architecture-details">
-<h2><a class="toc-backref" href="#id31">Cpu0 Processor Architecture Details</a><a class="headerlink" href="#cpu0-processor-architecture-details" title="Permalink to this headline">¶</a></h2>
+<h2><a class="toc-backref" href="#id33">Cpu0 Processor Architecture Details</a><a class="headerlink" href="#cpu0-processor-architecture-details" title="Permalink to this headline">¶</a></h2>
 <p>This section is based on materials available here <a class="footnote-reference" href="#cpu0-chinese" id="id2">[1]</a> (Chinese)
 and here <a class="footnote-reference" href="#cpu0-english" id="id3">[2]</a> (English).</p>
 <div class="section" id="brief-introduction">
-<h3><a class="toc-backref" href="#id32">Brief introduction</a><a class="headerlink" href="#brief-introduction" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id34">Brief introduction</a><a class="headerlink" href="#brief-introduction" title="Permalink to this headline">¶</a></h3>
 <p>Cpu0 is a 32-bit architecture. It has 16 general purpose registers (R0, ...,
 R15), co-processor registers (like Mips), and other special registers. Its
 structure is illustrated in <a class="pageref" href="#llvmstructure-f1">Figure  1</a> below.</p>
 <div class="figure align-center" id="llvmstructure-f1">
-<img alt="_images/16.png" src="_images/16.png" />
+<a class="reference internal image-reference" href="_images/16.png"><img alt="_images/16.png" src="_images/16.png" style="width: 608px; height: 360px;" /></a>
 <p class="caption">Figure 1: Architectural block diagram of the Cpu0 processor</p>
 </div>
 <p>The registers are used for the following purposes:</p>
@@ -211,7 +213,7 @@ structure is illustrated in <a class="pageref" href="#llvmstructure-f1">Figure  
 </table>
 </div>
 <div class="section" id="the-cpu0-instruction-set">
-<h3><a class="toc-backref" href="#id33">The Cpu0 Instruction Set</a><a class="headerlink" href="#the-cpu0-instruction-set" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id35">The Cpu0 Instruction Set</a><a class="headerlink" href="#the-cpu0-instruction-set" title="Permalink to this headline">¶</a></h3>
 <p>The Cpu0 instruction set can be divided into three types: L-type instructions,
 which are generally associated with memory operations, A-type instructions for
 arithmetic operations, and J-type instructions that are typically used when
@@ -219,7 +221,7 @@ altering control flow (i.e. jumps).
 <a class="pageref" href="#llvmstructure-f2">Figure  2</a> illustrates how the bitfields are broken down
 for each type of instruction.</p>
 <div class="figure align-center" id="llvmstructure-f2">
-<img alt="_images/24.png" src="_images/24.png" />
+<a class="reference internal image-reference" href="_images/23.png"><img alt="_images/23.png" src="_images/23.png" style="width: 601px; height: 331px;" /></a>
 <p class="caption">Figure 2: Cpu0&#8217;s three instruction formats</p>
 </div>
 <p>The Cpu0 has two ISA, the first ISA-I is cpu032I which hired CMP instruction
@@ -294,26 +296,26 @@ The following table details the cpu032I instruction set:</p>
 <td>SB Ra, [Rb+Cx]</td>
 <td>[Rb+Cx] &lt;= (byte)Ra</td>
 </tr>
-<tr class="row-even"><td>A</td>
+<tr class="row-even"><td>L</td>
 <td>LH</td>
 <td>06</td>
 <td>Load half word</td>
 <td>LH Ra, [Rb+Cx]</td>
 <td>Ra &lt;= (2bytes)[Rb+Cx] <a class="footnote-reference" href="#lb-note" id="id6">[3]</a></td>
 </tr>
-<tr class="row-odd"><td>A</td>
+<tr class="row-odd"><td>L</td>
 <td>LHu</td>
 <td>07</td>
 <td>Load half word unsigned</td>
 <td>LHu Ra, [Rb+Cx]</td>
 <td>Ra &lt;= (2bytes)[Rb+Cx] <a class="footnote-reference" href="#lb-note" id="id7">[3]</a></td>
 </tr>
-<tr class="row-even"><td>A</td>
+<tr class="row-even"><td>L</td>
 <td>SH</td>
 <td>08</td>
 <td>Store half word</td>
 <td>SH Ra, [Rb+Cx]</td>
-<td>[Rb+Rc] &lt;= Ra</td>
+<td>[Rb+Cx] &lt;= Ra</td>
 </tr>
 <tr class="row-odd"><td>L</td>
 <td>ADDiu</td>
@@ -547,83 +549,83 @@ The following table details the cpu032I instruction set:</p>
 <td>LR &lt;= PC; PC &lt;= PC + Cx</td>
 </tr>
 <tr class="row-even"><td>J</td>
-<td>RET</td>
+<td>JR/RET</td>
 <td>3C</td>
 <td>Return from subroutine</td>
-<td>RET LR</td>
-<td>PC &lt;= LR</td>
+<td>JR $1 or RET LR</td>
+<td>PC &lt;= LR <a class="footnote-reference" href="#jr-note" id="id16">[8]</a></td>
 </tr>
-<tr class="row-odd"><td>L</td>
+<tr class="row-odd"><td>A</td>
 <td>MULT</td>
 <td>41</td>
 <td>Multiply for 64 bits result</td>
 <td>MULT Ra, Rb</td>
 <td>(HI,LO) &lt;= MULT(Ra,Rb)</td>
 </tr>
-<tr class="row-even"><td>L</td>
+<tr class="row-even"><td>A</td>
 <td>MULTU</td>
 <td>42</td>
 <td>MULT for unsigned 64 bits</td>
 <td>MULTU Ra, Rb</td>
 <td>(HI,LO) &lt;= MULTU(Ra,Rb)</td>
 </tr>
-<tr class="row-odd"><td>L</td>
+<tr class="row-odd"><td>A</td>
 <td>DIV</td>
 <td>43</td>
 <td>Divide</td>
 <td>DIV Ra, Rb</td>
 <td>HI&lt;=Ra%Rb, LO&lt;=Ra/Rb</td>
 </tr>
-<tr class="row-even"><td>L</td>
+<tr class="row-even"><td>A</td>
 <td>DIVU</td>
 <td>44</td>
 <td>Divide unsigned</td>
 <td>DIVU Ra, Rb</td>
 <td>HI&lt;=Ra%Rb, LO&lt;=Ra/Rb</td>
 </tr>
-<tr class="row-odd"><td>L</td>
+<tr class="row-odd"><td>A</td>
 <td>MFHI</td>
 <td>46</td>
 <td>Move HI to GPR</td>
 <td>MFHI Ra</td>
 <td>Ra &lt;= HI</td>
 </tr>
-<tr class="row-even"><td>L</td>
+<tr class="row-even"><td>A</td>
 <td>MFLO</td>
 <td>47</td>
 <td>Move LO to GPR</td>
 <td>MFLO Ra</td>
 <td>Ra &lt;= LO</td>
 </tr>
-<tr class="row-odd"><td>L</td>
+<tr class="row-odd"><td>A</td>
 <td>MTHI</td>
 <td>48</td>
 <td>Move GPR to HI</td>
 <td>MTHI Ra</td>
 <td>HI &lt;= Ra</td>
 </tr>
-<tr class="row-even"><td>L</td>
+<tr class="row-even"><td>A</td>
 <td>MTLO</td>
 <td>49</td>
 <td>Move GPR to LO</td>
 <td>MTLO Ra</td>
 <td>LO &lt;= Ra</td>
 </tr>
-<tr class="row-odd"><td>L</td>
+<tr class="row-odd"><td>A</td>
 <td>MFC0</td>
 <td>50</td>
 <td>Move C0R to GPR</td>
 <td>MFC0 Ra, Rb</td>
 <td>Ra &lt;= Rb</td>
 </tr>
-<tr class="row-even"><td>L</td>
+<tr class="row-even"><td>A</td>
 <td>MTC0</td>
 <td>51</td>
 <td>Move GPR to C0R</td>
 <td>MTC0 Ra, Rb</td>
 <td>Ra &lt;= Rb</td>
 </tr>
-<tr class="row-odd"><td>L</td>
+<tr class="row-odd"><td>A</td>
 <td>C0MOV</td>
 <td>52</td>
 <td>Move C0R to C0R</td>
@@ -684,16 +686,23 @@ The following table details the cpu032I instruction set:</p>
 <tr class="row-even"><td>L</td>
 <td>BEQ</td>
 <td>37</td>
-<td>Jump if equal</td>
+<td>Branch if equal</td>
 <td>BEQ Ra, Rb, Cx</td>
 <td>if (Ra==Rb), PC &lt;= PC + Cx</td>
 </tr>
 <tr class="row-odd"><td>L</td>
 <td>BNE</td>
 <td>38</td>
-<td>Jump if not equal</td>
+<td>Branch if not equal</td>
 <td>BNE Ra, Rb, Cx</td>
 <td>if (Ra!=Rb), PC &lt;= PC + Cx</td>
+</tr>
+<tr class="row-even"><td>J</td>
+<td>BAL</td>
+<td>3A</td>
+<td>Branch and link</td>
+<td>BAL Cx</td>
+<td>LR &lt;= PC; PC &lt;= PC + Cx</td>
 </tr>
 </tbody>
 </table>
@@ -709,7 +718,7 @@ If you treat the result is negative then it is -1.
 On the other hand, it&#8217;s (+4G - 1) if you treat the result is positive.</p>
 </div>
 <div class="section" id="why-not-using-add-instead-of-sub">
-<h4><a class="toc-backref" href="#id34">Why not using ADD instead of SUB?</a><a class="headerlink" href="#why-not-using-add-instead-of-sub" title="Permalink to this headline">¶</a></h4>
+<h4><a class="toc-backref" href="#id36">Why not using ADD instead of SUB?</a><a class="headerlink" href="#why-not-using-add-instead-of-sub" title="Permalink to this headline">¶</a></h4>
 <p>From text book of computer introduction, we know SUB can be replaced by
 ADD as follows,</p>
 <ul class="simple">
@@ -718,7 +727,7 @@ ADD as follows,</p>
 <p>Since Mips uses 32 bits to represent int type of C language, if B is the
 value of -2G, then</p>
 <ul class="simple">
-<li>(A - (-2G) = (A + (2G))</li>
+<li>(A - (-2G)) = (A + (2G))</li>
 </ul>
 <p>But the problem is value -2G can be represented in 32 bits machine while 2G
 cannot,
@@ -730,13 +739,13 @@ instead of.</p>
 </div>
 </div>
 <div class="section" id="the-status-register">
-<h3><a class="toc-backref" href="#id35">The Status Register</a><a class="headerlink" href="#the-status-register" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id37">The Status Register</a><a class="headerlink" href="#the-status-register" title="Permalink to this headline">¶</a></h3>
 <p>The Cpu0 status word register (SW) contains the state of the Negative (N),
 Zero (Z), Carry (C), Overflow (V), Debug (D), Mode (M), and Interrupt (I) flags.
 The bit layout of the SW register is shown in <a class="pageref" href="#llvmstructure-f3">Figure  3</a>
 below.</p>
 <div class="figure align-center" id="llvmstructure-f3">
-<img alt="_images/32.png" src="_images/32.png" />
+<a class="reference internal image-reference" href="_images/3.png"><img alt="_images/3.png" src="_images/3.png" style="width: 684px; height: 126px;" /></a>
 <p class="caption">Figure 3: Cpu0 status word (SW) register</p>
 </div>
 <p>When a CMP Ra, Rb instruction executes, the condition flags will change.
@@ -750,7 +759,7 @@ For example:</p>
 JLT, JGE, JLE, JEQ, JNE is determined by the N and Z flags in the SW register.</p>
 </div>
 <div class="section" id="cpu0-s-stages-of-instruction-execution">
-<h3><a class="toc-backref" href="#id36">Cpu0&#8217;s Stages of Instruction Execution</a><a class="headerlink" href="#cpu0-s-stages-of-instruction-execution" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id38">Cpu0&#8217;s Stages of Instruction Execution</a><a class="headerlink" href="#cpu0-s-stages-of-instruction-execution" title="Permalink to this headline">¶</a></h3>
 <p>The Cpu0 architecture has a five-stage pipeline. The stages are instruction
 fetch (IF), instruction decode (ID), execute (EX), memory access (MEM) and
 write backe (WB).
@@ -796,7 +805,7 @@ instruction.</li>
 </ul>
 </div>
 <div class="section" id="cpu0-s-interrupt-vector">
-<h3><a class="toc-backref" href="#id37">Cpu0&#8217;s Interrupt Vector</a><a class="headerlink" href="#cpu0-s-interrupt-vector" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id39">Cpu0&#8217;s Interrupt Vector</a><a class="headerlink" href="#cpu0-s-interrupt-vector" title="Permalink to this headline">¶</a></h3>
 <table border="1" class="docutils">
 <caption>Cpu0&#8217;s Interrupt Vector</caption>
 <colgroup>
@@ -823,13 +832,13 @@ instruction.</li>
 </div>
 </div>
 <div class="section" id="llvm-structure">
-<h2><a class="toc-backref" href="#id38">LLVM Structure</a><a class="headerlink" href="#llvm-structure" title="Permalink to this headline">¶</a></h2>
-<p>This section introduce the compiler data structure, algorithm and mechanism that
-llvm uses.</p>
+<h2><a class="toc-backref" href="#id40">LLVM Structure</a><a class="headerlink" href="#llvm-structure" title="Permalink to this headline">¶</a></h2>
+<p>This section introduces the compiler data structure, algorithm and mechanism
+that llvm uses.</p>
 <div class="section" id="three-phase-design">
-<h3><a class="toc-backref" href="#id39">Three-phase design</a><a class="headerlink" href="#three-phase-design" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id41">Three-phase design</a><a class="headerlink" href="#three-phase-design" title="Permalink to this headline">¶</a></h3>
 <p>The text in this and the following sub-section comes from the AOSA chapter on
-LLVM written by Chris Lattner <a class="footnote-reference" href="#aosa-book" id="id16">[8]</a>.</p>
+LLVM written by Chris Lattner <a class="footnote-reference" href="#aosa-book" id="id17">[9]</a>.</p>
 <p>The most popular design for a traditional static compiler (like most C
 compilers) is the three phase design whose major components are the front end,
 the optimizer and the back end, as seen in <a class="pageref" href="#llvmstructure-f6">Figure  4</a>.
@@ -838,7 +847,7 @@ language-specific Abstract Syntax Tree (AST) to represent the input code.
 The AST is optionally converted to a new representation for optimization, and
 the optimizer and back end are run on the code.</p>
 <div class="figure align-center" id="llvmstructure-f6">
-<img alt="_images/62.png" src="_images/62.png" />
+<a class="reference internal image-reference" href="_images/61.png"><img alt="_images/61.png" src="_images/61.png" style="width: 329.0px; height: 44.1px;" /></a>
 <p class="caption">Figure 4: Three Major Components of a Three Phase Compiler</p>
 </div>
 <p>The optimizer is responsible for doing a broad variety of transformations to
@@ -860,7 +869,7 @@ front end can be written for any language that can compile to it, and a back
 end can be written for any target that can compile from it, as shown in
 <a class="pageref" href="#llvmstructure-f7">Figure  5</a>.</p>
 <div class="figure align-center" id="llvmstructure-f7">
-<a class="reference internal image-reference" href="_images/71.png"><img alt="_images/71.png" src="_images/71.png" style="width: 600px;" /></a>
+<a class="reference internal image-reference" href="_images/7.png"><img alt="_images/7.png" src="_images/7.png" style="width: 585.9px; height: 209.3px;" /></a>
 <p class="caption">Figure 5: Retargetablity</p>
 </div>
 <p>With this design, porting the compiler to support a new source language (e.g.,
@@ -961,7 +970,7 @@ for a front end to generate and be expressive enough to allow important
 optimizations to be performed for real targets.</p>
 </div>
 <div class="section" id="llvm-s-target-description-files-td">
-<h3><a class="toc-backref" href="#id40">LLVM&#8217;s Target Description Files: .td</a><a class="headerlink" href="#llvm-s-target-description-files-td" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id42">LLVM&#8217;s Target Description Files: .td</a><a class="headerlink" href="#llvm-s-target-description-files-td" title="Permalink to this headline">¶</a></h3>
 <p>The &#8220;mix and match&#8221; approach allows target authors to choose what makes sense
 for their architecture and permits a large amount of code reuse across
 different targets.
@@ -976,7 +985,7 @@ tblgen tool.
 The (simplified) build process for the x86 target is shown in
 <a class="pageref" href="#llvmstructure-f8">Figure  6</a>.</p>
 <div class="figure align-center" id="llvmstructure-f8">
-<a class="reference internal image-reference" href="_images/81.png"><img alt="_images/81.png" src="_images/81.png" style="width: 600px;" /></a>
+<a class="reference internal image-reference" href="_images/8.png"><img alt="_images/8.png" src="_images/8.png" style="width: 595.0px; height: 299.6px;" /></a>
 <p class="caption">Figure 6: Simplified x86 Target Definition</p>
 </div>
 <p>The different subsystems supported by the .td files allow target authors to
@@ -991,10 +1000,10 @@ are all caps) like this:</p>
 </div>
 </div>
 <div class="section" id="llvm-code-generation-sequence">
-<h3><a class="toc-backref" href="#id41">LLVM Code Generation Sequence</a><a class="headerlink" href="#llvm-code-generation-sequence" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id43">LLVM Code Generation Sequence</a><a class="headerlink" href="#llvm-code-generation-sequence" title="Permalink to this headline">¶</a></h3>
 <p>Following diagram come from tricore_llvm.pdf.</p>
 <div class="figure align-center" id="llvmstructure-f9">
-<img alt="_images/91.png" src="_images/91.png" />
+<a class="reference internal image-reference" href="_images/9.png"><img alt="_images/9.png" src="_images/9.png" style="width: 1030px; height: 537px;" /></a>
 <p class="caption">Figure 7: tricore_llvm.pdf: Code generation sequence. On the path from LLVM code to
 assembly code, numerous passes are run through and several data structures
 are used to represent the intermediate results.</p>
@@ -1017,8 +1026,8 @@ Following is the llvm SSA instructions.</p>
 </div>
 <p>We explain the code generation process as below.
 If you don&#8217;t feel comfortable, please check tricore_llvm.pdf section 4.2 first.
-You can read “The LLVM Target-Independent Code Generator” from here <a class="footnote-reference" href="#codegen" id="id17">[10]</a>
-and “LLVM Language Reference Manual” from here <a class="footnote-reference" href="#langref" id="id18">[11]</a>
+You can read “The LLVM Target-Independent Code Generator” from here <a class="footnote-reference" href="#codegen" id="id18">[11]</a>
+and “LLVM Language Reference Manual” from here <a class="footnote-reference" href="#langref" id="id19">[12]</a>
 before go ahead, but we think the section
 4.2 of tricore_llvm.pdf is enough and suggesting you read the web site
 documents as above only when you are still not
@@ -1044,7 +1053,7 @@ next 2 sections for DAG and Instruction Selection.</p>
     <span class="o">%</span><span class="n">d</span> <span class="o">=</span> <span class="n">ld</span> <span class="n">i32</span><span class="o">*</span> <span class="o">%</span><span class="n">c</span>
 
 <span class="c1">// Transfer above instructions order as follows. In RISC CPU of Mips, the ld</span>
-<span class="c1">//  %c use the result of the previous instruction st %c. So it must wait 1</span>
+<span class="c1">//  %c uses the result of the previous instruction st %c. So it must wait 1</span>
 <span class="c1">//  cycles more. Meaning the ld cannot follow st immediately.</span>
 <span class="o">=&gt;</span>  <span class="n">st</span> <span class="o">%</span><span class="n">b</span><span class="p">,</span> <span class="n">i32</span><span class="o">*</span> <span class="o">%</span><span class="n">c</span><span class="p">,</span> <span class="n">i16</span> <span class="mi">0</span>
     <span class="n">st</span> <span class="n">i32</span> <span class="o">%</span><span class="n">a</span><span class="p">,</span> <span class="n">i16</span><span class="o">*</span> <span class="o">%</span><span class="n">b</span><span class="p">,</span>  <span class="n">i16</span> <span class="mi">5</span>
@@ -1067,7 +1076,7 @@ next 2 sections for DAG and Instruction Selection.</p>
     <span class="n">st</span> <span class="o">%</span><span class="n">a</span><span class="p">,</span>  <span class="n">i32</span><span class="o">*</span> <span class="o">%</span><span class="n">c</span><span class="p">,</span> <span class="mi">1</span>
     <span class="n">st</span> <span class="o">%</span><span class="n">b</span><span class="p">,</span>  <span class="n">i32</span><span class="o">*</span> <span class="o">%</span><span class="n">c</span><span class="p">,</span> <span class="mi">2</span>
 
-<span class="c1">// The reorder version need 2 registers only (by allocate %a and %b in the same</span>
+<span class="c1">// The reorder version needs 2 registers only (by allocate %a and %b in the same</span>
 <span class="c1">//  register)</span>
 <span class="o">=&gt;</span> <span class="o">%</span><span class="n">a</span> <span class="o">=</span> <span class="n">add</span> <span class="n">i32</span> <span class="mi">1</span><span class="p">,</span> <span class="n">i32</span> <span class="mi">0</span>
     <span class="n">st</span> <span class="o">%</span><span class="n">a</span><span class="p">,</span>  <span class="n">i32</span><span class="o">*</span> <span class="o">%</span><span class="n">c</span><span class="p">,</span> <span class="mi">1</span>
@@ -1210,14 +1219,14 @@ Machine Branch Probability Analysis
 </div>
 </div>
 <div class="section" id="ssa-form">
-<h3><a class="toc-backref" href="#id42">SSA form</a><a class="headerlink" href="#ssa-form" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id44">SSA form</a><a class="headerlink" href="#ssa-form" title="Permalink to this headline">¶</a></h3>
 <p>SSA form says that each variable is assigned exactly once.
 LLVM IR is SSA form which has unbounded virtual registers (each variable is
 assigned exactly once and is keeped in different virtual register).
 As the result, the optimization steps used in code generation sequence which
 include stages of <strong>Instruction Selection</strong>, <strong>Scheduling and Formation</strong> and
 <strong>Register Allocation</strong>, won&#8217;t loss any optimization opportunity.
-For example, if use limited virtual registers to generate the following code,</p>
+For example, if using limited virtual registers to generate the following code,</p>
 <div class="highlight-c++"><div class="highlight"><pre>  <span class="o">%</span><span class="n">a</span> <span class="o">=</span> <span class="n">add</span> <span class="n">nsw</span> <span class="n">i32</span> <span class="mi">1</span><span class="p">,</span> <span class="n">i32</span> <span class="mi">0</span>
   <span class="n">store</span> <span class="n">i32</span> <span class="o">%</span><span class="n">a</span><span class="p">,</span> <span class="n">i32</span><span class="o">*</span> <span class="o">%</span><span class="n">c</span><span class="p">,</span> <span class="n">align</span> <span class="mi">4</span>
   <span class="o">%</span><span class="n">a</span> <span class="o">=</span> <span class="n">add</span> <span class="n">nsw</span> <span class="n">i32</span> <span class="mi">2</span><span class="p">,</span> <span class="n">i32</span> <span class="mi">0</span>
@@ -1231,7 +1240,7 @@ For example, if use limited virtual registers to generate the following code,</p
 </div>
 <p>Above code must run in sequence. On the other hand, the SSA form as the
 following can be reodered and run in parallel with the following different
-version <a class="footnote-reference" href="#dragonbooks-10-2-3" id="id19">[12]</a>.</p>
+version <a class="footnote-reference" href="#dragonbooks-10-2-3" id="id20">[13]</a>.</p>
 <div class="highlight-c++"><div class="highlight"><pre>  <span class="o">%</span><span class="n">a</span> <span class="o">=</span> <span class="n">add</span> <span class="n">nsw</span> <span class="n">i32</span> <span class="mi">1</span><span class="p">,</span> <span class="n">i32</span> <span class="mi">0</span>
   <span class="n">store</span> <span class="n">i32</span> <span class="o">%</span><span class="n">a</span><span class="p">,</span> <span class="n">i32</span><span class="o">*</span> <span class="o">%</span><span class="n">c</span><span class="p">,</span> <span class="n">align</span> <span class="mi">4</span>
   <span class="o">%</span><span class="n">b</span> <span class="o">=</span> <span class="n">add</span> <span class="n">nsw</span> <span class="n">i32</span> <span class="mi">2</span><span class="p">,</span> <span class="n">i32</span> <span class="mi">0</span>
@@ -1258,13 +1267,13 @@ version <a class="footnote-reference" href="#dragonbooks-10-2-3" id="id19">[12]<
 </div>
 </div>
 <div class="section" id="dag-directed-acyclic-graph">
-<h3><a class="toc-backref" href="#id43">DAG (Directed Acyclic Graph)</a><a class="headerlink" href="#dag-directed-acyclic-graph" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id45">DAG (Directed Acyclic Graph)</a><a class="headerlink" href="#dag-directed-acyclic-graph" title="Permalink to this headline">¶</a></h3>
 <p>Many important techniques for local optimization begin by transforming a basic
-block into DAG <a class="footnote-reference" href="#dragonbooks-8-5" id="id20">[13]</a>.
+block into DAG <a class="footnote-reference" href="#dragonbooks-8-5" id="id21">[14]</a>.
 For example, the basic block code and it&#8217;s corresponding DAG as
 <a class="pageref" href="#llvmstructure-f10">Figure  8</a>.</p>
 <div class="figure align-center" id="llvmstructure-f10">
-<a class="reference internal image-reference" href="_images/103.png"><img alt="_images/103.png" src="_images/103.png" /></a>
+<a class="reference internal image-reference" href="_images/103.png"><img alt="_images/103.png" src="_images/103.png" style="width: 379.2px; height: 142.4px;" /></a>
 <p class="caption">Figure 8: DAG example</p>
 </div>
 <p>If b is not live on exit from the block, then we can do &#8220;common expression
@@ -1273,19 +1282,22 @@ remove&#8221; to get the following code.</p>
 d = a – d
 c = d + c</pre>
 </div>
-<p>As you can imagine, the &#8220;common expression remove&#8221; can apply in IR or machine
-code.</p>
-<p>DAG like a tree which opcode is the node and operand (register and
+<p>As you can imagine, the &#8220;common expression remove&#8221; can apply both in IR or
+machine code.</p>
+<p>DAG likes a tree which opcode is the node and operand (register and
 const/immediate/offset) is leaf.
 It can also be represented by list as prefix order in tree.
 For example, (+ b, c), (+ b, 1) is IR DAG representation.</p>
+<p>In addition to DAG optimization, the &#8220;kill&#8221; register has also mentioned in
+section 8.5.5 of the compiler book <a class="footnote-reference" href="#dragonbooks-8-5" id="id22">[14]</a>. This concept also
+used in llvm implementation.</p>
 </div>
 <div class="section" id="instruction-selection">
-<h3><a class="toc-backref" href="#id44">Instruction Selection</a><a class="headerlink" href="#instruction-selection" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id46">Instruction Selection</a><a class="headerlink" href="#instruction-selection" title="Permalink to this headline">¶</a></h3>
 <p>The major function of backend is translating IR code into machine code at
 stage of Instruction Selection as <a class="pageref" href="#llvmstructure-f11">Figure  9</a>.</p>
 <div class="figure align-center" id="llvmstructure-f11">
-<a class="reference internal image-reference" href="_images/112.png"><img alt="_images/112.png" src="_images/112.png" /></a>
+<a class="reference internal image-reference" href="_images/112.png"><img alt="_images/112.png" src="_images/112.png" style="width: 346.5px; height: 81.2px;" /></a>
 <p class="caption">Figure 9: IR and it&#8217;s corresponding machine instruction</p>
 </div>
 <p>For machine instruction selection, the best solution is representing IR and
@@ -1295,14 +1307,13 @@ To simplify in view, the register leaf is skipped in
 The rj + rk is IR DAG representation (for symbol notation, not llvm SSA form).
 ADD is machine instruction.</p>
 <div class="figure align-center" id="llvmstructure-f12">
-<a class="reference internal image-reference" href="_images/122.png"><img alt="_images/122.png" src="_images/122.png" /></a>
+<a class="reference internal image-reference" href="_images/122.png"><img alt="_images/122.png" src="_images/122.png" style="width: 690.2px; height: 426.3px;" /></a>
 <p class="caption">Figure 10: Instruction DAG representation</p>
 </div>
 <p>The IR DAG and machine instruction DAG can also represented as list.
-For example, (+ ri, rj), (- ri, 1) are lists for IR DAG; (ADD ri, rj),
+For example, (+ ri, rj) and (- ri, 1) are lists for IR DAG; (ADD ri, rj) and
 (SUBI ri, 1) are lists for machine instruction DAG.</p>
-<p>Now, let&#8217;s recall the ADDiu instruction defined in Cpu0InstrInfo.td of the
-previous chapter. Listing them again as follows,</p>
+<p>Now, let&#8217;s check the ADDiu instruction defined in Cpu0InstrInfo.td as follows,</p>
 <p class="rubric">lbdex/chapters/Chapter2/Cpu0InstrFormats.td</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="c1">//===----------------------------------------------------------------------===//</span>
 <span class="c1">// Format L instruction class in Cpu0 : &lt;|opcode|ra|rb|cx|&gt;</span>
@@ -1353,11 +1364,11 @@ match, the .td also set assembly string &#8220;addiu&#8221; and op code 0x09.
 With this information, the LLVM TableGen will generate instruction both in
 assembly and binary automatically (the binary instruction issued in obj file of
 ELF format which will be explained at later chapter).
-Similarly, the machine instruction DAG node LD and ST can be translated from IR
-DAG node <strong>load</strong> and <strong>store</strong>. Notice that the $r1 in this case is virtual
+Similarly, the machine instruction DAG nodes LD and ST can be translated from IR
+DAG nodes <strong>load</strong> and <strong>store</strong>. Notice that the $r1 in this case is virtual
 register name (not machine register).</p>
 <div class="figure align-center" id="llvmstructure-f13">
-<a class="reference internal image-reference" href="_images/132.png"><img alt="_images/132.png" src="_images/132.png" /></a>
+<a class="reference internal image-reference" href="_images/132.png"><img alt="_images/132.png" src="_images/132.png" style="width: 562.8px; height: 411.6px;" /></a>
 <p class="caption">Figure 11: Pattern match for ADDiu instruction and IR node add</p>
 </div>
 <p>From DAG instruction selection we mentioned, the leaf node must be a Data Node.
@@ -1389,7 +1400,7 @@ F4RC:$FRB))] is the pattern which include nodes <strong>fmul</strong> and <stron
 <span class="p">...</span>
 </pre></div>
 </div>
-<p>The Instruction Selection Process will translate this two IR DAG node
+<p>the Instruction Selection Process will translate this two IR DAG node
 (fmul %a, %c) (fadd %d, %b) into one machine instruction DAG node (<strong>fmadd</strong>
 %a, %c, %b), rather than translate them into two machine instruction nodes
 <strong>fmul</strong> and <strong>fadd</strong> if the FMADDS is appear before FMUL and FADD in your td
@@ -1417,24 +1428,127 @@ following machine code,</p>
 </pre></div>
 </div>
 </div>
+<div class="section" id="caller-and-callee-saved-registers">
+<h3><a class="toc-backref" href="#id47">Caller and callee saved registers</a><a class="headerlink" href="#caller-and-callee-saved-registers" title="Permalink to this headline">¶</a></h3>
+<p class="rubric">lbdex/input/ch9_caller_callee_save_registers.cpp</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="k">extern</span> <span class="kt">int</span> <span class="nf">add1</span><span class="p">(</span><span class="kt">int</span> <span class="n">x</span><span class="p">);</span>
+
+<span class="kt">int</span> <span class="nf">caller</span><span class="p">()</span>
+<span class="p">{</span> 
+  <span class="kt">int</span> <span class="n">t1</span> <span class="o">=</span> <span class="mi">3</span><span class="p">;</span>
+  <span class="kt">int</span> <span class="n">result</span> <span class="o">=</span> <span class="n">add1</span><span class="p">(</span><span class="n">t1</span><span class="p">);</span>  
+  <span class="n">result</span> <span class="o">=</span> <span class="n">result</span> <span class="o">-</span> <span class="n">t1</span><span class="p">;</span>
+  
+  <span class="k">return</span> <span class="n">result</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>Run Mips backend with above input will get the following result.</p>
+<div class="highlight-bash"><div class="highlight"><pre>JonathantekiiMac:input Jonathan<span class="nv">$ </span>~/llvm/release/cmake_debug_build/Debug/bin/llc
+-O0 -march<span class="o">=</span>mips -relocation-model<span class="o">=</span>static -filetype<span class="o">=</span>asm
+ch9_caller_callee_save_registers.bc -o -
+      .text
+      .abicalls
+      .option pic0
+      .section        .mdebug.abi32,<span class="s2">&quot;&quot;</span>,@progbits
+      .nan    legacy
+      .file   <span class="s2">&quot;ch9_caller_callee_save_registers.bc&quot;</span>
+      .text
+      .globl  _Z6callerv
+      .align  2
+      .type   _Z6callerv,@function
+      .set    nomicromips
+      .set    nomips16
+      .ent    _Z6callerv
+_Z6callerv:                             <span class="c"># @_Z6callerv</span>
+      .cfi_startproc
+      .frame  <span class="nv">$fp</span>,32,<span class="nv">$ra</span>
+      .mask   0xc0000000,-4
+      .fmask  0x00000000,0
+      .set    noreorder
+      .set    nomacro
+      .set    noat
+<span class="c"># BB#0:</span>
+      addiu   <span class="nv">$sp</span>, <span class="nv">$sp</span>, -32
+<span class="nv">$tmp0</span>:
+      .cfi_def_cfa_offset 32
+      sw      <span class="nv">$ra</span>, 28<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>            <span class="c"># 4-byte Folded Spill</span>
+      sw      <span class="nv">$fp</span>, 24<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>            <span class="c"># 4-byte Folded Spill</span>
+<span class="nv">$tmp1</span>:
+      .cfi_offset 31, -4
+<span class="nv">$tmp2</span>:
+      .cfi_offset 30, -8
+      move     <span class="nv">$fp</span>, <span class="nv">$sp</span>
+<span class="nv">$tmp3</span>:
+      .cfi_def_cfa_register 30
+      addiu   <span class="nv">$1</span>, <span class="nv">$zero</span>, 3
+      sw      <span class="nv">$1</span>, 20<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>   <span class="c"># store t1 to 20($fp)</span>
+      move     <span class="nv">$4</span>, <span class="nv">$1</span>
+      jal     _Z4add1i
+      nop
+      sw      <span class="nv">$2</span>, 16<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>   <span class="c"># $2 : the return vaule for fuction add1()</span>
+      lw      <span class="nv">$1</span>, 20<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>   <span class="c"># load t1 from 20($fp)</span>
+      subu    <span class="nv">$1</span>, <span class="nv">$2</span>, <span class="nv">$1</span>
+      sw      <span class="nv">$1</span>, 16<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+      move     <span class="nv">$2</span>, <span class="nv">$1</span>     <span class="c"># move result to return register $2</span>
+      move     <span class="nv">$sp</span>, <span class="nv">$fp</span>
+      lw      <span class="nv">$fp</span>, 24<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>            <span class="c"># 4-byte Folded Reload</span>
+      lw      <span class="nv">$ra</span>, 28<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>            <span class="c"># 4-byte Folded Reload</span>
+      addiu   <span class="nv">$sp</span>, <span class="nv">$sp</span>, 32
+      jr      <span class="nv">$ra</span>
+      nop
+      .set    at
+      .set    macro
+      .set    reorder
+      .end    _Z6callerv
+<span class="nv">$func_end0</span>:
+      .size   _Z6callerv, <span class="o">(</span><span class="nv">$func_end0</span><span class="o">)</span>-_Z6callerv
+      .cfi_endproc
+</pre></div>
+</div>
+<p>As above assembly output, Mips allocates t1 variable to register $1 and no need
+to spill $1 since $1 is caller saved register.
+On the other hand, $ra is callee saved register, so it spills at beginning of
+the assembly output since jal uses $ra register.
+Cpu0 $lr is the same register as Mips $ra, so it calls setAliasRegs(MF,
+SavedRegs, Cpu0::LR) in determineCalleeSaves() of Cpu0SEFrameLowering.cpp when
+the function has called another function.</p>
+</div>
+<div class="section" id="live-in-and-live-out-register">
+<h3><a class="toc-backref" href="#id48">Live in and live out register</a><a class="headerlink" href="#live-in-and-live-out-register" title="Permalink to this headline">¶</a></h3>
+<p>As the example of last sub-section. The $ra is &#8220;live in&#8221; register since the
+return address is decided by caller. The $2 is &#8220;live out&#8221; register since the
+return value of the function is saved in this register, and caller can get the
+result by read it directly as the comment in above example.
+Through mark &#8220;live in&#8221; and &#8220;live out&#8221; registers, backend provides
+llvm middle layer information to remove useless instructions in variables
+access.
+Of course, llvm applies the DAG analysis mentioned in the previous sub-section
+to finish it.
+Since C supports seperate compilation for different functions, the &#8220;live in&#8221;
+and &#8220;out&#8221; information from backend provides the optimization opportunity to
+llvm.
+LLVM provides function addLiveIn() to mark &#8220;live in&#8221; register but no function
+addLiveOut() provided.
+For the &#8220;live out&#8221; register, Mips backend marks it by
+DAG=DAG.getCopyToReg(..., $2, ...) and return DAG instead, since all local
+varaiables are not exist after function exit.</p>
+</div>
 </div>
 <div class="section" id="create-cpu0-backend">
-<h2><a class="toc-backref" href="#id45">Create Cpu0 backend</a><a class="headerlink" href="#create-cpu0-backend" title="Permalink to this headline">¶</a></h2>
-<p>From now on, the Cpu0 backend will be created from scratch step by step and
-chapter by chapter.
-To make readers easily understanding the backend structure step by step, Cpu0
+<h2><a class="toc-backref" href="#id49">Create Cpu0 backend</a><a class="headerlink" href="#create-cpu0-backend" title="Permalink to this headline">¶</a></h2>
+<p>From now on, the Cpu0 backend will be created from scratch step by step.
+To make readers easily understanding the backend structure, Cpu0
 example code can be generated with chapter by chapter through command here
-<a class="footnote-reference" href="#chapters-ex" id="id21">[9]</a>.</p>
+<a class="footnote-reference" href="#chapters-ex" id="id23">[10]</a>.</p>
 <div class="section" id="cpu0-backend-machine-id-and-relocation-records">
-<h3><a class="toc-backref" href="#id46">Cpu0 backend machine ID and relocation records</a><a class="headerlink" href="#cpu0-backend-machine-id-and-relocation-records" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id50">Cpu0 backend machine ID and relocation records</a><a class="headerlink" href="#cpu0-backend-machine-id-and-relocation-records" title="Permalink to this headline">¶</a></h3>
 <p>To create a new backend, there are some files in &lt;&lt;llvm root dir&gt;&gt; need to be
-modified. The added information include both the ID and name of machine and
+modified. The added information include both the ID and name of machine, and
 relocation records. Chapter &#8220;ELF Support&#8221; include the relocation records
 introduction. The following files are modified to add Cpu0 backend as follows,</p>
 <p class="rubric">lbdex/src/modify/src/config-ix.cmake</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="p">...</span>
-<span class="n">elseif</span> <span class="p">(</span><span class="n">LLVM_NATIVE_ARCH</span> <span class="n">MATCHES</span> <span class="s">&quot;mips&quot;</span><span class="p">)</span>
-  <span class="n">set</span><span class="p">(</span><span class="n">LLVM_NATIVE_ARCH</span> <span class="n">Mips</span><span class="p">)</span>
 <span class="n">elseif</span> <span class="p">(</span><span class="n">LLVM_NATIVE_ARCH</span> <span class="n">MATCHES</span> <span class="s">&quot;cpu0&quot;</span><span class="p">)</span>
   <span class="n">set</span><span class="p">(</span><span class="n">LLVM_NATIVE_ARCH</span> <span class="n">Cpu0</span><span class="p">)</span>
 <span class="p">...</span>
@@ -1443,7 +1557,6 @@ introduction. The following files are modified to add Cpu0 backend as follows,</
 <p class="rubric">lbdex/src/modify/src/CMakeLists.txt</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="n">set</span><span class="p">(</span><span class="n">LLVM_ALL_TARGETS</span>
   <span class="p">...</span>
-  <span class="n">Mips</span>
   <span class="n">Cpu0</span>
   <span class="p">...</span>
   <span class="p">)</span>
@@ -1458,10 +1571,6 @@ introduction. The following files are modified to add Cpu0 backend as follows,</
 <span class="nl">public:</span>
   <span class="k">enum</span> <span class="n">ArchType</span> <span class="p">{</span>
     <span class="p">...</span>
-    <span class="n">mips</span><span class="p">,</span>       <span class="c1">// MIPS: mips, mipsallegrex</span>
-    <span class="n">mipsel</span><span class="p">,</span>     <span class="c1">// MIPSEL: mipsel, mipsallegrexel</span>
-    <span class="n">mips64</span><span class="p">,</span>     <span class="c1">// MIPS64: mips64</span>
-    <span class="n">mips64el</span><span class="p">,</span>   <span class="c1">// MIPS64EL: mips64el</span>
     <span class="n">cpu0</span><span class="p">,</span>       <span class="c1">// For Tutorial Backend Cpu0</span>
     <span class="n">cpu0el</span><span class="p">,</span>
     <span class="p">...</span>
@@ -1506,22 +1615,7 @@ introduction. The following files are modified to add Cpu0 backend as follows,</
 </pre></div>
 </div>
 <p class="rubric">lbdex/src/modify/src/include/llvm/Object/ELFObjectFile.h</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="k">template</span> <span class="o">&lt;</span><span class="k">class</span> <span class="nc">ELFT</span><span class="o">&gt;</span>
-<span class="n">std</span><span class="o">::</span><span class="n">error_code</span> <span class="n">ELFObjectFile</span><span class="o">&lt;</span><span class="n">ELFT</span><span class="o">&gt;::</span><span class="n">getRelocationValueString</span><span class="p">(</span>
-    <span class="n">DataRefImpl</span> <span class="n">Rel</span><span class="p">,</span> <span class="n">SmallVectorImpl</span><span class="o">&lt;</span><span class="kt">char</span><span class="o">&gt;</span> <span class="o">&amp;</span><span class="n">Result</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
-  <span class="p">...</span>
-  <span class="k">switch</span> <span class="p">(</span><span class="n">EF</span><span class="p">.</span><span class="n">getHeader</span><span class="p">()</span><span class="o">-&gt;</span><span class="n">e_machine</span><span class="p">)</span> <span class="p">{</span>
-  <span class="p">...</span>
-  <span class="k">case</span> <span class="n">ELF</span>:<span class="o">:</span><span class="n">EM_MIPS</span><span class="o">:</span>
-  <span class="k">case</span> <span class="n">ELF</span>:<span class="o">:</span><span class="n">EM_CPU0</span><span class="o">:</span>  <span class="c1">// llvm-objdump -t -r</span>
-  <span class="k">case</span> <span class="n">ELF</span>:<span class="o">:</span><span class="n">EM_CPU0_LE</span><span class="o">:</span>
-    <span class="n">res</span> <span class="o">=</span> <span class="o">*</span><span class="n">SymName</span><span class="p">;</span>
-    <span class="k">break</span><span class="p">;</span>
-  <span class="p">...</span>
-  <span class="p">}</span>
-  <span class="p">...</span>
-<span class="p">}</span>
-<span class="p">...</span>
+<div class="highlight-c++"><div class="highlight"><pre><span class="p">...</span>
 <span class="k">template</span> <span class="o">&lt;</span><span class="k">class</span> <span class="nc">ELFT</span><span class="o">&gt;</span>
 <span class="n">StringRef</span> <span class="n">ELFObjectFile</span><span class="o">&lt;</span><span class="n">ELFT</span><span class="o">&gt;::</span><span class="n">getFileFormatName</span><span class="p">()</span> <span class="k">const</span> <span class="p">{</span>
   <span class="k">switch</span> <span class="p">(</span><span class="n">EF</span><span class="p">.</span><span class="n">getHeader</span><span class="p">()</span><span class="o">-&gt;</span><span class="n">e_ident</span><span class="p">[</span><span class="n">ELF</span><span class="o">::</span><span class="n">EI_CLASS</span><span class="p">])</span> <span class="p">{</span>
@@ -1529,7 +1623,6 @@ introduction. The following files are modified to add Cpu0 backend as follows,</
     <span class="k">switch</span> <span class="p">(</span><span class="n">EF</span><span class="p">.</span><span class="n">getHeader</span><span class="p">()</span><span class="o">-&gt;</span><span class="n">e_machine</span><span class="p">)</span> <span class="p">{</span>
     <span class="p">...</span>
     <span class="k">case</span> <span class="n">ELF</span>:<span class="o">:</span><span class="n">EM_CPU0</span><span class="o">:</span>        <span class="c1">// llvm-objdump -t -r</span>
-    <span class="k">case</span> <span class="n">ELF</span>:<span class="o">:</span><span class="n">EM_CPU0_LE</span><span class="o">:</span>
       <span class="k">return</span> <span class="s">&quot;ELF32-cpu0&quot;</span><span class="p">;</span>
     <span class="p">...</span>
   <span class="p">}</span>
@@ -1542,7 +1635,6 @@ introduction. The following files are modified to add Cpu0 backend as follows,</
   <span class="k">switch</span> <span class="p">(</span><span class="n">EF</span><span class="p">.</span><span class="n">getHeader</span><span class="p">()</span><span class="o">-&gt;</span><span class="n">e_machine</span><span class="p">)</span> <span class="p">{</span>
   <span class="p">...</span>
   <span class="k">case</span> <span class="n">ELF</span>:<span class="o">:</span><span class="n">EM_CPU0</span><span class="o">:</span>  <span class="c1">// llvm-objdump -t -r</span>
-  <span class="k">case</span> <span class="n">ELF</span>:<span class="o">:</span><span class="n">EM_CPU0_LE</span><span class="o">:</span>
     <span class="k">switch</span> <span class="p">(</span><span class="n">EF</span><span class="p">.</span><span class="n">getHeader</span><span class="p">()</span><span class="o">-&gt;</span><span class="n">e_ident</span><span class="p">[</span><span class="n">ELF</span><span class="o">::</span><span class="n">EI_CLASS</span><span class="p">])</span> <span class="p">{</span>
     <span class="k">case</span> <span class="n">ELF</span>:<span class="o">:</span><span class="n">ELFCLASS32</span><span class="o">:</span>
     <span class="k">return</span> <span class="n">IsLittleEndian</span> <span class="o">?</span> <span class="n">Triple</span><span class="o">::</span><span class="n">cpu0el</span> <span class="o">:</span> <span class="n">Triple</span><span class="o">::</span><span class="n">cpu0</span><span class="p">;</span>
@@ -1556,80 +1648,32 @@ introduction. The following files are modified to add Cpu0 backend as follows,</
 </div>
 <p class="rubric">lbdex/src/modify/src/include/llvm/Support/ELF.h</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="k">enum</span> <span class="p">{</span>
-  <span class="n">EM_NONE</span>          <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="c1">// No machine</span>
-  <span class="n">EM_M32</span>           <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="c1">// AT&amp;T WE 32100</span>
   <span class="p">...</span>
-  <span class="n">EM_CPU0</span>          <span class="o">=</span> <span class="mi">998</span><span class="p">,</span> <span class="c1">// Document LLVM Backend Tutorial Cpu0</span>
-  <span class="n">EM_CPU0_LE</span>       <span class="o">=</span> <span class="mi">999</span>  <span class="c1">// EM_CPU0_LE: little endian; EM_CPU0: big endian</span>
+  <span class="n">EM_CPU0</span>          <span class="o">=</span> <span class="mi">999</span>  <span class="c1">// Document LLVM Backend Tutorial Cpu0</span>
 <span class="p">};</span>
 <span class="p">...</span>
-
 <span class="c1">// Cpu0 Specific e_flags</span>
 <span class="k">enum</span> <span class="p">{</span>
   <span class="n">EF_CPU0_NOREORDER</span> <span class="o">=</span> <span class="mh">0x00000001</span><span class="p">,</span> <span class="c1">// Don&#39;t reorder instructions</span>
   <span class="n">EF_CPU0_PIC</span>       <span class="o">=</span> <span class="mh">0x00000002</span><span class="p">,</span> <span class="c1">// Position independent code</span>
-  <span class="n">EF_CPU0_CPIC</span>      <span class="o">=</span> <span class="mh">0x00000004</span><span class="p">,</span> <span class="c1">// Call object with Position independent code</span>
-  <span class="n">EF_CPU0_ARCH_1</span>    <span class="o">=</span> <span class="mh">0x00000000</span><span class="p">,</span> <span class="c1">// CPU01 instruction set</span>
-  <span class="n">EF_CPU0_ARCH_2</span>    <span class="o">=</span> <span class="mh">0x10000000</span><span class="p">,</span> <span class="c1">// CPU02 instruction set</span>
-  <span class="n">EF_CPU0_ARCH_3</span>    <span class="o">=</span> <span class="mh">0x20000000</span><span class="p">,</span> <span class="c1">// CPU03 instruction set</span>
-  <span class="n">EF_CPU0_ARCH_4</span>    <span class="o">=</span> <span class="mh">0x30000000</span><span class="p">,</span> <span class="c1">// CPU04 instruction set</span>
-  <span class="n">EF_CPU0_ARCH_5</span>    <span class="o">=</span> <span class="mh">0x40000000</span><span class="p">,</span> <span class="c1">// CPU05 instruction set</span>
   <span class="n">EF_CPU0_ARCH_32</span>   <span class="o">=</span> <span class="mh">0x50000000</span><span class="p">,</span> <span class="c1">// CPU032 instruction set per linux not elf.h</span>
-  <span class="n">EF_CPU0_ARCH_64</span>   <span class="o">=</span> <span class="mh">0x60000000</span><span class="p">,</span> <span class="c1">// CPU064 instruction set per linux not elf.h</span>
-  <span class="n">EF_CPU0_ARCH_32R2</span> <span class="o">=</span> <span class="mh">0x70000000</span><span class="p">,</span> <span class="c1">// cpu032r2</span>
-  <span class="n">EF_CPU0_ARCH_64R2</span> <span class="o">=</span> <span class="mh">0x80000000</span><span class="p">,</span> <span class="c1">// cpu064r2</span>
   <span class="n">EF_CPU0_ARCH</span>      <span class="o">=</span> <span class="mh">0xf0000000</span>  <span class="c1">// Mask for applying EF_CPU0_ARCH_ variant</span>
 <span class="p">};</span>
 
-<span class="c1">// ELF Relocation types for Cpu0</span>
-<span class="c1">// .</span>
+<span class="c1">// ELF Relocation types for Mips</span>
 <span class="k">enum</span> <span class="p">{</span>
-  <span class="n">R_CPU0_NONE</span>              <span class="o">=</span>  <span class="mi">0</span><span class="p">,</span>
-  <span class="n">R_CPU0_32</span>                <span class="o">=</span>  <span class="mi">2</span><span class="p">,</span>
-  <span class="n">R_CPU0_HI16</span>              <span class="o">=</span>  <span class="mi">5</span><span class="p">,</span>
-  <span class="n">R_CPU0_LO16</span>              <span class="o">=</span>  <span class="mi">6</span><span class="p">,</span>
-  <span class="n">R_CPU0_GPREL16</span>           <span class="o">=</span>  <span class="mi">7</span><span class="p">,</span>
-  <span class="n">R_CPU0_LITERAL</span>           <span class="o">=</span>  <span class="mi">8</span><span class="p">,</span>
-  <span class="n">R_CPU0_GOT16</span>             <span class="o">=</span>  <span class="mi">9</span><span class="p">,</span>
-  <span class="n">R_CPU0_PC16</span>              <span class="o">=</span> <span class="mi">10</span><span class="p">,</span>
-  <span class="n">R_CPU0_CALL16</span>            <span class="o">=</span> <span class="mi">11</span><span class="p">,</span>
-  <span class="n">R_CPU0_GPREL32</span>           <span class="o">=</span> <span class="mi">12</span><span class="p">,</span>
-  <span class="n">R_CPU0_PC24</span>              <span class="o">=</span> <span class="mi">13</span><span class="p">,</span>
-  <span class="n">R_CPU0_GOT_HI16</span>          <span class="o">=</span> <span class="mi">22</span><span class="p">,</span>
-  <span class="n">R_CPU0_GOT_LO16</span>          <span class="o">=</span> <span class="mi">23</span><span class="p">,</span>
-  <span class="n">R_CPU0_RELGOT</span>            <span class="o">=</span> <span class="mi">36</span><span class="p">,</span>
-  <span class="n">R_CPU0_TLS_GD</span>            <span class="o">=</span> <span class="mi">42</span><span class="p">,</span>
-  <span class="n">R_CPU0_TLS_LDM</span>           <span class="o">=</span> <span class="mi">43</span><span class="p">,</span>
-  <span class="n">R_CPU0_TLS_DTP_HI16</span>      <span class="o">=</span> <span class="mi">44</span><span class="p">,</span>
-  <span class="n">R_CPU0_TLS_DTP_LO16</span>      <span class="o">=</span> <span class="mi">45</span><span class="p">,</span>
-  <span class="n">R_CPU0_TLS_GOTTPREL</span>      <span class="o">=</span> <span class="mi">46</span><span class="p">,</span>
-  <span class="n">R_CPU0_TLS_TPREL32</span>       <span class="o">=</span> <span class="mi">47</span><span class="p">,</span>
-  <span class="n">R_CPU0_TLS_TP_HI16</span>       <span class="o">=</span> <span class="mi">49</span><span class="p">,</span>
-  <span class="n">R_CPU0_TLS_TP_LO16</span>       <span class="o">=</span> <span class="mi">50</span><span class="p">,</span>
-  <span class="n">R_CPU0_GLOB_DAT</span>          <span class="o">=</span> <span class="mi">51</span><span class="p">,</span>
-  <span class="n">R_CPU0_JUMP_SLOT</span>         <span class="o">=</span> <span class="mi">127</span>
+<span class="cp">#include &quot;ELFRelocs/Cpu0.def&quot;</span>
 <span class="p">};</span>
+<span class="p">...</span>
 </pre></div>
 </div>
 <p class="rubric">lbdex/src/modify/src/lib/MC/MCELFStreamer.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="kt">void</span> <span class="n">MCELFStreamer</span><span class="o">::</span><span class="n">fixSymbolsInTLSFixups</span><span class="p">(</span><span class="k">const</span> <span class="n">MCExpr</span> <span class="o">*</span><span class="n">expr</span><span class="p">)</span> <span class="p">{</span>
-  <span class="k">switch</span> <span class="p">(</span><span class="n">expr</span><span class="o">-&gt;</span><span class="n">getKind</span><span class="p">())</span> <span class="p">{</span>
   <span class="p">...</span>
-  <span class="k">case</span> <span class="n">MCExpr</span>:<span class="o">:</span><span class="n">SymbolRef</span><span class="o">:</span> <span class="p">{</span>
-    <span class="k">const</span> <span class="n">MCSymbolRefExpr</span> <span class="o">&amp;</span><span class="n">symRef</span> <span class="o">=</span> <span class="o">*</span><span class="n">cast</span><span class="o">&lt;</span><span class="n">MCSymbolRefExpr</span><span class="o">&gt;</span><span class="p">(</span><span class="n">expr</span><span class="p">);</span>
-    <span class="k">switch</span> <span class="p">(</span><span class="n">symRef</span><span class="p">.</span><span class="n">getKind</span><span class="p">())</span> <span class="p">{</span>
-    <span class="p">...</span>
-    <span class="k">case</span> <span class="n">MCSymbolRefExpr</span>:<span class="o">:</span><span class="n">VK_Mips_TLSGD</span><span class="o">:</span>
-    <span class="k">case</span> <span class="n">MCSymbolRefExpr</span>:<span class="o">:</span><span class="n">VK_Mips_GOTTPREL</span><span class="o">:</span>
-    <span class="k">case</span> <span class="n">MCSymbolRefExpr</span>:<span class="o">:</span><span class="n">VK_Mips_TPREL_HI</span><span class="o">:</span>
-    <span class="k">case</span> <span class="n">MCSymbolRefExpr</span>:<span class="o">:</span><span class="n">VK_Mips_TPREL_LO</span><span class="o">:</span>
     <span class="k">case</span> <span class="n">MCSymbolRefExpr</span>:<span class="o">:</span><span class="n">VK_Cpu0_TLSGD</span><span class="o">:</span>
     <span class="k">case</span> <span class="n">MCSymbolRefExpr</span>:<span class="o">:</span><span class="n">VK_Cpu0_GOTTPREL</span><span class="o">:</span>
     <span class="k">case</span> <span class="n">MCSymbolRefExpr</span>:<span class="o">:</span><span class="n">VK_Cpu0_TP_HI</span><span class="o">:</span>
     <span class="k">case</span> <span class="n">MCSymbolRefExpr</span>:<span class="o">:</span><span class="n">VK_Cpu0_TP_LO</span><span class="o">:</span>
-    <span class="p">...</span>
-      <span class="k">break</span><span class="p">;</span>
-    <span class="p">}</span>
   <span class="p">...</span>
 <span class="p">}</span>
 </pre></div>
@@ -1664,6 +1708,56 @@ introduction. The following files are modified to add Cpu0 backend as follows,</
   <span class="k">case</span> <span class="n">VK_Cpu0_CALL_LO16</span>: <span class="k">return</span> <span class="s">&quot;CALL_LO16&quot;</span><span class="p">;</span>
   <span class="p">...</span>
   <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p class="rubric">lbdex/src/modify/src/lib/MC/MCSubtargetInfo.cpp</p>
+<div class="highlight-c++"><pre>bool Cpu0DisableUnreconginizedMessage = false;
+
+void MCSubtargetInfo::InitMCProcessorInfo(StringRef CPU, StringRef FS) {
+  #if 1 // Disable reconginized processor message. For Cpu0
+  if (TargetTriple.getArch() == llvm::Triple::cpu0 ||
+      TargetTriple.getArch() == llvm::Triple::cpu0el)
+    Cpu0DisableUnreconginizedMessage = true;
+  #endif
+  ...
+}
+...
+const MCSchedModel &amp;MCSubtargetInfo::getSchedModelForCPU(StringRef CPU) const {
+  ...
+    #if 1 // Disable reconginized processor message. For Cpu0
+    if (TargetTriple.getArch() != llvm::Triple::cpu0 &amp;&amp;
+        TargetTriple.getArch() != llvm::Triple::cpu0el)
+    #endif
+  ...
+}</pre>
+</div>
+<p class="rubric">lbdex/src/modify/src/lib/MC/SubtargetFeature.cpp</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="k">extern</span> <span class="kt">bool</span> <span class="n">Cpu0DisableUnreconginizedMessage</span><span class="p">;</span> <span class="c1">// For Cpu0</span>
+<span class="p">...</span>
+<span class="n">FeatureBitset</span>
+<span class="n">SubtargetFeatures</span><span class="o">::</span><span class="n">ToggleFeature</span><span class="p">(</span><span class="n">FeatureBitset</span> <span class="n">Bits</span><span class="p">,</span> <span class="n">StringRef</span> <span class="n">Feature</span><span class="p">,</span>
+                                 <span class="n">ArrayRef</span><span class="o">&lt;</span><span class="n">SubtargetFeatureKV</span><span class="o">&gt;</span> <span class="n">FeatureTable</span><span class="p">)</span> <span class="p">{</span>
+  <span class="p">...</span>
+    <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">Cpu0DisableUnreconginizedMessage</span><span class="p">)</span> <span class="c1">// For Cpu0</span>
+  <span class="p">...</span>
+<span class="p">}</span>
+
+<span class="n">FeatureBitset</span>
+<span class="n">SubtargetFeatures</span><span class="o">::</span><span class="n">ApplyFeatureFlag</span><span class="p">(</span><span class="n">FeatureBitset</span> <span class="n">Bits</span><span class="p">,</span> <span class="n">StringRef</span> <span class="n">Feature</span><span class="p">,</span>
+                                    <span class="n">ArrayRef</span><span class="o">&lt;</span><span class="n">SubtargetFeatureKV</span><span class="o">&gt;</span> <span class="n">FeatureTable</span><span class="p">)</span> <span class="p">{</span>
+  <span class="p">...</span>
+    <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">Cpu0DisableUnreconginizedMessage</span><span class="p">)</span> <span class="c1">// For Cpu0</span>
+  <span class="p">...</span>
+<span class="p">}</span>
+
+<span class="n">FeatureBitset</span>
+<span class="n">SubtargetFeatures</span><span class="o">::</span><span class="n">getFeatureBits</span><span class="p">(</span><span class="n">StringRef</span> <span class="n">CPU</span><span class="p">,</span>
+                                  <span class="n">ArrayRef</span><span class="o">&lt;</span><span class="n">SubtargetFeatureKV</span><span class="o">&gt;</span> <span class="n">CPUTable</span><span class="p">,</span>
+                                  <span class="n">ArrayRef</span><span class="o">&lt;</span><span class="n">SubtargetFeatureKV</span><span class="o">&gt;</span> <span class="n">FeatureTable</span><span class="p">)</span> <span class="p">{</span>
+  <span class="p">...</span>
+    <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">Cpu0DisableUnreconginizedMessage</span><span class="p">)</span> <span class="c1">// For Cpu0</span>
+  <span class="p">...</span>
 <span class="p">}</span>
 </pre></div>
 </div>
@@ -1749,6 +1843,13 @@ introduction. The following files are modified to add Cpu0 backend as follows,</
     <span class="p">...</span>
 <span class="p">}</span>
 <span class="p">...</span>
+<span class="k">static</span> <span class="n">Triple</span><span class="o">::</span><span class="n">ObjectFormatType</span> <span class="n">getDefaultFormat</span><span class="p">(</span><span class="k">const</span> <span class="n">Triple</span> <span class="o">&amp;</span><span class="n">T</span><span class="p">)</span> <span class="p">{</span>
+  <span class="p">...</span>
+  <span class="k">case</span> <span class="n">Triple</span>:<span class="o">:</span><span class="n">cpu0</span><span class="o">:</span>
+  <span class="k">case</span> <span class="n">Triple</span>:<span class="o">:</span><span class="n">cpu0el</span><span class="o">:</span>
+  <span class="p">...</span>
+<span class="p">}</span>
+<span class="p">...</span>
 <span class="k">static</span> <span class="kt">unsigned</span> <span class="n">getArchPointerBitWidth</span><span class="p">(</span><span class="n">llvm</span><span class="o">::</span><span class="n">Triple</span><span class="o">::</span><span class="n">ArchType</span> <span class="n">Arch</span><span class="p">)</span> <span class="p">{</span>
   <span class="k">switch</span> <span class="p">(</span><span class="n">Arch</span><span class="p">)</span> <span class="p">{</span>
   <span class="p">...</span>
@@ -1775,23 +1876,23 @@ introduction. The following files are modified to add Cpu0 backend as follows,</
 </div>
 </div>
 <div class="section" id="creating-the-initial-cpu0-td-files">
-<h3><a class="toc-backref" href="#id47">Creating the Initial Cpu0 .td Files</a><a class="headerlink" href="#creating-the-initial-cpu0-td-files" title="Permalink to this headline">¶</a></h3>
-<p>As it has been discussed in the previous section, LLVM use target description
-files (which use the .td file extension) to describe various components of a
+<h3><a class="toc-backref" href="#id51">Creating the Initial Cpu0 .td Files</a><a class="headerlink" href="#creating-the-initial-cpu0-td-files" title="Permalink to this headline">¶</a></h3>
+<p>As it has been discussed in the previous section, LLVM uses target description
+files (which uses the .td file extension) to describe various components of a
 target&#8217;s backend.
 For example, these .td files may describe a target&#8217;s register set, instruction
 set, scheduling information for instructions, and calling conventions.
 When your backend is being compiled, the tablegen tool that ships with LLVM
 will translate these .td files into C++ source code written to files that have
 a .inc extension.
-Please refer to <a class="footnote-reference" href="#tblgen" id="id22">[19]</a> for more information regarding how to use tablegen.</p>
-<p>Every backend has a .td which defines some target information, including what
-other .td files are used by the backend.
+Please refer to <a class="footnote-reference" href="#tblgen" id="id24">[20]</a> for more information regarding how to use tablegen.</p>
+<p>Every backend has a .td which defines some target information, which including
+what other .td files are used by the backend.
 These files have a similar syntax to C++. For Cpu0, the target description file
 is called Cpu0Other.td, which is shown below:</p>
-<div class="highlight-bash"><div class="highlight"><pre>118-165-12-177:BackendTutorial Jonathan<span class="nv">$ </span><span class="nb">pwd</span>
-/home/cschen/test/lbd/docs/BackendTutorial
-118-165-12-177:BackendTutorial Jonathan<span class="nv">$ </span>make genexample
+<div class="highlight-bash"><div class="highlight"><pre>118-165-12-177:lld Jonathan<span class="nv">$ </span><span class="nb">pwd</span>
+/home/cschen/test/lbd
+118-165-12-177:lld Jonathan<span class="nv">$ </span>make genexample
 </pre></div>
 </div>
 <p class="rubric">lbdex/chapters/Chapter2/Cpu0Other.td</p>
@@ -1824,12 +1925,12 @@ is called Cpu0Other.td, which is shown below:</p>
 <p>Cpu0Other.td and Cpu0.td includes a few other .td files.
 Cpu0RegisterInfo.td (shown below) describes the Cpu0&#8217;s set of registers.
 In this file, we see that registers have been given names, i.e. <strong>&#8220;def PC&#8221;</strong>
-indicates that there is a register called PC.  Also, there is a register class
-named <strong>&#8220;CPURegs&#8221;</strong> that contains all of the other registers.
+indicates that there is a register called PC.  Beside of registers, it also
+define register classes.
 You may have multiple register classes such as CPURegs, SR, C0Regs and GPROut.
 GPROut defined in Cpu0RegisterInfoGPROutForOther.td which include CPURegs
-except SW, PC and EPC, so SW, PC and EPC won&#8217;t be allocated as the output
-registers in register allocation stage.</p>
+except SW, so SW won&#8217;t be allocated as the output registers in register
+allocation stage.</p>
 <p class="rubric">lbdex/chapters/Chapter2/Cpu0RegisterInfo.td</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="c1">//===-- Cpu0RegisterInfo.td - Cpu0 Register defs -----------*- tablegen -*-===//</span>
 <span class="c1">//</span>
@@ -1845,20 +1946,16 @@ registers in register allocation stage.</p>
 <span class="c1">//===----------------------------------------------------------------------===//</span>
 
 <span class="c1">// We have banks of 16 registers each.</span>
-<span class="k">class</span> <span class="nc">Cpu0Reg</span><span class="o">&lt;</span><span class="n">string</span> <span class="n">n</span><span class="o">&gt;</span> <span class="o">:</span> <span class="n">Register</span><span class="o">&lt;</span><span class="n">n</span><span class="o">&gt;</span> <span class="p">{</span>
-  <span class="n">field</span> <span class="n">bits</span><span class="o">&lt;</span><span class="mi">4</span><span class="o">&gt;</span> <span class="n">Num</span><span class="p">;</span>
+<span class="k">class</span> <span class="nc">Cpu0Reg</span><span class="o">&lt;</span><span class="n">bits</span><span class="o">&lt;</span><span class="mi">16</span><span class="o">&gt;</span> <span class="n">Enc</span><span class="p">,</span> <span class="n">string</span> <span class="n">n</span><span class="o">&gt;</span> <span class="o">:</span> <span class="n">Register</span><span class="o">&lt;</span><span class="n">n</span><span class="o">&gt;</span> <span class="p">{</span>
+  <span class="n">let</span> <span class="n">HWEncoding</span> <span class="o">=</span> <span class="n">Enc</span><span class="p">;</span>
   <span class="n">let</span> <span class="n">Namespace</span> <span class="o">=</span> <span class="s">&quot;Cpu0&quot;</span><span class="p">;</span>
 <span class="p">}</span>
 
-<span class="c1">// General Purpose Registers</span>
-<span class="k">class</span> <span class="nc">Cpu0GPRReg</span><span class="o">&lt;</span><span class="n">bits</span><span class="o">&lt;</span><span class="mi">4</span><span class="o">&gt;</span> <span class="n">num</span><span class="p">,</span> <span class="n">string</span> <span class="n">n</span><span class="o">&gt;</span> <span class="o">:</span> <span class="n">Cpu0Reg</span><span class="o">&lt;</span><span class="n">n</span><span class="o">&gt;</span> <span class="p">{</span>
-  <span class="n">let</span> <span class="n">Num</span> <span class="o">=</span> <span class="n">num</span><span class="p">;</span>
-<span class="p">}</span>
+<span class="c1">// Cpu0 CPU Registers</span>
+<span class="k">class</span> <span class="nc">Cpu0GPRReg</span><span class="o">&lt;</span><span class="n">bits</span><span class="o">&lt;</span><span class="mi">16</span><span class="o">&gt;</span> <span class="n">Enc</span><span class="p">,</span> <span class="n">string</span> <span class="n">n</span><span class="o">&gt;</span> <span class="o">:</span> <span class="n">Cpu0Reg</span><span class="o">&lt;</span><span class="n">Enc</span><span class="p">,</span> <span class="n">n</span><span class="o">&gt;</span><span class="p">;</span>
 
 <span class="c1">// Co-processor 0 Registers</span>
-<span class="k">class</span> <span class="nc">Cpu0C0Reg</span><span class="o">&lt;</span><span class="n">bits</span><span class="o">&lt;</span><span class="mi">4</span><span class="o">&gt;</span> <span class="n">num</span><span class="p">,</span> <span class="n">string</span> <span class="n">n</span><span class="o">&gt;</span> <span class="o">:</span> <span class="n">Cpu0Reg</span><span class="o">&lt;</span><span class="n">n</span><span class="o">&gt;</span> <span class="p">{</span>
-  <span class="n">let</span> <span class="n">Num</span> <span class="o">=</span> <span class="n">num</span><span class="p">;</span>
-<span class="p">}</span>
+<span class="k">class</span> <span class="nc">Cpu0C0Reg</span><span class="o">&lt;</span><span class="n">bits</span><span class="o">&lt;</span><span class="mi">16</span><span class="o">&gt;</span> <span class="n">Enc</span><span class="p">,</span> <span class="n">string</span> <span class="n">n</span><span class="o">&gt;</span> <span class="o">:</span> <span class="n">Cpu0Reg</span><span class="o">&lt;</span><span class="n">Enc</span><span class="p">,</span> <span class="n">n</span><span class="o">&gt;</span><span class="p">;</span>
 
 <span class="c1">//===----------------------------------------------------------------------===//</span>
 <span class="c1">//@Registers</span>
@@ -1905,7 +2002,7 @@ registers in register allocation stage.</p>
   <span class="n">S0</span><span class="p">,</span> <span class="n">S1</span><span class="p">,</span>
   <span class="c1">// Reserved</span>
   <span class="n">GP</span><span class="p">,</span> <span class="n">FP</span><span class="p">,</span> 
-  <span class="n">SP</span><span class="p">,</span> <span class="n">LR</span><span class="p">,</span> <span class="n">SW</span><span class="p">,</span> <span class="n">PC</span><span class="p">,</span> <span class="n">EPC</span><span class="p">)</span><span class="o">&gt;</span><span class="p">;</span>
+  <span class="n">SP</span><span class="p">,</span> <span class="n">LR</span><span class="p">,</span> <span class="n">SW</span><span class="p">)</span><span class="o">&gt;</span><span class="p">;</span>
 
 <span class="c1">//@Status Registers class</span>
 <span class="n">def</span> <span class="n">SR</span>     <span class="o">:</span> <span class="n">RegisterClass</span><span class="o">&lt;</span><span class="s">&quot;Cpu0&quot;</span><span class="p">,</span> <span class="p">[</span><span class="n">i32</span><span class="p">],</span> <span class="mi">32</span><span class="p">,</span> <span class="p">(</span><span class="n">add</span> <span class="n">SW</span><span class="p">)</span><span class="o">&gt;</span><span class="p">;</span>
@@ -1919,10 +2016,10 @@ registers in register allocation stage.</p>
 <span class="c1">// Register Classes</span>
 <span class="c1">//===----------------------------------------------------------------------===//</span>
 
-<span class="n">def</span> <span class="n">GPROut</span> <span class="o">:</span> <span class="n">RegisterClass</span><span class="o">&lt;</span><span class="s">&quot;Cpu0&quot;</span><span class="p">,</span> <span class="p">[</span><span class="n">i32</span><span class="p">],</span> <span class="mi">32</span><span class="p">,</span> <span class="p">(</span><span class="n">add</span> <span class="p">(</span><span class="n">sub</span> <span class="n">CPURegs</span><span class="p">,</span> <span class="n">SW</span><span class="p">,</span> <span class="n">PC</span><span class="p">,</span> <span class="n">EPC</span><span class="p">))</span><span class="o">&gt;</span><span class="p">;</span>
+<span class="n">def</span> <span class="n">GPROut</span> <span class="o">:</span> <span class="n">RegisterClass</span><span class="o">&lt;</span><span class="s">&quot;Cpu0&quot;</span><span class="p">,</span> <span class="p">[</span><span class="n">i32</span><span class="p">],</span> <span class="mi">32</span><span class="p">,</span> <span class="p">(</span><span class="n">add</span> <span class="p">(</span><span class="n">sub</span> <span class="n">CPURegs</span><span class="p">,</span> <span class="n">SW</span><span class="p">))</span><span class="o">&gt;</span><span class="p">;</span>
 </pre></div>
 </div>
-<p>In C++, class typically provide a structure to lay out some data and functions,
+<p>In C++, class typically provides a structure to lay out some data and functions,
 while definitions are used to allocate memory for specific instances of a class.
 For example:</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="k">class</span> <span class="nc">Date</span> <span class="p">{</span>  <span class="c1">// declare Date</span>
@@ -1931,32 +2028,41 @@ For example:</p>
 <span class="n">Date</span> <span class="n">birthday</span><span class="p">;</span>  <span class="c1">// define birthday, an instance of Date</span>
 </pre></div>
 </div>
-<p>The class <strong>Date</strong> has the members <strong>year</strong>, <strong>month</strong>, and <strong>day</strong>, however these do not
-yet belong to an actual object.  By defining an instance of <strong>Date</strong> called <strong>birthday</strong>,
-you have allocated memory for a specific object, and can set the <strong>year</strong>, <strong>month</strong>, and
+<p>The class <strong>Date</strong> has the members <strong>year</strong>, <strong>month</strong>, and <strong>day</strong>, however
+these do not yet belong to an actual object.
+By defining an instance of <strong>Date</strong> called <strong>birthday</strong>, you have allocated
+memory for a specific object, and can set the <strong>year</strong>, <strong>month</strong>, and
 <strong>day</strong> of this instance of the class.</p>
-<p>In .td files, class describe the structure of how data is laid out, while definitions
-act as the specific instances of the class.  If we look back at the Cpu0RegisterInfo.td
-file, we see a class called <strong>Cpu0Reg&lt;string n&gt;</strong> which is derived from the
-<strong>Register&lt;n&gt;</strong> class provided by LLVM.  <strong>Cpu0Reg</strong> inherits all the fields that exist
-in the <strong>Register</strong> class, and also adds a new field called <strong>Num</strong> which is four bits
-wide.</p>
-<p>The <strong>def</strong> keyword is used to create instances of class.  In the following line, the
-ZERO register is defined as a member of the <strong>Cpu0GPRReg</strong> class:</p>
+<p>In .td files, class describes the structure of how data is laid out, while
+definitions act as the specific instances of the class.
+If we look back at the Cpu0RegisterInfo.td file, we see a class called
+<strong>Cpu0Reg</strong> which is derived from the <strong>Register</strong> class provided
+by LLVM.  <strong>Cpu0Reg</strong> inherits all the fields that exist
+in the <strong>Register</strong> class. The &#8220;let HWEncoding = Enc&#8221; which meaning assign field
+HWEncoding from parameter Enc. Since Cpu0 reserve 4 bits for 16 registers in
+instruction format, the assigned value range is from 0 to 15. Assign the 0 to 15
+to HWEncoding, then the backend register number can be gotten from the function
+of llvm register class since TableGen will set this number correctly.</p>
+<p>The <strong>def</strong> keyword is used to create instances of class.
+In the following line, the ZERO register is defined as a member of the
+<strong>Cpu0GPRReg</strong> class:</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="n">def</span> <span class="n">ZERO</span> <span class="o">:</span> <span class="n">Cpu0GPRReg</span><span class="o">&lt;</span> <span class="mi">0</span><span class="p">,</span> <span class="s">&quot;ZERO&quot;</span><span class="o">&gt;</span><span class="p">,</span> <span class="n">DwarfRegNum</span><span class="o">&lt;</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
 </pre></div>
 </div>
-<p>The <strong>def ZERO</strong> indicates the name of this register.  <strong>&lt; 0, &#8220;ZERO&#8221;&gt;</strong> are the
-parameters used when creating this specific instance of the <strong>Cpu0GPRReg</strong> class, thus
-the four bit <strong>Num</strong> field is set to 0, and the string <strong>n</strong> is set to <strong>ZERO</strong>.</p>
-<p>As the register lives in the <strong>Cpu0</strong> namespace, you can refer to the ZERO register in
-C++ code in a backend using <strong>Cpu0::ZERO</strong>.</p>
-<p>Notice the use of the <strong>let</strong> expressions: these allow you to override values that are
-initially defined in a superclass. For example, <strong>let Namespace = “Cpu0”</strong> in the
-<strong>Cpu0Reg</strong> class will override the default namespace declared in <strong>Register</strong> class.
-The Cpu0RegisterInfo.td also defines that <strong>CPURegs</strong> is an instance of the class
-<strong>RegisterClass</strong>, which is an built-in LLVM class.  A <strong>RegisterClass</strong> is a set of
-<strong>Register</strong> instances, thus <strong>CPURegs</strong> can be described as a set of registers.</p>
+<p>The <strong>def ZERO</strong> indicates the name of this register.  <strong>&lt;0, &#8220;ZERO&#8221;&gt;</strong> are the
+parameters used when creating this specific instance of the <strong>Cpu0GPRReg</strong>
+class, thus the field <strong>Enc</strong> is set to 0, and the string <strong>n</strong> is set
+to <strong>ZERO</strong>.</p>
+<p>As the register lives in the <strong>Cpu0</strong> namespace, you can refer to the ZERO
+register in C++ code in a backend using <strong>Cpu0::ZERO</strong>.</p>
+<p>Notice the use of the <strong>let</strong> expressions: these allow you to override values
+that are initially defined in a superclass.
+For example, <strong>let Namespace = “Cpu0”</strong> in the <strong>Cpu0Reg</strong> class will override
+the default namespace declared in <strong>Register</strong> class.
+The Cpu0RegisterInfo.td also defines that <strong>CPURegs</strong> is an instance of the
+class <strong>RegisterClass</strong>, which is an built-in LLVM class.
+A <strong>RegisterClass</strong> is a set of <strong>Register</strong> instances, thus <strong>CPURegs</strong> can be
+described as a set of registers.</p>
 <p>The Cpu0 instructions td is named to Cpu0InstrInfo.td which contents as follows,</p>
 <p class="rubric">lbdex/chapters/Chapter2/Cpu0InstrInfo.td</p>
 <div class="highlight-c++"><pre>//===- Cpu0InstrInfo.td - Target Description for Cpu0 Target -*- tablegen -*-=//
@@ -1999,7 +2105,7 @@ def simm16      : Operand&lt;i32&gt; {
 }
 
 // Address operand
-def mem : Operand&lt;i32&gt; {
+def mem : Operand&lt;iPTR&gt; {
   let PrintMethod = "printMemOperand";
   let MIOperandInfo = (ops CPURegs, simm16);
   let EncoderMethod = "getMemEncoding";
@@ -2011,7 +2117,8 @@ def immSExt16  : PatLeaf&lt;(imm), [{ return isInt&lt;16&gt;(N-&gt;getSExtValue(
 
 // Cpu0 Address Mode! SDNode frameindex could possibily be a match
 // since load and store instructions from stack used it.
-def addr : ComplexPattern&lt;iPTR, 2, "SelectAddr", [frameindex], [SDNPWantParent]&gt;;
+def addr : 
+  ComplexPattern&lt;iPTR, 2, "SelectAddr", [frameindex], [SDNPWantParent]&gt;;
 
 //===----------------------------------------------------------------------===//
 // Pattern fragment for load/store
@@ -2084,6 +2191,7 @@ multiclass StoreM32&lt;bits&lt;8&gt; op, string instr_asm, PatFrag OpNode,
   def #NAME# : StoreM&lt;op, instr_asm, OpNode, CPURegs, mem, Pseudo&gt;;
 }
 
+//@JumpFR {
 let isBranch=1, isTerminator=1, isBarrier=1, imm16=0, hasDelaySlot = 1,
     isIndirectBranch = 1 in
 class JumpFR&lt;bits&lt;8&gt; op, string instr_asm, RegisterClass RC&gt;:
@@ -2092,6 +2200,7 @@ class JumpFR&lt;bits&lt;8&gt; op, string instr_asm, RegisterClass RC&gt;:
   let rb = 0;
   let imm16 = 0;
 }
+//@JumpFR }
 
 // Return instruction
 class RetBase&lt;RegisterClass RC&gt;: JumpFR&lt;0x3c, "ret", RC&gt; {
@@ -2101,6 +2210,7 @@ class RetBase&lt;RegisterClass RC&gt;: JumpFR&lt;0x3c, "ret", RC&gt; {
   let hasExtraSrcRegAllocReq = 1;
 }
 
+  
 //===----------------------------------------------------------------------===//
 // Instruction definition
 //===----------------------------------------------------------------------===//
@@ -2121,6 +2231,8 @@ def ADDiu   : ArithLogicI&lt;0x09, "addiu", add, simm16, immSExt16, CPURegs&gt;;
 /// Arithmetic Instructions (3-Operand, R-Type)
 
 /// Shift Instructions
+
+def JR      : JumpFR&lt;0x3c, "jr", GPROut&gt;;
 
 def RET     : RetBase&lt;GPROut&gt;;
 
@@ -2291,8 +2403,8 @@ RC = CPURegs</pre>
 <p>To expand the td, one principle is:</p>
 <ul>
 <li><p class="first">let: meaning override the existed field from parent class.</p>
-<p>For instance: let isReMaterializable = 1; override the isReMaterializable from class
-instruction of Target.td.</p>
+<p>For instance: let isReMaterializable = 1; override the isReMaterializable
+from class instruction of Target.td.</p>
 </li>
 <li><p class="first">declaration: meaning declare a new field for this class.</p>
 <p>For instance: bits&lt;4&gt;  ra; declare ra field for class FL.</p>
@@ -2437,7 +2549,7 @@ as follows,</p>
 </div>
 </div>
 <div class="section" id="write-cmake-file">
-<h3><a class="toc-backref" href="#id48">Write cmake file</a><a class="headerlink" href="#write-cmake-file" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id52">Write cmake file</a><a class="headerlink" href="#write-cmake-file" title="Permalink to this headline">¶</a></h3>
 <p>Target/Cpu0 directory has two files CMakeLists.txt and LLVMBuild.txt,
 contents as follows,</p>
 <p class="rubric">lbdex/chapters/Chapter2/CMakeLists.txt</p>
@@ -2538,7 +2650,7 @@ by chapter and even section by section.
 Don&#8217;t try to understand everything in the text of book, the code added in each
 chapter is a reading material too.
 To understand the computer related knowledge in concept, you can ignore source
-code, but implementation based on an existed open software cannot.
+code, but implementing based on an existed open software cannot.
 In programming, documentation cannot replace the source code totally.
 Reading source code is a big opportunity in the open source development.</p>
 <p>Both CMakeLists.txt and LLVMBuild.txt coexist in sub-directories
@@ -2547,14 +2659,13 @@ Their contents indicate they will generate Cpu0Desc and Cpu0Info libraries.
 After building, you will find three libraries: <strong>libLLVMCpu0CodeGen.a</strong>,
 <strong>libLLVMCpu0Desc.a</strong> and <strong>libLLVMCpu0Info.a</strong> in lib/ of your build
 directory.
-For more details please see
-&#8220;Building LLVM with CMake&#8221; <a class="footnote-reference" href="#cmake" id="id23">[14]</a> and
-&#8220;LLVMBuild Guide&#8221; <a class="footnote-reference" href="#llvmbuild" id="id24">[15]</a>.</p>
+For more details please see &#8220;Building LLVM with CMake&#8221; <a class="footnote-reference" href="#cmake" id="id25">[15]</a> and
+&#8220;LLVMBuild Guide&#8221; <a class="footnote-reference" href="#llvmbuild" id="id26">[16]</a>.</p>
 </div>
 <div class="section" id="target-registration">
-<h3><a class="toc-backref" href="#id49">Target Registration</a><a class="headerlink" href="#target-registration" title="Permalink to this headline">¶</a></h3>
-<p>You must also register your target with the TargetRegistry, which is what other
-LLVM tools use to be able to lookup and use your target at runtime.
+<h3><a class="toc-backref" href="#id53">Target Registration</a><a class="headerlink" href="#target-registration" title="Permalink to this headline">¶</a></h3>
+<p>You must also register your target with the TargetRegistry. After registration,
+llvm tools are able to lookup and use your target at runtime.
 The TargetRegistry can be used directly, but for most targets there are helper
 templates which should take care of the work for you.</p>
 <p>All targets should declare a global Target object which is used to represent
@@ -2578,8 +2689,8 @@ big endian and TheCpu0elTarget for little endian, as follows.</p>
 <span class="c1">//</span>
 <span class="c1">//===----------------------------------------------------------------------===//</span>
 
-<span class="cp">#ifndef TARGET_CPU0_H</span>
-<span class="cp">#define TARGET_CPU0_H</span>
+<span class="cp">#ifndef LLVM_LIB_TARGET_CPU0_CPU0_H</span>
+<span class="cp">#define LLVM_LIB_TARGET_CPU0_CPU0_H</span>
 
 <span class="cp">#include &quot;Cpu0Config.h&quot;</span>
 <span class="cp">#include &quot;MCTargetDesc/Cpu0MCTargetDesc.h&quot;</span>
@@ -2588,8 +2699,6 @@ big endian and TheCpu0elTarget for little endian, as follows.</p>
 <span class="k">namespace</span> <span class="n">llvm</span> <span class="p">{</span>
   <span class="k">class</span> <span class="nc">Cpu0TargetMachine</span><span class="p">;</span>
   <span class="k">class</span> <span class="nc">FunctionPass</span><span class="p">;</span>
-
-  <span class="n">FunctionPass</span> <span class="o">*</span><span class="nf">createCpu0ISelDag</span><span class="p">(</span><span class="n">Cpu0TargetMachine</span> <span class="o">&amp;</span><span class="n">TM</span><span class="p">);</span>
 
 <span class="p">}</span> <span class="c1">// end namespace llvm;</span>
 
@@ -2650,12 +2759,12 @@ big endian and TheCpu0elTarget for little endian, as follows.</p>
 <span class="n">type</span> <span class="o">=</span> <span class="n">Library</span>
 <span class="n">name</span> <span class="o">=</span> <span class="n">Cpu0Info</span>
 <span class="n">parent</span> <span class="o">=</span> <span class="n">Cpu0</span>
-<span class="n">required_libraries</span> <span class="o">=</span> <span class="n">MC</span> <span class="n">Support</span> <span class="n">Target</span>
+<span class="n">required_libraries</span> <span class="o">=</span> <span class="n">Support</span>
 <span class="n">add_to_library_groups</span> <span class="o">=</span> <span class="n">Cpu0</span>
 </pre></div>
 </div>
 <p>Files Cpu0TargetMachine.cpp and MCTargetDesc/Cpu0MCTargetDesc.cpp just define
-the empty initialize function since we register nothing in them for this moment.</p>
+the empty initialize function since we register nothing for this moment.</p>
 <p class="rubric">lbdex/chapters/Chapter2/Cpu0TargetMachine.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="c1">//===-- Cpu0TargetMachine.cpp - Define TargetMachine for Cpu0 -------------===//</span>
 <span class="c1">//</span>
@@ -2672,6 +2781,7 @@ the empty initialize function since we register nothing in them for this moment.
 
 <span class="cp">#include &quot;Cpu0TargetMachine.h&quot;</span>
 <span class="cp">#include &quot;Cpu0.h&quot;</span>
+
 <span class="cp">#include &quot;llvm/IR/LegacyPassManager.h&quot;</span>
 <span class="cp">#include &quot;llvm/CodeGen/Passes.h&quot;</span>
 <span class="cp">#include &quot;llvm/Support/TargetRegistry.h&quot;</span>
@@ -2697,8 +2807,8 @@ the empty initialize function since we register nothing in them for this moment.
 <span class="c1">//</span>
 <span class="c1">//===----------------------------------------------------------------------===//</span>
 
-<span class="cp">#ifndef CPU0MCTARGETDESC_H</span>
-<span class="cp">#define CPU0MCTARGETDESC_H</span>
+<span class="cp">#ifndef LLVM_LIB_TARGET_CPU0_MCTARGETDESC_CPU0MCTARGETDESC_H</span>
+<span class="cp">#define LLVM_LIB_TARGET_CPU0_MCTARGETDESC_CPU0MCTARGETDESC_H</span>
 
 <span class="cp">#include &quot;Cpu0Config.h&quot;</span>
 <span class="cp">#include &quot;llvm/Support/DataTypes.h&quot;</span>
@@ -2797,7 +2907,7 @@ the empty initialize function since we register nothing in them for this moment.
 <span class="p">;</span>   <span class="n">http</span><span class="o">:</span><span class="c1">//llvm.org/docs/LLVMBuild.html</span>
 <span class="p">;</span>
 <span class="p">;</span><span class="o">===------------------------------------------------------------------------===</span><span class="p">;</span>
-<span class="cp"># MCTargetDesc/LLVMBuild.txt</span>
+
 <span class="p">[</span><span class="n">component_0</span><span class="p">]</span>
 <span class="n">type</span> <span class="o">=</span> <span class="n">Library</span>
 <span class="n">name</span> <span class="o">=</span> <span class="n">Cpu0Desc</span>
@@ -2808,19 +2918,19 @@ the empty initialize function since we register nothing in them for this moment.
 <span class="n">add_to_library_groups</span> <span class="o">=</span> <span class="n">Cpu0</span>
 </pre></div>
 </div>
-<p>Please see &#8220;Target Registration&#8221; <a class="footnote-reference" href="#target-reg" id="id25">[16]</a> for reference.</p>
+<p>Please see &#8220;Target Registration&#8221; <a class="footnote-reference" href="#target-reg" id="id27">[17]</a> for reference.</p>
 </div>
 <div class="section" id="build-libraries-and-td">
-<h3><a class="toc-backref" href="#id50">Build libraries and td</a><a class="headerlink" href="#build-libraries-and-td" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id54">Build libraries and td</a><a class="headerlink" href="#build-libraries-and-td" title="Permalink to this headline">¶</a></h3>
 <p>We set llvm source code in /Users/Jonathan/llvm/release/src and have llvm
 release-build in /Users/Jonathan/llvm/release/cmake_release_build.
-About how to build llvm, please refer here <a class="footnote-reference" href="#clang" id="id26">[17]</a>.
+About how to build llvm, please refer here <a class="footnote-reference" href="#clang" id="id28">[18]</a>.
 In appendix A, we made a copy from /Users/Jonathan/llvm/release/src to
 /Users/Jonathan/llvm/test/src for working with my Cpu0 target backend.
 Sub-directories src is for source code and cmake_debug_build is for debug
 build directory.</p>
 <p>Beside directory src/lib/Target/Cpu0, there are a couple of files modified to
-support cpu0 new Target. It include both the ID and name of machine and
+support cpu0 new Target, which includes both the ID and name of machine and
 relocation records listed in the early sub-section.
 You can update your llvm working copy and find the modified files by
 commands, cp -rf lbdex/src/modify/src/* &lt;yourllvm/workingcopy/sourcedir&gt;/.</p>
@@ -2872,7 +2982,7 @@ LLVM <span class="o">(</span>http://llvm.org/<span class="o">)</span>:
 </div>
 <p>The <tt class="docutils literal"><span class="pre">llc</span> <span class="pre">-version</span></tt> can display Registered Targets <strong>“cpu0”</strong> and <strong>“cpu0el”</strong>,
 because the code in file TargetInfo/Cpu0TargetInfo.cpp we made in last
-sub-section &#8220;Target Registration&#8221; <a class="footnote-reference" href="#asadasd" id="id27">[18]</a>.</p>
+sub-section &#8220;Target Registration&#8221; <a class="footnote-reference" href="#asadasd" id="id29">[19]</a>.</p>
 <p>Let&#8217;s build lbdex/chapters/Chapter2 code as follows,</p>
 <div class="highlight-bash"><div class="highlight"><pre>118-165-75-57:test Jonathan<span class="nv">$ </span><span class="nb">pwd</span>
 /Users/Jonathan/test
@@ -2894,7 +3004,7 @@ sub-section &#8220;Target Registration&#8221; <a class="footnote-reference" href
 </pre></div>
 </div>
 <p>To save time, we build Cpu0 target only by option -DLLVM_TARGETS_TO_BUILD=Cpu0.
-After cmake please open Xcode and build the Xcode project file as appendix A,
+After cmake, please open Xcode and build the Xcode project file as appendix A,
 or refer appendix A to build it on linux if you work on unix/linux platform.
 After that, you can find the *.inc files in directory
 /Users/Jonathan/llvm/test/cmake_debug_build/lib/Target/Cpu0 as follows,</p>
@@ -2903,29 +3013,34 @@ After that, you can find the *.inc files in directory
 <span class="k">enum</span> <span class="p">{</span>
   <span class="n">NoRegister</span><span class="p">,</span>
   <span class="n">AT</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
-  <span class="n">FP</span> <span class="o">=</span> <span class="mi">2</span><span class="p">,</span>
-  <span class="n">GP</span> <span class="o">=</span> <span class="mi">3</span><span class="p">,</span>
-  <span class="n">LR</span> <span class="o">=</span> <span class="mi">4</span><span class="p">,</span>
-  <span class="n">PC</span> <span class="o">=</span> <span class="mi">5</span><span class="p">,</span>
-  <span class="n">SP</span> <span class="o">=</span> <span class="mi">6</span><span class="p">,</span>
-  <span class="n">SW</span> <span class="o">=</span> <span class="mi">7</span><span class="p">,</span>
-  <span class="n">ZERO</span> <span class="o">=</span> <span class="mi">8</span><span class="p">,</span>
-  <span class="n">A0</span> <span class="o">=</span> <span class="mi">9</span><span class="p">,</span>
-  <span class="n">A1</span> <span class="o">=</span> <span class="mi">10</span><span class="p">,</span>
-  <span class="n">S0</span> <span class="o">=</span> <span class="mi">11</span><span class="p">,</span>
-  <span class="n">S1</span> <span class="o">=</span> <span class="mi">12</span><span class="p">,</span>
-  <span class="n">T0</span> <span class="o">=</span> <span class="mi">13</span><span class="p">,</span>
-  <span class="n">T9</span> <span class="o">=</span> <span class="mi">14</span><span class="p">,</span>
-  <span class="n">V0</span> <span class="o">=</span> <span class="mi">15</span><span class="p">,</span>
-  <span class="n">V1</span> <span class="o">=</span> <span class="mi">16</span><span class="p">,</span>
-  <span class="n">NUM_TARGET_REGS</span>     <span class="c1">// 17</span>
+  <span class="n">EPC</span> <span class="o">=</span> <span class="mi">2</span><span class="p">,</span>
+  <span class="n">FP</span> <span class="o">=</span> <span class="mi">3</span><span class="p">,</span>
+  <span class="n">GP</span> <span class="o">=</span> <span class="mi">4</span><span class="p">,</span>
+  <span class="n">HI</span> <span class="o">=</span> <span class="mi">5</span><span class="p">,</span>
+  <span class="n">LO</span> <span class="o">=</span> <span class="mi">6</span><span class="p">,</span>
+  <span class="n">LR</span> <span class="o">=</span> <span class="mi">7</span><span class="p">,</span>
+  <span class="n">PC</span> <span class="o">=</span> <span class="mi">8</span><span class="p">,</span>
+  <span class="n">SP</span> <span class="o">=</span> <span class="mi">9</span><span class="p">,</span>
+  <span class="n">SW</span> <span class="o">=</span> <span class="mi">10</span><span class="p">,</span>
+  <span class="n">ZERO</span> <span class="o">=</span> <span class="mi">11</span><span class="p">,</span>
+  <span class="n">A0</span> <span class="o">=</span> <span class="mi">12</span><span class="p">,</span>
+  <span class="n">A1</span> <span class="o">=</span> <span class="mi">13</span><span class="p">,</span>
+  <span class="n">S0</span> <span class="o">=</span> <span class="mi">14</span><span class="p">,</span>
+  <span class="n">S1</span> <span class="o">=</span> <span class="mi">15</span><span class="p">,</span>
+  <span class="n">T0</span> <span class="o">=</span> <span class="mi">16</span><span class="p">,</span>
+  <span class="n">T1</span> <span class="o">=</span> <span class="mi">17</span><span class="p">,</span>
+  <span class="n">T9</span> <span class="o">=</span> <span class="mi">18</span><span class="p">,</span>
+  <span class="n">V0</span> <span class="o">=</span> <span class="mi">19</span><span class="p">,</span>
+  <span class="n">V1</span> <span class="o">=</span> <span class="mi">20</span><span class="p">,</span>
+  <span class="n">NUM_TARGET_REGS</span>     <span class="c1">// 21</span>
 <span class="p">};</span>
 <span class="p">}</span>
 <span class="p">...</span>
 </pre></div>
 </div>
-<p>These *.inc are created by llvm-tblgen from directory cmake_debug_build/bin
-where input files are the Cpu0 backend *.td files.
+<p>These *.inc are created by llvm-tblgen from directory
+cmake_debug_build/lib/Target/Cpu0 where input files are the Cpu0 backend *.td
+files.
 The llvm-tblgen is invoked by <strong>tablegen</strong> of
 /Users/Jonathan/llvm/test/src/lib/Target/Cpu0/CMakeLists.txt.
 These *.inc files will be included by Cpu0 backend *.cpp or *.h files and
@@ -2935,8 +3050,8 @@ TableGen is the important tool illustrated in the early sub-section
 <p>&#8220;The “mix and match” approach allows target authors to choose what makes sense
 for their architecture and permits a large amount of code reuse across
 different targets&#8221;.</p>
-<p>Details about TableGen are here <a class="footnote-reference" href="#tblgen" id="id28">[19]</a> <a class="footnote-reference" href="#tblgen-langintro" id="id29">[20]</a>
-<a class="footnote-reference" href="#tblgen-langref" id="id30">[21]</a>.</p>
+<p>Details about TableGen are here <a class="footnote-reference" href="#tblgen" id="id30">[20]</a> <a class="footnote-reference" href="#tblgen-langintro" id="id31">[21]</a>
+<a class="footnote-reference" href="#tblgen-langref" id="id32">[22]</a>.</p>
 <p>Now try to run  command <tt class="docutils literal"><span class="pre">llc</span></tt> to compile input file ch3.cpp as follows,</p>
 <p class="rubric">lbdex/input/ch3.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="kt">int</span> <span class="nf">main</span><span class="p">()</span>
@@ -2947,7 +3062,7 @@ different targets&#8221;.</p>
 </div>
 <p>First step, compile it with clang and get output ch3.bc as follows,</p>
 <div class="highlight-bash"><div class="highlight"><pre>118-165-78-230:input Jonathan<span class="nv">$ </span><span class="nb">pwd</span>
-/Users/Jonathan/llvm/test/src/lib/Target/Cpu0/lbdex/input
+/Users/Jonathan/llvm/test/lbdex/input
 118-165-78-230:input Jonathan<span class="nv">$ </span>clang -target mips-unknown-linux-gnu -c
 ch3.cpp -emit-llvm -o ch3.bc
 </pre></div>
@@ -3031,90 +3146,96 @@ the Target Registration.</p>
 <tr><td class="label"><a class="fn-backref" href="#id15">[7]</a></td><td>jsub cx is direct call for 24 bits value of cx while jalr $rb is indirect call for 32 bits value of register $rb.</td></tr>
 </tbody>
 </table>
+<table class="docutils footnote" frame="void" id="jr-note" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id16">[8]</a></td><td>Both JR and RET has same opcode (actually they are the same instruction for Cpu0 hardware). When user writes &#8220;jr $t9&#8221; meaning it jumps to address of register $t9; when user writes &#8220;jr $lr&#8221; meaning it jump back to the caller function (since $lr is the return address). For user read ability, Cpu0 prints &#8220;ret $lr&#8221; instead of &#8220;jr $lr&#8221;.</td></tr>
+</tbody>
+</table>
 <table class="docutils footnote" frame="void" id="aosa-book" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
-<tr><td class="label">[8]</td><td><em>(<a class="fn-backref" href="#id1">1</a>, <a class="fn-backref" href="#id16">2</a>)</em> Chris Lattner, <strong>LLVM</strong>. Published in The Architecture of Open Source Applications. <a class="reference external" href="http://www.aosabook.org/en/llvm.html">http://www.aosabook.org/en/llvm.html</a></td></tr>
+<tr><td class="label">[9]</td><td><em>(<a class="fn-backref" href="#id1">1</a>, <a class="fn-backref" href="#id17">2</a>)</em> Chris Lattner, <strong>LLVM</strong>. Published in The Architecture of Open Source Applications. <a class="reference external" href="http://www.aosabook.org/en/llvm.html">http://www.aosabook.org/en/llvm.html</a></td></tr>
 </tbody>
 </table>
 <table class="docutils footnote" frame="void" id="chapters-ex" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id21">[9]</a></td><td><a class="reference external" href="http://jonathan2251.github.io/lbd/install.html#cpu0-document">http://jonathan2251.github.io/lbd/install.html#cpu0-document</a></td></tr>
+<tr><td class="label"><a class="fn-backref" href="#id23">[10]</a></td><td><a class="reference external" href="http://jonathan2251.github.io/lbd/doc.html#generate-cpu0-document">http://jonathan2251.github.io/lbd/doc.html#generate-cpu0-document</a></td></tr>
 </tbody>
 </table>
 <table class="docutils footnote" frame="void" id="codegen" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id17">[10]</a></td><td><a class="reference external" href="http://llvm.org/docs/CodeGenerator.html">http://llvm.org/docs/CodeGenerator.html</a></td></tr>
+<tr><td class="label"><a class="fn-backref" href="#id18">[11]</a></td><td><a class="reference external" href="http://llvm.org/docs/CodeGenerator.html">http://llvm.org/docs/CodeGenerator.html</a></td></tr>
 </tbody>
 </table>
 <table class="docutils footnote" frame="void" id="langref" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id18">[11]</a></td><td><a class="reference external" href="http://llvm.org/docs/LangRef.html">http://llvm.org/docs/LangRef.html</a></td></tr>
+<tr><td class="label"><a class="fn-backref" href="#id19">[12]</a></td><td><a class="reference external" href="http://llvm.org/docs/LangRef.html">http://llvm.org/docs/LangRef.html</a></td></tr>
 </tbody>
 </table>
 <table class="docutils footnote" frame="void" id="dragonbooks-10-2-3" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id19">[12]</a></td><td>Refer section 10.2.3 of book Compilers: Principles,
+<tr><td class="label"><a class="fn-backref" href="#id20">[13]</a></td><td>Refer section 10.2.3 of book Compilers: Principles,
 Techniques, and Tools (2nd Edition)</td></tr>
 </tbody>
 </table>
 <table class="docutils footnote" frame="void" id="dragonbooks-8-5" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id20">[13]</a></td><td>Refer section 8.5 of book Compilers: Principles,
+<tr><td class="label">[14]</td><td><em>(<a class="fn-backref" href="#id21">1</a>, <a class="fn-backref" href="#id22">2</a>)</em> Refer section 8.5 of book Compilers: Principles,
 Techniques, and Tools (2nd Edition)</td></tr>
 </tbody>
 </table>
 <table class="docutils footnote" frame="void" id="cmake" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id23">[14]</a></td><td><a class="reference external" href="http://llvm.org/docs/CMake.html">http://llvm.org/docs/CMake.html</a></td></tr>
+<tr><td class="label"><a class="fn-backref" href="#id25">[15]</a></td><td><a class="reference external" href="http://llvm.org/docs/CMake.html">http://llvm.org/docs/CMake.html</a></td></tr>
 </tbody>
 </table>
 <table class="docutils footnote" frame="void" id="llvmbuild" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id24">[15]</a></td><td><a class="reference external" href="http://llvm.org/docs/LLVMBuild.html">http://llvm.org/docs/LLVMBuild.html</a></td></tr>
+<tr><td class="label"><a class="fn-backref" href="#id26">[16]</a></td><td><a class="reference external" href="http://llvm.org/docs/LLVMBuild.html">http://llvm.org/docs/LLVMBuild.html</a></td></tr>
 </tbody>
 </table>
 <table class="docutils footnote" frame="void" id="target-reg" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id25">[16]</a></td><td><a class="reference external" href="http://llvm.org/docs/WritingAnLLVMBackend.html#target-registration">http://llvm.org/docs/WritingAnLLVMBackend.html#target-registration</a></td></tr>
+<tr><td class="label"><a class="fn-backref" href="#id27">[17]</a></td><td><a class="reference external" href="http://llvm.org/docs/WritingAnLLVMBackend.html#target-registration">http://llvm.org/docs/WritingAnLLVMBackend.html#target-registration</a></td></tr>
 </tbody>
 </table>
 <table class="docutils footnote" frame="void" id="clang" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id26">[17]</a></td><td><a class="reference external" href="http://clang.llvm.org/get_started.html">http://clang.llvm.org/get_started.html</a></td></tr>
+<tr><td class="label"><a class="fn-backref" href="#id28">[18]</a></td><td><a class="reference external" href="http://clang.llvm.org/get_started.html">http://clang.llvm.org/get_started.html</a></td></tr>
 </tbody>
 </table>
 <table class="docutils footnote" frame="void" id="asadasd" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id27">[18]</a></td><td><a class="reference external" href="http://jonathan2251.github.io/lbd/llvmstructure.html#target-registration">http://jonathan2251.github.io/lbd/llvmstructure.html#target-registration</a></td></tr>
+<tr><td class="label"><a class="fn-backref" href="#id29">[19]</a></td><td><a class="reference external" href="http://jonathan2251.github.io/lbd/llvmstructure.html#target-registration">http://jonathan2251.github.io/lbd/llvmstructure.html#target-registration</a></td></tr>
 </tbody>
 </table>
 <table class="docutils footnote" frame="void" id="tblgen" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
-<tr><td class="label">[19]</td><td><em>(<a class="fn-backref" href="#id22">1</a>, <a class="fn-backref" href="#id28">2</a>)</em> <a class="reference external" href="http://llvm.org/docs/TableGen/index.html">http://llvm.org/docs/TableGen/index.html</a></td></tr>
+<tr><td class="label">[20]</td><td><em>(<a class="fn-backref" href="#id24">1</a>, <a class="fn-backref" href="#id30">2</a>)</em> <a class="reference external" href="http://llvm.org/docs/TableGen/index.html">http://llvm.org/docs/TableGen/index.html</a></td></tr>
 </tbody>
 </table>
 <table class="docutils footnote" frame="void" id="tblgen-langintro" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id29">[20]</a></td><td><a class="reference external" href="http://llvm.org/docs/TableGen/LangIntro.html">http://llvm.org/docs/TableGen/LangIntro.html</a></td></tr>
+<tr><td class="label"><a class="fn-backref" href="#id31">[21]</a></td><td><a class="reference external" href="http://llvm.org/docs/TableGen/LangIntro.html">http://llvm.org/docs/TableGen/LangIntro.html</a></td></tr>
 </tbody>
 </table>
 <table class="docutils footnote" frame="void" id="tblgen-langref" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id30">[21]</a></td><td><a class="reference external" href="http://llvm.org/docs/TableGen/LangRef.html">http://llvm.org/docs/TableGen/LangRef.html</a></td></tr>
+<tr><td class="label"><a class="fn-backref" href="#id32">[22]</a></td><td><a class="reference external" href="http://llvm.org/docs/TableGen/LangRef.html">http://llvm.org/docs/TableGen/LangRef.html</a></td></tr>
 </tbody>
 </table>
 </div>

@@ -14,40 +14,21 @@ display options.
 These DAGs translation in some steps of optimization can be displayed by the 
 graphic tool of Graphviz which supply useful information with graphic view. 
 Logic instructions support will come after arithmetic section.
-In spite of llvm backend handle the IR only, we get the IR from the 
+In spite of that llvm backend handle the IR only, we get the IR from the 
 corresponding C operators with designed C example code. 
 Through compiling with C code, readers can know exactly what C statements are
-handled with each chapter's appending code.
+handled by each chapter's appending code.
 Instead of focusing on classes relationship in this backend structure of last
 chapter, readers should focus on the mapping of C operators and llvm IR and 
 how to define the mapping relationship of IR and instructions in td. 
 HILO and C0 register class are defined in this chapter. 
 Readers will know how to handle other register classes beside general 
-purpose register class, and why need them, from this chapter.
+purpose register class, and why they are needed, from this chapter.
 
 Arithmetic
 -----------
 
 The code added in Chapter4_1/ to support arithmetic instructions as follows,
-
-.. rubric:: lbdex/chapters/Chapter4_1/MCTargetDesc/Cpu0BaseInfo.h
-.. literalinclude:: ../lbdex/Cpu0/MCTargetDesc/Cpu0BaseInfo.h
-    :start-after: //@get register number
-    :end-before: //@1
-
-.. code-block:: c++
-
-    ...
-  
-.. literalinclude:: ../lbdex/Cpu0/MCTargetDesc/Cpu0BaseInfo.h
-    :start-after: #if CH >= CH4_1
-    :end-before: #endif
-
-.. code-block:: c++
-
-    ...
-    }
-  }
 
 .. rubric:: lbdex/chapters/Chapter4_1/Cpu0Subtarget.cpp
 .. literalinclude:: ../lbdex/Cpu0/Cpu0Subtarget.cpp
@@ -198,12 +179,11 @@ SRA, SRAV, SHR and SHRV are for **>>**.
 In RISC CPU like Mips, the multiply/divide function unit and add/sub/logic unit 
 are designed from two different hardware circuits, and more, their data path are 
 separate. Cpu0 is same, so these two function units can be executed at same 
-time (instruction level parallelism). Reference [#]_ for instruction itineraries.
+time (instruction level parallelism). Reference [#instrstage]_ for instruction itineraries.
 
 Chapter4_1/ can handle **+, -, \*, <<,** and **>>** operators in C 
 language. 
-The corresponding llvm IR instructions are **add, sub, mul, 
-shl, ashr**. 
+The corresponding llvm IR instructions are **add, sub, mul, shl, ashr**. 
 The **'ashr'** instruction (arithmetic shift right) returns the first operand 
 shifted to the right a specified number of bits with sign extension. 
 In brief, we call **ashr** is “shift with sign extension fill”.
@@ -219,9 +199,9 @@ In brief, we call **ashr** is “shift with sign extension fill”.
 
 The semantic of C operator **>>** for negative operand is dependent on 
 implementation. 
-Most compiler translate it into “shift with sign extension fill”, for example, 
-Mips **sra** is the instruction. 
-Following is the Micosoft web site explanation,
+Most compilers translate it into “shift with sign extension fill”, and 
+Mips **sra** is this instruction. 
+Following is the Micosoft web site's explanation,
 
 .. note:: **>>**, Microsoft Specific
 
@@ -241,8 +221,8 @@ following meaning.
   <result> = lshr i8 -2, 1   ; yields {i8}:result = 0x7FFFFFFF 
   
 In llvm, IR node **sra** is defined for ashr IR instruction, and node **srl** is 
-defined for lshr instruction (We don't know why don't use ashr and lshr as the 
-IR node name directly). Summary as the Table: C operator >> implementation.
+defined for lshr instruction (We don't know why it doesn't use ashr and lshr as 
+the IR node name directly). Summary as the Table: C operator >> implementation.
 
 
 .. table:: C operator >> implementation
@@ -302,9 +282,9 @@ value in register is OK. You can check that **lshr** satisfy x = x*2, for all
 x << 1 and the x result is not out of range, no matter operand x is signed 
 or unsigned integer.
 
-Micorsoft implementation references here [#]_.
+Micorsoft implementation references here [#msdn]_.
 
-The ‘ashr‘ Instruction" reference here [#]_, ‘lshr‘ reference here [#]_.
+The ‘ashr‘ Instruction" reference here [#ashr]_, ‘lshr‘ reference here [#lshr]_.
 
 The srav, shlv and shrv are for two virtual input registers instructions while 
 the sra, ... are for 1 virtual input registers and 1 constant input operands.
@@ -318,33 +298,56 @@ Now, let's build Chapter4_1/ and run with input file ch4_math.ll as follows,
 
   118-165-78-12:input Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
   Debug/bin/llc -march=cpu0 -relocation-model=pic -filetype=asm ch4_math.ll -o -
+    ...
+	  ld	$2, 0($sp)
+	  ld	$3, 4($sp)
+	  subu	$4, $3, $2
+	  addu	$5, $3, $2
+	  addu	$4, $5, $4
+	  mul	$5, $3, $2
+	  addu	$4, $4, $5
+	  shl	$5, $3, 2
+	  addu	$4, $4, $5
+	  sra	$5, $3, 2
+	  addu	$4, $4, $5
+	  addiu	$5, $zero, 128
+	  shrv	$5, $5, $2
+	  addiu	$t9, $zero, 1
+	  shlv	$t9, $t9, $2
+	  srav	$2, $3, $2
+	  shr	$3, $3, 30
+	  addu	$3, $4, $3
+	  addu	$3, $3, $t9
+	  addu	$3, $3, $5
+	  addu	$2, $3, $2
+	  addiu	$sp, $sp, 8
+	  ret	$lr
 
-.. rubric:: lbdex/output/ch4_math.s
-.. literalinclude:: ../lbdex/output/ch4_math.s
 
-File ch4_1_1.cpp as the following is the C file which include **+, -, \*, <<,** 
-and **>>** operators. It will generate corresponding llvm IR instructions, 
+Example input ch4_1_math.cpp as the following is the C file which include **+, -, 
+\*, <<,** and **>>** operators. 
+It will generate corresponding llvm IR instructions, 
 **add, sub, mul, shl, ashr** by clang as Chapter 3 indicated.
 
-.. rubric:: lbdex/input/ch4_1_1.cpp
-.. literalinclude:: ../lbdex/input/ch4_1_1.cpp
+.. rubric:: lbdex/input/ch4_1_math.cpp
+.. literalinclude:: ../lbdex/input/ch4_1_math.cpp
     :start-after: /// start
 
     
 Cpu0 instructions add and sub will trigger overflow exception while addu and subu
-truncate overflow value directly. Compile ch4_1_2.cpp with 
+truncate overflow value directly. Compile ch4_1_addsuboverflow.cpp with 
 ``llc -cpu0-enable-overflow=true`` will generate add and sub instructions as 
 follows,
 
-.. rubric:: lbdex/input/ch4_1_2.cpp
-.. literalinclude:: ../lbdex/input/ch4_1_2.cpp
+.. rubric:: lbdex/input/ch4_1_addsuboverflow.cpp
+.. literalinclude:: ../lbdex/input/ch4_1_addsuboverflow.cpp
     :start-after: /// start
 
 .. code-block:: bash
 
   118-165-78-12:input Jonathan$ clang -target mips-unknown-linux-gnu -c 
-  ch4_1_2.cpp -emit-llvm -o ch4_1_2.bc
-  118-165-78-12:input Jonathan$ llvm-dis ch4_1_2.bc -o -
+  ch4_1_addsuboverflow.cpp -emit-llvm -o ch4_1_addsuboverflow.bc
+  118-165-78-12:input Jonathan$ llvm-dis ch4_1_addsuboverflow.bc -o -
   ...
   ; Function Attrs: nounwind
   define i32 @_Z13test_overflowv() #0 {
@@ -357,15 +360,15 @@ follows,
 
   118-165-78-12:input Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
   Debug/bin/llc -march=cpu0 -relocation-model=pic -filetype=asm 
-  -cpu0-enable-overflow=true ch4_1_2.bc -o -
+  -cpu0-enable-overflow=true ch4_1_addsuboverflow.bc -o -
 	...
 	add	$3, $4, $3
 	...
 	sub	$3, $4, $3
 	...
 
-In modern CPU, programmers are used to using truncate overflow instructions in
-C program regard add and sub instructions. 
+In modern CPU, programmers are used to using truncate overflow instructions for
+C operators + and -. 
 Anyway, through option -cpu0-enable-overflow=true, programmer get the
 chance to compile program with overflow exception program. Usually, this option
 used in debug purpose. Compile with this option can help to identify the bug and
@@ -381,12 +384,12 @@ The ``llc`` also supports the graphic displaying.
 The `section Install other tools on iMac`_ include the download and installation
 of tool Graphivz. 
 The ``llc`` graphic displaying with tool Graphviz is introduced in this section. 
-The graphic displaying is more readable by eye than displaying text in terminal. 
+The graphic displaying is more readable by eyes than displaying text in terminal. 
 It's not a must-have, but helps a lot especially when you are tired in tracking 
 the DAG translation process. 
 List the ``llc`` graphic support options from the sub-section "SelectionDAG 
 Instruction Selection Process" of web "The LLVM Target-Independent Code Generator" 
-[#]_ as follows,
+[#instructionsel]_ as follows,
 
 .. note:: The ``llc`` Graphviz DAG display options
 
@@ -402,7 +405,7 @@ Instruction Selection Process" of web "The LLVM Target-Independent Code Generato
   
   -view-sched-dags displays the DAG before Scheduling. 
   
-By tracking ``llc -debug``, you can see the DAG translation steps as follows,
+By tracking ``llc -debug``, you can see the steps of DAG translation as follows,
 
 .. code-block:: bash
 
@@ -425,7 +428,7 @@ result with Graphviz as follows,
 
   118-165-12-177:input Jonathan$ /Users/Jonathan/llvm/test/
   cmake_debug_build/Debug/bin/llc -view-dag-combine1-dags -march=cpu0 
-  -relocation-model=pic -filetype=asm ch4_2.bc -o ch4_2.cpu0.s
+  -relocation-model=pic -filetype=asm ch4_1_mult.bc -o ch4_1_mult.cpu0.s
   Writing '/tmp/llvm_84ibpm/dag.main.dot'...  done. 
   118-165-12-177:input Jonathan$ Graphviz /tmp/llvm_84ibpm/dag.main.dot 
 
@@ -441,10 +444,10 @@ It will show the /tmp/llvm_84ibpm/dag.main.dot as :num:`Figure #otherinst-f1`.
   llc option -view-dag-combine1-dags graphic view
   
 :num:`Figure #otherinst-f1` is the stage of "Initial selection DAG". 
-List the other view options and their corresponding DAG translation stages as 
+List the other view options and their corresponding stages of DAG translation as 
 follows,
 
-.. note:: ``llc`` Graphviz options and corresponding DAG translation stage
+.. note:: ``llc`` Graphviz options and the corresponding stages of DAG translation
 
   -view-dag-combine1-dags: Initial selection DAG
   
@@ -459,7 +462,7 @@ follows,
 The -view-isel-dags is important and often used by an llvm backend writer 
 because it is the DAGs before instruction selection. 
 In order to writing the pattern match instruction in target description file 
-.td, backend programmer needs knowing what the DAG nodes are with a given C 
+.td, backend programmer needs knowing what the DAG nodes are for a given C 
 operator.
 
 
@@ -469,17 +472,17 @@ Operator % and /
 The DAG of %
 +++++++++++++++
 
-Example input code ch4_2.cpp which contains the C operator **“%”** and it's 
+Example input code ch4_1_mult.cpp which contains the C operator **“%”** and it's 
 corresponding llvm IR, as follows,
 
-.. rubric:: lbdex/input/ch4_2.cpp
-.. literalinclude:: ../lbdex/input/ch4_2.cpp
+.. rubric:: lbdex/input/ch4_1_mult.cpp
+.. literalinclude:: ../lbdex/input/ch4_1_mult.cpp
     :start-after: /// start
 
 .. code-block:: bash
 
   ...
-  define i32 @_Z8test_modv() #0 {
+  define i32 @_Z8test_multv() #0 {
     %b = alloca i32, align 4
     store i32 11, i32* %b, align 4
     %1 = load i32* %b, align 4
@@ -490,7 +493,7 @@ corresponding llvm IR, as follows,
     ret i32 %4
   }
 
-LLVM **srem** is the IR of corresponding **“%”**, reference here [#]_. 
+LLVM **srem** is the IR of corresponding **“%”**, reference here [#srem]_. 
 Copy the reference as follows,
 
 .. note:: **'srem'** Instruction 
@@ -529,7 +532,7 @@ Copy the reference as follows,
   <result> = **srem i32 4, %var**      ; yields {i32}:result = 4 % %var
 
 
-Run Chapter3_4/ with input file ch4_2.bc via option ``llc –view-isel-dags``, 
+Run Chapter3_5/ with input file ch4_1_mult.bc via option ``llc –view-isel-dags``, 
 will get the following error message and the llvm DAGs of 
 :num:`Figure #otherinst-f2` below.
 
@@ -537,7 +540,7 @@ will get the following error message and the llvm DAGs of
 
   118-165-79-37:input Jonathan$ /Users/Jonathan/llvm/test/
   cmake_debug_build/Debug/bin/llc -march=cpu0 -view-isel-dags -relocation-model=
-  pic -filetype=asm ch4_2.bc -o -
+  pic -filetype=asm ch4_1_mult.bc -o -
   ...
   LLVM ERROR: Cannot select: 0x7fa73a02ea10: i32 = mulhs 0x7fa73a02c610, 
   0x7fa73a02e910 [ID=12]
@@ -552,7 +555,7 @@ will get the following error message and the llvm DAGs of
   :scale: 100 %
   :align: center
 
-  ch4_2.bc DAG
+  ch4_1_mult.bc DAG
 
 LLVM replaces srem divide operation with multiply operation in DAG optimization 
 because DIV operation costs more in time than MUL. 
@@ -564,7 +567,7 @@ The 0xC*0x2AAAAAAB=0x2,00000004, (mulhs 0xC, 0x2AAAAAAAB) meaning get the Signed
 mul high word (32bits). 
 Multiply with 2 operands of 1 word size probably generate the 2 word size of 
 result (0x2, 0xAAAAAAAB). 
-The high word result, in this case is 0x2. 
+The result of high word, in this case is 0x2. 
 The final result (sub 12, 12) is 0 which match the statement (11+1)%12.
 
  
@@ -626,7 +629,7 @@ Chapter4_1/ as follows,
   }
 
 
-Let's run above changes with ch4_2.cpp as well as ``llc -view-sched-dags`` option 
+Let's run above changes with ch4_1_mult.cpp as well as ``llc -view-sched-dags`` option 
 to get :num:`Figure #otherinst-f3`. 
 Instruction SMMUL will get the high word of multiply result.
 
@@ -637,62 +640,43 @@ Instruction SMMUL will get the high word of multiply result.
   :scale: 100 %
   :align: center
 
-  DAG for ch4_2.bc with ARM style SMMUL
+  DAG for ch4_1_mult.bc with ARM style SMMUL
 
-The following is the result of run above changes with ch4_2.bc.
+The following is the result of run above changes with ch4_1_mult.bc.
 
 .. code-block:: bash
 
   118-165-66-82:input Jonathan$ /Users/Jonathan/llvm/test/cmake_
   debug_build/Debug/bin/llc -march=cpu0 -relocation-model=pic -filetype=asm 
-  ch4_2.bc -o -
-	  .section .mdebug.abi32
-	  .previous
-	  .file	"ch4_2.bc"
-	  .text
-	  .globl	main
-	  .align	2
-	  .type	main,@function
-	  .ent	main                    # @main
-  main:
-	  .cfi_startproc
-	  .frame	$fp,8,$lr
-	  .mask 	0x00000000,0
-	  .set	noreorder
-	  .set	nomacro
+  ch4_1_mult.bc -o -
+    ...
   # BB#0:                                 # %entry
-	  addiu	$sp, $sp, -8
+    addiu $sp, $sp, -8
   $tmp1:
-	  .cfi_def_cfa_offset 8
-	  addiu	$2, $zero, 0
-	  st	$2, 4($fp)
-	  addiu	$2, $zero, 11
-	  st	$2, 0($fp)
-	  lui	$2, 10922
-	  ori	$3, $2, 43691
-	  addiu	$2, $zero, 12
-	  smmul	$3, $2, $3
-	  shr	$4, $3, 31
-	  sra	$3, $3, 1
-	  addu	$3, $3, $4
-	  mul	$3, $3, $2
-	  subu	$2, $2, $3
-	  st	$2, 0($fp)
-	  addiu	$sp, $sp, 8
-	  ret	$lr
-	  .set	macro
-	  .set	reorder
-	  .end	main
-  $tmp2:
-	  .size	main, ($tmp2)-main
-	  .cfi_endproc
+    .cfi_def_cfa_offset 8
+    addiu $2, $zero, 0
+    st  $2, 4($fp)
+    addiu $2, $zero, 11
+    st  $2, 0($fp)
+    lui $2, 10922
+    ori $3, $2, 43691
+    addiu $2, $zero, 12
+    smmul $3, $2, $3
+    shr $4, $3, 31
+    sra $3, $3, 1
+    addu  $3, $3, $4
+    mul $3, $3, $2
+    subu  $2, $2, $3
+    st  $2, 0($fp)
+    addiu $sp, $sp, 8
+    ret $lr
 
 
 The other instruction UMMUL and llvm IR mulhu are unsigned int type for 
 operator %. 
-You can check it by unmark the **“unsigned int b = 11;”** in ch4_2.cpp.
+You can check it by unmark the **“unsigned int b = 11;”** in ch4_1_mult.cpp.
 
-Uses SMMUL instruction to get the high word of multiplication result is adopted 
+Using SMMUL instruction to get the high word of multiplication result is adopted 
 in ARM. 
 
 
@@ -736,7 +720,8 @@ After that, MFHI instruction moves the HI register to Cpu0 field "a" register,
 $ra. 
 MFHI instruction is FL format and only use Cpu0 field "a" register, we set 
 the $rb and imm16 to 0. 
-:num:`Figure #otherinst-f4` and ch4_2.cpu0.s are the results of compile ch4_2.bc.
+:num:`Figure #otherinst-f4` and ch4_1_mult.cpu0.s are the results of compile 
+ch4_1_mult.bc.
 
 .. _otherinst-f4:
 .. figure:: ../Fig/otherinst/4.png
@@ -745,24 +730,12 @@ the $rb and imm16 to 0.
   :scale: 90 %
   :align: center
 
-  DAG for ch4_2.bc with Mips style MULT
+  DAG for ch4_1_mult.bc with Mips style MULT
 
 .. code-block:: bash
 
-  118-165-66-82:input Jonathan$ cat ch4_2.cpu0.s 
-    .section .mdebug.abi32
-    .previous
-    .file "ch4_2.bc"
-    .text
-    .globl  _Z8test_modv
-    .align  2
-    .type _Z8test_modv,@function
-    .ent  _Z8test_modv            # @_Z8test_modv
-  _Z8test_modv:
-    .frame  $sp,8,$lr
-    .mask   0x00000000,0
-    .set  noreorder
-    .set  nomacro
+  118-165-66-82:input Jonathan$ cat ch4_1_mult.cpu0.s 
+    ...
   # BB#0:
     addiu $sp, $sp, -8
     addiu $2, $zero, 11
@@ -780,12 +753,7 @@ the $rb and imm16 to 0.
     st  $2, 4($sp)
     addiu $sp, $sp, 8
     ret $lr
-    .set  macro
-    .set  reorder
-    .end  _Z8test_modv
-  $tmp1:
-    .size _Z8test_modv, ($tmp1)-_Z8test_modv
-
+    
 
 Full support \%, and /
 ++++++++++++++++++++++
@@ -821,222 +789,91 @@ Chapter4_1.
 The IR instruction **sdiv** stands for signed div while **udiv** stands for 
 unsigned div.
 
-.. rubric:: lbdex/input/ch4_2_1.cpp
-.. literalinclude:: ../lbdex/input/ch4_2_1.cpp
+.. rubric:: lbdex/input/ch4_1_mult2.cpp
+.. literalinclude:: ../lbdex/input/ch4_1_mult2.cpp
     :start-after: /// start
 
-If we run with ch4_2_1.cpp, the **“div”** cannot be gotten for operator 
+If we run with ch4_1_mult2.cpp, the **“div”** cannot be gotten for operator 
 **“%”**. 
-It still uses **"multiplication"** instead of **"div"** in ch4_2_1.cpp because 
+It still uses **"multiplication"** instead of **"div"** in ch4_1_mult2.cpp because 
 llvm do **“Constant Propagation Optimization”** in this. 
-The ch4_2_2.cpp will get the "div" result for operator **“%”** but it cannot
-be compiled at this point. It needs "function call argument support" in Chapter
-9 of Function call. 
-The ch4_2_2.cpp can get the **“div”** for **“%”** result since it makes 
+The ch4_1_mod.cpp can get the **“div”** for **“%”** result since it makes 
 llvm **“Constant Propagation Optimization”** useless in it. 
   
-.. rubric:: lbdex/input/ch4_2_2.cpp
-.. literalinclude:: ../lbdex/input/ch4_2_2.cpp
+.. rubric:: lbdex/input/ch4_1_mod.cpp
+.. literalinclude:: ../lbdex/input/ch4_1_mod.cpp
     :start-after: /// start
 
 .. code-block:: bash
 
   118-165-77-79:input Jonathan$ clang -target mips-unknown-linux-gnu -c 
-  ch4_2_2.cpp -emit-llvm -o ch4_2_2.bc
+  ch4_1_mod.cpp -emit-llvm -o ch4_1_mod.bc
   118-165-77-79:input Jonathan$ /Users/Jonathan/llvm/test/cmake_
   debug_build/Debug/bin/llc -march=cpu0 -relocation-model=pic -filetype=asm 
-  ch4_2_2.bc -o -
+  ch4_1_mod.bc -o -
   ...
   div $zero, $3, $2
   mflo  $2
   ...
 
-To explains how work with **“div”**, let's run Chapter9_3 with 
-ch4_2_2.cpp as follows,
+To explains how to work with **“div”**, let's run ch4_1_mod.cpp with debug option
+as follows,
 
 .. code-block:: bash
 
   118-165-83-58:input Jonathan$ clang -target mips-unknown-linux-gnu -c 
-  ch4_2_2.cpp -I/Applications/Xcode.app/Contents/Developer/Platforms/
+  ch4_1_mod.cpp -I/Applications/Xcode.app/Contents/Developer/Platforms/
   MacOSX.platform/Developer/SDKs/MacOSX10.8.sdk/usr/include/ -emit-llvm -o 
-  ch4_2_2.bc
+  ch4_1_mod.bc
   118-165-83-58:input Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
-  Debug/bin/llc -march=cpu0 -relocation-model=pic -filetype=asm -debug ch4_2_2.bc -o -
-  Args: /Users/Jonathan/llvm/test/cmake_debug_build/Debug/bin/llc -march=cpu0 
-  -relocation-model=pic -filetype=asm -debug ch4_2_2.bc -o - 
-  
+  Debug/bin/llc -march=cpu0 -relocation-model=pic -filetype=asm -debug 
+  ch4_1_mod.bc -o -
+  ...
   === _Z8test_modi
-  Initial selection DAG: BB#0 '_Z8test_modi:'
+  Initial selection DAG: BB#0 '_Z8test_mod2i:'
   SelectionDAG has 21 nodes:
-    0x7fed68410bc8: ch = EntryToken [ORD=1]
-  
-    0x7fed6882cb10: i32 = undef [ORD=1]
-  
-    0x7fed6882cd10: i32 = FrameIndex<0> [ORD=1]
-  
-    0x7fed6882ce10: i32 = Constant<0>
-  
-    0x7fed6882d110: i32 = FrameIndex<1> [ORD=2]
-  
-        0x7fed68410bc8: <multiple use>
-          0x7fed68410bc8: <multiple use>
-          0x7fed6882ca10: i32 = FrameIndex<-1> [ORD=1]
-  
-          0x7fed6882cb10: <multiple use>
-        0x7fed6882cc10: i32,ch = load 0x7fed68410bc8, 0x7fed6882ca10, 
-        0x7fed6882cb10<LD4[FixedStack-1]> [ORD=1]
-  
-        0x7fed6882cd10: <multiple use>
-        0x7fed6882cb10: <multiple use>
-      0x7fed6882cf10: ch = store 0x7fed68410bc8, 0x7fed6882cc10, 0x7fed6882cd10, 
-      0x7fed6882cb10<ST4[%1]> [ORD=1]
-  
-      0x7fed6882d010: i32 = Constant<11> [ORD=2]
-  
-      0x7fed6882d110: <multiple use>
-      0x7fed6882cb10: <multiple use>
-    0x7fed6882d210: ch = store 0x7fed6882cf10, 0x7fed6882d010, 0x7fed6882d110, 
-    0x7fed6882cb10<ST4[%b]> [ORD=2]
-  
-      0x7fed6882d210: <multiple use>
-      0x7fed6882d110: <multiple use>
-      0x7fed6882cb10: <multiple use>
-    0x7fed6882d310: i32,ch = load 0x7fed6882d210, 0x7fed6882d110, 
-    0x7fed6882cb10<LD4[%b]> [ORD=3]
-  
-      0x7fed6882d210: <multiple use>
-      0x7fed6882cd10: <multiple use>
-      0x7fed6882cb10: <multiple use>
-    0x7fed6882d610: i32,ch = load 0x7fed6882d210, 0x7fed6882cd10, 
-    0x7fed6882cb10<LD4[%1]> [ORD=5]
-  
-        0x7fed6882d310: <multiple use>
-        0x7fed6882d610: <multiple use>
-      0x7fed6882d810: ch = TokenFactor 0x7fed6882d310:1, 0x7fed6882d610:1 [ORD=7]
-  
-          0x7fed6882d310: <multiple use>
-          0x7fed6882d410: i32 = Constant<1> [ORD=4]
-  
-        0x7fed6882d510: i32 = add 0x7fed6882d310, 0x7fed6882d410 [ORD=4]
-  
-        0x7fed6882d610: <multiple use>
-      0x7fed6882d710: i32 = srem 0x7fed6882d510, 0x7fed6882d610 [ORD=6]
-  
-      0x7fed6882d110: <multiple use>
-      0x7fed6882cb10: <multiple use>
-    0x7fed6882fc10: ch = store 0x7fed6882d810, 0x7fed6882d710, 0x7fed6882d110, 
-    0x7fed6882cb10<ST4[%b]> [ORD=7]
-  
-    0x7fed6882fe10: i32 = Register %V0
-  
-      0x7fed6882fc10: <multiple use>
-      0x7fed6882fe10: <multiple use>
-        0x7fed6882fc10: <multiple use>
-        0x7fed6882d110: <multiple use>
-        0x7fed6882cb10: <multiple use>
-      0x7fed6882fd10: i32,ch = load 0x7fed6882fc10, 0x7fed6882d110, 
-      0x7fed6882cb10<LD4[%b]> [ORD=8]
-  
-    0x7fed6882ff10: ch,glue = CopyToReg 0x7fed6882fc10, 0x7fed6882fe10, 
-    0x7fed6882fd10
-  
-      0x7fed6882ff10: <multiple use>
-      0x7fed6882fe10: <multiple use>
-      0x7fed6882ff10: <multiple use>
-    0x7fed68830010: ch = Cpu0ISD::Ret 0x7fed6882ff10, 0x7fed6882fe10, 
-    0x7fed6882ff10:1
-    
-  Replacing.1 0x7fed6882fd10: i32,ch = load 0x7fed6882fc10, 0x7fed6882d110, 
-  0x7fed6882cb10<LD4[%b]> [ORD=8]
-  
-  With: 0x7fed6882d710: i32 = srem 0x7fed6882d510, 0x7fed6882d610 [ORD=6]
+    ...
+      0x2447448: <multiple use>
+          0x24470d0: <multiple use>
+          0x24471f8: i32 = Constant<1>
+
+        0x2447320: i32 = add 0x24470d0, 0x24471f8 [ORD=7]
+
+        0x2447448: <multiple use>
+      0x2447570: i32 = srem 0x2447320, 0x2447448 [ORD=9]
+
+      0x24468b8: <multiple use>
+      0x2446b08: <multiple use>
+    0x2448fc0: ch = store 0x2447448:1, 0x2447570, 0x24468b8, ...
+
+    0x2449210: i32 = Register %V0
+
+      0x2448fc0: <multiple use>
+      0x2449210: <multiple use>
+        0x2448fc0: <multiple use>
+        0x24468b8: <multiple use>
+        0x2446b08: <multiple use>
+      0x24490e8: i32,ch = load 0x2448fc0, 0x24468b8, 0x2446b08<LD4[%b]> [ORD=11]
+
+    0x2449338: ch,glue = CopyToReg 0x2448fc0, 0x2449210, 0x24490e8 [ORD=12]
+
+      0x2449338: <multiple use>
+      0x2449210: <multiple use>
+      0x2449338: <multiple use>
+    0x2449460: ch = Cpu0ISD::Ret 0x2449338, 0x2449210, 0x2449338:1 [ORD=12]
+
+  Replacing.1 0x24490e8: i32,ch = load 0x2448fc0, 0x24468b8, ...
+
+  With: 0x2447570: i32 = srem 0x2447320, 0x2447448 [ORD=9]
    and 1 other values
+  ...
+
+  Optimized lowered selection DAG: BB#0 '_Z8test_mod2i:'
+  ...
+    0x2447570: i32 = srem 0x2447320, 0x2447448 [ORD=9]
+  ...
   
-  Replacing.1 0x7fed6882d310: i32,ch = load 0x7fed6882d210, 0x7fed6882d110, 
-  0x7fed6882cb10<LD4[%b]> [ORD=3]
-  
-  With: 0x7fed6882d010: i32 = Constant<11> [ORD=2]
-   and 1 other values
-  
-  Replacing.3 0x7fed6882d810: ch = TokenFactor 0x7fed6882d210, 
-  0x7fed6882d610:1 [ORD=7]
-  
-  With: 0x7fed6882d610: i32,ch = load 0x7fed6882d210, 0x7fed6882cd10, 
-  0x7fed6882cb10<LD4[%1]> [ORD=5]
-  
-  
-  Replacing.3 0x7fed6882d510: i32 = add 0x7fed6882d010, 0x7fed6882d410 [ORD=4]
-  
-  With: 0x7fed6882d810: i32 = Constant<12>
-  
-  
-  Replacing.1 0x7fed6882cc10: i32,ch = load 0x7fed68410bc8, 0x7fed6882ca10, 
-  0x7fed6882cb10<LD4[FixedStack-1](align=8)> [ORD=1]
-  
-  With: 0x7fed6882cc10: i32,ch = load 0x7fed68410bc8, 0x7fed6882ca10, 
-  0x7fed6882cb10<LD4[FixedStack-1](align=8)> [ORD=1]
-   and 1 other values
-  Optimized lowered selection DAG: BB#0 '_Z8test_modi:'
-  SelectionDAG has 16 nodes:
-    0x7fed68410bc8: ch = EntryToken [ORD=1]
-  
-    0x7fed6882cb10: i32 = undef [ORD=1]
-  
-    0x7fed6882cd10: i32 = FrameIndex<0> [ORD=1]
-  
-    0x7fed6882d110: i32 = FrameIndex<1> [ORD=2]
-  
-          0x7fed68410bc8: <multiple use>
-            0x7fed68410bc8: <multiple use>
-            0x7fed6882ca10: i32 = FrameIndex<-1> [ORD=1]
-  
-            0x7fed6882cb10: <multiple use>
-          0x7fed6882cc10: i32,ch = load 0x7fed68410bc8, 0x7fed6882ca10, 
-          0x7fed6882cb10<LD4[FixedStack-1](align=8)> [ORD=1]
-  
-          0x7fed6882cd10: <multiple use>
-          0x7fed6882cb10: <multiple use>
-        0x7fed6882cf10: ch = store 0x7fed68410bc8, 0x7fed6882cc10, 0x7fed6882cd10, 
-        0x7fed6882cb10<ST4[%1]> [ORD=1]
-  
-        0x7fed6882d010: i32 = Constant<11> [ORD=2]
-  
-        0x7fed6882d110: <multiple use>
-        0x7fed6882cb10: <multiple use>
-      0x7fed6882d210: ch = store 0x7fed6882cf10, 0x7fed6882d010, 0x7fed6882d110, 
-      0x7fed6882cb10<ST4[%b]> [ORD=2]
-  
-      0x7fed6882cd10: <multiple use>
-      0x7fed6882cb10: <multiple use>
-    0x7fed6882d610: i32,ch = load 0x7fed6882d210, 0x7fed6882cd10, 
-    0x7fed6882cb10<LD4[%1]> [ORD=5]
-  
-      0x7fed6882d810: i32 = Constant<12>
-  
-      0x7fed6882d610: <multiple use>
-    0x7fed6882d710: i32 = srem 0x7fed6882d810, 0x7fed6882d610 [ORD=6]
-  
-    0x7fed6882fe10: i32 = Register %V0
-  
-        0x7fed6882d610: <multiple use>
-        0x7fed6882d710: <multiple use>
-        0x7fed6882d110: <multiple use>
-        0x7fed6882cb10: <multiple use>
-      0x7fed6882fc10: ch = store 0x7fed6882d610:1, 0x7fed6882d710, 0x7fed6882d110, 
-      0x7fed6882cb10<ST4[%b]> [ORD=7]
-  
-      0x7fed6882fe10: <multiple use>
-      0x7fed6882d710: <multiple use>
-    0x7fed6882ff10: ch,glue = CopyToReg 0x7fed6882fc10, 0x7fed6882fe10, 
-    0x7fed6882d710
-  
-      0x7fed6882ff10: <multiple use>
-      0x7fed6882fe10: <multiple use>
-      0x7fed6882ff10: <multiple use>
-    0x7fed68830010: ch = Cpu0ISD::Ret 0x7fed6882ff10, 0x7fed6882fe10, 
-    0x7fed6882ff10:1
-  
-  Type-legalized selection DAG: BB#0 '_Z8test_modi:'
+  Type-legalized selection DAG: BB#0 '_Z8test_mod2i:'
   SelectionDAG has 16 nodes:
     ...
     0x7fed6882d610: i32,ch = load 0x7fed6882d210, 0x7fed6882cd10, 
@@ -1048,60 +885,54 @@ ch4_2_2.cpp as follows,
     0x7fed6882d710: i32 = srem 0x7fed6882d810, 0x7fed6882d610 [ORD=6] [ID=-3]
     ...
     
-  Legalized selection DAG: BB#0 '_Z8test_modi:'
-  SelectionDAG has 16 nodes:
-    0x7fed68410bc8: ch = EntryToken [ORD=1] [ID=0]
-  
-    0x7fed6882cb10: i32 = undef [ORD=1] [ID=2]
-  
-    0x7fed6882cd10: i32 = FrameIndex<0> [ORD=1] [ID=3]
-  
-    0x7fed6882d110: i32 = FrameIndex<1> [ORD=2] [ID=5]
-  
-    0x7fed6882fe10: i32 = Register %V0 [ID=6]
+  Legalized selection DAG: BB#0 '_Z8test_mod2i:'
     ...
-      0x7fed6882d810: i32 = Constant<12> [ID=7]
+      ... i32 = srem 0x2447320, 0x2447448 [ORD=9] [ID=-3]
+    ...
+   ... replacing: ...: i32 = srem 0x2447320, 0x2447448 [ORD=9] [ID=13]
+       with:      ...: i32,i32 = sdivrem 0x2447320, 0x2447448 [ORD=9]
   
-      0x7fed6882d610: <multiple use>
-    0x7fed6882ce10: i32,i32 = sdivrem 0x7fed6882d810, 0x7fed6882d610
-  
-  
-  Optimized legalized selection DAG: BB#0 '_Z8test_modi:'
+  Optimized legalized selection DAG: BB#0 '_Z8test_mod2i:'
   SelectionDAG has 18 nodes:
     ...
-      0x7fed6882d510: i32 = Register %HI
-  
-        0x7fed6882d810: i32 = Constant<12> [ID=7]
-  
-        0x7fed6882d610: <multiple use>
-      0x7fed6882d410: glue = Cpu0ISD::DivRem 0x7fed6882d810, 0x7fed6882d610
-  
-    0x7fed6882d310: i32,ch,glue = CopyFromReg 0x7fed68410bc8, 0x7fed6882d510, 
-    0x7fed6882d410
+      0x2449588: i32 = Register %HI
+
+          0x24470d0: <multiple use>
+          0x24471f8: i32 = Constant<1> [ID=6]
+
+        0x2447320: i32 = add 0x24470d0, 0x24471f8 [ORD=7] [ID=12]
+
+        0x2447448: <multiple use>
+      0x24490e8: glue = Cpu0ISD::DivRem 0x2447320, 0x2447448 [ORD=9]
+
+    0x24496b0: i32,ch,glue = CopyFromReg 0x240d480, 0x2449588, 0x24490e8 [ORD=9]
+
+      0x2449338: <multiple use>
+      0x2449210: <multiple use>
+      0x2449338: <multiple use>
+    0x2449460: ch = Cpu0ISD::Ret 0x2449338, 0x2449210, ...
     ...
   
   ===== Instruction selection begins: BB#0 ''
   ...
-  Selecting: 0x7fed6882d410: glue = Cpu0ISD::DivRem 0x7fed6882d810, 
-  0x7fed6882d610 [ID=13]
-  
-  ISEL: Starting pattern match on root node: 0x7fed6882d410: glue = 
-  Cpu0ISD::DivRem 0x7fed6882d810, 0x7fed6882d610 [ID=13]
-  
-    Initial Opcode index to 1355
-    Morphed node: 0x7fed6882d410: i32,glue = SDIV 0x7fed6882d810, 0x7fed6882d610
-  
+  Selecting: 0x24490e8: glue = Cpu0ISD::DivRem 0x2447320, 0x2447448 [ORD=9] [ID=14]
+
+  ISEL: Starting pattern match on root node: 0x24490e8: glue = Cpu0ISD::DivRem 
+  0x2447320, 0x2447448 [ORD=9] [ID=14]
+
+    Initial Opcode index to 4044
+    Morphed node: 0x24490e8: i32,glue = SDIV 0x2447320, 0x2447448 [ORD=9]
+
   ISEL: Match complete!
-  => 0x7fed6882d410: i32,glue = SDIV 0x7fed6882d810, 0x7fed6882d610
+  => 0x24490e8: i32,glue = SDIV 0x2447320, 0x2447448 [ORD=9]
   ...
 
 
-According above DAGs translation messages, llvm do the following things:
+Summary above DAGs translation messages into 4 steps:
 
 1. Reduce DAG nodes in stage "Optimized lowered selection DAG" (Replacing ... 
-   displayed before "Optimized lowered selection DAG: BB#0 '_Z8test_modi:entry'
-   "). 
-   Since SSA form has some redundant nodes for store and load, them can be 
+   displayed before "Optimized lowered selection DAG:"). 
+   Since SSA form has some redundant nodes for store and load, they can be 
    removed.
 
 2. Change DAG srem to sdivrem in stage "Legalized selection DAG".
@@ -1109,22 +940,22 @@ According above DAGs translation messages, llvm do the following things:
 3. Change DAG sdivrem to Cpu0ISD::DivRem and in stage "Optimized legalized 
    selection DAG".
 
-4. Add DAG "0x7fd25b830710: i32 = Register %HI" and "CopyFromReg 0x7fd25b410e18, 
-   0x7fd25b830710, 0x7fd25b830910" in stage "Optimized legalized selection DAG".
+4. Add DAG "i32 = Register %HI" and "CopyFromReg ..." in stage "Optimized 
+   legalized selection DAG".
 
 Summary as Table: Stages for C operator % and Table: Functions handle the DAG 
 translation and pattern match for C operator %.
 
 .. table:: Stages for C operator %
 
-  ==================================  ===================== =========================
-  Stage                               IR/DAG/instruction    IR/DAG/instruction
-  ==================================  ===================== =========================
+  ==================================  ==============================================
+  Stage                               IR/DAG/instruction
+  ==================================  ==============================================
   .bc                                 srem        
   Legalized selection DAG             sdivrem       
-  Optimized legalized selection DAG   Cpu0ISD::DivRem       CopyFromReg xx, Hi, xx
-  pattern match                       div                   mfhi
-  ==================================  ===================== =========================
+  Optimized legalized selection DAG   Cpu0ISD::DivRem, CopyFromReg xx, Hi, Cpu0ISD::DivRem
+  pattern match                       div, mfhi
+  ==================================  ==============================================
 
 
 .. table:: Functions handle the DAG translation and pattern match for C operator %
@@ -1140,24 +971,23 @@ translation and pattern match for C operator %.
   ====================================  ============================
 
 
-Item 2 as above, is triggered by code 
+Step 2 as above, is triggered by code 
 "setOperationAction(ISD::SREM, MVT::i32, Expand);" in Cpu0ISelLowering.cpp. 
-About **Expand** please ref. [#]_ and [#]_. Item 3 is triggered by code 
-"setTargetDAGCombine(ISD::SDIVREM);" in Cpu0ISelLowering.cpp.
-Item 4 is did by PerformDivRemCombine() which called by PerformDAGCombine() 
-since the **%** corresponding **srem** 
-makes the "N->hasAnyUseOfValue(1)" to true in PerformDivRemCombine(). 
-Then, it creates "CopyFromReg 0x7fd25b410e18, 0x7fd25b830710, 0x7fd25b830910". 
+About **Expand** please ref. [#expand]_ and [#legalizetypes]_. Step 3 is 
+triggered by code "setTargetDAGCombine(ISD::SDIVREM);" in Cpu0ISelLowering.cpp.
+Step 4 is did by PerformDivRemCombine() which called by performDAGCombine().
+Since the **%** corresponding **srem** makes the "N->hasAnyUseOfValue(1)" to 
+true in PerformDivRemCombine(), it creates DAG of "CopyFromReg". 
 When using **"/"** in C, it will make "N->hasAnyUseOfValue(0)" to ture.
 For sdivrem, **sdiv** makes "N->hasAnyUseOfValue(0)" true while **srem** makes 
 "N->hasAnyUseOfValue(1)" ture.
 
-Above items will change the DAG when ``llc`` running. After that, the pattern 
+Above steps will change the DAGs when ``llc`` is running. After that, the pattern 
 match defined in Chapter4_1/Cpu0InstrInfo.td will translate **Cpu0ISD::DivRem** 
-into **div**; and **"CopyFromReg 0x7fd25b410e18, Register %H, 0x7fd25b830910"** 
+into **div**; and **"CopyFromReg xxDAG, Register %H, Cpu0ISD::DivRem"** 
 to **mfhi**.
 
-The ch4_3.cpp is for **/** div operator test.
+The ch4_1_div.cpp is for **/** div operator test.
 
 
 Rotate instructions
@@ -1165,17 +995,17 @@ Rotate instructions
 
 Chapter4_1 include the rotate operations translation. The instructions "rol", 
 "ror", "rolv" and "rorv" defined in Cpu0InstrInfo.td handle the translation.
-Compile ch4_1_3.cpp will get Cpu0 "rol" instruction.
+Compile ch4_1_rotate.cpp will get Cpu0 "rol" instruction.
 
-.. rubric:: lbdex/input/ch4_1_3.cpp
-.. literalinclude:: ../lbdex/input/ch4_1_3.cpp
+.. rubric:: lbdex/input/ch4_1_rotate.cpp
+.. literalinclude:: ../lbdex/input/ch4_1_rotate.cpp
     :start-after: /// start
 
 .. code-block:: bash
   
   114-43-200-122:input Jonathan$ clang -target mips-unknown-linux-gnu -c 
-  ch4_1_3.cpp -emit-llvm -o ch4_1_3.bc
-  114-43-200-122:input Jonathan$ llvm-dis ch4_1_3.bc -o -
+  ch4_1_rotate.cpp -emit-llvm -o ch4_1_rotate.bc
+  114-43-200-122:input Jonathan$ llvm-dis ch4_1_rotate.bc -o -
   
   define i32 @_Z16test_rotate_leftv() #0 {
     %a = alloca i32, align 4
@@ -1192,15 +1022,14 @@ Compile ch4_1_3.cpp will get Cpu0 "rol" instruction.
   }
   
   114-43-200-122:input Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/Debug/
-  bin/llc -march=cpu0 -relocation-model=pic -filetype=asm ch4_1_3.bc -o -
+  bin/llc -march=cpu0 -relocation-model=pic -filetype=asm ch4_1_rotate.bc -o -
     ...
     rol $2, $2, 30
     ...
 
 Instructions "rolv" and "rorv" cannot be tested at this moment, they need 
-function argument passing support. 
-The "#ifdef TEST_ROXV" part of ch4_1_3.cpp can be tested
-after Chapter Function call. Like the previous subsection mentioned at this 
+logic "or" implementation which supported at next section. 
+Like the previous subsection mentioned at this 
 chapter, some IRs in function @_Z16test_rotate_leftv() will be combined into 
 one one IR **rotl** during DAGs translation.
 
@@ -1211,7 +1040,7 @@ Logic
 Chapter4_2 supports logic operators **&, |, ^, !, ==, !=, <, <=, > and >=**.
 They are trivial and easy. Listing the added code with comments and table for 
 these operators IR, DAG and instructions as below. Please check them with the
-run result of bc and asm instructions for ch4_5.cpp as below.
+run result of bc and asm instructions for ch4_2_logic.cpp as below.
 
 .. rubric:: lbdex/chapters/Chapter4_2/Cpu0InstrInfo.td
 .. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td
@@ -1247,7 +1076,7 @@ run result of bc and asm instructions for ch4_5.cpp as below.
     :start-after: //@Cpu0TargetLowering {
     :end-before: #if CH >= CH3_2
 .. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.cpp
-    :start-after: #if CH >= CH4_2
+    :start-after: #if CH >= CH4_2 //1.2
     :end-before: #endif
 
 .. code-block:: c++
@@ -1255,15 +1084,15 @@ run result of bc and asm instructions for ch4_5.cpp as below.
     ...
   }
 
-.. rubric:: lbdex/input/ch4_5.cpp
-.. literalinclude:: ../lbdex/input/ch4_5.cpp
+.. rubric:: lbdex/input/ch4_2_logic.cpp
+.. literalinclude:: ../lbdex/input/ch4_2_logic.cpp
     :start-after: /// start
 
 .. code-block:: bash
 
   114-43-204-152:input Jonathan$ clang -target mips-unknown-linux-gnu -c 
-  ch4_5.cpp -emit-llvm -o ch4_5.bc
-  114-43-204-152:input Jonathan$ llvm-dis ch4_5.bc -o -
+  ch4_2_logic.cpp -emit-llvm -o ch4_2_logic.bc
+  114-43-204-152:input Jonathan$ llvm-dis ch4_2_logic.bc -o -
   ...
   ; Function Attrs: nounwind uwtable
   define i32 @_Z16test_andorxornotv() #0 {
@@ -1313,7 +1142,7 @@ run result of bc and asm instructions for ch4_5.cpp as below.
   
   114-43-204-152:input Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
   Debug/bin/llc -march=cpu0 -mcpu=cpu032I -relocation-model=pic -filetype=asm 
-  ch4_5.bc -o -
+  ch4_2_logic.bc -o -
 
     .globl  _Z16test_andorxornotv
     ...
@@ -1356,7 +1185,7 @@ run result of bc and asm instructions for ch4_5.cpp as below.
 
   114-43-204-152:input Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
   Debug/bin/llc -march=cpu0 -mcpu=cpu032II -relocation-model=pic -filetype=asm 
-  ch4_5.bc -o -
+  ch4_2_logic.bc -o -
     ...
 	sltiu	$2, $2, 1
 	andi	$2, $2, 1
@@ -1428,27 +1257,27 @@ run result of bc and asm instructions for ch4_5.cpp as below.
                                                                                        - andi $2, $2, 1
   ==========  =================================  ====================================  =======================
 
-In relation operators ==, !=, ..., %0 = $3 = 5, %1 = $2 = 3 for ch4_5.cpp.
+In relation operators ==, !=, ..., %0 = $3 = 5, %1 = $2 = 3 for ch4_2_logic.cpp.
 
 The "Optimized legalized selection DAG" is the last DAG stage just before the 
-"instruction selection" as the section mentioned in this chapter. You can see 
-the whole DAG stages by ``llc -debug`` option.
+"instruction selection" as the previous section mentioned in this chapter. 
+You can see the whole DAG stages by ``llc -debug`` option.
 
 From above result, slt spend less instructions than cmp for relation 
 operators translation. Beyond that, slt uses general purpose register while 
 cmp uses $sw dedicated register.
 
-.. rubric:: lbdex/input/ch4_6.cpp
-.. literalinclude:: ../lbdex/input/ch4_6.cpp
+.. rubric:: lbdex/input/ch4_2_slt_explain.cpp
+.. literalinclude:: ../lbdex/input/ch4_2_slt_explain.cpp
     :start-after: /// start
 
 .. code-block:: bash
 
   118-165-78-10:input Jonathan$ clang -target mips-unknown-linux-gnu -O2 
-  -c ch4_6.cpp -emit-llvm -o ch4_6.bc
+  -c ch4_2_slt_explain.cpp -emit-llvm -o ch4_2_slt_explain.bc
   118-165-78-10:input Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
   Debug/bin/llc -march=cpu0 -mcpu=cpu032I -relocation-model=static -filetype=asm 
-  ch4_6.bc -o -
+  ch4_2_slt_explain.bc -o -
     ...
     ld  $3, 20($sp)
     cmp $sw, $3, $2
@@ -1462,8 +1291,8 @@ cmp uses $sw dedicated register.
     andi  $2, $2, 1
     ...
   118-165-78-10:input Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
-  Debug/bin/llc -march=cpu0 -mcpu=cpu032I -relocation-model=static -filetype=asm 
-  ch4_6.bc -o -
+  Debug/bin/llc -march=cpu0 -mcpu=cpu032II -relocation-model=static -filetype=asm 
+  ch4_2_slt_explain.bc -o -
     ...
     ld  $2, 20($sp)
     slti  $2, $2, 1
@@ -1475,11 +1304,11 @@ cmp uses $sw dedicated register.
     st  $2, 8($sp)
     ...
 
-Run these two `llc -mcpu` option for Chapter4_2 with ch4_6.cpp get the 
+Run these two `llc -mcpu` option for Chapter4_2 with ch4_2_slt_explain.cpp to get the 
 above result. Regardless of the move between \$sw and general purpose register 
 in `llc -mcpu=cpu032I`, the two cmp instructions in it will has hazard in 
-instruction reorder since both of them use \$sw register but  
-`llc -mcpu=cpu032II` has not [#Quantitative]_. 
+instruction reorder since both of them use \$sw register. The  
+`llc -mcpu=cpu032II` has not this problem because it uses slti [#Quantitative]_. 
 The slti version can reorder as follows,
 
 .. code-block:: bash
@@ -1495,7 +1324,7 @@ The slti version can reorder as follows,
     st  $2, 12($sp)
     ...
 
-Chapter4_2 include instructions cmp and slt. Even cpu032II include both of 
+Chapter4_2 include instructions cmp and slt. Though cpu032II include both of 
 these two instructions, the slt takes the priority since 
 "let Predicates = [HasSlt]" appeared before "let Predicates = [HasCmp]" in 
 Cpu0InstrInfo.td.
@@ -1532,42 +1361,32 @@ this chapter and spend 4xx lines of source code.
   ================  =================================  ====================================  ==========
 
 
-.. _section Operator “not” !:
-  http://jonathan2251.github.io/lbd/otherinst.html#operator-not
 
 .. _section Display llvm IR nodes with Graphviz:
   http://jonathan2251.github.io/lbd/otherinst.html#display-llvm-ir-nodes-
   with-graphviz
 
-.. _section Local variable pointer:
-  http://jonathan2251.github.io/lbd/otherinst.html#local-variable-pointer
-
-.. _section Operator mod, %:
-  http://jonathan2251.github.io/lbd/otherinst.html#operator-mod
-
 .. _section Install other tools on iMac:
   http://jonathan2251.github.io/lbd/install.html#install-other-tools-on-imac
 
-.. _section Support arithmetic instructions:
-  http://jonathan2251.github.io/lbd/otherinst.html#support-arithmetic-
-  instructions
 
-.. [#] http://llvm.org/docs/doxygen/html/structllvm_1_1InstrStage.html
+.. [#instrstage] http://llvm.org/docs/doxygen/html/structllvm_1_1InstrStage.html
 
-.. [#] http://msdn.microsoft.com/en-us/library/336xbhcz%28v=vs.80%29.aspx
+.. [#msdn] http://msdn.microsoft.com/en-us/library/336xbhcz%28v=vs.80%29.aspx
 
-.. [#] http://llvm.org/docs/LangRef.html#ashr-instruction
+.. [#ashr] http://llvm.org/docs/LangRef.html#ashr-instruction
 
-.. [#] http://llvm.org/docs/LangRef.html#lshr-instruction
+.. [#lshr] http://llvm.org/docs/LangRef.html#lshr-instruction
 
-.. [#] http://llvm.org/docs/CodeGenerator.html#selectiondag-instruction-selection-process
+.. [#instructionsel] http://llvm.org/docs/CodeGenerator.html#selectiondag-instruction-selection-process
 
-.. [#] http://llvm.org/docs/LangRef.html#srem-instruction
+.. [#srem] http://llvm.org/docs/LangRef.html#srem-instruction
 
-.. [#] http://llvm.org/docs/WritingAnLLVMBackend.html#expand
+.. [#expand] http://llvm.org/docs/WritingAnLLVMBackend.html#expand
 
-.. [#] http://llvm.org/docs/CodeGenerator.html#selectiondag-legalizetypes-phase
+.. [#legalizetypes] http://llvm.org/docs/CodeGenerator.html#selectiondag-legalizetypes-phase
 
 .. [#Quantitative] See book Computer Architecture: A Quantitative Approach (The Morgan 
        Kaufmann Series in Computer Architecture and Design) 
+
 

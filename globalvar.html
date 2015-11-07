@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '3.7.0',
+        VERSION:     '3.7.1',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -71,7 +71,7 @@
 </div>
 <p>In the last three chapters, we only access the local variables.
 This chapter deals global variable access translation.</p>
-<p>The global variable DAG translation is very different from the previous DAG
+<p>The global variable DAG translation is different from the previous DAG
 translations until now we have.
 It creates IR DAG nodes at run time in backend C++ code according the
 <tt class="docutils literal"><span class="pre">llc</span> <span class="pre">-relocation-model</span></tt> option while the others of DAG just do IR DAG to
@@ -81,8 +81,8 @@ Readers should focus on how to add code for creating DAG nodes at run time and
 how to define the pattern match in td for the run time created DAG nodes.
 In addition, the machine instruction printing function for global variable
 related assembly directive (macro) should be cared if your backend has it.</p>
-<p>Chapter6_1/ supports the global variable, let&#8217;s compile ch6_1.cpp with this version
-first, then explain the code changes after that.</p>
+<p>Chapter6_1/ supports the global variable, let&#8217;s compile ch6_1.cpp with this
+version first, then explain the code changes after that.</p>
 <p class="rubric">lbdex/input/ch6_1.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="kt">int</span> <span class="n">gStart</span> <span class="o">=</span> <span class="mi">3</span><span class="p">;</span>
 <span class="kt">int</span> <span class="n">gI</span> <span class="o">=</span> <span class="mi">100</span><span class="p">;</span>
@@ -123,7 +123,7 @@ Let&#8217;s run Chapter6_1/ with ch6_1.cpp via four different options
 <tt class="docutils literal"><span class="pre">llc</span>&nbsp; <span class="pre">-relocation-model=static</span> <span class="pre">-cpu0-use-small-section=false</span></tt>,
 <tt class="docutils literal"><span class="pre">llc</span>&nbsp; <span class="pre">-relocation-model=static</span> <span class="pre">-cpu0-use-small-section=true</span></tt>,
 <tt class="docutils literal"><span class="pre">llc</span>&nbsp; <span class="pre">-relocation-model=pic</span> <span class="pre">-cpu0-use-small-section=false</span></tt> and
-<tt class="docutils literal"><span class="pre">llc</span>&nbsp; <span class="pre">-relocation-model=pic</span> <span class="pre">-cpu0-use-small-section=false</span></tt> to tracing the
+<tt class="docutils literal"><span class="pre">llc</span>&nbsp; <span class="pre">-relocation-model=pic</span> <span class="pre">-cpu0-use-small-section=true</span></tt> to tracing the
 DAGs and Cpu0 instructions.</p>
 <div class="highlight-bash"><div class="highlight"><pre>118-165-78-166:input Jonathan<span class="nv">$ </span>clang -target mips-unknown-linux-gnu -c
 ch6_1.cpp -emit-llvm -o ch6_1.bc
@@ -283,10 +283,9 @@ SelectionDAG has 15 nodes:
   0x7fe03c02e328: i32,ch <span class="o">=</span> load 0x7fe03c02e118, 0x7fe03c02ec70,
   0x7fe03c02e010&lt;LD4<span class="o">[</span>@gI<span class="o">]</span>&gt; <span class="o">[</span><span class="nv">ORD</span><span class="o">=</span>4<span class="o">]</span> <span class="o">[</span><span class="nv">ID</span><span class="o">=</span>7<span class="o">]</span>
   ...
-
-  lui <span class="nv">$2</span>, %hi<span class="o">(</span>gI<span class="o">)</span>
-  ori <span class="nv">$2</span>, <span class="nv">$2</span>, %lo<span class="o">(</span>gI<span class="o">)</span>
-  ld  <span class="nv">$2</span>, 0<span class="o">(</span><span class="nv">$2</span><span class="o">)</span>
+        lui   <span class="nv">$2</span>, %got_hi<span class="o">(</span>gI<span class="o">)</span>
+        addu  <span class="nv">$2</span>, <span class="nv">$2</span>, <span class="nv">$gp</span>
+        ld    <span class="nv">$2</span>, %got_lo<span class="o">(</span>gI<span class="o">)(</span><span class="nv">$2</span><span class="o">)</span>
   ...
     .type gStart,@object          <span class="c"># @gStart</span>
   .data
@@ -432,8 +431,8 @@ gI:
 <td>(add register %GP, Cpu0ISD::GPRel&lt;gI offset&gt;)</td>
 </tr>
 <tr class="row-odd"><td>Cpu0</td>
-<td>ori $2, $zero, %hi(gI); shl $2, $2, 16; ori $2, $2, %lo(gI);</td>
-<td>ori $2, $gp, %gp_rel(gI);</td>
+<td>lui $2, %hi(gI); ori $2, $2, %lo(gI);</td>
+<td>ori        $2, $gp, %gp_rel(gI);</td>
 </tr>
 <tr class="row-even"><td>relocation records solved</td>
 <td>link time</td>
@@ -473,7 +472,7 @@ gI:
 </tr>
 <tr class="row-odd"><td>Cpu0</td>
 <td>ld $2, %got(gI)($gp);</td>
-<td>ori        $2, $zero, %got_hi(gI); shl $2, $2, 16; add $2, $2, $gp; ld $2, %got_lo(gI)($2);</td>
+<td>lui        $2, %got_hi(gI); add $2, $2, $gp; ld $2, %got_lo(gI)($2);</td>
 </tr>
 <tr class="row-even"><td>relocation records solved</td>
 <td>link/load time</td>
@@ -482,8 +481,11 @@ gI:
 </tbody>
 </table>
 <ul class="simple">
-<li>In pic, offset between gI and .data cannot be calculated if the function is loaded at run time (dynamic link); the offset can be calculated if use static link.</li>
-<li>In C, all variable names binding staticly. In C++, the overload variable or function are binding dynamicly.</li>
+<li>In pic, offset between gI and .data cannot be calculated if the function is
+loaded at run time (dynamic link); the offset can be calculated if use static
+link.</li>
+<li>In C, all variable names binding staticly. In C++, the overload variable or
+function are binding dynamicly.</li>
 </ul>
 <p>According book of system program, there are Absolute Addressing Mode and
 Position Independent Addressing Mode. The dynamic function must be compiled with
@@ -906,6 +908,11 @@ def : Pat&lt;(Cpu0Hi tglobaladdr:$in), (LUi tglobaladdr:$in)&gt;;
 </pre>
 </div>
 <div class="highlight-c++"><pre>let Predicates = [Ch6_1] in {
+def : Pat&lt;(Cpu0Lo tglobaladdr:$in), (ORi ZERO, tglobaladdr:$in)&gt;;
+}
+</pre>
+</div>
+<div class="highlight-c++"><pre>let Predicates = [Ch6_1] in {
 def : Pat&lt;(add CPURegs:$hi, (Cpu0Lo tglobaladdr:$lo)),
           (ORi CPURegs:$hi, tglobaladdr:$lo)&gt;;
 }
@@ -971,19 +978,19 @@ The <tt class="docutils literal"><span class="pre">llc</span> <span class="pre">
 used in static link mode. The dynamic link must be encoded with Position
 Independent Addressing.
 As you can see, the PC relative address can be solved in static link (
-The offset between .data and instruction &#8220;ori $2, $zero, %hi(gI)&#8221; can be
+The offset between the address of gI and instruction &#8220;lui $2, %hi(gI)&#8221; can be
 caculated). Since Cpu0 uses PC relative address coding, this program can be
 loaded to any address and run correctly there.
 If this program uses absolute address and can be loaded at a specific address
 known at link stage, the relocation record of gI variable access instruction
-such as &#8220;ori $2, $zero, %hi(gI)&#8221; and &#8220;ori       $2, $2, %lo(gI)&#8221; can be solved
+such as &#8220;lui $2, %hi(gI)&#8221; and &#8220;ori      $2, $2, %lo(gI)&#8221; can be solved
 at link time. On the other hand,
 if this program use absolute address and the loading address is known at load
-time, then this relocation record will be solved by loader at loading time.</p>
+time, then this relocation record will be solved by loader at load time.</p>
 <p>IsGlobalInSmallSection() returns true or false depends on UseSmallSectionOpt.</p>
 <p>The code fragment of lowerGlobalAddress() as the following corresponding option
-<tt class="docutils literal"><span class="pre">llc</span> <span class="pre">-relocation-model=static</span> <span class="pre">-cpu0-use-small-section=false</span></tt> will translate DAG
-(GlobalAddress&lt;i32* &#64;gI&gt; 0) into
+<tt class="docutils literal"><span class="pre">llc</span> <span class="pre">-relocation-model=static</span> <span class="pre">-cpu0-use-small-section=false</span></tt> will translate
+DAG (GlobalAddress&lt;i32* &#64;gI&gt; 0) into
 (add Cpu0ISD::Hi&lt;gI offset Hi16&gt; Cpu0ISD::Lo&lt;gI offset Lo16&gt;) in
 stage &#8220;Legalized selection DAG&#8221; as below.</p>
 <p class="rubric">lbdex/chapters/Chapter6_1/Cpu0ISelLowering.h</p>
@@ -1028,8 +1035,8 @@ stage &#8220;Legalized selection DAG&#8221; as below.</p>
 </div>
 <div class="highlight-bash"><div class="highlight"><pre>118-165-78-166:input Jonathan<span class="nv">$ </span>clang -target mips-unknown-linux-gnu -c
 ch6_1.cpp -emit-llvm -o ch6_1.bc
-118-165-78-166:input Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/test/cmake_debug_build/
-Debug/bin/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>static -cpu0-use-small-section<span class="o">=</span><span class="nb">false</span>
+118-165-78-166:input Jonathan<span class="nv">$ </span>~/llvm/test/cmake_debug_build/Debug/bin/llc
+-march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>static -cpu0-use-small-section<span class="o">=</span><span class="nb">false</span>
 -filetype<span class="o">=</span>asm -debug ch6_1.bc -o -
 
 ...
@@ -1083,6 +1090,11 @@ instructions as below.</p>
 <div class="highlight-c++"><pre>// hi/lo relocs
 let Predicates = [Ch6_1] in {
 def : Pat&lt;(Cpu0Hi tglobaladdr:$in), (LUi tglobaladdr:$in)&gt;;
+}
+</pre>
+</div>
+<div class="highlight-c++"><pre>let Predicates = [Ch6_1] in {
+def : Pat&lt;(Cpu0Lo tglobaladdr:$in), (ORi ZERO, tglobaladdr:$in)&gt;;
 }
 </pre>
 </div>
@@ -1224,8 +1236,8 @@ def : Pat&lt;(add CPURegs:$gp, (Cpu0GPRel tglobaladdr:$in)),
 ZERO, tglobaladdr:$in))&gt;;&#8221; will translate (add register %GP Cpu0ISD::GPRel
 tglobaladdr) into (add $gp, (ori ZERO, tglobaladdr)).</p>
 <p>In this mode, the $gp content is assigned at compile/link time, changed only at
-program be loaded, and is fixed during the program running; on the contrary, when
--relocation-model=pic the $gp can be changed during program running.
+program be loaded, and is fixed during the program running; on the contrary,
+when -relocation-model=pic the $gp can be changed during program running.
 For this example code, if $gp is assigned to the start address of .sdata by loader
 when program ch6_1.cpu0.s is loaded, then linker can caculate %gp_rel(gI) (=
 the relative address distance between gI and start of .sdata section).
@@ -1715,9 +1727,10 @@ ld  <span class="nv">$2</span>, %got_lo<span class="o">(</span>gI<span class="o"
 ...
 </pre></div>
 </div>
-<p>The following code in Cpu0InstrInfo.td is needed for example input ch8_5.cpp.
-Since ch8_5.cpp uses llvm IR <strong>select</strong>, it cannot be run at this point. It
-will be run in later Chapter Control flow statements.</p>
+<p>The following code in Cpu0InstrInfo.td is needed for example input
+ch8_2_select_global_pic.cpp.
+Since ch8_2_select_global_pic.cpp uses llvm IR <strong>select</strong>, it cannot be run at
+this point. It will be run in later Chapter Control flow statements.</p>
 <p class="rubric">lbdex/chapters/Chapter6_1/Cpu0InstrInfo.td</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="n">def</span> <span class="n">Cpu0Wrapper</span>    <span class="o">:</span> <span class="n">SDNode</span><span class="o">&lt;</span><span class="s">&quot;Cpu0ISD::Wrapper&quot;</span><span class="p">,</span> <span class="n">SDTIntBinOp</span><span class="o">&gt;</span><span class="p">;</span>
 </pre></div>
@@ -1731,8 +1744,14 @@ def : WrapperPat&lt;tglobaladdr, ORi, GPROut&gt;;
 }
 </pre>
 </div>
-<p class="rubric">lbdex/input/ch8_5.cpp</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="kt">int</span> <span class="nf">test_select_global_pic</span><span class="p">()</span>
+<p class="rubric">lbdex/input/ch8_2_select_global_pic.cpp</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="k">volatile</span> <span class="kt">int</span> <span class="n">a1</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
+<span class="k">volatile</span> <span class="kt">int</span> <span class="n">b1</span> <span class="o">=</span> <span class="mi">2</span><span class="p">;</span>
+
+<span class="kt">int</span> <span class="n">gI1</span> <span class="o">=</span> <span class="mi">100</span><span class="p">;</span>
+<span class="kt">int</span> <span class="n">gJ1</span> <span class="o">=</span> <span class="mi">50</span><span class="p">;</span>
+
+<span class="kt">int</span> <span class="nf">test_select_global_pic</span><span class="p">()</span>
 <span class="p">{</span>
   <span class="k">if</span> <span class="p">(</span><span class="n">a1</span> <span class="o">&lt;</span> <span class="n">b1</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">gI1</span><span class="p">;</span>
@@ -1815,7 +1834,8 @@ Cpu0ISelLowering.cpp for global variable printing operand function.</p>
 </pre></div>
 </div>
 <p class="rubric">lbdex/chapters/Chapter6_1/InstPrinter/Cpu0InstPrinter.cpp</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="k">static</span> <span class="kt">void</span> <span class="nf">printExpr</span><span class="p">(</span><span class="k">const</span> <span class="n">MCExpr</span> <span class="o">*</span><span class="n">Expr</span><span class="p">,</span> <span class="n">raw_ostream</span> <span class="o">&amp;</span><span class="n">OS</span><span class="p">)</span> <span class="p">{</span>
+<div class="highlight-c++"><div class="highlight"><pre><span class="k">static</span> <span class="kt">void</span> <span class="nf">printExpr</span><span class="p">(</span><span class="k">const</span> <span class="n">MCExpr</span> <span class="o">*</span><span class="n">Expr</span><span class="p">,</span> <span class="k">const</span> <span class="n">MCAsmInfo</span> <span class="o">*</span><span class="n">MAI</span><span class="p">,</span>
+                      <span class="n">raw_ostream</span> <span class="o">&amp;</span><span class="n">OS</span><span class="p">)</span> <span class="p">{</span>
 </pre></div>
 </div>
 <div class="highlight-c++"><div class="highlight"><pre><span class="c1">// Cpu0_GPREL is for llc -march=cpu0 -relocation-model=static</span>
@@ -1861,8 +1881,8 @@ Backend set global address as Custom operation by
 <strong>”setOperationAction(ISD::GlobalAddress, MVT::i32, Custom);”</strong> in
 Cpu0TargetLowering() constructor.
 Different address mode create their own DAG list at run time.
-By set the pattern Pat&lt;&gt; in Cpu0InstrInfo.td, the llvm can apply the compiler
-mechanism, pattern match, in the Instruction Selection stage.</p>
+By setting the pattern Pat&lt;&gt; in Cpu0InstrInfo.td, the llvm can apply the
+compiler mechanism, pattern match, in the Instruction Selection stage.</p>
 <p>There are three types for setXXXAction(), Promote, Expand and Custom.
 Except Custom, the other two maybe no need to coding.
 Here <a class="footnote-reference" href="#id8" id="id5">[3]</a> is the references.</p>

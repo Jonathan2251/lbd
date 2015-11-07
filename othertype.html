@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '3.7.0',
+        VERSION:     '3.7.1',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -54,22 +54,23 @@
 <span id="sec-othertypesupport"></span><h1>Other data type<a class="headerlink" href="#other-data-type" title="Permalink to this headline">¶</a></h1>
 <div class="contents local topic" id="contents">
 <ul class="simple">
-<li><a class="reference internal" href="#local-variable-pointer" id="id3">Local variable pointer</a></li>
-<li><a class="reference internal" href="#char-short-int-and-bool" id="id4">char, short int and bool</a></li>
-<li><a class="reference internal" href="#long-long" id="id5">long long</a></li>
-<li><a class="reference internal" href="#float-and-double" id="id6">float and double</a></li>
-<li><a class="reference internal" href="#array-and-struct-support" id="id7">Array and struct support</a></li>
+<li><a class="reference internal" href="#local-variable-pointer" id="id4">Local variable pointer</a></li>
+<li><a class="reference internal" href="#char-short-int-and-bool" id="id5">char, short int and bool</a></li>
+<li><a class="reference internal" href="#long-long" id="id6">long long</a></li>
+<li><a class="reference internal" href="#float-and-double" id="id7">float and double</a></li>
+<li><a class="reference internal" href="#array-and-struct-support" id="id8">Array and struct support</a></li>
+<li><a class="reference internal" href="#vector-type-simd-support" id="id9">Vector type (SIMD) support</a></li>
 </ul>
 </div>
 <p>Until now, we only handle both int and long type of 32 bits size.
 This chapter introduce other types, such as pointer and those
 are not 32-bit size which inlcude bool, char, short int and long long.</p>
 <div class="section" id="local-variable-pointer">
-<h2><a class="toc-backref" href="#id3">Local variable pointer</a><a class="headerlink" href="#local-variable-pointer" title="Permalink to this headline">¶</a></h2>
+<h2><a class="toc-backref" href="#id4">Local variable pointer</a><a class="headerlink" href="#local-variable-pointer" title="Permalink to this headline">¶</a></h2>
 <p>To support pointer to local variable, add this code fragment in
 Cpu0InstrInfo.td and Cpu0InstPrinter.cpp as follows,</p>
 <p class="rubric">lbdex/chapters/Chapter7_1/Cpu0InstrInfo.td</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="n">def</span> <span class="n">mem_ea</span> <span class="o">:</span> <span class="n">Operand</span><span class="o">&lt;</span><span class="n">i32</span><span class="o">&gt;</span> <span class="p">{</span>
+<div class="highlight-c++"><div class="highlight"><pre><span class="n">def</span> <span class="n">mem_ea</span> <span class="o">:</span> <span class="n">Operand</span><span class="o">&lt;</span><span class="n">iPTR</span><span class="o">&gt;</span> <span class="p">{</span>
   <span class="n">let</span> <span class="n">PrintMethod</span> <span class="o">=</span> <span class="s">&quot;printMemOperandEA&quot;</span><span class="p">;</span>
   <span class="n">let</span> <span class="n">MIOperandInfo</span> <span class="o">=</span> <span class="p">(</span><span class="n">ops</span> <span class="n">CPURegs</span><span class="p">,</span> <span class="n">simm16</span><span class="p">);</span>
   <span class="n">let</span> <span class="n">EncoderMethod</span> <span class="o">=</span> <span class="s">&quot;getMemEncoding&quot;</span><span class="p">;</span>
@@ -111,10 +112,10 @@ Cpu0InstrInfo.td and Cpu0InstPrinter.cpp as follows,</p>
 </div>
 <p>As comment in Cpu0InstPrinter.cpp, the printMemOperandEA is added at early
 chapter 3_2 since the DAG data node, mem_ea of Cpu0InstrInfo.td, cannot be
-disabled by ch7_1, only opcode node can be disabled.
-Run ch7_1.cpp with code Chapter7_1/ which support pointer to local variable,
+disabled by ch7_1_localpointer, only opcode node can be disabled.
+Run ch7_1_localpointer.cpp with code Chapter7_1/ which support pointer to local variable,
 will get result as follows,</p>
-<p class="rubric">lbdex/input/ch7_1.cpp</p>
+<p class="rubric">lbdex/input/ch7_1_localpointer.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="kt">int</span> <span class="nf">test_local_pointer</span><span class="p">()</span>
 <span class="p">{</span>
   <span class="kt">int</span> <span class="n">b</span> <span class="o">=</span> <span class="mi">3</span><span class="p">;</span>
@@ -126,8 +127,8 @@ will get result as follows,</p>
 </pre></div>
 </div>
 <div class="highlight-bash"><div class="highlight"><pre>118-165-66-82:input Jonathan<span class="nv">$ </span>clang -target mips-unknown-linux-gnu -c
-ch7_1.cpp -emit-llvm -o ch7_1.bc
-118-165-66-82:input Jonathan<span class="nv">$ </span>llvm-dis ch7_1.bc -o -
+ch7_1_localpointer.cpp -emit-llvm -o ch7_1_localpointer.bc
+118-165-66-82:input Jonathan<span class="nv">$ </span>llvm-dis ch7_1_localpointer.bc -o -
 ...
 ; Function Attrs: nounwind
 define i32 @_Z18test_local_pointerv<span class="o">()</span> <span class="c">#0 {</span>
@@ -143,7 +144,7 @@ define i32 @_Z18test_local_pointerv<span class="o">()</span> <span class="c">#0 
 
 118-165-66-82:input Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/test/cmake_
 debug_build/Debug/bin/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>pic -filetype<span class="o">=</span>asm
-ch7_1.bc -o -
+ch7_1_localpointer.bc -o -
   ...
         addiu <span class="nv">$sp</span>, <span class="nv">$sp</span>, -8
         addiu <span class="nv">$2</span>, <span class="nv">$zero</span>, 3
@@ -158,7 +159,7 @@ ch7_1.bc -o -
 </div>
 </div>
 <div class="section" id="char-short-int-and-bool">
-<h2><a class="toc-backref" href="#id4">char, short int and bool</a><a class="headerlink" href="#char-short-int-and-bool" title="Permalink to this headline">¶</a></h2>
+<h2><a class="toc-backref" href="#id5">char, short int and bool</a><a class="headerlink" href="#char-short-int-and-bool" title="Permalink to this headline">¶</a></h2>
 <p>To support signed/unsigned type of char and short int, adding the following
 code to Chapter7_1/.</p>
 <p class="rubric">lbdex/chapters/Chapter7_1/Cpu0InstrInfo.td</p>
@@ -180,8 +181,8 @@ code to Chapter7_1/.</p>
 <span class="p">}</span>
 </pre></div>
 </div>
-<p>Run Chapter7_1/ with ch7_2.cpp will get the following result.</p>
-<p class="rubric">lbdex/input/ch7_2.cpp</p>
+<p>Run Chapter7_1/ with ch7_1_char_in_struct.cpp will get the following result.</p>
+<p class="rubric">lbdex/input/ch7_1_char_in_struct.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="k">struct</span> <span class="n">Date</span>
 <span class="p">{</span>
   <span class="kt">short</span> <span class="n">year</span><span class="p">;</span>
@@ -207,7 +208,7 @@ code to Chapter7_1/.</p>
 </pre></div>
 </div>
 <div class="highlight-bash"><div class="highlight"><pre>118-165-64-245:input Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/test/cmake_debug_build/
-Debug/bin/llvm-dis ch7_2.bc -o -
+Debug/bin/llvm-dis ch7_1_char_in_struct.bc -o -
 define i32 @_Z9test_charv<span class="o">()</span> <span class="c">#0 {</span>
   %a <span class="o">=</span> alloca i8, align 1
   %c <span class="o">=</span> alloca i8, align 1
@@ -231,9 +232,10 @@ define i32 @_Z9test_charv<span class="o">()</span> <span class="c">#0 {</span>
 <span class="o">}</span>
 
 118-165-64-245:input Jonathan<span class="nv">$ </span>clang -target mips-unknown-linux-gnu -c
-ch7_2.cpp -emit-llvm -o ch7_2.bc
+ch7_1_char_in_struct.cpp -emit-llvm -o ch7_1_char_in_struct.bc
 118-165-64-245:input Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/test/cmake_debug_build/
-Debug/bin/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>pic -filetype<span class="o">=</span>asm ch7_2.bc -o -
+Debug/bin/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>pic -filetype<span class="o">=</span>asm
+ch7_1_char_in_struct.bc -o -
   ...
 <span class="c"># BB#0:                                 # %entry</span>
   addiu <span class="nv">$sp</span>, <span class="nv">$sp</span>, -24
@@ -289,8 +291,8 @@ b:
   .size <span class="nv">$_ZZ9test_charvE5date1</span>, 8
 </pre></div>
 </div>
-<p>Run Chapter7_1/ with ch7_2_2.cpp will get the following result.</p>
-<p class="rubric">lbdex/input/ch7_2_2.cpp</p>
+<p>Run Chapter7_1/ with ch7_1_char_short.cpp will get the following result.</p>
+<p class="rubric">lbdex/input/ch7_1_char_short.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="kt">int</span> <span class="nf">test_signed_char</span><span class="p">()</span>
 <span class="p">{</span>
   <span class="kt">char</span> <span class="n">a</span> <span class="o">=</span> <span class="mh">0x80</span><span class="p">;</span>
@@ -330,7 +332,7 @@ b:
 </pre></div>
 </div>
 <div class="highlight-bash"><div class="highlight"><pre>1-160-136-236:input Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/test/cmake_debug_build/
-Debug/bin/llvm-dis ch7_2_2.bc -o -
+Debug/bin/llvm-dis ch7_1_char_short.bc -o -
   ...
 define i32 @_Z16test_signed_charv<span class="o">()</span> <span class="c">#0 {</span>
   ...
@@ -366,7 +368,7 @@ define i32 @_Z19test_unsigned_shortv<span class="o">()</span> <span class="c">#0
 attributes <span class="c">#0 = { nounwind }</span>
 
 1-160-136-236:input Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/test/cmake_debug_build/
-Debug/bin/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>static -filetype<span class="o">=</span>asm ch7_2_2.bc -o -
+Debug/bin/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>static -filetype<span class="o">=</span>asm ch7_1_char_short.bc -o -
   ...
   .globl  _Z16test_signed_charv
   ...
@@ -426,8 +428,8 @@ Their differences have been explained in Chapter 2.</p>
 </pre></div>
 </div>
 <p>The setBooleanContents() purpose as following, but I don&#8217;t know it well.
-Without it, the ch7_3.ll still works as below.
-The IR input file ch7_3.ll is used in testing here since the c++ version
+Without it, the ch7_1_bool2.ll still works as below.
+The IR input file ch7_1_bool2.ll is used in testing here since the c++ version
 need flow control which is not supported at this point.
 File ch_run_backend.cpp include the test fragment for bool as below.</p>
 <p class="rubric">include/llvm/Target/TargetLowering.h</p>
@@ -449,22 +451,22 @@ File ch_run_backend.cpp include the test fragment for bool as below.</p>
   <span class="p">}</span>
 </pre></div>
 </div>
-<p class="rubric">lbdex/input/ch7_3.ll</p>
+<p class="rubric">lbdex/input/ch7_1_bool2.ll</p>
 <div class="highlight-c++"><pre>define zeroext i1 @verify_load_bool() #0 {
 entry:
   %retval = alloca i1, align 1
   store i1 1, i1* %retval, align 1
-  %0 = load i1* %retval
+  %0 = load i1, i1* %retval
   ret i1 %0
 }
 </pre>
 </div>
 <div class="highlight-bash"><div class="highlight"><pre>  118-165-64-245:input Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/test/cmake_debug_build/
-  Debug/bin/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>pic -filetype<span class="o">=</span>asm ch7_3.ll -o -
+  Debug/bin/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>pic -filetype<span class="o">=</span>asm ch7_1_bool2.ll -o -
 
   .section .mdebug.abi32
   .previous
-  .file <span class="s2">&quot;ch7_3.ll&quot;</span>
+  .file <span class="s2">&quot;ch7_1_bool2.ll&quot;</span>
   .text
   .globl  verify_load_bool
   .align  2
@@ -492,9 +494,9 @@ verify_load_bool:
   .cfi_endproc
 </pre></div>
 </div>
-<p>The ch7_3.cpp is the bool test version for C language.
-You can run with it at Chapter8_1 to get the similar result with ch7_3.ll.</p>
-<p class="rubric">lbdex/input/ch7_3.cpp</p>
+<p>The ch7_1_bool.cpp is the bool test version for C language.
+You can run with it at Chapter8_1 to get the similar result with ch7_1_bool2.ll.</p>
+<p class="rubric">lbdex/input/ch7_1_bool.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="kt">bool</span> <span class="nf">test_load_bool</span><span class="p">()</span>
 <span class="p">{</span>
   <span class="kt">int</span> <span class="n">a</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
@@ -508,7 +510,7 @@ You can run with it at Chapter8_1 to get the similar result with ch7_3.ll.</p>
 </div>
 <p>Summary as the following table.</p>
 <table border="1" class="docutils">
-<caption>The C, IR, and DAG translation for char, short and bool translation (ch7_2_2.cpp and ch7_3.ll).</caption>
+<caption>The C, IR, and DAG translation for char, short and bool translation (ch7_1_char_short.cpp and ch7_1_bool2.ll).</caption>
 <colgroup>
 <col width="33%" />
 <col width="32%" />
@@ -586,7 +588,7 @@ You can run with it at Chapter8_1 to get the similar result with ch7_3.ll.</p>
 </tbody>
 </table>
 <table border="1" class="docutils">
-<caption>The backend translation for char, short and bool translation (ch7_2_2.cpp and ch7_3.ll).</caption>
+<caption>The backend translation for char, short and bool translation (ch7_1_char_short.cpp and ch7_1_bool2.ll).</caption>
 <colgroup>
 <col width="41%" />
 <col width="8%" />
@@ -627,7 +629,7 @@ You can run with it at Chapter8_1 to get the similar result with ch7_3.ll.</p>
 </table>
 </div>
 <div class="section" id="long-long">
-<h2><a class="toc-backref" href="#id5">long long</a><a class="headerlink" href="#long-long" title="Permalink to this headline">¶</a></h2>
+<h2><a class="toc-backref" href="#id6">long long</a><a class="headerlink" href="#long-long" title="Permalink to this headline">¶</a></h2>
 <p>Like Mips, the type long of Cpu0 is 32-bit and type long long is 64-bit for C
 language. To support type long long, we add the following code to
 Chapter7_1/.</p>
@@ -750,8 +752,8 @@ SRA_PARTS and SRL_PARTS those which take care the 32 bits operands during llvm
 DAGs translation.
 File ch9_7.cpp of 64-bit shift operations cannot be run at this
 point. It will be verified on later chapter &#8220;Function call&#8221;.</p>
-<p>Run Chapter7_1 with ch7_4.cpp to get the result as follows,</p>
-<p class="rubric">lbdex/input/ch7_4.cpp</p>
+<p>Run Chapter7_1 with ch7_1_longlong.cpp to get the result as follows,</p>
+<p class="rubric">lbdex/input/ch7_1_longlong.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="kt">long</span> <span class="kt">long</span> <span class="nf">test_longlong</span><span class="p">()</span>
 <span class="p">{</span>
   <span class="kt">long</span> <span class="kt">long</span> <span class="n">a</span> <span class="o">=</span> <span class="mh">0x300000002</span><span class="p">;</span>
@@ -769,10 +771,10 @@ point. It will be verified on later chapter &#8220;Function call&#8221;.</p>
 </pre></div>
 </div>
 <div class="highlight-bash"><div class="highlight"><pre>1-160-134-62:input Jonathan<span class="nv">$ </span>clang -target mips-unknown-linux-gnu -c
-ch7_4.cpp -emit-llvm -o ch7_4.bc
+ch7_1_longlong.cpp -emit-llvm -o ch7_1_longlong.bc
 1-160-134-62:input Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/test/cmake_debug_build/
 Debug/bin/llc -march<span class="o">=</span>cpu0 -mcpu<span class="o">=</span>cpu032I -relocation-model<span class="o">=</span>pic -filetype<span class="o">=</span>asm
-ch7_4.bc -o -
+ch7_1_longlong.bc -o -
   ...
 <span class="c"># BB#0:</span>
         addiu <span class="nv">$sp</span>, <span class="nv">$sp</span>, -72
@@ -863,7 +865,7 @@ ch7_4.bc -o -
 </div>
 </div>
 <div class="section" id="float-and-double">
-<h2><a class="toc-backref" href="#id6">float and double</a><a class="headerlink" href="#float-and-double" title="Permalink to this headline">¶</a></h2>
+<h2><a class="toc-backref" href="#id7">float and double</a><a class="headerlink" href="#float-and-double" title="Permalink to this headline">¶</a></h2>
 <p>Cpu0 only has integer instructions at this point.
 For float operations, Cpu0 backend
 will call the library function to translate integer to float. This float (or
@@ -874,11 +876,11 @@ operations with a sperarate co-processor for those need float intended
 application.</p>
 </div>
 <div class="section" id="array-and-struct-support">
-<h2><a class="toc-backref" href="#id7">Array and struct support</a><a class="headerlink" href="#array-and-struct-support" title="Permalink to this headline">¶</a></h2>
+<h2><a class="toc-backref" href="#id8">Array and struct support</a><a class="headerlink" href="#array-and-struct-support" title="Permalink to this headline">¶</a></h2>
 <p>LLVM uses getelementptr to represent the array and struct type in C.
-Please reference here <a class="footnote-reference" href="#id2" id="id1">[1]</a>.
-For ch7_5.cpp, the llvm IR as follows,</p>
-<p class="rubric">lbdex/input/ch7_5.cpp</p>
+Please reference here <a class="footnote-reference" href="#id3" id="id1">[1]</a>.
+For ch7_1_globalstructoffset.cpp, the llvm IR as follows,</p>
+<p class="rubric">lbdex/input/ch7_1_globalstructoffset.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="k">struct</span> <span class="n">Date</span>
 <span class="p">{</span>
   <span class="kt">int</span> <span class="n">year</span><span class="p">;</span>
@@ -898,8 +900,8 @@ For ch7_5.cpp, the llvm IR as follows,</p>
 <span class="p">}</span>
 </pre></div>
 </div>
-<div class="highlight-bash"><div class="highlight"><pre>// ch7_5.ll
-; <span class="nv">ModuleID</span> <span class="o">=</span> <span class="s1">&#39;ch7_5.bc&#39;</span>
+<div class="highlight-bash"><div class="highlight"><pre>// ch7_1_globalstructoffset.ll
+; <span class="nv">ModuleID</span> <span class="o">=</span> <span class="s1">&#39;ch7_1_globalstructoffset.bc&#39;</span>
 ...
 %struct.Date <span class="o">=</span> <span class="nb">type</span> <span class="o">{</span> i32, i32, i32 <span class="o">}</span>
 
@@ -921,10 +923,11 @@ define i32 @_Z11test_structv<span class="o">()</span> <span class="c">#0 {</span
 <span class="o">}</span>
 </pre></div>
 </div>
-<p>Run Chapter6_1/ with ch7_5.bc on static mode will get the incorrect asm file as
-follows,</p>
+<p>Run Chapter6_1/ with ch7_1_globalstructoffset.bc on static mode will get the
+incorrect asm file as follows,</p>
 <div class="highlight-bash"><div class="highlight"><pre>1-160-134-62:input Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/test/cmake_debug_build/bin/
-Debug/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>static -filetype<span class="o">=</span>asm ch7_5.bc -o -
+Debug/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>static -filetype<span class="o">=</span>asm
+ch7_1_globalstructoffset.bc -o -
   ...
   lui <span class="nv">$2</span>, %hi<span class="o">(</span>date<span class="o">)</span>
   ori <span class="nv">$2</span>, <span class="nv">$2</span>, %lo<span class="o">(</span>date<span class="o">)</span>
@@ -1135,9 +1138,9 @@ Offset = Constant&lt;8&gt;.
 After set Base and Offset, the load DAG will translate the global address
 date.day into machine instruction <strong>“ld $r1, 8($r2)”</strong> in Instruction Selection
 stage.</p>
-<p>Chapter7_1/ include these changes as above, you can run it with ch7_5.cpp to get
-the correct generated instruction <strong>“ld $r1, 8($r2)”</strong> for date.day access, as
-follows.</p>
+<p>Chapter7_1/ include these changes as above, you can run it with
+ch7_1_globalstructoffset.cpp to get the correct generated instruction
+<strong>“ld $r1, 8($r2)”</strong> for date.day access, as follows.</p>
 <div class="highlight-bash"><div class="highlight"><pre>...
       lui   <span class="nv">$2</span>, %hi<span class="o">(</span>date<span class="o">)</span>
       ori   <span class="nv">$2</span>, <span class="nv">$2</span>, %lo<span class="o">(</span>date<span class="o">)</span>
@@ -1145,9 +1148,9 @@ follows.</p>
 ...
 </pre></div>
 </div>
-<p>The ch7_5_2.cpp is for local variable initialization test. The result as
-follows,</p>
-<p class="rubric">lbdex/input/ch7_5_2.cpp</p>
+<p>The ch7_1_localarrayinit.cpp is for local variable initialization test.
+The result as follows,</p>
+<p class="rubric">lbdex/input/ch7_1_localarrayinit.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="kt">int</span> <span class="nf">main</span><span class="p">()</span>
 <span class="p">{</span>
   <span class="kt">int</span> <span class="n">a</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span><span class="o">=</span><span class="p">{</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">};</span>
@@ -1156,7 +1159,9 @@ follows,</p>
 <span class="p">}</span>
 </pre></div>
 </div>
-<div class="highlight-bash"><div class="highlight"><pre>118-165-79-206:input Jonathan<span class="nv">$ </span>llvm-dis ch7_5_2.bc -o -
+<div class="highlight-bash"><div class="highlight"><pre>118-165-79-206:input Jonathan<span class="nv">$ </span>clang -target mips-unknown-linux-gnu -c
+ch7_1_localarrayinit.cpp -emit-llvm -o ch7_1_localarrayinit.bc
+118-165-79-206:input Jonathan<span class="nv">$ </span>llvm-dis ch7_1_localarrayinit.bc -o -
 ...
 define i32 @main<span class="o">()</span> nounwind ssp <span class="o">{</span>
 entry:
@@ -1172,7 +1177,7 @@ entry:
 <span class="nb">declare </span>void @llvm.memcpy.p0i8.p0i8.i32<span class="o">(</span>i8* nocapture, i8* nocapture, i32, i32, i1<span class="o">)</span> <span class="c">#1</span>
 
 118-165-79-206:input Jonathan<span class="nv">$ </span>~/llvm/test/cmake_debug_build/
-bin/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>pic -filetype<span class="o">=</span>asm ch7_5_2.bc -o -
+bin/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>pic -filetype<span class="o">=</span>asm ch7_1_localarrayinit.bc -o -
         ...
 <span class="c"># BB#0:                                 # %entry</span>
         addiu <span class="nv">$sp</span>, <span class="nv">$sp</span>, -16
@@ -1199,10 +1204,136 @@ bin/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</s
         .size <span class="nv">$_ZZ4mainE1a</span>, 12
 </pre></div>
 </div>
-<table class="docutils footnote" frame="void" id="id2" rules="none">
+</div>
+<div class="section" id="vector-type-simd-support">
+<h2><a class="toc-backref" href="#id9">Vector type (SIMD) support</a><a class="headerlink" href="#vector-type-simd-support" title="Permalink to this headline">¶</a></h2>
+<p>Vector types are used when multiple primitive data are operated in parallel
+using a single instruction (SIMD) <a class="footnote-reference" href="#vector" id="id2">[2]</a>. Since Mips supports the
+following llvm IRs &#8220;icmp slt&#8221; and &#8220;sext&#8221; for vector type, Cpu0 supports them
+too.</p>
+<p class="rubric">lbdex/input/ch7_1_vector.cpp</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="k">typedef</span> <span class="kt">long</span>   <span class="n">vector8long</span>   <span class="nf">__attribute__</span><span class="p">((</span><span class="n">__vector_size__</span><span class="p">(</span><span class="mi">32</span><span class="p">)));</span>
+<span class="k">typedef</span> <span class="kt">long</span>   <span class="n">vector8short</span>   <span class="nf">__attribute__</span><span class="p">((</span><span class="n">__vector_size__</span><span class="p">(</span><span class="mi">16</span><span class="p">)));</span>
+<span class="k">typedef</span> <span class="kt">bool</span>   <span class="n">vector8bool</span>   <span class="nf">__attribute__</span><span class="p">((</span><span class="n">__ext_vector_type__</span><span class="p">(</span><span class="mi">8</span><span class="p">)));</span>
+
+
+<span class="kt">int</span> <span class="nf">test_cmplt_short</span><span class="p">()</span> <span class="p">{</span>
+  <span class="k">volatile</span> <span class="n">vector8short</span> <span class="n">a0</span> <span class="o">=</span> <span class="p">{</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">};</span>
+  <span class="k">volatile</span> <span class="n">vector8short</span> <span class="n">b0</span> <span class="o">=</span> <span class="p">{</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">};</span>
+  <span class="k">volatile</span> <span class="n">vector8short</span> <span class="n">c0</span><span class="p">;</span>
+  <span class="n">c0</span> <span class="o">=</span> <span class="n">a0</span> <span class="o">&lt;</span> <span class="n">b0</span><span class="p">;</span> <span class="c1">// c0[0] = -2147483647=0x80000001, c0[1] = -2147483647=0x80000001, c0[2] = 0, c0[3] = 0</span>
+  
+  <span class="k">return</span> <span class="p">(</span><span class="kt">int</span><span class="p">)(</span><span class="n">c0</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">+</span><span class="n">c0</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">+</span><span class="n">c0</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">+</span><span class="n">c0</span><span class="p">[</span><span class="mi">3</span><span class="p">]);</span> <span class="c1">// 2</span>
+<span class="p">}</span>
+
+<span class="kt">int</span> <span class="nf">test_cmplt_long</span><span class="p">()</span> <span class="p">{</span>
+  <span class="k">volatile</span> <span class="n">vector8long</span> <span class="n">a0</span> <span class="o">=</span> <span class="p">{</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">};</span>
+  <span class="k">volatile</span> <span class="n">vector8long</span> <span class="n">b0</span> <span class="o">=</span> <span class="p">{</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">};</span>
+  <span class="k">volatile</span> <span class="n">vector8long</span> <span class="n">c0</span><span class="p">;</span>
+  <span class="n">c0</span> <span class="o">=</span> <span class="n">a0</span> <span class="o">&lt;</span> <span class="n">b0</span><span class="p">;</span> <span class="c1">// c0[0..3] = {0, 0, ...}, c0[4..7] = {-2147483647=0x80000001, ...}</span>
+  
+  <span class="k">return</span> <span class="p">(</span><span class="n">c0</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">+</span><span class="n">c0</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">+</span><span class="n">c0</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">+</span><span class="n">c0</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span><span class="o">+</span><span class="n">c0</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span><span class="o">+</span><span class="n">c0</span><span class="p">[</span><span class="mi">5</span><span class="p">]</span><span class="o">+</span><span class="n">c0</span><span class="p">[</span><span class="mi">6</span><span class="p">]</span><span class="o">+</span><span class="n">c0</span><span class="p">[</span><span class="mi">7</span><span class="p">]);</span> <span class="c1">//4</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<div class="highlight-bash"><div class="highlight"><pre>118-165-79-206:input Jonathan<span class="nv">$ </span>clang -target mips-unknown-linux-gnu -c
+ch7_1_localpointer_vector.cpp -emit-llvm -o ch7_1_vector.bc
+118-165-79-206:input Jonathan<span class="nv">$ </span>~/llvm/test/cmake_debug_build/Debug/bin/
+llvm-dis ch7_1_vector.bc -o -
+
+...
+; Function Attrs: nounwind
+define i32 @_Z16test_cmplt_shortv<span class="o">()</span> <span class="c">#0 {</span>
+  %a0 <span class="o">=</span> alloca &lt;4 x i32&gt;, align 16
+  %b0 <span class="o">=</span> alloca &lt;4 x i32&gt;, align 16
+  %c0 <span class="o">=</span> alloca &lt;4 x i32&gt;, align 16
+  store volatile &lt;4 x i32&gt; &lt;i32 0, i32 1, i32 2, i32 3&gt;, &lt;4 x i32&gt;* %a0, align 16
+  store volatile &lt;4 x i32&gt; &lt;i32 2, i32 2, i32 2, i32 2&gt;, &lt;4 x i32&gt;* %b0, align 16
+  %1 <span class="o">=</span> load volatile &lt;4 x i32&gt;, &lt;4 x i32&gt;* %a0, align 16
+  %2 <span class="o">=</span> load volatile &lt;4 x i32&gt;, &lt;4 x i32&gt;* %b0, align 16
+  %3 <span class="o">=</span> icmp slt &lt;4 x i32&gt; %1, %2
+  %4 <span class="o">=</span> sext &lt;4 x i1&gt; %3 to &lt;4 x i32&gt;
+  store volatile &lt;4 x i32&gt; %4, &lt;4 x i32&gt;* %c0, align 16
+  %5 <span class="o">=</span> load volatile &lt;4 x i32&gt;, &lt;4 x i32&gt;* %c0, align 16
+  %6 <span class="o">=</span> extractelement &lt;4 x i32&gt; %5, i32 0
+  %7 <span class="o">=</span> load volatile &lt;4 x i32&gt;, &lt;4 x i32&gt;* %c0, align 16
+  %8 <span class="o">=</span> extractelement &lt;4 x i32&gt; %7, i32 1
+  %9 <span class="o">=</span> add nsw i32 %6, %8
+  %10 <span class="o">=</span> load volatile &lt;4 x i32&gt;, &lt;4 x i32&gt;* %c0, align 16
+  %11 <span class="o">=</span> extractelement &lt;4 x i32&gt; %10, i32 2
+  %12 <span class="o">=</span> add nsw i32 %9, %11
+  %13 <span class="o">=</span> load volatile &lt;4 x i32&gt;, &lt;4 x i32&gt;* %c0, align 16
+  %14 <span class="o">=</span> extractelement &lt;4 x i32&gt; %13, i32 3
+  %15 <span class="o">=</span> add nsw i32 %12, %14
+  ret i32 %15
+<span class="o">}</span>
+
+; Function Attrs: nounwind
+define i32 @_Z15test_cmplt_longv<span class="o">()</span> <span class="c">#0 {</span>
+  %a0 <span class="o">=</span> alloca &lt;8 x i32&gt;, align 32
+  %b0 <span class="o">=</span> alloca &lt;8 x i32&gt;, align 32
+  %c0 <span class="o">=</span> alloca &lt;8 x i32&gt;, align 32
+  store volatile &lt;8 x i32&gt; &lt;i32 2, i32 2, i32 2, i32 2, i32 1, i32 1, i32 1,
+  i32 1&gt;, &lt;8 x i32&gt;* %a0, align 32
+  store volatile &lt;8 x i32&gt; &lt;i32 1, i32 1, i32 1, i32 1, i32 2, i32 2, i32 2,
+  i32 2&gt;, &lt;8 x i32&gt;* %b0, align 32
+  %1 <span class="o">=</span> load volatile &lt;8 x i32&gt;, &lt;8 x i32&gt;* %a0, align 32
+  %2 <span class="o">=</span> load volatile &lt;8 x i32&gt;, &lt;8 x i32&gt;* %b0, align 32
+  %3 <span class="o">=</span> icmp slt &lt;8 x i32&gt; %1, %2
+  %4 <span class="o">=</span> sext &lt;8 x i1&gt; %3 to &lt;8 x i32&gt;
+  store volatile &lt;8 x i32&gt; %4, &lt;8 x i32&gt;* %c0, align 32
+  %5 <span class="o">=</span> load volatile &lt;8 x i32&gt;, &lt;8 x i32&gt;* %c0, align 32
+  %6 <span class="o">=</span> extractelement &lt;8 x i32&gt; %5, i32 0
+  %7 <span class="o">=</span> load volatile &lt;8 x i32&gt;, &lt;8 x i32&gt;* %c0, align 32
+  %8 <span class="o">=</span> extractelement &lt;8 x i32&gt; %7, i32 1
+  %9 <span class="o">=</span> add nsw i32 %6, %8
+  %10 <span class="o">=</span> load volatile &lt;8 x i32&gt;, &lt;8 x i32&gt;* %c0, align 32
+  %11 <span class="o">=</span> extractelement &lt;8 x i32&gt; %10, i32 2
+  %12 <span class="o">=</span> add nsw i32 %9, %11
+  %13 <span class="o">=</span> load volatile &lt;8 x i32&gt;, &lt;8 x i32&gt;* %c0, align 32
+  %14 <span class="o">=</span> extractelement &lt;8 x i32&gt; %13, i32 3
+  %15 <span class="o">=</span> add nsw i32 %12, %14
+  %16 <span class="o">=</span> load volatile &lt;8 x i32&gt;, &lt;8 x i32&gt;* %c0, align 32
+  %17 <span class="o">=</span> extractelement &lt;8 x i32&gt; %16, i32 4
+  %18 <span class="o">=</span> add nsw i32 %15, %17
+  %19 <span class="o">=</span> load volatile &lt;8 x i32&gt;, &lt;8 x i32&gt;* %c0, align 32
+  %20 <span class="o">=</span> extractelement &lt;8 x i32&gt; %19, i32 5
+  %21 <span class="o">=</span> add nsw i32 %18, %20
+  %22 <span class="o">=</span> load volatile &lt;8 x i32&gt;, &lt;8 x i32&gt;* %c0, align 32
+  %23 <span class="o">=</span> extractelement &lt;8 x i32&gt; %22, i32 6
+  %24 <span class="o">=</span> add nsw i32 %21, %23
+  %25 <span class="o">=</span> load volatile &lt;8 x i32&gt;, &lt;8 x i32&gt;* %c0, align 32
+  %26 <span class="o">=</span> extractelement &lt;8 x i32&gt; %25, i32 7
+  %27 <span class="o">=</span> add nsw i32 %24, %26
+  ret i32 %27
+<span class="o">}</span>
+</pre></div>
+</div>
+<p class="rubric">lbdex/chapters/Chapter7_1/Cpu0ISelLowering.h</p>
+<div class="highlight-c++"><div class="highlight"><pre>    <span class="c1">/// getSetCCResultType - get the ISD::SETCC result ValueType</span>
+    <span class="n">EVT</span> <span class="n">getSetCCResultType</span><span class="p">(</span><span class="k">const</span> <span class="n">DataLayout</span> <span class="o">&amp;</span><span class="n">DL</span><span class="p">,</span> <span class="n">LLVMContext</span> <span class="o">&amp;</span><span class="n">Context</span><span class="p">,</span>
+                           <span class="n">EVT</span> <span class="n">VT</span><span class="p">)</span> <span class="k">const</span> <span class="n">override</span><span class="p">;</span>
+</pre></div>
+</div>
+<p class="rubric">lbdex/chapters/Chapter7_1/Cpu0ISelLowering.cpp</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="n">EVT</span> <span class="n">Cpu0TargetLowering</span><span class="o">::</span><span class="n">getSetCCResultType</span><span class="p">(</span><span class="k">const</span> <span class="n">DataLayout</span> <span class="o">&amp;</span><span class="p">,</span> <span class="n">LLVMContext</span> <span class="o">&amp;</span><span class="p">,</span>
+                                           <span class="n">EVT</span> <span class="n">VT</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
+  <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">VT</span><span class="p">.</span><span class="n">isVector</span><span class="p">())</span>
+    <span class="k">return</span> <span class="n">MVT</span><span class="o">::</span><span class="n">i32</span><span class="p">;</span>
+  <span class="k">return</span> <span class="n">VT</span><span class="p">.</span><span class="n">changeVectorElementTypeToInteger</span><span class="p">();</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<table class="docutils footnote" frame="void" id="id3" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
 <tr><td class="label"><a class="fn-backref" href="#id1">[1]</a></td><td><a class="reference external" href="http://llvm.org/docs/LangRef.html#getelementptr-instruction">http://llvm.org/docs/LangRef.html#getelementptr-instruction</a></td></tr>
+</tbody>
+</table>
+<table class="docutils footnote" frame="void" id="vector" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id2">[2]</a></td><td><a class="reference external" href="http://llvm.org/docs/LangRef.html#vector-type">http://llvm.org/docs/LangRef.html#vector-type</a></td></tr>
 </tbody>
 </table>
 </div>

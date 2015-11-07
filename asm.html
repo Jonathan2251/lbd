@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '3.7.0',
+        VERSION:     '3.7.1',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -98,6 +98,7 @@ explanation. Please refer here <a class="footnote-reference" href="#id4" id="id1
 <span class="k">asm</span><span class="p">(</span><span class="s">&quot;jgt $sw, -4&quot;</span><span class="p">);</span>
 <span class="k">asm</span><span class="p">(</span><span class="s">&quot;jge $sw, -12&quot;</span><span class="p">);</span>
 <span class="k">asm</span><span class="p">(</span><span class="s">&quot;jsub 0x000010000&quot;</span><span class="p">);</span>
+<span class="k">asm</span><span class="p">(</span><span class="s">&quot;jr $4&quot;</span><span class="p">);</span>
 <span class="k">asm</span><span class="p">(</span><span class="s">&quot;ret $lr&quot;</span><span class="p">);</span>
 <span class="k">asm</span><span class="p">(</span><span class="s">&quot;jalr $t9&quot;</span><span class="p">);</span>
 <span class="k">asm</span><span class="p">(</span><span class="s">&quot;li $3, 0x00700000&quot;</span><span class="p">);</span>
@@ -1010,6 +1011,10 @@ The Chapter11_1/ include AsmParser implementation as follows,</p>
   <span class="c1">// Create the leading tokens for the mnemonic, split by &#39;.&#39; characters.</span>
   <span class="kt">size_t</span> <span class="n">Start</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">Next</span> <span class="o">=</span> <span class="n">Name</span><span class="p">.</span><span class="n">find</span><span class="p">(</span><span class="sc">&#39;.&#39;</span><span class="p">);</span>
   <span class="n">StringRef</span> <span class="n">Mnemonic</span> <span class="o">=</span> <span class="n">Name</span><span class="p">.</span><span class="n">slice</span><span class="p">(</span><span class="n">Start</span><span class="p">,</span> <span class="n">Next</span><span class="p">);</span>
+  <span class="c1">// Refer to the explanation in source code of function DecodeJumpFR(...) in </span>
+  <span class="c1">// Cpu0Disassembler.cpp</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">Mnemonic</span> <span class="o">==</span> <span class="s">&quot;ret&quot;</span><span class="p">)</span>
+    <span class="n">Mnemonic</span> <span class="o">=</span> <span class="s">&quot;jr&quot;</span><span class="p">;</span>
 
   <span class="n">Operands</span><span class="p">.</span><span class="n">push_back</span><span class="p">(</span><span class="n">Cpu0Operand</span><span class="o">::</span><span class="n">CreateToken</span><span class="p">(</span><span class="n">Mnemonic</span><span class="p">,</span> <span class="n">NameLoc</span><span class="p">));</span>
 
@@ -1495,8 +1500,8 @@ because AsmParser uses them when do register number encode.</p>
 
 <span class="c1">//#if CH &gt;= CH4_1 1</span>
   <span class="c1">// Hi/Lo registers number and name</span>
-  <span class="n">def</span> <span class="n">HI</span>   <span class="o">:</span> <span class="n">Register</span><span class="o">&lt;</span><span class="s">&quot;hi&quot;</span><span class="o">&gt;</span><span class="p">,</span> <span class="n">DwarfRegNum</span><span class="o">&lt;</span><span class="p">[</span><span class="mi">18</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
-  <span class="n">def</span> <span class="n">LO</span>   <span class="o">:</span> <span class="n">Register</span><span class="o">&lt;</span><span class="s">&quot;lo&quot;</span><span class="o">&gt;</span><span class="p">,</span> <span class="n">DwarfRegNum</span><span class="o">&lt;</span><span class="p">[</span><span class="mi">19</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
+  <span class="n">def</span> <span class="n">HI</span>   <span class="o">:</span> <span class="n">Cpu0Reg</span><span class="o">&lt;</span><span class="mi">0</span><span class="p">,</span> <span class="s">&quot;ac0&quot;</span><span class="o">&gt;</span><span class="p">,</span> <span class="n">DwarfRegNum</span><span class="o">&lt;</span><span class="p">[</span><span class="mi">18</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
+  <span class="n">def</span> <span class="n">LO</span>   <span class="o">:</span> <span class="n">Cpu0Reg</span><span class="o">&lt;</span><span class="mi">0</span><span class="p">,</span> <span class="s">&quot;ac0&quot;</span><span class="o">&gt;</span><span class="p">,</span> <span class="n">DwarfRegNum</span><span class="o">&lt;</span><span class="p">[</span><span class="mi">19</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
 <span class="c1">//#endif</span>
   <span class="n">def</span> <span class="n">PC</span>   <span class="o">:</span> <span class="n">Cpu0C0Reg</span><span class="o">&lt;</span><span class="mi">0</span><span class="p">,</span> <span class="s">&quot;pc&quot;</span><span class="o">&gt;</span><span class="p">,</span>  <span class="n">DwarfRegNum</span><span class="o">&lt;</span><span class="p">[</span><span class="mi">20</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
   <span class="n">def</span> <span class="n">EPC</span>  <span class="o">:</span> <span class="n">Cpu0C0Reg</span><span class="o">&lt;</span><span class="mi">1</span><span class="p">,</span> <span class="s">&quot;epc&quot;</span><span class="o">&gt;</span><span class="p">,</span> <span class="n">DwarfRegNum</span><span class="o">&lt;</span><span class="p">[</span><span class="mi">21</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
@@ -1517,7 +1522,7 @@ because AsmParser uses them when do register number encode.</p>
   <span class="n">S0</span><span class="p">,</span> <span class="n">S1</span><span class="p">,</span>
   <span class="c1">// Reserved</span>
   <span class="n">GP</span><span class="p">,</span> <span class="n">FP</span><span class="p">,</span> 
-  <span class="n">SP</span><span class="p">,</span> <span class="n">LR</span><span class="p">,</span> <span class="n">SW</span><span class="p">,</span> <span class="n">PC</span><span class="p">,</span> <span class="n">EPC</span><span class="p">)</span><span class="o">&gt;</span><span class="p">;</span>
+  <span class="n">SP</span><span class="p">,</span> <span class="n">LR</span><span class="p">,</span> <span class="n">SW</span><span class="p">)</span><span class="o">&gt;</span><span class="p">;</span>
 </pre></div>
 </div>
 <p>Run Chapter11_1/ with ch11_1.cpp to get the correct result as follows,</p>
@@ -1908,24 +1913,16 @@ as follows,</p>
 <span class="p">}</span>
 </pre></div>
 </div>
-<p class="rubric">lbdex/chapters/Chapter11_2/Cpu0InstrInfo.h</p>
-<div class="highlight-c++"><div class="highlight"><pre>  <span class="c1">/// Return the number of bytes of code the specified instruction may be.</span>
-  <span class="kt">unsigned</span> <span class="n">GetInstSizeInBytes</span><span class="p">(</span><span class="k">const</span> <span class="n">MachineInstr</span> <span class="o">*</span><span class="n">MI</span><span class="p">)</span> <span class="k">const</span><span class="p">;</span>
-</pre></div>
-</div>
 <p class="rubric">lbdex/chapters/Chapter11_2/Cpu0InstrInfo.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="c1">/// Return the number of bytes of code the specified instruction may be.</span>
 <span class="kt">unsigned</span> <span class="n">Cpu0InstrInfo</span><span class="o">::</span><span class="n">GetInstSizeInBytes</span><span class="p">(</span><span class="k">const</span> <span class="n">MachineInstr</span> <span class="o">*</span><span class="n">MI</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
-  <span class="k">switch</span> <span class="p">(</span><span class="n">MI</span><span class="o">-&gt;</span><span class="n">getOpcode</span><span class="p">())</span> <span class="p">{</span>
-  <span class="nl">default:</span>
-    <span class="k">return</span> <span class="n">MI</span><span class="o">-&gt;</span><span class="n">getDesc</span><span class="p">().</span><span class="n">getSize</span><span class="p">();</span>
-  <span class="k">case</span>  <span class="n">TargetOpcode</span>:<span class="o">:</span><span class="n">INLINEASM</span><span class="o">:</span> <span class="p">{</span>       <span class="c1">// Inline Asm: Variable size.</span>
+</pre></div>
+</div>
+<div class="highlight-c++"><div class="highlight"><pre>  <span class="k">case</span>  <span class="n">TargetOpcode</span>:<span class="o">:</span><span class="n">INLINEASM</span><span class="o">:</span> <span class="p">{</span>       <span class="c1">// Inline Asm: Variable size.</span>
     <span class="k">const</span> <span class="n">MachineFunction</span> <span class="o">*</span><span class="n">MF</span> <span class="o">=</span> <span class="n">MI</span><span class="o">-&gt;</span><span class="n">getParent</span><span class="p">()</span><span class="o">-&gt;</span><span class="n">getParent</span><span class="p">();</span>
     <span class="k">const</span> <span class="kt">char</span> <span class="o">*</span><span class="n">AsmStr</span> <span class="o">=</span> <span class="n">MI</span><span class="o">-&gt;</span><span class="n">getOperand</span><span class="p">(</span><span class="mi">0</span><span class="p">).</span><span class="n">getSymbolName</span><span class="p">();</span>
     <span class="k">return</span> <span class="nf">getInlineAsmLength</span><span class="p">(</span><span class="n">AsmStr</span><span class="p">,</span> <span class="o">*</span><span class="n">MF</span><span class="o">-&gt;</span><span class="n">getTarget</span><span class="p">().</span><span class="n">getMCAsmInfo</span><span class="p">());</span>
   <span class="p">}</span>
-  <span class="p">}</span>
-<span class="p">}</span>
 </pre></div>
 </div>
 <p class="rubric">lbdex/chapters/Chapter11_2/Cpu0ISelDAGToDAG.h</p>

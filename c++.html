@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '3.7.0',
+        VERSION:     '3.7.1',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -28,7 +28,7 @@
     <script type="text/javascript" src="_static/theme_extras.js"></script>
     <link rel="author" title="About these documents" href="about.html" />
     <link rel="top" title="Tutorial: Creating an LLVM Backend for the Cpu0 Architecture" href="index.html" />
-    <link rel="next" title="Verify backend on verilog simulator" href="verilog.html" />
+    <link rel="next" title="Verify backend on Verilog simulator" href="verilog.html" />
     <link rel="prev" title="Assembler" href="asm.html" /> 
   </head>
   <body>
@@ -43,7 +43,7 @@
         &#160;&#160;::&#160;&#160;
         <a class="uplink" href="index.html">Contents</a>
         &#160;&#160;::&#160;&#160;
-        <a href="verilog.html">Verify backend on verilog simulator</a>&#160;&#160;»
+        <a href="verilog.html">Verify backend on Verilog simulator</a>&#160;&#160;»
         </p>
 
       </div>
@@ -193,7 +193,7 @@ $_ZTI3Ex1 = comdat any
  inbounds (i8*, i8** @_ZTVN10__cxxabiv117__class_type_infoE, i32 2) to i8*), i8*
  getelementptr inbounds ([5 x i8], [5 x i8]* @_ZTS3Ex1, i32 0, i32 0) }, comdat
 
-define void @_Z15throw_exceptionii(i32 %a, i32 %b) #0 {
+define void @_Z15throw_exceptionii(i32 signext %a, i32 signext %b) #0 {
   %1 = alloca i32, align 4
   %2 = alloca i32, align 4
   %ex1 = alloca %class.Ex1, align 1
@@ -225,7 +225,7 @@ personality_v0 to i8*) {
   %2 = alloca i8*
   %3 = alloca i32
   %4 = alloca i32
-  invoke void @_Z15throw_exceptionii(i32 2, i32 1)
+  invoke void @_Z15throw_exceptionii(i32 signext 2, i32 signext 1)
           to label %5 unwind label %6
 
 ; &lt;label&gt;:5                                       ; preds = %0
@@ -265,14 +265,14 @@ declare void @__cxa_end_catch()
 
 attributes #0 = { "less-precise-fpmad"="false" "no-frame-pointer-elim"="true" "n
 o-frame-pointer-elim-non-leaf" "no-infs-fp-math"="false" "no-nans-fp-math"="fals
-e" "stack-protector-buffer-size"="8" "unsafe-fp-math"="false" "use-soft-float"="
-false" }
+e" "stack-protector-buffer-size"="8" "target-cpu"="mips32r2" "target-features"="
++mips32r2" "unsafe-fp-math"="false" "use-soft-float"="false" }
 attributes #1 = { nounwind }
 attributes #2 = { noreturn }
 
 !llvm.ident = !{!0}
 
-!0 = !{!"Apple LLVM version 6.1.0 (clang-602.0.53) (based on LLVM 3.6.0svn)"}
+!0 = !{!"Apple LLVM version 7.0.0 (clang-700.0.72)"}
 </pre>
 </div>
 <div class="highlight-bash"><pre>JonathantekiiMac:input Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
@@ -336,18 +336,18 @@ $tmp3:
   st  $5, 24($fp)
   ld  $2, 28($fp)
   cmp  $sw, $2, $5
-  jle  $sw, LBB0_2
+  jle  $sw, $BB0_2
   nop
-  jmp  LBB0_1
+  jmp  $BB0_1
   nop
-LBB0_2:
+$BB0_2:
   move   $sp, $fp
   ld  $fp, 32($sp)            # 4-byte Folded Reload
   ld  $lr, 36($sp)            # 4-byte Folded Reload
   addiu  $sp, $sp, 40
   ret  $lr
   nop
-LBB0_1:
+$BB0_1:
   addiu  $4, $zero, 1
   jsub  __cxa_allocate_exception
   nop
@@ -405,7 +405,7 @@ $tmp5:
 # BB#2:
   addiu  $2, $zero, 0
   st  $2, 24($fp)
-LBB1_3:
+$BB1_3:
   ld  $2, 24($fp)
   move   $sp, $fp
   ld  $9, 28($sp)             # 4-byte Folded Reload
@@ -414,7 +414,7 @@ LBB1_3:
   addiu  $sp, $sp, 40
   ret  $lr
   nop
-LBB1_1:
+$BB1_1:
 $tmp6:
   st  $4, 20($fp)
   st  $5, 16($fp)
@@ -425,7 +425,7 @@ $tmp6:
   st  $9, 12($fp)
   jsub  __cxa_end_catch
   nop
-  jmp  LBB1_3
+  jmp  $BB1_3
   nop
   .set  macro
   .set  reorder
@@ -475,6 +475,8 @@ _ZTI3Ex1:
   .size  _ZTI3Ex1, 8
 
 
+  .ident  "Apple LLVM version 7.0.0 (clang-700.0.72)"
+  .section  ".note.GNU-stack","",@progbits
 </pre>
 </div>
 </div>
@@ -523,7 +525,8 @@ programming.</p>
 </pre></div>
 </div>
 <p class="rubric">lbdex/chapters/Chapter12_1/InstPrinter/Cpu0InstPrinter.cpp</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="k">static</span> <span class="kt">void</span> <span class="nf">printExpr</span><span class="p">(</span><span class="k">const</span> <span class="n">MCExpr</span> <span class="o">*</span><span class="n">Expr</span><span class="p">,</span> <span class="n">raw_ostream</span> <span class="o">&amp;</span><span class="n">OS</span><span class="p">)</span> <span class="p">{</span>
+<div class="highlight-c++"><div class="highlight"><pre><span class="k">static</span> <span class="kt">void</span> <span class="nf">printExpr</span><span class="p">(</span><span class="k">const</span> <span class="n">MCExpr</span> <span class="o">*</span><span class="n">Expr</span><span class="p">,</span> <span class="k">const</span> <span class="n">MCAsmInfo</span> <span class="o">*</span><span class="n">MAI</span><span class="p">,</span>
+                      <span class="n">raw_ostream</span> <span class="o">&amp;</span><span class="n">OS</span><span class="p">)</span> <span class="p">{</span>
 </pre></div>
 </div>
 <div class="highlight-c++"><div class="highlight"><pre>  <span class="k">case</span> <span class="n">MCSymbolRefExpr</span>:<span class="o">:</span><span class="n">VK_Cpu0_TLSGD</span><span class="o">:</span>     <span class="n">OS</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;%tlsgd(&quot;</span><span class="p">;</span>  <span class="k">break</span><span class="p">;</span>
@@ -659,27 +662,27 @@ programming.</p>
                <span class="k">const</span> <span class="n">MCSubtargetInfo</span> <span class="o">&amp;</span><span class="n">STI</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
 </pre></div>
 </div>
-<div class="highlight-c++"><div class="highlight"><pre>  <span class="k">case</span> <span class="n">MCSymbolRefExpr</span>:<span class="o">:</span><span class="n">VK_Cpu0_TLSGD</span><span class="o">:</span>
-    <span class="n">FixupKind</span> <span class="o">=</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">fixup_Cpu0_TLSGD</span><span class="p">;</span>
-    <span class="k">break</span><span class="p">;</span>
-  <span class="k">case</span> <span class="n">MCSymbolRefExpr</span>:<span class="o">:</span><span class="n">VK_Cpu0_TLSLDM</span><span class="o">:</span>
-    <span class="n">FixupKind</span> <span class="o">=</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">fixup_Cpu0_TLSLDM</span><span class="p">;</span>
-    <span class="k">break</span><span class="p">;</span>
-  <span class="k">case</span> <span class="n">MCSymbolRefExpr</span>:<span class="o">:</span><span class="n">VK_Cpu0_DTP_HI</span><span class="o">:</span>
-    <span class="n">FixupKind</span> <span class="o">=</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">fixup_Cpu0_DTP_HI</span><span class="p">;</span>
-    <span class="k">break</span><span class="p">;</span>
-  <span class="k">case</span> <span class="n">MCSymbolRefExpr</span>:<span class="o">:</span><span class="n">VK_Cpu0_DTP_LO</span><span class="o">:</span>
-    <span class="n">FixupKind</span> <span class="o">=</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">fixup_Cpu0_DTP_LO</span><span class="p">;</span>
-    <span class="k">break</span><span class="p">;</span>
-  <span class="k">case</span> <span class="n">MCSymbolRefExpr</span>:<span class="o">:</span><span class="n">VK_Cpu0_GOTTPREL</span><span class="o">:</span>
-    <span class="n">FixupKind</span> <span class="o">=</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">fixup_Cpu0_GOTTPREL</span><span class="p">;</span>
-    <span class="k">break</span><span class="p">;</span>
-  <span class="k">case</span> <span class="n">MCSymbolRefExpr</span>:<span class="o">:</span><span class="n">VK_Cpu0_TP_HI</span><span class="o">:</span>
-    <span class="n">FixupKind</span> <span class="o">=</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">fixup_Cpu0_TP_HI</span><span class="p">;</span>
-    <span class="k">break</span><span class="p">;</span>
-  <span class="k">case</span> <span class="n">MCSymbolRefExpr</span>:<span class="o">:</span><span class="n">VK_Cpu0_TP_LO</span><span class="o">:</span>
-    <span class="n">FixupKind</span> <span class="o">=</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">fixup_Cpu0_TP_LO</span><span class="p">;</span>
-    <span class="k">break</span><span class="p">;</span>
+<div class="highlight-c++"><div class="highlight"><pre>    <span class="k">case</span> <span class="n">MCSymbolRefExpr</span>:<span class="o">:</span><span class="n">VK_Cpu0_TLSGD</span><span class="o">:</span>
+      <span class="n">FixupKind</span> <span class="o">=</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">fixup_Cpu0_TLSGD</span><span class="p">;</span>
+      <span class="k">break</span><span class="p">;</span>
+    <span class="k">case</span> <span class="n">MCSymbolRefExpr</span>:<span class="o">:</span><span class="n">VK_Cpu0_TLSLDM</span><span class="o">:</span>
+      <span class="n">FixupKind</span> <span class="o">=</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">fixup_Cpu0_TLSLDM</span><span class="p">;</span>
+      <span class="k">break</span><span class="p">;</span>
+    <span class="k">case</span> <span class="n">MCSymbolRefExpr</span>:<span class="o">:</span><span class="n">VK_Cpu0_DTP_HI</span><span class="o">:</span>
+      <span class="n">FixupKind</span> <span class="o">=</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">fixup_Cpu0_DTP_HI</span><span class="p">;</span>
+      <span class="k">break</span><span class="p">;</span>
+    <span class="k">case</span> <span class="n">MCSymbolRefExpr</span>:<span class="o">:</span><span class="n">VK_Cpu0_DTP_LO</span><span class="o">:</span>
+      <span class="n">FixupKind</span> <span class="o">=</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">fixup_Cpu0_DTP_LO</span><span class="p">;</span>
+      <span class="k">break</span><span class="p">;</span>
+    <span class="k">case</span> <span class="n">MCSymbolRefExpr</span>:<span class="o">:</span><span class="n">VK_Cpu0_GOTTPREL</span><span class="o">:</span>
+      <span class="n">FixupKind</span> <span class="o">=</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">fixup_Cpu0_GOTTPREL</span><span class="p">;</span>
+      <span class="k">break</span><span class="p">;</span>
+    <span class="k">case</span> <span class="n">MCSymbolRefExpr</span>:<span class="o">:</span><span class="n">VK_Cpu0_TP_HI</span><span class="o">:</span>
+      <span class="n">FixupKind</span> <span class="o">=</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">fixup_Cpu0_TP_HI</span><span class="p">;</span>
+      <span class="k">break</span><span class="p">;</span>
+    <span class="k">case</span> <span class="n">MCSymbolRefExpr</span>:<span class="o">:</span><span class="n">VK_Cpu0_TP_LO</span><span class="o">:</span>
+      <span class="n">FixupKind</span> <span class="o">=</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">fixup_Cpu0_TP_LO</span><span class="p">;</span>
+      <span class="k">break</span><span class="p">;</span>
 </pre></div>
 </div>
 <div class="highlight-c++"><div class="highlight"><pre>  <span class="p">...</span>
@@ -702,6 +705,12 @@ def : Pat&lt;(Cpu0Hi tglobaltlsaddr:$in), (LUi tglobaltlsaddr:$in)&gt;;
 </div>
 <div class="highlight-c++"><pre>let Predicates = [Ch12_1] in {
 def : Pat&lt;(Cpu0Lo tglobaltlsaddr:$in), (ORi ZERO, tglobaltlsaddr:$in)&gt;;
+}
+</pre>
+</div>
+<div class="highlight-c++"><pre>let Predicates = [Ch12_1] in {
+def : Pat&lt;(add CPURegs:$hi, (Cpu0Lo tglobaltlsaddr:$lo)),
+              (ORi CPURegs:$hi, tglobaltlsaddr:$lo)&gt;;
 }
 </pre>
 </div>
@@ -882,16 +891,16 @@ define weak_odr hidden i32* @_ZTW1b() {
 
 attributes #0 = { nounwind "less-precise-fpmad"="false" "no-frame-pointer-elim"=
 "true" "no-frame-pointer-elim-non-leaf" "no-infs-fp-math"="false" "no-nans-fp-ma
-th"="false" "stack-protector-buffer-size"="8" "unsafe-fp-math"="false" "use-soft
--float"="false" }
+th"="false" "stack-protector-buffer-size"="8" "target-cpu"="mips32r2" "target-fe
+atures"="+mips32r2" "unsafe-fp-math"="false" "use-soft-float"="false" }
 attributes #1 = { "less-precise-fpmad"="false" "no-frame-pointer-elim"="true" "n
 o-frame-pointer-elim-non-leaf" "no-infs-fp-math"="false" "no-nans-fp-math"="fals
-e" "stack-protector-buffer-size"="8" "unsafe-fp-math"="false" "use-soft-float"="
-false" }
+e" "stack-protector-buffer-size"="8" "target-cpu"="mips32r2" "target-features"="
++mips32r2" "unsafe-fp-math"="false" "use-soft-float"="false" }
 
 !llvm.ident = !{!0}
 
-!0 = !{!"Apple LLVM version 6.1.0 (clang-602.0.53) (based on LLVM 3.6.0svn)"}
+!0 = !{!"Apple LLVM version 7.0.0 (clang-700.0.72)"}
 </pre>
 </div>
 <div class="highlight-bash"><div class="highlight"><pre>JonathantekiiMac:input Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/test/cmake_debug_build/
@@ -1040,6 +1049,8 @@ b:
   .size  b, 4
 
 
+  .ident  "Apple LLVM version 7.0.0 (clang-700.0.72)"
+  .section  ".note.GNU-stack","",@progbits
 </pre>
 </div>
 <p>In pic mode, the __thread variable access by call function __tls_get_addr with
@@ -1070,9 +1081,8 @@ _Z15test_thread_varv:
   addiu  $sp, $sp, -8
   st  $fp, 4($sp)             # 4-byte Folded Spill
   move   $fp, $sp
-  ori  $2, $zero, %tp_lo(a)
-  lui  $3, %tp_hi(a)
-  addu  $3, $3, $2
+  lui  $2, %tp_hi(a)
+  ori  $3, $2, %tp_lo(a)
   addiu  $2, $zero, 2
   st  $2, 0($3)
   move   $sp, $fp
@@ -1141,9 +1151,8 @@ _ZTW1b:
   .set  noreorder
   .set  nomacro
 # BB#0:
-  ori  $2, $zero, %tp_lo(b)
-  lui  $3, %tp_hi(b)
-  addu  $2, $3, $2
+  lui  $2, %tp_hi(b)
+  ori  $2, $2, %tp_lo(b)
   ret  $lr
   nop
   .set  macro
@@ -1169,6 +1178,8 @@ b:
   .size  b, 4
 
 
+  .ident  "Apple LLVM version 7.0.0 (clang-700.0.72)"
+  .section  ".note.GNU-stack","",@progbits
 </pre>
 </div>
 <p>While Mips uses rdhwr instruction to access thread varaible as below,
@@ -2207,7 +2218,7 @@ options &#8220;clang++ -pthread -std=c++11&#8221;.</p>
         &#160;&#160;::&#160;&#160;
         <a class="uplink" href="index.html">Contents</a>
         &#160;&#160;::&#160;&#160;
-        <a href="verilog.html">Verify backend on verilog simulator</a>&#160;&#160;»
+        <a href="verilog.html">Verify backend on Verilog simulator</a>&#160;&#160;»
         </p>
 
       </div>

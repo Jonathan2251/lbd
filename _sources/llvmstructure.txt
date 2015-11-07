@@ -54,6 +54,8 @@ structure is illustrated in :num:`Figure #llvmstructure-f1` below.
 
 .. _llvmstructure-f1: 
 .. figure:: ../Fig/llvmstructure/1.png
+  :width: 608 px
+  :height: 360 px
   :align: center
 
   Architectural block diagram of the Cpu0 processor
@@ -108,6 +110,8 @@ for each type of instruction.
 
 .. _llvmstructure-f2: 
 .. figure:: ../Fig/llvmstructure/2.png
+  :width: 601 px
+  :height: 331 px
   :align: center
 
   Cpu0's three instruction formats
@@ -168,24 +172,24 @@ The following table details the cpu032I instruction set:
     - Store byte
     - SB Ra, [Rb+Cx]
     - [Rb+Cx] <= (byte)Ra
-  * - A
+  * - L
     - LH
     - 06
     - Load half word
     - LH Ra, [Rb+Cx]
     - Ra <= (2bytes)[Rb+Cx] [#lb-note]_
-  * - A
+  * - L
     - LHu
     - 07
     - Load half word unsigned
     - LHu Ra, [Rb+Cx]
     - Ra <= (2bytes)[Rb+Cx] [#lb-note]_
-  * - A
+  * - L
     - SH
     - 08
     - Store half word
     - SH Ra, [Rb+Cx]
-    - [Rb+Rc] <= Ra
+    - [Rb+Cx] <= Ra
   * - L
     - ADDiu
     - 09
@@ -385,72 +389,72 @@ The following table details the cpu032I instruction set:
     - JSUB Cx
     - LR <= PC; PC <= PC + Cx
   * - J
-    - RET
+    - JR/RET
     - 3C
     - Return from subroutine
-    - RET LR
-    - PC <= LR
-  * - L
+    - JR $1 or RET LR
+    - PC <= LR [#jr-note]_
+  * - A
     - MULT
     - 41
     - Multiply for 64 bits result
     - MULT Ra, Rb
     - (HI,LO) <= MULT(Ra,Rb)
-  * - L
+  * - A
     - MULTU
     - 42
     - MULT for unsigned 64 bits
     - MULTU Ra, Rb
     - (HI,LO) <= MULTU(Ra,Rb)
-  * - L
+  * - A
     - DIV
     - 43
     - Divide
     - DIV Ra, Rb
     - HI<=Ra%Rb, LO<=Ra/Rb
-  * - L
+  * - A
     - DIVU
     - 44
     - Divide unsigned
     - DIVU Ra, Rb
     - HI<=Ra%Rb, LO<=Ra/Rb
-  * - L
+  * - A
     - MFHI
     - 46
     - Move HI to GPR
     - MFHI Ra
     - Ra <= HI
-  * - L
+  * - A
     - MFLO
     - 47
     - Move LO to GPR
     - MFLO Ra
     - Ra <= LO
-  * - L
+  * - A
     - MTHI
     - 48
     - Move GPR to HI
     - MTHI Ra
     - HI <= Ra
-  * - L
+  * - A
     - MTLO
     - 49
     - Move GPR to LO
     - MTLO Ra
     - LO <= Ra
-  * - L
+  * - A
     - MFC0
     - 50
     - Move C0R to GPR
     - MFC0 Ra, Rb
     - Ra <= Rb
-  * - L
+  * - A
     - MTC0
     - 51
     - Move GPR to C0R
     - MTC0 Ra, Rb
     - Ra <= Rb
-  * - L
+  * - A
     - C0MOV
     - 52
     - Move C0R to C0R
@@ -497,15 +501,21 @@ The following table details the cpu032II instruction set added:
   * - L
     - BEQ
     - 37
-    - Jump if equal
+    - Branch if equal
     - BEQ Ra, Rb, Cx
     - if (Ra==Rb), PC <= PC + Cx
   * - L
     - BNE
     - 38
-    - Jump if not equal
+    - Branch if not equal
     - BNE Ra, Rb, Cx
     - if (Ra!=Rb), PC <= PC + Cx
+  * - J
+    - BAL
+    - 3A
+    - Branch and link
+    - BAL Cx
+    - LR <= PC; PC <= PC + Cx
 
 .. note:: **Cpu0 unsigned instructions**
 
@@ -529,7 +539,7 @@ ADD as follows,
 Since Mips uses 32 bits to represent int type of C language, if B is the 
 value of -2G, then
 
-- (A - (-2G) = (A + (2G))
+- (A - (-2G)) = (A + (2G))
 
 But the problem is value -2G can be represented in 32 bits machine while 2G 
 cannot, 
@@ -550,6 +560,8 @@ below.
 
 .. _llvmstructure-f3: 
 .. figure:: ../Fig/llvmstructure/3.png
+  :width: 684 px
+  :height: 126 px
   :align: center
 
   Cpu0 status word (SW) register
@@ -619,8 +631,8 @@ Cpu0's Interrupt Vector
 LLVM Structure
 --------------
 
-This section introduce the compiler data structure, algorithm and mechanism that
-llvm uses.
+This section introduces the compiler data structure, algorithm and mechanism 
+that llvm uses.
 
 Three-phase design
 ~~~~~~~~~~~~~~~~~~
@@ -638,6 +650,9 @@ the optimizer and back end are run on the code.
 
 .. _llvmstructure-f6: 
 .. figure:: ../Fig/llvmstructure/6.png
+  :width: 470 px
+  :height: 63 px
+  :scale: 70 %
   :align: center
 
   Three Major Components of a Three Phase Compiler
@@ -666,7 +681,9 @@ end can be written for any target that can compile from it, as shown in
 .. _llvmstructure-f7: 
 .. figure:: ../Fig/llvmstructure/7.png
   :align: center
-  :width: 600px
+  :width: 837 px
+  :height: 299 px
+  :scale: 70 %
 
   Retargetablity
 
@@ -797,7 +814,9 @@ The (simplified) build process for the x86 target is shown in
 .. _llvmstructure-f8: 
 .. figure:: ../Fig/llvmstructure/8.png
   :align: center
-  :width: 600px
+  :width: 850 px
+  :height: 428 px
+  :scale: 70 %
 
   Simplified x86 Target Definition
 
@@ -821,6 +840,8 @@ Following diagram come from tricore_llvm.pdf.
 
 .. _llvmstructure-f9: 
 .. figure:: ../Fig/llvmstructure/9.png
+  :width: 1030 px
+  :height: 537 px
   :align: center
 
   tricore_llvm.pdf: Code generation sequence. On the path from LLVM code to 
@@ -876,7 +897,7 @@ next 2 sections for DAG and Instruction Selection.
       %d = ld i32* %c
   
   // Transfer above instructions order as follows. In RISC CPU of Mips, the ld 
-  //  %c use the result of the previous instruction st %c. So it must wait 1
+  //  %c uses the result of the previous instruction st %c. So it must wait 1
   //  cycles more. Meaning the ld cannot follow st immediately.
   =>  st %b, i32* %c, i16 0
       st i32 %a, i16* %b,  i16 5
@@ -899,7 +920,7 @@ next 2 sections for DAG and Instruction Selection.
       st %a,  i32* %c, 1
       st %b,  i32* %c, 2
   
-  // The reorder version need 2 registers only (by allocate %a and %b in the same
+  // The reorder version needs 2 registers only (by allocate %a and %b in the same
   //  register)
   => %a = add i32 1, i32 0
       st %a,  i32* %c, 1
@@ -1054,7 +1075,7 @@ assigned exactly once and is keeped in different virtual register).
 As the result, the optimization steps used in code generation sequence which 
 include stages of **Instruction Selection**, **Scheduling and Formation** and 
 **Register Allocation**, won't loss any optimization opportunity. 
-For example, if use limited virtual registers to generate the following code,
+For example, if using limited virtual registers to generate the following code,
 
 .. code-block:: c++
 
@@ -1108,7 +1129,9 @@ For example, the basic block code and it's corresponding DAG as
 
 .. _llvmstructure-f10: 
 .. figure:: ../Fig/llvmstructure/10.png
-  :scale: 70 %
+  :width: 474 px
+  :height: 178 px
+  :scale: 80 %
   :align: center
 
   DAG example
@@ -1122,13 +1145,17 @@ remove" to get the following code.
   d = a – d
   c = d + c
 
-As you can imagine, the "common expression remove" can apply in IR or machine 
-code.
+As you can imagine, the "common expression remove" can apply both in IR or 
+machine code.
 
-DAG like a tree which opcode is the node and operand (register and 
+DAG likes a tree which opcode is the node and operand (register and 
 const/immediate/offset) is leaf. 
 It can also be represented by list as prefix order in tree. 
 For example, (+ b, c), (+ b, 1) is IR DAG representation.
+
+In addition to DAG optimization, the "kill" register has also mentioned in 
+section 8.5.5 of the compiler book [#dragonbooks-8.5]_. This concept also 
+used in llvm implementation.
 
 
 Instruction Selection
@@ -1139,7 +1166,9 @@ stage of Instruction Selection as :num:`Figure #llvmstructure-f11`.
 
 .. _llvmstructure-f11: 
 .. figure:: ../Fig/llvmstructure/11.png
-  :scale: 50 %
+  :width: 495 px
+  :height: 116 px
+  :scale: 70 %
   :align: center
 
   IR and it's corresponding machine instruction
@@ -1153,17 +1182,18 @@ ADD is machine instruction.
 
 .. _llvmstructure-f12: 
 .. figure:: ../Fig/llvmstructure/12.png
-  :scale: 50 %
+  :width: 986 px
+  :height: 609 px
+  :scale: 70 %
   :align: center
 
   Instruction DAG representation
 
 The IR DAG and machine instruction DAG can also represented as list. 
-For example, (+ ri, rj), (- ri, 1) are lists for IR DAG; (ADD ri, rj), 
+For example, (+ ri, rj) and (- ri, 1) are lists for IR DAG; (ADD ri, rj) and 
 (SUBI ri, 1) are lists for machine instruction DAG.
 
-Now, let's recall the ADDiu instruction defined in Cpu0InstrInfo.td of the 
-previous chapter. Listing them again as follows,
+Now, let's check the ADDiu instruction defined in Cpu0InstrInfo.td as follows,
 
 .. rubric:: lbdex/chapters/Chapter2/Cpu0InstrFormats.td
 .. literalinclude:: ../lbdex/Cpu0/Cpu0InstrFormats.td
@@ -1192,13 +1222,15 @@ match, the .td also set assembly string "addiu" and op code 0x09.
 With this information, the LLVM TableGen will generate instruction both in 
 assembly and binary automatically (the binary instruction issued in obj file of 
 ELF format which will be explained at later chapter). 
-Similarly, the machine instruction DAG node LD and ST can be translated from IR 
-DAG node **load** and **store**. Notice that the $r1 in this case is virtual 
+Similarly, the machine instruction DAG nodes LD and ST can be translated from IR 
+DAG nodes **load** and **store**. Notice that the $r1 in this case is virtual 
 register name (not machine register). 
  
 .. _llvmstructure-f13: 
 .. figure:: ../Fig/llvmstructure/13.png
-  :scale: 50 %
+  :width: 804 px
+  :height: 588 px
+  :scale: 70 %
   :align: center
 
   Pattern match for ADDiu instruction and IR node add
@@ -1239,7 +1271,7 @@ Now, for the following basic block notation IR and llvm SSA IR code,
   %e = fadd %d, %b
   ...
 
-The Instruction Selection Process will translate this two IR DAG node 
+the Instruction Selection Process will translate this two IR DAG node 
 (fmul %a, %c) (fadd %d, %b) into one machine instruction DAG node (**fmadd** 
 %a, %c, %b), rather than translate them into two machine instruction nodes 
 **fmul** and **fadd** if the FMADDS is appear before FMUL and FADD in your td 
@@ -1275,12 +1307,114 @@ following machine code,
   fmadd re, ra, rc, rb;
 
 
+Caller and callee saved registers
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. rubric:: lbdex/input/ch9_caller_callee_save_registers.cpp
+.. literalinclude:: ../lbdex/input/ch9_caller_callee_save_registers.cpp
+    :start-after: /// start
+    
+Run Mips backend with above input will get the following result.
+
+.. code-block:: bash
+
+  JonathantekiiMac:input Jonathan$ ~/llvm/release/cmake_debug_build/Debug/bin/llc 
+  -O0 -march=mips -relocation-model=static -filetype=asm 
+  ch9_caller_callee_save_registers.bc -o -
+  	.text
+  	.abicalls
+  	.option	pic0
+  	.section	.mdebug.abi32,"",@progbits
+  	.nan	legacy
+  	.file	"ch9_caller_callee_save_registers.bc"
+  	.text
+  	.globl	_Z6callerv
+  	.align	2
+  	.type	_Z6callerv,@function
+  	.set	nomicromips
+  	.set	nomips16
+  	.ent	_Z6callerv
+  _Z6callerv:                             # @_Z6callerv
+  	.cfi_startproc
+  	.frame	$fp,32,$ra
+  	.mask 	0xc0000000,-4
+  	.fmask	0x00000000,0
+  	.set	noreorder
+  	.set	nomacro
+  	.set	noat
+  # BB#0:
+  	addiu	$sp, $sp, -32
+  $tmp0:
+  	.cfi_def_cfa_offset 32
+  	sw	$ra, 28($sp)            # 4-byte Folded Spill
+  	sw	$fp, 24($sp)            # 4-byte Folded Spill
+  $tmp1:
+  	.cfi_offset 31, -4
+  $tmp2:
+  	.cfi_offset 30, -8
+  	move	 $fp, $sp
+  $tmp3:
+  	.cfi_def_cfa_register 30
+  	addiu	$1, $zero, 3
+  	sw	$1, 20($fp)   # store t1 to 20($fp)
+  	move	 $4, $1
+  	jal	_Z4add1i
+  	nop
+  	sw	$2, 16($fp)   # $2 : the return vaule for fuction add1()
+  	lw	$1, 20($fp)   # load t1 from 20($fp)
+  	subu	$1, $2, $1
+  	sw	$1, 16($fp)
+  	move	 $2, $1     # move result to return register $2
+  	move	 $sp, $fp
+  	lw	$fp, 24($sp)            # 4-byte Folded Reload
+  	lw	$ra, 28($sp)            # 4-byte Folded Reload
+  	addiu	$sp, $sp, 32
+  	jr	$ra
+  	nop
+  	.set	at
+  	.set	macro
+  	.set	reorder
+  	.end	_Z6callerv
+  $func_end0:
+  	.size	_Z6callerv, ($func_end0)-_Z6callerv
+  	.cfi_endproc
+
+As above assembly output, Mips allocates t1 variable to register $1 and no need
+to spill $1 since $1 is caller saved register. 
+On the other hand, $ra is callee saved register, so it spills at beginning of 
+the assembly output since jal uses $ra register. 
+Cpu0 $lr is the same register as Mips $ra, so it calls setAliasRegs(MF, 
+SavedRegs, Cpu0::LR) in determineCalleeSaves() of Cpu0SEFrameLowering.cpp when
+the function has called another function.
+
+
+Live in and live out register
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+As the example of last sub-section. The $ra is "live in" register since the 
+return address is decided by caller. The $2 is "live out" register since the 
+return value of the function is saved in this register, and caller can get the 
+result by read it directly as the comment in above example. 
+Through mark "live in" and "live out" registers, backend provides 
+llvm middle layer information to remove useless instructions in variables 
+access. 
+Of course, llvm applies the DAG analysis mentioned in the previous sub-section 
+to finish it. 
+Since C supports seperate compilation for different functions, the "live in" 
+and "out" information from backend provides the optimization opportunity to 
+llvm. 
+LLVM provides function addLiveIn() to mark "live in" register but no function 
+addLiveOut() provided. 
+For the "live out" register, Mips backend marks it by 
+DAG=DAG.getCopyToReg(..., $2, ...) and return DAG instead, since all local 
+varaiables are not exist after function exit.
+
+
 Create Cpu0 backend
 --------------------
 
-From now on, the Cpu0 backend will be created from scratch step by step and
-chapter by chapter.
-To make readers easily understanding the backend structure step by step, Cpu0 
+From now on, the Cpu0 backend will be created from scratch step by step.
+To make readers easily understanding the backend structure, Cpu0 
 example code can be generated with chapter by chapter through command here 
 [#chapters-ex]_.
 
@@ -1289,7 +1423,7 @@ Cpu0 backend machine ID and relocation records
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 To create a new backend, there are some files in <<llvm root dir>> need to be 
-modified. The added information include both the ID and name of machine and 
+modified. The added information include both the ID and name of machine, and 
 relocation records. Chapter "ELF Support" include the relocation records 
 introduction. The following files are modified to add Cpu0 backend as follows,
 
@@ -1297,8 +1431,6 @@ introduction. The following files are modified to add Cpu0 backend as follows,
 .. code-block:: c++
   
   ...
-  elseif (LLVM_NATIVE_ARCH MATCHES "mips")
-    set(LLVM_NATIVE_ARCH Mips)
   elseif (LLVM_NATIVE_ARCH MATCHES "cpu0")
     set(LLVM_NATIVE_ARCH Cpu0)
   ...
@@ -1308,7 +1440,6 @@ introduction. The following files are modified to add Cpu0 backend as follows,
   
   set(LLVM_ALL_TARGETS
     ...
-    Mips
     Cpu0
     ...
     )
@@ -1324,10 +1455,6 @@ introduction. The following files are modified to add Cpu0 backend as follows,
   public:
     enum ArchType {
       ...
-      mips,       // MIPS: mips, mipsallegrex
-      mipsel,     // MIPSEL: mipsel, mipsallegrexel
-      mips64,     // MIPS64: mips64
-      mips64el,   // MIPS64EL: mips64el
       cpu0,       // For Tutorial Backend Cpu0
       cpu0el,
       ...
@@ -1374,21 +1501,6 @@ introduction. The following files are modified to add Cpu0 backend as follows,
 .. rubric:: lbdex/src/modify/src/include/llvm/Object/ELFObjectFile.h
 .. code-block:: c++
   
-  template <class ELFT>
-  std::error_code ELFObjectFile<ELFT>::getRelocationValueString(
-      DataRefImpl Rel, SmallVectorImpl<char> &Result) const {
-    ...
-    switch (EF.getHeader()->e_machine) {
-    ...
-    case ELF::EM_MIPS:
-    case ELF::EM_CPU0:	// llvm-objdump -t -r
-    case ELF::EM_CPU0_LE:
-      res = *SymName;
-      break;
-    ...
-    }
-    ...
-  }
   ...
   template <class ELFT>
   StringRef ELFObjectFile<ELFT>::getFileFormatName() const {
@@ -1397,7 +1509,6 @@ introduction. The following files are modified to add Cpu0 backend as follows,
       switch (EF.getHeader()->e_machine) {
       ...
       case ELF::EM_CPU0:	// llvm-objdump -t -r
-      case ELF::EM_CPU0_LE:
         return "ELF32-cpu0";
       ...
     }
@@ -1410,7 +1521,6 @@ introduction. The following files are modified to add Cpu0 backend as follows,
     switch (EF.getHeader()->e_machine) {
     ...
     case ELF::EM_CPU0:	// llvm-objdump -t -r
-    case ELF::EM_CPU0_LE:
       switch (EF.getHeader()->e_ident[ELF::EI_CLASS]) {
       case ELF::ELFCLASS32:
       return IsLittleEndian ? Triple::cpu0el : Triple::cpu0;
@@ -1425,81 +1535,33 @@ introduction. The following files are modified to add Cpu0 backend as follows,
 .. code-block:: c++
   
   enum {
-    EM_NONE          = 0, // No machine
-    EM_M32           = 1, // AT&T WE 32100
     ...
-    EM_CPU0          = 998, // Document LLVM Backend Tutorial Cpu0
-    EM_CPU0_LE       = 999  // EM_CPU0_LE: little endian; EM_CPU0: big endian
+    EM_CPU0          = 999  // Document LLVM Backend Tutorial Cpu0
   };
   ...
-  
   // Cpu0 Specific e_flags
   enum {
     EF_CPU0_NOREORDER = 0x00000001, // Don't reorder instructions
     EF_CPU0_PIC       = 0x00000002, // Position independent code
-    EF_CPU0_CPIC      = 0x00000004, // Call object with Position independent code
-    EF_CPU0_ARCH_1    = 0x00000000, // CPU01 instruction set
-    EF_CPU0_ARCH_2    = 0x10000000, // CPU02 instruction set
-    EF_CPU0_ARCH_3    = 0x20000000, // CPU03 instruction set
-    EF_CPU0_ARCH_4    = 0x30000000, // CPU04 instruction set
-    EF_CPU0_ARCH_5    = 0x40000000, // CPU05 instruction set
     EF_CPU0_ARCH_32   = 0x50000000, // CPU032 instruction set per linux not elf.h
-    EF_CPU0_ARCH_64   = 0x60000000, // CPU064 instruction set per linux not elf.h
-    EF_CPU0_ARCH_32R2 = 0x70000000, // cpu032r2
-    EF_CPU0_ARCH_64R2 = 0x80000000, // cpu064r2
     EF_CPU0_ARCH      = 0xf0000000  // Mask for applying EF_CPU0_ARCH_ variant
   };
   
-  // ELF Relocation types for Cpu0
-  // .
+  // ELF Relocation types for Mips
   enum {
-    R_CPU0_NONE              =  0,
-    R_CPU0_32                =  2,
-    R_CPU0_HI16              =  5,
-    R_CPU0_LO16              =  6,
-    R_CPU0_GPREL16           =  7,
-    R_CPU0_LITERAL           =  8,
-    R_CPU0_GOT16             =  9,
-    R_CPU0_PC16              = 10,
-    R_CPU0_CALL16            = 11,
-    R_CPU0_GPREL32           = 12,
-    R_CPU0_PC24              = 13,
-    R_CPU0_GOT_HI16          = 22,
-    R_CPU0_GOT_LO16          = 23,
-    R_CPU0_RELGOT            = 36,
-    R_CPU0_TLS_GD            = 42,
-    R_CPU0_TLS_LDM           = 43,
-    R_CPU0_TLS_DTP_HI16      = 44,
-    R_CPU0_TLS_DTP_LO16      = 45,
-    R_CPU0_TLS_GOTTPREL      = 46,
-    R_CPU0_TLS_TPREL32       = 47,
-    R_CPU0_TLS_TP_HI16       = 49,
-    R_CPU0_TLS_TP_LO16       = 50,
-    R_CPU0_GLOB_DAT          = 51,
-    R_CPU0_JUMP_SLOT         = 127
+  #include "ELFRelocs/Cpu0.def"
   };
+  ...
 
 .. rubric:: lbdex/src/modify/src/lib/MC/MCELFStreamer.cpp
 .. code-block:: c++
   
   void MCELFStreamer::fixSymbolsInTLSFixups(const MCExpr *expr) {
-    switch (expr->getKind()) {
     ...
-    case MCExpr::SymbolRef: {
-      const MCSymbolRefExpr &symRef = *cast<MCSymbolRefExpr>(expr);
-      switch (symRef.getKind()) {
-      ...
-      case MCSymbolRefExpr::VK_Mips_TLSGD:
-      case MCSymbolRefExpr::VK_Mips_GOTTPREL:
-      case MCSymbolRefExpr::VK_Mips_TPREL_HI:
-      case MCSymbolRefExpr::VK_Mips_TPREL_LO:
       case MCSymbolRefExpr::VK_Cpu0_TLSGD:
       case MCSymbolRefExpr::VK_Cpu0_GOTTPREL:
       case MCSymbolRefExpr::VK_Cpu0_TP_HI:
       case MCSymbolRefExpr::VK_Cpu0_TP_LO:
-      ...
-        break;
-      }
     ...
   }
 
@@ -1536,6 +1598,60 @@ introduction. The following files are modified to add Cpu0 backend as follows,
     ...
     }
   }
+
+.. rubric:: lbdex/src/modify/src/lib/MC/MCSubtargetInfo.cpp
+.. code-block:: c++
+  
+  bool Cpu0DisableUnreconginizedMessage = false;
+  
+  void MCSubtargetInfo::InitMCProcessorInfo(StringRef CPU, StringRef FS) {
+    #if 1 // Disable reconginized processor message. For Cpu0
+    if (TargetTriple.getArch() == llvm::Triple::cpu0 ||
+        TargetTriple.getArch() == llvm::Triple::cpu0el)
+      Cpu0DisableUnreconginizedMessage = true;
+    #endif
+    ...
+  }
+  ...
+  const MCSchedModel &MCSubtargetInfo::getSchedModelForCPU(StringRef CPU) const {
+    ...
+      #if 1 // Disable reconginized processor message. For Cpu0
+      if (TargetTriple.getArch() != llvm::Triple::cpu0 &&
+          TargetTriple.getArch() != llvm::Triple::cpu0el)
+      #endif
+    ...
+  }
+
+.. rubric:: lbdex/src/modify/src/lib/MC/SubtargetFeature.cpp
+.. code-block:: c++
+  
+  extern bool Cpu0DisableUnreconginizedMessage; // For Cpu0
+  ...
+  FeatureBitset
+  SubtargetFeatures::ToggleFeature(FeatureBitset Bits, StringRef Feature,
+                                   ArrayRef<SubtargetFeatureKV> FeatureTable) {
+    ...
+      if (!Cpu0DisableUnreconginizedMessage) // For Cpu0
+    ...
+  }
+  
+  FeatureBitset
+  SubtargetFeatures::ApplyFeatureFlag(FeatureBitset Bits, StringRef Feature,
+                                      ArrayRef<SubtargetFeatureKV> FeatureTable) {
+    ...
+      if (!Cpu0DisableUnreconginizedMessage) // For Cpu0
+    ...
+  }
+  
+  FeatureBitset
+  SubtargetFeatures::getFeatureBits(StringRef CPU,
+                                    ArrayRef<SubtargetFeatureKV> CPUTable,
+                                    ArrayRef<SubtargetFeatureKV> FeatureTable) {
+    ...
+      if (!Cpu0DisableUnreconginizedMessage) // For Cpu0
+    ...
+  }
+
 
 .. rubric:: lib/object/ELF.cpp
 .. code-block:: c++
@@ -1594,6 +1710,13 @@ introduction. The following files are modified to add Cpu0 backend as follows,
       ...
   }
   ...
+  static Triple::ObjectFormatType getDefaultFormat(const Triple &T) {
+    ...
+    case Triple::cpu0:
+    case Triple::cpu0el:
+    ...
+  }
+  ...
   static unsigned getArchPointerBitWidth(llvm::Triple::ArchType Arch) {
     switch (Arch) {
     ...
@@ -1621,8 +1744,8 @@ introduction. The following files are modified to add Cpu0 backend as follows,
 Creating the Initial Cpu0 .td Files
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-As it has been discussed in the previous section, LLVM use target description 
-files (which use the .td file extension) to describe various components of a 
+As it has been discussed in the previous section, LLVM uses target description 
+files (which uses the .td file extension) to describe various components of a 
 target's backend. 
 For example, these .td files may describe a target's register set, instruction 
 set, scheduling information for instructions, and calling conventions.  
@@ -1631,16 +1754,16 @@ will translate these .td files into C++ source code written to files that have
 a .inc extension.  
 Please refer to [#tblgen]_ for more information regarding how to use tablegen.
 
-Every backend has a .td which defines some target information, including what 
-other .td files are used by the backend. 
+Every backend has a .td which defines some target information, which including 
+what other .td files are used by the backend. 
 These files have a similar syntax to C++. For Cpu0, the target description file 
 is called Cpu0Other.td, which is shown below:
 
 .. code-block:: bash
 
-  118-165-12-177:BackendTutorial Jonathan$ pwd
-  /home/cschen/test/lbd/docs/BackendTutorial
-  118-165-12-177:BackendTutorial Jonathan$ make genexample
+  118-165-12-177:lld Jonathan$ pwd
+  /home/cschen/test/lbd
+  118-165-12-177:lld Jonathan$ make genexample
 
 .. rubric:: lbdex/chapters/Chapter2/Cpu0Other.td
 .. literalinclude:: ../lbdex/chapters/Chapter2/Cpu0Other.td
@@ -1648,12 +1771,12 @@ is called Cpu0Other.td, which is shown below:
 Cpu0Other.td and Cpu0.td includes a few other .td files. 
 Cpu0RegisterInfo.td (shown below) describes the Cpu0's set of registers. 
 In this file, we see that registers have been given names, i.e. **"def PC"** 
-indicates that there is a register called PC.  Also, there is a register class 
-named **"CPURegs"** that contains all of the other registers. 
+indicates that there is a register called PC.  Beside of registers, it also 
+define register classes. 
 You may have multiple register classes such as CPURegs, SR, C0Regs and GPROut. 
 GPROut defined in Cpu0RegisterInfoGPROutForOther.td which include CPURegs 
-except SW, PC and EPC, so SW, PC and EPC won't be allocated as the output 
-registers in register allocation stage.
+except SW, so SW won't be allocated as the output registers in register 
+allocation stage.
 
 .. rubric:: lbdex/chapters/Chapter2/Cpu0RegisterInfo.td
 .. literalinclude:: ../lbdex/chapters/Chapter2/Cpu0RegisterInfo.td
@@ -1662,7 +1785,7 @@ registers in register allocation stage.
 .. literalinclude:: ../lbdex/chapters/Chapter2/Cpu0RegisterInfoGPROutForOther.td
 
 
-In C++, class typically provide a structure to lay out some data and functions, 
+In C++, class typically provides a structure to lay out some data and functions, 
 while definitions are used to allocate memory for specific instances of a class. 
 For example:
 
@@ -1673,38 +1796,47 @@ For example:
   }; 
   Date birthday;  // define birthday, an instance of Date
 
-The class **Date** has the members **year**, **month**, and **day**, however these do not  
-yet belong to an actual object.  By defining an instance of **Date** called **birthday**, 
-you have allocated memory for a specific object, and can set the **year**, **month**, and 
+The class **Date** has the members **year**, **month**, and **day**, however 
+these do not yet belong to an actual object. 
+By defining an instance of **Date** called **birthday**, you have allocated 
+memory for a specific object, and can set the **year**, **month**, and 
 **day** of this instance of the class.
 
-In .td files, class describe the structure of how data is laid out, while definitions 
-act as the specific instances of the class.  If we look back at the Cpu0RegisterInfo.td 
-file, we see a class called **Cpu0Reg<string n>** which is derived from the 
-**Register<n>** class provided by LLVM.  **Cpu0Reg** inherits all the fields that exist 
-in the **Register** class, and also adds a new field called **Num** which is four bits 
-wide.
+In .td files, class describes the structure of how data is laid out, while 
+definitions act as the specific instances of the class. 
+If we look back at the Cpu0RegisterInfo.td file, we see a class called 
+**Cpu0Reg** which is derived from the **Register** class provided 
+by LLVM.  **Cpu0Reg** inherits all the fields that exist 
+in the **Register** class. The "let HWEncoding = Enc" which meaning assign field 
+HWEncoding from parameter Enc. Since Cpu0 reserve 4 bits for 16 registers in 
+instruction format, the assigned value range is from 0 to 15. Assign the 0 to 15 
+to HWEncoding, then the backend register number can be gotten from the function 
+of llvm register class since TableGen will set this number correctly.
 
-The **def** keyword is used to create instances of class.  In the following line, the 
-ZERO register is defined as a member of the **Cpu0GPRReg** class:
+The **def** keyword is used to create instances of class. 
+In the following line, the ZERO register is defined as a member of the 
+**Cpu0GPRReg** class:
 
 .. code-block:: c++
 
   def ZERO : Cpu0GPRReg< 0, "ZERO">, DwarfRegNum<[0]>;
 
-The **def ZERO** indicates the name of this register.  **< 0, "ZERO">** are the 
-parameters used when creating this specific instance of the **Cpu0GPRReg** class, thus 
-the four bit **Num** field is set to 0, and the string **n** is set to **ZERO**.
+The **def ZERO** indicates the name of this register.  **<0, "ZERO">** are the 
+parameters used when creating this specific instance of the **Cpu0GPRReg** 
+class, thus the field **Enc** is set to 0, and the string **n** is set 
+to **ZERO**.
 
-As the register lives in the **Cpu0** namespace, you can refer to the ZERO register in 
-C++ code in a backend using **Cpu0::ZERO**.
+As the register lives in the **Cpu0** namespace, you can refer to the ZERO 
+register in C++ code in a backend using **Cpu0::ZERO**.
 
-Notice the use of the **let** expressions: these allow you to override values that are 
-initially defined in a superclass. For example, **let Namespace = “Cpu0”** in the 
-**Cpu0Reg** class will override the default namespace declared in **Register** class. 
-The Cpu0RegisterInfo.td also defines that **CPURegs** is an instance of the class 
-**RegisterClass**, which is an built-in LLVM class.  A **RegisterClass** is a set of 
-**Register** instances, thus **CPURegs** can be described as a set of registers.
+Notice the use of the **let** expressions: these allow you to override values 
+that are initially defined in a superclass. 
+For example, **let Namespace = “Cpu0”** in the **Cpu0Reg** class will override 
+the default namespace declared in **Register** class. 
+The Cpu0RegisterInfo.td also defines that **CPURegs** is an instance of the 
+class **RegisterClass**, which is an built-in LLVM class. 
+A **RegisterClass** is a set of **Register** instances, thus **CPURegs** can be 
+described as a set of registers.
 
 The Cpu0 instructions td is named to Cpu0InstrInfo.td which contents as follows,
 
@@ -1748,8 +1880,8 @@ To expand the td, one principle is:
 
 - let: meaning override the existed field from parent class.
 
-  For instance: let isReMaterializable = 1; override the isReMaterializable from class 
-  instruction of Target.td.
+  For instance: let isReMaterializable = 1; override the isReMaterializable 
+  from class instruction of Target.td.
 
 - declaration: meaning declare a new field for this class.
 
@@ -1829,7 +1961,7 @@ by chapter and even section by section.
 Don't try to understand everything in the text of book, the code added in each 
 chapter is a reading material too. 
 To understand the computer related knowledge in concept, you can ignore source 
-code, but implementation based on an existed open software cannot. 
+code, but implementing based on an existed open software cannot. 
 In programming, documentation cannot replace the source code totally. 
 Reading source code is a big opportunity in the open source development. 
 
@@ -1839,15 +1971,14 @@ Their contents indicate they will generate Cpu0Desc and Cpu0Info libraries.
 After building, you will find three libraries: **libLLVMCpu0CodeGen.a**, 
 **libLLVMCpu0Desc.a** and **libLLVMCpu0Info.a** in lib/ of your build 
 directory. 
-For more details please see 
-"Building LLVM with CMake" [#cmake]_ and 
+For more details please see "Building LLVM with CMake" [#cmake]_ and 
 "LLVMBuild Guide" [#llvmbuild]_.
 
 Target Registration
 ~~~~~~~~~~~~~~~~~~~
 
-You must also register your target with the TargetRegistry, which is what other 
-LLVM tools use to be able to lookup and use your target at runtime. 
+You must also register your target with the TargetRegistry. After registration, 
+llvm tools are able to lookup and use your target at runtime. 
 The TargetRegistry can be used directly, but for most targets there are helper 
 templates which should take care of the work for you.
 
@@ -1871,7 +2002,7 @@ big endian and TheCpu0elTarget for little endian, as follows.
 .. literalinclude:: ../lbdex/Cpu0/TargetInfo/LLVMBuild.txt
 
 Files Cpu0TargetMachine.cpp and MCTargetDesc/Cpu0MCTargetDesc.cpp just define 
-the empty initialize function since we register nothing in them for this moment.
+the empty initialize function since we register nothing for this moment.
 
 .. rubric:: lbdex/chapters/Chapter2/Cpu0TargetMachine.cpp
 .. literalinclude:: ../lbdex/chapters/Chapter2/Cpu0TargetMachine.cpp
@@ -1904,7 +2035,7 @@ Sub-directories src is for source code and cmake_debug_build is for debug
 build directory.
 
 Beside directory src/lib/Target/Cpu0, there are a couple of files modified to 
-support cpu0 new Target. It include both the ID and name of machine and 
+support cpu0 new Target, which includes both the ID and name of machine and 
 relocation records listed in the early sub-section.
 You can update your llvm working copy and find the modified files by 
 commands, cp -rf lbdex/src/modify/src/* <yourllvm/workingcopy/sourcedir>/.
@@ -1991,7 +2122,7 @@ Let's build lbdex/chapters/Chapter2 code as follows,
   -- Build files have been written to: /Users/Jonathan/llvm/test/cmake_debug_build
 
 To save time, we build Cpu0 target only by option -DLLVM_TARGETS_TO_BUILD=Cpu0.
-After cmake please open Xcode and build the Xcode project file as appendix A,
+After cmake, please open Xcode and build the Xcode project file as appendix A,
 or refer appendix A to build it on linux if you work on unix/linux platform.
 After that, you can find the \*.inc files in directory 
 /Users/Jonathan/llvm/test/cmake_debug_build/lib/Target/Cpu0 as follows,
@@ -2003,28 +2134,33 @@ After that, you can find the \*.inc files in directory
   enum {
     NoRegister,
     AT = 1,
-    FP = 2,
-    GP = 3,
-    LR = 4,
-    PC = 5,
-    SP = 6,
-    SW = 7,
-    ZERO = 8,
-    A0 = 9,
-    A1 = 10,
-    S0 = 11,
-    S1 = 12,
-    T0 = 13,
-    T9 = 14,
-    V0 = 15,
-    V1 = 16,
-    NUM_TARGET_REGS 	// 17
+    EPC = 2,
+    FP = 3,
+    GP = 4,
+    HI = 5,
+    LO = 6,
+    LR = 7,
+    PC = 8,
+    SP = 9,
+    SW = 10,
+    ZERO = 11,
+    A0 = 12,
+    A1 = 13,
+    S0 = 14,
+    S1 = 15,
+    T0 = 16,
+    T1 = 17,
+    T9 = 18,
+    V0 = 19,
+    V1 = 20,
+    NUM_TARGET_REGS 	// 21
   };
   }
   ...
 
-These \*.inc are created by llvm-tblgen from directory cmake_debug_build/bin 
-where input files are the Cpu0 backend \*.td files. 
+These \*.inc are created by llvm-tblgen from directory 
+cmake_debug_build/lib/Target/Cpu0 where input files are the Cpu0 backend \*.td 
+files. 
 The llvm-tblgen is invoked by **tablegen** of 
 /Users/Jonathan/llvm/test/src/lib/Target/Cpu0/CMakeLists.txt. 
 These \*.inc files will be included by Cpu0 backend \*.cpp or \*.h files and 
@@ -2052,7 +2188,7 @@ First step, compile it with clang and get output ch3.bc as follows,
 .. code-block:: bash
 
   118-165-78-230:input Jonathan$ pwd
-  /Users/Jonathan/llvm/test/src/lib/Target/Cpu0/lbdex/input
+  /Users/Jonathan/llvm/test/lbdex/input
   118-165-78-230:input Jonathan$ clang -target mips-unknown-linux-gnu -c 
   ch3.cpp -emit-llvm -o ch3.bc
 
@@ -2114,9 +2250,11 @@ the Target Registration.
 
 .. [#call-note] jsub cx is direct call for 24 bits value of cx while jalr $rb is indirect call for 32 bits value of register $rb.
 
+.. [#jr-note] Both JR and RET has same opcode (actually they are the same instruction for Cpu0 hardware). When user writes "jr $t9" meaning it jumps to address of register $t9; when user writes "jr $lr" meaning it jump back to the caller function (since $lr is the return address). For user read ability, Cpu0 prints "ret $lr" instead of "jr $lr".
+
 .. [#aosa-book] Chris Lattner, **LLVM**. Published in The Architecture of Open Source Applications. http://www.aosabook.org/en/llvm.html
 
-.. [#chapters-ex] http://jonathan2251.github.io/lbd/install.html#cpu0-document
+.. [#chapters-ex] http://jonathan2251.github.io/lbd/doc.html#generate-cpu0-document
 
 .. [#codegen] http://llvm.org/docs/CodeGenerator.html
 

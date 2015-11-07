@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '3.7.0',
+        VERSION:     '3.7.1',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -54,21 +54,21 @@
 <span id="sec-addingmoresupport"></span><h1>Arithmetic and logic instructions<a class="headerlink" href="#arithmetic-and-logic-instructions" title="Permalink to this headline">¶</a></h1>
 <div class="contents local topic" id="contents">
 <ul class="simple">
-<li><a class="reference internal" href="#arithmetic" id="id18">Arithmetic</a><ul>
-<li><a class="reference internal" href="#and" id="id19"><strong>+, -, *, &lt;&lt;,</strong> and <strong>&gt;&gt;</strong></a></li>
-<li><a class="reference internal" href="#display-llvm-ir-nodes-with-graphviz" id="id20">Display llvm IR nodes with Graphviz</a></li>
-<li><a class="reference internal" href="#operator-and" id="id21">Operator % and /</a><ul>
-<li><a class="reference internal" href="#the-dag-of" id="id22">The DAG of %</a></li>
-<li><a class="reference internal" href="#arm-solution" id="id23">Arm solution</a></li>
-<li><a class="reference internal" href="#mips-solution" id="id24">Mips solution</a></li>
-<li><a class="reference internal" href="#full-support-and" id="id25">Full support %, and /</a></li>
+<li><a class="reference internal" href="#arithmetic" id="id10">Arithmetic</a><ul>
+<li><a class="reference internal" href="#and" id="id11"><strong>+, -, *, &lt;&lt;,</strong> and <strong>&gt;&gt;</strong></a></li>
+<li><a class="reference internal" href="#display-llvm-ir-nodes-with-graphviz" id="id12">Display llvm IR nodes with Graphviz</a></li>
+<li><a class="reference internal" href="#operator-and" id="id13">Operator % and /</a><ul>
+<li><a class="reference internal" href="#the-dag-of" id="id14">The DAG of %</a></li>
+<li><a class="reference internal" href="#arm-solution" id="id15">Arm solution</a></li>
+<li><a class="reference internal" href="#mips-solution" id="id16">Mips solution</a></li>
+<li><a class="reference internal" href="#full-support-and" id="id17">Full support %, and /</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#rotate-instructions" id="id26">Rotate instructions</a></li>
+<li><a class="reference internal" href="#rotate-instructions" id="id18">Rotate instructions</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#logic" id="id27">Logic</a></li>
-<li><a class="reference internal" href="#summary" id="id28">Summary</a></li>
+<li><a class="reference internal" href="#logic" id="id19">Logic</a></li>
+<li><a class="reference internal" href="#summary" id="id20">Summary</a></li>
 </ul>
 </div>
 <p>This chapter adds more Cpu0 arithmetic instructions support first.
@@ -78,41 +78,19 @@ display options.
 These DAGs translation in some steps of optimization can be displayed by the
 graphic tool of Graphviz which supply useful information with graphic view.
 Logic instructions support will come after arithmetic section.
-In spite of llvm backend handle the IR only, we get the IR from the
+In spite of that llvm backend handle the IR only, we get the IR from the
 corresponding C operators with designed C example code.
 Through compiling with C code, readers can know exactly what C statements are
-handled with each chapter&#8217;s appending code.
+handled by each chapter&#8217;s appending code.
 Instead of focusing on classes relationship in this backend structure of last
 chapter, readers should focus on the mapping of C operators and llvm IR and
 how to define the mapping relationship of IR and instructions in td.
 HILO and C0 register class are defined in this chapter.
 Readers will know how to handle other register classes beside general
-purpose register class, and why need them, from this chapter.</p>
+purpose register class, and why they are needed, from this chapter.</p>
 <div class="section" id="arithmetic">
-<h2><a class="toc-backref" href="#id18">Arithmetic</a><a class="headerlink" href="#arithmetic" title="Permalink to this headline">¶</a></h2>
+<h2><a class="toc-backref" href="#id10">Arithmetic</a><a class="headerlink" href="#arithmetic" title="Permalink to this headline">¶</a></h2>
 <p>The code added in Chapter4_1/ to support arithmetic instructions as follows,</p>
-<p class="rubric">lbdex/chapters/Chapter4_1/MCTargetDesc/Cpu0BaseInfo.h</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="c1">/// getCpu0RegisterNumbering - Given the enum value for some register,</span>
-<span class="c1">/// return the number that it corresponds to.</span>
-<span class="kr">inline</span> <span class="k">static</span> <span class="kt">unsigned</span> <span class="nf">getCpu0RegisterNumbering</span><span class="p">(</span><span class="kt">unsigned</span> <span class="n">RegEnum</span><span class="p">)</span>
-<span class="p">{</span>
-  <span class="k">switch</span> <span class="p">(</span><span class="n">RegEnum</span><span class="p">)</span> <span class="p">{</span>
-</pre></div>
-</div>
-<div class="highlight-c++"><div class="highlight"><pre><span class="p">...</span>
-</pre></div>
-</div>
-<div class="highlight-c++"><div class="highlight"><pre>  <span class="k">case</span> <span class="n">Cpu0</span>:<span class="o">:</span><span class="n">HI</span><span class="o">:</span>
-    <span class="k">return</span> <span class="mi">18</span><span class="p">;</span>
-  <span class="k">case</span> <span class="n">Cpu0</span>:<span class="o">:</span><span class="n">LO</span><span class="o">:</span>
-    <span class="k">return</span> <span class="mi">19</span><span class="p">;</span>
-</pre></div>
-</div>
-<div class="highlight-c++"><div class="highlight"><pre>  <span class="p">...</span>
-  <span class="p">}</span>
-<span class="p">}</span>
-</pre></div>
-</div>
 <p class="rubric">lbdex/chapters/Chapter4_1/Cpu0Subtarget.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="k">static</span> <span class="n">cl</span><span class="o">::</span><span class="n">opt</span><span class="o">&lt;</span><span class="kt">bool</span><span class="o">&gt;</span> <span class="n">EnableOverflowOpt</span>
                 <span class="p">(</span><span class="s">&quot;cpu0-enable-overflow&quot;</span><span class="p">,</span> <span class="n">cl</span><span class="o">::</span><span class="n">Hidden</span><span class="p">,</span> <span class="n">cl</span><span class="o">::</span><span class="n">init</span><span class="p">(</span><span class="nb">false</span><span class="p">),</span>
@@ -164,9 +142,10 @@ class shift_rotate_reg&lt;bits&lt;8&gt; op, bits&lt;4&gt; isRotate, string instr
 // Mul, Div
 class Mult&lt;bits&lt;8&gt; op, string instr_asm, InstrItinClass itin,
            RegisterClass RC, list&lt;Register&gt; DefRegs&gt;:
-  FL&lt;op, (outs), (ins RC:$ra, RC:$rb),
+  FA&lt;op, (outs), (ins RC:$ra, RC:$rb),
      !strconcat(instr_asm, "\t$ra, $rb"), [], itin&gt; {
-  let imm16 = 0;
+  let rc = 0;
+  let shamt = 0;
   let isCommutable = 1;
   let Defs = DefRegs;
   let hasSideEffects = 0;
@@ -177,10 +156,11 @@ class Mult32&lt;bits&lt;8&gt; op, string instr_asm, InstrItinClass itin&gt;:
 
 class Div&lt;SDNode opNode, bits&lt;8&gt; op, string instr_asm, InstrItinClass itin,
           RegisterClass RC, list&lt;Register&gt; DefRegs&gt;:
-  FL&lt;op, (outs), (ins RC:$ra, RC:$rb),
+  FA&lt;op, (outs), (ins RC:$ra, RC:$rb),
      !strconcat(instr_asm, "\t$ra, $rb"),
      [(opNode RC:$ra, RC:$rb)], itin&gt; {
-  let imm16 = 0;
+  let rc = 0;
+  let shamt = 0;
   let Defs = DefRegs;
 }
 
@@ -190,10 +170,11 @@ class Div32&lt;SDNode opNode, bits&lt;8&gt; op, string instr_asm, InstrItinClass
 // Move from Lo/Hi
 class MoveFromLOHI&lt;bits&lt;8&gt; op, string instr_asm, RegisterClass RC,
                    list&lt;Register&gt; UseRegs&gt;:
-  FL&lt;op, (outs RC:$ra), (ins),
+  FA&lt;op, (outs RC:$ra), (ins),
      !strconcat(instr_asm, "\t$ra"), [], IIHiLo&gt; {
   let rb = 0;
-  let imm16 = 0;
+  let rc = 0;
+  let shamt = 0;
   let Uses = UseRegs;
   let hasSideEffects = 0;
 }
@@ -201,35 +182,39 @@ class MoveFromLOHI&lt;bits&lt;8&gt; op, string instr_asm, RegisterClass RC,
 // Move to Lo/Hi
 class MoveToLOHI&lt;bits&lt;8&gt; op, string instr_asm, RegisterClass RC,
                  list&lt;Register&gt; DefRegs&gt;:
-  FL&lt;op, (outs), (ins RC:$ra),
+  FA&lt;op, (outs), (ins RC:$ra),
      !strconcat(instr_asm, "\t$ra"), [], IIHiLo&gt; {
   let rb = 0;
-  let imm16 = 0;
+  let rc = 0;
+  let shamt = 0;
   let Defs = DefRegs;
   let hasSideEffects = 0;
 }
 
 // Move from C0 (co-processor 0) Register
 class MoveFromC0&lt;bits&lt;8&gt; op, string instr_asm, RegisterClass RC&gt;:
-  FL&lt;op, (outs), (ins RC:$ra, C0Regs:$rb),
+  FA&lt;op, (outs), (ins RC:$ra, C0Regs:$rb),
      !strconcat(instr_asm, "\t$ra, $rb"), [], IIAlu&gt; {
-  let imm16 = 0;
+  let rc = 0;
+  let shamt = 0;
   let hasSideEffects = 0;
 }
 
 // Move to C0 Register
 class MoveToC0&lt;bits&lt;8&gt; op, string instr_asm, RegisterClass RC&gt;:
-  FL&lt;op, (outs C0Regs:$ra), (ins RC:$rb),
+  FA&lt;op, (outs C0Regs:$ra), (ins RC:$rb),
      !strconcat(instr_asm, "\t$ra, $rb"), [], IIAlu&gt; {
-  let imm16 = 0;
+  let rc = 0;
+  let shamt = 0;
   let hasSideEffects = 0;
 }
 
 // Move from C0 register to C0 register
 class C0Move&lt;bits&lt;8&gt; op, string instr_asm&gt;:
-  FL&lt;op, (outs C0Regs:$ra), (ins C0Regs:$rb),
+  FA&lt;op, (outs C0Regs:$ra), (ins C0Regs:$rb),
      !strconcat(instr_asm, "\t$ra, $rb"), [], IIAlu&gt; {
-  let imm16 = 0;
+  let rc = 0;
+  let shamt = 0;
   let hasSideEffects = 0;
 }
 } // let Predicates = [Ch4_1]
@@ -368,8 +353,8 @@ class C0Move&lt;bits&lt;8&gt; op, string instr_asm&gt;:
 </pre></div>
 </div>
 <div class="highlight-c++"><div class="highlight"><pre>  <span class="c1">// Hi/Lo registers number and name</span>
-  <span class="n">def</span> <span class="n">HI</span>   <span class="o">:</span> <span class="n">Register</span><span class="o">&lt;</span><span class="s">&quot;hi&quot;</span><span class="o">&gt;</span><span class="p">,</span> <span class="n">DwarfRegNum</span><span class="o">&lt;</span><span class="p">[</span><span class="mi">18</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
-  <span class="n">def</span> <span class="n">LO</span>   <span class="o">:</span> <span class="n">Register</span><span class="o">&lt;</span><span class="s">&quot;lo&quot;</span><span class="o">&gt;</span><span class="p">,</span> <span class="n">DwarfRegNum</span><span class="o">&lt;</span><span class="p">[</span><span class="mi">19</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
+  <span class="n">def</span> <span class="n">HI</span>   <span class="o">:</span> <span class="n">Cpu0Reg</span><span class="o">&lt;</span><span class="mi">0</span><span class="p">,</span> <span class="s">&quot;ac0&quot;</span><span class="o">&gt;</span><span class="p">,</span> <span class="n">DwarfRegNum</span><span class="o">&lt;</span><span class="p">[</span><span class="mi">18</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
+  <span class="n">def</span> <span class="n">LO</span>   <span class="o">:</span> <span class="n">Cpu0Reg</span><span class="o">&lt;</span><span class="mi">0</span><span class="p">,</span> <span class="s">&quot;ac0&quot;</span><span class="o">&gt;</span><span class="p">,</span> <span class="n">DwarfRegNum</span><span class="o">&lt;</span><span class="p">[</span><span class="mi">19</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
 </pre></div>
 </div>
 <div class="highlight-c++"><div class="highlight"><pre><span class="p">}</span>
@@ -475,11 +460,10 @@ class C0Move&lt;bits&lt;8&gt; op, string instr_asm&gt;:
 </pre></div>
 </div>
 <p class="rubric">lbdex/chapters/Chapter4_1/Cpu0SEInstrInfo.cpp</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="kt">void</span> <span class="n">Cpu0SEInstrInfo</span><span class="o">::</span>
-<span class="n">copyPhysReg</span><span class="p">(</span><span class="n">MachineBasicBlock</span> <span class="o">&amp;</span><span class="n">MBB</span><span class="p">,</span>
-            <span class="n">MachineBasicBlock</span><span class="o">::</span><span class="n">iterator</span> <span class="n">I</span><span class="p">,</span> <span class="n">DebugLoc</span> <span class="n">DL</span><span class="p">,</span>
-            <span class="kt">unsigned</span> <span class="n">DestReg</span><span class="p">,</span> <span class="kt">unsigned</span> <span class="n">SrcReg</span><span class="p">,</span>
-            <span class="kt">bool</span> <span class="n">KillSrc</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
+<div class="highlight-c++"><div class="highlight"><pre><span class="kt">void</span> <span class="n">Cpu0SEInstrInfo</span><span class="o">::</span><span class="n">copyPhysReg</span><span class="p">(</span><span class="n">MachineBasicBlock</span> <span class="o">&amp;</span><span class="n">MBB</span><span class="p">,</span>
+                                  <span class="n">MachineBasicBlock</span><span class="o">::</span><span class="n">iterator</span> <span class="n">I</span><span class="p">,</span> <span class="n">DebugLoc</span> <span class="n">DL</span><span class="p">,</span>
+                                  <span class="kt">unsigned</span> <span class="n">DestReg</span><span class="p">,</span> <span class="kt">unsigned</span> <span class="n">SrcReg</span><span class="p">,</span>
+                                  <span class="kt">bool</span> <span class="n">KillSrc</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
   <span class="kt">unsigned</span> <span class="n">Opc</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">ZeroReg</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
 
   <span class="k">if</span> <span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">CPURegsRegClass</span><span class="p">.</span><span class="n">contains</span><span class="p">(</span><span class="n">DestReg</span><span class="p">))</span> <span class="p">{</span> <span class="c1">// Copy to CPU Reg.</span>
@@ -513,7 +497,7 @@ class C0Move&lt;bits&lt;8&gt; op, string instr_asm&gt;:
 </pre></div>
 </div>
 <div class="section" id="and">
-<h3><a class="toc-backref" href="#id19"><strong>+, -, *, &lt;&lt;,</strong> and <strong>&gt;&gt;</strong></a><a class="headerlink" href="#and" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id11"><strong>+, -, *, &lt;&lt;,</strong> and <strong>&gt;&gt;</strong></a><a class="headerlink" href="#and" title="Permalink to this headline">¶</a></h3>
 <p>The ADDu, ADD, SUBu, SUB and MUL defined in Chapter4_1/Cpu0InstrInfo.td are for
 operators <strong>+, -, *</strong>.
 SHL (defined before) and SHLV are for <strong>&lt;&lt;</strong>.
@@ -521,11 +505,10 @@ SRA, SRAV, SHR and SHRV are for <strong>&gt;&gt;</strong>.</p>
 <p>In RISC CPU like Mips, the multiply/divide function unit and add/sub/logic unit
 are designed from two different hardware circuits, and more, their data path are
 separate. Cpu0 is same, so these two function units can be executed at same
-time (instruction level parallelism). Reference <a class="footnote-reference" href="#id10" id="id1">[1]</a> for instruction itineraries.</p>
+time (instruction level parallelism). Reference <a class="footnote-reference" href="#instrstage" id="id1">[1]</a> for instruction itineraries.</p>
 <p>Chapter4_1/ can handle <strong>+, -, *, &lt;&lt;,</strong> and <strong>&gt;&gt;</strong> operators in C
 language.
-The corresponding llvm IR instructions are <strong>add, sub, mul,
-shl, ashr</strong>.
+The corresponding llvm IR instructions are <strong>add, sub, mul, shl, ashr</strong>.
 The <strong>&#8216;ashr&#8217;</strong> instruction (arithmetic shift right) returns the first operand
 shifted to the right a specified number of bits with sign extension.
 In brief, we call <strong>ashr</strong> is “shift with sign extension fill”.</p>
@@ -542,9 +525,9 @@ In brief, we call <strong>ashr</strong> is “shift with sign extension fill”.
 </div>
 <p>The semantic of C operator <strong>&gt;&gt;</strong> for negative operand is dependent on
 implementation.
-Most compiler translate it into “shift with sign extension fill”, for example,
-Mips <strong>sra</strong> is the instruction.
-Following is the Micosoft web site explanation,</p>
+Most compilers translate it into “shift with sign extension fill”, and
+Mips <strong>sra</strong> is this instruction.
+Following is the Micosoft web site&#8217;s explanation,</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p><strong>&gt;&gt;</strong>, Microsoft Specific</p>
@@ -564,8 +547,8 @@ following meaning.</p>
 &lt;result&gt; = lshr i8 -2, 1   ; yields {i8}:result = 0x7FFFFFFF</p>
 </div>
 <p>In llvm, IR node <strong>sra</strong> is defined for ashr IR instruction, and node <strong>srl</strong> is
-defined for lshr instruction (We don&#8217;t know why don&#8217;t use ashr and lshr as the
-IR node name directly). Summary as the Table: C operator &gt;&gt; implementation.</p>
+defined for lshr instruction (We don&#8217;t know why it doesn&#8217;t use ashr and lshr as
+the IR node name directly). Summary as the Table: C operator &gt;&gt; implementation.</p>
 <table border="1" class="docutils">
 <caption>C operator &gt;&gt; implementation</caption>
 <colgroup>
@@ -671,8 +654,8 @@ For the overflow case, no way to keep the correct result in register. So, any
 value in register is OK. You can check that <strong>lshr</strong> satisfy x = x*2, for all
 x &lt;&lt; 1 and the x result is not out of range, no matter operand x is signed
 or unsigned integer.</p>
-<p>Micorsoft implementation references here <a class="footnote-reference" href="#id11" id="id2">[2]</a>.</p>
-<p>The ‘ashr‘ Instruction&#8221; reference here <a class="footnote-reference" href="#id12" id="id3">[3]</a>, ‘lshr‘ reference here <a class="footnote-reference" href="#id13" id="id4">[4]</a>.</p>
+<p>Micorsoft implementation references here <a class="footnote-reference" href="#msdn" id="id2">[2]</a>.</p>
+<p>The ‘ashr‘ Instruction&#8221; reference here <a class="footnote-reference" href="#ashr" id="id3">[3]</a>, ‘lshr‘ reference here <a class="footnote-reference" href="#lshr" id="id4">[4]</a>.</p>
 <p>The srav, shlv and shrv are for two virtual input registers instructions while
 the sra, ... are for 1 virtual input registers and 1 constant input operands.</p>
 <p>Now, let&#8217;s build Chapter4_1/ and run with input file ch4_math.ll as follows,</p>
@@ -711,66 +694,37 @@ define i32 @_Z9test_mathv() #0 {
 </div>
 <div class="highlight-bash"><div class="highlight"><pre>118-165-78-12:input Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/test/cmake_debug_build/
 Debug/bin/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>pic -filetype<span class="o">=</span>asm ch4_math.ll -o -
+  ...
+        ld    <span class="nv">$2</span>, 0<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+        ld    <span class="nv">$3</span>, 4<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+        subu  <span class="nv">$4</span>, <span class="nv">$3</span>, <span class="nv">$2</span>
+        addu  <span class="nv">$5</span>, <span class="nv">$3</span>, <span class="nv">$2</span>
+        addu  <span class="nv">$4</span>, <span class="nv">$5</span>, <span class="nv">$4</span>
+        mul   <span class="nv">$5</span>, <span class="nv">$3</span>, <span class="nv">$2</span>
+        addu  <span class="nv">$4</span>, <span class="nv">$4</span>, <span class="nv">$5</span>
+        shl   <span class="nv">$5</span>, <span class="nv">$3</span>, 2
+        addu  <span class="nv">$4</span>, <span class="nv">$4</span>, <span class="nv">$5</span>
+        sra   <span class="nv">$5</span>, <span class="nv">$3</span>, 2
+        addu  <span class="nv">$4</span>, <span class="nv">$4</span>, <span class="nv">$5</span>
+        addiu <span class="nv">$5</span>, <span class="nv">$zero</span>, 128
+        shrv  <span class="nv">$5</span>, <span class="nv">$5</span>, <span class="nv">$2</span>
+        addiu <span class="nv">$t9</span>, <span class="nv">$zero</span>, 1
+        shlv  <span class="nv">$t9</span>, <span class="nv">$t9</span>, <span class="nv">$2</span>
+        srav  <span class="nv">$2</span>, <span class="nv">$3</span>, <span class="nv">$2</span>
+        shr   <span class="nv">$3</span>, <span class="nv">$3</span>, 30
+        addu  <span class="nv">$3</span>, <span class="nv">$4</span>, <span class="nv">$3</span>
+        addu  <span class="nv">$3</span>, <span class="nv">$3</span>, <span class="nv">$t9</span>
+        addu  <span class="nv">$3</span>, <span class="nv">$3</span>, <span class="nv">$5</span>
+        addu  <span class="nv">$2</span>, <span class="nv">$3</span>, <span class="nv">$2</span>
+        addiu <span class="nv">$sp</span>, <span class="nv">$sp</span>, 8
+        ret   <span class="nv">$lr</span>
 </pre></div>
 </div>
-<p class="rubric">lbdex/output/ch4_math.s</p>
-<div class="highlight-c++"><pre>  .text
-  .macosx_version_min 14, 3
-  .section .mdebug.abiO32
-  .previous
-  .file  "input/ch4_math.ll"
-  .globl  _Z9test_mathv
-  .align  2
-  .type  _Z9test_mathv,@function
-  .ent  _Z9test_mathv           # @_Z9test_mathv
-_Z9test_mathv:
-  .cfi_startproc
-  .frame  $sp,8,$lr
-  .mask   0x00000000,0
-  .set  noreorder
-  .set  nomacro
-# BB#0:
-  addiu  $sp, $sp, -8
-$tmp0:
-  .cfi_def_cfa_offset 8
-  ld  $2, 0($sp)
-  ld  $3, 4($sp)
-  subu  $4, $3, $2
-  addu  $5, $3, $2
-  addu  $4, $5, $4
-  mul  $5, $3, $2
-  addu  $4, $4, $5
-  shl  $5, $3, 2
-  addu  $4, $4, $5
-  sra  $5, $3, 2
-  addu  $4, $4, $5
-  addiu  $5, $zero, 128
-  shrv  $5, $5, $2
-  addiu  $t9, $zero, 1
-  shlv  $t9, $t9, $2
-  srav  $2, $3, $2
-  shr  $3, $3, 30
-  addu  $3, $4, $3
-  addu  $3, $3, $t9
-  addu  $3, $3, $5
-  addu  $2, $3, $2
-  addiu  $sp, $sp, 8
-  ret  $lr
-  nop
-  .set  macro
-  .set  reorder
-  .end  _Z9test_mathv
-$func_end0:
-  .size  _Z9test_mathv, ($func_end0)-_Z9test_mathv
-  .cfi_endproc
-
-
-</pre>
-</div>
-<p>File ch4_1_1.cpp as the following is the C file which include <strong>+, -, *, &lt;&lt;,</strong>
-and <strong>&gt;&gt;</strong> operators. It will generate corresponding llvm IR instructions,
+<p>Example input ch4_1_math.cpp as the following is the C file which include <strong>+, -,
+*, &lt;&lt;,</strong> and <strong>&gt;&gt;</strong> operators.
+It will generate corresponding llvm IR instructions,
 <strong>add, sub, mul, shl, ashr</strong> by clang as Chapter 3 indicated.</p>
-<p class="rubric">lbdex/input/ch4_1_1.cpp</p>
+<p class="rubric">lbdex/input/ch4_1_math.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="kt">int</span> <span class="nf">test_math</span><span class="p">()</span>
 <span class="p">{</span>
   <span class="kt">int</span> <span class="n">a</span> <span class="o">=</span> <span class="mi">5</span><span class="p">;</span>
@@ -797,10 +751,10 @@ and <strong>&gt;&gt;</strong> operators. It will generate corresponding llvm IR 
 </pre></div>
 </div>
 <p>Cpu0 instructions add and sub will trigger overflow exception while addu and subu
-truncate overflow value directly. Compile ch4_1_2.cpp with
+truncate overflow value directly. Compile ch4_1_addsuboverflow.cpp with
 <tt class="docutils literal"><span class="pre">llc</span> <span class="pre">-cpu0-enable-overflow=true</span></tt> will generate add and sub instructions as
 follows,</p>
-<p class="rubric">lbdex/input/ch4_1_2.cpp</p>
+<p class="rubric">lbdex/input/ch4_1_addsuboverflow.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="cp">#include &quot;debug.h&quot;</span>
 
 <span class="kt">int</span> <span class="nf">test_add_overflow</span><span class="p">()</span>
@@ -827,8 +781,8 @@ follows,</p>
 </pre></div>
 </div>
 <div class="highlight-bash"><div class="highlight"><pre>118-165-78-12:input Jonathan<span class="nv">$ </span>clang -target mips-unknown-linux-gnu -c
-ch4_1_2.cpp -emit-llvm -o ch4_1_2.bc
-118-165-78-12:input Jonathan<span class="nv">$ </span>llvm-dis ch4_1_2.bc -o -
+ch4_1_addsuboverflow.cpp -emit-llvm -o ch4_1_addsuboverflow.bc
+118-165-78-12:input Jonathan<span class="nv">$ </span>llvm-dis ch4_1_addsuboverflow.bc -o -
 ...
 ; Function Attrs: nounwind
 define i32 @_Z13test_overflowv<span class="o">()</span> <span class="c">#0 {</span>
@@ -841,7 +795,7 @@ define i32 @_Z13test_overflowv<span class="o">()</span> <span class="c">#0 {</sp
 
 118-165-78-12:input Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/test/cmake_debug_build/
 Debug/bin/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>pic -filetype<span class="o">=</span>asm
--cpu0-enable-overflow<span class="o">=</span><span class="nb">true </span>ch4_1_2.bc -o -
+-cpu0-enable-overflow<span class="o">=</span><span class="nb">true </span>ch4_1_addsuboverflow.bc -o -
       ...
       add     <span class="nv">$3</span>, <span class="nv">$4</span>, <span class="nv">$3</span>
       ...
@@ -849,27 +803,27 @@ Debug/bin/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o
       ...
 </pre></div>
 </div>
-<p>In modern CPU, programmers are used to using truncate overflow instructions in
-C program regard add and sub instructions.
+<p>In modern CPU, programmers are used to using truncate overflow instructions for
+C operators + and -.
 Anyway, through option -cpu0-enable-overflow=true, programmer get the
 chance to compile program with overflow exception program. Usually, this option
 used in debug purpose. Compile with this option can help to identify the bug and
 fix it early.</p>
 </div>
 <div class="section" id="display-llvm-ir-nodes-with-graphviz">
-<h3><a class="toc-backref" href="#id20">Display llvm IR nodes with Graphviz</a><a class="headerlink" href="#display-llvm-ir-nodes-with-graphviz" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id12">Display llvm IR nodes with Graphviz</a><a class="headerlink" href="#display-llvm-ir-nodes-with-graphviz" title="Permalink to this headline">¶</a></h3>
 <p>The previous section, display the DAG translation process in text on terminal
 by option <tt class="docutils literal"><span class="pre">llc</span> <span class="pre">-debug</span></tt>.
 The <tt class="docutils literal"><span class="pre">llc</span></tt> also supports the graphic displaying.
 The <a class="reference external" href="http://jonathan2251.github.io/lbd/install.html#install-other-tools-on-imac">section Install other tools on iMac</a> include the download and installation
 of tool Graphivz.
 The <tt class="docutils literal"><span class="pre">llc</span></tt> graphic displaying with tool Graphviz is introduced in this section.
-The graphic displaying is more readable by eye than displaying text in terminal.
+The graphic displaying is more readable by eyes than displaying text in terminal.
 It&#8217;s not a must-have, but helps a lot especially when you are tired in tracking
 the DAG translation process.
 List the <tt class="docutils literal"><span class="pre">llc</span></tt> graphic support options from the sub-section &#8220;SelectionDAG
 Instruction Selection Process&#8221; of web &#8220;The LLVM Target-Independent Code Generator&#8221;
-<a class="footnote-reference" href="#id14" id="id5">[5]</a> as follows,</p>
+<a class="footnote-reference" href="#instructionsel" id="id5">[5]</a> as follows,</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p>The <tt class="docutils literal"><span class="pre">llc</span></tt> Graphviz DAG display options</p>
@@ -881,7 +835,7 @@ pass.</p>
 <p>-view-isel-dags displays the DAG before the Select phase.</p>
 <p class="last">-view-sched-dags displays the DAG before Scheduling.</p>
 </div>
-<p>By tracking <tt class="docutils literal"><span class="pre">llc</span> <span class="pre">-debug</span></tt>, you can see the DAG translation steps as follows,</p>
+<p>By tracking <tt class="docutils literal"><span class="pre">llc</span> <span class="pre">-debug</span></tt>, you can see the steps of DAG translation as follows,</p>
 <div class="highlight-bash"><div class="highlight"><pre>Initial selection DAG
 Optimized lowered selection DAG
 Type-legalized selection DAG
@@ -898,7 +852,7 @@ Scheduling
 result with Graphviz as follows,</p>
 <div class="highlight-bash"><div class="highlight"><pre>118-165-12-177:input Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/test/
 cmake_debug_build/Debug/bin/llc -view-dag-combine1-dags -march<span class="o">=</span>cpu0
--relocation-model<span class="o">=</span>pic -filetype<span class="o">=</span>asm ch4_2.bc -o ch4_2.cpu0.s
+-relocation-model<span class="o">=</span>pic -filetype<span class="o">=</span>asm ch4_1_mult.bc -o ch4_1_mult.cpu0.s
 Writing <span class="s1">&#39;/tmp/llvm_84ibpm/dag.main.dot&#39;</span>...  <span class="k">done</span>.
 118-165-12-177:input Jonathan<span class="nv">$ </span>Graphviz /tmp/llvm_84ibpm/dag.main.dot
 </pre></div>
@@ -909,11 +863,11 @@ Writing <span class="s1">&#39;/tmp/llvm_84ibpm/dag.main.dot&#39;</span>...  <spa
 <p class="caption">Figure 1: llc option -view-dag-combine1-dags graphic view</p>
 </div>
 <p><a class="pageref" href="#otherinst-f1">Figure  1</a> is the stage of &#8220;Initial selection DAG&#8221;.
-List the other view options and their corresponding DAG translation stages as
+List the other view options and their corresponding stages of DAG translation as
 follows,</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p><tt class="docutils literal"><span class="pre">llc</span></tt> Graphviz options and corresponding DAG translation stage</p>
+<p><tt class="docutils literal"><span class="pre">llc</span></tt> Graphviz options and the corresponding stages of DAG translation</p>
 <p>-view-dag-combine1-dags: Initial selection DAG</p>
 <p>-view-legalize-dags: Optimized type-legalized selection DAG</p>
 <p>-view-dag-combine2-dags: Legalized selection DAG</p>
@@ -923,17 +877,17 @@ follows,</p>
 <p>The -view-isel-dags is important and often used by an llvm backend writer
 because it is the DAGs before instruction selection.
 In order to writing the pattern match instruction in target description file
-.td, backend programmer needs knowing what the DAG nodes are with a given C
+.td, backend programmer needs knowing what the DAG nodes are for a given C
 operator.</p>
 </div>
 <div class="section" id="operator-and">
-<h3><a class="toc-backref" href="#id21">Operator % and /</a><a class="headerlink" href="#operator-and" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id13">Operator % and /</a><a class="headerlink" href="#operator-and" title="Permalink to this headline">¶</a></h3>
 <div class="section" id="the-dag-of">
-<h4><a class="toc-backref" href="#id22">The DAG of %</a><a class="headerlink" href="#the-dag-of" title="Permalink to this headline">¶</a></h4>
-<p>Example input code ch4_2.cpp which contains the C operator <strong>“%”</strong> and it&#8217;s
+<h4><a class="toc-backref" href="#id14">The DAG of %</a><a class="headerlink" href="#the-dag-of" title="Permalink to this headline">¶</a></h4>
+<p>Example input code ch4_1_mult.cpp which contains the C operator <strong>“%”</strong> and it&#8217;s
 corresponding llvm IR, as follows,</p>
-<p class="rubric">lbdex/input/ch4_2.cpp</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="kt">int</span> <span class="nf">test_mod</span><span class="p">()</span>
+<p class="rubric">lbdex/input/ch4_1_mult.cpp</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="kt">int</span> <span class="nf">test_mult</span><span class="p">()</span>
 <span class="p">{</span>
   <span class="kt">int</span> <span class="n">b</span> <span class="o">=</span> <span class="mi">11</span><span class="p">;</span>
 <span class="c1">//  unsigned int b = 11;</span>
@@ -945,7 +899,7 @@ corresponding llvm IR, as follows,</p>
 </pre></div>
 </div>
 <div class="highlight-bash"><div class="highlight"><pre>...
-define i32 @_Z8test_modv<span class="o">()</span> <span class="c">#0 {</span>
+define i32 @_Z8test_multv<span class="o">()</span> <span class="c">#0 {</span>
   %b <span class="o">=</span> alloca i32, align 4
   store i32 11, i32* %b, align 4
   %1 <span class="o">=</span> load i32* %b, align 4
@@ -957,7 +911,7 @@ define i32 @_Z8test_modv<span class="o">()</span> <span class="c">#0 {</span>
 <span class="o">}</span>
 </pre></div>
 </div>
-<p>LLVM <strong>srem</strong> is the IR of corresponding <strong>“%”</strong>, reference here <a class="footnote-reference" href="#id15" id="id6">[6]</a>.
+<p>LLVM <strong>srem</strong> is the IR of corresponding <strong>“%”</strong>, reference here <a class="footnote-reference" href="#srem" id="id6">[6]</a>.
 Copy the reference as follows,</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
@@ -989,12 +943,12 @@ the remainder.)</p>
 <p class="last">Example:
 &lt;result&gt; = <strong>srem i32 4, %var</strong>      ; yields {i32}:result = 4 % %var</p>
 </div>
-<p>Run Chapter3_4/ with input file ch4_2.bc via option <tt class="docutils literal"><span class="pre">llc</span> <span class="pre">–view-isel-dags</span></tt>,
+<p>Run Chapter3_5/ with input file ch4_1_mult.bc via option <tt class="docutils literal"><span class="pre">llc</span> <span class="pre">–view-isel-dags</span></tt>,
 will get the following error message and the llvm DAGs of
 <a class="pageref" href="#otherinst-f2">Figure  2</a> below.</p>
 <div class="highlight-bash"><div class="highlight"><pre>118-165-79-37:input Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/test/
 cmake_debug_build/Debug/bin/llc -march<span class="o">=</span>cpu0 -view-isel-dags -relocation-model<span class="o">=</span>
-pic -filetype<span class="o">=</span>asm ch4_2.bc -o -
+pic -filetype<span class="o">=</span>asm ch4_1_mult.bc -o -
 ...
 LLVM ERROR: Cannot <span class="k">select</span>: 0x7fa73a02ea10: <span class="nv">i32</span> <span class="o">=</span> mulhs 0x7fa73a02c610,
 0x7fa73a02e910 <span class="o">[</span><span class="nv">ID</span><span class="o">=</span>12<span class="o">]</span>
@@ -1003,8 +957,8 @@ LLVM ERROR: Cannot <span class="k">select</span>: 0x7fa73a02ea10: <span class="n
 </pre></div>
 </div>
 <div class="figure align-center" id="otherinst-f2">
-<a class="reference internal image-reference" href="_images/25.png"><img alt="_images/25.png" src="_images/25.png" style="width: 580.0px; height: 629.0px;" /></a>
-<p class="caption">Figure 2: ch4_2.bc DAG</p>
+<a class="reference internal image-reference" href="_images/24.png"><img alt="_images/24.png" src="_images/24.png" style="width: 580.0px; height: 629.0px;" /></a>
+<p class="caption">Figure 2: ch4_1_mult.bc DAG</p>
 </div>
 <p>LLVM replaces srem divide operation with multiply operation in DAG optimization
 because DIV operation costs more in time than MUL.
@@ -1016,11 +970,11 @@ The 0xC*0x2AAAAAAB=0x2,00000004, (mulhs 0xC, 0x2AAAAAAAB) meaning get the Signed
 mul high word (32bits).
 Multiply with 2 operands of 1 word size probably generate the 2 word size of
 result (0x2, 0xAAAAAAAB).
-The high word result, in this case is 0x2.
+The result of high word, in this case is 0x2.
 The final result (sub 12, 12) is 0 which match the statement (11+1)%12.</p>
 </div>
 <div class="section" id="arm-solution">
-<h4><a class="toc-backref" href="#id23">Arm solution</a><a class="headerlink" href="#arm-solution" title="Permalink to this headline">¶</a></h4>
+<h4><a class="toc-backref" href="#id15">Arm solution</a><a class="headerlink" href="#arm-solution" title="Permalink to this headline">¶</a></h4>
 <p>To run with ARM solution, change Cpu0InstrInfo.td and Cpu0ISelDAGToDAG.cpp from
 Chapter4_1/ as follows,</p>
 <p class="rubric">lbdex/chapters/Chapter4_1/Cpu0InstrInfo.td</p>
@@ -1072,67 +1026,48 @@ Chapter4_1/ as follows,</p>
 <span class="p">}</span>
 </pre></div>
 </div>
-<p>Let&#8217;s run above changes with ch4_2.cpp as well as <tt class="docutils literal"><span class="pre">llc</span> <span class="pre">-view-sched-dags</span></tt> option
+<p>Let&#8217;s run above changes with ch4_1_mult.cpp as well as <tt class="docutils literal"><span class="pre">llc</span> <span class="pre">-view-sched-dags</span></tt> option
 to get <a class="pageref" href="#otherinst-f3">Figure  3</a>.
 Instruction SMMUL will get the high word of multiply result.</p>
 <div class="figure align-center" id="otherinst-f3">
-<a class="reference internal image-reference" href="_images/33.png"><img alt="_images/33.png" src="_images/33.png" style="width: 684.0px; height: 743.0px;" /></a>
-<p class="caption">Figure 3: DAG for ch4_2.bc with ARM style SMMUL</p>
+<a class="reference internal image-reference" href="_images/31.png"><img alt="_images/31.png" src="_images/31.png" style="width: 684.0px; height: 743.0px;" /></a>
+<p class="caption">Figure 3: DAG for ch4_1_mult.bc with ARM style SMMUL</p>
 </div>
-<p>The following is the result of run above changes with ch4_2.bc.</p>
+<p>The following is the result of run above changes with ch4_1_mult.bc.</p>
 <div class="highlight-bash"><div class="highlight"><pre>118-165-66-82:input Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/test/cmake_
 debug_build/Debug/bin/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>pic -filetype<span class="o">=</span>asm
-ch4_2.bc -o -
-        .section .mdebug.abi32
-        .previous
-        .file <span class="s2">&quot;ch4_2.bc&quot;</span>
-        .text
-        .globl        main
-        .align        2
-        .type main,@function
-        .ent  main                    <span class="c"># @main</span>
-main:
-        .cfi_startproc
-        .frame        <span class="nv">$fp</span>,8,<span class="nv">$lr</span>
-        .mask         0x00000000,0
-        .set  noreorder
-        .set  nomacro
+ch4_1_mult.bc -o -
+  ...
 <span class="c"># BB#0:                                 # %entry</span>
-        addiu <span class="nv">$sp</span>, <span class="nv">$sp</span>, -8
+  addiu <span class="nv">$sp</span>, <span class="nv">$sp</span>, -8
 <span class="nv">$tmp1</span>:
-        .cfi_def_cfa_offset 8
-        addiu <span class="nv">$2</span>, <span class="nv">$zero</span>, 0
-        st    <span class="nv">$2</span>, 4<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-        addiu <span class="nv">$2</span>, <span class="nv">$zero</span>, 11
-        st    <span class="nv">$2</span>, 0<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-        lui   <span class="nv">$2</span>, 10922
-        ori   <span class="nv">$3</span>, <span class="nv">$2</span>, 43691
-        addiu <span class="nv">$2</span>, <span class="nv">$zero</span>, 12
-        smmul <span class="nv">$3</span>, <span class="nv">$2</span>, <span class="nv">$3</span>
-        shr   <span class="nv">$4</span>, <span class="nv">$3</span>, 31
-        sra   <span class="nv">$3</span>, <span class="nv">$3</span>, 1
-        addu  <span class="nv">$3</span>, <span class="nv">$3</span>, <span class="nv">$4</span>
-        mul   <span class="nv">$3</span>, <span class="nv">$3</span>, <span class="nv">$2</span>
-        subu  <span class="nv">$2</span>, <span class="nv">$2</span>, <span class="nv">$3</span>
-        st    <span class="nv">$2</span>, 0<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-        addiu <span class="nv">$sp</span>, <span class="nv">$sp</span>, 8
-        ret   <span class="nv">$lr</span>
-        .set  macro
-        .set  reorder
-        .end  main
-<span class="nv">$tmp2</span>:
-        .size main, <span class="o">(</span><span class="nv">$tmp2</span><span class="o">)</span>-main
-        .cfi_endproc
+  .cfi_def_cfa_offset 8
+  addiu <span class="nv">$2</span>, <span class="nv">$zero</span>, 0
+  st  <span class="nv">$2</span>, 4<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+  addiu <span class="nv">$2</span>, <span class="nv">$zero</span>, 11
+  st  <span class="nv">$2</span>, 0<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+  lui <span class="nv">$2</span>, 10922
+  ori <span class="nv">$3</span>, <span class="nv">$2</span>, 43691
+  addiu <span class="nv">$2</span>, <span class="nv">$zero</span>, 12
+  smmul <span class="nv">$3</span>, <span class="nv">$2</span>, <span class="nv">$3</span>
+  shr <span class="nv">$4</span>, <span class="nv">$3</span>, 31
+  sra <span class="nv">$3</span>, <span class="nv">$3</span>, 1
+  addu  <span class="nv">$3</span>, <span class="nv">$3</span>, <span class="nv">$4</span>
+  mul <span class="nv">$3</span>, <span class="nv">$3</span>, <span class="nv">$2</span>
+  subu  <span class="nv">$2</span>, <span class="nv">$2</span>, <span class="nv">$3</span>
+  st  <span class="nv">$2</span>, 0<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+  addiu <span class="nv">$sp</span>, <span class="nv">$sp</span>, 8
+  ret <span class="nv">$lr</span>
 </pre></div>
 </div>
 <p>The other instruction UMMUL and llvm IR mulhu are unsigned int type for
 operator %.
-You can check it by unmark the <strong>“unsigned int b = 11;”</strong> in ch4_2.cpp.</p>
-<p>Uses SMMUL instruction to get the high word of multiplication result is adopted
+You can check it by unmark the <strong>“unsigned int b = 11;”</strong> in ch4_1_mult.cpp.</p>
+<p>Using SMMUL instruction to get the high word of multiplication result is adopted
 in ARM.</p>
 </div>
 <div class="section" id="mips-solution">
-<h4><a class="toc-backref" href="#id24">Mips solution</a><a class="headerlink" href="#mips-solution" title="Permalink to this headline">¶</a></h4>
+<h4><a class="toc-backref" href="#id16">Mips solution</a><a class="headerlink" href="#mips-solution" title="Permalink to this headline">¶</a></h4>
 <p>Mips uses MULT instruction and save the high &amp; low part to registers HI and LO,
 respectively.
 After that, uses mfhi/mflo to move register HI/LO to your general purpose
@@ -1166,25 +1101,14 @@ After that, MFHI instruction moves the HI register to Cpu0 field &#8220;a&#8221;
 $ra.
 MFHI instruction is FL format and only use Cpu0 field &#8220;a&#8221; register, we set
 the $rb and imm16 to 0.
-<a class="pageref" href="#otherinst-f4">Figure  4</a> and ch4_2.cpu0.s are the results of compile ch4_2.bc.</p>
+<a class="pageref" href="#otherinst-f4">Figure  4</a> and ch4_1_mult.cpu0.s are the results of compile
+ch4_1_mult.bc.</p>
 <div class="figure align-center" id="otherinst-f4">
-<a class="reference internal image-reference" href="_images/43.png"><img alt="_images/43.png" src="_images/43.png" style="width: 498.6px; height: 753.3px;" /></a>
-<p class="caption">Figure 4: DAG for ch4_2.bc with Mips style MULT</p>
+<a class="reference internal image-reference" href="_images/41.png"><img alt="_images/41.png" src="_images/41.png" style="width: 498.6px; height: 753.3px;" /></a>
+<p class="caption">Figure 4: DAG for ch4_1_mult.bc with Mips style MULT</p>
 </div>
-<div class="highlight-bash"><div class="highlight"><pre>118-165-66-82:input Jonathan<span class="nv">$ </span>cat ch4_2.cpu0.s
-  .section .mdebug.abi32
-  .previous
-  .file <span class="s2">&quot;ch4_2.bc&quot;</span>
-  .text
-  .globl  _Z8test_modv
-  .align  2
-  .type _Z8test_modv,@function
-  .ent  _Z8test_modv            <span class="c"># @_Z8test_modv</span>
-_Z8test_modv:
-  .frame  <span class="nv">$sp</span>,8,<span class="nv">$lr</span>
-  .mask   0x00000000,0
-  .set  noreorder
-  .set  nomacro
+<div class="highlight-bash"><div class="highlight"><pre>118-165-66-82:input Jonathan<span class="nv">$ </span>cat ch4_1_mult.cpu0.s
+  ...
 <span class="c"># BB#0:</span>
   addiu <span class="nv">$sp</span>, <span class="nv">$sp</span>, -8
   addiu <span class="nv">$2</span>, <span class="nv">$zero</span>, 11
@@ -1202,16 +1126,11 @@ _Z8test_modv:
   st  <span class="nv">$2</span>, 4<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
   addiu <span class="nv">$sp</span>, <span class="nv">$sp</span>, 8
   ret <span class="nv">$lr</span>
-  .set  macro
-  .set  reorder
-  .end  _Z8test_modv
-<span class="nv">$tmp1</span>:
-  .size _Z8test_modv, <span class="o">(</span><span class="nv">$tmp1</span><span class="o">)</span>-_Z8test_modv
 </pre></div>
 </div>
 </div>
 <div class="section" id="full-support-and">
-<h4><a class="toc-backref" href="#id25">Full support %, and /</a><a class="headerlink" href="#full-support-and" title="Permalink to this headline">¶</a></h4>
+<h4><a class="toc-backref" href="#id17">Full support %, and /</a><a class="headerlink" href="#full-support-and" title="Permalink to this headline">¶</a></h4>
 <p>The sensitive readers may find llvm using <strong>“multiplication”</strong> instead
 of <strong>“div”</strong> to get the <strong>“%”</strong> result just because our example uses
 constant as divider, <strong>“(b+1)%12”</strong> in our example.
@@ -1237,8 +1156,8 @@ PerformDivRemCombine() and PerformDAGCombine() in Cpu0ISelLowering.cpp.</li>
 </ol>
 <p>The IR instruction <strong>sdiv</strong> stands for signed div while <strong>udiv</strong> stands for
 unsigned div.</p>
-<p class="rubric">lbdex/input/ch4_2_1.cpp</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="kt">int</span> <span class="nf">test_mod</span><span class="p">()</span>
+<p class="rubric">lbdex/input/ch4_1_mult2.cpp</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="kt">int</span> <span class="nf">test_mult</span><span class="p">()</span>
 <span class="p">{</span>
   <span class="kt">int</span> <span class="n">b</span> <span class="o">=</span> <span class="mi">11</span><span class="p">;</span>
   <span class="kt">int</span> <span class="n">a</span> <span class="o">=</span> <span class="mi">12</span><span class="p">;</span>
@@ -1249,220 +1168,90 @@ unsigned div.</p>
 <span class="p">}</span>
 </pre></div>
 </div>
-<p>If we run with ch4_2_1.cpp, the <strong>“div”</strong> cannot be gotten for operator
+<p>If we run with ch4_1_mult2.cpp, the <strong>“div”</strong> cannot be gotten for operator
 <strong>“%”</strong>.
-It still uses <strong>&#8220;multiplication&#8221;</strong> instead of <strong>&#8220;div&#8221;</strong> in ch4_2_1.cpp because
+It still uses <strong>&#8220;multiplication&#8221;</strong> instead of <strong>&#8220;div&#8221;</strong> in ch4_1_mult2.cpp because
 llvm do <strong>“Constant Propagation Optimization”</strong> in this.
-The ch4_2_2.cpp will get the &#8220;div&#8221; result for operator <strong>“%”</strong> but it cannot
-be compiled at this point. It needs &#8220;function call argument support&#8221; in Chapter
-9 of Function call.
-The ch4_2_2.cpp can get the <strong>“div”</strong> for <strong>“%”</strong> result since it makes
+The ch4_1_mod.cpp can get the <strong>“div”</strong> for <strong>“%”</strong> result since it makes
 llvm <strong>“Constant Propagation Optimization”</strong> useless in it.</p>
-<p class="rubric">lbdex/input/ch4_2_2.cpp</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="kt">int</span> <span class="nf">test_mod</span><span class="p">(</span><span class="kt">int</span> <span class="n">c</span><span class="p">)</span>
+<p class="rubric">lbdex/input/ch4_1_mod.cpp</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="kt">int</span> <span class="nf">test_mod</span><span class="p">()</span>
 <span class="p">{</span>
   <span class="kt">int</span> <span class="n">b</span> <span class="o">=</span> <span class="mi">11</span><span class="p">;</span>
+  <span class="k">volatile</span> <span class="kt">int</span> <span class="n">a</span> <span class="o">=</span> <span class="mi">12</span><span class="p">;</span>
   
-  <span class="n">b</span> <span class="o">=</span> <span class="p">(</span><span class="n">b</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span><span class="o">%</span><span class="n">c</span><span class="p">;</span>
+  <span class="n">b</span> <span class="o">=</span> <span class="p">(</span><span class="n">b</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span><span class="o">%</span><span class="n">a</span><span class="p">;</span>
   
   <span class="k">return</span> <span class="n">b</span><span class="p">;</span>
 <span class="p">}</span>
 </pre></div>
 </div>
 <div class="highlight-bash"><div class="highlight"><pre>118-165-77-79:input Jonathan<span class="nv">$ </span>clang -target mips-unknown-linux-gnu -c
-ch4_2_2.cpp -emit-llvm -o ch4_2_2.bc
+ch4_1_mod.cpp -emit-llvm -o ch4_1_mod.bc
 118-165-77-79:input Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/test/cmake_
 debug_build/Debug/bin/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>pic -filetype<span class="o">=</span>asm
-ch4_2_2.bc -o -
+ch4_1_mod.bc -o -
 ...
 div <span class="nv">$zero</span>, <span class="nv">$3</span>, <span class="nv">$2</span>
 mflo  <span class="nv">$2</span>
 ...
 </pre></div>
 </div>
-<p>To explains how work with <strong>“div”</strong>, let&#8217;s run Chapter9_3 with
-ch4_2_2.cpp as follows,</p>
+<p>To explains how to work with <strong>“div”</strong>, let&#8217;s run ch4_1_mod.cpp with debug option
+as follows,</p>
 <div class="highlight-bash"><div class="highlight"><pre>118-165-83-58:input Jonathan<span class="nv">$ </span>clang -target mips-unknown-linux-gnu -c
-ch4_2_2.cpp -I/Applications/Xcode.app/Contents/Developer/Platforms/
+ch4_1_mod.cpp -I/Applications/Xcode.app/Contents/Developer/Platforms/
 MacOSX.platform/Developer/SDKs/MacOSX10.8.sdk/usr/include/ -emit-llvm -o
-ch4_2_2.bc
+ch4_1_mod.bc
 118-165-83-58:input Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/test/cmake_debug_build/
-Debug/bin/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>pic -filetype<span class="o">=</span>asm -debug ch4_2_2.bc -o -
-Args: /Users/Jonathan/llvm/test/cmake_debug_build/Debug/bin/llc -march<span class="o">=</span>cpu0
--relocation-model<span class="o">=</span>pic -filetype<span class="o">=</span>asm -debug ch4_2_2.bc -o -
-
+Debug/bin/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>pic -filetype<span class="o">=</span>asm -debug
+ch4_1_mod.bc -o -
+...
 <span class="o">===</span> _Z8test_modi
-Initial selection DAG: BB#0 <span class="s1">&#39;_Z8test_modi:&#39;</span>
+Initial selection DAG: BB#0 <span class="s1">&#39;_Z8test_mod2i:&#39;</span>
 SelectionDAG has 21 nodes:
-  0x7fed68410bc8: <span class="nv">ch</span> <span class="o">=</span> EntryToken <span class="o">[</span><span class="nv">ORD</span><span class="o">=</span>1<span class="o">]</span>
+  ...
+    0x2447448: &lt;multiple use&gt;
+        0x24470d0: &lt;multiple use&gt;
+        0x24471f8: <span class="nv">i32</span> <span class="o">=</span> Constant&lt;1&gt;
 
-  0x7fed6882cb10: <span class="nv">i32</span> <span class="o">=</span> undef <span class="o">[</span><span class="nv">ORD</span><span class="o">=</span>1<span class="o">]</span>
+      0x2447320: <span class="nv">i32</span> <span class="o">=</span> add 0x24470d0, 0x24471f8 <span class="o">[</span><span class="nv">ORD</span><span class="o">=</span>7<span class="o">]</span>
 
-  0x7fed6882cd10: <span class="nv">i32</span> <span class="o">=</span> FrameIndex&lt;0&gt; <span class="o">[</span><span class="nv">ORD</span><span class="o">=</span>1<span class="o">]</span>
+      0x2447448: &lt;multiple use&gt;
+    0x2447570: <span class="nv">i32</span> <span class="o">=</span> srem 0x2447320, 0x2447448 <span class="o">[</span><span class="nv">ORD</span><span class="o">=</span>9<span class="o">]</span>
 
-  0x7fed6882ce10: <span class="nv">i32</span> <span class="o">=</span> Constant&lt;0&gt;
+    0x24468b8: &lt;multiple use&gt;
+    0x2446b08: &lt;multiple use&gt;
+  0x2448fc0: <span class="nv">ch</span> <span class="o">=</span> store 0x2447448:1, 0x2447570, 0x24468b8, ...
 
-  0x7fed6882d110: <span class="nv">i32</span> <span class="o">=</span> FrameIndex&lt;1&gt; <span class="o">[</span><span class="nv">ORD</span><span class="o">=</span>2<span class="o">]</span>
+  0x2449210: <span class="nv">i32</span> <span class="o">=</span> Register %V0
 
-      0x7fed68410bc8: &lt;multiple use&gt;
-        0x7fed68410bc8: &lt;multiple use&gt;
-        0x7fed6882ca10: <span class="nv">i32</span> <span class="o">=</span> FrameIndex&lt;-1&gt; <span class="o">[</span><span class="nv">ORD</span><span class="o">=</span>1<span class="o">]</span>
+    0x2448fc0: &lt;multiple use&gt;
+    0x2449210: &lt;multiple use&gt;
+      0x2448fc0: &lt;multiple use&gt;
+      0x24468b8: &lt;multiple use&gt;
+      0x2446b08: &lt;multiple use&gt;
+    0x24490e8: i32,ch <span class="o">=</span> load 0x2448fc0, 0x24468b8, 0x2446b08&lt;LD4<span class="o">[</span>%b<span class="o">]</span>&gt; <span class="o">[</span><span class="nv">ORD</span><span class="o">=</span>11<span class="o">]</span>
 
-        0x7fed6882cb10: &lt;multiple use&gt;
-      0x7fed6882cc10: i32,ch <span class="o">=</span> load 0x7fed68410bc8, 0x7fed6882ca10,
-      0x7fed6882cb10&lt;LD4<span class="o">[</span>FixedStack-1<span class="o">]</span>&gt; <span class="o">[</span><span class="nv">ORD</span><span class="o">=</span>1<span class="o">]</span>
+  0x2449338: ch,glue <span class="o">=</span> CopyToReg 0x2448fc0, 0x2449210, 0x24490e8 <span class="o">[</span><span class="nv">ORD</span><span class="o">=</span>12<span class="o">]</span>
 
-      0x7fed6882cd10: &lt;multiple use&gt;
-      0x7fed6882cb10: &lt;multiple use&gt;
-    0x7fed6882cf10: <span class="nv">ch</span> <span class="o">=</span> store 0x7fed68410bc8, 0x7fed6882cc10, 0x7fed6882cd10,
-    0x7fed6882cb10&lt;ST4<span class="o">[</span>%1<span class="o">]</span>&gt; <span class="o">[</span><span class="nv">ORD</span><span class="o">=</span>1<span class="o">]</span>
+    0x2449338: &lt;multiple use&gt;
+    0x2449210: &lt;multiple use&gt;
+    0x2449338: &lt;multiple use&gt;
+  0x2449460: <span class="nv">ch</span> <span class="o">=</span> Cpu0ISD::Ret 0x2449338, 0x2449210, 0x2449338:1 <span class="o">[</span><span class="nv">ORD</span><span class="o">=</span>12<span class="o">]</span>
 
-    0x7fed6882d010: <span class="nv">i32</span> <span class="o">=</span> Constant&lt;11&gt; <span class="o">[</span><span class="nv">ORD</span><span class="o">=</span>2<span class="o">]</span>
+Replacing.1 0x24490e8: i32,ch <span class="o">=</span> load 0x2448fc0, 0x24468b8, ...
 
-    0x7fed6882d110: &lt;multiple use&gt;
-    0x7fed6882cb10: &lt;multiple use&gt;
-  0x7fed6882d210: <span class="nv">ch</span> <span class="o">=</span> store 0x7fed6882cf10, 0x7fed6882d010, 0x7fed6882d110,
-  0x7fed6882cb10&lt;ST4<span class="o">[</span>%b<span class="o">]</span>&gt; <span class="o">[</span><span class="nv">ORD</span><span class="o">=</span>2<span class="o">]</span>
-
-    0x7fed6882d210: &lt;multiple use&gt;
-    0x7fed6882d110: &lt;multiple use&gt;
-    0x7fed6882cb10: &lt;multiple use&gt;
-  0x7fed6882d310: i32,ch <span class="o">=</span> load 0x7fed6882d210, 0x7fed6882d110,
-  0x7fed6882cb10&lt;LD4<span class="o">[</span>%b<span class="o">]</span>&gt; <span class="o">[</span><span class="nv">ORD</span><span class="o">=</span>3<span class="o">]</span>
-
-    0x7fed6882d210: &lt;multiple use&gt;
-    0x7fed6882cd10: &lt;multiple use&gt;
-    0x7fed6882cb10: &lt;multiple use&gt;
-  0x7fed6882d610: i32,ch <span class="o">=</span> load 0x7fed6882d210, 0x7fed6882cd10,
-  0x7fed6882cb10&lt;LD4<span class="o">[</span>%1<span class="o">]</span>&gt; <span class="o">[</span><span class="nv">ORD</span><span class="o">=</span>5<span class="o">]</span>
-
-      0x7fed6882d310: &lt;multiple use&gt;
-      0x7fed6882d610: &lt;multiple use&gt;
-    0x7fed6882d810: <span class="nv">ch</span> <span class="o">=</span> TokenFactor 0x7fed6882d310:1, 0x7fed6882d610:1 <span class="o">[</span><span class="nv">ORD</span><span class="o">=</span>7<span class="o">]</span>
-
-        0x7fed6882d310: &lt;multiple use&gt;
-        0x7fed6882d410: <span class="nv">i32</span> <span class="o">=</span> Constant&lt;1&gt; <span class="o">[</span><span class="nv">ORD</span><span class="o">=</span>4<span class="o">]</span>
-
-      0x7fed6882d510: <span class="nv">i32</span> <span class="o">=</span> add 0x7fed6882d310, 0x7fed6882d410 <span class="o">[</span><span class="nv">ORD</span><span class="o">=</span>4<span class="o">]</span>
-
-      0x7fed6882d610: &lt;multiple use&gt;
-    0x7fed6882d710: <span class="nv">i32</span> <span class="o">=</span> srem 0x7fed6882d510, 0x7fed6882d610 <span class="o">[</span><span class="nv">ORD</span><span class="o">=</span>6<span class="o">]</span>
-
-    0x7fed6882d110: &lt;multiple use&gt;
-    0x7fed6882cb10: &lt;multiple use&gt;
-  0x7fed6882fc10: <span class="nv">ch</span> <span class="o">=</span> store 0x7fed6882d810, 0x7fed6882d710, 0x7fed6882d110,
-  0x7fed6882cb10&lt;ST4<span class="o">[</span>%b<span class="o">]</span>&gt; <span class="o">[</span><span class="nv">ORD</span><span class="o">=</span>7<span class="o">]</span>
-
-  0x7fed6882fe10: <span class="nv">i32</span> <span class="o">=</span> Register %V0
-
-    0x7fed6882fc10: &lt;multiple use&gt;
-    0x7fed6882fe10: &lt;multiple use&gt;
-      0x7fed6882fc10: &lt;multiple use&gt;
-      0x7fed6882d110: &lt;multiple use&gt;
-      0x7fed6882cb10: &lt;multiple use&gt;
-    0x7fed6882fd10: i32,ch <span class="o">=</span> load 0x7fed6882fc10, 0x7fed6882d110,
-    0x7fed6882cb10&lt;LD4<span class="o">[</span>%b<span class="o">]</span>&gt; <span class="o">[</span><span class="nv">ORD</span><span class="o">=</span>8<span class="o">]</span>
-
-  0x7fed6882ff10: ch,glue <span class="o">=</span> CopyToReg 0x7fed6882fc10, 0x7fed6882fe10,
-  0x7fed6882fd10
-
-    0x7fed6882ff10: &lt;multiple use&gt;
-    0x7fed6882fe10: &lt;multiple use&gt;
-    0x7fed6882ff10: &lt;multiple use&gt;
-  0x7fed68830010: <span class="nv">ch</span> <span class="o">=</span> Cpu0ISD::Ret 0x7fed6882ff10, 0x7fed6882fe10,
-  0x7fed6882ff10:1
-
-Replacing.1 0x7fed6882fd10: i32,ch <span class="o">=</span> load 0x7fed6882fc10, 0x7fed6882d110,
-0x7fed6882cb10&lt;LD4<span class="o">[</span>%b<span class="o">]</span>&gt; <span class="o">[</span><span class="nv">ORD</span><span class="o">=</span>8<span class="o">]</span>
-
-With: 0x7fed6882d710: <span class="nv">i32</span> <span class="o">=</span> srem 0x7fed6882d510, 0x7fed6882d610 <span class="o">[</span><span class="nv">ORD</span><span class="o">=</span>6<span class="o">]</span>
+With: 0x2447570: <span class="nv">i32</span> <span class="o">=</span> srem 0x2447320, 0x2447448 <span class="o">[</span><span class="nv">ORD</span><span class="o">=</span>9<span class="o">]</span>
  and 1 other values
+...
 
-Replacing.1 0x7fed6882d310: i32,ch <span class="o">=</span> load 0x7fed6882d210, 0x7fed6882d110,
-0x7fed6882cb10&lt;LD4<span class="o">[</span>%b<span class="o">]</span>&gt; <span class="o">[</span><span class="nv">ORD</span><span class="o">=</span>3<span class="o">]</span>
+Optimized lowered selection DAG: BB#0 <span class="s1">&#39;_Z8test_mod2i:&#39;</span>
+...
+  0x2447570: <span class="nv">i32</span> <span class="o">=</span> srem 0x2447320, 0x2447448 <span class="o">[</span><span class="nv">ORD</span><span class="o">=</span>9<span class="o">]</span>
+...
 
-With: 0x7fed6882d010: <span class="nv">i32</span> <span class="o">=</span> Constant&lt;11&gt; <span class="o">[</span><span class="nv">ORD</span><span class="o">=</span>2<span class="o">]</span>
- and 1 other values
-
-Replacing.3 0x7fed6882d810: <span class="nv">ch</span> <span class="o">=</span> TokenFactor 0x7fed6882d210,
-0x7fed6882d610:1 <span class="o">[</span><span class="nv">ORD</span><span class="o">=</span>7<span class="o">]</span>
-
-With: 0x7fed6882d610: i32,ch <span class="o">=</span> load 0x7fed6882d210, 0x7fed6882cd10,
-0x7fed6882cb10&lt;LD4<span class="o">[</span>%1<span class="o">]</span>&gt; <span class="o">[</span><span class="nv">ORD</span><span class="o">=</span>5<span class="o">]</span>
-
-
-Replacing.3 0x7fed6882d510: <span class="nv">i32</span> <span class="o">=</span> add 0x7fed6882d010, 0x7fed6882d410 <span class="o">[</span><span class="nv">ORD</span><span class="o">=</span>4<span class="o">]</span>
-
-With: 0x7fed6882d810: <span class="nv">i32</span> <span class="o">=</span> Constant&lt;12&gt;
-
-
-Replacing.1 0x7fed6882cc10: i32,ch <span class="o">=</span> load 0x7fed68410bc8, 0x7fed6882ca10,
-0x7fed6882cb10&lt;LD4<span class="o">[</span>FixedStack-1<span class="o">](</span><span class="nv">align</span><span class="o">=</span>8<span class="o">)</span>&gt; <span class="o">[</span><span class="nv">ORD</span><span class="o">=</span>1<span class="o">]</span>
-
-With: 0x7fed6882cc10: i32,ch <span class="o">=</span> load 0x7fed68410bc8, 0x7fed6882ca10,
-0x7fed6882cb10&lt;LD4<span class="o">[</span>FixedStack-1<span class="o">](</span><span class="nv">align</span><span class="o">=</span>8<span class="o">)</span>&gt; <span class="o">[</span><span class="nv">ORD</span><span class="o">=</span>1<span class="o">]</span>
- and 1 other values
-Optimized lowered selection DAG: BB#0 <span class="s1">&#39;_Z8test_modi:&#39;</span>
-SelectionDAG has 16 nodes:
-  0x7fed68410bc8: <span class="nv">ch</span> <span class="o">=</span> EntryToken <span class="o">[</span><span class="nv">ORD</span><span class="o">=</span>1<span class="o">]</span>
-
-  0x7fed6882cb10: <span class="nv">i32</span> <span class="o">=</span> undef <span class="o">[</span><span class="nv">ORD</span><span class="o">=</span>1<span class="o">]</span>
-
-  0x7fed6882cd10: <span class="nv">i32</span> <span class="o">=</span> FrameIndex&lt;0&gt; <span class="o">[</span><span class="nv">ORD</span><span class="o">=</span>1<span class="o">]</span>
-
-  0x7fed6882d110: <span class="nv">i32</span> <span class="o">=</span> FrameIndex&lt;1&gt; <span class="o">[</span><span class="nv">ORD</span><span class="o">=</span>2<span class="o">]</span>
-
-        0x7fed68410bc8: &lt;multiple use&gt;
-          0x7fed68410bc8: &lt;multiple use&gt;
-          0x7fed6882ca10: <span class="nv">i32</span> <span class="o">=</span> FrameIndex&lt;-1&gt; <span class="o">[</span><span class="nv">ORD</span><span class="o">=</span>1<span class="o">]</span>
-
-          0x7fed6882cb10: &lt;multiple use&gt;
-        0x7fed6882cc10: i32,ch <span class="o">=</span> load 0x7fed68410bc8, 0x7fed6882ca10,
-        0x7fed6882cb10&lt;LD4<span class="o">[</span>FixedStack-1<span class="o">](</span><span class="nv">align</span><span class="o">=</span>8<span class="o">)</span>&gt; <span class="o">[</span><span class="nv">ORD</span><span class="o">=</span>1<span class="o">]</span>
-
-        0x7fed6882cd10: &lt;multiple use&gt;
-        0x7fed6882cb10: &lt;multiple use&gt;
-      0x7fed6882cf10: <span class="nv">ch</span> <span class="o">=</span> store 0x7fed68410bc8, 0x7fed6882cc10, 0x7fed6882cd10,
-      0x7fed6882cb10&lt;ST4<span class="o">[</span>%1<span class="o">]</span>&gt; <span class="o">[</span><span class="nv">ORD</span><span class="o">=</span>1<span class="o">]</span>
-
-      0x7fed6882d010: <span class="nv">i32</span> <span class="o">=</span> Constant&lt;11&gt; <span class="o">[</span><span class="nv">ORD</span><span class="o">=</span>2<span class="o">]</span>
-
-      0x7fed6882d110: &lt;multiple use&gt;
-      0x7fed6882cb10: &lt;multiple use&gt;
-    0x7fed6882d210: <span class="nv">ch</span> <span class="o">=</span> store 0x7fed6882cf10, 0x7fed6882d010, 0x7fed6882d110,
-    0x7fed6882cb10&lt;ST4<span class="o">[</span>%b<span class="o">]</span>&gt; <span class="o">[</span><span class="nv">ORD</span><span class="o">=</span>2<span class="o">]</span>
-
-    0x7fed6882cd10: &lt;multiple use&gt;
-    0x7fed6882cb10: &lt;multiple use&gt;
-  0x7fed6882d610: i32,ch <span class="o">=</span> load 0x7fed6882d210, 0x7fed6882cd10,
-  0x7fed6882cb10&lt;LD4<span class="o">[</span>%1<span class="o">]</span>&gt; <span class="o">[</span><span class="nv">ORD</span><span class="o">=</span>5<span class="o">]</span>
-
-    0x7fed6882d810: <span class="nv">i32</span> <span class="o">=</span> Constant&lt;12&gt;
-
-    0x7fed6882d610: &lt;multiple use&gt;
-  0x7fed6882d710: <span class="nv">i32</span> <span class="o">=</span> srem 0x7fed6882d810, 0x7fed6882d610 <span class="o">[</span><span class="nv">ORD</span><span class="o">=</span>6<span class="o">]</span>
-
-  0x7fed6882fe10: <span class="nv">i32</span> <span class="o">=</span> Register %V0
-
-      0x7fed6882d610: &lt;multiple use&gt;
-      0x7fed6882d710: &lt;multiple use&gt;
-      0x7fed6882d110: &lt;multiple use&gt;
-      0x7fed6882cb10: &lt;multiple use&gt;
-    0x7fed6882fc10: <span class="nv">ch</span> <span class="o">=</span> store 0x7fed6882d610:1, 0x7fed6882d710, 0x7fed6882d110,
-    0x7fed6882cb10&lt;ST4<span class="o">[</span>%b<span class="o">]</span>&gt; <span class="o">[</span><span class="nv">ORD</span><span class="o">=</span>7<span class="o">]</span>
-
-    0x7fed6882fe10: &lt;multiple use&gt;
-    0x7fed6882d710: &lt;multiple use&gt;
-  0x7fed6882ff10: ch,glue <span class="o">=</span> CopyToReg 0x7fed6882fc10, 0x7fed6882fe10,
-  0x7fed6882d710
-
-    0x7fed6882ff10: &lt;multiple use&gt;
-    0x7fed6882fe10: &lt;multiple use&gt;
-    0x7fed6882ff10: &lt;multiple use&gt;
-  0x7fed68830010: <span class="nv">ch</span> <span class="o">=</span> Cpu0ISD::Ret 0x7fed6882ff10, 0x7fed6882fe10,
-  0x7fed6882ff10:1
-
-Type-legalized selection DAG: BB#0 <span class="s1">&#39;_Z8test_modi:&#39;</span>
+Type-legalized selection DAG: BB#0 <span class="s1">&#39;_Z8test_mod2i:&#39;</span>
 SelectionDAG has 16 nodes:
   ...
   0x7fed6882d610: i32,ch <span class="o">=</span> load 0x7fed6882d210, 0x7fed6882cd10,
@@ -1474,98 +1263,86 @@ SelectionDAG has 16 nodes:
   0x7fed6882d710: <span class="nv">i32</span> <span class="o">=</span> srem 0x7fed6882d810, 0x7fed6882d610 <span class="o">[</span><span class="nv">ORD</span><span class="o">=</span>6<span class="o">]</span> <span class="o">[</span><span class="nv">ID</span><span class="o">=</span>-3<span class="o">]</span>
   ...
 
-Legalized selection DAG: BB#0 <span class="s1">&#39;_Z8test_modi:&#39;</span>
-SelectionDAG has 16 nodes:
-  0x7fed68410bc8: <span class="nv">ch</span> <span class="o">=</span> EntryToken <span class="o">[</span><span class="nv">ORD</span><span class="o">=</span>1<span class="o">]</span> <span class="o">[</span><span class="nv">ID</span><span class="o">=</span>0<span class="o">]</span>
-
-  0x7fed6882cb10: <span class="nv">i32</span> <span class="o">=</span> undef <span class="o">[</span><span class="nv">ORD</span><span class="o">=</span>1<span class="o">]</span> <span class="o">[</span><span class="nv">ID</span><span class="o">=</span>2<span class="o">]</span>
-
-  0x7fed6882cd10: <span class="nv">i32</span> <span class="o">=</span> FrameIndex&lt;0&gt; <span class="o">[</span><span class="nv">ORD</span><span class="o">=</span>1<span class="o">]</span> <span class="o">[</span><span class="nv">ID</span><span class="o">=</span>3<span class="o">]</span>
-
-  0x7fed6882d110: <span class="nv">i32</span> <span class="o">=</span> FrameIndex&lt;1&gt; <span class="o">[</span><span class="nv">ORD</span><span class="o">=</span>2<span class="o">]</span> <span class="o">[</span><span class="nv">ID</span><span class="o">=</span>5<span class="o">]</span>
-
-  0x7fed6882fe10: <span class="nv">i32</span> <span class="o">=</span> Register %V0 <span class="o">[</span><span class="nv">ID</span><span class="o">=</span>6<span class="o">]</span>
+Legalized selection DAG: BB#0 <span class="s1">&#39;_Z8test_mod2i:&#39;</span>
   ...
-    0x7fed6882d810: <span class="nv">i32</span> <span class="o">=</span> Constant&lt;12&gt; <span class="o">[</span><span class="nv">ID</span><span class="o">=</span>7<span class="o">]</span>
+    ... <span class="nv">i32</span> <span class="o">=</span> srem 0x2447320, 0x2447448 <span class="o">[</span><span class="nv">ORD</span><span class="o">=</span>9<span class="o">]</span> <span class="o">[</span><span class="nv">ID</span><span class="o">=</span>-3<span class="o">]</span>
+  ...
+ ... replacing: ...: <span class="nv">i32</span> <span class="o">=</span> srem 0x2447320, 0x2447448 <span class="o">[</span><span class="nv">ORD</span><span class="o">=</span>9<span class="o">]</span> <span class="o">[</span><span class="nv">ID</span><span class="o">=</span>13<span class="o">]</span>
+     with:      ...: i32,i32 <span class="o">=</span> sdivrem 0x2447320, 0x2447448 <span class="o">[</span><span class="nv">ORD</span><span class="o">=</span>9<span class="o">]</span>
 
-    0x7fed6882d610: &lt;multiple use&gt;
-  0x7fed6882ce10: i32,i32 <span class="o">=</span> sdivrem 0x7fed6882d810, 0x7fed6882d610
-
-
-Optimized legalized selection DAG: BB#0 <span class="s1">&#39;_Z8test_modi:&#39;</span>
+Optimized legalized selection DAG: BB#0 <span class="s1">&#39;_Z8test_mod2i:&#39;</span>
 SelectionDAG has 18 nodes:
   ...
-    0x7fed6882d510: <span class="nv">i32</span> <span class="o">=</span> Register %HI
+    0x2449588: <span class="nv">i32</span> <span class="o">=</span> Register %HI
 
-      0x7fed6882d810: <span class="nv">i32</span> <span class="o">=</span> Constant&lt;12&gt; <span class="o">[</span><span class="nv">ID</span><span class="o">=</span>7<span class="o">]</span>
+        0x24470d0: &lt;multiple use&gt;
+        0x24471f8: <span class="nv">i32</span> <span class="o">=</span> Constant&lt;1&gt; <span class="o">[</span><span class="nv">ID</span><span class="o">=</span>6<span class="o">]</span>
 
-      0x7fed6882d610: &lt;multiple use&gt;
-    0x7fed6882d410: <span class="nv">glue</span> <span class="o">=</span> Cpu0ISD::DivRem 0x7fed6882d810, 0x7fed6882d610
+      0x2447320: <span class="nv">i32</span> <span class="o">=</span> add 0x24470d0, 0x24471f8 <span class="o">[</span><span class="nv">ORD</span><span class="o">=</span>7<span class="o">]</span> <span class="o">[</span><span class="nv">ID</span><span class="o">=</span>12<span class="o">]</span>
 
-  0x7fed6882d310: i32,ch,glue <span class="o">=</span> CopyFromReg 0x7fed68410bc8, 0x7fed6882d510,
-  0x7fed6882d410
+      0x2447448: &lt;multiple use&gt;
+    0x24490e8: <span class="nv">glue</span> <span class="o">=</span> Cpu0ISD::DivRem 0x2447320, 0x2447448 <span class="o">[</span><span class="nv">ORD</span><span class="o">=</span>9<span class="o">]</span>
+
+  0x24496b0: i32,ch,glue <span class="o">=</span> CopyFromReg 0x240d480, 0x2449588, 0x24490e8 <span class="o">[</span><span class="nv">ORD</span><span class="o">=</span>9<span class="o">]</span>
+
+    0x2449338: &lt;multiple use&gt;
+    0x2449210: &lt;multiple use&gt;
+    0x2449338: &lt;multiple use&gt;
+  0x2449460: <span class="nv">ch</span> <span class="o">=</span> Cpu0ISD::Ret 0x2449338, 0x2449210, ...
   ...
 
 <span class="o">=====</span> Instruction selection begins: BB#0 <span class="s1">&#39;&#39;</span>
 ...
-Selecting: 0x7fed6882d410: <span class="nv">glue</span> <span class="o">=</span> Cpu0ISD::DivRem 0x7fed6882d810,
-0x7fed6882d610 <span class="o">[</span><span class="nv">ID</span><span class="o">=</span>13<span class="o">]</span>
+Selecting: 0x24490e8: <span class="nv">glue</span> <span class="o">=</span> Cpu0ISD::DivRem 0x2447320, 0x2447448 <span class="o">[</span><span class="nv">ORD</span><span class="o">=</span>9<span class="o">]</span> <span class="o">[</span><span class="nv">ID</span><span class="o">=</span>14<span class="o">]</span>
 
-ISEL: Starting pattern match on root node: 0x7fed6882d410: <span class="nv">glue</span> <span class="o">=</span>
-Cpu0ISD::DivRem 0x7fed6882d810, 0x7fed6882d610 <span class="o">[</span><span class="nv">ID</span><span class="o">=</span>13<span class="o">]</span>
+ISEL: Starting pattern match on root node: 0x24490e8: <span class="nv">glue</span> <span class="o">=</span> Cpu0ISD::DivRem
+0x2447320, 0x2447448 <span class="o">[</span><span class="nv">ORD</span><span class="o">=</span>9<span class="o">]</span> <span class="o">[</span><span class="nv">ID</span><span class="o">=</span>14<span class="o">]</span>
 
-  Initial Opcode index to 1355
-  Morphed node: 0x7fed6882d410: i32,glue <span class="o">=</span> SDIV 0x7fed6882d810, 0x7fed6882d610
+  Initial Opcode index to 4044
+  Morphed node: 0x24490e8: i32,glue <span class="o">=</span> SDIV 0x2447320, 0x2447448 <span class="o">[</span><span class="nv">ORD</span><span class="o">=</span>9<span class="o">]</span>
 
 ISEL: Match <span class="nb">complete</span>!
-<span class="o">=</span>&gt; 0x7fed6882d410: i32,glue <span class="o">=</span> SDIV 0x7fed6882d810, 0x7fed6882d610
+<span class="o">=</span>&gt; 0x24490e8: i32,glue <span class="o">=</span> SDIV 0x2447320, 0x2447448 <span class="o">[</span><span class="nv">ORD</span><span class="o">=</span>9<span class="o">]</span>
 ...
 </pre></div>
 </div>
-<p>According above DAGs translation messages, llvm do the following things:</p>
+<p>Summary above DAGs translation messages into 4 steps:</p>
 <ol class="arabic simple">
 <li>Reduce DAG nodes in stage &#8220;Optimized lowered selection DAG&#8221; (Replacing ...
-displayed before &#8220;Optimized lowered selection DAG: BB#0 &#8216;_Z8test_modi:entry&#8217;
-&#8221;).
-Since SSA form has some redundant nodes for store and load, them can be
+displayed before &#8220;Optimized lowered selection DAG:&#8221;).
+Since SSA form has some redundant nodes for store and load, they can be
 removed.</li>
 <li>Change DAG srem to sdivrem in stage &#8220;Legalized selection DAG&#8221;.</li>
 <li>Change DAG sdivrem to Cpu0ISD::DivRem and in stage &#8220;Optimized legalized
 selection DAG&#8221;.</li>
-<li>Add DAG &#8220;0x7fd25b830710: i32 = Register %HI&#8221; and &#8220;CopyFromReg 0x7fd25b410e18,
-0x7fd25b830710, 0x7fd25b830910&#8221; in stage &#8220;Optimized legalized selection DAG&#8221;.</li>
+<li>Add DAG &#8220;i32 = Register %HI&#8221; and &#8220;CopyFromReg ...&#8221; in stage &#8220;Optimized
+legalized selection DAG&#8221;.</li>
 </ol>
 <p>Summary as Table: Stages for C operator % and Table: Functions handle the DAG
 translation and pattern match for C operator %.</p>
 <table border="1" class="docutils">
 <caption>Stages for C operator %</caption>
 <colgroup>
-<col width="43%" />
-<col width="26%" />
-<col width="31%" />
+<col width="40%" />
+<col width="60%" />
 </colgroup>
 <thead valign="bottom">
 <tr class="row-odd"><th class="head">Stage</th>
-<th class="head">IR/DAG/instruction</th>
 <th class="head">IR/DAG/instruction</th>
 </tr>
 </thead>
 <tbody valign="top">
 <tr class="row-even"><td>.bc</td>
 <td>srem</td>
-<td>&nbsp;</td>
 </tr>
 <tr class="row-odd"><td>Legalized selection DAG</td>
 <td>sdivrem</td>
-<td>&nbsp;</td>
 </tr>
 <tr class="row-even"><td>Optimized legalized selection DAG</td>
-<td>Cpu0ISD::DivRem</td>
-<td>CopyFromReg xx, Hi, xx</td>
+<td>Cpu0ISD::DivRem, CopyFromReg xx, Hi, Cpu0ISD::DivRem</td>
 </tr>
 <tr class="row-odd"><td>pattern match</td>
-<td>div</td>
-<td>mfhi</td>
+<td>div, mfhi</td>
 </tr>
 </tbody>
 </table>
@@ -1598,31 +1375,32 @@ translation and pattern match for C operator %.</p>
 </tr>
 </tbody>
 </table>
-<p>Item 2 as above, is triggered by code
+<p>Step 2 as above, is triggered by code
 &#8220;setOperationAction(ISD::SREM, MVT::i32, Expand);&#8221; in Cpu0ISelLowering.cpp.
-About <strong>Expand</strong> please ref. <a class="footnote-reference" href="#id16" id="id7">[7]</a> and <a class="footnote-reference" href="#id17" id="id8">[8]</a>. Item 3 is triggered by code
-&#8220;setTargetDAGCombine(ISD::SDIVREM);&#8221; in Cpu0ISelLowering.cpp.
-Item 4 is did by PerformDivRemCombine() which called by PerformDAGCombine()
-since the <strong>%</strong> corresponding <strong>srem</strong>
-makes the &#8220;N-&gt;hasAnyUseOfValue(1)&#8221; to true in PerformDivRemCombine().
-Then, it creates &#8220;CopyFromReg 0x7fd25b410e18, 0x7fd25b830710, 0x7fd25b830910&#8221;.
+About <strong>Expand</strong> please ref. <a class="footnote-reference" href="#expand" id="id7">[7]</a> and <a class="footnote-reference" href="#legalizetypes" id="id8">[8]</a>. Step 3 is
+triggered by code &#8220;setTargetDAGCombine(ISD::SDIVREM);&#8221; in Cpu0ISelLowering.cpp.
+Step 4 is did by PerformDivRemCombine() which called by performDAGCombine().
+Since the <strong>%</strong> corresponding <strong>srem</strong> makes the &#8220;N-&gt;hasAnyUseOfValue(1)&#8221; to
+true in PerformDivRemCombine(), it creates DAG of &#8220;CopyFromReg&#8221;.
 When using <strong>&#8220;/&#8221;</strong> in C, it will make &#8220;N-&gt;hasAnyUseOfValue(0)&#8221; to ture.
 For sdivrem, <strong>sdiv</strong> makes &#8220;N-&gt;hasAnyUseOfValue(0)&#8221; true while <strong>srem</strong> makes
 &#8220;N-&gt;hasAnyUseOfValue(1)&#8221; ture.</p>
-<p>Above items will change the DAG when <tt class="docutils literal"><span class="pre">llc</span></tt> running. After that, the pattern
+<p>Above steps will change the DAGs when <tt class="docutils literal"><span class="pre">llc</span></tt> is running. After that, the pattern
 match defined in Chapter4_1/Cpu0InstrInfo.td will translate <strong>Cpu0ISD::DivRem</strong>
-into <strong>div</strong>; and <strong>&#8220;CopyFromReg 0x7fd25b410e18, Register %H, 0x7fd25b830910&#8221;</strong>
+into <strong>div</strong>; and <strong>&#8220;CopyFromReg xxDAG, Register %H, Cpu0ISD::DivRem&#8221;</strong>
 to <strong>mfhi</strong>.</p>
-<p>The ch4_3.cpp is for <strong>/</strong> div operator test.</p>
+<p>The ch4_1_div.cpp is for <strong>/</strong> div operator test.</p>
 </div>
 </div>
 <div class="section" id="rotate-instructions">
-<h3><a class="toc-backref" href="#id26">Rotate instructions</a><a class="headerlink" href="#rotate-instructions" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id18">Rotate instructions</a><a class="headerlink" href="#rotate-instructions" title="Permalink to this headline">¶</a></h3>
 <p>Chapter4_1 include the rotate operations translation. The instructions &#8220;rol&#8221;,
 &#8220;ror&#8221;, &#8220;rolv&#8221; and &#8220;rorv&#8221; defined in Cpu0InstrInfo.td handle the translation.
-Compile ch4_1_3.cpp will get Cpu0 &#8220;rol&#8221; instruction.</p>
-<p class="rubric">lbdex/input/ch4_1_3.cpp</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="kt">int</span> <span class="nf">test_rotate_left</span><span class="p">()</span>
+Compile ch4_1_rotate.cpp will get Cpu0 &#8220;rol&#8221; instruction.</p>
+<p class="rubric">lbdex/input/ch4_1_rotate.cpp</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="c1">//#define TEST_ROXV</span>
+
+<span class="kt">int</span> <span class="nf">test_rotate_left</span><span class="p">()</span>
 <span class="p">{</span>
   <span class="kt">unsigned</span> <span class="kt">int</span> <span class="n">a</span> <span class="o">=</span> <span class="mi">8</span><span class="p">;</span>
   <span class="kt">int</span> <span class="n">result</span> <span class="o">=</span> <span class="p">((</span><span class="n">a</span> <span class="o">&lt;&lt;</span> <span class="mi">30</span><span class="p">)</span> <span class="o">|</span> <span class="p">(</span><span class="n">a</span> <span class="o">&gt;&gt;</span> <span class="mi">2</span><span class="p">));</span>
@@ -1632,15 +1410,19 @@ Compile ch4_1_3.cpp will get Cpu0 &#8220;rol&#8221; instruction.</p>
 
 <span class="cp">#ifdef TEST_ROXV</span>
 
-<span class="kt">int</span> <span class="nf">test_rotate_left1</span><span class="p">(</span><span class="kt">unsigned</span> <span class="kt">int</span> <span class="n">a</span><span class="p">,</span> <span class="kt">int</span> <span class="n">n</span><span class="p">)</span>
+<span class="kt">int</span> <span class="nf">test_rotate_left1</span><span class="p">()</span>
 <span class="p">{</span>
+  <span class="k">volatile</span> <span class="kt">unsigned</span> <span class="kt">int</span> <span class="n">a</span> <span class="o">=</span> <span class="mi">4</span><span class="p">;</span>
+  <span class="k">volatile</span> <span class="kt">int</span> <span class="n">n</span> <span class="o">=</span> <span class="mi">30</span><span class="p">;</span>
   <span class="kt">int</span> <span class="n">result</span> <span class="o">=</span> <span class="p">((</span><span class="n">a</span> <span class="o">&lt;&lt;</span> <span class="n">n</span><span class="p">)</span> <span class="o">|</span> <span class="p">(</span><span class="n">a</span> <span class="o">&gt;&gt;</span> <span class="p">(</span><span class="mi">32</span> <span class="o">-</span> <span class="n">n</span><span class="p">)));</span>
   
   <span class="k">return</span> <span class="n">result</span><span class="p">;</span>
 <span class="p">}</span>
 
-<span class="kt">int</span> <span class="nf">test_rotate_right</span><span class="p">(</span><span class="kt">unsigned</span> <span class="kt">int</span> <span class="n">a</span><span class="p">,</span> <span class="kt">int</span> <span class="n">n</span><span class="p">)</span>
+<span class="kt">int</span> <span class="nf">test_rotate_right</span><span class="p">()</span>
 <span class="p">{</span>
+  <span class="k">volatile</span> <span class="kt">unsigned</span> <span class="kt">int</span> <span class="n">a</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
+  <span class="k">volatile</span> <span class="kt">int</span> <span class="n">n</span> <span class="o">=</span> <span class="mi">30</span><span class="p">;</span>
   <span class="kt">int</span> <span class="n">result</span> <span class="o">=</span> <span class="p">((</span><span class="n">a</span> <span class="o">&gt;&gt;</span> <span class="n">n</span><span class="p">)</span> <span class="o">|</span> <span class="p">(</span><span class="n">a</span> <span class="o">&lt;&lt;</span> <span class="p">(</span><span class="mi">32</span> <span class="o">-</span> <span class="n">n</span><span class="p">)));</span>
   
   <span class="k">return</span> <span class="n">result</span><span class="p">;</span>
@@ -1650,8 +1432,8 @@ Compile ch4_1_3.cpp will get Cpu0 &#8220;rol&#8221; instruction.</p>
 </pre></div>
 </div>
 <div class="highlight-bash"><div class="highlight"><pre>114-43-200-122:input Jonathan<span class="nv">$ </span>clang -target mips-unknown-linux-gnu -c
-ch4_1_3.cpp -emit-llvm -o ch4_1_3.bc
-114-43-200-122:input Jonathan<span class="nv">$ </span>llvm-dis ch4_1_3.bc -o -
+ch4_1_rotate.cpp -emit-llvm -o ch4_1_rotate.bc
+114-43-200-122:input Jonathan<span class="nv">$ </span>llvm-dis ch4_1_rotate.bc -o -
 
 define i32 @_Z16test_rotate_leftv<span class="o">()</span> <span class="c">#0 {</span>
   %a <span class="o">=</span> alloca i32, align 4
@@ -1668,26 +1450,25 @@ define i32 @_Z16test_rotate_leftv<span class="o">()</span> <span class="c">#0 {<
 <span class="o">}</span>
 
 114-43-200-122:input Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/test/cmake_debug_build/Debug/
-bin/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>pic -filetype<span class="o">=</span>asm ch4_1_3.bc -o -
+bin/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>pic -filetype<span class="o">=</span>asm ch4_1_rotate.bc -o -
   ...
   rol <span class="nv">$2</span>, <span class="nv">$2</span>, 30
   ...
 </pre></div>
 </div>
 <p>Instructions &#8220;rolv&#8221; and &#8220;rorv&#8221; cannot be tested at this moment, they need
-function argument passing support.
-The &#8220;#ifdef TEST_ROXV&#8221; part of ch4_1_3.cpp can be tested
-after Chapter Function call. Like the previous subsection mentioned at this
+logic &#8220;or&#8221; implementation which supported at next section.
+Like the previous subsection mentioned at this
 chapter, some IRs in function &#64;_Z16test_rotate_leftv() will be combined into
 one one IR <strong>rotl</strong> during DAGs translation.</p>
 </div>
 </div>
 <div class="section" id="logic">
-<h2><a class="toc-backref" href="#id27">Logic</a><a class="headerlink" href="#logic" title="Permalink to this headline">¶</a></h2>
+<h2><a class="toc-backref" href="#id19">Logic</a><a class="headerlink" href="#logic" title="Permalink to this headline">¶</a></h2>
 <p>Chapter4_2 supports logic operators <strong>&amp;, |, ^, !, ==, !=, &lt;, &lt;=, &gt; and &gt;=</strong>.
 They are trivial and easy. Listing the added code with comments and table for
 these operators IR, DAG and instructions as below. Please check them with the
-run result of bc and asm instructions for ch4_5.cpp as below.</p>
+run result of bc and asm instructions for ch4_2_logic.cpp as below.</p>
 <p class="rubric">lbdex/chapters/Chapter4_2/Cpu0InstrInfo.td</p>
 <div class="highlight-c++"><pre>let Predicates = [Ch4_2] in {
 class CmpInstr&lt;bits&lt;8&gt; op, string instr_asm, 
@@ -1697,8 +1478,9 @@ class CmpInstr&lt;bits&lt;8&gt; op, string instr_asm,
      !strconcat(instr_asm, "\t$ra, $rb, $rc"), [], itin&gt; {
   let shamt = 0;
   let isCommutable = isComm;
-//#if CH &gt;= CH10_1
-  let DecoderMethod = "DecodeCMPInstruction";
+  let Predicates = [HasCmp];
+}
+}
 </pre>
 </div>
 <div class="highlight-c++"><pre>// SetCC
@@ -1896,7 +1678,7 @@ defm : SetgePatsCmp&lt;CPURegs&gt;;
 <span class="p">}</span>
 </pre></div>
 </div>
-<p class="rubric">lbdex/input/ch4_5.cpp</p>
+<p class="rubric">lbdex/input/ch4_2_logic.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="kt">int</span> <span class="nf">test_andorxornot</span><span class="p">()</span>
 <span class="p">{</span>
   <span class="kt">int</span> <span class="n">a</span> <span class="o">=</span> <span class="mi">5</span><span class="p">;</span>
@@ -1929,8 +1711,8 @@ defm : SetgePatsCmp&lt;CPURegs&gt;;
 </pre></div>
 </div>
 <div class="highlight-bash"><div class="highlight"><pre>114-43-204-152:input Jonathan<span class="nv">$ </span>clang -target mips-unknown-linux-gnu -c
-ch4_5.cpp -emit-llvm -o ch4_5.bc
-114-43-204-152:input Jonathan<span class="nv">$ </span>llvm-dis ch4_5.bc -o -
+ch4_2_logic.cpp -emit-llvm -o ch4_2_logic.bc
+114-43-204-152:input Jonathan<span class="nv">$ </span>llvm-dis ch4_2_logic.bc -o -
 ...
 ; Function Attrs: nounwind uwtable
 define i32 @_Z16test_andorxornotv<span class="o">()</span> <span class="c">#0 {</span>
@@ -1980,7 +1762,7 @@ entry:
 
 114-43-204-152:input Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/test/cmake_debug_build/
 Debug/bin/llc -march<span class="o">=</span>cpu0 -mcpu<span class="o">=</span>cpu032I -relocation-model<span class="o">=</span>pic -filetype<span class="o">=</span>asm
-ch4_5.bc -o -
+ch4_2_logic.bc -o -
 
   .globl  _Z16test_andorxornotv
   ...
@@ -2023,7 +1805,7 @@ ch4_5.bc -o -
 
 114-43-204-152:input Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/test/cmake_debug_build/
 Debug/bin/llc -march<span class="o">=</span>cpu0 -mcpu<span class="o">=</span>cpu032II -relocation-model<span class="o">=</span>pic -filetype<span class="o">=</span>asm
-ch4_5.bc -o -
+ch4_2_logic.bc -o -
   ...
       sltiu   <span class="nv">$2</span>, <span class="nv">$2</span>, 1
       andi    <span class="nv">$2</span>, <span class="nv">$2</span>, 1
@@ -2352,14 +2134,14 @@ ch4_5.bc -o -
 </tr>
 </tbody>
 </table>
-<p>In relation operators ==, !=, ..., %0 = $3 = 5, %1 = $2 = 3 for ch4_5.cpp.</p>
+<p>In relation operators ==, !=, ..., %0 = $3 = 5, %1 = $2 = 3 for ch4_2_logic.cpp.</p>
 <p>The &#8220;Optimized legalized selection DAG&#8221; is the last DAG stage just before the
-&#8220;instruction selection&#8221; as the section mentioned in this chapter. You can see
-the whole DAG stages by <tt class="docutils literal"><span class="pre">llc</span> <span class="pre">-debug</span></tt> option.</p>
+&#8220;instruction selection&#8221; as the previous section mentioned in this chapter.
+You can see the whole DAG stages by <tt class="docutils literal"><span class="pre">llc</span> <span class="pre">-debug</span></tt> option.</p>
 <p>From above result, slt spend less instructions than cmp for relation
 operators translation. Beyond that, slt uses general purpose register while
 cmp uses $sw dedicated register.</p>
-<p class="rubric">lbdex/input/ch4_6.cpp</p>
+<p class="rubric">lbdex/input/ch4_2_slt_explain.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="kt">int</span> <span class="nf">test_OptSlt</span><span class="p">()</span>
 <span class="p">{</span>
   <span class="kt">int</span> <span class="n">a</span> <span class="o">=</span> <span class="mi">3</span><span class="p">,</span> <span class="n">b</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
@@ -2374,10 +2156,10 @@ cmp uses $sw dedicated register.</p>
 </pre></div>
 </div>
 <div class="highlight-bash"><div class="highlight"><pre>118-165-78-10:input Jonathan<span class="nv">$ </span>clang -target mips-unknown-linux-gnu -O2
--c ch4_6.cpp -emit-llvm -o ch4_6.bc
+-c ch4_2_slt_explain.cpp -emit-llvm -o ch4_2_slt_explain.bc
 118-165-78-10:input Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/test/cmake_debug_build/
 Debug/bin/llc -march<span class="o">=</span>cpu0 -mcpu<span class="o">=</span>cpu032I -relocation-model<span class="o">=</span>static -filetype<span class="o">=</span>asm
-ch4_6.bc -o -
+ch4_2_slt_explain.bc -o -
   ...
   ld  <span class="nv">$3</span>, 20<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
   cmp <span class="nv">$sw</span>, <span class="nv">$3</span>, <span class="nv">$2</span>
@@ -2391,8 +2173,8 @@ ch4_6.bc -o -
   andi  <span class="nv">$2</span>, <span class="nv">$2</span>, 1
   ...
 118-165-78-10:input Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/test/cmake_debug_build/
-Debug/bin/llc -march<span class="o">=</span>cpu0 -mcpu<span class="o">=</span>cpu032I -relocation-model<span class="o">=</span>static -filetype<span class="o">=</span>asm
-ch4_6.bc -o -
+Debug/bin/llc -march<span class="o">=</span>cpu0 -mcpu<span class="o">=</span>cpu032II -relocation-model<span class="o">=</span>static -filetype<span class="o">=</span>asm
+ch4_2_slt_explain.bc -o -
   ...
   ld  <span class="nv">$2</span>, 20<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
   slti  <span class="nv">$2</span>, <span class="nv">$2</span>, 1
@@ -2405,11 +2187,11 @@ ch4_6.bc -o -
   ...
 </pre></div>
 </div>
-<p>Run these two <cite>llc -mcpu</cite> option for Chapter4_2 with ch4_6.cpp get the
+<p>Run these two <cite>llc -mcpu</cite> option for Chapter4_2 with ch4_2_slt_explain.cpp to get the
 above result. Regardless of the move between $sw and general purpose register
 in <cite>llc -mcpu=cpu032I</cite>, the two cmp instructions in it will has hazard in
-instruction reorder since both of them use $sw register but
-<cite>llc -mcpu=cpu032II</cite> has not <a class="footnote-reference" href="#quantitative" id="id9">[9]</a>.
+instruction reorder since both of them use $sw register. The
+<cite>llc -mcpu=cpu032II</cite> has not this problem because it uses slti <a class="footnote-reference" href="#quantitative" id="id9">[9]</a>.
 The slti version can reorder as follows,</p>
 <div class="highlight-bash"><div class="highlight"><pre>...
 ld  <span class="nv">$2</span>, 16<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
@@ -2423,13 +2205,13 @@ st  <span class="nv">$2</span>, 12<span class="o">(</span><span class="nv">$sp</
 ...
 </pre></div>
 </div>
-<p>Chapter4_2 include instructions cmp and slt. Even cpu032II include both of
+<p>Chapter4_2 include instructions cmp and slt. Though cpu032II include both of
 these two instructions, the slt takes the priority since
 &#8220;let Predicates = [HasSlt]&#8221; appeared before &#8220;let Predicates = [HasCmp]&#8221; in
 Cpu0InstrInfo.td.</p>
 </div>
 <div class="section" id="summary">
-<h2><a class="toc-backref" href="#id28">Summary</a><a class="headerlink" href="#summary" title="Permalink to this headline">¶</a></h2>
+<h2><a class="toc-backref" href="#id20">Summary</a><a class="headerlink" href="#summary" title="Permalink to this headline">¶</a></h2>
 <p>List C operators, IR of .bc, Optimized legalized selection DAG and Cpu0
 instructions implemented in this chapter in Table: Chapter 4 mathmetic
 operators. There are over 20 operators totally in mathmetic and logic support in
@@ -2559,49 +2341,49 @@ this chapter and spend 4xx lines of source code.</p>
 </tr>
 </tbody>
 </table>
-<table class="docutils footnote" frame="void" id="id10" rules="none">
+<table class="docutils footnote" frame="void" id="instrstage" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
 <tr><td class="label"><a class="fn-backref" href="#id1">[1]</a></td><td><a class="reference external" href="http://llvm.org/docs/doxygen/html/structllvm_1_1InstrStage.html">http://llvm.org/docs/doxygen/html/structllvm_1_1InstrStage.html</a></td></tr>
 </tbody>
 </table>
-<table class="docutils footnote" frame="void" id="id11" rules="none">
+<table class="docutils footnote" frame="void" id="msdn" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
 <tr><td class="label"><a class="fn-backref" href="#id2">[2]</a></td><td><a class="reference external" href="http://msdn.microsoft.com/en-us/library/336xbhcz%28v=vs.80%29.aspx">http://msdn.microsoft.com/en-us/library/336xbhcz%28v=vs.80%29.aspx</a></td></tr>
 </tbody>
 </table>
-<table class="docutils footnote" frame="void" id="id12" rules="none">
+<table class="docutils footnote" frame="void" id="ashr" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
 <tr><td class="label"><a class="fn-backref" href="#id3">[3]</a></td><td><a class="reference external" href="http://llvm.org/docs/LangRef.html#ashr-instruction">http://llvm.org/docs/LangRef.html#ashr-instruction</a></td></tr>
 </tbody>
 </table>
-<table class="docutils footnote" frame="void" id="id13" rules="none">
+<table class="docutils footnote" frame="void" id="lshr" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
 <tr><td class="label"><a class="fn-backref" href="#id4">[4]</a></td><td><a class="reference external" href="http://llvm.org/docs/LangRef.html#lshr-instruction">http://llvm.org/docs/LangRef.html#lshr-instruction</a></td></tr>
 </tbody>
 </table>
-<table class="docutils footnote" frame="void" id="id14" rules="none">
+<table class="docutils footnote" frame="void" id="instructionsel" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
 <tr><td class="label"><a class="fn-backref" href="#id5">[5]</a></td><td><a class="reference external" href="http://llvm.org/docs/CodeGenerator.html#selectiondag-instruction-selection-process">http://llvm.org/docs/CodeGenerator.html#selectiondag-instruction-selection-process</a></td></tr>
 </tbody>
 </table>
-<table class="docutils footnote" frame="void" id="id15" rules="none">
+<table class="docutils footnote" frame="void" id="srem" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
 <tr><td class="label"><a class="fn-backref" href="#id6">[6]</a></td><td><a class="reference external" href="http://llvm.org/docs/LangRef.html#srem-instruction">http://llvm.org/docs/LangRef.html#srem-instruction</a></td></tr>
 </tbody>
 </table>
-<table class="docutils footnote" frame="void" id="id16" rules="none">
+<table class="docutils footnote" frame="void" id="expand" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
 <tr><td class="label"><a class="fn-backref" href="#id7">[7]</a></td><td><a class="reference external" href="http://llvm.org/docs/WritingAnLLVMBackend.html#expand">http://llvm.org/docs/WritingAnLLVMBackend.html#expand</a></td></tr>
 </tbody>
 </table>
-<table class="docutils footnote" frame="void" id="id17" rules="none">
+<table class="docutils footnote" frame="void" id="legalizetypes" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
 <tr><td class="label"><a class="fn-backref" href="#id8">[8]</a></td><td><a class="reference external" href="http://llvm.org/docs/CodeGenerator.html#selectiondag-legalizetypes-phase">http://llvm.org/docs/CodeGenerator.html#selectiondag-legalizetypes-phase</a></td></tr>

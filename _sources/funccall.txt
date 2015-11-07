@@ -9,32 +9,28 @@ Function call
 
 The subroutine/function call of backend translation is supported in this 
 chapter. 
-A lot of code needed in function call. They are added according llvm 
+A lot of code needed to support function call. They are added according llvm 
 supplied interface for easy to explanation. 
 This chapter starts from introducing the Mips stack frame structure since we 
 borrow many part of ABI from it. 
-Although each CPU has it's own ABI, most of RISC CPUs ABI are similar. 
+Although each CPU has it's own ABI, most of ABI for RISC CPUs are similar. 
 In addition to support fixed number of arguments in function call, Cpu0 
-supports variable number of arguments either since C/C++ support this feature. 
-Supply Mips ABI and assemble language manual on internet link in this chapter 
-for your reference. 
+supports variable number of arguments either, since C/C++ support this feature.
 The section “4.5 DAG Lowering” of tricore_llvm.pdf contains knowledge 
 about Lowering process. Section “4.5.1 Calling Conventions” of tricore_llvm.pdf 
 is the related materials you can reference furth.
-
-This chapter is more complicate than any of the previous chapters. 
-It include stack frame and the related ABI support. 
+ 
 If you have problem in reading the stack frame illustrated in the first three 
 sections of this chapter, you can read the appendix B of “Procedure Call
-Convention” of book “Computer Organization and Design, 1st Edition” which listed 
-in section “RISC CPU knowledge” of chapter “Control flow statement” [#]_, 
+Convention” of book “Computer Organization and Design, 1st Edition” 
+[#computer_arch_interface]_, 
 “Run Time Memory” of compiler book, or “Function Call Sequence”  and 
-“Stack Frame” of Mips ABI.
+“Stack Frame” of Mips ABI [#abi]_.
 
 Mips stack frame
 -----------------
 
-The first thing for design the Cpu0 function call is deciding how to pass 
+The first thing for designing the Cpu0 function call is deciding how to pass 
 arguments in function call. There are two options. 
 The first is pass arguments all in stack. 
 Second is pass arguments in the registers which are reserved for function 
@@ -164,7 +160,7 @@ See comment **"//"**.
     .cfi_endproc
 
 
-From the mips assembly code generated as above, we know it save the first 4 
+From the mips assembly code generated as above, we see it saves the first 4 
 arguments to $a0..$a3 and last 2 arguments to 16($sp) and 20($sp). 
 :num:`Figure #funccall-f2` is the arguments location for example code 
 ch9_1.cpp. 
@@ -183,8 +179,8 @@ argument 5.
     Mips arguments location in stack frame
 
 
-The 007-2418-003.pdf in here [#]_ is the Mips assembly language manual. 
-Here [#]_ is Mips Application Binary Interface which include the 
+The 007-2418-003.pdf in here [#mipsasm]_ is the Mips assembly language manual. 
+Here [#abi]_ is Mips Application Binary Interface which include the 
 :num:`Figure #funccall-f1`.
 
 Load incoming arguments from stack frame
@@ -216,7 +212,7 @@ Since Chapter8_2/ define the LowerFormalArguments() with empty, we get the error
 message as above. 
 Before define LowerFormalArguments(), we have to choose how to pass arguments 
 in function call.
-For demonstration, Cpu0 pass arguments first two arguments in registers as 
+For demonstration, Cpu0 passes first two arguments in registers as 
 default setting of ``llc -cpu0-s32-calls=false``. 
 When ``llc -cpu0-s32-calls=true``, Cpu0 pass all it's arguments in stack.
 
@@ -308,8 +304,8 @@ We define it as follows,
     :end-before: #endif
 
 
-Refresh "section Global variable" [#]_, we handled global 
-variable translation by create the IR DAG in LowerGlobalAddress() first, and 
+Refresh "section Global variable" [#secglobal]_, we handled global 
+variable translation by creating the IR DAG in LowerGlobalAddress() first, and 
 then finish the Instruction Selection according their corresponding machine 
 instruction DAGs in Cpu0InstrInfo.td. 
 LowerGlobalAddress() is called when ``llc`` meets the global variable access. 
@@ -320,21 +316,22 @@ before enter **“for loop”**. In ch9_1.cpp, there are 6 arguments in sum_i(..
 function call. 
 So ArgLocs.size() is 6, each argument information is in ArgLocs[i]. 
 When VA.isRegLoc() is true, meaning the arguement pass in register. On the 
-contrary, when VA.isMemLoc() is true, meaning the arguement pass in memory stack.
-When pass in register, it mark the register "live in" and copy directly from the
-register.
-When pass in memory stack, it creates stack offset for this frame index object 
-and load node with the created stack offset, and then puts the load node into 
-vector InVals. 
+contrary, when VA.isMemLoc() is true, meaning the arguement pass in memory 
+stack.
+When passing in registers, it marks the registers "live in" and copy directly 
+from the registers.
+When passing in memory stack, it creates stack offset for this frame index 
+object and load node with the created stack offset, and then puts the load node 
+into vector InVals. 
 
-When ``llc -cpu0-s32-calls=false`` it pass first two arguments registers
+When ``llc -cpu0-s32-calls=false`` it passes first two arguments registers
 and the other arguments in stack frame. When ``llc -cpu0-s32-calls=true`` it 
-pass first all arguments in stack frame.
+passes all arguments in stack frame.
 
-Before take care the arguemnts as above, it call analyzeFormalArguments().
-In analyzeFormalArguments() it call fixedArgFn() which return the function 
+Before taking care the arguemnts as above, it calls analyzeFormalArguments().
+In analyzeFormalArguments() it calls fixedArgFn() which return the function 
 pointer of CC_Cpu0O32() or CC_Cpu0S32(). 
-ArgFlags.isByVal() will be true if when meet "struct pointer byval" keyword
+ArgFlags.isByVal() will be true if it meets "struct pointer byval" keyword,
 such as "%struct.S* byval" in tailcall.ll.
 When ``llc -cpu0-s32-calls=false`` the stack offset begin from 8 (in case the 
 arguement registers need spill out) while ``llc -cpu0-s32-calls=true`` stack 
@@ -342,11 +339,11 @@ offset begin from 0.
  
 For instance of example code ch9_1.cpp with ``llc -cpu0-s32-calls=true`` (use 
 memory stack only to pass arguments), LowerFormalArguments() 
-will be called twice. First time is for sum_i() which will create 6 load DAGs 
+will be called twice. First time is for sum_i() which will create 6 "load DAGs" 
 for 6 incoming arguments passing into this function. 
-Second time is for main() which won't create any load DAG for no incoming 
+Second time is for main() which won't create any "load DAG" for no incoming 
 argument passing into main(). 
-In addition to LowerFormalArguments() which creates the load DAG, we need 
+In addition to LowerFormalArguments() which creates the "load DAG", we need 
 loadRegFromStackSlot() (defined in the early chapter) to issue the machine 
 instruction 
 **“ld $r, offset($sp)”** to load incoming arguments from stack frame offset.
@@ -598,6 +595,46 @@ instructions **swi** (Software Interrupt), **jsub** and **jalr** (function call)
     ...
   };
 
+.. rubric:: lbdex/chapters/Chapter9_1/Cpu0SEFrameLowering.h
+.. literalinclude:: ../lbdex/Cpu0/Cpu0SEFrameLowering.h
+    :start-after: #if CH >= CH9_1
+    :end-before: #endif
+
+.. rubric:: lbdex/chapters/Chapter9_1/Cpu0SEFrameLowering.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0SEFrameLowering.cpp
+    :start-after: #if CH >= CH9_1 //1
+    :end-before: #endif
+
+.. rubric:: lbdex/chapters/Chapter9_1/Cpu0InstrInfo.h
+.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.h
+    :start-after: #if CH >= CH9_1 //2
+    :end-before: #endif
+.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.h
+    :start-after: #if CH >= CH9_1 //4
+    :end-before: #endif
+
+.. rubric:: lbdex/chapters/Chapter9_1/Cpu0InstrInfo.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.cpp
+    :start-after: #if CH >= CH9_1 //1
+    :end-before: #endif
+    
+.. rubric:: lbdex/chapters/Chapter9_1/Cpu0SEInstrInfo.h
+.. literalinclude:: ../lbdex/Cpu0/Cpu0SEInstrInfo.h
+    :start-after: #if CH >= CH9_1 //1
+    :end-before: #endif //#if CH >= CH9_1 //1
+
+.. rubric:: lbdex/chapters/Chapter9_1/Cpu0SEInstrInfo.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0SEInstrInfo.cpp
+    :start-after: #if CH >= CH9_1 //1
+    :end-before: #endif //#if CH >= CH9_1 //1
+
+Functions storeRegToStack() Cpu0SEInstrInfo.cpp, 
+storeRegToStackSlot() of Cpu0InstrInfo.cpp are
+handling the registers spill during register allocation process.
+Since each local variable connecting to a frame index,  ".addFrameIndex(FI).
+addImm(Offset).addMemOperand(MMO); where Offset is 0" in storeRegToStack().
+The loadRegFromStackSlot() and loadRegFromStack() will be used in future and
+we add them at this point in advance.
 
 The JSUB and JALR defined in Cpu0InstrInfo.td as above all use Cpu0JmpLink
 node. They are distinguishable since JSUB use "imm" operand while
@@ -611,7 +648,7 @@ JALR uses register operand.
 The code tells TableGen generating pattern match code that matching the "imm" for
 "tglobaladdr" pattern first. If it fails then trying to match "texternalsym" next.
 The function you declared belongs to "tglobaladdr", (for instance the function 
-sum_i(...) defined in ch9_1.cpp belong to "tglobaladdr"); the function which 
+sum_i(...) defined in ch9_1.cpp belongs to "tglobaladdr"); the function which 
 implicitly used by llvm belongs to "texternalsym" (for instance the function 
 "memcpy" belongs to "texternalsym"). The "memcpy" will be generated when 
 defining a long string. The ch9_1_2.cpp is an example for generating "memcpy"
@@ -770,7 +807,7 @@ LowerCall() is responsible to do this. The implementation as follows,
 
 Just like load incoming arguments from stack frame, we call 
 CCInfo(CallConv,..., ArgLocs, ...) to get outgoing arguments information before 
-enter **“for loop”** and set stack alignment with 8 bytes. 
+enter **“for loop”*. 
 They're almost same in **“for loop”** with LowerFormalArguments(), except 
 LowerCall() creates store DAG vector instead of load DAG vector. 
 After the **“for loop”**, it create **“ld $t9, %call16(_Z5sum_iiiiiii)($gp)”** 
@@ -814,15 +851,18 @@ stack.
     :start-after: #if CH >= CH9_2
     :end-before: #endif
   
-.. rubric:: lbdex/chapters/Chapter9_2/Cpu0SEFrameLowering.h
-.. literalinclude:: ../lbdex/Cpu0/Cpu0SEFrameLowering.h
+.. rubric:: lbdex/chapters/Chapter9_2/Cpu0FrameLowering.h
+.. literalinclude:: ../lbdex/Cpu0/Cpu0FrameLowering.h
     :start-after: #if CH >= CH9_2
     :end-before: #endif
 
-.. rubric:: lbdex/chapters/Chapter9_2/Cpu0SEFrameLowering.cpp
-.. literalinclude:: ../lbdex/Cpu0/Cpu0SEFrameLowering.cpp
+.. rubric:: lbdex/chapters/Chapter9_2/Cpu0FrameLowering.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0FrameLowering.cpp
     :start-after: #if CH >= CH9_2
-    :end-before: #endif
+    :end-before: #if CH >= CH9_3 // dynamic alloc
+.. literalinclude:: ../lbdex/Cpu0/Cpu0FrameLowering.cpp
+    :start-after: #endif // dynamic alloc
+    :end-before: #endif // #if CH >= CH9_2
 
 
 Read Lowercall() with Graphivz's help
@@ -834,16 +874,17 @@ LowerCall() will generate the DAG nodes as
 :num:`Figure #funccall-f-outgoing-arg-lowercal` 
 for ch9_outgoing.cpp with cpu032I. The corresponding code of DAGs Store and 
 TargetGlobalAddress are listed in the figure, user can match the other DAGs
-to function LowerCall() easy.
+to function LowerCall() easily.
 Through Graphivz tool with llc option -view-dag-combine1-dags, you can design
 a small input C or llvm IR source code and check the DAGs to understand the 
-code in LowerCall() and LowerFormalArguments(). In later section of this chapter, 
-there are variable arguments and dynamic stack allocation support. You can design
-the input example with this features and check the DAGs with these two function
+code in LowerCall() and LowerFormalArguments().
+At the sub-sections "variable arguments" and "dynamic stack allocation 
+support" in the later section of this chapter, you can design
+the input example with this features and check the DAGs with these two functions
 again to make sure you know the code in these two function. About Graphivz,
-please reference section "Display llvm IR nodes with Graphviz" of chapter 4, 
+please refer to section "Display llvm IR nodes with Graphviz" of chapter 4, 
 Arithmetic and logic instructions.
-The DAGs diagram can be got by llc option as follows, 
+The DAGs diagram can be gotten by llc option as follows, 
 
 .. rubric:: lbdex/input/ch9_outgoing.cpp
 .. literalinclude:: ../lbdex/input/ch9_outgoing.cpp
@@ -890,8 +931,8 @@ The DAGs diagram can be got by llc option as follows,
     Outgoing arguments DAG created by LowerCall() for ch9_outgoing.cpp with -cpu0-s32-calls=true
 
 
-Mentioned in last section, ``llc -cpu0-s32-calls=true`` uses S32 calling 
-convention which pass all arguements at registers while 
+Mentioned in last section, option ``llc -cpu0-s32-calls=true`` uses S32 calling 
+convention which passes all arguements at registers while option
 ``llc -cpu0-s32-calls=false`` uses O32 pass first two arguments at 
 registers and other arguments at stack. The result as follows,
 
@@ -1223,21 +1264,21 @@ chapter as follows,
 It meaning for the return value, we keep it in registers V0, V1, A0, A1 if the return 
 value didn't over 4 registers size; If it over 4 registers size, cpu0 will save 
 them with pointer.
-For explanation, let's run Chapter9_2/ with ch9_2_1.cpp and explain with this 
+For explanation, let's run Chapter9_2/ with ch9_1_struct.cpp and explain with this 
 example.
 
-.. rubric:: lbdex/input/ch9_2_1.cpp
-.. literalinclude:: ../lbdex/input/ch9_2_1.cpp
+.. rubric:: lbdex/input/ch9_1_struct.cpp
+.. literalinclude:: ../lbdex/input/ch9_1_struct.cpp
     :start-after: /// start
 
 .. code-block:: bash
 
   JonathantekiiMac:input Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
   Debug/bin/llc -march=cpu0 -mcpu=cpu032I -relocation-model=pic -filetype=asm 
-  ch9_2_1.bc -o -
+  ch9_1_struct.bc -o -
     .section .mdebug.abi32
     .previous
-    .file "ch9_2_1.bc"
+    .file "ch9_1_struct.bc"
     .text
     .globl  _Z7getDatev
     .align  2
@@ -1320,11 +1361,11 @@ example.
     ...
 
 
-The ch9_2_2.cpp include C++ class "Date" implementation. 
+The ch9_1_constructor.cpp include C++ class "Date" implementation. 
 It can be translated into cpu0 backend too since the front end (clang in this 
 example) translate them into C language form.
 If you mark the "if hasStructRetAttr()" part from both of above functions, 
-the output cpu0 code for ch9_2_1.cpp will use $3 instead of $2 as return 
+the output cpu0 code for ch9_1_struct.cpp will use $3 instead of $2 as return 
 register as follows,
 
 .. code-block:: bash
@@ -1332,7 +1373,7 @@ register as follows,
 	  .text
 	  .section .mdebug.abiS32
 	  .previous
-	  .file	"ch9_2_1.bc"
+	  .file	"ch9_1_struct.bc"
 	  .globl	_Z7getDatev
 	  .align	2
 	  .type	_Z7getDatev,@function
@@ -1459,23 +1500,23 @@ Tail call optimization is used in some situation of function call. For some
 situation, the caller and callee stack can share the same memory stack.
 When this situation applied in recursive function call, it often asymptotically 
 reduces stack space requirements from linear, or O(n), to constant, or O(1) 
-[#]_. LLVM IR supports tailcall here [#]_.
+[#wikitailcall]_. LLVM IR supports tailcall here [#tailcallopt]_.
 
 The **tailcall** appeared in Cpu0ISelLowering.cpp and Cpu0InstrInfo.td are used 
 to make tail call optimization. 
 
-.. rubric:: lbdex/input/ch9_2_3_tailcall.cpp
-.. literalinclude:: ../lbdex/input/ch9_2_3_tailcall.cpp
+.. rubric:: lbdex/input/ch9_2_tailcall.cpp
+.. literalinclude:: ../lbdex/input/ch9_2_tailcall.cpp
     :start-after: /// start
 
-Run Chapter9_2/ with ch9_2_3_tailcall.cpp will get the following result.
+Run Chapter9_2/ with ch9_2_tailcall.cpp will get the following result.
 
 .. code-block:: bash
 
   JonathantekiiMac:input Jonathan$ clang -O1 -target mips-unknown-linux-gnu -c 
-  ch9_2_3_tailcall.cpp -emit-llvm -o ch9_2_3_tailcall.bc
+  ch9_2_tailcall.cpp -emit-llvm -o ch9_2_tailcall.bc
   JonathantekiiMac:input Jonathan$ ~/llvm/test/cmake_debug_build/bin/
-  llvm-dis ch9_2_3_tailcall.bc -o -
+  llvm-dis ch9_2_tailcall.bc -o -
   ...
   ; Function Attrs: nounwind readnone
   define i32 @_Z9factoriali(i32 %x) #0 {
@@ -1503,11 +1544,11 @@ Run Chapter9_2/ with ch9_2_3_tailcall.cpp will get the following result.
   ...
   JonathantekiiMac:input Jonathan$ ~/llvm/test/cmake_debug_build/bin/
   llc -march=cpu0 -mcpu=cpu032II -relocation-model=static -filetype=asm 
-  -enable-cpu0-tail-calls ch9_2_3_tailcall.bc -stats -o -
+  -enable-cpu0-tail-calls ch9_2_tailcall.bc -stats -o -
 	  .text
 	  .section .mdebug.abi32
 	  .previous
-	  .file	"ch9_2_3_tailcall.bc"
+	  .file	"ch9_2_tailcall.bc"
 	  .globl	_Z9factoriali
 	  .align	2
 	  .type	_Z9factoriali,@function
@@ -1566,8 +1607,8 @@ Run Chapter9_2/ with ch9_2_3_tailcall.cpp will get the following result.
    1 cpu0-lower        - Number of tail calls
    ...
 
-The tail call optimization is applied in cpu032II only for this example (it use
-"jmp	_Z9factoriali" instead of "jsub _Z9factoriali").
+The tail call optimization is applied in cpu032II only for this example (it uses
+"jmp _Z9factoriali" instead of "jsub _Z9factoriali").
 Tail call share caller and callee stack but cpu032I (pass all arguments in
 stack) not satisify the following statement, NextStackOffset <= 
 FI.getIncomingArgSize() in isEligibleForTailCallOptimization(), and return 
@@ -1598,9 +1639,9 @@ false for this function as follows,
   }
 
 Since tailcall optimization will translate jmp instruction directly instead of
-jsub. The callseq_start, callseq_end, and the DAGs of LowerCallResult() and 
-LowerReturn() created are needless. It creates DAGs as 
-:num:`Figure #funccall-f-outgoing-arg-tailcall` for ch9_2_3_tailcall.cpp as 
+jsub. The callseq_start, callseq_end, and the DAG nodes created in 
+LowerCallResult() and LowerReturn() are needless. It creates DAGs as 
+:num:`Figure #funccall-f-outgoing-arg-tailcall` for ch9_2_tailcall.cpp as 
 follows,
 
 .. _funccall-f-outgoing-arg-tailcall:
@@ -1610,11 +1651,11 @@ follows,
     :scale: 100 %
     :align: center
 
-    Outgoing arguments DAG created for ch9_2_3_tailcall.cpp
+    Outgoing arguments DAGs created for ch9_2_tailcall.cpp
 
-Finally, the tail call DAG process as the following table.
+Finally, listing the DAGs translation of tail call as the following table.
 
-.. table:: tail call DAG translation
+.. table:: the DAGs translation of tail call
 
   =============================  =================  =============
   Stage                          DAG                Function
@@ -1664,16 +1705,16 @@ Recursion optimization
 ~~~~~~~~~~~~~~~~~~~~~~
 
 As last section, cpu032I cannot do tail call optimization in 
-ch9_2_3_tailcall.cpp since the limitation of arguments size not satisfied. 
+ch9_2_tailcall.cpp since the limitation of arguments size is not satisfied. 
 If run with ``clang -O3`` option, it can get the same or better performance 
 than tail call as follows,
 
 .. code-block:: bash
 
   JonathantekiiMac:input Jonathan$ clang -O1 -target mips-unknown-linux-gnu -c 
-  ch9_2_3_tailcall.cpp -emit-llvm -o ch9_2_3_tailcall.bc
+  ch9_2_tailcall.cpp -emit-llvm -o ch9_2_tailcall.bc
   JonathantekiiMac:input Jonathan$ ~/llvm/test/cmake_debug_build/bin/
-  llvm-dis ch9_2_3_tailcall.bc -o -
+  llvm-dis ch9_2_tailcall.bc -o -
   ...
   ; Function Attrs: nounwind readnone
   define i32 @_Z9factoriali(i32 %x) #0 {
@@ -1734,11 +1775,11 @@ than tail call as follows,
   ...
   JonathantekiiMac:input Jonathan$ ~/llvm/test/cmake_debug_build/bin/
   llc -march=cpu0 -mcpu=cpu032I -relocation-model=static -filetype=asm 
-  ch9_2_3_tailcall.bc -o -
+  ch9_2_tailcall.bc -o -
 	  .text
 	  .section .mdebug.abiS32
 	  .previous
-	  .file	"ch9_2_3_tailcall.bc"
+	  .file	"ch9_2_tailcall.bc"
 	  .globl	_Z9factoriali
 	  .align	2
 	  .type	_Z9factoriali,@function
@@ -1804,9 +1845,14 @@ than tail call as follows,
 	  .size	_Z13test_tailcalli, ($tmp1)-_Z13test_tailcalli
 
 
-According above llvm IR, ``clang -O3`` option remove recursion into loop by 
+According above llvm IR, ``clang -O3`` option remove recursion to loop by 
 inline the callee recursion function. This is a front end optimization through
 cross over function analysis.
+
+Cpu0 doesn't support fastcc [#callconv]_ but it can pass the fastcc keyword of 
+IR.
+Mips supports fastcc by using as more registers as possible without following
+ABI specification.
 
 
 Other features supporting
@@ -1815,18 +1861,18 @@ Other features supporting
 This section support features of $gp register caller saved register in PIC 
 addressing mode, variable number of arguments and dynamic stack allocation.
 
-Run Chapter9_2/ with ch9_3.cpp to get the following error,
+Run Chapter9_2/ with ch9_3_vararg.cpp to get the following error,
 
-.. rubric:: lbdex/input/ch9_3.cpp
-.. literalinclude:: ../lbdex/input/ch9_3.cpp
+.. rubric:: lbdex/input/ch9_3_vararg.cpp
+.. literalinclude:: ../lbdex/input/ch9_3_vararg.cpp
     :start-after: /// start
 
 .. code-block:: bash
 
   118-165-78-230:input Jonathan$ clang -target mips-unknown-linux-gnu -c 
-  ch9_3.cpp -emit-llvm -o ch9_3.bc
+  ch9_3_vararg.cpp -emit-llvm -o ch9_3_vararg.bc
   118-165-78-230:input Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
-  Debug/bin/llc -march=cpu0 -relocation-model=pic -filetype=asm ch9_3.bc -o -
+  Debug/bin/llc -march=cpu0 -relocation-model=pic -filetype=asm ch9_3_vararg.bc -o -
   ...
   LLVM ERROR: Cannot select: 0x7f8b6902fd10: ch = vastart 0x7f8b6902fa10, 
   0x7f8b6902fb10, 0x7f8b6902fc10 [ORD=9] [ID=22]
@@ -1834,20 +1880,20 @@ Run Chapter9_2/ with ch9_3.cpp to get the following error,
   In function: _Z5sum_iiz
 
 
-.. rubric:: lbdex/input/ch9_4.cpp
-.. literalinclude:: ../lbdex/input/ch9_4.cpp
+.. rubric:: lbdex/input/ch9_3_alloc.cpp
+.. literalinclude:: ../lbdex/input/ch9_3_alloc.cpp
     :start-after: /// start
 
 
-Run Chapter9_3 with ch9_4.cpp will get the following error.
+Run Chapter9_2 with ch9_3_alloc.cpp will get the following error.
 
 .. code-block:: bash
 
-  118-165-72-242:input Jonathan$ clang -target mips-unknown-linux-gnu -I/
-  Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/
-  SDKs/MacOSX10.8.sdk/usr/include/ -c ch9_4.cpp -emit-llvm -o ch9_4.bc
+  118-165-72-242:input Jonathan$ clang -target mips-unknown-linux-gnu -c 
+  ch9_3_alloc.cpp -emit-llvm -o ch9_3_alloc.bc
   118-165-72-242:input Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
-  Debug/bin/llc -march=cpu0 -relocation-model=pic -filetype=asm ch9_4.bc -o -
+  Debug/bin/llc -march=cpu0 -mcpu=cpu032I -cpu0-s32-calls=false 
+  -relocation-model=pic -filetype=asm ch9_3_alloc.bc -o -
   ...
   LLVM ERROR: Cannot select: 0x7ffd8b02ff10: i32,ch = dynamic_stackalloc 
   0x7ffd8b02f910:1, 0x7ffd8b02fe10, 0x7ffd8b02c010 [ORD=12] [ID=48]
@@ -1868,22 +1914,22 @@ Run Chapter9_3 with ch9_4.cpp will get the following error.
 The $gp register caller saved register in PIC addressing mode
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-According the original cpu0 web site information, it only support **“jsub”** 
+According the original cpu0 web site information, it only supports **“jsub”** 
 bits address range access. 
 We add **“jalr”** to cpu0 and expand it to 32 bit address. We did this change for 
 two reasons. One is cpu0 can be expanded to 32 bit address space by only adding 
 this instruction. 
-The other is cpu0 as well as this book are designed for teaching purpose. 
+The other is cpu0 as well as this book are designed for tutorial. 
 We reserve **“jalr”** as PIC mode for dynamic linking function to demonstrates: 
 
 1. How caller handle the caller saved register $gp in calling the function
 
-2. How the code in the shared libray function use $gp to access global variable 
+2. How the code in the shared libray function uses $gp to access global variable 
    address. 
 
 3. The jalr for dynamic linking function is easier in implementation and faster. 
    As we have depicted in section "pic mode" of chapter "Global variables, structs 
-   and arrays, other type". This solution is popular in reality and deserve change 
+   and arrays, other type". This solution is popular in reality and deserve changing 
    cpu0 official design as a compiler book. 
 
 In chapter "Global variable", we mentioned two link 
@@ -1894,7 +1940,7 @@ One example of dynamic link function is used in share library.
 Share library include a lots of dynamic link functions usually can be loaded 
 at run time. 
 Since share library can be loaded in different memory address, the global 
-variable address it access cannot be decided at link time. 
+variable address which it access cannot be decided at link time. 
 Even so, we still can caculate the distance between the global variable address 
 and the start address of shared library function when it be loaded.
 
@@ -1911,47 +1957,48 @@ We putting the comments in the result for explanation.
   Debug/bin/llc -march=cpu0 -mcpu=cpu032II-cpu0-s32-calls=true
   -relocation-model=pic -filetype=asm ch9_gprestore.bc -o -
   ...
-	  .cpload	$t9
-	  .set	nomacro
+    .cpload $t9
+    .set  nomacro
   # BB#0:                                 # %entry
-	  addiu	$sp, $sp, -24
+    addiu $sp, $sp, -24
   $tmp0:
-	  .cfi_def_cfa_offset 24
-	  st	$lr, 12($sp)            # 4-byte Folded Spill
-	  st	$fp, 16($sp)              # 4-byte Folded Spill
+    .cfi_def_cfa_offset 24
+    st  $lr, 12($sp)            # 4-byte Folded Spill
+    st  $fp, 16($sp)              # 4-byte Folded Spill
   $tmp1:
-	  .cfi_offset 14, -4
+    .cfi_offset 14, -4
   $tmp2:
-	  .cfi_offset 12, -8
-	  .cprestore	8    // save $gp to 8($sp)
-	  ld	$t9, %call16(_Z5sum_ii)($gp)
-	  addiu	$4, $zero, 1
-	  jalr	$t9
-	  nop
-	  ld	$gp, 8($sp)  // restore $gp from 8($sp)
-	  add	$8, $zero, $2
-	  ld	$t9, %call16(_Z5sum_ii)($gp)
-	  addiu	$4, $zero, 2
-	  jalr	$t9
-	  nop
-	  ld	$gp, 8($sp)  // restore $gp from 8($sp)
-	  addu	$2, $2, $8
-	  ld	$8, 8($sp)              # 4-byte Folded Reload
-	  ld	$lr, 12($sp)            # 4-byte Folded Reload
-	  addiu	$sp, $sp, 16
-	  ret	$lr
-	  nop
+    .cfi_offset 12, -8
+    .cprestore  8    // save $gp to 8($sp)
+    ld  $t9, %call16(_Z5sum_ii)($gp)
+    addiu $4, $zero, 1
+    jalr  $t9
+    nop
+    ld  $gp, 8($sp)  // restore $gp from 8($sp)
+    add $8, $zero, $2
+    ld  $t9, %call16(_Z5sum_ii)($gp)
+    addiu $4, $zero, 2
+    jalr  $t9
+    nop
+    ld  $gp, 8($sp)  // restore $gp from 8($sp)
+    addu  $2, $2, $8
+    ld  $8, 8($sp)              # 4-byte Folded Reload
+    ld  $lr, 12($sp)            # 4-byte Folded Reload
+    addiu $sp, $sp, 16
+    ret $lr
+    nop
 
 
 As above code comment, **“.cprestore 8”** is a pseudo instruction for saving 
 **$gp** to **8($sp)** while Instruction **“ld $gp, 8($sp)”** restore 
-the $gp, reference Table 8-1 of "MIPSpro TM Assembly Language Programmer’s 
-Guide" [#]_. 
+the $gp, refer to Table 8-1 of "MIPSpro TM Assembly Language Programmer’s 
+Guide" [#mipsasm]_. 
 In other word, $gp is a caller saved register, so main() need to save/restore 
 $gp before/after call the shared library _Z5sum_ii() function. 
 In llvm Mips 3.5, it removed the .cprestore in mode PIC which meaning $gp
-is not a caller saved register in PIC anymore. Anyway, it is keeped in Cpu0 and
-make this feature can be removed by not define it in Cpu0Config.h.
+is not a caller saved register in PIC anymore. 
+However, it is still existed in Cpu0 and this feature can be removed by not 
+defining it in Cpu0Config.h.
 The #ifdef ENABLE_GPRESTORE part of code in Cpu0 can be removed but it come with
 the cost of reserve $gp register as a specific register and cannot be allocated
 for the program variable in PIC mode. As explained in early chapter Gloabal 
@@ -1975,39 +2022,39 @@ If enable "-cpu0-no-cpload", and undefine ENABLE_GPRESTORE or enable
   -cpu0-reserve-gp -o -
   ...
   # BB#0:
-	  addiu	$sp, $sp, -24
+    addiu $sp, $sp, -24
   $tmp0:
-	  .cfi_def_cfa_offset 24
-	  st	$lr, 20($sp)            # 4-byte Folded Spill
-	  st	$fp, 16($sp)            # 4-byte Folded Spill
+    .cfi_def_cfa_offset 24
+    st  $lr, 20($sp)            # 4-byte Folded Spill
+    st  $fp, 16($sp)            # 4-byte Folded Spill
   $tmp1:
-	  .cfi_offset 14, -4
+    .cfi_offset 14, -4
   $tmp2:
-	  .cfi_offset 12, -8
-	  move	 $fp, $sp
+    .cfi_offset 12, -8
+    move   $fp, $sp
   $tmp3:
-	  .cfi_def_cfa_register 12
-	  ld	$t9, %call16(_Z5sum_ii)($gp)
-	  addiu	$4, $zero, 1
-	  jalr	$t9
-	  nop
-	  st	$2, 12($fp)
-	  addiu	$4, $zero, 2
-	  ld	$t9, %call16(_Z5sum_ii)($gp)
-	  jalr	$t9
-	  nop
-	  ld	$3, 12($fp)
-	  addu	$2, $3, $2
-	  st	$2, 12($fp)
-	  move	 $sp, $fp
-	  ld	$fp, 16($sp)            # 4-byte Folded Reload
-	  ld	$lr, 20($sp)            # 4-byte Folded Reload
-	  addiu	$sp, $sp, 24
-	  ret	$lr
-	  nop
+    .cfi_def_cfa_register 12
+    ld  $t9, %call16(_Z5sum_ii)($gp)
+    addiu $4, $zero, 1
+    jalr  $t9
+    nop
+    st  $2, 12($fp)
+    addiu $4, $zero, 2
+    ld  $t9, %call16(_Z5sum_ii)($gp)
+    jalr  $t9
+    nop
+    ld  $3, 12($fp)
+    addu  $2, $3, $2
+    st  $2, 12($fp)
+    move   $sp, $fp
+    ld  $fp, 16($sp)            # 4-byte Folded Reload
+    ld  $lr, 20($sp)            # 4-byte Folded Reload
+    addiu $sp, $sp, 24
+    ret $lr
+    nop
 
 
-LLVM Mips 3.1 issues the .cpload and .cprestore and Cpu0 borrow it from that 
+LLVM Mips 3.1 issues the .cpload and .cprestore and Cpu0 borrows it from that 
 version. But now, llvm Mips replace .cpload with real instructions and remove 
 .cprestore. It treats $gp as reserved register in PIC mode. Since the Mips
 assembly document I reference say $gp is caller save register, Cpu0 stay and
@@ -2020,41 +2067,41 @@ follow this document at this point and supply reserve $gp register as option.
   -o -
   ...
   # BB#0:                                 # %entry
-	  lui	$2, %hi(_gp_disp)
-	  ori	$2, $2, %lo(_gp_disp)
-	  addiu	$sp, $sp, -32
+    lui $2, %hi(_gp_disp)
+    ori $2, $2, %lo(_gp_disp)
+    addiu $sp, $sp, -32
   $tmp0:
-	  .cfi_def_cfa_offset 32
-	  sw	$ra, 28($sp)            # 4-byte Folded Spill
-	  sw	$fp, 24($sp)            # 4-byte Folded Spill
-	  sw	$16, 20($sp)            # 4-byte Folded Spill
+    .cfi_def_cfa_offset 32
+    sw  $ra, 28($sp)            # 4-byte Folded Spill
+    sw  $fp, 24($sp)            # 4-byte Folded Spill
+    sw  $16, 20($sp)            # 4-byte Folded Spill
   $tmp1:
-	  .cfi_offset 31, -4
+    .cfi_offset 31, -4
   $tmp2:
-	  .cfi_offset 30, -8
+    .cfi_offset 30, -8
   $tmp3:
-	  .cfi_offset 16, -12
-	  move	 $fp, $sp
+    .cfi_offset 16, -12
+    move   $fp, $sp
   $tmp4:
-	  .cfi_def_cfa_register 30
-	  addu	$16, $2, $25
-	  lw	$25, %call16(_Z5sum_ii)($16)
-	  addiu	$4, $zero, 1
-	  jalr	$25
-	  move	 $gp, $16
-	  sw	$2, 16($fp)
-	  lw	$25, %call16(_Z5sum_ii)($16)
-	  jalr	$25
-	  addiu	$4, $zero, 2
-	  lw	$1, 16($fp)
-	  addu	$2, $1, $2
-	  sw	$2, 16($fp)
-	  move	 $sp, $fp
-	  lw	$16, 20($sp)            # 4-byte Folded Reload
-	  lw	$fp, 24($sp)            # 4-byte Folded Reload
-	  lw	$ra, 28($sp)            # 4-byte Folded Reload
-	  jr	$ra
-	  addiu	$sp, $sp, 32
+    .cfi_def_cfa_register 30
+    addu  $16, $2, $25
+    lw  $25, %call16(_Z5sum_ii)($16)
+    addiu $4, $zero, 1
+    jalr  $25
+    move   $gp, $16
+    sw  $2, 16($fp)
+    lw  $25, %call16(_Z5sum_ii)($16)
+    jalr  $25
+    addiu $4, $zero, 2
+    lw  $1, 16($fp)
+    addu  $2, $1, $2
+    sw  $2, 16($fp)
+    move   $sp, $fp
+    lw  $16, 20($sp)            # 4-byte Folded Reload
+    lw  $fp, 24($sp)            # 4-byte Folded Reload
+    lw  $ra, 28($sp)            # 4-byte Folded Reload
+    jr  $ra
+    addiu $sp, $sp, 32
 
 The following code added in Chapter9_3/ to issue **“.cprestore”** or the 
 corresponding machine code before the first time of PIC function call.
@@ -2112,17 +2159,21 @@ corresponding machine code before the first time of PIC function call.
     :start-after: #if CH >= CH9_3 //1
     :end-before: #endif //#if CH >= CH9_3 //1
 .. literalinclude:: ../lbdex/Cpu0/Cpu0AsmPrinter.cpp
+    :start-after: #if CH >= CH9_3 //2
+    :end-before: #endif //#if CH >= CH9_3 //2
+.. literalinclude:: ../lbdex/Cpu0/Cpu0AsmPrinter.cpp
     :start-after: //@EmitInstruction {
     :end-before: //@EmitInstruction body {
 .. literalinclude:: ../lbdex/Cpu0/Cpu0AsmPrinter.cpp
-    :start-after: #if CH >= CH9_3 //2
-    :end-before: #endif //#if CH >= CH9_3 //2
+    :start-after: #if CH >= CH9_3 //3
+    :end-before: #endif //#if CH >= CH9_3 //3
 	
 .. code-block:: c++
 
     ...
   }
   
+
 .. rubric:: lbdex/chapters/Chapter9_3/Cpu0MCInstLower.h
 .. literalinclude:: ../lbdex/Cpu0/Cpu0MCInstLower.h
     :start-after: #if CH >= CH9_3
@@ -2180,7 +2231,6 @@ Run ``llc -static`` will call jsub instruction instead of jalr as follows,
 Run with ``llc -filetype=obj``, you can find the Cx of **“jsub Cx”** is 0 since 
 the Cx is calculated by linker as below. 
 Mips has the same 0 in it's jal instruction. 
-The ch9_1_3.cpp and ch9_1_4.cpp are example code more for test. 
 
 .. code-block:: bash
 
@@ -2225,20 +2275,20 @@ Until now, we support fixed number of arguments in formal function definition
 This subsection support variable number of arguments since C language support 
 this feature.
 
-Run Chapter9_3/ with ch9_3.cpp as well as clang option, 
+Run Chapter9_3/ with ch9_3_vararg.cpp as well as clang option, 
 **clang -target mips-unknown-linux-gnu**, to get the following result,
 
 .. code-block:: bash
 
   118-165-76-131:input Jonathan$ clang -target mips-unknown-linux-gnu -c 
-  ch9_3.cpp -emit-llvm -o ch9_3.bc
+  ch9_3_vararg.cpp -emit-llvm -o ch9_3_vararg.bc
   118-165-76-131:input Jonathan$ /Users/Jonathan/llvm/test/
   cmake_debug_build/Debug/bin/llc -march=cpu0 -mcpu=cpu032I -cpu0-s32-calls=false 
-  -relocation-model=pic -filetype=asm ch9_3.bc -o ch9_3.cpu0.s
-  118-165-76-131:input Jonathan$ cat ch9_3.cpu0.s
+  -relocation-model=pic -filetype=asm ch9_3_vararg.bc -o ch9_3_vararg.cpu0.s
+  118-165-76-131:input Jonathan$ cat ch9_3_vararg.cpu0.s
     .section .mdebug.abi32
     .previous
-    .file "ch9_3.bc"
+    .file "ch9_3_vararg.bc"
     .text
     .globl  _Z5sum_iiz
     .align  2
@@ -2348,7 +2398,7 @@ Run Chapter9_3/ with ch9_3.cpp as well as clang option,
     .size _Z11test_varargv, ($tmp1)-_Z11test_varargv
 
 
-The analysis of output ch9_3.cpu0.s as above in comment. 
+The analysis of output ch9_3_vararg.cpu0.s as above in comment. 
 As above code, in # BB#0, we get the first argument **“amount”** from 
 **“ld $2, 24($fp)”** since the stack size of the callee function 
 **“_Z5sum_iiz()”** is 24. And then set argument pointer, arg_ptr, to 0($fp), 
@@ -2359,7 +2409,7 @@ In # BB#3, do i+=1.
 
 To support variable number of arguments, the following code needed to 
 add in Chapter9_3/. 
-The ch9_3_2.cpp is C++ template example code, it can be translated into cpu0 
+The ch9_3_template.cpp is C++ template example code, it can be translated into cpu0 
 backend code too.
 
 .. rubric:: lbdex/chapters/Chapter9_3/Cpu0ISelLowering.h
@@ -2459,28 +2509,28 @@ backend code too.
     :start-after: #if CH >= CH9_3 //11
     :end-before: #endif // #if CH >= CH9_3
 
-.. rubric:: lbdex/input/ch9_3_2.cpp
-.. literalinclude:: ../lbdex/input/ch9_3_2.cpp
+.. rubric:: lbdex/input/ch9_3_template.cpp
+.. literalinclude:: ../lbdex/input/ch9_3_template.cpp
     :start-after: /// start
 
-Mips qemu reference [#]_, you can download and run it with gcc to verify the 
-result with printf() function at this point. 
-We will verify the code correction in chapter 
-"Run backend" through the CPU0 Verilog language machine.
+Mips qemu reference [#mipsqemu]_, you can download and run it with gcc to 
+verify the result with printf() function at this point. 
+We will verify the correction of the code in chapter "Verify backend on 
+Verilog simulator" through the CPU0 Verilog language machine.
 
 
 Dynamic stack allocation support
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Even though C language very rare to use dynamic stack allocation, there are
-languages use it frequently. The following C example code use it.
+languages use it frequently. The following C example code uses it.
 
-Chapter9_3 support dynamic stack allocation with the following code added.
+Chapter9_3 supports dynamic stack allocation with the following code added.
 
-.. rubric:: lbdex/chapters/Chapter9_3/Cpu0SEFrameLowering.h
-.. literalinclude:: ../lbdex/Cpu0/Cpu0SEFrameLowering.h
-    :start-after: #if CH >= CH9_3
-    :end-before: #endif
+.. rubric:: lbdex/chapters/Chapter9_2/Cpu0FrameLowering.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0FrameLowering.cpp
+    :start-after: #if CH >= CH9_2
+    :end-before: #endif // #if CH >= CH9_2
 
 .. rubric:: lbdex/chapters/Chapter9_3/Cpu0SEFrameLowering.cpp
 .. literalinclude:: ../lbdex/Cpu0/Cpu0SEFrameLowering.cpp
@@ -2505,8 +2555,8 @@ Chapter9_3 support dynamic stack allocation with the following code added.
     :start-after: #endif // #if CH >= CH3_5 //2
     :end-before: //}
 .. literalinclude:: ../lbdex/Cpu0/Cpu0SEFrameLowering.cpp
-    :start-after: #if CH >= CH9_3 //4
-    :end-before: #endif
+    :start-after: #if CH >= CH9_3 //5
+    :end-before: //@callsEhReturn
 
 .. rubric:: lbdex/chapters/Chapter9_3/Cpu0ISelLowering.cpp
 .. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.cpp
@@ -2541,16 +2591,15 @@ Chapter9_3 support dynamic stack allocation with the following code added.
 
   }
 
-Run Chapter9_3 with ch9_4.cpp will get the following correct result.
+Run Chapter9_3 with ch9_3_alloc.cpp will get the following correct result.
 
 .. code-block:: bash
 
-  118-165-72-242:input Jonathan$ clang -I/Applications/Xcode.app/Contents/
-  Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.9.sdk/usr/include/ 
-  -c ch9_4.cpp -emit-llvm -o ch9_4.bc
-  118-165-72-242:input Jonathan$ llvm-dis ch9_4.bc -o ch9_4.ll
-  118-165-72-242:input Jonathan$ cat ch9_4.ll
-  ; ModuleID = 'ch9_4.bc'
+  118-165-72-242:input Jonathan$ clang -target mips-unknown-linux-gnu -c 
+  ch9_3_alloc.cpp -emit-llvm -o ch9_3_alloc.bc
+  118-165-72-242:input Jonathan$ llvm-dis ch9_3_alloc.bc -o ch9_3_alloc.ll
+  118-165-72-242:input Jonathan$ cat ch9_3_alloc.ll
+  ; ModuleID = 'ch9_3_alloc.bc'
   target datalayout = "e-p:64:64:64-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:64:64-
   f32:32:32-f64:64:64-v64:64:64-v128:128:128-a0:0:64-s0:64:64-f80:128:128-n8:16:
   32:64-S128"
@@ -2559,126 +2608,110 @@ Run Chapter9_3 with ch9_4.cpp will get the following correct result.
   define i32 @_Z5sum_iiiiiii(i32 %x1, i32 %x2, i32 %x3, i32 %x4, i32 %x5, i32 %x6)
    nounwind uwtable ssp {
     ...
-    %10 = alloca i8, i64 %9	// int *b = (int*)alloca(sizeof(int) * x1);
-    %11 = bitcast i8* %10 to i32*
-    store i32* %11, i32** %b, align 8
-    %12 = load i32** %b, align 8
-    store i32 1111, i32* %12, align 4	// *b = 1111;
+    %9 = alloca i8, i32 %8	// int* b = (int*)__builtin_alloca(sizeof(int) * 1 * x1);
+    %10 = bitcast i8* %9 to i32*
+    store i32* %10, i32** %b, align 4
     ...
   }
   ...
 
   118-165-72-242:input Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
   Debug/bin/llc -march=cpu0 -mcpu=cpu032I -cpu0-s32-calls=false 
-  -relocation-model=pic -filetype=asm ch9_4.bc -o ch9_4.cpu0.s
-  118-165-72-242:input Jonathan$ cat ch9_4.cpu0.s 
+  -relocation-model=pic -filetype=asm ch9_3_alloc.bc -o ch9_3_alloc.cpu0.s
+  118-165-72-242:input Jonathan$ cat ch9_3_alloc.cpu0.s 
   ...
+      .globl  _Z10weight_sumiiiiii
+    .align  2
+    .type _Z10weight_sumiiiiii,@function
+    .ent  _Z10weight_sumiiiiii    # @_Z10weight_sumiiiiii
   _Z10weight_sumiiiiii:
-  	.cfi_startproc
-  	.frame	$fp,80,$lr
-  	.mask 	0x00004080,-4
-  	.set	noreorder
-  	.cpload	$t9
-  	.set	nomacro
+    .frame  $fp,48,$lr
+    .mask   0x00005000,-4
+    .set  noreorder
+    .cpload $t9
+    .set  nomacro
   # BB#0:
-  	addiu	$sp, $sp, -80
-  $tmp6:
-  	.cfi_def_cfa_offset 80
-  	st	$lr, 76($sp)            # 4-byte Folded Spill
-  	st	$7, 72($sp)             # 4-byte Folded Spill
-  $tmp7:
-  	.cfi_offset 14, -4
-  $tmp8:
-  	.cfi_offset 7, -8
-  	move	$sp, $fp
-  $tmp9:
-  	.cfi_def_cfa_register 11
-  	.cprestore	24
-  	ld	$7, %got(__stack_chk_guard)($gp)
-  	ld	$2, 0($7)
-  	st	$2, 68($fp)
-  	ld	$2, 80($fp)
-  	st	$2, 64($fp)
-  	ld	$2, 84($fp)
-  	st	$2, 60($fp)
-  	ld	$2, 88($fp)
-  	st	$2, 56($fp)
-  	ld	$2, 92($fp)
-  	st	$2, 52($fp)
-  	ld	$2, 96($fp)
-  	st	$2, 48($fp)
-  	ld	$2, 100($fp)
-  	st	$2, 44($fp)
-  	ld	$2, 64($fp)	// int *b = (int*)alloca(sizeof(int) * x1);
-  	shl	$2, $2, 2
-  	addiu	$2, $2, 7
-  	addiu	$3, $zero, -8
-  	and	$2, $2, $3
-  	subu	$2, $sp, $2
-  	add	$sp, $zero, $2	// set sp to the bottom of alloca area
-  	st	$2, 40($fp)
-  	addiu	$3, $zero, 1111
-  	st	$3, 0($2)
-  	ld	$2, 64($fp)
-  	ld	$3, 60($fp)
-  	ld	$4, 56($fp)
-  	ld	$5, 52($fp)
-  	ld	$t9, 48($fp)
-  	ld	$t0, 44($fp)
-  	st	$t0, 20($sp)
-  	shl	$t9, $t9, 1
-  	st	$t9, 16($sp)
-  	st	$5, 12($sp)
-  	st	$4, 8($sp)
-  	st	$3, 4($sp)
-  	addiu	$3, $zero, 6
-  	mul	$2, $2, $3
-  	st	$2, 0($sp)
-  	ld	$t9, %call16(_Z3sumiiiiii)($gp)
-  	jalr	$t9
-  	ld	$gp, 24($fp)
-  	st	$2, 36($fp)
-  	ld	$3, 0($7)
-  	ld	$4, 68($fp)
-  	bne	$3, $4, $BB1_2
+    addiu $sp, $sp, -48
+    st  $lr, 44($sp)            # 4-byte Folded Spill
+    st  $fp, 40($sp)            # 4-byte Folded Spill
+    move   $fp, $sp
+    .cprestore  24
+    ld  $2, 68($fp)
+    ld  $3, 64($fp)
+    ld  $t9, 60($fp)
+    ld  $7, 56($fp)
+    st  $4, 36($fp)
+    st  $5, 32($fp)
+    st  $7, 28($fp)
+    st  $t9, 24($fp)
+    st  $3, 20($fp)
+    st  $2, 16($fp)
+    shl $2, $2, 2    // $2 = sizeof(int) * 1 * x2;
+    addiu $2, $2, 7
+    addiu $3, $zero, -8
+    and $2, $2, $3
+    addiu $sp, $sp, 0
+    subu  $2, $sp, $2
+    addu  $sp, $zero, $2  // set sp to the bottom of alloca area
+    addiu $sp, $sp, 0
+    st  $2, 12($fp)
+    st  $2, 8($fp)
+    ld  $2, 12($fp)
+    ld  $3, 28($fp)
+    st  $3, 0($2)    // *b = x3
+    ld  $5, 32($fp)
+    ld  $2, 36($fp)
+    ld  $3, 20($fp)
+    ld  $4, 28($fp)
+    ld  $t9, 24($fp)
+    ld  $7, 16($fp)
+    addiu $sp, $sp, -24
+    st  $7, 20($sp)
+    st  $t9, 12($sp)
+    st  $4, 8($sp)
+    shl $3, $3, 1
+    st  $3, 16($sp)
+    addiu $3, $zero, 3
+    mul $4, $2, $3
+    ld  $t9, %call16(_Z3sumiiiiii)($gp)
+    jalr  $t9
     nop
-  # BB#1:                                 # %SP_return
-  	move	$fp, $sp
-  	ld	$7, 72($sp)             # 4-byte Folded Reload
-  	ld	$lr, 76($sp)            # 4-byte Folded Reload
-  	addiu	$sp, $sp, 80
-  	ret	$2
+    ld  $gp, 24($fp)
+    addiu $sp, $sp, 24
+    st  $2, 4($fp)
+    ld  $3, 8($fp)
+    ld  $3, 0($3)
+    addu  $2, $2, $3
+    move   $sp, $fp
+    ld  $fp, 40($sp)            # 4-byte Folded Reload
+    ld  $lr, 44($sp)            # 4-byte Folded Reload
+    addiu $sp, $sp, 48
+    ret $lr
     nop
-  $BB1_2:                                 # %CallStackCheckFailBlk
-  	ld	$t9, %call16(__stack_chk_fail)($gp)
-  	jalr	$t9
-    nop
-  	ld	$gp, 24($fp)
-  	.set	macro
-  	.set	reorder
-  	.end	_Z10weight_sumiiiiii
-  $tmp10:
-  	.size	_Z10weight_sumiiiiii, ($tmp10)-_Z10weight_sumiiiiii
-  	.cfi_endproc
+    .set  macro
+    .set  reorder
+    .end  _Z10weight_sumiiiiii
+  $func_end1:
+    .size _Z10weight_sumiiiiii, ($func_end1)-_Z10weight_sumiiiiii
   ...
 
 As you can see, the dynamic stack allocation needs frame pointer register **fp**
-support. As :num:`Figure #funccall-f4`, the sp is adjusted to (sp - 56) when it 
-entered the function as usual by instruction **addiu $sp, $sp, -56**. 
+support. As above assembly, the sp is adjusted to (sp - 40) when it 
+entered the function as usual by instruction **addiu $sp, $sp, -40**. 
 Next, the fp is set to sp where is the position just above alloca() spaces area 
-when meet instruction **addu $fp, $sp, $zero**. 
+as :num:`Figure #funccall-f4` when meet instruction **addu $fp, $sp, $zero**. 
 After that, the sp is changed to the area just below of alloca().
 Remind, the alloca() area which the b point to, 
-**"*b = (int*)alloca(sizeof(int) * x1)"**, is 
+**"*b = (int*)__builtin_alloca(sizeof(int) * 2 * x6)"**, is 
 allocated at run time since the spaces is variable size which depend on x1 
 variable and cannot be calculated at link time. 
 
 :num:`Figure #funccall-f5` depicted how the stack pointer changes back to the 
 caller stack bottom. As above, the **fp** is set to the address just above of 
 alloca(). 
-The first step is changing the sp to fp by instruction **addu $sp, $fp, $zero**.
+The first step is changing the sp to fp by instruction **move $sp, $fp**.
 Next, sp is changed back to caller stack bottom by instruction 
-**addiu $sp, $sp, 56**.
+**addiu $sp, $sp, 40**.
 
 .. _funccall-f4:
 .. figure:: ../Fig/funccall/4.png
@@ -2691,8 +2724,8 @@ Next, sp is changed back to caller stack bottom by instruction
 
 .. _funccall-f5:
 .. figure:: ../Fig/funccall/5.png
-    :height: 265 px
-    :width: 476 px
+    :height: 264 px
+    :width: 528 px
     :scale: 50 %
     :align: center
 
@@ -2722,13 +2755,13 @@ local variables have better performance compare to use the sp only.
   	ld	$2, 64($fp)
   	st	$3, 4($sp)
   	
-Cpu0 use fp and sp to access the above and below areas of alloca() too. 
-As ch9_4.cpu0.s, it access local variable (above of alloca()) by fp offset
+Cpu0 uses fp and sp to access the above and below areas of alloca() too. 
+As ch9_3_alloc.cpu0.s, it access local variable (above of alloca()) by fp offset
 and outgoing arguments (below of alloca()) by sp offset.
 
-Finally, the "move $sp, $fp" is the alias instruction of "addu $fp, $sp, $zero".
+And more, the "move $sp, $fp" is the alias instruction of "addu $fp, $sp, $zero".
 The machine code is the latter, and the former is only for easy understand by
-user only. This alias come from added code in Chapter3_2 and Chapter3_4 as 
+user only. This alias come from added code in Chapter3_2 and Chapter3_5 as 
 follows,
 
 
@@ -2739,27 +2772,32 @@ follows,
 
 .. rubric:: lbdex/chapters/Chapter3_5/Cpu0InstrInfo.td
 .. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td
-    :start-after: //#if CH >= CH3_4 1
+    :start-after: //#if CH >= CH3_5 1
     :end-before: //#endif
 .. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td
-    :start-after: //#if CH >= CH3_4 13
+    :start-after: //#if CH >= CH3_5 13
     :end-before: //#endif
 
+Finally the MFI->hasVarSizedObjects() defined in hasReservedCallFrame() of
+Cpu0SEFrameLowering.cpp is true when it meets "%9 = alloca i8, i32 %8" of IR 
+which corresponding "(int*)__builtin_alloca(sizeof(int) * 1 * x1);" of C.
+It will generate asm "addiu	$sp, $sp, -24" for ch9_3_alloc.cpp by calling 
+"adjustStackPtr()" in eliminateCallFramePseudoInstr() of Cpu0FrameLowering.cpp.
 
-File ch9_7.cpp which is for type "long long shift operations" support can be 
-tested now as follows. 
+File ch9_3_longlongshift.cpp which is for type "long long shift operations" 
+support can be tested now as follows. 
 
-.. rubric:: lbdex/input/ch9_7.cpp
-.. literalinclude:: ../lbdex/input/ch9_7.cpp
+.. rubric:: lbdex/input/ch9_3_longlongshift.cpp
+.. literalinclude:: ../lbdex/input/ch9_3_longlongshift.cpp
     :start-after: /// start
 
 .. code-block:: bash
 
   114-37-150-209:input Jonathan$ clang -O0 -target mips-unknown-linux-gnu 
-  -c ch9_7.cpp -emit-llvm -o ch9_7.bc
+  -c ch9_3_longlongshift.cpp -emit-llvm -o ch9_3_longlongshift.bc
   
   114-37-150-209:input Jonathan$ ~/llvm/test/cmake_debug_build/Debug/bin/
-  llvm-dis ch8_4.bc -o -
+  llvm-dis ch9_3_longlongshift.bc -o -
   ...
   ; Function Attrs: nounwind
   define i64 @_Z19test_longlong_shiftv() #0 {
@@ -2784,11 +2822,12 @@ tested now as follows.
   }
   ...
   114-37-150-209:input Jonathan$ ~/llvm/test/cmake_debug_build/Debug/bin/llc 
-  -march=cpu0 -mcpu=cpu032I -relocation-model=static -filetype=asm ch9_7.bc -o -
+  -march=cpu0 -mcpu=cpu032I -relocation-model=static -filetype=asm 
+  ch9_3_longlongshift.bc -o -
     .text
     .section .mdebug.abi32
     .previous
-    .file "ch9_7.bc"
+    .file "ch9_3_longlongshift.bc"
     .globl  _Z20test_longlong_shift1v
     .align  2
     .type _Z20test_longlong_shift1v,@function
@@ -2886,41 +2925,652 @@ tested now as follows.
     .size _Z20test_longlong_shift2v, ($tmp1)-_Z20test_longlong_shift2v
 
 
+Variable sized array support
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+LLVM support variable sized arrays in C99 [#stacksave]_. The following code 
+added with this support. Set them to expand, meaning llvm uses other DAGs 
+replace them.
+
+.. rubric:: lbdex/chapters/Chapter9_3/Cpu0ISelLowering.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.cpp
+    :start-after: #if CH >= CH6_1 //3
+    :end-before: #if CH >= CH8_1 //6
+.. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.cpp
+    :start-after: //@llvm.stacksave
+    :end-before: #endif
+
+.. code-block:: c++
+
+      ...
+    }
+    ...
+  }
+
+.. rubric:: lbdex/input/ch9_3_stacksave.cpp
+.. literalinclude:: ../lbdex/input/ch9_3_stacksave.cpp
+    :start-after: /// start
+
+.. code-block:: bash
+  
+  JonathantekiiMac:input Jonathan$ clang -target mips-unknown-linux-gnu -c 
+  ch9_3_stacksave.cpp -emit-llvm -o ch9_3_stacksave.bc
+  JonathantekiiMac:input Jonathan$ llvm-dis ch9_3_stacksave.bc -o -
+  
+  define i32 @_Z21test_stacksaverestorej(i32 zeroext %x) #0 {
+    %1 = alloca i32, align 4
+    %2 = alloca i8*
+    %3 = alloca i32
+    store i32 %x, i32* %1, align 4
+    %4 = load i32, i32* %1, align 4
+    %5 = call i8* @llvm.stacksave()
+    store i8* %5, i8** %2
+    %6 = alloca i8, i32 %4, align 1
+    %7 = load i32, i32* %1, align 4
+    %8 = getelementptr inbounds i8, i8* %6, i32 %7
+    store i8 5, i8* %8, align 1
+    %9 = load i32, i32* %1, align 4
+    %10 = getelementptr inbounds i8, i8* %6, i32 %9
+    %11 = load i8, i8* %10, align 1
+    %12 = sext i8 %11 to i32
+    store i32 1, i32* %3
+    %13 = load i8*, i8** %2
+    call void @llvm.stackrestore(i8* %13)
+    ret i32 %12
+  }
+
+  JonathantekiiMac:input Jonathan$ ~/llvm/test/cmake_debug_build/Debug/bin/llc 
+  -march=cpu0 -mcpu=cpu032I -relocation-model=static -filetype=asm 
+  ch9_3_stacksave.bc -o -
+  ...
+
+Function related Intrinsics support
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+I think these llvm instinsic IRs are for exception handling implementation
+[#excepthandle]_ [#returnaddr]. With these IRs, programmer can recording the
+frame address and return address to be used in implementing program of 
+exception handler by C++ as the example below. In order to support these llvm
+intrinsic IRs, the following code added to Cpu0 backend.
+
+.. rubric:: lbdex/chapters/Chapter9_3/Cpu0ISelLowering.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.cpp
+    :start-after: //@Cpu0TargetLowering {
+    :end-before: #if CH >= CH3_2
+.. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.cpp
+    :start-after: #if CH >= CH9_3 //0.5
+    :end-before: #endif
+.. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.cpp
+    :start-after: #if CH >= CH9_3 //0.7
+    :end-before: #endif
+    
+.. code-block:: c++
+
+    ...
+  }
+
+.. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.cpp
+    :start-after: #if CH >= CH6_1 //3
+    :end-before: #if CH >= CH8_1 //6
+.. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.cpp
+    :start-after: #if CH >= CH9_3 //4.5
+    :end-before: #endif
+
+.. code-block:: c++
+
+      ...
+    }
+    ...
+  }
+
+.. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.cpp
+    :start-after: #if CH >= CH9_3 //5.5
+    :end-before: #endif
+    
+
+frameaddress and returnaddress intrinsics
+++++++++++++++++++++++++++++++++++++++++++
+
+Run with the following input to get the following result.
+
+.. rubric:: lbdex/input/ch9_3_frame_return_addr.cpp
+.. literalinclude:: ../lbdex/input/ch9_3_frame_return_addr.cpp
+    :start-after: /// start
+
+.. code-block:: bash
+  
+  JonathantekiiMac:input Jonathan$ ~/llvm/test/cmake_debug_build/Debug/bin/
+  llvm-dis ch9_3_frame_return_addr.bc -o -
+  ...
+  ; Function Attrs: nounwind
+  define i32 @_Z20display_frameaddressv() #0 {
+    %1 = call i8* @llvm.frameaddress(i32 0)
+    %2 = ptrtoint i8* %1 to i32
+    ret i32 %2
+  }
+  
+  ; Function Attrs: nounwind readnone
+  declare i8* @llvm.frameaddress(i32) #1
+  
+  define i32 @_Z22display_returnaddressv() #2 {
+    %a = alloca i32, align 4
+    %1 = call i8* @llvm.returnaddress(i32 0)
+    %2 = ptrtoint i8* %1 to i32
+    store i32 %2, i32* %a, align 4
+    %3 = call i32 @_Z2fnv()
+    %4 = load i32, i32* %a, align 4
+    ret i32 %4
+  }
+  
+  JonathantekiiMac:input Jonathan$ ~/llvm/test/cmake_debug_build/Debug/bin/llc 
+  -march=cpu0 -relocation-model=static -filetype=asm ch9_3_frame_return_addr.bc 
+  -o -
+  	.text
+  	.section .mdebug.abiO32
+  	.previous
+  	.file "ch9_3_frame_return_addr.bc"
+  	.globl	_Z20display_frameaddressv
+  	.align	2
+  	.type _Z20display_frameaddressv,@function
+  	.ent	_Z20display_frameaddressv # @_Z20display_frameaddressv
+  _Z20display_frameaddressv:
+  	.frame	$fp,8,$lr
+  	.mask		0x00001000,-4
+  	.set	noreorder
+  	.set	nomacro
+  # BB#0:
+  	addiu $sp, $sp, -8
+  	st	$fp, 4($sp)							# 4-byte Folded Spill
+  	move	 $fp, $sp
+  	addu	$2, $zero, $fp
+  	move	 $sp, $fp
+  	ld	$fp, 4($sp)							# 4-byte Folded Reload
+  	addiu $sp, $sp, 8
+  	ret $lr
+  	nop
+  	.set	macro
+  	.set	reorder
+  	.end	_Z20display_frameaddressv
+  $func_end0:
+  	.size _Z20display_frameaddressv, ($func_end0)-_Z20display_frameaddressv
+  
+  	.globl	_Z22display_returnaddress1v
+  	.align	2
+  	.type _Z22display_returnaddress1v,@function
+  	.ent	_Z22display_returnaddress1v # @_Z22display_returnaddress1v
+  _Z22display_returnaddress1v:
+  	.cfi_startproc
+  	.frame	$fp,24,$lr
+  	.mask		0x00005000,-4
+  	.set	noreorder
+  	.set	nomacro
+  # BB#0:
+  	addiu $sp, $sp, -24
+  $tmp0:
+  	.cfi_def_cfa_offset 24
+  	st	$lr, 20($sp)						# 4-byte Folded Spill
+  	st	$fp, 16($sp)						# 4-byte Folded Spill
+  $tmp1:
+  	.cfi_offset 14, -4
+  $tmp2:
+  	.cfi_offset 12, -8
+  	move	 $fp, $sp
+  $tmp3:
+  	.cfi_def_cfa_register 12
+  	st	$lr, 12($fp)
+  	jsub	_Z2fnv
+  	nop
+  	ld	$2, 12($fp)
+  	move	 $sp, $fp
+  	ld	$fp, 16($sp)						# 4-byte Folded Reload
+  	ld	$lr, 20($sp)						# 4-byte Folded Reload
+  	addiu $sp, $sp, 24
+  	ret $lr
+  	nop
+  	.set	macro
+  	.set	reorder
+  	.end	_Z22display_returnaddress1v
+  $func_end1:
+  	.size _Z22display_returnaddress1v, ($func_end1)-_Z22display_returnaddress1v
+  	.cfi_endproc
+
+
+The asm "ld	$2, 12($fp)" in function _Z22display_returnaddress1v reload $lr 
+to $2 after "jsub _Z3fnv". Cpu0 doesn't produce "addiu $2, $zero, $lr" because
+if _Z3fnv change $lr value without following ABI then it will get the wrong $lr
+to $2. The following code kills $lr register and make the reference to $lr by
+loading from stack slot rather than uses register directly. 
+
+.. rubric:: lbdex/chapters/Chapter9_3/Cpu0SEFrameLowering.cpp
+.. code-block:: c++
+  
+  bool Cpu0SEFrameLowering::
+  spillCalleeSavedRegisters(MachineBasicBlock &MBB,
+                            MachineBasicBlock::iterator MI,
+                            const std::vector<CalleeSavedInfo> &CSI,
+                            const TargetRegisterInfo *TRI) const { 
+    ...
+    for (unsigned i = 0, e = CSI.size(); i != e; ++i) {
+      // Add the callee-saved register as live-in. Do not add if the register is
+      // LR and return address is taken, because it has already been added in
+      // method Cpu0TargetLowering::LowerRETURNADDR.
+      // It's killed at the spill, unless the register is LR and return address
+      // is taken.
+      unsigned Reg = CSI[i].getReg();
+      bool IsRAAndRetAddrIsTaken = (Reg == Cpu0::LR)
+          && MF->getFrameInfo()->isReturnAddressTaken();
+      if (!IsRAAndRetAddrIsTaken)
+        EntryBlock->addLiveIn(Reg);
+  
+      // Insert the spill to the stack frame.
+      bool IsKill = !IsRAAndRetAddrIsTaken;
+      const TargetRegisterClass *RC = TRI->getMinimalPhysRegClass(Reg);
+      TII.storeRegToStackSlot(*EntryBlock, MI, Reg, IsKill,
+                              CSI[i].getFrameIdx(), RC, TRI);
+    }
+    ...
+  }
+
+
+eh.return intrinsic
+++++++++++++++++++++
+
+Beside lowerRETURNADDR() in Cpu0ISelLowering, the following code is for 
+eh.return supporting only, and it can run with input ch9_3_detect_exception.cpp 
+as below.
+
+.. rubric:: lbdex/chapters/Chapter9_3/Cpu0SEFrameLowering.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0SEFrameLowering.cpp
+    :start-after: //@emitPrologue {
+    :end-before: #if CH >= CH3_5 //1
+.. literalinclude:: ../lbdex/Cpu0/Cpu0SEFrameLowering.cpp
+    :start-after: #if CH >= CH9_3 //1.5
+    :end-before: #endif
+    
+.. code-block:: c++
+
+    ...
+  }
+
+.. literalinclude:: ../lbdex/Cpu0/Cpu0SEFrameLowering.cpp
+    :start-after: //@emitEpilogue {
+    :end-before: #if CH >= CH3_5 //2
+.. literalinclude:: ../lbdex/Cpu0/Cpu0SEFrameLowering.cpp
+    :start-after: #if CH >= CH9_3 //4
+    :end-before: #endif
+    
+.. code-block:: c++
+
+    ...
+  }
+
+.. literalinclude:: ../lbdex/Cpu0/Cpu0SEFrameLowering.cpp
+    :start-after: //@determineCalleeSaves {
+    :end-before: //@determineCalleeSaves-body
+.. literalinclude:: ../lbdex/Cpu0/Cpu0SEFrameLowering.cpp
+    :start-after: //@callsEhReturn
+    :end-before: #endif
+    
+.. code-block:: c++
+
+    ...
+  }
+
+.. rubric:: lbdex/chapters/Chapter9_3/Cpu0InstrInfo.td
+.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td
+    :start-after: //#if CH >= CH9_3 //3
+    :end-before: //#endif
+
+.. rubric:: lbdex/chapters/Chapter9_3/Cpu0SEInstrInfo.h
+.. literalinclude:: ../lbdex/Cpu0/Cpu0SEInstrInfo.h
+    :start-after: #if CH >= CH9_3
+    :end-before: #endif
+
+.. rubric:: lbdex/chapters/Chapter9_3/Cpu0SEInstrInfo.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0SEInstrInfo.cpp
+    :start-after: //@expandPostRAPseudo
+    :end-before: //@expandPostRAPseudo-body
+.. literalinclude:: ../lbdex/Cpu0/Cpu0SEInstrInfo.cpp
+    :start-after: #if CH >= CH9_3 //1
+    :end-before: #endif
+    
+.. code-block:: c++
+
+    ...
+  }
+  
+.. literalinclude:: ../lbdex/Cpu0/Cpu0SEInstrInfo.cpp
+    :start-after: #if CH >= CH9_3 //2
+    :end-before: #endif
+
+.. rubric:: lbdex/input/ch9_3_detect_exception.cpp
+.. literalinclude:: ../lbdex/input/ch9_3_detect_exception.cpp
+    :start-after: /// start
+
+.. code-block:: bash
+  
+  114-37-150-48:input Jonathan$ clang -target mips-unknown-linux-gnu -c 
+  ch9_3_detect_exception.cpp -emit-llvm -o ch9_3_detect_exception.bc
+  114-37-150-48:input Jonathan$ ~/llvm/test/cmake_debug_build/Debug/bin/llvm-dis 
+  ch9_3_detect_exception.bc -o -
+  ; ModuleID = 'ch9_3_detect_exception.bc'
+  target datalayout = "E-m:m-p:32:32-i8:8:32-i16:16:32-i64:64-n32-S64"
+  target triple = "mips-unknown-linux-gnu"
+  
+  @exceptionOccur = global i8 0, align 1
+  @returnAddr = global i8* null, align 4
+  
+  ; Function Attrs: nounwind
+  define void @_Z17exception_handlerv() #0 {
+    %frameaddr = alloca i32, align 4
+    store i8 1, i8* @exceptionOccur, align 1
+    %1 = call i8* @llvm.frameaddress(i32 0)
+    %2 = ptrtoint i8* %1 to i32
+    store i32 %2, i32* %frameaddr, align 4
+    %3 = load i8*, i8** @returnAddr, align 4
+    call void @llvm.eh.return.i32(i32 0, i8* %3)
+    unreachable
+                                                    ; No predecessors!
+    ret void
+  }
+  
+  ; Function Attrs: nounwind readnone
+  declare i8* @llvm.frameaddress(i32) #1
+  
+  ; Function Attrs: nounwind
+  declare void @llvm.eh.return.i32(i32, i8*) #2
+  
+  define weak i32 @_Z21test_detect_exceptionb(i1 zeroext %exception) #3 {
+    %1 = alloca i8, align 1
+    %handler = alloca i8*, align 4
+    %2 = zext i1 %exception to i8
+    store i8 %2, i8* %1, align 1
+    store i8 0, i8* @exceptionOccur, align 1
+    store i8* bitcast (void ()* @_Z17exception_handlerv to i8*), i8** %handler, align 4
+    %3 = load i8, i8* %1, align 1
+    %4 = trunc i8 %3 to i1
+    br i1 %4, label %5, label %8
+  
+  ; <label>:5                                       ; preds = %0
+    %6 = call i8* @llvm.returnaddress(i32 0)
+    store i8* %6, i8** @returnAddr, align 4
+    %7 = load i8*, i8** %handler, align 4
+    call void @llvm.eh.return.i32(i32 0, i8* %7)
+    unreachable
+  
+  ; <label>:8                                       ; preds = %0
+    ret i32 0
+  }
+  
+  ; Function Attrs: nounwind readnone
+  declare i8* @llvm.returnaddress(i32) #1
+  
+  attributes #0 = { nounwind ... }
+  attributes #1 = { nounwind readnone }
+  attributes #2 = { nounwind }
+  attributes #3 = { "less-precise-fpmad"="false" ... }
+  ...
+  
+  114-37-150-48:input Jonathan$ ~/llvm/test/cmake_debug_build/Debug/bin/llc 
+  -march=cpu0 -mcpu=cpu032II -relocation-model=pic -filetype=asm 
+  ch9_3_detect_exception.bc -o -
+    .text
+    .section .mdebug.abiO32
+    .previous
+    .file "ch9_3_detect_exception.bc"
+    .globl  _Z17exception_handlerv
+    .align  2
+    .type _Z17exception_handlerv,@function
+    .ent  _Z17exception_handlerv  # @_Z17exception_handlerv
+  _Z17exception_handlerv:
+    .frame  $fp,16,$lr
+    .mask   0x00001000,-4
+    .set  noreorder
+    .cpload $t9
+    .set  nomacro
+  # BB#0:
+    addiu $sp, $sp, -16
+    st  $fp, 12($sp)            # 4-byte Folded Spill
+    st  $4, 4($fp)
+    st  $5, 0($fp)
+    move   $fp, $sp
+    lui $2, %got_hi(exceptionOccur)
+    addu  $2, $2, $gp
+    ld  $2, %got_lo(exceptionOccur)($2)
+    addiu $3, $zero, 1
+    sb  $3, 0($2)
+    st  $fp, 8($fp)
+    lui $2, %got_hi(returnAddr)
+    addu  $2, $2, $gp
+    ld  $2, %got_lo(returnAddr)($2)
+    ld  $2, 0($2)
+    addiu $3, $zero, 0
+    move   $sp, $fp
+    ld  $4, 4($fp)
+    ld  $5, 0($fp)
+    ld  $fp, 12($sp)            # 4-byte Folded Reload
+    addiu $sp, $sp, 16
+    move   $t9, $2
+    move   $lr, $2
+    addu  $sp, $sp, $3
+    ret $lr
+    nop
+    .set  macro
+    .set  reorder
+    .end  _Z17exception_handlerv
+  $func_end0:
+    .size _Z17exception_handlerv, ($func_end0)-_Z17exception_handlerv
+  
+    .weak _Z21test_detect_exceptionb
+    .align  2
+    .type _Z21test_detect_exceptionb,@function
+    .ent  _Z21test_detect_exceptionb # @_Z21test_detect_exceptionb
+  _Z21test_detect_exceptionb:
+    .cfi_startproc
+    .frame  $fp,24,$lr
+    .mask   0x00001000,-4
+    .set  noreorder
+    .cpload $t9
+    .set  nomacro
+  # BB#0:
+    addiu $sp, $sp, -24
+  $tmp0:
+    .cfi_def_cfa_offset 24
+    st  $fp, 20($sp)            # 4-byte Folded Spill
+  $tmp1:
+    .cfi_offset 12, -4
+    st  $4, 8($fp)
+    st  $5, 4($fp)
+  $tmp2:
+    .cfi_offset 4, -16
+  $tmp3:
+    .cfi_offset 5, -20
+    move   $fp, $sp
+  $tmp4:
+    .cfi_def_cfa_register 12
+    sb  $4, 16($fp)
+    lui $2, %got_hi(exceptionOccur)
+    addu  $2, $2, $gp
+    ld  $2, %got_lo(exceptionOccur)($2)
+    addiu $3, $zero, 0
+    sb  $3, 0($2)
+    lui $2, %got_hi(_Z17exception_handlerv)
+    addu  $2, $2, $gp
+    ld  $2, %got_lo(_Z17exception_handlerv)($2)
+    st  $2, 12($fp)
+    lbu $2, 16($fp)
+    andi  $2, $2, 1
+    beq $2, $zero, .LBB1_2
+    nop
+    jmp .LBB1_1
+    nop
+  .LBB1_2:
+    addiu $2, $zero, 0
+    move   $sp, $fp
+    ld  $4, 8($fp)
+    ld  $5, 4($fp)
+    ld  $fp, 20($sp)            # 4-byte Folded Reload
+    addiu $sp, $sp, 24
+    ret $lr
+    nop
+  .LBB1_1:
+    lui $2, %got_hi(returnAddr)
+    addu  $2, $2, $gp
+    ld  $2, %got_lo(returnAddr)($2)
+    st  $lr, 0($2)
+    ld  $2, 12($fp)
+    addiu $3, $zero, 0
+    move   $sp, $fp
+    ld  $4, 8($fp)
+    ld  $5, 4($fp)
+    ld  $fp, 20($sp)            # 4-byte Folded Reload
+    addiu $sp, $sp, 24
+    move   $t9, $2
+    move   $lr, $2
+    addu  $sp, $sp, $3
+    ret $lr
+    nop
+    .set  macro
+    .set  reorder
+    .end  _Z21test_detect_exceptionb
+  $func_end1:
+    .size _Z21test_detect_exceptionb, ($func_end1)-_Z21test_detect_exceptionb
+    .cfi_endproc
+  
+    .type exceptionOccur,@object  # @exceptionOccur
+    .bss
+    .globl  exceptionOccur
+  exceptionOccur:
+    .byte 0                       # 0x0
+    .size exceptionOccur, 1
+  
+    .type returnAddr,@object      # @returnAddr
+    .globl  returnAddr
+    .align  2
+  returnAddr:
+    .4byte  0
+    .size returnAddr, 4
+    ...
+
+
+If you disable "__attribute__ ((weak))" in the c file, then the IR will has
+"nounwind" in attributes \#3. The side effect in asm output is "No .cfi_offset
+issued" like function exception_handler().
+
+This example code of exception handler implementation can get frame, return and
+call exception handler by call __builtin_xxx in clang in C language, without 
+introduces any assembly instruction. 
+And this example can be verified in the Chapter "Cpu0 ELF linker" of my the other 
+book "llvm tool chain for Cpu0" [#cpu0lld]_.
+Through global variable, exceptionOccur, is true or false, whether the control 
+flow to exception_handler() or not can be identified.
+
+
+eh.dwarf intrinsic
+++++++++++++++++++++
+
+Beside lowerADD() in Cpu0ISelLowering, the following code is for the eh.dwarf 
+supporting only, and it can run with input eh-dwarf-cfa.ll as below.
+
+.. rubric:: lbdex/chapters/Chapter9_3/Cpu0SEFrameLowering.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0SEFrameLowering.cpp
+    :start-after: #if CH >= CH9_3 //2
+    :end-before: //@ Insert instruction "move $fp, $sp" at this location.
+    
+.. code-block:: c++
+
+    ...
+  }
+
+.. rubric:: lbdex/input/eh-dwarf-cfa.ll
+.. literalinclude:: ../lbdex/input/eh-dwarf-cfa.ll
+
+
+bswap intrinsic
++++++++++++++++++
+
+Cpu0 supports llvm instrinsics bswap intrinsic [#bswapintrnsic]_.
+
+.. rubric:: lbdex/chapters/Chapter12_1/Cpu0ISelLowering.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.cpp
+    :start-after: //@Cpu0TargetLowering {
+    :end-before: #if CH >= CH3_2
+.. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.cpp
+    :start-after: #if CH >= CH9_3 //2.5
+    :end-before: #endif
+
+.. code-block:: c++
+
+    ...
+  }
+
+.. rubric:: lbdex/input/ch9_3_bswap.cpp
+.. literalinclude:: ../lbdex/input/ch9_3_bswap.cpp
+    :start-after: /// start
+
+
+.. code-block:: bash
+  
+  114-37-150-48:input Jonathan$ clang -target mips-unknown-linux-gnu -c 
+  ch9_3_bswap.cpp -emit-llvm -o ch9_3_bswap.bc
+  114-37-150-48:input Jonathan$ ~/llvm/test/cmake_debug_build/Debug/bin/llvm-dis 
+  ch9_3_bswap.bc -o -
+  ...
+  define i32 @_Z12test_bswap16v() #0 {
+    %a = alloca i32, align 4
+    %result = alloca i32, align 4
+    store volatile i32 4660, i32* %a, align 4
+    %1 = load volatile i32, i32* %a, align 4
+    %2 = trunc i32 %1 to i16
+    %3 = call i16 @llvm.bswap.i16(i16 %2)
+    %4 = zext i16 %3 to i32
+    %5 = xor i32 %4, 13330
+    store i32 %5, i32* %result, align 4
+    %6 = load i32, i32* %result, align 4
+    ret i32 %6
+  }
+  ...
+
+
 Summary
 -------
-
-Until now, we have 6,000 lines of source code around in the end of this chapter. 
-The cpu0 backend code now can take care the integer function call and control 
+ 
+Now, Cpu0 backend code now can take care the integer function call and control 
 statement just like the llvm front end tutorial example code. 
-Look back the chapter of “Back end structure”, there are 3,100 lines of source 
-code with taking three instructions only. 
-With this 95% more of code, it can translate tens of instructions, global 
-variable, control flow statement and function call.
-Now the cpu0 backend is not just a toy. 
-It can translate some of the C++ OOP language into Cpu0 instructions without 
-much effort in backend.
-Because the most complex things in language, such as C++ syntex, is handled by 
+It can translate some of the C++ OOP language into Cpu0 instructions also 
+without much effort in backend,
+because the most complex things in language, such as C++ syntex, is handled by 
 front end. 
 LLVM is a real structure following the compiler theory, any backend of LLVM can 
 benefit from this structure.
-The best part of 3 tiers compiler structure is the backend will grow up 
+The best part of 3 tiers compiler structure is that backend will grow up 
 automatically through the front end support languages more and more if the 
-front end has not add any new IR for a new language.
+frontend has not add any new IR for a new language.
 
 
-.. [#] http://jonathan2251.github.io/lbd/ctrlflow.html#risc-cpu-knowledge
+.. [#computer_arch_interface] Computer Organization and Design: The Hardware/Software Interface 1st edition (The Morgan Kaufmann Series in Computer Architecture and Design)
 
-.. [#] https://www.dropbox.com/sh/2pkh1fewlq2zag9/OHnrYn2nOs/doc/MIPSproAssemblyLanguageProgrammerGuide 
+.. [#mipsasm] http://math-atlas.sourceforge.net/devel/assembly/007-2418-003.pdf
 
-.. [#] http://www.linux-mips.org/pub/linux/mips/doc/ABI/mipsabi.pdf
+.. [#abi] http://www.linux-mips.org/pub/linux/mips/doc/ABI/mipsabi.pdf
 
-.. [#] http://jonathan2251.github.io/lbd/globalvar.html#global-variable
+.. [#secglobal] http://jonathan2251.github.io/lbd/globalvar.html#global-variable
 
-.. [#] http://en.wikipedia.org/wiki/Tail_call
+.. [#wikitailcall] http://en.wikipedia.org/wiki/Tail_call
 
-.. [#] http://llvm.org/docs/CodeGenerator.html#tail-call-optimization
+.. [#tailcallopt] http://llvm.org/docs/CodeGenerator.html#tail-call-optimization
 
-.. [#] http://math-atlas.sourceforge.net/devel/assembly/007-2418-003.pdf
+.. [#callconv] http://llvm.org/docs/LangRef.html#calling-conventions
 
-.. [#] http://developer.mips.com/clang-llvm/
+.. [#mipsqemu] http://developer.mips.com/clang-llvm/
+
+.. [#stacksave] http://www.llvm.org/docs/LangRef.html#llvm-stacksave-intrinsic
+
+.. [#excepthandle] http://llvm.org/docs/ExceptionHandling.html#overview
+
+.. [#returnaddr] http://llvm.org/docs/LangRef.html#llvm-returnaddress-intrinsic
+
+.. [#cpu0lld] http://jonathan2251.github.io/lbt/lld.html
+
+.. [#bswapintrnsic] http://llvm.org/docs/LangRef.html#llvm-bswap-intrinsics
 

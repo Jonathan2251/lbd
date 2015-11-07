@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '3.7.0',
+        VERSION:     '3.7.1',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -54,11 +54,13 @@
 <span id="sec-controlflow"></span><h1>Control flow statements<a class="headerlink" href="#control-flow-statements" title="Permalink to this headline">¶</a></h1>
 <div class="contents local topic" id="contents">
 <ul class="simple">
-<li><a class="reference internal" href="#control-flow-statement" id="id6">Control flow statement</a></li>
-<li><a class="reference internal" href="#cpu0-backend-optimization-remove-useless-jmp" id="id7">Cpu0 backend Optimization: Remove useless JMP</a></li>
-<li><a class="reference internal" href="#fill-branch-delay-slot" id="id8">Fill Branch Delay Slot</a></li>
-<li><a class="reference internal" href="#conditional-instruction" id="id9">Conditional instruction</a></li>
-<li><a class="reference internal" href="#risc-cpu-knowledge" id="id10">RISC CPU knowledge</a></li>
+<li><a class="reference internal" href="#control-flow-statement" id="id10">Control flow statement</a></li>
+<li><a class="reference internal" href="#long-branch-support" id="id11">Long branch support</a></li>
+<li><a class="reference internal" href="#cpu0-backend-optimization-remove-useless-jmp" id="id12">Cpu0 backend Optimization: Remove useless JMP</a></li>
+<li><a class="reference internal" href="#fill-branch-delay-slot" id="id13">Fill Branch Delay Slot</a></li>
+<li><a class="reference internal" href="#conditional-instruction" id="id14">Conditional instruction</a></li>
+<li><a class="reference internal" href="#phi-node" id="id15">Phi node</a></li>
+<li><a class="reference internal" href="#risc-cpu-knowledge" id="id16">RISC CPU knowledge</a></li>
 </ul>
 </div>
 <p>This chapter illustrates the corresponding IR for control flow statements, like
@@ -70,54 +72,18 @@ backend optimization pass and program it. Section III, include the conditional
 instructions handle since the clang will generate specific IRs, select and
 select_cc, to support the backend optimiation in control flow statement.</p>
 <div class="section" id="control-flow-statement">
-<h2><a class="toc-backref" href="#id6">Control flow statement</a><a class="headerlink" href="#control-flow-statement" title="Permalink to this headline">¶</a></h2>
+<h2><a class="toc-backref" href="#id10">Control flow statement</a><a class="headerlink" href="#control-flow-statement" title="Permalink to this headline">¶</a></h2>
 <p>Run ch8_1_1.cpp with clang will get result as follows,</p>
 <p class="rubric">lbdex/input/ch8_1_1.cpp</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="kt">int</span> <span class="nf">test_control1</span><span class="p">()</span>
+<div class="highlight-c++"><div class="highlight"><pre><span class="kt">int</span> <span class="nf">test_ifctrl</span><span class="p">()</span>
 <span class="p">{</span>
   <span class="kt">unsigned</span> <span class="kt">int</span> <span class="n">a</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
-  <span class="kt">int</span> <span class="n">b</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
-  <span class="kt">int</span> <span class="n">c</span> <span class="o">=</span> <span class="mi">2</span><span class="p">;</span>
-  <span class="kt">int</span> <span class="n">d</span> <span class="o">=</span> <span class="mi">3</span><span class="p">;</span>
-  <span class="kt">int</span> <span class="n">e</span> <span class="o">=</span> <span class="mi">4</span><span class="p">;</span>
-  <span class="kt">int</span> <span class="n">f</span> <span class="o">=</span> <span class="mi">5</span><span class="p">;</span>
-  <span class="kt">int</span> <span class="n">g</span> <span class="o">=</span> <span class="mi">6</span><span class="p">;</span>
-  <span class="kt">int</span> <span class="n">h</span> <span class="o">=</span> <span class="mi">7</span><span class="p">;</span>
-  <span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">8</span><span class="p">;</span>
-  <span class="kt">int</span> <span class="n">j</span> <span class="o">=</span> <span class="mi">9</span><span class="p">;</span>
   
   <span class="k">if</span> <span class="p">(</span><span class="n">a</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
     <span class="n">a</span><span class="o">++</span><span class="p">;</span> <span class="c1">// a = 1</span>
   <span class="p">}</span>
-  <span class="k">if</span> <span class="p">(</span><span class="n">b</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
-    <span class="n">b</span><span class="o">++</span><span class="p">;</span> <span class="c1">// b = 2</span>
-  <span class="p">}</span>
-  <span class="k">if</span> <span class="p">(</span><span class="n">c</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
-    <span class="n">c</span><span class="o">++</span><span class="p">;</span> <span class="c1">// c = 3</span>
-  <span class="p">}</span>
-  <span class="k">if</span> <span class="p">(</span><span class="n">d</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
-    <span class="n">d</span><span class="o">++</span><span class="p">;</span> <span class="c1">// d = 4</span>
-  <span class="p">}</span>
-  <span class="k">if</span> <span class="p">(</span><span class="n">e</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
-    <span class="n">e</span><span class="o">++</span><span class="p">;</span> <span class="c1">// e = 4</span>
-  <span class="p">}</span>
-  <span class="k">if</span> <span class="p">(</span><span class="n">f</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
-    <span class="n">f</span><span class="o">++</span><span class="p">;</span> <span class="c1">// f = 5</span>
-  <span class="p">}</span>
-  <span class="k">if</span> <span class="p">(</span><span class="n">g</span> <span class="o">&lt;=</span> <span class="mi">1</span><span class="p">)</span> <span class="p">{</span>
-    <span class="n">g</span><span class="o">++</span><span class="p">;</span> <span class="c1">// g = 6</span>
-  <span class="p">}</span>
-  <span class="k">if</span> <span class="p">(</span><span class="n">h</span> <span class="o">&gt;=</span> <span class="mi">1</span><span class="p">)</span> <span class="p">{</span>
-    <span class="n">h</span><span class="o">++</span><span class="p">;</span> <span class="c1">// h = 8</span>
-  <span class="p">}</span>
-  <span class="k">if</span> <span class="p">(</span><span class="n">i</span> <span class="o">&lt;</span> <span class="n">h</span><span class="p">)</span> <span class="p">{</span>
-    <span class="n">i</span><span class="o">++</span><span class="p">;</span> <span class="c1">// i = 8</span>
-  <span class="p">}</span>
-  <span class="k">if</span> <span class="p">(</span><span class="n">a</span> <span class="o">!=</span> <span class="n">b</span><span class="p">)</span> <span class="p">{</span>
-    <span class="n">j</span><span class="o">++</span><span class="p">;</span> <span class="c1">// j = 10</span>
-  <span class="p">}</span>
   
-  <span class="k">return</span> <span class="p">(</span><span class="n">a</span><span class="o">+</span><span class="n">b</span><span class="o">+</span><span class="n">c</span><span class="o">+</span><span class="n">d</span><span class="o">+</span><span class="n">e</span><span class="o">+</span><span class="n">f</span><span class="o">+</span><span class="n">g</span><span class="o">+</span><span class="n">h</span><span class="o">+</span><span class="n">i</span><span class="o">+</span><span class="n">j</span><span class="p">);</span> <span class="c1">// 1+2+3+4+4+5+6+8+8+10 = 51</span>
+  <span class="k">return</span> <span class="n">a</span><span class="p">;</span>
 <span class="p">}</span>
 </pre></div>
 </div>
@@ -220,7 +186,7 @@ condition based on SW status as <a class="pageref" href="#ctrlflow-f1">Figure  1
 Since SW belongs to a different register class, it will be
 correct even an instruction is inserted between CMP and JNE as follows,</p>
 <div class="figure align-center" id="ctrlflow-f1">
-<a class="reference internal image-reference" href="_images/12.png"><img alt="_images/12.png" src="_images/12.png" style="width: 312.2px; height: 325.5px;" /></a>
+<a class="reference internal image-reference" href="_images/12.png"><img alt="_images/12.png" src="_images/12.png" style="width: 223.0px; height: 232.5px;" /></a>
 <p class="caption">Figure 1: JNE (CMP $r2, $r3),</p>
 </div>
 <div class="highlight-c++"><pre>cmp %2, %3
@@ -269,7 +235,7 @@ Register Class.</p>
   <span class="n">S0</span><span class="p">,</span> <span class="n">S1</span><span class="p">,</span>
   <span class="c1">// Reserved</span>
   <span class="n">GP</span><span class="p">,</span> <span class="n">FP</span><span class="p">,</span> 
-  <span class="n">SP</span><span class="p">,</span> <span class="n">LR</span><span class="p">,</span> <span class="n">SW</span><span class="p">,</span> <span class="n">PC</span><span class="p">,</span> <span class="n">EPC</span><span class="p">)</span><span class="o">&gt;</span><span class="p">;</span>
+  <span class="n">SP</span><span class="p">,</span> <span class="n">LR</span><span class="p">,</span> <span class="n">SW</span><span class="p">)</span><span class="o">&gt;</span><span class="p">;</span>
 </pre></div>
 </div>
 <div class="highlight-c++"><div class="highlight"><pre><span class="n">def</span> <span class="n">SR</span>     <span class="o">:</span> <span class="n">RegisterClass</span><span class="o">&lt;</span><span class="s">&quot;Cpu0&quot;</span><span class="p">,</span> <span class="p">[</span><span class="n">i32</span><span class="p">],</span> <span class="mi">32</span><span class="p">,</span> <span class="p">(</span><span class="n">add</span> <span class="n">SW</span><span class="p">)</span><span class="o">&gt;</span><span class="p">;</span>
@@ -280,7 +246,7 @@ Register Class.</p>
 <span class="c1">// Register Classes</span>
 <span class="c1">//===----------------------------------------------------------------------===//</span>
 
-<span class="n">def</span> <span class="n">GPROut</span> <span class="o">:</span> <span class="n">RegisterClass</span><span class="o">&lt;</span><span class="s">&quot;Cpu0&quot;</span><span class="p">,</span> <span class="p">[</span><span class="n">i32</span><span class="p">],</span> <span class="mi">32</span><span class="p">,</span> <span class="p">(</span><span class="n">add</span> <span class="p">(</span><span class="n">sub</span> <span class="n">CPURegs</span><span class="p">,</span> <span class="n">SW</span><span class="p">,</span> <span class="n">PC</span><span class="p">,</span> <span class="n">EPC</span><span class="p">))</span><span class="o">&gt;</span><span class="p">;</span>
+<span class="n">def</span> <span class="n">GPROut</span> <span class="o">:</span> <span class="n">RegisterClass</span><span class="o">&lt;</span><span class="s">&quot;Cpu0&quot;</span><span class="p">,</span> <span class="p">[</span><span class="n">i32</span><span class="p">],</span> <span class="mi">32</span><span class="p">,</span> <span class="p">(</span><span class="n">add</span> <span class="p">(</span><span class="n">sub</span> <span class="n">CPURegs</span><span class="p">,</span> <span class="n">SW</span><span class="p">))</span><span class="o">&gt;</span><span class="p">;</span>
 </pre></div>
 </div>
 <p>Chapter8_1/ include support for control flow statement.
@@ -373,10 +339,10 @@ cmake_debug_build/Debug/bin/llc -march<span class="o">=</span>cpu0 -mcpu<span cl
 <p>Beside brcond explained in this section, above code also include DAG opcode
 <strong>br_jt</strong> and label <strong>JumpTable</strong> which occurs during DAG translation for
 some kind of program.</p>
-<p>The ch8_1_2.cpp is for <strong>“nest if”</strong> test. The ch8_1_3.cpp is for the test of
-<strong>“for loop”</strong> as well as <strong>“while loop”</strong>, <strong>“continue”</strong>, <strong>“break”</strong>,
-<strong>“goto”</strong>. The ch8_1_4.cpp is for the test of <strong>“goto”</strong>.
-The ch8_1_5.cpp is for <strong>br_jt</strong> and <strong>JumpTable</strong> test.
+<p>The ch8_1_ctrl.cpp include <strong>“nest if”</strong> <strong>“for loop”</strong>, <strong>“while loop”</strong>,
+<strong>“continue”</strong>, <strong>“break”</strong> and <strong>“goto”</strong>.
+The ch8_1_br_jt.cpp is for <strong>br_jt</strong> and <strong>JumpTable</strong> test.
+The ch8_1_blockaddr.cpp is for <strong>blockaddress</strong> and <strong>indirectbr</strong> test.
 You can run with them if you like to test more.</p>
 <p>List the control flow statements of C, IR, DAG and Cpu0 instructions as the
 following table.</p>
@@ -411,8 +377,696 @@ following table.</p>
 </tbody>
 </table>
 </div>
+<div class="section" id="long-branch-support">
+<h2><a class="toc-backref" href="#id11">Long branch support</a><a class="headerlink" href="#long-branch-support" title="Permalink to this headline">¶</a></h2>
+<p>As last section, cpu032II uses beq and bne to improve performance but the jump
+offset reduces from 24 bits to 16 bits. If program exists more than 16 bits,
+cpu032II will fail to generate code. Mips backend has solution and Cpu0 hire
+the solution from it.</p>
+<p>To support long branch the following code added in Chapter8_1.</p>
+<p class="rubric">lbdex/chapters/Chapter8_2/CMakeLists.txt</p>
+<div class="highlight-c++"><div class="highlight"><pre>  <span class="n">Cpu0LongBranch</span><span class="p">.</span><span class="n">cpp</span>
+</pre></div>
+</div>
+<p class="rubric">lbdex/chapters/Chapter8_2/Cpu0.h</p>
+<div class="highlight-c++"><div class="highlight"><pre>  <span class="n">FunctionPass</span> <span class="o">*</span><span class="nf">createCpu0LongBranchPass</span><span class="p">(</span><span class="n">Cpu0TargetMachine</span> <span class="o">&amp;</span><span class="n">TM</span><span class="p">);</span>
+</pre></div>
+</div>
+<p class="rubric">lbdex/chapters/Chapter8_2/Cpu0AsmPrinter.h</p>
+<div class="highlight-c++"><div class="highlight"><pre>  <span class="kt">bool</span> <span class="n">isLongBranchPseudo</span><span class="p">(</span><span class="kt">int</span> <span class="n">Opcode</span><span class="p">)</span> <span class="k">const</span><span class="p">;</span>
+</pre></div>
+</div>
+<p class="rubric">lbdex/chapters/Chapter8_2/Cpu0AsmPrinter.cpp</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="c1">//- EmitInstruction() must exists or will have run time error.</span>
+<span class="kt">void</span> <span class="n">Cpu0AsmPrinter</span><span class="o">::</span><span class="n">EmitInstruction</span><span class="p">(</span><span class="k">const</span> <span class="n">MachineInstr</span> <span class="o">*</span><span class="n">MI</span><span class="p">)</span> <span class="p">{</span>
+</pre></div>
+</div>
+<div class="highlight-c++"><div class="highlight"><pre>    <span class="k">if</span> <span class="p">(</span><span class="n">I</span><span class="o">-&gt;</span><span class="n">isPseudo</span><span class="p">()</span> <span class="o">&amp;&amp;</span> <span class="o">!</span><span class="n">isLongBranchPseudo</span><span class="p">(</span><span class="n">I</span><span class="o">-&gt;</span><span class="n">getOpcode</span><span class="p">()))</span>
+</pre></div>
+</div>
+<div class="highlight-c++"><div class="highlight"><pre>  <span class="p">...</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<div class="highlight-c++"><div class="highlight"><pre><span class="kt">bool</span> <span class="n">Cpu0AsmPrinter</span><span class="o">::</span><span class="n">isLongBranchPseudo</span><span class="p">(</span><span class="kt">int</span> <span class="n">Opcode</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
+  <span class="k">return</span> <span class="p">(</span><span class="n">Opcode</span> <span class="o">==</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">LONG_BRANCH_LUi</span>
+          <span class="o">||</span> <span class="n">Opcode</span> <span class="o">==</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">LONG_BRANCH_ADDiu</span><span class="p">);</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p class="rubric">lbdex/chapters/Chapter8_2/Cpu0InstrInfo.h</p>
+<div class="highlight-c++"><div class="highlight"><pre>  <span class="k">virtual</span> <span class="kt">unsigned</span> <span class="n">getOppositeBranchOpc</span><span class="p">(</span><span class="kt">unsigned</span> <span class="n">Opc</span><span class="p">)</span> <span class="k">const</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+</pre></div>
+</div>
+<p class="rubric">lbdex/chapters/Chapter8_2/Cpu0InstrInfo.td</p>
+<div class="highlight-c++"><pre>let Predicates = [Ch8_2] in {
+// We need these two pseudo instructions to avoid offset calculation for long
+// branches.  See the comment in file Cpu0LongBranch.cpp for detailed
+// explanation.
+
+// Expands to: lui $dst, %hi($tgt - $baltgt)
+def LONG_BRANCH_LUi : Cpu0Pseudo&lt;(outs GPROut:$dst),
+  (ins jmptarget:$tgt, jmptarget:$baltgt), "", []&gt;;
+
+// Expands to: addiu $dst, $src, %lo($tgt - $baltgt)
+def LONG_BRANCH_ADDiu : Cpu0Pseudo&lt;(outs GPROut:$dst),
+  (ins GPROut:$src, jmptarget:$tgt, jmptarget:$baltgt), "", []&gt;;
+}
+</pre>
+</div>
+<div class="highlight-c++"><pre>let isBranch = 1, isTerminator = 1, isBarrier = 1,
+    hasDelaySlot = 1, Defs = [LR] in
+def BAL: FJ&lt;0x3A, (outs), (ins jmptarget:$addr), "bal\t$addr", [], IIBranch&gt;, 
+             Requires&lt;[HasSlt]&gt;;
+</pre>
+</div>
+<p class="rubric">lbdex/chapters/Chapter8_2/Cpu0LongBranch.cpp</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="c1">//===-- Cpu0LongBranch.cpp - Emit long branches ---------------------------===//</span>
+<span class="c1">//</span>
+<span class="c1">//                     The LLVM Compiler Infrastructure</span>
+<span class="c1">//</span>
+<span class="c1">// This file is distributed under the University of Illinois Open Source</span>
+<span class="c1">// License. See LICENSE.TXT for details.</span>
+<span class="c1">//</span>
+<span class="c1">//===----------------------------------------------------------------------===//</span>
+<span class="c1">//</span>
+<span class="c1">// This pass expands a branch or jump instruction into a long branch if its</span>
+<span class="c1">// offset is too large to fit into its immediate field.</span>
+<span class="c1">//</span>
+<span class="c1">// FIXME: Fix pc-region jump instructions which cross 256MB segment boundaries.</span>
+<span class="c1">//===----------------------------------------------------------------------===//</span>
+
+<span class="cp">#include &quot;Cpu0.h&quot;</span>
+
+<span class="cp">#if CH &gt;= CH8_2</span>
+
+<span class="cp">#include &quot;MCTargetDesc/Cpu0BaseInfo.h&quot;</span>
+<span class="cp">#include &quot;Cpu0MachineFunction.h&quot;</span>
+<span class="cp">#include &quot;Cpu0TargetMachine.h&quot;</span>
+<span class="cp">#include &quot;llvm/ADT/Statistic.h&quot;</span>
+<span class="cp">#include &quot;llvm/CodeGen/MachineFunctionPass.h&quot;</span>
+<span class="cp">#include &quot;llvm/CodeGen/MachineInstrBuilder.h&quot;</span>
+<span class="cp">#include &quot;llvm/IR/Function.h&quot;</span>
+<span class="cp">#include &quot;llvm/Support/CommandLine.h&quot;</span>
+<span class="cp">#include &quot;llvm/Support/MathExtras.h&quot;</span>
+<span class="cp">#include &quot;llvm/Target/TargetInstrInfo.h&quot;</span>
+<span class="cp">#include &quot;llvm/Target/TargetMachine.h&quot;</span>
+<span class="cp">#include &quot;llvm/Target/TargetRegisterInfo.h&quot;</span>
+
+<span class="k">using</span> <span class="k">namespace</span> <span class="n">llvm</span><span class="p">;</span>
+
+<span class="cp">#define DEBUG_TYPE &quot;cpu0-long-branch&quot;</span>
+
+<span class="n">STATISTIC</span><span class="p">(</span><span class="n">LongBranches</span><span class="p">,</span> <span class="s">&quot;Number of long branches.&quot;</span><span class="p">);</span>
+
+<span class="k">static</span> <span class="n">cl</span><span class="o">::</span><span class="n">opt</span><span class="o">&lt;</span><span class="kt">bool</span><span class="o">&gt;</span> <span class="n">ForceLongBranch</span><span class="p">(</span>
+  <span class="s">&quot;force-cpu0-long-branch&quot;</span><span class="p">,</span>
+  <span class="n">cl</span><span class="o">::</span><span class="n">init</span><span class="p">(</span><span class="nb">false</span><span class="p">),</span>
+  <span class="n">cl</span><span class="o">::</span><span class="n">desc</span><span class="p">(</span><span class="s">&quot;CPU0: Expand all branches to long format.&quot;</span><span class="p">),</span>
+  <span class="n">cl</span><span class="o">::</span><span class="n">Hidden</span><span class="p">);</span>
+
+<span class="k">namespace</span> <span class="p">{</span>
+  <span class="k">typedef</span> <span class="n">MachineBasicBlock</span><span class="o">::</span><span class="n">iterator</span> <span class="n">Iter</span><span class="p">;</span>
+  <span class="k">typedef</span> <span class="n">MachineBasicBlock</span><span class="o">::</span><span class="n">reverse_iterator</span> <span class="n">ReverseIter</span><span class="p">;</span>
+
+  <span class="k">struct</span> <span class="n">MBBInfo</span> <span class="p">{</span>
+    <span class="kt">uint64_t</span> <span class="n">Size</span><span class="p">,</span> <span class="n">Address</span><span class="p">;</span>
+    <span class="kt">bool</span> <span class="n">HasLongBranch</span><span class="p">;</span>
+    <span class="n">MachineInstr</span> <span class="o">*</span><span class="n">Br</span><span class="p">;</span>
+
+    <span class="n">MBBInfo</span><span class="p">()</span> <span class="o">:</span> <span class="n">Size</span><span class="p">(</span><span class="mi">0</span><span class="p">),</span> <span class="n">HasLongBranch</span><span class="p">(</span><span class="nb">false</span><span class="p">),</span> <span class="n">Br</span><span class="p">(</span><span class="n">nullptr</span><span class="p">)</span> <span class="p">{}</span>
+  <span class="p">};</span>
+
+  <span class="k">class</span> <span class="nc">Cpu0LongBranch</span> <span class="o">:</span> <span class="k">public</span> <span class="n">MachineFunctionPass</span> <span class="p">{</span>
+
+  <span class="nl">public:</span>
+    <span class="k">static</span> <span class="kt">char</span> <span class="n">ID</span><span class="p">;</span>
+    <span class="n">Cpu0LongBranch</span><span class="p">(</span><span class="n">TargetMachine</span> <span class="o">&amp;</span><span class="n">tm</span><span class="p">)</span>
+        <span class="o">:</span> <span class="n">MachineFunctionPass</span><span class="p">(</span><span class="n">ID</span><span class="p">),</span> <span class="n">TM</span><span class="p">(</span><span class="n">tm</span><span class="p">),</span>
+          <span class="n">IsPIC</span><span class="p">(</span><span class="n">TM</span><span class="p">.</span><span class="n">getRelocationModel</span><span class="p">()</span> <span class="o">==</span> <span class="n">Reloc</span><span class="o">::</span><span class="n">PIC_</span><span class="p">),</span>
+          <span class="n">ABI</span><span class="p">(</span><span class="k">static_cast</span><span class="o">&lt;</span><span class="k">const</span> <span class="n">Cpu0TargetMachine</span> <span class="o">&amp;&gt;</span><span class="p">(</span><span class="n">TM</span><span class="p">).</span><span class="n">getABI</span><span class="p">())</span> <span class="p">{}</span>
+
+    <span class="k">const</span> <span class="kt">char</span> <span class="o">*</span><span class="n">getPassName</span><span class="p">()</span> <span class="k">const</span> <span class="n">override</span> <span class="p">{</span>
+      <span class="k">return</span> <span class="s">&quot;Cpu0 Long Branch&quot;</span><span class="p">;</span>
+    <span class="p">}</span>
+
+    <span class="kt">bool</span> <span class="n">runOnMachineFunction</span><span class="p">(</span><span class="n">MachineFunction</span> <span class="o">&amp;</span><span class="n">F</span><span class="p">)</span> <span class="n">override</span><span class="p">;</span>
+
+  <span class="nl">private:</span>
+    <span class="kt">void</span> <span class="nf">splitMBB</span><span class="p">(</span><span class="n">MachineBasicBlock</span> <span class="o">*</span><span class="n">MBB</span><span class="p">);</span>
+    <span class="kt">void</span> <span class="nf">initMBBInfo</span><span class="p">();</span>
+    <span class="kt">int64_t</span> <span class="nf">computeOffset</span><span class="p">(</span><span class="k">const</span> <span class="n">MachineInstr</span> <span class="o">*</span><span class="n">Br</span><span class="p">);</span>
+    <span class="kt">void</span> <span class="nf">replaceBranch</span><span class="p">(</span><span class="n">MachineBasicBlock</span> <span class="o">&amp;</span><span class="n">MBB</span><span class="p">,</span> <span class="n">Iter</span> <span class="n">Br</span><span class="p">,</span> <span class="n">DebugLoc</span> <span class="n">DL</span><span class="p">,</span>
+                       <span class="n">MachineBasicBlock</span> <span class="o">*</span><span class="n">MBBOpnd</span><span class="p">);</span>
+    <span class="kt">void</span> <span class="nf">expandToLongBranch</span><span class="p">(</span><span class="n">MBBInfo</span> <span class="o">&amp;</span><span class="n">Info</span><span class="p">);</span>
+
+    <span class="k">const</span> <span class="n">TargetMachine</span> <span class="o">&amp;</span><span class="n">TM</span><span class="p">;</span>
+    <span class="n">MachineFunction</span> <span class="o">*</span><span class="n">MF</span><span class="p">;</span>
+    <span class="n">SmallVector</span><span class="o">&lt;</span><span class="n">MBBInfo</span><span class="p">,</span> <span class="mi">16</span><span class="o">&gt;</span> <span class="n">MBBInfos</span><span class="p">;</span>
+    <span class="kt">bool</span> <span class="n">IsPIC</span><span class="p">;</span>
+    <span class="n">Cpu0ABIInfo</span> <span class="n">ABI</span><span class="p">;</span>
+    <span class="kt">unsigned</span> <span class="n">LongBranchSeqSize</span><span class="p">;</span>
+  <span class="p">};</span>
+
+  <span class="kt">char</span> <span class="n">Cpu0LongBranch</span><span class="o">::</span><span class="n">ID</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+<span class="p">}</span> <span class="c1">// end of anonymous namespace</span>
+
+<span class="c1">/// createCpu0LongBranchPass - Returns a pass that converts branches to long</span>
+<span class="c1">/// branches.</span>
+<span class="n">FunctionPass</span> <span class="o">*</span><span class="n">llvm</span><span class="o">::</span><span class="n">createCpu0LongBranchPass</span><span class="p">(</span><span class="n">Cpu0TargetMachine</span> <span class="o">&amp;</span><span class="n">tm</span><span class="p">)</span> <span class="p">{</span>
+  <span class="k">return</span> <span class="k">new</span> <span class="n">Cpu0LongBranch</span><span class="p">(</span><span class="n">tm</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="c1">/// Iterate over list of Br&#39;s operands and search for a MachineBasicBlock</span>
+<span class="c1">/// operand.</span>
+<span class="k">static</span> <span class="n">MachineBasicBlock</span> <span class="o">*</span><span class="n">getTargetMBB</span><span class="p">(</span><span class="k">const</span> <span class="n">MachineInstr</span> <span class="o">&amp;</span><span class="n">Br</span><span class="p">)</span> <span class="p">{</span>
+  <span class="k">for</span> <span class="p">(</span><span class="kt">unsigned</span> <span class="n">I</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">E</span> <span class="o">=</span> <span class="n">Br</span><span class="p">.</span><span class="n">getDesc</span><span class="p">().</span><span class="n">getNumOperands</span><span class="p">();</span> <span class="n">I</span> <span class="o">&lt;</span> <span class="n">E</span><span class="p">;</span> <span class="o">++</span><span class="n">I</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">const</span> <span class="n">MachineOperand</span> <span class="o">&amp;</span><span class="n">MO</span> <span class="o">=</span> <span class="n">Br</span><span class="p">.</span><span class="n">getOperand</span><span class="p">(</span><span class="n">I</span><span class="p">);</span>
+
+    <span class="k">if</span> <span class="p">(</span><span class="n">MO</span><span class="p">.</span><span class="n">isMBB</span><span class="p">())</span>
+      <span class="k">return</span> <span class="n">MO</span><span class="p">.</span><span class="n">getMBB</span><span class="p">();</span>
+  <span class="p">}</span>
+
+  <span class="n">llvm_unreachable</span><span class="p">(</span><span class="s">&quot;This instruction does not have an MBB operand.&quot;</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="c1">// Traverse the list of instructions backwards until a non-debug instruction is</span>
+<span class="c1">// found or it reaches E.</span>
+<span class="k">static</span> <span class="n">ReverseIter</span> <span class="n">getNonDebugInstr</span><span class="p">(</span><span class="n">ReverseIter</span> <span class="n">B</span><span class="p">,</span> <span class="n">ReverseIter</span> <span class="n">E</span><span class="p">)</span> <span class="p">{</span>
+  <span class="k">for</span> <span class="p">(;</span> <span class="n">B</span> <span class="o">!=</span> <span class="n">E</span><span class="p">;</span> <span class="o">++</span><span class="n">B</span><span class="p">)</span>
+    <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">B</span><span class="o">-&gt;</span><span class="n">isDebugValue</span><span class="p">())</span>
+      <span class="k">return</span> <span class="n">B</span><span class="p">;</span>
+
+  <span class="k">return</span> <span class="n">E</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="c1">// Split MBB if it has two direct jumps/branches.</span>
+<span class="kt">void</span> <span class="n">Cpu0LongBranch</span><span class="o">::</span><span class="n">splitMBB</span><span class="p">(</span><span class="n">MachineBasicBlock</span> <span class="o">*</span><span class="n">MBB</span><span class="p">)</span> <span class="p">{</span>
+  <span class="n">ReverseIter</span> <span class="n">End</span> <span class="o">=</span> <span class="n">MBB</span><span class="o">-&gt;</span><span class="n">rend</span><span class="p">();</span>
+  <span class="n">ReverseIter</span> <span class="n">LastBr</span> <span class="o">=</span> <span class="n">getNonDebugInstr</span><span class="p">(</span><span class="n">MBB</span><span class="o">-&gt;</span><span class="n">rbegin</span><span class="p">(),</span> <span class="n">End</span><span class="p">);</span>
+
+  <span class="c1">// Return if MBB has no branch instructions.</span>
+  <span class="k">if</span> <span class="p">((</span><span class="n">LastBr</span> <span class="o">==</span> <span class="n">End</span><span class="p">)</span> <span class="o">||</span>
+      <span class="p">(</span><span class="o">!</span><span class="n">LastBr</span><span class="o">-&gt;</span><span class="n">isConditionalBranch</span><span class="p">()</span> <span class="o">&amp;&amp;</span> <span class="o">!</span><span class="n">LastBr</span><span class="o">-&gt;</span><span class="n">isUnconditionalBranch</span><span class="p">()))</span>
+    <span class="k">return</span><span class="p">;</span>
+
+  <span class="n">ReverseIter</span> <span class="n">FirstBr</span> <span class="o">=</span> <span class="n">getNonDebugInstr</span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="n">next</span><span class="p">(</span><span class="n">LastBr</span><span class="p">),</span> <span class="n">End</span><span class="p">);</span>
+
+  <span class="c1">// MBB has only one branch instruction if FirstBr is not a branch</span>
+  <span class="c1">// instruction.</span>
+  <span class="k">if</span> <span class="p">((</span><span class="n">FirstBr</span> <span class="o">==</span> <span class="n">End</span><span class="p">)</span> <span class="o">||</span>
+      <span class="p">(</span><span class="o">!</span><span class="n">FirstBr</span><span class="o">-&gt;</span><span class="n">isConditionalBranch</span><span class="p">()</span> <span class="o">&amp;&amp;</span> <span class="o">!</span><span class="n">FirstBr</span><span class="o">-&gt;</span><span class="n">isUnconditionalBranch</span><span class="p">()))</span>
+    <span class="k">return</span><span class="p">;</span>
+
+  <span class="n">assert</span><span class="p">(</span><span class="o">!</span><span class="n">FirstBr</span><span class="o">-&gt;</span><span class="n">isIndirectBranch</span><span class="p">()</span> <span class="o">&amp;&amp;</span> <span class="s">&quot;Unexpected indirect branch found.&quot;</span><span class="p">);</span>
+
+  <span class="c1">// Create a new MBB. Move instructions in MBB to the newly created MBB.</span>
+  <span class="n">MachineBasicBlock</span> <span class="o">*</span><span class="n">NewMBB</span> <span class="o">=</span>
+    <span class="n">MF</span><span class="o">-&gt;</span><span class="n">CreateMachineBasicBlock</span><span class="p">(</span><span class="n">MBB</span><span class="o">-&gt;</span><span class="n">getBasicBlock</span><span class="p">());</span>
+
+  <span class="c1">// Insert NewMBB and fix control flow.</span>
+  <span class="n">MachineBasicBlock</span> <span class="o">*</span><span class="n">Tgt</span> <span class="o">=</span> <span class="n">getTargetMBB</span><span class="p">(</span><span class="o">*</span><span class="n">FirstBr</span><span class="p">);</span>
+  <span class="n">NewMBB</span><span class="o">-&gt;</span><span class="n">transferSuccessors</span><span class="p">(</span><span class="n">MBB</span><span class="p">);</span>
+  <span class="n">NewMBB</span><span class="o">-&gt;</span><span class="n">removeSuccessor</span><span class="p">(</span><span class="n">Tgt</span><span class="p">);</span>
+  <span class="n">MBB</span><span class="o">-&gt;</span><span class="n">addSuccessor</span><span class="p">(</span><span class="n">NewMBB</span><span class="p">);</span>
+  <span class="n">MBB</span><span class="o">-&gt;</span><span class="n">addSuccessor</span><span class="p">(</span><span class="n">Tgt</span><span class="p">);</span>
+  <span class="n">MF</span><span class="o">-&gt;</span><span class="n">insert</span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="n">next</span><span class="p">(</span><span class="n">MachineFunction</span><span class="o">::</span><span class="n">iterator</span><span class="p">(</span><span class="n">MBB</span><span class="p">)),</span> <span class="n">NewMBB</span><span class="p">);</span>
+
+  <span class="n">NewMBB</span><span class="o">-&gt;</span><span class="n">splice</span><span class="p">(</span><span class="n">NewMBB</span><span class="o">-&gt;</span><span class="n">end</span><span class="p">(),</span> <span class="n">MBB</span><span class="p">,</span> <span class="p">(</span><span class="o">++</span><span class="n">LastBr</span><span class="p">).</span><span class="n">base</span><span class="p">(),</span> <span class="n">MBB</span><span class="o">-&gt;</span><span class="n">end</span><span class="p">());</span>
+<span class="p">}</span>
+
+<span class="c1">// Fill MBBInfos.</span>
+<span class="kt">void</span> <span class="n">Cpu0LongBranch</span><span class="o">::</span><span class="n">initMBBInfo</span><span class="p">()</span> <span class="p">{</span>
+  <span class="c1">// Split the MBBs if they have two branches. Each basic block should have at</span>
+  <span class="c1">// most one branch after this loop is executed.</span>
+  <span class="k">for</span> <span class="p">(</span><span class="n">MachineFunction</span><span class="o">::</span><span class="n">iterator</span> <span class="n">I</span> <span class="o">=</span> <span class="n">MF</span><span class="o">-&gt;</span><span class="n">begin</span><span class="p">(),</span> <span class="n">E</span> <span class="o">=</span> <span class="n">MF</span><span class="o">-&gt;</span><span class="n">end</span><span class="p">();</span> <span class="n">I</span> <span class="o">!=</span> <span class="n">E</span><span class="p">;)</span>
+    <span class="n">splitMBB</span><span class="p">(</span><span class="n">I</span><span class="o">++</span><span class="p">);</span>
+
+  <span class="n">MF</span><span class="o">-&gt;</span><span class="n">RenumberBlocks</span><span class="p">();</span>
+  <span class="n">MBBInfos</span><span class="p">.</span><span class="n">clear</span><span class="p">();</span>
+  <span class="n">MBBInfos</span><span class="p">.</span><span class="n">resize</span><span class="p">(</span><span class="n">MF</span><span class="o">-&gt;</span><span class="n">size</span><span class="p">());</span>
+
+  <span class="k">const</span> <span class="n">Cpu0InstrInfo</span> <span class="o">*</span><span class="n">TII</span> <span class="o">=</span>
+      <span class="k">static_cast</span><span class="o">&lt;</span><span class="k">const</span> <span class="n">Cpu0InstrInfo</span> <span class="o">*&gt;</span><span class="p">(</span><span class="n">MF</span><span class="o">-&gt;</span><span class="n">getSubtarget</span><span class="p">().</span><span class="n">getInstrInfo</span><span class="p">());</span>
+  <span class="k">for</span> <span class="p">(</span><span class="kt">unsigned</span> <span class="n">I</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">E</span> <span class="o">=</span> <span class="n">MBBInfos</span><span class="p">.</span><span class="n">size</span><span class="p">();</span> <span class="n">I</span> <span class="o">&lt;</span> <span class="n">E</span><span class="p">;</span> <span class="o">++</span><span class="n">I</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">MachineBasicBlock</span> <span class="o">*</span><span class="n">MBB</span> <span class="o">=</span> <span class="n">MF</span><span class="o">-&gt;</span><span class="n">getBlockNumbered</span><span class="p">(</span><span class="n">I</span><span class="p">);</span>
+
+    <span class="c1">// Compute size of MBB.</span>
+    <span class="k">for</span> <span class="p">(</span><span class="n">MachineBasicBlock</span><span class="o">::</span><span class="n">instr_iterator</span> <span class="n">MI</span> <span class="o">=</span> <span class="n">MBB</span><span class="o">-&gt;</span><span class="n">instr_begin</span><span class="p">();</span>
+         <span class="n">MI</span> <span class="o">!=</span> <span class="n">MBB</span><span class="o">-&gt;</span><span class="n">instr_end</span><span class="p">();</span> <span class="o">++</span><span class="n">MI</span><span class="p">)</span>
+      <span class="n">MBBInfos</span><span class="p">[</span><span class="n">I</span><span class="p">].</span><span class="n">Size</span> <span class="o">+=</span> <span class="n">TII</span><span class="o">-&gt;</span><span class="n">GetInstSizeInBytes</span><span class="p">(</span><span class="o">&amp;*</span><span class="n">MI</span><span class="p">);</span>
+
+    <span class="c1">// Search for MBB&#39;s branch instruction.</span>
+    <span class="n">ReverseIter</span> <span class="n">End</span> <span class="o">=</span> <span class="n">MBB</span><span class="o">-&gt;</span><span class="n">rend</span><span class="p">();</span>
+    <span class="n">ReverseIter</span> <span class="n">Br</span> <span class="o">=</span> <span class="n">getNonDebugInstr</span><span class="p">(</span><span class="n">MBB</span><span class="o">-&gt;</span><span class="n">rbegin</span><span class="p">(),</span> <span class="n">End</span><span class="p">);</span>
+
+    <span class="k">if</span> <span class="p">((</span><span class="n">Br</span> <span class="o">!=</span> <span class="n">End</span><span class="p">)</span> <span class="o">&amp;&amp;</span> <span class="o">!</span><span class="n">Br</span><span class="o">-&gt;</span><span class="n">isIndirectBranch</span><span class="p">()</span> <span class="o">&amp;&amp;</span>
+        <span class="p">(</span><span class="n">Br</span><span class="o">-&gt;</span><span class="n">isConditionalBranch</span><span class="p">()</span> <span class="o">||</span>
+         <span class="p">(</span><span class="n">Br</span><span class="o">-&gt;</span><span class="n">isUnconditionalBranch</span><span class="p">()</span> <span class="o">&amp;&amp;</span>
+          <span class="n">TM</span><span class="p">.</span><span class="n">getRelocationModel</span><span class="p">()</span> <span class="o">==</span> <span class="n">Reloc</span><span class="o">::</span><span class="n">PIC_</span><span class="p">)))</span>
+      <span class="n">MBBInfos</span><span class="p">[</span><span class="n">I</span><span class="p">].</span><span class="n">Br</span> <span class="o">=</span> <span class="p">(</span><span class="o">++</span><span class="n">Br</span><span class="p">).</span><span class="n">base</span><span class="p">();</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="c1">// Compute offset of branch in number of bytes.</span>
+<span class="kt">int64_t</span> <span class="n">Cpu0LongBranch</span><span class="o">::</span><span class="n">computeOffset</span><span class="p">(</span><span class="k">const</span> <span class="n">MachineInstr</span> <span class="o">*</span><span class="n">Br</span><span class="p">)</span> <span class="p">{</span>
+  <span class="kt">int64_t</span> <span class="n">Offset</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+  <span class="kt">int</span> <span class="n">ThisMBB</span> <span class="o">=</span> <span class="n">Br</span><span class="o">-&gt;</span><span class="n">getParent</span><span class="p">()</span><span class="o">-&gt;</span><span class="n">getNumber</span><span class="p">();</span>
+  <span class="kt">int</span> <span class="n">TargetMBB</span> <span class="o">=</span> <span class="n">getTargetMBB</span><span class="p">(</span><span class="o">*</span><span class="n">Br</span><span class="p">)</span><span class="o">-&gt;</span><span class="n">getNumber</span><span class="p">();</span>
+
+  <span class="c1">// Compute offset of a forward branch.</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">ThisMBB</span> <span class="o">&lt;</span> <span class="n">TargetMBB</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">N</span> <span class="o">=</span> <span class="n">ThisMBB</span> <span class="o">+</span> <span class="mi">1</span><span class="p">;</span> <span class="n">N</span> <span class="o">&lt;</span> <span class="n">TargetMBB</span><span class="p">;</span> <span class="o">++</span><span class="n">N</span><span class="p">)</span>
+      <span class="n">Offset</span> <span class="o">+=</span> <span class="n">MBBInfos</span><span class="p">[</span><span class="n">N</span><span class="p">].</span><span class="n">Size</span><span class="p">;</span>
+
+    <span class="k">return</span> <span class="n">Offset</span> <span class="o">+</span> <span class="mi">4</span><span class="p">;</span>
+  <span class="p">}</span>
+
+  <span class="c1">// Compute offset of a backward branch.</span>
+  <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">N</span> <span class="o">=</span> <span class="n">ThisMBB</span><span class="p">;</span> <span class="n">N</span> <span class="o">&gt;=</span> <span class="n">TargetMBB</span><span class="p">;</span> <span class="o">--</span><span class="n">N</span><span class="p">)</span>
+    <span class="n">Offset</span> <span class="o">+=</span> <span class="n">MBBInfos</span><span class="p">[</span><span class="n">N</span><span class="p">].</span><span class="n">Size</span><span class="p">;</span>
+
+  <span class="k">return</span> <span class="o">-</span><span class="n">Offset</span> <span class="o">+</span> <span class="mi">4</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="c1">// Replace Br with a branch which has the opposite condition code and a</span>
+<span class="c1">// MachineBasicBlock operand MBBOpnd.</span>
+<span class="kt">void</span> <span class="n">Cpu0LongBranch</span><span class="o">::</span><span class="n">replaceBranch</span><span class="p">(</span><span class="n">MachineBasicBlock</span> <span class="o">&amp;</span><span class="n">MBB</span><span class="p">,</span> <span class="n">Iter</span> <span class="n">Br</span><span class="p">,</span>
+                                   <span class="n">DebugLoc</span> <span class="n">DL</span><span class="p">,</span> <span class="n">MachineBasicBlock</span> <span class="o">*</span><span class="n">MBBOpnd</span><span class="p">)</span> <span class="p">{</span>
+  <span class="k">const</span> <span class="n">Cpu0InstrInfo</span> <span class="o">*</span><span class="n">TII</span> <span class="o">=</span> <span class="k">static_cast</span><span class="o">&lt;</span><span class="k">const</span> <span class="n">Cpu0InstrInfo</span> <span class="o">*&gt;</span><span class="p">(</span>
+      <span class="n">MBB</span><span class="p">.</span><span class="n">getParent</span><span class="p">()</span><span class="o">-&gt;</span><span class="n">getSubtarget</span><span class="p">().</span><span class="n">getInstrInfo</span><span class="p">());</span>
+  <span class="kt">unsigned</span> <span class="n">NewOpc</span> <span class="o">=</span> <span class="n">TII</span><span class="o">-&gt;</span><span class="n">getOppositeBranchOpc</span><span class="p">(</span><span class="n">Br</span><span class="o">-&gt;</span><span class="n">getOpcode</span><span class="p">());</span>
+  <span class="k">const</span> <span class="n">MCInstrDesc</span> <span class="o">&amp;</span><span class="n">NewDesc</span> <span class="o">=</span> <span class="n">TII</span><span class="o">-&gt;</span><span class="n">get</span><span class="p">(</span><span class="n">NewOpc</span><span class="p">);</span>
+
+  <span class="n">MachineInstrBuilder</span> <span class="n">MIB</span> <span class="o">=</span> <span class="n">BuildMI</span><span class="p">(</span><span class="n">MBB</span><span class="p">,</span> <span class="n">Br</span><span class="p">,</span> <span class="n">DL</span><span class="p">,</span> <span class="n">NewDesc</span><span class="p">);</span>
+
+  <span class="k">for</span> <span class="p">(</span><span class="kt">unsigned</span> <span class="n">I</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">E</span> <span class="o">=</span> <span class="n">Br</span><span class="o">-&gt;</span><span class="n">getDesc</span><span class="p">().</span><span class="n">getNumOperands</span><span class="p">();</span> <span class="n">I</span> <span class="o">&lt;</span> <span class="n">E</span><span class="p">;</span> <span class="o">++</span><span class="n">I</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">MachineOperand</span> <span class="o">&amp;</span><span class="n">MO</span> <span class="o">=</span> <span class="n">Br</span><span class="o">-&gt;</span><span class="n">getOperand</span><span class="p">(</span><span class="n">I</span><span class="p">);</span>
+
+    <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">MO</span><span class="p">.</span><span class="n">isReg</span><span class="p">())</span> <span class="p">{</span>
+      <span class="n">assert</span><span class="p">(</span><span class="n">MO</span><span class="p">.</span><span class="n">isMBB</span><span class="p">()</span> <span class="o">&amp;&amp;</span> <span class="s">&quot;MBB operand expected.&quot;</span><span class="p">);</span>
+      <span class="k">break</span><span class="p">;</span>
+    <span class="p">}</span>
+
+    <span class="n">MIB</span><span class="p">.</span><span class="n">addReg</span><span class="p">(</span><span class="n">MO</span><span class="p">.</span><span class="n">getReg</span><span class="p">());</span>
+  <span class="p">}</span>
+
+  <span class="n">MIB</span><span class="p">.</span><span class="n">addMBB</span><span class="p">(</span><span class="n">MBBOpnd</span><span class="p">);</span>
+
+  <span class="k">if</span> <span class="p">(</span><span class="n">Br</span><span class="o">-&gt;</span><span class="n">hasDelaySlot</span><span class="p">())</span> <span class="p">{</span>
+    <span class="c1">// Bundle the instruction in the delay slot to the newly created branch</span>
+    <span class="c1">// and erase the original branch.</span>
+    <span class="n">assert</span><span class="p">(</span><span class="n">Br</span><span class="o">-&gt;</span><span class="n">isBundledWithSucc</span><span class="p">());</span>
+    <span class="n">MachineBasicBlock</span><span class="o">::</span><span class="n">instr_iterator</span> <span class="n">II</span><span class="p">(</span><span class="n">Br</span><span class="p">);</span>
+    <span class="n">MIBundleBuilder</span><span class="p">(</span><span class="o">&amp;*</span><span class="n">MIB</span><span class="p">).</span><span class="n">append</span><span class="p">((</span><span class="o">++</span><span class="n">II</span><span class="p">)</span><span class="o">-&gt;</span><span class="n">removeFromBundle</span><span class="p">());</span>
+  <span class="p">}</span>
+  <span class="n">Br</span><span class="o">-&gt;</span><span class="n">eraseFromParent</span><span class="p">();</span>
+<span class="p">}</span>
+
+<span class="c1">// Expand branch instructions to long branches.</span>
+<span class="c1">// TODO: This function has to be fixed for beqz16 and bnez16, because it</span>
+<span class="c1">// currently assumes that all branches have 16-bit offsets, and will produce</span>
+<span class="c1">// wrong code if branches whose allowed offsets are [-128, -126, ..., 126]</span>
+<span class="c1">// are present.</span>
+<span class="kt">void</span> <span class="n">Cpu0LongBranch</span><span class="o">::</span><span class="n">expandToLongBranch</span><span class="p">(</span><span class="n">MBBInfo</span> <span class="o">&amp;</span><span class="n">I</span><span class="p">)</span> <span class="p">{</span>
+  <span class="n">MachineBasicBlock</span><span class="o">::</span><span class="n">iterator</span> <span class="n">Pos</span><span class="p">;</span>
+  <span class="n">MachineBasicBlock</span> <span class="o">*</span><span class="n">MBB</span> <span class="o">=</span> <span class="n">I</span><span class="p">.</span><span class="n">Br</span><span class="o">-&gt;</span><span class="n">getParent</span><span class="p">(),</span> <span class="o">*</span><span class="n">TgtMBB</span> <span class="o">=</span> <span class="n">getTargetMBB</span><span class="p">(</span><span class="o">*</span><span class="n">I</span><span class="p">.</span><span class="n">Br</span><span class="p">);</span>
+  <span class="n">DebugLoc</span> <span class="n">DL</span> <span class="o">=</span> <span class="n">I</span><span class="p">.</span><span class="n">Br</span><span class="o">-&gt;</span><span class="n">getDebugLoc</span><span class="p">();</span>
+  <span class="k">const</span> <span class="n">BasicBlock</span> <span class="o">*</span><span class="n">BB</span> <span class="o">=</span> <span class="n">MBB</span><span class="o">-&gt;</span><span class="n">getBasicBlock</span><span class="p">();</span>
+  <span class="n">MachineFunction</span><span class="o">::</span><span class="n">iterator</span> <span class="n">FallThroughMBB</span> <span class="o">=</span> <span class="o">++</span><span class="n">MachineFunction</span><span class="o">::</span><span class="n">iterator</span><span class="p">(</span><span class="n">MBB</span><span class="p">);</span>
+  <span class="n">MachineBasicBlock</span> <span class="o">*</span><span class="n">LongBrMBB</span> <span class="o">=</span> <span class="n">MF</span><span class="o">-&gt;</span><span class="n">CreateMachineBasicBlock</span><span class="p">(</span><span class="n">BB</span><span class="p">);</span>
+  <span class="k">const</span> <span class="n">Cpu0Subtarget</span> <span class="o">&amp;</span><span class="n">Subtarget</span> <span class="o">=</span>
+      <span class="k">static_cast</span><span class="o">&lt;</span><span class="k">const</span> <span class="n">Cpu0Subtarget</span> <span class="o">&amp;&gt;</span><span class="p">(</span><span class="n">MF</span><span class="o">-&gt;</span><span class="n">getSubtarget</span><span class="p">());</span>
+  <span class="k">const</span> <span class="n">Cpu0InstrInfo</span> <span class="o">*</span><span class="n">TII</span> <span class="o">=</span>
+      <span class="k">static_cast</span><span class="o">&lt;</span><span class="k">const</span> <span class="n">Cpu0InstrInfo</span> <span class="o">*&gt;</span><span class="p">(</span><span class="n">Subtarget</span><span class="p">.</span><span class="n">getInstrInfo</span><span class="p">());</span>
+
+  <span class="n">MF</span><span class="o">-&gt;</span><span class="n">insert</span><span class="p">(</span><span class="n">FallThroughMBB</span><span class="p">,</span> <span class="n">LongBrMBB</span><span class="p">);</span>
+  <span class="n">MBB</span><span class="o">-&gt;</span><span class="n">removeSuccessor</span><span class="p">(</span><span class="n">TgtMBB</span><span class="p">);</span>
+  <span class="n">MBB</span><span class="o">-&gt;</span><span class="n">addSuccessor</span><span class="p">(</span><span class="n">LongBrMBB</span><span class="p">);</span>
+
+  <span class="k">if</span> <span class="p">(</span><span class="n">IsPIC</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">MachineBasicBlock</span> <span class="o">*</span><span class="n">BalTgtMBB</span> <span class="o">=</span> <span class="n">MF</span><span class="o">-&gt;</span><span class="n">CreateMachineBasicBlock</span><span class="p">(</span><span class="n">BB</span><span class="p">);</span>
+    <span class="n">MF</span><span class="o">-&gt;</span><span class="n">insert</span><span class="p">(</span><span class="n">FallThroughMBB</span><span class="p">,</span> <span class="n">BalTgtMBB</span><span class="p">);</span>
+    <span class="n">LongBrMBB</span><span class="o">-&gt;</span><span class="n">addSuccessor</span><span class="p">(</span><span class="n">BalTgtMBB</span><span class="p">);</span>
+    <span class="n">BalTgtMBB</span><span class="o">-&gt;</span><span class="n">addSuccessor</span><span class="p">(</span><span class="n">TgtMBB</span><span class="p">);</span>
+
+    <span class="kt">unsigned</span> <span class="n">BalOp</span> <span class="o">=</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">BAL</span><span class="p">;</span>
+
+    <span class="c1">// $longbr:</span>
+    <span class="c1">//  addiu $sp, $sp, -8</span>
+    <span class="c1">//  st $lr, 0($sp)</span>
+    <span class="c1">//  lui $at, %hi($tgt - $baltgt)</span>
+    <span class="c1">//  addiu $lr, $lr, %lo($tgt - $baltgt)</span>
+    <span class="c1">//  bal $baltgt</span>
+    <span class="c1">//  nop</span>
+    <span class="c1">// $baltgt:</span>
+    <span class="c1">//  addu $at, $lr, $at</span>
+    <span class="c1">//  addiu $sp, $sp, 8</span>
+    <span class="c1">//  ld $lr, 0($sp)</span>
+    <span class="c1">//  jr $at</span>
+    <span class="c1">//  nop</span>
+    <span class="c1">// $fallthrough:</span>
+    <span class="c1">//</span>
+
+    <span class="n">Pos</span> <span class="o">=</span> <span class="n">LongBrMBB</span><span class="o">-&gt;</span><span class="n">begin</span><span class="p">();</span>
+
+    <span class="n">BuildMI</span><span class="p">(</span><span class="o">*</span><span class="n">LongBrMBB</span><span class="p">,</span> <span class="n">Pos</span><span class="p">,</span> <span class="n">DL</span><span class="p">,</span> <span class="n">TII</span><span class="o">-&gt;</span><span class="n">get</span><span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">ADDiu</span><span class="p">),</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">SP</span><span class="p">)</span>
+      <span class="p">.</span><span class="n">addReg</span><span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">SP</span><span class="p">).</span><span class="n">addImm</span><span class="p">(</span><span class="o">-</span><span class="mi">8</span><span class="p">);</span>
+    <span class="n">BuildMI</span><span class="p">(</span><span class="o">*</span><span class="n">LongBrMBB</span><span class="p">,</span> <span class="n">Pos</span><span class="p">,</span> <span class="n">DL</span><span class="p">,</span> <span class="n">TII</span><span class="o">-&gt;</span><span class="n">get</span><span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">ST</span><span class="p">)).</span><span class="n">addReg</span><span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">LR</span><span class="p">)</span>
+      <span class="p">.</span><span class="n">addReg</span><span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">SP</span><span class="p">).</span><span class="n">addImm</span><span class="p">(</span><span class="mi">0</span><span class="p">);</span>
+
+    <span class="c1">// LUi and ADDiu instructions create 32-bit offset of the target basic</span>
+    <span class="c1">// block from the target of BAL instruction.  We cannot use immediate</span>
+    <span class="c1">// value for this offset because it cannot be determined accurately when</span>
+    <span class="c1">// the program has inline assembly statements.  We therefore use the</span>
+    <span class="c1">// relocation expressions %hi($tgt-$baltgt) and %lo($tgt-$baltgt) which</span>
+    <span class="c1">// are resolved during the fixup, so the values will always be correct.</span>
+    <span class="c1">//</span>
+    <span class="c1">// Since we cannot create %hi($tgt-$baltgt) and %lo($tgt-$baltgt)</span>
+    <span class="c1">// expressions at this point (it is possible only at the MC layer),</span>
+    <span class="c1">// we replace LUi and ADDiu with pseudo instructions</span>
+    <span class="c1">// LONG_BRANCH_LUi and LONG_BRANCH_ADDiu, and add both basic</span>
+    <span class="c1">// blocks as operands to these instructions.  When lowering these pseudo</span>
+    <span class="c1">// instructions to LUi and ADDiu in the MC layer, we will create</span>
+    <span class="c1">// %hi($tgt-$baltgt) and %lo($tgt-$baltgt) expressions and add them as</span>
+    <span class="c1">// operands to lowered instructions.</span>
+
+    <span class="n">BuildMI</span><span class="p">(</span><span class="o">*</span><span class="n">LongBrMBB</span><span class="p">,</span> <span class="n">Pos</span><span class="p">,</span> <span class="n">DL</span><span class="p">,</span> <span class="n">TII</span><span class="o">-&gt;</span><span class="n">get</span><span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">LONG_BRANCH_LUi</span><span class="p">),</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">AT</span><span class="p">)</span>
+      <span class="p">.</span><span class="n">addMBB</span><span class="p">(</span><span class="n">TgtMBB</span><span class="p">).</span><span class="n">addMBB</span><span class="p">(</span><span class="n">BalTgtMBB</span><span class="p">);</span>
+    <span class="n">BuildMI</span><span class="p">(</span><span class="o">*</span><span class="n">LongBrMBB</span><span class="p">,</span> <span class="n">Pos</span><span class="p">,</span> <span class="n">DL</span><span class="p">,</span> <span class="n">TII</span><span class="o">-&gt;</span><span class="n">get</span><span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">LONG_BRANCH_ADDiu</span><span class="p">),</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">AT</span><span class="p">)</span>
+      <span class="p">.</span><span class="n">addReg</span><span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">AT</span><span class="p">).</span><span class="n">addMBB</span><span class="p">(</span><span class="n">TgtMBB</span><span class="p">).</span><span class="n">addMBB</span><span class="p">(</span><span class="n">BalTgtMBB</span><span class="p">);</span>
+    <span class="n">MIBundleBuilder</span><span class="p">(</span><span class="o">*</span><span class="n">LongBrMBB</span><span class="p">,</span> <span class="n">Pos</span><span class="p">)</span>
+        <span class="p">.</span><span class="n">append</span><span class="p">(</span><span class="n">BuildMI</span><span class="p">(</span><span class="o">*</span><span class="n">MF</span><span class="p">,</span> <span class="n">DL</span><span class="p">,</span> <span class="n">TII</span><span class="o">-&gt;</span><span class="n">get</span><span class="p">(</span><span class="n">BalOp</span><span class="p">)).</span><span class="n">addMBB</span><span class="p">(</span><span class="n">BalTgtMBB</span><span class="p">))</span>
+        <span class="p">.</span><span class="n">append</span><span class="p">(</span><span class="n">BuildMI</span><span class="p">(</span><span class="o">*</span><span class="n">MF</span><span class="p">,</span> <span class="n">DL</span><span class="p">,</span> <span class="n">TII</span><span class="o">-&gt;</span><span class="n">get</span><span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">NOP</span><span class="p">)));</span>
+
+    <span class="n">Pos</span> <span class="o">=</span> <span class="n">BalTgtMBB</span><span class="o">-&gt;</span><span class="n">begin</span><span class="p">();</span>
+
+    <span class="n">BuildMI</span><span class="p">(</span><span class="o">*</span><span class="n">BalTgtMBB</span><span class="p">,</span> <span class="n">Pos</span><span class="p">,</span> <span class="n">DL</span><span class="p">,</span> <span class="n">TII</span><span class="o">-&gt;</span><span class="n">get</span><span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">ADDu</span><span class="p">),</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">AT</span><span class="p">)</span>
+      <span class="p">.</span><span class="n">addReg</span><span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">LR</span><span class="p">).</span><span class="n">addReg</span><span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">AT</span><span class="p">);</span>
+    <span class="n">BuildMI</span><span class="p">(</span><span class="o">*</span><span class="n">BalTgtMBB</span><span class="p">,</span> <span class="n">Pos</span><span class="p">,</span> <span class="n">DL</span><span class="p">,</span> <span class="n">TII</span><span class="o">-&gt;</span><span class="n">get</span><span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">ADDiu</span><span class="p">),</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">AT</span><span class="p">)</span>
+      <span class="p">.</span><span class="n">addReg</span><span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">AT</span><span class="p">).</span><span class="n">addImm</span><span class="p">(</span><span class="mi">4</span><span class="p">);</span>
+    <span class="n">BuildMI</span><span class="p">(</span><span class="o">*</span><span class="n">BalTgtMBB</span><span class="p">,</span> <span class="n">Pos</span><span class="p">,</span> <span class="n">DL</span><span class="p">,</span> <span class="n">TII</span><span class="o">-&gt;</span><span class="n">get</span><span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">LD</span><span class="p">),</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">LR</span><span class="p">)</span>
+      <span class="p">.</span><span class="n">addReg</span><span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">SP</span><span class="p">).</span><span class="n">addImm</span><span class="p">(</span><span class="mi">0</span><span class="p">);</span>
+    <span class="n">BuildMI</span><span class="p">(</span><span class="o">*</span><span class="n">BalTgtMBB</span><span class="p">,</span> <span class="n">Pos</span><span class="p">,</span> <span class="n">DL</span><span class="p">,</span> <span class="n">TII</span><span class="o">-&gt;</span><span class="n">get</span><span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">ADDiu</span><span class="p">),</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">SP</span><span class="p">)</span>
+      <span class="p">.</span><span class="n">addReg</span><span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">SP</span><span class="p">).</span><span class="n">addImm</span><span class="p">(</span><span class="mi">8</span><span class="p">);</span>
+
+    <span class="n">MIBundleBuilder</span><span class="p">(</span><span class="o">*</span><span class="n">BalTgtMBB</span><span class="p">,</span> <span class="n">Pos</span><span class="p">)</span>
+      <span class="p">.</span><span class="n">append</span><span class="p">(</span><span class="n">BuildMI</span><span class="p">(</span><span class="o">*</span><span class="n">MF</span><span class="p">,</span> <span class="n">DL</span><span class="p">,</span> <span class="n">TII</span><span class="o">-&gt;</span><span class="n">get</span><span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">JR</span><span class="p">)).</span><span class="n">addReg</span><span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">AT</span><span class="p">))</span>
+      <span class="p">.</span><span class="n">append</span><span class="p">(</span><span class="n">BuildMI</span><span class="p">(</span><span class="o">*</span><span class="n">MF</span><span class="p">,</span> <span class="n">DL</span><span class="p">,</span> <span class="n">TII</span><span class="o">-&gt;</span><span class="n">get</span><span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">NOP</span><span class="p">)));</span>
+
+    <span class="n">assert</span><span class="p">(</span><span class="n">LongBrMBB</span><span class="o">-&gt;</span><span class="n">size</span><span class="p">()</span> <span class="o">+</span> <span class="n">BalTgtMBB</span><span class="o">-&gt;</span><span class="n">size</span><span class="p">()</span> <span class="o">==</span> <span class="n">LongBranchSeqSize</span><span class="p">);</span>
+  <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+    <span class="c1">// $longbr:</span>
+    <span class="c1">//  jmp $tgt</span>
+    <span class="c1">//  nop</span>
+    <span class="c1">// $fallthrough:</span>
+    <span class="c1">//</span>
+    <span class="n">Pos</span> <span class="o">=</span> <span class="n">LongBrMBB</span><span class="o">-&gt;</span><span class="n">begin</span><span class="p">();</span>
+    <span class="n">LongBrMBB</span><span class="o">-&gt;</span><span class="n">addSuccessor</span><span class="p">(</span><span class="n">TgtMBB</span><span class="p">);</span>
+    <span class="n">MIBundleBuilder</span><span class="p">(</span><span class="o">*</span><span class="n">LongBrMBB</span><span class="p">,</span> <span class="n">Pos</span><span class="p">)</span>
+      <span class="p">.</span><span class="n">append</span><span class="p">(</span><span class="n">BuildMI</span><span class="p">(</span><span class="o">*</span><span class="n">MF</span><span class="p">,</span> <span class="n">DL</span><span class="p">,</span> <span class="n">TII</span><span class="o">-&gt;</span><span class="n">get</span><span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">JMP</span><span class="p">)).</span><span class="n">addMBB</span><span class="p">(</span><span class="n">TgtMBB</span><span class="p">))</span>
+      <span class="p">.</span><span class="n">append</span><span class="p">(</span><span class="n">BuildMI</span><span class="p">(</span><span class="o">*</span><span class="n">MF</span><span class="p">,</span> <span class="n">DL</span><span class="p">,</span> <span class="n">TII</span><span class="o">-&gt;</span><span class="n">get</span><span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">NOP</span><span class="p">)));</span>
+
+    <span class="n">assert</span><span class="p">(</span><span class="n">LongBrMBB</span><span class="o">-&gt;</span><span class="n">size</span><span class="p">()</span> <span class="o">==</span> <span class="n">LongBranchSeqSize</span><span class="p">);</span>
+  <span class="p">}</span>
+
+  <span class="k">if</span> <span class="p">(</span><span class="n">I</span><span class="p">.</span><span class="n">Br</span><span class="o">-&gt;</span><span class="n">isUnconditionalBranch</span><span class="p">())</span> <span class="p">{</span>
+    <span class="c1">// Change branch destination.</span>
+    <span class="n">assert</span><span class="p">(</span><span class="n">I</span><span class="p">.</span><span class="n">Br</span><span class="o">-&gt;</span><span class="n">getDesc</span><span class="p">().</span><span class="n">getNumOperands</span><span class="p">()</span> <span class="o">==</span> <span class="mi">1</span><span class="p">);</span>
+    <span class="n">I</span><span class="p">.</span><span class="n">Br</span><span class="o">-&gt;</span><span class="n">RemoveOperand</span><span class="p">(</span><span class="mi">0</span><span class="p">);</span>
+    <span class="n">I</span><span class="p">.</span><span class="n">Br</span><span class="o">-&gt;</span><span class="n">addOperand</span><span class="p">(</span><span class="n">MachineOperand</span><span class="o">::</span><span class="n">CreateMBB</span><span class="p">(</span><span class="n">LongBrMBB</span><span class="p">));</span>
+  <span class="p">}</span> <span class="k">else</span>
+    <span class="c1">// Change branch destination and reverse condition.</span>
+    <span class="n">replaceBranch</span><span class="p">(</span><span class="o">*</span><span class="n">MBB</span><span class="p">,</span> <span class="n">I</span><span class="p">.</span><span class="n">Br</span><span class="p">,</span> <span class="n">DL</span><span class="p">,</span> <span class="n">FallThroughMBB</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="k">static</span> <span class="kt">void</span> <span class="n">emitGPDisp</span><span class="p">(</span><span class="n">MachineFunction</span> <span class="o">&amp;</span><span class="n">F</span><span class="p">,</span> <span class="k">const</span> <span class="n">Cpu0InstrInfo</span> <span class="o">*</span><span class="n">TII</span><span class="p">)</span> <span class="p">{</span>
+  <span class="n">MachineBasicBlock</span> <span class="o">&amp;</span><span class="n">MBB</span> <span class="o">=</span> <span class="n">F</span><span class="p">.</span><span class="n">front</span><span class="p">();</span>
+  <span class="n">MachineBasicBlock</span><span class="o">::</span><span class="n">iterator</span> <span class="n">I</span> <span class="o">=</span> <span class="n">MBB</span><span class="p">.</span><span class="n">begin</span><span class="p">();</span>
+  <span class="n">DebugLoc</span> <span class="n">DL</span> <span class="o">=</span> <span class="n">MBB</span><span class="p">.</span><span class="n">findDebugLoc</span><span class="p">(</span><span class="n">MBB</span><span class="p">.</span><span class="n">begin</span><span class="p">());</span>
+  <span class="n">BuildMI</span><span class="p">(</span><span class="n">MBB</span><span class="p">,</span> <span class="n">I</span><span class="p">,</span> <span class="n">DL</span><span class="p">,</span> <span class="n">TII</span><span class="o">-&gt;</span><span class="n">get</span><span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">LUi</span><span class="p">),</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">V0</span><span class="p">)</span>
+    <span class="p">.</span><span class="n">addExternalSymbol</span><span class="p">(</span><span class="s">&quot;_gp_disp&quot;</span><span class="p">,</span> <span class="n">Cpu0II</span><span class="o">::</span><span class="n">MO_ABS_HI</span><span class="p">);</span>
+  <span class="n">BuildMI</span><span class="p">(</span><span class="n">MBB</span><span class="p">,</span> <span class="n">I</span><span class="p">,</span> <span class="n">DL</span><span class="p">,</span> <span class="n">TII</span><span class="o">-&gt;</span><span class="n">get</span><span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">ADDiu</span><span class="p">),</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">V0</span><span class="p">)</span>
+    <span class="p">.</span><span class="n">addReg</span><span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">V0</span><span class="p">).</span><span class="n">addExternalSymbol</span><span class="p">(</span><span class="s">&quot;_gp_disp&quot;</span><span class="p">,</span> <span class="n">Cpu0II</span><span class="o">::</span><span class="n">MO_ABS_LO</span><span class="p">);</span>
+  <span class="n">MBB</span><span class="p">.</span><span class="n">removeLiveIn</span><span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">V0</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="kt">bool</span> <span class="n">Cpu0LongBranch</span><span class="o">::</span><span class="n">runOnMachineFunction</span><span class="p">(</span><span class="n">MachineFunction</span> <span class="o">&amp;</span><span class="n">F</span><span class="p">)</span> <span class="p">{</span>
+  <span class="k">const</span> <span class="n">Cpu0Subtarget</span> <span class="o">&amp;</span><span class="n">STI</span> <span class="o">=</span>
+      <span class="k">static_cast</span><span class="o">&lt;</span><span class="k">const</span> <span class="n">Cpu0Subtarget</span> <span class="o">&amp;&gt;</span><span class="p">(</span><span class="n">F</span><span class="p">.</span><span class="n">getSubtarget</span><span class="p">());</span>
+  <span class="k">const</span> <span class="n">Cpu0InstrInfo</span> <span class="o">*</span><span class="n">TII</span> <span class="o">=</span>
+      <span class="k">static_cast</span><span class="o">&lt;</span><span class="k">const</span> <span class="n">Cpu0InstrInfo</span> <span class="o">*&gt;</span><span class="p">(</span><span class="n">STI</span><span class="p">.</span><span class="n">getInstrInfo</span><span class="p">());</span>
+  <span class="n">LongBranchSeqSize</span> <span class="o">=</span>
+      <span class="o">!</span><span class="n">IsPIC</span> <span class="o">?</span> <span class="mi">2</span> <span class="o">:</span> <span class="mi">12</span><span class="p">;</span>
+
+  <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">STI</span><span class="p">.</span><span class="n">enableLongBranchPass</span><span class="p">())</span>
+    <span class="k">return</span> <span class="nb">false</span><span class="p">;</span>
+  <span class="k">if</span> <span class="p">((</span><span class="n">TM</span><span class="p">.</span><span class="n">getRelocationModel</span><span class="p">()</span> <span class="o">==</span> <span class="n">Reloc</span><span class="o">::</span><span class="n">PIC_</span><span class="p">)</span> <span class="o">&amp;&amp;</span>
+      <span class="k">static_cast</span><span class="o">&lt;</span><span class="k">const</span> <span class="n">Cpu0TargetMachine</span> <span class="o">&amp;&gt;</span><span class="p">(</span><span class="n">TM</span><span class="p">).</span><span class="n">getABI</span><span class="p">().</span><span class="n">IsO32</span><span class="p">()</span> <span class="o">&amp;&amp;</span>
+      <span class="n">F</span><span class="p">.</span><span class="n">getInfo</span><span class="o">&lt;</span><span class="n">Cpu0FunctionInfo</span><span class="o">&gt;</span><span class="p">()</span><span class="o">-&gt;</span><span class="n">globalBaseRegSet</span><span class="p">())</span>
+    <span class="n">emitGPDisp</span><span class="p">(</span><span class="n">F</span><span class="p">,</span> <span class="n">TII</span><span class="p">);</span>
+
+  <span class="n">MF</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">F</span><span class="p">;</span>
+  <span class="n">initMBBInfo</span><span class="p">();</span>
+
+  <span class="n">SmallVectorImpl</span><span class="o">&lt;</span><span class="n">MBBInfo</span><span class="o">&gt;::</span><span class="n">iterator</span> <span class="n">I</span><span class="p">,</span> <span class="n">E</span> <span class="o">=</span> <span class="n">MBBInfos</span><span class="p">.</span><span class="n">end</span><span class="p">();</span>
+  <span class="kt">bool</span> <span class="n">EverMadeChange</span> <span class="o">=</span> <span class="nb">false</span><span class="p">,</span> <span class="n">MadeChange</span> <span class="o">=</span> <span class="nb">true</span><span class="p">;</span>
+
+  <span class="k">while</span> <span class="p">(</span><span class="n">MadeChange</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">MadeChange</span> <span class="o">=</span> <span class="nb">false</span><span class="p">;</span>
+
+    <span class="k">for</span> <span class="p">(</span><span class="n">I</span> <span class="o">=</span> <span class="n">MBBInfos</span><span class="p">.</span><span class="n">begin</span><span class="p">();</span> <span class="n">I</span> <span class="o">!=</span> <span class="n">E</span><span class="p">;</span> <span class="o">++</span><span class="n">I</span><span class="p">)</span> <span class="p">{</span>
+      <span class="c1">// Skip if this MBB doesn&#39;t have a branch or the branch has already been</span>
+      <span class="c1">// converted to a long branch.</span>
+      <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">I</span><span class="o">-&gt;</span><span class="n">Br</span> <span class="o">||</span> <span class="n">I</span><span class="o">-&gt;</span><span class="n">HasLongBranch</span><span class="p">)</span>
+        <span class="k">continue</span><span class="p">;</span>
+
+      <span class="kt">int</span> <span class="n">ShVal</span> <span class="o">=</span> <span class="mi">4</span><span class="p">;</span>
+      <span class="kt">int64_t</span> <span class="n">Offset</span> <span class="o">=</span> <span class="n">computeOffset</span><span class="p">(</span><span class="n">I</span><span class="o">-&gt;</span><span class="n">Br</span><span class="p">)</span> <span class="o">/</span> <span class="n">ShVal</span><span class="p">;</span>
+
+      <span class="c1">// Check if offset fits into 16-bit immediate field of branches.</span>
+      <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">ForceLongBranch</span> <span class="o">&amp;&amp;</span> <span class="n">isInt</span><span class="o">&lt;</span><span class="mi">16</span><span class="o">&gt;</span><span class="p">(</span><span class="n">Offset</span><span class="p">))</span>
+        <span class="k">continue</span><span class="p">;</span>
+
+      <span class="n">I</span><span class="o">-&gt;</span><span class="n">HasLongBranch</span> <span class="o">=</span> <span class="nb">true</span><span class="p">;</span>
+      <span class="n">I</span><span class="o">-&gt;</span><span class="n">Size</span> <span class="o">+=</span> <span class="n">LongBranchSeqSize</span> <span class="o">*</span> <span class="mi">4</span><span class="p">;</span>
+      <span class="o">++</span><span class="n">LongBranches</span><span class="p">;</span>
+      <span class="n">EverMadeChange</span> <span class="o">=</span> <span class="n">MadeChange</span> <span class="o">=</span> <span class="nb">true</span><span class="p">;</span>
+    <span class="p">}</span>
+  <span class="p">}</span>
+
+  <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">EverMadeChange</span><span class="p">)</span>
+    <span class="k">return</span> <span class="nb">true</span><span class="p">;</span>
+
+  <span class="c1">// Compute basic block addresses.</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">TM</span><span class="p">.</span><span class="n">getRelocationModel</span><span class="p">()</span> <span class="o">==</span> <span class="n">Reloc</span><span class="o">::</span><span class="n">PIC_</span><span class="p">)</span> <span class="p">{</span>
+    <span class="kt">uint64_t</span> <span class="n">Address</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+
+    <span class="k">for</span> <span class="p">(</span><span class="n">I</span> <span class="o">=</span> <span class="n">MBBInfos</span><span class="p">.</span><span class="n">begin</span><span class="p">();</span> <span class="n">I</span> <span class="o">!=</span> <span class="n">E</span><span class="p">;</span> <span class="n">Address</span> <span class="o">+=</span> <span class="n">I</span><span class="o">-&gt;</span><span class="n">Size</span><span class="p">,</span> <span class="o">++</span><span class="n">I</span><span class="p">)</span>
+      <span class="n">I</span><span class="o">-&gt;</span><span class="n">Address</span> <span class="o">=</span> <span class="n">Address</span><span class="p">;</span>
+  <span class="p">}</span>
+
+  <span class="c1">// Do the expansion.</span>
+  <span class="k">for</span> <span class="p">(</span><span class="n">I</span> <span class="o">=</span> <span class="n">MBBInfos</span><span class="p">.</span><span class="n">begin</span><span class="p">();</span> <span class="n">I</span> <span class="o">!=</span> <span class="n">E</span><span class="p">;</span> <span class="o">++</span><span class="n">I</span><span class="p">)</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">I</span><span class="o">-&gt;</span><span class="n">HasLongBranch</span><span class="p">)</span>
+      <span class="n">expandToLongBranch</span><span class="p">(</span><span class="o">*</span><span class="n">I</span><span class="p">);</span>
+
+  <span class="n">MF</span><span class="o">-&gt;</span><span class="n">RenumberBlocks</span><span class="p">();</span>
+
+  <span class="k">return</span> <span class="nb">true</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="cp">#endif </span><span class="c1">//#if CH &gt;= CH8_1</span>
+</pre></div>
+</div>
+<p class="rubric">lbdex/chapters/Chapter8_2/Cpu0MCInstLower.h</p>
+<div class="highlight-c++"><div class="highlight"><pre>  <span class="n">MCOperand</span> <span class="n">createSub</span><span class="p">(</span><span class="n">MachineBasicBlock</span> <span class="o">*</span><span class="n">BB1</span><span class="p">,</span> <span class="n">MachineBasicBlock</span> <span class="o">*</span><span class="n">BB2</span><span class="p">,</span>
+                      <span class="n">MCSymbolRefExpr</span><span class="o">::</span><span class="n">VariantKind</span> <span class="n">Kind</span><span class="p">)</span> <span class="k">const</span><span class="p">;</span>
+  <span class="kt">void</span> <span class="n">lowerLongBranchLUi</span><span class="p">(</span><span class="k">const</span> <span class="n">MachineInstr</span> <span class="o">*</span><span class="n">MI</span><span class="p">,</span> <span class="n">MCInst</span> <span class="o">&amp;</span><span class="n">OutMI</span><span class="p">)</span> <span class="k">const</span><span class="p">;</span>
+  <span class="kt">void</span> <span class="n">lowerLongBranchADDiu</span><span class="p">(</span><span class="k">const</span> <span class="n">MachineInstr</span> <span class="o">*</span><span class="n">MI</span><span class="p">,</span> <span class="n">MCInst</span> <span class="o">&amp;</span><span class="n">OutMI</span><span class="p">,</span>
+                            <span class="kt">int</span> <span class="n">Opcode</span><span class="p">,</span>
+                            <span class="n">MCSymbolRefExpr</span><span class="o">::</span><span class="n">VariantKind</span> <span class="n">Kind</span><span class="p">)</span> <span class="k">const</span><span class="p">;</span>
+  <span class="kt">bool</span> <span class="n">lowerLongBranch</span><span class="p">(</span><span class="k">const</span> <span class="n">MachineInstr</span> <span class="o">*</span><span class="n">MI</span><span class="p">,</span> <span class="n">MCInst</span> <span class="o">&amp;</span><span class="n">OutMI</span><span class="p">)</span> <span class="k">const</span><span class="p">;</span>
+</pre></div>
+</div>
+<p class="rubric">lbdex/chapters/Chapter8_2/Cpu0MCInstLower.cpp</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="n">MCOperand</span> <span class="n">Cpu0MCInstLower</span><span class="o">::</span><span class="n">createSub</span><span class="p">(</span><span class="n">MachineBasicBlock</span> <span class="o">*</span><span class="n">BB1</span><span class="p">,</span>
+                                     <span class="n">MachineBasicBlock</span> <span class="o">*</span><span class="n">BB2</span><span class="p">,</span>
+                                     <span class="n">MCSymbolRefExpr</span><span class="o">::</span><span class="n">VariantKind</span> <span class="n">Kind</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
+  <span class="k">const</span> <span class="n">MCSymbolRefExpr</span> <span class="o">*</span><span class="n">Sym1</span> <span class="o">=</span> <span class="n">MCSymbolRefExpr</span><span class="o">::</span><span class="n">create</span><span class="p">(</span><span class="n">BB1</span><span class="o">-&gt;</span><span class="n">getSymbol</span><span class="p">(),</span> <span class="o">*</span><span class="n">Ctx</span><span class="p">);</span>
+  <span class="k">const</span> <span class="n">MCSymbolRefExpr</span> <span class="o">*</span><span class="n">Sym2</span> <span class="o">=</span> <span class="n">MCSymbolRefExpr</span><span class="o">::</span><span class="n">create</span><span class="p">(</span><span class="n">BB2</span><span class="o">-&gt;</span><span class="n">getSymbol</span><span class="p">(),</span> <span class="o">*</span><span class="n">Ctx</span><span class="p">);</span>
+  <span class="k">const</span> <span class="n">MCBinaryExpr</span> <span class="o">*</span><span class="n">Sub</span> <span class="o">=</span> <span class="n">MCBinaryExpr</span><span class="o">::</span><span class="n">createSub</span><span class="p">(</span><span class="n">Sym1</span><span class="p">,</span> <span class="n">Sym2</span><span class="p">,</span> <span class="o">*</span><span class="n">Ctx</span><span class="p">);</span>
+
+  <span class="k">return</span> <span class="n">MCOperand</span><span class="o">::</span><span class="n">createExpr</span><span class="p">(</span><span class="n">Cpu0MCExpr</span><span class="o">::</span><span class="n">create</span><span class="p">(</span><span class="n">Kind</span><span class="p">,</span> <span class="n">Sub</span><span class="p">,</span> <span class="o">*</span><span class="n">Ctx</span><span class="p">));</span>
+<span class="p">}</span>
+
+<span class="kt">void</span> <span class="n">Cpu0MCInstLower</span><span class="o">::</span>
+<span class="n">lowerLongBranchLUi</span><span class="p">(</span><span class="k">const</span> <span class="n">MachineInstr</span> <span class="o">*</span><span class="n">MI</span><span class="p">,</span> <span class="n">MCInst</span> <span class="o">&amp;</span><span class="n">OutMI</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
+  <span class="n">OutMI</span><span class="p">.</span><span class="n">setOpcode</span><span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">LUi</span><span class="p">);</span>
+
+  <span class="c1">// Lower register operand.</span>
+  <span class="n">OutMI</span><span class="p">.</span><span class="n">addOperand</span><span class="p">(</span><span class="n">LowerOperand</span><span class="p">(</span><span class="n">MI</span><span class="o">-&gt;</span><span class="n">getOperand</span><span class="p">(</span><span class="mi">0</span><span class="p">)));</span>
+
+  <span class="c1">// Create %hi($tgt-$baltgt).</span>
+  <span class="n">OutMI</span><span class="p">.</span><span class="n">addOperand</span><span class="p">(</span><span class="n">createSub</span><span class="p">(</span><span class="n">MI</span><span class="o">-&gt;</span><span class="n">getOperand</span><span class="p">(</span><span class="mi">1</span><span class="p">).</span><span class="n">getMBB</span><span class="p">(),</span>
+                             <span class="n">MI</span><span class="o">-&gt;</span><span class="n">getOperand</span><span class="p">(</span><span class="mi">2</span><span class="p">).</span><span class="n">getMBB</span><span class="p">(),</span>
+                             <span class="n">MCSymbolRefExpr</span><span class="o">::</span><span class="n">VK_Cpu0_ABS_HI</span><span class="p">));</span>
+<span class="p">}</span>
+
+<span class="kt">void</span> <span class="n">Cpu0MCInstLower</span><span class="o">::</span>
+<span class="n">lowerLongBranchADDiu</span><span class="p">(</span><span class="k">const</span> <span class="n">MachineInstr</span> <span class="o">*</span><span class="n">MI</span><span class="p">,</span> <span class="n">MCInst</span> <span class="o">&amp;</span><span class="n">OutMI</span><span class="p">,</span> <span class="kt">int</span> <span class="n">Opcode</span><span class="p">,</span>
+                     <span class="n">MCSymbolRefExpr</span><span class="o">::</span><span class="n">VariantKind</span> <span class="n">Kind</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
+  <span class="n">OutMI</span><span class="p">.</span><span class="n">setOpcode</span><span class="p">(</span><span class="n">Opcode</span><span class="p">);</span>
+
+  <span class="c1">// Lower two register operands.</span>
+  <span class="k">for</span> <span class="p">(</span><span class="kt">unsigned</span> <span class="n">I</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">E</span> <span class="o">=</span> <span class="mi">2</span><span class="p">;</span> <span class="n">I</span> <span class="o">!=</span> <span class="n">E</span><span class="p">;</span> <span class="o">++</span><span class="n">I</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">const</span> <span class="n">MachineOperand</span> <span class="o">&amp;</span><span class="n">MO</span> <span class="o">=</span> <span class="n">MI</span><span class="o">-&gt;</span><span class="n">getOperand</span><span class="p">(</span><span class="n">I</span><span class="p">);</span>
+    <span class="n">OutMI</span><span class="p">.</span><span class="n">addOperand</span><span class="p">(</span><span class="n">LowerOperand</span><span class="p">(</span><span class="n">MO</span><span class="p">));</span>
+  <span class="p">}</span>
+
+  <span class="c1">// Create %lo($tgt-$baltgt) or %hi($tgt-$baltgt).</span>
+  <span class="n">OutMI</span><span class="p">.</span><span class="n">addOperand</span><span class="p">(</span><span class="n">createSub</span><span class="p">(</span><span class="n">MI</span><span class="o">-&gt;</span><span class="n">getOperand</span><span class="p">(</span><span class="mi">2</span><span class="p">).</span><span class="n">getMBB</span><span class="p">(),</span>
+                             <span class="n">MI</span><span class="o">-&gt;</span><span class="n">getOperand</span><span class="p">(</span><span class="mi">3</span><span class="p">).</span><span class="n">getMBB</span><span class="p">(),</span> <span class="n">Kind</span><span class="p">));</span>
+<span class="p">}</span>
+
+<span class="kt">bool</span> <span class="n">Cpu0MCInstLower</span><span class="o">::</span><span class="n">lowerLongBranch</span><span class="p">(</span><span class="k">const</span> <span class="n">MachineInstr</span> <span class="o">*</span><span class="n">MI</span><span class="p">,</span>
+                                      <span class="n">MCInst</span> <span class="o">&amp;</span><span class="n">OutMI</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
+  <span class="k">switch</span> <span class="p">(</span><span class="n">MI</span><span class="o">-&gt;</span><span class="n">getOpcode</span><span class="p">())</span> <span class="p">{</span>
+  <span class="nl">default:</span>
+    <span class="k">return</span> <span class="nb">false</span><span class="p">;</span>
+  <span class="k">case</span> <span class="n">Cpu0</span>:<span class="o">:</span><span class="n">LONG_BRANCH_LUi</span><span class="o">:</span>
+    <span class="n">lowerLongBranchLUi</span><span class="p">(</span><span class="n">MI</span><span class="p">,</span> <span class="n">OutMI</span><span class="p">);</span>
+    <span class="k">return</span> <span class="nb">true</span><span class="p">;</span>
+  <span class="k">case</span> <span class="n">Cpu0</span>:<span class="o">:</span><span class="n">LONG_BRANCH_ADDiu</span><span class="o">:</span>
+    <span class="n">lowerLongBranchADDiu</span><span class="p">(</span><span class="n">MI</span><span class="p">,</span> <span class="n">OutMI</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">ADDiu</span><span class="p">,</span>
+                         <span class="n">MCSymbolRefExpr</span><span class="o">::</span><span class="n">VK_Cpu0_ABS_LO</span><span class="p">);</span>
+    <span class="k">return</span> <span class="nb">true</span><span class="p">;</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<div class="highlight-c++"><div class="highlight"><pre><span class="kt">void</span> <span class="n">Cpu0MCInstLower</span><span class="o">::</span><span class="n">Lower</span><span class="p">(</span><span class="k">const</span> <span class="n">MachineInstr</span> <span class="o">*</span><span class="n">MI</span><span class="p">,</span> <span class="n">MCInst</span> <span class="o">&amp;</span><span class="n">OutMI</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
+</pre></div>
+</div>
+<div class="highlight-c++"><div class="highlight"><pre>  <span class="k">if</span> <span class="p">(</span><span class="n">lowerLongBranch</span><span class="p">(</span><span class="n">MI</span><span class="p">,</span> <span class="n">OutMI</span><span class="p">))</span>
+    <span class="k">return</span><span class="p">;</span>
+</pre></div>
+</div>
+<div class="highlight-c++"><div class="highlight"><pre>  <span class="p">...</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p class="rubric">lbdex/chapters/Chapter8_2/Cpu0SEInstrInfo.h</p>
+<div class="highlight-c++"><div class="highlight"><pre>  <span class="kt">unsigned</span> <span class="n">getOppositeBranchOpc</span><span class="p">(</span><span class="kt">unsigned</span> <span class="n">Opc</span><span class="p">)</span> <span class="k">const</span> <span class="n">override</span><span class="p">;</span>
+</pre></div>
+</div>
+<p class="rubric">lbdex/chapters/Chapter8_2/Cpu0SEInstrInfo.cpp</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="c1">/// getOppositeBranchOpc - Return the inverse of the specified</span>
+<span class="c1">/// opcode, e.g. turning BEQ to BNE.</span>
+<span class="kt">unsigned</span> <span class="n">Cpu0SEInstrInfo</span><span class="o">::</span><span class="n">getOppositeBranchOpc</span><span class="p">(</span><span class="kt">unsigned</span> <span class="n">Opc</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
+  <span class="k">switch</span> <span class="p">(</span><span class="n">Opc</span><span class="p">)</span> <span class="p">{</span>
+  <span class="nl">default:</span>           <span class="n">llvm_unreachable</span><span class="p">(</span><span class="s">&quot;Illegal opcode!&quot;</span><span class="p">);</span>
+  <span class="k">case</span> <span class="n">Cpu0</span>:<span class="o">:</span><span class="n">BEQ</span><span class="o">:</span>    <span class="k">return</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">BNE</span><span class="p">;</span>
+  <span class="k">case</span> <span class="n">Cpu0</span>:<span class="o">:</span><span class="n">BNE</span><span class="o">:</span>    <span class="k">return</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">BEQ</span><span class="p">;</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p class="rubric">lbdex/chapters/Chapter8_2/Cpu0TargetMachine.cpp</p>
+<div class="highlight-c++"><div class="highlight"><pre>  <span class="kt">void</span> <span class="n">addPreEmitPass</span><span class="p">()</span> <span class="n">override</span><span class="p">;</span>
+</pre></div>
+</div>
+<div class="highlight-c++"><div class="highlight"><pre><span class="c1">// Implemented by targets that want to run passes immediately before</span>
+<span class="c1">// machine code is emitted. return true if -print-machineinstrs should</span>
+<span class="c1">// print out the code after the passes.</span>
+<span class="kt">void</span> <span class="n">Cpu0PassConfig</span><span class="o">::</span><span class="n">addPreEmitPass</span><span class="p">()</span> <span class="p">{</span>
+  <span class="n">Cpu0TargetMachine</span> <span class="o">&amp;</span><span class="n">TM</span> <span class="o">=</span> <span class="n">getCpu0TargetMachine</span><span class="p">();</span>
+</pre></div>
+</div>
+<div class="highlight-c++"><div class="highlight"><pre>  <span class="n">addPass</span><span class="p">(</span><span class="n">createCpu0LongBranchPass</span><span class="p">(</span><span class="n">TM</span><span class="p">));</span>
+  <span class="k">return</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>The code of Chapter8_2 will compile the following example as follows,</p>
+<p class="rubric">lbdex/input/ch8_2_longbranch.cpp</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="kt">int</span> <span class="nf">test_longbranch</span><span class="p">()</span>
+<span class="p">{</span>
+  <span class="k">volatile</span> <span class="kt">int</span> <span class="n">a</span> <span class="o">=</span> <span class="mi">2</span><span class="p">;</span>
+  <span class="k">volatile</span> <span class="kt">int</span> <span class="n">b</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
+  <span class="kt">int</span> <span class="n">result</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+
+  <span class="k">if</span> <span class="p">(</span><span class="n">a</span> <span class="o">&lt;</span> <span class="n">b</span><span class="p">)</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
+  <span class="k">return</span> <span class="n">result</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<div class="highlight-bash"><div class="highlight"><pre>118-165-78-10:input Jonathan<span class="nv">$ </span>~/llvm/test/cmake_debug_build/Debug/bin/llc
+-march<span class="o">=</span>cpu0 -mcpu<span class="o">=</span>cpu032II -relocation-model<span class="o">=</span>pic -filetype<span class="o">=</span>asm
+-force-cpu0-long-branch ch8_2_longbranch.bc -o -
+  ...
+        .text
+        .section .mdebug.abiO32
+        .previous
+        .file <span class="s2">&quot;ch8_2_longbranch.bc&quot;</span>
+        .globl        _Z15test_longbranchv
+        .align        2
+        .type _Z15test_longbranchv,@function
+        .ent  _Z15test_longbranchv    <span class="c"># @_Z15test_longbranchv</span>
+_Z15test_longbranchv:
+        .frame        <span class="nv">$fp</span>,16,<span class="nv">$lr</span>
+        .mask         0x00001000,-4
+        .set  noreorder
+        .set  nomacro
+<span class="c"># BB#0:</span>
+        addiu <span class="nv">$sp</span>, <span class="nv">$sp</span>, -16
+        st    <span class="nv">$fp</span>, 12<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>            <span class="c"># 4-byte Folded Spill</span>
+        move   <span class="nv">$fp</span>, <span class="nv">$sp</span>
+        addiu <span class="nv">$2</span>, <span class="nv">$zero</span>, 1
+        st    <span class="nv">$2</span>, 8<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        addiu <span class="nv">$3</span>, <span class="nv">$zero</span>, 2
+        st    <span class="nv">$3</span>, 4<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        addiu <span class="nv">$3</span>, <span class="nv">$zero</span>, 0
+        st    <span class="nv">$3</span>, 0<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        ld    <span class="nv">$3</span>, 8<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        ld    <span class="nv">$4</span>, 4<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        slt   <span class="nv">$3</span>, <span class="nv">$3</span>, <span class="nv">$4</span>
+        bne   <span class="nv">$3</span>, <span class="nv">$zero</span>, .LBB0_3
+        nop
+<span class="c"># BB#1:</span>
+        addiu <span class="nv">$sp</span>, <span class="nv">$sp</span>, -8
+        st    <span class="nv">$lr</span>, 0<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+        lui   <span class="nv">$1</span>, %hi<span class="o">(</span>.LBB0_4-.LBB0_2<span class="o">)</span>
+        addiu <span class="nv">$1</span>, <span class="nv">$1</span>, %lo<span class="o">(</span>.LBB0_4-.LBB0_2<span class="o">)</span>
+        bal   .LBB0_2
+        nop
+.LBB0_2:
+        addu  <span class="nv">$1</span>, <span class="nv">$lr</span>, <span class="nv">$1</span>
+        addiu <span class="nv">$1</span>, <span class="nv">$1</span>, 4
+        ld    <span class="nv">$lr</span>, 0<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+        addiu <span class="nv">$sp</span>, <span class="nv">$sp</span>, 8
+        ret   <span class="nv">$1</span>
+        nop
+.LBB0_3:
+        st    <span class="nv">$2</span>, 0<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+.LBB0_4:
+        ld    <span class="nv">$2</span>, 0<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        move   <span class="nv">$sp</span>, <span class="nv">$fp</span>
+        ld    <span class="nv">$fp</span>, 12<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>            <span class="c"># 4-byte Folded Reload</span>
+        addiu <span class="nv">$sp</span>, <span class="nv">$sp</span>, 16
+        ret   <span class="nv">$lr</span>
+        nop
+        .set  macro
+        .set  reorder
+        .end  _Z15test_longbranchv
+<span class="nv">$func_end0</span>:
+        .size _Z15test_longbranchv, <span class="o">(</span><span class="nv">$func_end0</span><span class="o">)</span>-_Z15test_longbranchv
+</pre></div>
+</div>
+</div>
 <div class="section" id="cpu0-backend-optimization-remove-useless-jmp">
-<h2><a class="toc-backref" href="#id7">Cpu0 backend Optimization: Remove useless JMP</a><a class="headerlink" href="#cpu0-backend-optimization-remove-useless-jmp" title="Permalink to this headline">¶</a></h2>
+<h2><a class="toc-backref" href="#id12">Cpu0 backend Optimization: Remove useless JMP</a><a class="headerlink" href="#cpu0-backend-optimization-remove-useless-jmp" title="Permalink to this headline">¶</a></h2>
 <p>LLVM uses functional pass both in code generation and optimization.
 Following the 3 tiers of compiler architecture, LLVM do much optimization in
 middle tier of LLVM IR, SSA form.
@@ -438,17 +1092,6 @@ codes as follows,</p>
 </pre></div>
 </div>
 <p class="rubric">lbdex/chapters/Chapter8_2/Cpu0TargetMachine.cpp</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="c1">/// Cpu0 Code Generator Pass Configuration Options.</span>
-<span class="k">class</span> <span class="nc">Cpu0PassConfig</span> <span class="o">:</span> <span class="k">public</span> <span class="n">TargetPassConfig</span> <span class="p">{</span>
-</pre></div>
-</div>
-<div class="highlight-c++"><div class="highlight"><pre>  <span class="kt">void</span> <span class="n">addPreEmitPass</span><span class="p">()</span> <span class="n">override</span><span class="p">;</span>
-</pre></div>
-</div>
-<div class="highlight-c++"><div class="highlight"><pre><span class="p">};</span>
-<span class="p">...</span>
-</pre></div>
-</div>
 <div class="highlight-c++"><div class="highlight"><pre><span class="c1">// Implemented by targets that want to run passes immediately before</span>
 <span class="c1">// machine code is emitted. return true if -print-machineinstrs should</span>
 <span class="c1">// print out the code after the passes.</span>
@@ -573,8 +1216,8 @@ its Operand is the next basic block.
 By getMBB() in MachineOperand, you can get the MBB address.
 For the member functions of MachineOperand, please check
 include/llvm/CodeGen/MachineOperand.h
-Now, let&#8217;s run Chapter8_2/ with ch8_2.cpp for explanation.</p>
-<p class="rubric">lbdex/input/ch8_2.cpp</p>
+Now, let&#8217;s run Chapter8_2/ with ch8_2_deluselessjmp.cpp for explanation.</p>
+<p class="rubric">lbdex/input/ch8_2_deluselessjmp.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="kt">int</span> <span class="nf">test_DelUselessJMP</span><span class="p">()</span>
 <span class="p">{</span>
   <span class="kt">int</span> <span class="n">a</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span> <span class="kt">int</span> <span class="n">b</span> <span class="o">=</span> <span class="o">-</span><span class="mi">2</span><span class="p">;</span> <span class="kt">int</span> <span class="n">c</span> <span class="o">=</span> <span class="mi">3</span><span class="p">;</span>
@@ -599,10 +1242,10 @@ Now, let&#8217;s run Chapter8_2/ with ch8_2.cpp for explanation.</p>
 </pre></div>
 </div>
 <div class="highlight-bash"><div class="highlight"><pre>118-165-78-10:input Jonathan<span class="nv">$ </span>clang -target mips-unknown-linux-gnu
--c ch8_2.cpp -emit-llvm -o ch8_2.bc
+-c ch8_2_deluselessjmp.cpp -emit-llvm -o ch8_2_deluselessjmp.bc
 118-165-78-10:input Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/test/cmake_debug_build/
 Debug/bin/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>static -filetype<span class="o">=</span>asm -stats
-ch8_2.bc -o -
+ch8_2_deluselessjmp.bc -o -
   ...
         cmp   <span class="nv">$sw</span>, <span class="nv">$4</span>, <span class="nv">$3</span>
         jne   <span class="nv">$sw</span>, <span class="nv">$BB0_2</span>
@@ -632,7 +1275,7 @@ lines of assembly code, which meaning 8% improvement in speed and code size
 <a class="footnote-reference" href="#cache-speed" id="id1">[1]</a>.</p>
 </div>
 <div class="section" id="fill-branch-delay-slot">
-<h2><a class="toc-backref" href="#id8">Fill Branch Delay Slot</a><a class="headerlink" href="#fill-branch-delay-slot" title="Permalink to this headline">¶</a></h2>
+<h2><a class="toc-backref" href="#id13">Fill Branch Delay Slot</a><a class="headerlink" href="#fill-branch-delay-slot" title="Permalink to this headline">¶</a></h2>
 <p>Cpu0 instruction set is designed to be a classical RISC pipeline machine.
 Classical machine has many perfect features <a class="footnote-reference" href="#quantitative" id="id2">[3]</a> <a class="footnote-reference" href="#wiki-pipeline" id="id3">[4]</a>.
 Since Cpu0 has delay slot same with 5 stages of Mips machine, the backend needs
@@ -775,14 +1418,20 @@ instruction (first part is branch instruction and second part is NOP).</p>
 <span class="kt">void</span> <span class="n">Cpu0AsmPrinter</span><span class="o">::</span><span class="n">EmitInstruction</span><span class="p">(</span><span class="k">const</span> <span class="n">MachineInstr</span> <span class="o">*</span><span class="n">MI</span><span class="p">)</span> <span class="p">{</span>
 </pre></div>
 </div>
-<div class="highlight-c++"><div class="highlight"><pre>  <span class="n">MachineBasicBlock</span><span class="o">::</span><span class="n">const_instr_iterator</span> <span class="n">I</span> <span class="o">=</span> <span class="n">MI</span><span class="p">;</span>
+<div class="highlight-c++"><div class="highlight"><pre>  <span class="c1">//  Print out both ordinary instruction and boudle instruction</span>
+  <span class="n">MachineBasicBlock</span><span class="o">::</span><span class="n">const_instr_iterator</span> <span class="n">I</span> <span class="o">=</span> <span class="n">MI</span><span class="p">;</span>
   <span class="n">MachineBasicBlock</span><span class="o">::</span><span class="n">const_instr_iterator</span> <span class="n">E</span> <span class="o">=</span> <span class="n">MI</span><span class="o">-&gt;</span><span class="n">getParent</span><span class="p">()</span><span class="o">-&gt;</span><span class="n">instr_end</span><span class="p">();</span>
 
-  <span class="n">MCInst</span> <span class="n">TmpInst0</span><span class="p">;</span>
   <span class="k">do</span> <span class="p">{</span>
 </pre></div>
 </div>
-<div class="highlight-c++"><div class="highlight"><pre>    <span class="n">MCInstLowering</span><span class="p">.</span><span class="n">Lower</span><span class="p">(</span><span class="n">I</span><span class="p">,</span> <span class="n">TmpInst0</span><span class="p">);</span>
+<div class="highlight-c++"><div class="highlight"><pre>    <span class="k">if</span> <span class="p">(</span><span class="n">I</span><span class="o">-&gt;</span><span class="n">isPseudo</span><span class="p">()</span> <span class="o">&amp;&amp;</span> <span class="o">!</span><span class="n">isLongBranchPseudo</span><span class="p">(</span><span class="n">I</span><span class="o">-&gt;</span><span class="n">getOpcode</span><span class="p">()))</span>
+</pre></div>
+</div>
+<div class="highlight-c++"><div class="highlight"><pre>      <span class="n">llvm_unreachable</span><span class="p">(</span><span class="s">&quot;Pseudo opcode found in EmitInstruction()&quot;</span><span class="p">);</span>
+
+    <span class="n">MCInst</span> <span class="n">TmpInst0</span><span class="p">;</span>
+    <span class="n">MCInstLowering</span><span class="p">.</span><span class="n">Lower</span><span class="p">(</span><span class="n">I</span><span class="p">,</span> <span class="n">TmpInst0</span><span class="p">);</span>
     <span class="n">OutStreamer</span><span class="o">-&gt;</span><span class="n">EmitInstruction</span><span class="p">(</span><span class="n">TmpInst0</span><span class="p">,</span> <span class="n">getSubtargetInfo</span><span class="p">());</span>
   <span class="p">}</span> <span class="k">while</span> <span class="p">((</span><span class="o">++</span><span class="n">I</span> <span class="o">!=</span> <span class="n">E</span><span class="p">)</span> <span class="o">&amp;&amp;</span> <span class="n">I</span><span class="o">-&gt;</span><span class="n">isInsideBundle</span><span class="p">());</span> <span class="c1">// Delay slot check</span>
 <span class="p">}</span>
@@ -799,8 +1448,8 @@ But for some reasons, it changed in llvm some later version and you need doing
 &#8220;bundle&#8221; in order to keep block label unchanged at later llvm phase.</p>
 </div>
 <div class="section" id="conditional-instruction">
-<h2><a class="toc-backref" href="#id9">Conditional instruction</a><a class="headerlink" href="#conditional-instruction" title="Permalink to this headline">¶</a></h2>
-<p class="rubric">lbdex/input/ch8_3.cpp</p>
+<h2><a class="toc-backref" href="#id14">Conditional instruction</a><a class="headerlink" href="#conditional-instruction" title="Permalink to this headline">¶</a></h2>
+<p class="rubric">lbdex/input/ch8_2_select.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="c1">// The following files will generate IR select even compile with clang -O0.</span>
 <span class="kt">int</span> <span class="nf">test_movx_1</span><span class="p">()</span>
 <span class="p">{</span>
@@ -823,11 +1472,11 @@ But for some reasons, it changed in llvm some later version and you need doing
 <span class="p">}</span>
 </pre></div>
 </div>
-<p>If you run Chapter8_1 with ch8_3.cpp will get the following result.</p>
+<p>If you run Chapter8_1 with ch8_2_select.cpp will get the following result.</p>
 <div class="highlight-bash"><div class="highlight"><pre>114-37-150-209:input Jonathan<span class="nv">$ </span>clang -O1 -target mips-unknown-linux-gnu
--c ch8_3.cpp -emit-llvm -o ch8_3.bc
+-c ch8_2_select.cpp -emit-llvm -o ch8_2_select.bc
 114-37-150-209:input Jonathan<span class="nv">$ </span>~/llvm/test/cmake_debug_build/Debug/bin/
-llvm-dis ch8_3.bc -o -
+llvm-dis ch8_2_select.bc -o -
 ...
 ; Function Attrs: nounwind uwtable
 define i32 @_Z11test_movx_1v<span class="o">()</span> <span class="c">#0 {</span>
@@ -860,13 +1509,14 @@ define i32 @_Z11test_movx_2v<span class="o">()</span> <span class="c">#0 {</span
 ...
 
 114-37-150-209:input Jonathan<span class="nv">$ </span>~/llvm/test/cmake_debug_build/Debug/bin/llc
--march<span class="o">=</span>cpu0 -mcpu<span class="o">=</span>cpu032I -relocation-model<span class="o">=</span>static -filetype<span class="o">=</span>asm ch8_3.bc -o -
+-march<span class="o">=</span>cpu0 -mcpu<span class="o">=</span>cpu032I -relocation-model<span class="o">=</span>static -filetype<span class="o">=</span>asm
+ch8_2_select.bc -o -
 ...
 LLVM ERROR: Cannot <span class="k">select</span>: 0x39f47c0: <span class="nv">i32</span> <span class="o">=</span> select_cc ...
 </pre></div>
 </div>
-<p>As llvm IR of ch8_3.bc as above, clang generates <strong>select</strong> IR for small
-basic control block (if statement only include one assign statement).
+<p>As llvm IR of ch8_2_select.bc as above, clang generates <strong>select</strong> IR for
+small basic control block (if statement only include one assign statement).
 This <strong>select</strong> IR is optimization result for CPU which has conditional
 instructions support.
 And from above llc command debug trace message, IR <strong>select</strong> is changed to
@@ -1004,11 +1654,11 @@ select into one IR select_cc <a class="footnote-reference" href="#wb" id="id4">[
 Next the LowerSELECT() return ISD::SELECT as
 Op code directly. Finally the pattern define in Cpu0CondMov.td will
 translate the <strong>select</strong> IR into <strong>movz</strong> or <strong>movn</strong> conditional instruction.
-Let&#8217;s run Chapter8_2 with ch8_3.cpp to get the following result.
+Let&#8217;s run Chapter8_2 with ch8_2_select.cpp to get the following result.
 Again, the cpu032II uses <strong>slt</strong> instead of <strong>cmp</strong> has a little improved in
 instructions number.</p>
 <div class="highlight-bash"><div class="highlight"><pre>114-37-150-209:input Jonathan<span class="nv">$ </span>~/llvm/test/cmake_debug_build/Debug/bin/llc
--march<span class="o">=</span>cpu0 -mcpu<span class="o">=</span>cpu032I -relocation-model<span class="o">=</span>static -filetype<span class="o">=</span>asm ch8_3.bc -o -
+-march<span class="o">=</span>cpu0 -mcpu<span class="o">=</span>cpu032I -relocation-model<span class="o">=</span>static -filetype<span class="o">=</span>asm ch8_2_select.bc -o -
 ...
       .type   _Z11test_movx_1v,@function
       ...
@@ -1040,8 +1690,8 @@ If you designed a backend aimed for C/C++ highlevel language, you should
 consider <strong>slt</strong> instead <strong>cmp</strong>. Assembly code are rare used in programming,
 beside, the assembly programmer can accept <strong>slt</strong> either since usually they
 are professional.</p>
-<p>File ch8_3_2.cpp will generate IR <strong>select</strong> if compile with <tt class="docutils literal"><span class="pre">clang</span> <span class="pre">-O1</span></tt>.</p>
-<p class="rubric">lbdex/input/ch8_3_2.cpp</p>
+<p>File ch8_2_select2.cpp will generate IR <strong>select</strong> if compile with <tt class="docutils literal"><span class="pre">clang</span> <span class="pre">-O1</span></tt>.</p>
+<p class="rubric">lbdex/input/ch8_2_select2.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="c1">// The following files will generate IR select when compile with clang -O1 but </span>
 <span class="c1">// clang -O0 won&#39;t generate IR select.</span>
 <span class="k">volatile</span> <span class="kt">int</span> <span class="n">a</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
@@ -1099,10 +1749,16 @@ following table.</p>
 </tr>
 </tbody>
 </table>
-<p>File ch8_5.cpp for wrapper pic mode of global variable support which mentioned
+<p>File ch8_2_select_global_pic.cpp for wrapper pic mode of global variable support which mentioned
 in Chapter Global variables can be tested now as follows.</p>
-<p class="rubric">lbdex/input/ch8_5.cpp</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="kt">int</span> <span class="nf">test_select_global_pic</span><span class="p">()</span>
+<p class="rubric">lbdex/input/ch8_2_select_global_pic.cpp</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="k">volatile</span> <span class="kt">int</span> <span class="n">a1</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
+<span class="k">volatile</span> <span class="kt">int</span> <span class="n">b1</span> <span class="o">=</span> <span class="mi">2</span><span class="p">;</span>
+
+<span class="kt">int</span> <span class="n">gI1</span> <span class="o">=</span> <span class="mi">100</span><span class="p">;</span>
+<span class="kt">int</span> <span class="n">gJ1</span> <span class="o">=</span> <span class="mi">50</span><span class="p">;</span>
+
+<span class="kt">int</span> <span class="nf">test_select_global_pic</span><span class="p">()</span>
 <span class="p">{</span>
   <span class="k">if</span> <span class="p">(</span><span class="n">a1</span> <span class="o">&lt;</span> <span class="n">b1</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">gI1</span><span class="p">;</span>
@@ -1112,9 +1768,9 @@ in Chapter Global variables can be tested now as follows.</p>
 </pre></div>
 </div>
 <div class="highlight-bash"><div class="highlight"><pre>JonathantekiiMac:input Jonathan<span class="nv">$ </span>clang -O1 -target mips-unknown-linux-gnu
--c ch8_5.cpp -emit-llvm -o ch8_5.bc
+-c ch8_2_select_global_pic.cpp -emit-llvm -o ch8_2_select_global_pic.bc
 JonathantekiiMac:input Jonathan<span class="nv">$ </span>~/llvm/test/cmake_debug_build/Debug/bin/
-llvm-dis ch8_5.bc -o -
+llvm-dis ch8_2_select_global_pic.bc -o -
 ...
 @a1 <span class="o">=</span> global i32 1, align 4
 @b1 <span class="o">=</span> global i32 2, align 4
@@ -1133,10 +1789,10 @@ define i32 @_Z18test_select_globalv<span class="o">()</span> <span class="c">#0 
 <span class="o">}</span>
 ...
 JonathantekiiMac:input Jonathan<span class="nv">$ </span>~/llvm/test/cmake_debug_build/Debug/bin/
-llc -march<span class="o">=</span>cpu0 -mcpu<span class="o">=</span>cpu032I -relocation-model<span class="o">=</span>pic -filetype<span class="o">=</span>asm ch8_5.bc -o -
+llc -march<span class="o">=</span>cpu0 -mcpu<span class="o">=</span>cpu032I -relocation-model<span class="o">=</span>pic -filetype<span class="o">=</span>asm ch8_2_select_global_pic.bc -o -
   .section .mdebug.abi32
   .previous
-  .file <span class="s2">&quot;ch8_5.bc&quot;</span>
+  .file <span class="s2">&quot;ch8_2_select_global_pic.bc&quot;</span>
   .text
   .globl  _Z18test_select_globalv
   .align  2
@@ -1206,8 +1862,146 @@ gJ1:
 </pre></div>
 </div>
 </div>
+<div class="section" id="phi-node">
+<h2><a class="toc-backref" href="#id15">Phi node</a><a class="headerlink" href="#phi-node" title="Permalink to this headline">¶</a></h2>
+<p>Since phi (Φ) node is popular used in SSA form <a class="footnote-reference" href="#ssa-wiki" id="id6">[5]</a>, of course llvm applies
+phi node in IR for optimization work.
+Phi node exists for &#8220;live variable analysis&#8221;, an example for C is here
+<a class="footnote-reference" href="#phi-ex" id="id7">[6]</a>.
+As mentioned in wiki web site of reference above, through dominance frontiers
+identify compiler knows where to insert Φ functions.
+The following input let you know the benefits of phi node as follows,</p>
+<p class="rubric">lbdex/input/ch8_2_phinode.cpp</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="kt">int</span> <span class="nf">test_phinode</span><span class="p">(</span><span class="kt">int</span> <span class="n">a</span> <span class="p">,</span> <span class="kt">int</span> <span class="n">b</span><span class="p">,</span> <span class="kt">int</span> <span class="n">c</span><span class="p">)</span>
+<span class="p">{</span>
+  <span class="kt">int</span> <span class="n">d</span> <span class="o">=</span> <span class="mi">2</span><span class="p">;</span>
+  
+  <span class="k">if</span> <span class="p">(</span><span class="n">a</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">a</span><span class="o">++</span><span class="p">;</span> <span class="c1">// a = 1</span>
+  <span class="p">}</span>
+  <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="n">b</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">a</span><span class="o">--</span><span class="p">;</span> <span class="c1">// b = 2</span>
+  <span class="p">}</span>
+  <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="n">c</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">a</span> <span class="o">+=</span> <span class="mi">2</span><span class="p">;</span>
+  <span class="p">}</span>
+  <span class="n">d</span> <span class="o">=</span> <span class="n">a</span> <span class="o">+</span> <span class="n">b</span><span class="p">;</span>
+  
+  <span class="k">return</span> <span class="n">d</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<div class="highlight-bash"><div class="highlight"><pre>114-43-212-251:input Jonathan<span class="nv">$ </span>clang -O3 -target mips-unknown-linux-gnu -c
+ch8_2_phinode.cpp -emit-llvm -o ch8_2_phinode.bc
+114-43-212-251:input Jonathan<span class="nv">$ </span>~/llvm/test/cmake_debug_build/Debug/bin/llvm-dis
+ch8_2_phinode.bc -o -
+...
+define i32 @_Z12test_phinodeiii<span class="o">(</span>i32 signext %a, i32 signext %b, i32 signext %c<span class="o">)</span> <span class="c">#0 {</span>
+  %1 <span class="o">=</span> icmp eq i32 %a, 0
+  br i1 %1, label %9, label %2
+
+; &lt;label&gt;:2                                       ; <span class="nv">preds</span> <span class="o">=</span> %0
+  %3 <span class="o">=</span> icmp eq i32 %b, 0
+  br i1 %3, label %6, label %4
+
+; &lt;label&gt;:4                                       ; <span class="nv">preds</span> <span class="o">=</span> %2
+  %5 <span class="o">=</span> add nsw i32 %a, -1
+  br label %9
+
+; &lt;label&gt;:6                                       ; <span class="nv">preds</span> <span class="o">=</span> %2
+  %7 <span class="o">=</span> icmp eq i32 %c, 0
+  %8 <span class="o">=</span> add nsw i32 %a, 2
+  %.a <span class="o">=</span> <span class="k">select </span>i1 %7, i32 %8, i32 %a
+  br label %9
+
+; &lt;label&gt;:9                                       ; <span class="nv">preds</span> <span class="o">=</span> %0, %6, %4
+  %.0 <span class="o">=</span> phi i32 <span class="o">[</span> %5, %4 <span class="o">]</span>, <span class="o">[</span> %.a, %6 <span class="o">]</span>, <span class="o">[</span> 1, %0 <span class="o">]</span>
+  %10 <span class="o">=</span> add nsw i32 %.0, %b
+  ret i32 %10
+<span class="o">}</span>
+
+114-43-212-251:input Jonathan<span class="nv">$ </span>clang -O0 -target mips-unknown-linux-gnu -c
+ch8_2_phinode.cpp -emit-llvm -o ch8_2_phinode.bc
+114-43-212-251:input Jonathan<span class="nv">$ </span>~/llvm/test/cmake_debug_build/Debug/bin/llvm-dis
+ch8_2_phinode.bc -o -
+...
+define i32 @_Z12test_phinodeiii<span class="o">(</span>i32 signext %a, i32 signext %b, i32 signext %c<span class="o">)</span> <span class="c">#0 {</span>
+  %1 <span class="o">=</span> alloca i32, align 4
+  %2 <span class="o">=</span> alloca i32, align 4
+  %3 <span class="o">=</span> alloca i32, align 4
+  %d <span class="o">=</span> alloca i32, align 4
+  store i32 %a, i32* %1, align 4
+  store i32 %b, i32* %2, align 4
+  store i32 %c, i32* %3, align 4
+  store i32 2, i32* %d, align 4
+  %4 <span class="o">=</span> load i32, i32* %1, align 4
+  %5 <span class="o">=</span> icmp eq i32 %4, 0
+  br i1 %5, label %6, label %9
+
+; &lt;label&gt;:6                                       ; <span class="nv">preds</span> <span class="o">=</span> %0
+  %7 <span class="o">=</span> load i32, i32* %1, align 4
+  %8 <span class="o">=</span> add nsw i32 %7, 1
+  store i32 %8, i32* %1, align 4
+  br label %23
+
+; &lt;label&gt;:9                                       ; <span class="nv">preds</span> <span class="o">=</span> %0
+  %10 <span class="o">=</span> load i32, i32* %2, align 4
+  %11 <span class="o">=</span> icmp ne i32 %10, 0
+  br i1 %11, label %12, label %15
+
+; &lt;label&gt;:12                                      ; <span class="nv">preds</span> <span class="o">=</span> %9
+  %13 <span class="o">=</span> load i32, i32* %1, align 4
+  %14 <span class="o">=</span> add nsw i32 %13, -1
+  store i32 %14, i32* %1, align 4
+  br label %22
+
+; &lt;label&gt;:15                                      ; <span class="nv">preds</span> <span class="o">=</span> %9
+  %16 <span class="o">=</span> load i32, i32* %3, align 4
+  %17 <span class="o">=</span> icmp eq i32 %16, 0
+  br i1 %17, label %18, label %21
+
+; &lt;label&gt;:18                                      ; <span class="nv">preds</span> <span class="o">=</span> %15
+  %19 <span class="o">=</span> load i32, i32* %1, align 4
+  %20 <span class="o">=</span> add nsw i32 %19, 2
+  store i32 %20, i32* %1, align 4
+  br label %21
+
+; &lt;label&gt;:21                                      ; <span class="nv">preds</span> <span class="o">=</span> %18, %15
+  br label %22
+
+; &lt;label&gt;:22                                      ; <span class="nv">preds</span> <span class="o">=</span> %21, %12
+  br label %23
+
+; &lt;label&gt;:23                                      ; <span class="nv">preds</span> <span class="o">=</span> %22, %6
+  %24 <span class="o">=</span> load i32, i32* %1, align 4
+  %25 <span class="o">=</span> load i32, i32* %2, align 4
+  %26 <span class="o">=</span> add nsw i32 %24, %25
+  store i32 %26, i32* %d, align 4
+  %27 <span class="o">=</span> load i32, i32* %d, align 4
+  ret i32 %27
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>Compile with <tt class="docutils literal"><span class="pre">clang</span> <span class="pre">-O3</span></tt> will generate phi function. The phi function can
+assign virtual register value directly from multi basic blocks.
+Compile with <tt class="docutils literal"><span class="pre">clang</span> <span class="pre">-O0</span></tt> doesn&#8217;t generate phi, it assign virtual register
+value by loading stack slot where the stack slot is saved in each of multi
+basic blocks before.
+In this example the pointer of %1 point to the stack slot, and
+&#8220;store i32 %8, i32* %1&#8221;, &#8221; store i32 %14, i32* %1&#8221;, &#8220;store i32 %20, i32* %1&#8221;
+in label 6, 12 and 18, respectively. In other words, it needs 3 store
+instructions.
+It&#8217;s possible that the compiler find that the a == 0 is always true after
+optimization analysis through phi node.
+If so, the phi node version will bring better
+result because <tt class="docutils literal"><span class="pre">clang</span> <span class="pre">-O0</span></tt> version uses load and store with pointer %1 which
+may cut the optimization opportunity.</p>
+<p>If you are interested in more details than the wiki web site, please refer book
+here <a class="footnote-reference" href="#phi-book" id="id8">[7]</a> for phi node, or book here <a class="footnote-reference" href="#dominator-dragonbooks" id="id9">[8]</a> for the
+dominator tree analysis if you have this book only.</p>
+</div>
 <div class="section" id="risc-cpu-knowledge">
-<h2><a class="toc-backref" href="#id10">RISC CPU knowledge</a><a class="headerlink" href="#risc-cpu-knowledge" title="Permalink to this headline">¶</a></h2>
+<h2><a class="toc-backref" href="#id16">RISC CPU knowledge</a><a class="headerlink" href="#risc-cpu-knowledge" title="Permalink to this headline">¶</a></h2>
 <p>As mentioned in the previous section, Cpu0&#8217;s instruction set is a RISC
 (Reduced Instruction Set
 Computer) CPU with 5 stages of pipeline (Even though it is not a pipeline as
@@ -1262,6 +2056,31 @@ Morgan Kaufmann Series in Computer Architecture and Design)</td></tr>
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
 <tr><td class="label"><a class="fn-backref" href="#id3">[4]</a></td><td><a class="reference external" href="http://en.wikipedia.org/wiki/Classic_RISC_pipeline">http://en.wikipedia.org/wiki/Classic_RISC_pipeline</a></td></tr>
+</tbody>
+</table>
+<table class="docutils footnote" frame="void" id="ssa-wiki" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id6">[5]</a></td><td><a class="reference external" href="https://en.wikipedia.org/wiki/Static_single_assignment_form">https://en.wikipedia.org/wiki/Static_single_assignment_form</a></td></tr>
+</tbody>
+</table>
+<table class="docutils footnote" frame="void" id="phi-ex" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id7">[6]</a></td><td><a class="reference external" href="http://stackoverflow.com/questions/11485531/what-exactly-phi-instruction-does-and-how-to-use-it-in-llvm">http://stackoverflow.com/questions/11485531/what-exactly-phi-instruction-does-and-how-to-use-it-in-llvm</a></td></tr>
+</tbody>
+</table>
+<table class="docutils footnote" frame="void" id="phi-book" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id8">[7]</a></td><td>Section 8.11 of Muchnick, Steven S. (1997). Advanced Compiler Design and Implementation. Morgan Kaufmann. ISBN 1-55860-320-4.</td></tr>
+</tbody>
+</table>
+<table class="docutils footnote" frame="void" id="dominator-dragonbooks" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id9">[8]</a></td><td>Refer chapter 9 of book Compilers: Principles,
+Techniques, and Tools (2nd Edition)</td></tr>
 </tbody>
 </table>
 </div>
