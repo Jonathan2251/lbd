@@ -1608,7 +1608,7 @@ Run Chapter9_2/ with ch9_2_tailcall.cpp will get the following result.
 
 The tail call optimization is applied in cpu032II only for this example (it uses
 "jmp _Z9factoriali" instead of "jsub _Z9factoriali").
-Tail call share caller and callee stack but cpu032I (pass all arguments in
+Tail call share caller's and callee's stack but cpu032I (pass all arguments in
 stack) not satisify the following statement, NextStackOffset <= 
 FI.getIncomingArgSize() in isEligibleForTailCallOptimization(), and return 
 false for this function as follows,
@@ -1705,7 +1705,7 @@ Recursion optimization
 
 As last section, cpu032I cannot do tail call optimization in 
 ch9_2_tailcall.cpp since the limitation of arguments size is not satisfied. 
-If run with ``clang -O3`` option, it can get the same or better performance 
+If runnig with ``clang -O3`` option, it can get the same or better performance 
 than tail call as follows,
 
 .. code-block:: bash
@@ -1857,7 +1857,7 @@ ABI specification.
 Other features supporting
 -------------------------
 
-This section support features of $gp register caller saved register in PIC 
+This section supports features of $gp register caller saved register in PIC 
 addressing mode, variable number of arguments and dynamic stack allocation.
 
 Run Chapter9_2/ with ch9_3_vararg.cpp to get the following error,
@@ -1914,14 +1914,14 @@ The $gp register caller saved register in PIC addressing mode
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 According the original cpu0 web site information, it only supports **“jsub”** 
-bits address range access. 
+of 24-bit address range access. 
 We add **“jalr”** to cpu0 and expand it to 32 bit address. We did this change for 
 two reasons. One is cpu0 can be expanded to 32 bit address space by only adding 
 this instruction. 
 The other is cpu0 as well as this book are designed for tutorial. 
 We reserve **“jalr”** as PIC mode for dynamic linking function to demonstrates: 
 
-1. How caller handle the caller saved register $gp in calling the function
+1. How caller handles the caller saved register $gp in calling the function.
 
 2. How the code in the shared libray function uses $gp to access global variable 
    address. 
@@ -2001,12 +2001,13 @@ defining it in Cpu0Config.h.
 The #ifdef ENABLE_GPRESTORE part of code in Cpu0 can be removed but it come with
 the cost of reserve $gp register as a specific register and cannot be allocated
 for the program variable in PIC mode. As explained in early chapter Gloabal 
-variable, the PIC is rare and the performance advantage can be ignored in
-dynamic link, so we keep this feature in Cpu0 and provide readers this feature. 
+variable, the PIC is not critial function and the performance advantage can be 
+ignored in dynamic link, so we keep this feature in Cpu0 and provide readers 
+this feature. 
 Even with this point, I really prefer to reserve $gp as a specific register in
 PIC. It will save a lot of trouble in programming.
-When reserve $gp, .cpload can be disabled by option "-cpu0-reserve-gp". 
-The .cpload is need even reserve $gp. Consider prgrammer implement a boot code
+When reserve $gp, .cprestore can be disabled by option "-cpu0-reserve-gp". 
+The .cpload is needed even reserve $gp. Consider prgrammer implement a boot code
 function with C and assembly mixed, programmer can set $gp value through .cpload
 issue.
 
@@ -2271,7 +2272,7 @@ Variable number of arguments
 
 Until now, we support fixed number of arguments in formal function definition 
 (Incoming Arguments). 
-This subsection support variable number of arguments since C language support 
+This subsection supports variable number of arguments since C language supports 
 this feature.
 
 Run Chapter9_3/ with ch9_3_vararg.cpp as well as clang option, 
@@ -2695,10 +2696,10 @@ Run Chapter9_3 with ch9_3_alloc.cpp will get the following correct result.
   ...
 
 As you can see, the dynamic stack allocation needs frame pointer register **fp**
-support. As above assembly, the sp is adjusted to (sp - 40) when it 
-entered the function as usual by instruction **addiu $sp, $sp, -40**. 
+support. As above assembly, the sp is adjusted to (sp - 48) when it 
+entered the function as usual by instruction **addiu $sp, $sp, -48**. 
 Next, the fp is set to sp where is the position just above alloca() spaces area 
-as :num:`Figure #funccall-f4` when meet instruction **addu $fp, $sp, $zero**. 
+as :num:`Figure #funccall-f4` when meets instruction **move $fp, $sp**. 
 After that, the sp is changed to the area just below of alloca().
 Remind, the alloca() area which the b point to, 
 **"*b = (int*)__builtin_alloca(sizeof(int) * 2 * x6)"**, is 
@@ -2739,7 +2740,7 @@ Next, sp is changed back to caller stack bottom by instruction
 
     fp and sp access areas
 
-Use fp to keep the old stack pointer value is not the only solution. 
+Using fp to keep the old stack pointer value is not the only solution. 
 Actually, we can keep the alloca() spaces size on a specific memory address 
 and the sp can back to the the old sp by add the alloca() spaces size. 
 Most ABI like Mips
@@ -2927,8 +2928,8 @@ support which can be tested now as follows.
 Variable sized array support
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-LLVM support variable sized arrays in C99 [#stacksave]_. The following code 
-added with this support. Set them to expand, meaning llvm uses other DAGs 
+LLVM supports variable sized arrays in C99 [#stacksave]_. The following code 
+added for this support. Set them to expand, meaning llvm uses other DAGs 
 replace them.
 
 .. rubric:: lbdex/chapters/Chapter9_3/Cpu0ISelLowering.cpp
@@ -3136,7 +3137,7 @@ Run with the following input to get the following result.
 
 The asm "ld	$2, 12($fp)" in function _Z22display_returnaddress1v reload $lr 
 to $2 after "jsub _Z3fnv". Cpu0 doesn't produce "addiu $2, $zero, $lr" because
-if _Z3fnv change $lr value without following ABI then it will get the wrong $lr
+if _Z3fnv changes $lr value without following ABI then it will get the wrong $lr
 to $2. The following code kills $lr register and make the reference to $lr by
 loading from stack slot rather than uses register directly. 
 
@@ -3452,7 +3453,7 @@ as below.
     ...
 
 
-If you disable "__attribute__ ((weak))" in the c file, then the IR will has
+If you disable "__attribute__ ((weak))" in the C file, then the IR will has
 "nounwind" in attributes \#3. The side effect in asm output is "No .cfi_offset
 issued" like function exception_handler().
 
@@ -3461,8 +3462,8 @@ call exception handler by call __builtin_xxx in clang in C language, without
 introduces any assembly instruction. 
 And this example can be verified in the Chapter "Cpu0 ELF linker" of my the other 
 book "llvm tool chain for Cpu0" [#cpu0lld]_.
-Through global variable, exceptionOccur, is true or false, whether the control 
-flow to exception_handler() or not can be identified.
+Through checking global variable, exceptionOccur, is true or false, whether the 
+control flow to exception_handler() or not can be identified.
 
 
 eh.dwarf intrinsic
@@ -3534,17 +3535,17 @@ Cpu0 supports llvm instrinsics bswap intrinsic [#bswapintrnsic]_.
 Summary
 -------
  
-Now, Cpu0 backend code now can take care the integer function call and control 
-statement just like the llvm front end tutorial example code. 
+Now, Cpu0 backend code now can take care both the integer function call and 
+control statement just like the llvm front end tutorial example code. 
 It can translate some of the C++ OOP language into Cpu0 instructions also 
 without much effort in backend,
 because the most complex things in language, such as C++ syntex, is handled by 
 front end. 
 LLVM is a real structure following the compiler theory, any backend of LLVM can 
-benefit from this structure.
+get benefit from this structure.
 The best part of 3 tiers compiler structure is that backend will grow up 
-automatically through the front end support languages more and more if the 
-frontend has not add any new IR for a new language.
+automatically in languages support when the front end supporting languages more 
+and more if the frontend has not added any new IR for a new language.
 
 
 .. [#computer_arch_interface] Computer Organization and Design: The Hardware/Software Interface 1st edition (The Morgan Kaufmann Series in Computer Architecture and Design)
