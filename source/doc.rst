@@ -71,6 +71,17 @@ Install all texlive-* (full) as follows,
 .. code-block:: bash
 
   [root@localhost lld]$ yum install texlive-*
+  
+
+After upgrade to iMac OS X 10.11.1, pdflatex link is missing, fix it by set in 
+.profile as follows,
+
+.. code-block:: bash
+  
+  114-37-153-62:lbd Jonathan$ ls /usr/local/texlive/2012/bin/universal-darwin/pdflatex 
+  /usr/local/texlive/2012/bin/universal-darwin/pdflatex
+  114-37-153-62:lbd Jonathan$ cat ~/.profile
+  export PATH=$PATH:...:/usr/local/texlive/2012/bin/universal-darwin
 
 
 Generate Cpu0 document
