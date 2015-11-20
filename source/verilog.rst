@@ -44,18 +44,18 @@ In Appendix A, we have downloaded and installed Icarus Verilog tool both on
 iMac and Linux. The cpu0.v and cpu0Is.v are simple design 
 with only few hundreds lines of code totally. 
 Although it has not the pipeline features, we can assume the 
-Cpu0 backend code run on the pipeline machine with NOP instruction fill in 
-branch delay slot because the pipeline version use the same machine 
+Cpu0 backend code can run on the pipeline machine with NOP instruction fill in 
+branch delay slot because the pipeline version uses the same machine 
 instructions. Verilog is a C like language in syntex and 
 this book is a compiler book, so we list the cpu0.v as well as the building 
 command directly as below. 
-We expect readers can understand the Verilog code just with a little patient 
+We expect readers can understand the Verilog code just with a little patience 
 and no further explanation needed. 
-According computer architecture, there are two type of I/O. 
+There are two type of I/O according computer architecture. 
 One is memory mapped I/O, the other is instruction I/O. 
-Cpu0 use memory mapped I/O where memory address 0x80000 as the output port. 
+Cpu0 uses memory mapped I/O where memory address 0x80000 as the output port. 
 When meet the instruction **"st $ra, cx($rb)"**, where cx($rb) is 
-0x80000, Cpu0 display the content as follows,
+0x80000, Cpu0 displays the content as follows,
 
 .. code-block:: c++
 
@@ -98,7 +98,7 @@ But according book "Computer
 Architecture: A Quantitative Approach", some operations may have no tolerance 
 in time of execution stage. Any endian swap will make the clock cycle time 
 longer and affect the CPU performance. So, I set the endian transfer in memory
-module in Verilog. In system with bus, it suppose set in bus system I think.
+module in Verilog. In system with bus, it will be set in bus system I think.
 
 
 .. code-block:: bash
@@ -208,7 +208,7 @@ no differences between this option and default option.
 
 The "total cpu cycles" can be calculated in this verilog simualtor, and the 
 backend compiler and CPU performance can be reviewed.
-Only the CPU cycles are counted, it exclude I/O cycles since I/O or display 
+Only the CPU cycles are counted, it not include I/O cycles since I/O or display 
 cycles time is unknown.
 As explained in chapter "Control flow statements", cpu032II uses slt and beq
 has better performance than cmp and jeq in cpu032I.
@@ -256,9 +256,9 @@ is instruction address. The third is instruction content.
 Now, most example codes depicted in the previous chapters are verified by 
 print the variable with print_integer().
 
-This chapter shows Verilog PC output by displays the integer value located at 
+This chapter shows Verilog PC output by displaying the integer value located at 
 I/O memory mapped address directly. 
-Since the cpu0.v machine is created by Verilog language, it suppose can run on
+Since the cpu0.v machine is created by Verilog language, suppose it can run on
 real FPGA device. 
 The real output hardware 
 interface/port is hardware output device dependent, such as RS232, speaker, 

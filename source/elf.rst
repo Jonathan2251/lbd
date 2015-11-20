@@ -43,8 +43,9 @@ The binutils tool we use is not a part of llvm tools, but it's a powerful tool
 in ELF analysis. 
 This chapter introduce the tool to readers since we think it is a valuable 
 knowledge in this popular ELF format and the ELF binutils analysis tool. 
-An LLVM compiler engineer has the responsibility to analyze the ELF since 
-the obj is need to be handled by linker or loader later. 
+An LLVM compiler engineer has the responsibility to make sure his backend 
+has generated a right obj since the obj is needed to be handled by linker or 
+loader later. 
 With this tool, you can verify your generated ELF format.
  
 The cpu0 author has published a “System Software” book which introduces the 
@@ -80,12 +81,12 @@ So, there are two views in it as :num:`Figure #elf-f1`.
 
     ELF file format overview
 
-As :num:`Figure #elf-f1`, the “Section header table” include sections .text, .rodata, 
-..., .data which are sections layout for code, read only data, ..., and 
-read/write data. 
+As :num:`Figure #elf-f1`, the “Section header table” include sections .text, 
+.rodata, ..., .data which are sections layout for code, read only data, ..., 
+and read/write data. 
 “Program header table” include segments for run time code and data. 
-The definition of segments is the run time layout for code and data while sections 
-is the link time layout for code and data.
+The definition of segments is the run time layout for code and data while 
+sections is the link time layout for code and data.
 
 ELF header and Section header table
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -148,8 +149,9 @@ Let's run Chapter9_3/ with ch6_1.cpp, and dump ELF header information by
 
 
 As above ELF header display, it contains information of magic number, version, 
-ABI, ..., . The Machine field of cpu0 is unknown while mips is MIPSR3000. 
-It is because cpu0 is not a popular CPU recognized by utility readelf. 
+ABI, ..., . The Machine field of cpu0 is unknown while mips is known as 
+MIPSR3000. 
+It is unknown because cpu0 is not a popular CPU recognized by utility readelf. 
 Let's check ELF segments information as follows,
 
 .. code-block:: bash
@@ -335,20 +337,21 @@ translates **“.cpload %reg”** into the following.
 
 The _gp_disp value is determined by loader. So, it's undefined in obj. 
 You can find both the Relocation Records for offset 0 and 4 of .text section 
-referred to _gp_disp value. 
+refer to _gp_disp value. 
 The offset 0 and 4 of .text section are instructions "lui $gp, %hi(_gp_disp)"
 and "ori $gp, $gp, %lo(_gp_disp)" which their corresponding obj 
 encode are 0fa00000 and  0daa0000, respectively. 
-The obj translate the %hi(_gp_disp) and %lo(_gp_disp) into 0 since when loader 
-load this obj into memory, loader will know the _gp_disp value at run time and 
-will update these two offset relocation records into the correct offset value. 
+The obj translates the %hi(_gp_disp) and %lo(_gp_disp) into 0 since when loader 
+loads this obj into memory, loader will know the _gp_disp value at run time and 
+will update these two offset relocation records to the correct offset value. 
 You can check if the cpu0 of %hi(_gp_disp) and %lo(_gp_disp) are correct by 
 above mips Relocation Records of R_MIPS_HI(_gp_disp) and  R_MIPS_LO(_gp_disp) 
 even though the cpu0 is not a CPU recognized by readelf utilitly. 
 The instruction **“ld $2, %got(gI)($gp)”** is same since we don't know what the 
 address of .data section variable will load to. 
-So, translate the address to 0 and made a relocation record on 0x00000020 of 
-.text section. Linker or Loader will change this address when this program is 
+So, Cpu0 translate the address to 0 and made a relocation record on 0x00000020 
+of .text section. 
+Linker or Loader will change this address when this program is 
 linked or loaded depends on the program is static link or dynamic link.
 
 

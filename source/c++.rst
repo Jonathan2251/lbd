@@ -354,7 +354,7 @@ You can check them with debug option enabled.
 Atomic
 --------
 
-In tradition, C use different API which provided by OS or library to support
+In tradition, C uses different API which provided by OS or library to support
 multi-thread programming. For example, posix thread API on unix/linux, MS
 windows API, ..., etc. In order to achieve synchronization to solve race
 condition between threads, OS provide their own lock or semaphore functions to 
@@ -520,7 +520,7 @@ To support llvm atomic IRs, the following code added to Chapter12_1.
 
 Since SC instruction uses RegisterOperand type in Cpu0InstrInfo.td and SC uses
 FMem node which DecoderMethod is "DecodeMem", the DecodeMem() of 
-Cpu0Disassembler.cpp need to change as above.
+Cpu0Disassembler.cpp need to be changed as above.
 
 The atomic node defined in "let usesCustomInserter = 1 in" of Cpu0InstrInfo.td
 tells llvm calling EmitInstrWithCustomInserter() of Cpu0ISelLowering.cpp. For
