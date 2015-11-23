@@ -26,8 +26,8 @@ module cpu0(input clock, reset, input [2:0] itype, output reg [2:0] tick,
   reg [7:0] op;
   reg [3:0] a, b, c;
   reg [4:0] c5;
-  reg signed [31:0] c12, c16, uc16, c24, Ra, Rb, Rc, pc0; // pc0: instruction pc
-  reg [31:0] URa, URb, URc, HI, LO, CF, tmp;
+  reg signed [31:0] c12, c16, c24, Ra, Rb, Rc, pc0; // pc0: instruction pc
+  reg [31:0] uc16, URa, URb, URc, HI, LO, CF, tmp;
   reg [63:0] cycles;
 
   // register name
@@ -215,10 +215,10 @@ module cpu0(input clock, reset, input [2:0] itype, output reg [2:0] tick,
       // SH Ra,[Rb+Cx]; Ra=>(2bytes)[Rb+Cx]
       SH:    memWriteStart(Rb+c16, Ra, `INT16);
       // Conditional move
-      MOVZ:  if (Rc==0) R[a]=Rb;             // move if Rc equal to 0
-      MOVN:  if (Rc!=0) R[a]=Rb;             // move if Rc not equal to 0
+      MOVZ:  if (Rc==0) regSet(a, Rb);             // move if Rc equal to 0
+      MOVN:  if (Rc!=0) regSet(a, Rb);             // move if Rc not equal to 0
       // Mathematic 
-      ADDiu: R[a] = Rb+c16;                   // ADDiu Ra, Rb+Cx; Ra<=Rb+Cx
+      ADDiu: regSet(a, Rb+c16);                   // ADDiu Ra, Rb+Cx; Ra<=Rb+Cx
       CMP:   begin `N=(Rb-Rc<0);`Z=(Rb-Rc==0); end // CMP Rb, Rc; SW=(Rb >=< Rc)
       ADDu:  regSet(a, Rb+Rc);               // ADDu Ra,Rb,Rc; Ra<=Rb+Rc
       ADD:   begin regSet(a, Rb+Rc); if (a < Rb) `V = 1; else `V = 0; 

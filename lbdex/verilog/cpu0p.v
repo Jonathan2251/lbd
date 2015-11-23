@@ -147,8 +147,10 @@ module iExec(input clock, reset, iReady, output reg iGet, oReady, input oGet);
   reg [3:0] a, b, c;
   reg [4:0] c5;
   reg signed [31:0] c12, c16, c24, Ra, Rb, Rc; // ipc:instruction PC
+  reg [31:0] uc16, URa, URb, URc;
   reg [1:0] state;
   reg [1:0] skip;
+  integer i;
 
   always @(posedge clock) begin
     if (reset) begin oReady=0; iGet=0; state=`IDLE; skip = 0; end 
@@ -172,6 +174,9 @@ module iExec(input clock, reset, iReady, output reg iGet, oReady, input oGet);
           Ra = cpu.id1.Ra;
           Rb = cpu.id1.Rb;
           Rc = cpu.id1.Rc;
+          URa = cpu.id1.Ra;
+          URb = cpu.id1.Rb;
+          URc = cpu.id1.Rc;
           iGet = 1;
           // 準備輸出資料
           case (op)
@@ -190,10 +195,10 @@ module iExec(input clock, reset, iReady, output reg iGet, oReady, input oGet);
           // SH Ra,[Rb+Cx]; Ra=>(2bytes)[Rb+Cx]
           cpu.SH:    dMemWriteStart(Rb+c16, Ra, `INT16);
           // Conditional move
-          cpu.MOVZ:  if (Rc==0) cpu.R[a]=Rb;             // move if Rc equal to 0
-          cpu.MOVN:  if (Rc!=0) cpu.R[a]=Rb;             // move if Rc not equal to 0
+          cpu.MOVZ:  if (Rc==0) regSet(a, Rb);             // move if Rc equal to 0
+          cpu.MOVN:  if (Rc!=0) regSet(a, Rb);             // move if Rc not equal to 0
           // Mathematic 
-          cpu.ADDiu: R[a] = Rb+c16;                   // ADDiu Ra, Rb+Cx; Ra<=Rb+Cx
+          cpu.ADDiu: regSet(a, Rb+c16);                   // ADDiu Ra, Rb+Cx; Ra<=Rb+Cx
           cpu.CMP:   begin `N=(Rb-Rc<0);`Z=(Rb-Rc==0); end // CMP Rb, Rc; SW=(Rb >=< Rc)
           cpu.ADDu:  regSet(a, Rb+Rc);               // ADDu Ra,Rb,Rc; Ra<=Rb+Rc
           cpu.ADD:   begin regSet(a, Rb+Rc); if (a < Rb) `V = 1; else `V = 0; 
@@ -255,14 +260,14 @@ module iExec(input clock, reset, iReady, output reg iGet, oReady, input oGet);
             while (Rc > 32) Rc=Rc-32;
             regSet(a, (Rb>>Rc)|(Rb<<(32-Rc)));     // Rotate Right;
           end
-          cpu.MFLO:  regSet(a, LO);         // MFLO Ra; Ra<=LO
-          cpu.MFHI:  regSet(a, HI);         // MFHI Ra; Ra<=HI
-          cpu.MTLO:  LO = Ra;               // MTLO Ra; LO<=Ra
-          cpu.MTHI:  HI = Ra;               // MTHI Ra; HI<=Ra
-          cpu.MULT:  {HI, LO}=Ra*Rb;        // MULT Ra,Rb; HI<=((Ra*Rb)>>32); 
+          cpu.MFLO:  regSet(a, cpu.LO);         // MFLO Ra; Ra<=LO
+          cpu.MFHI:  regSet(a, cpu.HI);         // MFHI Ra; Ra<=HI
+          cpu.MTLO:  cpu.LO = Ra;               // MTLO Ra; LO<=Ra
+          cpu.MTHI:  cpu.HI = Ra;               // MTHI Ra; HI<=Ra
+          cpu.MULT:  {cpu.HI, cpu.LO}=Ra*Rb;        // MULT Ra,Rb; HI<=((Ra*Rb)>>32); 
                                         // LO<=((Ra*Rb) and 0x00000000ffffffff);
                                         // with exception overflow
-          cpu.MULTu: {HI, LO}=URa*URb;      // MULT URa,URb; HI<=((URa*URb)>>32); 
+          cpu.MULTu: {cpu.HI, cpu.LO}=URa*URb;      // MULT URa,URb; HI<=((URa*URb)>>32); 
                                         // LO<=((URa*URb) and 0x00000000ffffffff);
                                         // without exception overflow
           cpu.MFC0:  regSet(a, cpu.C0R[b]);     // MFC0 a, b; Ra<=C0R[Rb]
@@ -286,7 +291,7 @@ module iExec(input clock, reset, iReady, output reg iGet, oReady, input oGet);
           cpu.JLE:   if (`N || `Z) `PC=`PC+c24;      // JLE Cx; if SW(<=) PC PC+Cx    
           cpu.JGE:   if (!`N || `Z) `PC=`PC+c24;     // JGE Cx; if SW(>=) PC PC+Cx
           cpu.JMP:   `PC = `PC+c24;                  // JMP Cx; PC <= PC+Cx
-          cpu.JALR:  begin R[a] =`PC;`PC=Rb; end // JALR Ra,Rb; Ra<=PC; PC<=Rb
+          cpu.JALR:  begin regSet(a, `PC);`PC=Rb; end // JALR Ra,Rb; Ra<=PC; PC<=Rb
           cpu.BAL:   begin `LR=`PC;`PC=`PC + c24; end // BAL Cx; LR<=PC; PC<=PC+Cx
           cpu.JSUB:  begin `LR=`PC;`PC=`PC + c24; end // JSUB Cx; LR<=PC; PC<=PC+Cx
           cpu.RET:   begin `PC=Ra; end               // RET; PC <= Ra
@@ -350,8 +355,7 @@ module iMemAccess(input clock, reset, iReady, output reg iGet, oReady, input oGe
           Rb = cpu.R[b];
           Rc = cpu.R[c]; 
           case (op)
-            cpu.LD, cpu.LDB, cpu.LDR, cpu.LBR, cpu.POP, cpu.POPB  : memReadEnd2(cpu.R[a]); // 讀取記憶體完成
-            cpu.ST, cpu.STB, cpu.STR, cpu.SBR, cpu.PUSH, cpu.PUSHB: memWriteEnd2(); // 寫入記憶體完成
+            cpu.ST, cpu.SB, cpu.SH  :  dMemWriteEnd(); // 寫入記憶體完成
           endcase
           #1;
           oReady = 1; // 輸出資料已準備好
@@ -408,64 +412,64 @@ module iWriteBack(input clock, reset, iReady, output reg iGet, oReady, input oGe
           Rb = cpu.R[b];
           Rc = cpu.R[c];
           case (op)
-          LB, LBu  :
-            dMemReadEnd(R[a]);        //read memory complete
-          LH, LHu  :
-            dMemReadEnd(R[a]);
-          LD  : begin
-            dMemReadEnd(R[a]);
+          cpu.LB, cpu.LBu  :
+            dMemReadEnd(Ra);        //read memory complete
+          cpu.LH, cpu.LHu  :
+            dMemReadEnd(Ra);
+          cpu.LD  : begin
+            dMemReadEnd(Ra);
             if (`D)
               $display("%4dns %8x : %8x m[%-04x+%-04x]=%8x  SW=%8x", $stime, pc0, 
-                       ir, R[b], c16, R[a], `SW);
+                       ir, Rb, c16, Ra, `SW);
           end
           endcase
           case (op)
-          LB  : begin 
-            if (R[a] > 8'h7f) cpu.R[a]=cpu.R[a]|32'hffffff80;
+          cpu.LB  : begin 
+            if (Ra > 8'h7f) regSet(a, Ra|32'hffffff80);
           end
-          LH  : begin 
-            if (R[a] > 16'h7fff) cpu.R[a]=cpu.R[a]|32'hffff8000;
+          cpu.LH  : begin 
+            if (Ra > 16'h7fff) regSet(a, Ra|32'hffff8000);
           end
           endcase
           case (op)
-          MULT, MULTu, DIV, DIVu, MTHI, MTLO :
+          cpu.MULT, cpu.MULTu, cpu.DIV, cpu.DIVu, cpu.MTHI, cpu.MTLO :
             if (`D)
-              $display("%4dns %8x : %8x HI=%8x LO=%8x SW=%8x", $stime, pc0, ir, HI, 
-                       LO, `SW);
-          ST : begin
+              $display("%4dns %8x : %8x HI=%8x LO=%8x SW=%8x", $stime, pc0, ir, cpu.HI, 
+                       cpu.LO, `SW);
+          cpu.ST : begin
             if (`D)
               $display("%4dns %8x : %8x m[%-04x+%-04x]=%8x  SW=%8x", $stime, pc0, 
-                       ir, R[b], c16, cpu.R[a], `SW);
-            if (R[b]+c16 == `IOADDR) begin
-              outw(R[a]);
+                       ir, Rb, c16, Ra, `SW);
+            if (Rb+c16 == `IOADDR) begin
+              outw(Ra);
             end
           end
-          SB : begin
+          cpu.SB : begin
             if (`D)
               $display("%4dns %8x : %8x m[%-04x+%-04x]=%c  SW=%8x, R[a]=%8x", 
-                       $stime, pc0, ir, cpu.R[b], c16, R[a][7:0], `SW, cpu.R[a]);
-            if (R[b]+c16 == `IOADDR) begin
+                       $stime, pc0, ir, Rb, c16, Ra[7:0], `SW, Ra);
+            if (Rb+c16 == `IOADDR) begin
               if (`LE)
-                outc(R[a][7:0]);
+                outc(Ra[7:0]);
               else
-                outc(R[a][7:0]);
+                outc(Ra[7:0]);
             end
           end
-          MFC0, MTC0 :
+          cpu.MFC0, cpu.MTC0 :
             if (`D)
               $display("%4dns %8x : %8x R[%02d]=%-8x  C0R[%02d]=%-8x SW=%8x", 
-                       $stime, pc0, ir, a, cpu.R[a], a, cpu.C0R[a], `SW);
-          C0MOV :
+                       $stime, pc0, ir, a, Ra, a, cpu.C0R[a], `SW);
+          cpu.C0MOV :
             if (`D)
               $display("%4dns %8x : %8x C0R[%02d]=%-8x C0R[%02d]=%-8x SW=%8x", 
                        $stime, pc0, ir, a, cpu.C0R[a], b, cpu.C0R[b], `SW);
           default :
             if (`D) // Display the written register content
               $display("%4dns %8x : %8x R[%02d]=%-8x SW=%8x", $stime, pc0, ir, 
-                       a, R[a], `SW);
+                       a, Ra, `SW);
           endcase
           if (`PC < 0) begin
-            $display("total cpu cycles = %-d", cycles);
+            $display("total cpu cycles = %-d", cpu.cycles);
             $display("RET to PC < 0, finished!");
             $finish;
           end
@@ -490,25 +494,25 @@ module iWriteBack(input clock, reset, iReady, output reg iGet, oReady, input oGe
 endmodule
 
 // Reference web: http://ccckmit.wikidot.com/ocs:cpu0
-module cpu0(input clock, reset, input [2:0] itype, output reg [2:0] tick, 
+module cpu0(input clock, reset, output reg [2:0] tick, 
             output reg [31:0] ir, pc, 
-            mar1, mdr1, inout [31:0] dbus1, output reg m_en1, m_rw1, input m_ack1, output reg [1:0] m_size1, 
-            mar2, mdr2, inout [31:0] dbus2, output reg m_en2, m_rw2, input m_ack2, output reg [1:0] m_size2, 
+            output [31:0] mar1, mdr1, inout [31:0] dbus1, output reg m_en1, m_rw1, input m_ack1, output reg [1:0] m_size1, 
+            output [31:0] mar2, mdr2, inout [31:0] dbus2, output reg m_en2, m_rw2, input m_ack2, output reg [1:0] m_size2, 
             input cfg);        
  // 管線相關參數
   wire ifiGet, idiGet, ieiGet, iwiGet; // pipe 輸入是否準備好了
   wire ifoReady, idoReady, ieoReady, iwoReady; // pipe 輸出是否準備好了
   parameter iReady = 1'b1, oGet=1'b1; // pipeline 的整體輸入輸出是否準備好了 (隨時都準備好，這樣才會不斷驅動)。
   // 暫存器與欄位
-//    reg [31:0] mar1, mdr1, mar2, mdr2;
+  reg [31:0] mar1, mdr1, mar2, mdr2;
   reg signed [31:0] R [0:15];
   reg signed [31:0] C0R [0:1]; // co-processor 0 register
   // High and Low part of 64 bit result
   reg [7:0] op;
   reg [3:0] a, b, c;
   reg [4:0] c5;
-  reg signed [31:0] c12, c16, uc16, c24, Ra, Rb, Rc, pc0; // pc0: instruction pc
-  reg [31:0] URa, URb, URc, HI, LO, CF, tmp;
+  reg signed [31:0] c12, c16, c24, Ra, Rb, Rc, pc0; // pc0: instruction pc
+  reg [31:0] uc16, URa, URb, URc, HI, LO, CF, tmp;
   reg [63:0] cycles;
 
   // Instruction Opcode 
@@ -554,7 +558,7 @@ module cpu0(input clock, reset, input [2:0] itype, output reg [2:0] tick,
   // Read Memory Finish, get data
   task iMemReadEnd(output [31:0] data); begin
     mdr1 = dbus1; // get momory, dbus = m[addr]
-    data = mdr1; // return to data
+    data = dbus1; // return to data
     m_en1 = 0; // read complete
   end endtask
 
@@ -569,7 +573,7 @@ module cpu0(input clock, reset, input [2:0] itype, output reg [2:0] tick,
   // Read Memory Finish, get data
   task dMemReadEnd(output [31:0] data); begin
     mdr2 = dbus2; // get momory, dbus = m[addr]
-    data = mdr2; // return to data
+    data = dbus2; // return to data
     m_en2 = 0; // read complete
   end endtask
 
@@ -626,50 +630,16 @@ module cpu0(input clock, reset, input [2:0] itype, output reg [2:0] tick,
   iExec       ie1(clock, reset, idoReady, ieiGet, ieoReady, oGet);
   iMemAccess  im1(clock, reset, idoReady, ieiGet, ieoReady, oGet);
   iWriteBack  iw1(clock, reset, idoReady, ieiGet, ieoReady, oGet);
-    
-  task taskInterrupt(input [2:0] iMode); begin
-  if (inExe == 0) begin
-    case (iMode)
-      `RESET: begin 
+
+  always @(posedge clock) begin
+    if (reset) begin
         `PC = 0; tick = 0; R[0] = 0; `SW = 0; `LR = -1;
         `IE = 0; `I0E = 1; `I1E = 1; `I2E = 1;
         `I = 0; `I0 = 0; `I1 = 0; `I2 = 0; inExe = 1;
         `LE = cfg;
         cycles = 0;
-      end
-      `ABORT: begin `PC = 4; end
-      `IRQ:   begin `PC = 8; `IE = 0; inExe = 1; end
-      `ERROR: begin `PC = 12; end
-    endcase
-  end
-  $display("taskInterrupt(%3b)", iMode);
-  end endtask
-
-
-  always @(posedge clock) begin
-    if (inExe == 0 && (state == Fetch) && (`IE && `I) && (`I0E && `I0)) begin
-    // software int
-      `M = `IRQ;
-      taskInterrupt(`IRQ);
-      m_en = 0;
-      state = Fetch;
-    end else if (inExe == 0 && (state == Fetch) && (`IE && `I) && 
-                 ((`I1E && `I1) || (`I2E && `I2)) ) begin
-      `M = `IRQ;
-      taskInterrupt(`IRQ);
-      m_en = 0;
-      state = Fetch;
-    end else if (inExe == 0 && itype == `RESET) begin
-    // Condition itype == `RESET must after the other `IE condition
-      taskInterrupt(`RESET);
-      `M = `RESET;
-      state = Fetch;
-    end else begin
-      // `D = 1; // Trace register content at beginning
-      taskExecute();
-      state = next_state;
+        `D = 1; // Trace register content at beginning
     end
-    pc = `PC;
   end
 endmodule
 
@@ -776,7 +746,7 @@ module memory0(input clock, reset, en, rw, input [1:0] m_size,
 endmodule
 
 module main;
-  reg clock;
+  reg clock, reset;
   reg [2:0] itype;
   wire [2:0] tick;
   wire [31:0] pc, ir;
@@ -785,7 +755,7 @@ module main;
   wire [1:0] m_size1, m_size2;
   wire cfg;
 
-  cpu0 cpu(.clock(clock), .itype(itype), .pc(pc), .tick(tick), .ir(ir),
+  cpu0 cpu(.clock(clock), .reset(reset), .pc(pc), .tick(tick), .ir(ir),
   .mar1(mar1), .mdr1(mdr1), .dbus1(dbus1), .m_en1(m_en1), .m_rw1(m_rw1), .m_size1(m_size1), .m_ack1(m_ack1),
   .mar2(mar2), .mdr2(mdr2), .dbus2(dbus2), .m_en2(m_en2), .m_rw2(m_rw2), .m_size2(m_size2), .m_ack2(m_ack2),
   .cfg(cfg));
@@ -800,6 +770,8 @@ module main;
   begin
     clock = 0;
     itype = `RESET;
+        reset = 1;
+        #50 reset = 0;
     #300000000 $finish;
   end
 
