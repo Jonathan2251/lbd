@@ -189,9 +189,7 @@ Dump it's content by gobjdump or hexdump after as follows,
     ld  $4, 36($fp)
     cmp $sw, $4, $3
     jne $BB0_2
-    nop
     jmp $BB0_1
-    nop
   $BB0_1:                                 # %if.then
     ld  $4, 36($fp)
     addiu $4, $4, 1
@@ -256,9 +254,7 @@ cpu032II use one instruction (bne) as follws,
     ...
   	cmp	$sw, $4, $3
   	jne	$sw, $BB0_2
-    nop
   	jmp	$BB0_1
-    nop
   $BB0_1:
   
   JonathantekiiMac:input Jonathan$ /Users/Jonathan/llvm/test/
@@ -266,9 +262,7 @@ cpu032II use one instruction (bne) as follws,
   -filetype=asm ch8_1_1.bc -o -
     ...
   	bne	$4, $zero, $BB0_2
-    nop
   	jmp	$BB0_1
-    nop
   $BB0_1:
 
 
@@ -570,10 +564,12 @@ lines of assembly code, which meaning 8\% improvement in speed and code size
 
 Fill Branch Delay Slot
 -----------------------
-
+ 
 Cpu0 instruction set is designed to be a classical RISC pipeline machine.
 Classical machine has many perfect features [#Quantitative]_ [#wiki-pipeline]_.
-Since Cpu0 has delay slot same with 5 stages of Mips machine, the backend needs
+I changed Cpu0 backend to a 5 stages of classical RISC pipeline machine with 
+one delay slot like some of Mips model.
+With this change, the backend needs
 filling the NOP instruction in the branch delay slot.
 In order to make this tutorial as simple for learning, Cpu0 backend code not
 fill the branch delay slot with useful instruction for optimization.

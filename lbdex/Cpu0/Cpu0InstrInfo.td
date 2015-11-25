@@ -529,7 +529,7 @@ class UncondBranch<bits<8> op, string instr_asm>:
   let isBranch = 1;
   let isTerminator = 1;
   let isBarrier = 1;
-  let hasDelaySlot = 1;
+  let hasDelaySlot = 0;
 }
 }
 //#endif
@@ -999,7 +999,7 @@ def JMP     : UncondBranch<0x36, "jmp">;
 
 //@ long branch support //1
 let isBranch = 1, isTerminator = 1, isBarrier = 1,
-    hasDelaySlot = 1, Defs = [LR] in
+    hasDelaySlot = 0, Defs = [LR] in
 def BAL: FJ<0x3A, (outs), (ins jmptarget:$addr), "bal\t$addr", [], IIBranch>, 
              Requires<[HasSlt]>;
 //#endif

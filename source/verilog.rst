@@ -164,8 +164,9 @@ no differences between this option and default option.
 .. code-block:: bash
 
   JonathantekiiMac:input Jonathan$ bash build-run_backend.sh cpu032I be
-  JonathantekiiMac:input Jonathan$ cd ../verilog
-  JonathantekiiMac:verilog Jonathan$ ./cpu0Is
+  JonathantekiiMac:input Jonathan$ cd ../verilog cd ../verilog
+  JonathantekiiMac:verilog Jonathan$ make
+  JonathantekiiMac:verilog Jonathan$ ./cpu0Isp
   WARNING: cpu0Is.v:386: $readmemh(cpu0.hex): Not enough words in the file for the 
   taskInterrupt(001)
   74
@@ -196,14 +197,14 @@ no differences between this option and default option.
   0
   31
   49
-  total cpu cycles = 52060               
+  total cpu cycles = 51230               
   RET to PC < 0, finished!
 
   JonathantekiiMac:input Jonathan$ bash build-run_backend.sh cpu032II be
   JonathantekiiMac:input Jonathan$ cd ../verilog
-  JonathantekiiMac:verilog Jonathan$ ./cpu0IIs
+  JonathantekiiMac:verilog Jonathan$ ./cpu0IIsp
   ...
-  total cpu cycles = 49625               
+  total cpu cycles = 48920               
   RET to PC < 0, finished!
 
 The "total cpu cycles" can be calculated in this verilog simualtor, and the 
@@ -212,22 +213,22 @@ Only the CPU cycles are counted, it not include I/O cycles since I/O or display
 cycles time is unknown.
 As explained in chapter "Control flow statements", cpu032II uses slt and beq
 has better performance than cmp and jeq in cpu032I.
+The cpu0IIsp count accurate with delay slot while cpu0IIs has no delay slot 
+support. Although cpu0IIs has no delay slot support, it can run program 
+correctly since Cpu0 backend compiler always fill delay slot with "nop".
+Instructions "jmp" has no delay slot because it is better in dynamic linker 
+implementation. Instruction "bal" has no delay slot because we want 
+Cpu0LongBranch.cpp generated code can run both correctly in cpu0IIsp and cpu0IIs.
+
 You can trace the memory binary code and destination
-register changed at every instruction execution by the following change and
-get the result as below,
+register changed at every instruction execution by unmark TRACE in Makefile as 
+below,
 
-.. rubric:: lbdex/verilog/cpu0Is.v
-
-.. code-block:: c++
-
-  `define TRACE 
-
-.. rubric:: lbdex/verilog/cpu0.v
+.. rubric:: lbdex/verilog/Makefile
 
 .. code-block:: c++
 
-      ...
-      `D = 1; // Trace register content at beginning
+      TRACE=-D TRACE
 
 .. code-block:: bash
 

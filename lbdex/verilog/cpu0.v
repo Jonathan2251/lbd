@@ -84,6 +84,11 @@ module cpu0(input clock, reset, input [2:0] itype, output reg [2:0] tick,
   parameter Reset=3'h0, Fetch=3'h1, Decode=3'h2, Execute=3'h3, MemAccess=3'h4, 
             WriteBack=3'h5;
   integer i;
+`ifdef SIMULATE_DELAY_SLOT
+  reg [0:0] nextInstIsDelaySlot;
+  reg [0:0] isDelaySlot;
+  reg signed [31:0] delaySlotNextPC;
+`endif
 
   //transform data from the memory to little-endian form
   task changeEndian(input [31:0] value, output [31:0] changeEndian); begin
@@ -127,6 +132,24 @@ module cpu0(input clock, reset, input [2:0] itype, output reg [2:0] tick,
     if (i < 2) C0R[i] = data;
   end endtask
 
+  task PCSet(input [31:0] data); begin
+  `ifdef SIMULATE_DELAY_SLOT
+    nextInstIsDelaySlot = 1;
+    delaySlotNextPC = data;
+  `else
+    `PC = data;
+  `endif
+  end endtask
+
+  task retValSet(input [3:0] i, input [31:0] data); begin
+    if (i != 0)
+    `ifdef SIMULATE_DELAY_SLOT
+      R[i] = data + 4;
+    `else
+      R[i] = data;
+    `endif
+  end endtask
+  
   task regHILOSet(input [31:0] data1, input [31:0] data2); begin
     HI = data1;
     LO = data2;
@@ -173,13 +196,24 @@ module cpu0(input clock, reset, input [2:0] itype, output reg [2:0] tick,
 
   task taskExecute; begin
     tick = tick+1;
-    cycles = cycles+1;
     case (state)
     Fetch: begin  // Tick 1 : instruction fetch, throw PC to address bus, 
                   // memory.read(m[PC])
       memReadStart(`PC, `INT32);
       pc0  = `PC;
-      `PC = `PC+4;
+   `ifdef SIMULATE_DELAY_SLOT
+     if (nextInstIsDelaySlot == 1) begin
+       isDelaySlot = 1;
+       nextInstIsDelaySlot = 0;
+       `PC = delaySlotNextPC;
+     end
+     else begin
+       if (isDelaySlot == 1) isDelaySlot = 0;
+       `PC = `PC+4;
+     end
+   `else
+     `PC = `PC+4;
+   `endif
       next_state = Decode;
     end
     Decode: begin  // Tick 2 : instruction decode, ir = m[PC]
@@ -293,28 +327,28 @@ module cpu0(input clock, reset, input [2:0] itype, output reg [2:0] tick,
       MFC0:  regSet(a, C0R[b]);     // MFC0 a, b; Ra<=C0R[Rb]
       MTC0:  C0regSet(a, Rb);       // MTC0 a, b; C0R[a]<=Rb
       C0MOV: C0regSet(a, C0R[b]);   // C0MOV a, b; C0R[a]<=C0R[b]
-`ifdef CPU0II
+   `ifdef CPU0II
       // set
       SLT:   if (Rb < Rc) R[a]=1; else R[a]=0;
       SLTu:  if (Rb < Rc) R[a]=1; else R[a]=0;
       SLTi:  if (Rb < c16) R[a]=1; else R[a]=0;
       SLTiu: if (Rb < c16) R[a]=1; else R[a]=0;
       // Branch Instructions
-      BEQ:   if (Ra==Rb) `PC=`PC+c16; 
-      BNE:   if (Ra!=Rb) `PC=`PC+c16;
-`endif
+      BEQ:   if (Ra==Rb) PCSet(`PC+c16);
+      BNE:   if (Ra!=Rb) PCSet(`PC+c16);
+    `endif
       // Jump Instructions
-      JEQ:   if (`Z) `PC=`PC+c24;            // JEQ Cx; if SW(=) PC  PC+Cx
-      JNE:   if (!`Z) `PC=`PC+c24;           // JNE Cx; if SW(!=) PC PC+Cx
-      JLT:   if (`N)`PC=`PC+c24;             // JLT Cx; if SW(<) PC  PC+Cx
-      JGT:   if (!`N&&!`Z) `PC=`PC+c24;      // JGT Cx; if SW(>) PC  PC+Cx
-      JLE:   if (`N || `Z) `PC=`PC+c24;      // JLE Cx; if SW(<=) PC PC+Cx    
-      JGE:   if (!`N || `Z) `PC=`PC+c24;     // JGE Cx; if SW(>=) PC PC+Cx
-      JMP:   `PC = `PC+c24;                  // JMP Cx; PC <= PC+Cx
-      JALR:  begin R[a] =`PC;`PC=Rb; end // JALR Ra,Rb; Ra<=PC; PC<=Rb
-      BAL:   begin `LR=`PC;`PC=`PC + c24; end // BAL Cx; LR<=PC; PC<=PC+Cx
-      JSUB:  begin `LR=`PC;`PC=`PC + c24; end // JSUB Cx; LR<=PC; PC<=PC+Cx
-      RET:   begin `PC=Ra; end               // RET; PC <= Ra
+      JEQ:   if (`Z) PCSet(`PC+c24);            // JEQ Cx; if SW(=) PC  PC+Cx
+      JNE:   if (!`Z) PCSet(`PC+c24);           // JNE Cx; if SW(!=) PC PC+Cx
+      JLT:   if (`N) PCSet(`PC+c24);            // JLT Cx; if SW(<) PC  PC+Cx
+      JGT:   if (!`N&&!`Z) PCSet(`PC+c24);      // JGT Cx; if SW(>) PC  PC+Cx
+      JLE:   if (`N || `Z) PCSet(`PC+c24);      // JLE Cx; if SW(<=) PC PC+Cx    
+      JGE:   if (!`N || `Z) PCSet(`PC+c24);     // JGE Cx; if SW(>=) PC PC+Cx
+      JMP:   `PC = `PC+c24;                     // JMP Cx; PC <= PC+Cx
+      JALR:  begin retValSet(a, `PC); PCSet(Rb); end    // JALR Ra,Rb; Ra<=PC; PC<=Rb
+      BAL:   begin `LR = `PC; `PC = `PC+c24; end // BAL Cx; LR<=PC; PC<=PC+Cx
+      JSUB:  begin retValSet(14, `PC); PCSet(`PC+c24); end // JSUB Cx; LR<=PC; PC<=PC+Cx
+      RET:   begin PCSet(Ra); end               // RET; PC <= Ra
       default : 
         $display("%4dns %8x : OP code %8x not support", $stime, pc0, op);
       endcase
@@ -419,11 +453,14 @@ module cpu0(input clock, reset, input [2:0] itype, output reg [2:0] tick,
       `M = `RESET;
       state = Fetch;
     end else begin
-      // `D = 1; // Trace register content at beginning
+    `ifdef TRACE
+      `D = 1; // Trace register content at beginning
+    `endif
       taskExecute();
       state = next_state;
     end
     pc = `PC;
+    cycles = cycles + 1;
   end
 endmodule
 

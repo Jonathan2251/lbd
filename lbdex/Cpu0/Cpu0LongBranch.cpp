@@ -313,15 +313,12 @@ void Cpu0LongBranch::expandToLongBranch(MBBInfo &I) {
     BuildMI(*LongBrMBB, Pos, DL, TII->get(Cpu0::LONG_BRANCH_ADDiu), Cpu0::AT)
       .addReg(Cpu0::AT).addMBB(TgtMBB).addMBB(BalTgtMBB);
     MIBundleBuilder(*LongBrMBB, Pos)
-        .append(BuildMI(*MF, DL, TII->get(BalOp)).addMBB(BalTgtMBB))
-        .append(BuildMI(*MF, DL, TII->get(Cpu0::NOP)));
+        .append(BuildMI(*MF, DL, TII->get(BalOp)).addMBB(BalTgtMBB));
 
     Pos = BalTgtMBB->begin();
 
     BuildMI(*BalTgtMBB, Pos, DL, TII->get(Cpu0::ADDu), Cpu0::AT)
       .addReg(Cpu0::LR).addReg(Cpu0::AT);
-    BuildMI(*BalTgtMBB, Pos, DL, TII->get(Cpu0::ADDiu), Cpu0::AT)
-      .addReg(Cpu0::AT).addImm(4);
     BuildMI(*BalTgtMBB, Pos, DL, TII->get(Cpu0::LD), Cpu0::LR)
       .addReg(Cpu0::SP).addImm(0);
     BuildMI(*BalTgtMBB, Pos, DL, TII->get(Cpu0::ADDiu), Cpu0::SP)
@@ -374,7 +371,7 @@ bool Cpu0LongBranch::runOnMachineFunction(MachineFunction &F) {
   const Cpu0InstrInfo *TII =
       static_cast<const Cpu0InstrInfo *>(STI.getInstrInfo());
   LongBranchSeqSize =
-      !IsPIC ? 2 : 12;
+      !IsPIC ? 2 : 10;
 
   if (!STI.enableLongBranchPass())
     return false;
