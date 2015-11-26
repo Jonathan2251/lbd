@@ -109,35 +109,36 @@
 //   function memory address. For example, if the function index is 2, then the 
 //   gp+2*4 is set to the memory address of this loaded function. 
 //   Then the the caller call 
-//   "ld $t9, 2*4($gp)" and "ret $t9" will jump to this loaded function directly.
+//   "ld $t9, 2*4($gp)" and "jr $t9" will jump to this loaded function directly.
 
     gpPlt = gp+16+numDynEntry*4;
-    // set (gpPlt-16..gpPlt-1) to 0
-    for (j=16; j >= 1; j=j-1)
+    // set (gpPlt+1..gpPlt=32) to 0
+    for (j=32; j >= 1; j=j-1)
       m[gpPlt+j] = 8'h00;
     // put plt in (gpPlt..gpPlt+numDynEntry*8'h10+1)
     for (i=1; i < numDynEntry; i=i+1) begin
       // (gp+'8h10..gp+numDynEntry*'8h10+15) set to plt entry
       // addiu	$t9, $zero, dynsym_idx
-      m[gpPlt+i*8'h10] = 8'h09;
-      m[gpPlt+i*8'h10+1] = 8'h60;
-      m[gpPlt+i*8'h10+2] = i[15:8];
-      m[gpPlt+i*8'h10+3] = i[7:0];
+      m[gpPlt+i*8'h20] = 8'h09;
+      m[gpPlt+i*8'h20+1] = 8'h60;
+      m[gpPlt+i*8'h20+2] = i[15:8];
+      m[gpPlt+i*8'h20+3] = i[7:0];
       // st	$t9, 0($gp)
-      m[gpPlt+i*8'h10+4] = 8'h02;
-      m[gpPlt+i*8'h10+5] = 8'h6b;
-      m[gpPlt+i*8'h10+6] = 0;
-      m[gpPlt+i*8'h10+7] = 0;
+      m[gpPlt+i*8'h20+4] = 8'h02;
+      m[gpPlt+i*8'h20+5] = 8'h6b;
+      m[gpPlt+i*8'h20+6] = 0;
+      m[gpPlt+i*8'h20+7] = 0;
       // ld	$t9, ('16h0010)($gp)
-      m[gpPlt+i*8'h10+8] = 8'h01;
-      m[gpPlt+i*8'h10+9] = 8'h6b;
-      m[gpPlt+i*8'h10+10] = 0;
-      m[gpPlt+i*8'h10+11] = 8'h10;
-      // ret	$t9
-      m[gpPlt+i*8'h10+12] = 8'h3c;
-      m[gpPlt+i*8'h10+13] = 8'h60;
-      m[gpPlt+i*8'h10+14] = 0;
-      m[gpPlt+i*8'h10+15] = 0;
+      m[gpPlt+i*8'h20+8] = 8'h01;
+      m[gpPlt+i*8'h20+9] = 8'h6b;
+      m[gpPlt+i*8'h20+10] = 0;
+      m[gpPlt+i*8'h20+11] = 8'h10;
+      // jr	$t9
+      m[gpPlt+i*8'h20+12] = 8'h3c;
+      m[gpPlt+i*8'h20+13] = 8'h60;
+      m[gpPlt+i*8'h20+14] = 0;
+      m[gpPlt+i*8'h20+15] = 0;
+      for (j=0; j < 16; j=j+1) m[gpPlt+i*8'h20+16+j] = 0; // nop
     end
 
   // .got.plt offset(0x00.0x03) has been set to 0 in elf already.
@@ -152,13 +153,13 @@
     m[gp+16+2] = i[15:8];   // .plt section addr + 16
     m[gp+16+3] = i[7:0];
 
-    j32=gpPlt+16;
+    j32=gpPlt+32;
     for (i=1; i < numDynEntry; i=i+1) begin
       m[gp+16+i*4] = j32[31:24];
       m[gp+16+i*4+1] = j32[23:16];
       m[gp+16+i*4+2] = j32[15:8];
       m[gp+16+i*4+3] = j32[7:0];
-      j32=j32+16;
+      j32=j32+32;
     end
   `ifdef DEBUG_DLINKER
     // show (gp..gp+numDynEntry*4-1)
@@ -170,10 +171,10 @@
     for (i=0; i < numDynEntry; i=i+1) begin
       for (j=0; j < 16; j=j+4)
         $display("%8x: %8x", gpPlt+i*8'h10+j, 
-                 {m[gpPlt+i*8'h10+j], 
-                  m[gpPlt+i*8'h10+j+1], 
-                  m[gpPlt+i*8'h10+j+2], 
-                  m[gpPlt+i*8'h10+j+3]});
+                 {m[gpPlt+i*8'h20+j], 
+                  m[gpPlt+i*8'h20+j+1], 
+                  m[gpPlt+i*8'h20+j+2], 
+                  m[gpPlt+i*8'h20+j+3]});
     end
   `endif
   end endtask
