@@ -89,10 +89,10 @@
 // below code set memory as follows,
 //                                    -----------------------------------
 // gp ------------------------------> | all 0                           | (16 bytes)
-// gp+16 ---------------------------> | 0                          |
-// gp+16+1*4 -----------------------> | 1st plt entry address      | (4 bytes)
-//                                    | ...                        |
-// gp+16+(numDynEntry-1)*4 ---------> | the last plt entry address |
+// gp+16 ---------------------------> | 0                               |
+// gp+16+1*4 -----------------------> | 1st plt entry address           | (4 bytes)
+//                                    | ...                             |
+// gp+16+(numDynEntry-1)*4 ---------> | the last plt entry address      |
 //                                    -----------------------------------
 // gpPlt ---------------------------> | all 0                           | (16 bytes)
 // gpPlt+16+0*8'h10 ----------------> | 32'h10: pointer to plt0         |
@@ -170,7 +170,7 @@
     // show (gpPlt..gpPlt+(numDynEntry+1)*8'h10-1)
     for (i=0; i < numDynEntry; i=i+1) begin
       for (j=0; j < 16; j=j+4)
-        $display("%8x: %8x", gpPlt+i*8'h10+j, 
+        $display("%8x: %8x", gpPlt+i*8'h20+j, 
                  {m[gpPlt+i*8'h20+j], 
                   m[gpPlt+i*8'h20+j+1], 
                   m[gpPlt+i*8'h20+j+2], 
