@@ -67,8 +67,8 @@ When meet the instruction **"st $ra, cx($rb)"**, where cx($rb) is
 .. rubric:: lbdex/verilog/cpu0.v
 .. literalinclude:: ../lbdex/verilog/cpu0.v
 
-.. rubric:: lbdex/verilog/cpu0Is.v
-.. literalinclude:: ../lbdex/verilog/cpu0Is.v
+.. rubric:: lbdex/verilog/Makefile
+.. literalinclude:: ../lbdex/verilog/Makefile
 
 
 Since Cpu0 Verilog machine supports both big and little endian, the memory 
@@ -99,13 +99,6 @@ Architecture: A Quantitative Approach", some operations may have no tolerance
 in time of execution stage. Any endian swap will make the clock cycle time 
 longer and affect the CPU performance. So, I set the endian transfer in memory
 module in Verilog. In system with bus, it will be set in bus system I think.
-
-
-.. code-block:: bash
-
-  JonathantekiiMac:raw Jonathan$ pwd
-  /Users/Jonathan/test/2/lbd/lbdex/verilog/raw
-  JonathantekiiMac:raw Jonathan$ iverilog -o cpu0Is cpu0Is.v 
 
 
 Verify backend
@@ -163,8 +156,12 @@ no differences between this option and default option.
 
 .. code-block:: bash
 
+  JonathantekiiMac:input Jonathan$ pwd
+  /Users/Jonathan/llvm/test/lbdex/input
   JonathantekiiMac:input Jonathan$ bash build-run_backend.sh cpu032I be
   JonathantekiiMac:input Jonathan$ cd ../verilog cd ../verilog
+  JonathantekiiMac:input Jonathan$ pwd
+  /Users/Jonathan/llvm/test/lbdex/verilog
   JonathantekiiMac:verilog Jonathan$ make
   JonathantekiiMac:verilog Jonathan$ ./cpu0Isp
   WARNING: cpu0Is.v:386: $readmemh(cpu0.hex): Not enough words in the file for the 

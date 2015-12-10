@@ -1761,9 +1761,9 @@ is called Cpu0Other.td, which is shown below:
 
 .. code-block:: bash
 
-  118-165-12-177:lld Jonathan$ pwd
-  /home/cschen/test/lbd
-  118-165-12-177:lld Jonathan$ make genexample
+  118-165-12-177:lbd Jonathan$ pwd
+  /Users/Jonathan/test/lbd
+  118-165-12-177:lbd Jonathan$ make genexample
 
 .. rubric:: lbdex/chapters/Chapter2/Cpu0Other.td
 .. literalinclude:: ../lbdex/chapters/Chapter2/Cpu0Other.td

@@ -9,14 +9,14 @@ Function call
 
 The subroutine/function call of backend translation is supported in this 
 chapter. 
-A lot of code needed to support function call. They are added according llvm 
+A lot of code is needed to support function call. They are added according llvm 
 supplied interface to explain easily. 
 This chapter starts from introducing the Mips stack frame structure since we 
 borrow many parts of ABI from it. 
 Although each CPU has it's own ABI, most of ABI for RISC CPUs are similar. 
 The section “4.5 DAG Lowering” of tricore_llvm.pdf contains knowledge 
 about Lowering process. Section “4.5.1 Calling Conventions” of tricore_llvm.pdf 
-is the related materials you can reference furth.
+is the related material you can reference further.
  
 If you have problem in reading the stack frame illustrated in the first three 
 sections of this chapter, you can read the appendix B of “Procedure Call
@@ -209,7 +209,7 @@ and see what happens.
 
 Since Chapter8_2/ define the LowerFormalArguments() with empty, we get the error 
 messages as above. 
-Before define LowerFormalArguments(), we have to choose how to pass arguments 
+Before defining LowerFormalArguments(), we have to choose how to pass arguments 
 in function call.
 For demonstration, Cpu0 passes first two arguments in registers as 
 default setting of ``llc -cpu0-s32-calls=false``. 
@@ -327,7 +327,7 @@ When ``llc -cpu0-s32-calls=false`` it passes first two arguments registers
 and the other arguments in stack frame. When ``llc -cpu0-s32-calls=true`` it 
 passes all arguments in stack frame.
 
-Before taking care the arguemnts as above, it calls analyzeFormalArguments().
+Before taking care the arguments as above, it calls analyzeFormalArguments().
 In analyzeFormalArguments() it calls fixedArgFn() which return the function 
 pointer of CC_Cpu0O32() or CC_Cpu0S32(). 
 ArgFlags.isByVal() will be true if it meets "struct pointer byval" keyword,
