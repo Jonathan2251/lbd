@@ -4,7 +4,7 @@ pushd input
 bash clean.sh
 popd
 pushd verilog
-bash clean.sh
+make clean
 popd
 rm -rf chapters preprocess tmp.txt
 
