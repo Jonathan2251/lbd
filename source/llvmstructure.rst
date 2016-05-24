@@ -1956,6 +1956,42 @@ file format.
 Comments are prefixed by **#** in both files. 
 We explain the setting for these two files in comments. 
 Please read it. 
+The "tablegen(" in above CMakeLists.txt is defined in 
+cmake/modules/TableGen.cmake as below, 
+
+.. rubric:: src/cmake/modules/TableGen.cmake
+.. code-block:: c++
+
+  function(tablegen project ofn)
+  ...
+    add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${ofn}.tmp
+      # Generate tablegen output in a temporary file.
+      COMMAND ${${project}_TABLEGEN_EXE} ${ARGN} -I ${CMAKE_CURRENT_SOURCE_DIR}
+  ...
+  endfunction()
+  ...
+  macro(add_tablegen target project)
+    ...
+    if(LLVM_USE_HOST_TOOLS)
+      if( ${${project}_TABLEGEN} STREQUAL "${target}" )
+        if (NOT CMAKE_CONFIGURATION_TYPES)
+          set(${project}_TABLEGEN_EXE "${LLVM_NATIVE_BUILD}/bin/${target}")
+        else()
+          set(${project}_TABLEGEN_EXE "${LLVM_NATIVE_BUILD}/Release/bin/${target}")
+        endif()
+    ...
+  endmacro()
+
+.. rubric:: src/utils/TableGen/CMakeLists.txt
+.. code-block:: c++
+
+  add_tablegen(llvm-tblgen LLVM
+    ...
+  )
+
+And above "add_tablegen" in src/utils/TableGen/CMakeLists.txt makes the 
+"tablegen(" written in Cpu0 CMakeLists.txt an alias of llvm-tblgen.
+
 This book breaks the whole backend source code by function, add code chapter 
 by chapter and even section by section.
 Don't try to understand everything in the text of book, the code added in each 
