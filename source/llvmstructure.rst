@@ -1963,11 +1963,11 @@ cmake/modules/TableGen.cmake as below,
 .. code-block:: c++
 
   function(tablegen project ofn)
-  ...
+    ...
     add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${ofn}.tmp
       # Generate tablegen output in a temporary file.
       COMMAND ${${project}_TABLEGEN_EXE} ${ARGN} -I ${CMAKE_CURRENT_SOURCE_DIR}
-  ...
+    ...
   endfunction()
   ...
   macro(add_tablegen target project)
@@ -1989,8 +1989,20 @@ cmake/modules/TableGen.cmake as below,
     ...
   )
 
-And above "add_tablegen" in src/utils/TableGen/CMakeLists.txt makes the 
+Above "add_tablegen" in src/utils/TableGen/CMakeLists.txt makes the 
 "tablegen(" written in Cpu0 CMakeLists.txt an alias of llvm-tblgen.
+The "tablegen(", "add_public_tablegen_target(Cpu0CommonTableGen)" in 
+lbdex/chapters/Chapter2/CMakeLists.txt and the following code define a target 
+"Cpu0CommonTableGen" with it's output files "Cpu0Gen*.inc" as follows,
+
+.. rubric:: src/cmake/modules/TableGen.cmake
+.. code-block:: c++
+
+  function(tablegen project ofn)
+    ...
+    set(TABLEGEN_OUTPUT ${TABLEGEN_OUTPUT} ${CMAKE_CURRENT_BINARY_DIR}/${ofn} PARENT_SCOPE)
+    ...
+  endfunction()
 
 This book breaks the whole backend source code by function, add code chapter 
 by chapter and even section by section.
