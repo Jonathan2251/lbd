@@ -2004,6 +2004,10 @@ lbdex/chapters/Chapter2/CMakeLists.txt and the following code define a target
     ...
   endfunction()
 
+Since execution file llvm-tblgen is built before compiling any llvm backend 
+source code during building llvm, the llvm-tblgen is always ready for backend's
+TableGen reguest.
+
 This book breaks the whole backend source code by function, add code chapter 
 by chapter and even section by section.
 Don't try to understand everything in the text of book, the code added in each 
