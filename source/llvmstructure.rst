@@ -2004,6 +2004,14 @@ lbdex/chapters/Chapter2/CMakeLists.txt and the following code define a target
     ...
   endfunction()
 
+  # Creates a target for publicly exporting tablegen dependencies.
+  function(add_public_tablegen_target target)
+    ...
+    add_custom_target(${target}
+      DEPENDS ${TABLEGEN_OUTPUT})
+    ...
+  endfunction()
+
 Since execution file llvm-tblgen is built before compiling any llvm backend 
 source code during building llvm, the llvm-tblgen is always ready for backend's
 TableGen reguest.
