@@ -897,8 +897,8 @@ next 2 sections for DAG and Instruction Selection.
       %d = ld i32* %c
   
   // Transfer above instructions order as follows. In RISC CPU of Mips, the ld 
-  //  %c uses the result of the previous instruction st %c. So it must wait 1
-  //  cycles more. Meaning the ld cannot follow st immediately.
+  //  %c uses the result of the previous instruction st %c. So it must waits 1
+  //  cycle. Meaning the ld cannot follow st immediately.
   =>  st %b, i32* %c, i16 0
       st i32 %a, i16* %b,  i16 5
       %d = ld i32* %c, i16 0
@@ -914,7 +914,7 @@ next 2 sections for DAG and Instruction Selection.
   // Minimum register pressure
   //  Suppose %c is alive after the instructions basic block (meaning %c will be
   //  used after the basic block), %a and %b are not alive after that.
-  // The following no reorder version need 3 registers at least
+  // The following no-reorder-version need 3 registers at least
       %a = add i32 1, i32 0
       %b = add i32 2, i32 0
       st %a,  i32* %c, 1
@@ -1113,10 +1113,10 @@ version [#dragonbooks-10.2.3]_.
       st %b,  i32* %d, 0
 
   // version 3
-  => %a = add i32 1, i32 0
-      st %a,  i32* %c, 0
-      %b = add i32 2, i32 0
+  => %b = add i32 2, i32 0
       st %b,  i32* %d, 0
+      %a = add i32 1, i32 0
+      st %a,  i32* %c, 0
 
 
 DAG (Directed Acyclic Graph)
@@ -1137,14 +1137,21 @@ For example, the basic block code and it's corresponding DAG as
   DAG example
 
 If b is not live on exit from the block, then we can do "common expression 
-remove" to get the following code.
+remove" as the following table.
 
-.. code-block:: c++
+.. table:: common expression remove process
+  
+  ====================================  ==================================================================
+  Replace node b with node d             Replace b\ :sub:`0`\ , c\ :sub:`0`\ , d\ :sub:`0`\  with b, c, d
+  ====================================  ==================================================================
+  a = b\ :sub:`0`\  + c\ :sub:`0`\       a = b + c
+  d = a – d\ :sub:`0`\                   d = a – d
+  c = d + c                              c = d + c
+  ====================================  ==================================================================
 
-  a = b + c
-  d = a – d
-  c = d + c
-
+After remove b and traveling the DAGs from bottom to top (traverse binary tree 
+by Depth-first In-order search) , the first column of above table to get. 
+  
 As you can imagine, the "common expression remove" can apply both in IR or 
 machine code.
 
@@ -1177,7 +1184,8 @@ For machine instruction selection, the best solution is representing IR and
 machine instruction by DAG. 
 To simplify in view, the register leaf is skipped in 
 :num:`Figure #llvmstructure-f12`. 
-The rj + rk is IR DAG representation (for symbol notation, not llvm SSA form). 
+The r\ :sub:`j`\  + r\ :sub:`k`\  is IR DAG representation (for symbol 
+notation, not llvm SSA form). 
 ADD is machine instruction.
 
 .. _llvmstructure-f12: 
@@ -1190,8 +1198,9 @@ ADD is machine instruction.
   Instruction DAG representation
 
 The IR DAG and machine instruction DAG can also represented as list. 
-For example, (+ ri, rj) and (- ri, 1) are lists for IR DAG; (ADD ri, rj) and 
-(SUBI ri, 1) are lists for machine instruction DAG.
+For example, (+ r\ :sub:`i`\ , r\ :sub:`j`\ j) and (- r\ :sub:`i`\ , 1) are 
+lists for IR DAG; (ADD r\ :sub:`i`\ , r\ :sub:`j`\ ) and 
+(SUBI r\ :sub:`i`\ , 1) are lists for machine instruction DAG.
 
 Now, let's check the ADDiu instruction defined in Cpu0InstrInfo.td as follows,
 
