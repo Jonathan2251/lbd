@@ -1149,8 +1149,8 @@ remove" as the following table.
   c = d + c                              c = d + c
   ====================================  ==================================================================
 
-After remove b and traveling the DAGs from bottom to top (traverse binary tree 
-by Depth-first In-order search) , the first column of above table to get. 
+After removing b and traversing the DAGs from bottom to top (traverse binary 
+tree by Depth-first In-order search) , the first column of above table to get. 
   
 As you can imagine, the "common expression remove" can apply both in IR or 
 machine code.
