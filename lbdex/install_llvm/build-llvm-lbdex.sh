@@ -23,8 +23,15 @@ if ! test -d ${LLVM_RELEASE_DIR}; then
   mv ${LLVM_RELEASE_DIR}/src/tools/cfe-${VERSIN}.src ${LLVM_RELEASE_DIR}/src/tools/clang
   mkdir ${LLVM_RELEASE_DIR}/cmake_release_build
   pushd ${LLVM_RELEASE_DIR}/cmake_release_build
-  cmake -DCMAKE_BUILD_TYPE=Release -G "Unix Makefiles" ../src
-  make -j$procs -l$procs
+  OS=`uname -s`
+  echo "OS =" ${OS}
+  if [ "$OS" == "Linux" ]; then
+    cmake -DCMAKE_BUILD_TYPE=Release -G "Unix Makefiles" ../src
+    make -j$procs -l$procs
+  else
+    cmake -DCMAKE_BUILD_TYPE=Release -G "Xcode" ../src
+    xcodebuild -target "${PROJECT_NAME}" -sdk "${TARGET_SDK}" -configuration Release
+  fi
   popd
 fi
 
