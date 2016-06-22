@@ -1426,6 +1426,8 @@ From now on, the Cpu0 backend will be created from scratch step by step.
 To make readers easily understanding the backend structure, Cpu0 
 example code can be generated with chapter by chapter through command here 
 [#chapters-ex]_.
+Cpu0 example code, lbdex, can be found at near left bottom of this web site. Or 
+here http://jonathan2251.github.io/lbd/lbdex.tar.gz.
 
 
 Cpu0 backend machine ID and relocation records
@@ -1770,10 +1772,6 @@ is called Cpu0Other.td, which is shown below:
 
 .. code-block:: bash
 
-  118-165-12-177:lbd Jonathan$ pwd
-  /Users/Jonathan/test/lbd
-  118-165-12-177:lbd Jonathan$ make genexample
-
 .. rubric:: lbdex/chapters/Chapter2/Cpu0Other.td
 .. literalinclude:: ../lbdex/chapters/Chapter2/Cpu0Other.td
 
@@ -2117,7 +2115,7 @@ commands, cp -rf lbdex/src/modify/src/* <yourllvm/workingcopy/sourcedir>/.
   118-165-78-230:test Jonathan$ grep -R "cpu0" ~/llvm/test/src/include
   src/cmake/config-ix.cmake:elseif (LLVM_NATIVE_ARCH MATCHES "cpu0")
   src/include/llvm/ADT/Triple.h:#undef cpu0
-  src/include/llvm/ADT/Triple.h:    cpu0,    // Gamma add
+  src/include/llvm/ADT/Triple.h:    cpu0,       // For Tutorial Backend Cpu0
   src/include/llvm/ADT/Triple.h:    cpu0el,
   src/include/llvm/Support/ELF.h:  EF_CPU0_ARCH_32R2 = 0x70000000, // cpu032r2
   src/include/llvm/Support/ELF.h:  EF_CPU0_ARCH_64R2 = 0x80000000, // cpu064r2
@@ -2125,7 +2123,7 @@ commands, cp -rf lbdex/src/modify/src/* <yourllvm/workingcopy/sourcedir>/.
 
 Next configure the Cpu0 example code to chapter2 as follows,
 
-.. rubric:: ~/llvm/test/src/lib/Target/Cpu0SetChapter.h
+.. rubric:: ~/llvm/test/src/lib/Target/Cpu0/Cpu0SetChapter.h
 .. code-block:: c++
 
   #define CH       CH2
