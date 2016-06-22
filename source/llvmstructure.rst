@@ -1770,8 +1770,6 @@ what other .td files are used by the backend.
 These files have a similar syntax to C++. For Cpu0, the target description file 
 is called Cpu0Other.td, which is shown below:
 
-.. code-block:: bash
-
 .. rubric:: lbdex/chapters/Chapter2/Cpu0Other.td
 .. literalinclude:: ../lbdex/chapters/Chapter2/Cpu0Other.td
 
