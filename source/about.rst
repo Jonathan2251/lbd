@@ -61,6 +61,7 @@ Version 3.7.2, Not release yet
   Add Verilog delay slot simulation.
   Explain "tablegen(" in CMakeLists.txt.
   Correct typing.
+  Add lbdex/install_llvm/*.sh for installation.
 
 Version 3.7.1, Released November 7, 2015
   Remove EM_CPU0_EL.

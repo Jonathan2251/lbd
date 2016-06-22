@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 export VERSIN=3.7.0
-export LLVM_DIR=~/llvm1
+export LLVM_DIR=~/llvm
 export LLVM_RELEASE_DIR=${LLVM_DIR}/release
 export LLVM_TEST_DIR=${LLVM_DIR}/test
 
@@ -20,7 +20,8 @@ if ! test -d ${LLVM_RELEASE_DIR}; then
   tar -xf llvm-${VERSIN}.src.tar.xz -C ${LLVM_RELEASE_DIR}
   mv ${LLVM_RELEASE_DIR}/llvm-${VERSIN}.src ${LLVM_RELEASE_DIR}/src
   tar -xf cfe-${VERSIN}.src.tar.xz -C ${LLVM_RELEASE_DIR}/src/tools
-  mv ${LLVM_RELEASE_DIR}/src/tools/cfe-${VERSIN}.src ${LLVM_RELEASE_DIR}/src/tools/clang
+  mv ${LLVM_RELEASE_DIR}/src/tools/cfe-${VERSIN}.src \
+  ${LLVM_RELEASE_DIR}/src/tools/clang
   mkdir ${LLVM_RELEASE_DIR}/cmake_release_build
   pushd ${LLVM_RELEASE_DIR}/cmake_release_build
   OS=`uname -s`
@@ -28,9 +29,9 @@ if ! test -d ${LLVM_RELEASE_DIR}; then
   if [ "$OS" == "Linux" ]; then
     cmake -DCMAKE_BUILD_TYPE=Release -G "Unix Makefiles" ../src
     make -j$procs -l$procs
-  else
+  else [ "$OS" == "Darwin" ];
     cmake -DCMAKE_BUILD_TYPE=Release -G "Xcode" ../src
-    xcodebuild -target "${PROJECT_NAME}" -sdk "${TARGET_SDK}" -configuration Release
+    xcodebuild -project "LLVM.xcodeproj"
   fi
   popd
 fi
@@ -43,7 +44,15 @@ if ! test -d ${LLVM_TEST_DIR}; then
   cp -rf ../Cpu0 ${LLVM_TEST_DIR}/src/lib/Target/.
   mkdir ${LLVM_TEST_DIR}/cmake_debug_build
   pushd ${LLVM_TEST_DIR}/cmake_debug_build
-  cmake -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_FLAGS=-std=c++11 -DCMAKE_BUILD_TYPE=Debug -DLLVM_TARGETS_TO_BUILD=Cpu0 -G "Unix Makefiles" ../src
-  make -j$procs -l$procs
+  if [ "$OS" == "Linux" ]; then
+    cmake -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_C_COMPILER=clang \
+   -DCMAKE_BUILD_TYPE=Debug -DLLVM_TARGETS_TO_BUILD=Cpu0 -G "Unix Makefiles" \
+   ../src
+    make -j$procs -l$procs
+  else [ "$OS" == "Darwin" ];
+    cmake -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_C_COMPILER=clang \
+    -DCMAKE_BUILD_TYPE=Debug -DLLVM_TARGETS_TO_BUILD=Cpu0 -G "Xcode" ../src
+    xcodebuild -project "LLVM.xcodeproj"
+  fi
   popd
 fi
