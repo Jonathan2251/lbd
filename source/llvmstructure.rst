@@ -1426,6 +1426,8 @@ From now on, the Cpu0 backend will be created from scratch step by step.
 To make readers easily understanding the backend structure, Cpu0 
 example code can be generated with chapter by chapter through command here 
 [#chapters-ex]_.
+Cpu0 example code, lbdex, can be found at near left bottom of this web site. Or 
+here http://jonathan2251.github.io/lbd/lbdex.tar.gz.
 
 
 Cpu0 backend machine ID and relocation records
@@ -1769,10 +1771,6 @@ These files have a similar syntax to C++. For Cpu0, the target description file
 is called Cpu0Other.td, which is shown below:
 
 .. code-block:: bash
-
-  118-165-12-177:lbd Jonathan$ pwd
-  /Users/Jonathan/test/lbd
-  118-165-12-177:lbd Jonathan$ make genexample
 
 .. rubric:: lbdex/chapters/Chapter2/Cpu0Other.td
 .. literalinclude:: ../lbdex/chapters/Chapter2/Cpu0Other.td
