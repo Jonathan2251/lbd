@@ -2117,7 +2117,7 @@ commands, cp -rf lbdex/src/modify/src/* <yourllvm/workingcopy/sourcedir>/.
   118-165-78-230:test Jonathan$ grep -R "cpu0" ~/llvm/test/src/include
   src/cmake/config-ix.cmake:elseif (LLVM_NATIVE_ARCH MATCHES "cpu0")
   src/include/llvm/ADT/Triple.h:#undef cpu0
-  src/include/llvm/ADT/Triple.h:    cpu0,    // Gamma add
+  src/include/llvm/ADT/Triple.h:    cpu0,       // For Tutorial Backend Cpu0
   src/include/llvm/ADT/Triple.h:    cpu0el,
   src/include/llvm/Support/ELF.h:  EF_CPU0_ARCH_32R2 = 0x70000000, // cpu032r2
   src/include/llvm/Support/ELF.h:  EF_CPU0_ARCH_64R2 = 0x80000000, // cpu064r2
@@ -2125,7 +2125,7 @@ commands, cp -rf lbdex/src/modify/src/* <yourllvm/workingcopy/sourcedir>/.
 
 Next configure the Cpu0 example code to chapter2 as follows,
 
-.. rubric:: ~/llvm/test/src/lib/Target/Cpu0SetChapter.h
+.. rubric:: ~/llvm/test/src/lib/Target/Cpu0/Cpu0SetChapter.h
 .. code-block:: c++
 
   #define CH       CH2
