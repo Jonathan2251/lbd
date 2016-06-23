@@ -474,7 +474,7 @@ and click snapshot version link. Follow the INSTALL file guide to install it.
 Install other tools on Linux
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Download Graphviz from [#graphviz-download]_ according your 
-Linux distribution. Files compare tools Kdiff3 came from web site [kdiff3]_. 
+Linux distribution. Files compare tools Kdiff3 came from web site [#kdiff3]_. 
 
 
 Install LLVM 3.7 release build on Linux

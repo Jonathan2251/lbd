@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-export VERSIN=3.7.0
+export VERSION=3.7.0
 export LLVM_DIR=~/llvm
 export LLVM_RELEASE_DIR=${LLVM_DIR}/release
 export LLVM_TEST_DIR=${LLVM_DIR}/test
@@ -17,10 +17,10 @@ fi
 
 if ! test -d ${LLVM_RELEASE_DIR}; then
   mkdir ${LLVM_RELEASE_DIR}
-  tar -xf llvm-${VERSIN}.src.tar.xz -C ${LLVM_RELEASE_DIR}
-  mv ${LLVM_RELEASE_DIR}/llvm-${VERSIN}.src ${LLVM_RELEASE_DIR}/src
-  tar -xf cfe-${VERSIN}.src.tar.xz -C ${LLVM_RELEASE_DIR}/src/tools
-  mv ${LLVM_RELEASE_DIR}/src/tools/cfe-${VERSIN}.src \
+  tar -xf llvm-${VERSION}.src.tar.xz -C ${LLVM_RELEASE_DIR}
+  mv ${LLVM_RELEASE_DIR}/llvm-${VERSION}.src ${LLVM_RELEASE_DIR}/src
+  tar -xf cfe-${VERSION}.src.tar.xz -C ${LLVM_RELEASE_DIR}/src/tools
+  mv ${LLVM_RELEASE_DIR}/src/tools/cfe-${VERSION}.src \
   ${LLVM_RELEASE_DIR}/src/tools/clang
   mkdir ${LLVM_RELEASE_DIR}/cmake_release_build
   pushd ${LLVM_RELEASE_DIR}/cmake_release_build
@@ -38,8 +38,8 @@ fi
 
 if ! test -d ${LLVM_TEST_DIR}; then
   mkdir ${LLVM_TEST_DIR}
-  tar -xf llvm-${VERSIN}.src.tar.xz -C ${LLVM_TEST_DIR}
-  mv ${LLVM_TEST_DIR}/llvm-${VERSIN}.src ${LLVM_TEST_DIR}/src
+  tar -xf llvm-${VERSION}.src.tar.xz -C ${LLVM_TEST_DIR}
+  mv ${LLVM_TEST_DIR}/llvm-${VERSION}.src ${LLVM_TEST_DIR}/src
   cp -rf ../src/modify/src/* ${LLVM_TEST_DIR}/src/.
   cp -rf ../Cpu0 ${LLVM_TEST_DIR}/src/lib/Target/.
   mkdir ${LLVM_TEST_DIR}/cmake_debug_build
