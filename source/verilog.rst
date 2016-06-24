@@ -35,10 +35,11 @@ Create verilog simulator of Cpu0
 --------------------------------
 
 Verilog language is an IEEE standard in IC design. There are a lot of books and 
-documents for this language. Free documents existed in Web sites [#]_ [#]_ [#]_ 
-[#]_ [#]_. Verilog also called as Verilog HDL but not VHDL. 
+documents for this language. Free documents existed in Web sites [#free-doc1]_ 
+[#free-doc2]_ [#free-doc3]_ [#free-doc4]_ [#free-doc5]_. 
+Verilog also called as Verilog HDL but not VHDL. 
 VHDL is the same purpose language which compete against Verilog.
-About VHDL reference here [#]_.
+About VHDL reference here [#vhdl]_.
 Example code lbdex/verilog/cpu0.v is the Cpu0 design in Verilog. 
 In Appendix A, we have downloaded and installed Icarus Verilog tool both on 
 iMac and Linux. The cpu0.v and cpu0Is.v are simple design 
@@ -206,14 +207,15 @@ no differences between this option and default option.
 
 The "total cpu cycles" can be calculated in this verilog simualtor, and the 
 backend compiler and CPU performance can be reviewed.
-Only the CPU cycles are counted, it not include I/O cycles since I/O or display 
+Only the CPU cycles are counted, it not include I/O cycles since I/O 
 cycles time is unknown.
 As explained in chapter "Control flow statements", cpu032II uses slt and beq
 has better performance than cmp and jeq in cpu032I.
-The cpu0IIsp count accurate with delay slot while cpu0IIs has no delay slot 
-support. Although cpu0IIs has no delay slot support, it can run program 
+The cycle counting on cpu0IIsp is accurate include delay slot while cpu0IIs has 
+no delay slot support. 
+Although cpu0IIs has no delay slot support, it can run program 
 correctly since Cpu0 backend compiler always fill delay slot with "nop".
-Instructions "jmp" has no delay slot because it is better in dynamic linker 
+Instructions "jmp" has no delay slot so it is better in dynamic linker 
 implementation. Instruction "bal" has no delay slot because we want 
 Cpu0LongBranch.cpp generated code can run both correctly in cpu0IIsp and cpu0IIs.
 
@@ -262,6 +264,13 @@ The real output hardware
 interface/port is hardware output device dependent, such as RS232, speaker, 
 LED, .... You should implement the I/O interface/port when you want to program 
 FPGA and wire I/O device to the I/O port. 
+Through running the compiled code on Verilog simulator, beside of verifying the 
+correction of our program, the exact cycles is being understood too.
+Though the Verilog simulator is slow for running the whole system program and
+not include the cycles counting in cache and I/O, it is a simple and easy way
+to verify your idea about CPU design at begging stage with small program pattern.
+The overall system simulator is complex to create. Even wiki web site here 
+[#wiki-sim]_ include tools for creating the simulator, it need a lot of effort.
 
 To generate cpu032II as well as little endian code, you can run with the 
 following command. File build-run_backend.sh write the endian information to 
@@ -312,14 +321,16 @@ llvm official linker project, as well as elf2hex which extended from llvm-objdum
 driver at web: http://jonathan2251.github.io/lbt/index.html.
 
 
-.. [#] http://ccckmit.wikidot.com/ve:main
+.. [#free-doc1] http://ccckmit.wikidot.com/ve:main
 
-.. [#] http://www.ece.umd.edu/courses/enee359a/
+.. [#free-doc2] http://www.ece.umd.edu/courses/enee359a/
 
-.. [#] http://www.ece.umd.edu/courses/enee359a/verilog_tutorial.pdf
+.. [#free-doc3] http://www.ece.umd.edu/courses/enee359a/verilog_tutorial.pdf
 
-.. [#] http://d1.amobbs.com/bbs_upload782111/files_33/ourdev_585395BQ8J9A.pdf
+.. [#free-doc4] http://d1.amobbs.com/bbs_upload782111/files_33/ourdev_585395BQ8J9A.pdf
 
-.. [#] http://en.wikipedia.org/wiki/Verilog
+.. [#free-doc5] http://en.wikipedia.org/wiki/Verilog
 
-.. [#] http://en.wikipedia.org/wiki/VHDL
+.. [#vhdl] http://en.wikipedia.org/wiki/VHDL
+
+.. [#wiki-sim] https://en.wikipedia.org/wiki/Computer_architecture_simulator
