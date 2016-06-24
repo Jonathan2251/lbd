@@ -270,7 +270,7 @@ Though the Verilog simulator is slow for running the whole system program and
 not include the cycles counting in cache and I/O, it is a simple and easy way
 to verify your idea about CPU design at begging stage with small program pattern.
 The overall system simulator is complex to create. Even wiki web site here 
-[#wiki-sim]_ include tools for creating the simulator, it need a lot of effort.
+[#wiki-sim]_ include tools for creating the simulator, it needs a lot of effort.
 
 To generate cpu032II as well as little endian code, you can run with the 
 following command. File build-run_backend.sh write the endian information to 
