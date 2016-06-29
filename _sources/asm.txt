@@ -52,8 +52,8 @@ The Chapter11_1/ include AsmParser implementation as follows,
 
 
 The Cpu0AsmParser.cpp contains one thousand lines of code which do the assembly 
-language parsing. You can understand it with a little patient only.
-To let file directory of AsmParser be built, modify CMakeLists.txt and 
+language parsing. You can understand it with a little patience only.
+To let files in directory of AsmParser be built, modify CMakeLists.txt and 
 LLVMBuild.txt as follows,
 
 .. rubric:: lbdex/chapters/Chapter11_1/CMakeLists.txt
@@ -85,7 +85,7 @@ The CMakeLists.txt add code as above to generate Cpu0GenAsmMatcher.inc
 used by Cpu0AsmParser.cpp. 
 Cpu0Asm.td include Cpu0RegisterInfoGPROutForAsm.td which define GPROut to 
 CPURegs while Cpu0Other.td include Cpu0RegisterInfoGPROutForOther.td which 
-define GPROut to CPURegs but SW. 
+define GPROut to CPURegs exclude SW. 
 Cpu0Other.td is used when translating llvm IR to Cpu0 instruction. 
 In this case, the register SW is reserved for keeping the CPU status and not 
 allowed to be allocated as a general purpose register. 
@@ -332,9 +332,10 @@ The ch11_2.cpp is a inline assembly example. The clang supports inline
 assembly like gcc. 
 The inline assembly used in C/C++ when program need to access the 
 specific allocated register or memory for the C/C++ variable. For example, the 
-variable foo of ch11_2.cpp can be allocated by compiler to register $2, $3 
-or other. The inline assembly fills the gap between high level language and 
-assembly language. Reference here [#]_. Chapter11_2 support inline assembly 
+variable foo of ch11_2.cpp may be allocated by compiler to register $2, $3 
+or any other register. 
+The inline assembly fills the gap between high level language and 
+assembly language. Reference here [#]_. Chapter11_2 supports inline assembly 
 as follows,
 
 .. rubric:: lbdex/chapters/Chapter11_2/Cpu0AsmPrinter.h
@@ -390,9 +391,9 @@ file name as Table: the structure of inline assembly.
   Cpu0InstrInfo.cpp              -                              
   =============================  ================================== 
 
-Except Cpu0ISelDAGToDAG.cpp, the others' function are same with backend. 
-The Cpu0ISelLowering.cpp inline asm is explained after the result of run with 
-ch11_2.cpp. 
+Except Cpu0ISelDAGToDAG.cpp, the other functions are same with backend. 
+The Cpu0ISelLowering.cpp inline asm is explained after the result of running 
+with ch11_2.cpp. 
 Cpu0ISelDAGToDAG.cpp just save OP code in SelectInlineAsmMemoryOperand(). 
 Since the the OP code is Cpu0 inline 
 assembly instruction, no llvm IR DAG translation needed further. Save OP 
@@ -865,7 +866,7 @@ Run Chapter11_2 with ch11_2.cpp will get the following result.
     .size g, 12
 
 
-The clang translate gcc style inline assembly __asm__  into llvm IR Inline 
+Clang translates gcc style inline assembly __asm__  into llvm IR Inline 
 Assembler Expressions first [#]_, then replace the variable registers of SSA 
 form to physical registers during llc register allocation stage. 
 From above example, 

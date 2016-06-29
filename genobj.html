@@ -10,12 +10,11 @@
     
     <link rel="stylesheet" href="_static/haiku.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    <link rel="stylesheet" href="_static/print.css" type="text/css" />
     
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '3.7.1',
+        VERSION:     '3.7.2',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -24,19 +23,17 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    <script type="text/javascript" src="_static/theme_extras.js"></script>
     <link rel="author" title="About these documents" href="about.html" />
     <link rel="top" title="Tutorial: Creating an LLVM Backend for the Cpu0 Architecture" href="index.html" />
     <link rel="next" title="Global variables" href="globalvar.html" />
     <link rel="prev" title="Arithmetic and logic instructions" href="otherinst.html" /> 
   </head>
-  <body>
-      <div class="header"><h1 class="heading"><a href="index.html">
+  <body role="document">
+      <div class="header" role="banner"><h1 class="heading"><a href="index.html">
           <span>Tutorial: Creating an LLVM Backend for the Cpu0 Architecture</span></a></h1>
         <h2 class="heading"><span>Generating object files</span></h2>
       </div>
-      <div class="topnav">
+      <div class="topnav" role="navigation" aria-label="top navigation">
       
         <p>
         «&#160;&#160;<a href="otherinst.html">Arithmetic and logic instructions</a>
@@ -54,9 +51,9 @@
 <span id="sec-genobjfiles"></span><h1>Generating object files<a class="headerlink" href="#generating-object-files" title="Permalink to this headline">¶</a></h1>
 <div class="contents local topic" id="contents">
 <ul class="simple">
-<li><a class="reference internal" href="#translate-into-obj-file" id="id3">Translate into obj file</a></li>
-<li><a class="reference internal" href="#elf-obj-related-code" id="id4">ELF obj related code</a></li>
-<li><a class="reference internal" href="#backend-target-registration-structure" id="id5">Backend Target Registration Structure</a></li>
+<li><a class="reference internal" href="#translate-into-obj-file" id="id4">Translate into obj file</a></li>
+<li><a class="reference internal" href="#elf-obj-related-code" id="id5">ELF obj related code</a></li>
+<li><a class="reference internal" href="#backend-target-registration-structure" id="id6">Backend Target Registration Structure</a></li>
 </ul>
 </div>
 <p>The previous chapters introducing the assembly code generation only.
@@ -66,25 +63,25 @@ endian and little endian obj files with only a few code added.
 The Target Registration mechanism and their structure are introduced in
 this chapter.</p>
 <div class="section" id="translate-into-obj-file">
-<h2><a class="toc-backref" href="#id3">Translate into obj file</a><a class="headerlink" href="#translate-into-obj-file" title="Permalink to this headline">¶</a></h2>
+<h2><a class="toc-backref" href="#id4">Translate into obj file</a><a class="headerlink" href="#translate-into-obj-file" title="Permalink to this headline">¶</a></h2>
 <p>Currently, we only support translation of llvm IR code into assembly code.
 If you try running Chapter4_2/ to translate it into obj code will get the error
 message as follows,</p>
-<div class="highlight-bash"><div class="highlight"><pre><span class="o">[</span>Gamma@localhost 3<span class="o">]</span><span class="nv">$ </span>~/llvm/test/cmake_debug_build/bin/
+<div class="highlight-bash"><div class="highlight"><pre><span></span><span class="o">[</span>Gamma@localhost 3<span class="o">]</span>$ ~/llvm/test/cmake_debug_build/bin/
 llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>pic -filetype<span class="o">=</span>obj ch4_1_math_math.bc -o
 ch4_1_math.cpu0.o
 ~/llvm/test/cmake_debug_build/bin/llc: target does not
-support generation of this file <span class="nb">type</span>!
+support generation of this file type!
 </pre></div>
 </div>
 <p>Chapter5_1/ support obj file generation.
 It produces obj files both for big endian and little endian with command
-<tt class="docutils literal"><span class="pre">llc</span> <span class="pre">-march=cpu0</span></tt> and <tt class="docutils literal"><span class="pre">llc</span> <span class="pre">-march=cpu0el</span></tt>, respectively.
+<code class="docutils literal"><span class="pre">llc</span> <span class="pre">-march=cpu0</span></code> and <code class="docutils literal"><span class="pre">llc</span> <span class="pre">-march=cpu0el</span></code>, respectively.
 Run with them will get the obj files as follows,</p>
-<div class="highlight-bash"><div class="highlight"><pre><span class="o">[</span>Gamma@localhost input<span class="o">]</span><span class="nv">$ </span>cat ch4_1_math.cpu0.s
+<div class="highlight-bash"><div class="highlight"><pre><span></span><span class="o">[</span>Gamma@localhost input<span class="o">]</span>$ cat ch4_1_math.cpu0.s
 ...
   .set  nomacro
-<span class="c"># BB#0:                                 # %entry</span>
+<span class="c1"># BB#0:                                 # %entry</span>
   addiu <span class="nv">$sp</span>, <span class="nv">$sp</span>, -40
 <span class="nv">$tmp1</span>:
   .cfi_def_cfa_offset 40
@@ -96,31 +93,31 @@ Run with them will get the obj files as follows,</p>
   st  <span class="nv">$2</span>, 28<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
 ...
 
-<span class="o">[</span>Gamma@localhost 3<span class="o">]</span><span class="nv">$ </span>~/llvm/test/cmake_debug_build/bin/
+<span class="o">[</span>Gamma@localhost 3<span class="o">]</span>$ ~/llvm/test/cmake_debug_build/bin/
 llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>pic -filetype<span class="o">=</span>obj ch4_1_math.bc -o
 ch4_1_math.cpu0.o
-<span class="o">[</span>Gamma@localhost input<span class="o">]</span><span class="nv">$ </span>objdump -s ch4_1_math.cpu0.o
+<span class="o">[</span>Gamma@localhost input<span class="o">]</span>$ objdump -s ch4_1_math.cpu0.o
 
 ch4_1_math.cpu0.o:     file format elf32-big
 
 Contents of section .text:
- 0000 09ddffc8 09200005 022d0034 09200002  ..... ...-.4. ..
- 0010 022d0030 0920fffb 022d002c 012d0030  .-.0. ...-.,.-.0
- 0020 013d0034 11232000 022d0028 012d0030  .<span class="o">=</span>.4.# ..-.<span class="o">(</span>.-.0
- 0030 013d0034 12232000 022d0024 012d0030  .<span class="o">=</span>.4.# ..-.<span class="nv">$.</span>-.0
- 0040 013d0034 17232000 022d0020 012d0034  .<span class="o">=</span>.4.# ..-. .-.4
- 0050 1e220002 022d001c 012d002c 1e220001  .<span class="s2">&quot;...-...-.,.&quot;</span>..
- 0060 022d000c 012d0034 1d220002 022d0018  .-...-.4.<span class="s2">&quot;...-..</span>
+ <span class="m">0000</span> 09ddffc8 <span class="m">09200005</span> 022d0034 <span class="m">09200002</span>  ..... ...-.4. ..
+ <span class="m">0010</span> 022d0030 0920fffb 022d002c 012d0030  .-.0. ...-.,.-.0
+ <span class="m">0020</span> 013d0034 <span class="m">11232000</span> 022d0028 012d0030  .<span class="o">=</span>.4.# ..-.<span class="o">(</span>.-.0
+ <span class="m">0030</span> 013d0034 <span class="m">12232000</span> 022d0024 012d0030  .<span class="o">=</span>.4.# ..-.$.-.0
+ <span class="m">0040</span> 013d0034 <span class="m">17232000</span> 022d0020 012d0034  .<span class="o">=</span>.4.# ..-. .-.4
+ <span class="m">0050</span> 1e220002 022d001c 012d002c 1e220001  .<span class="s2">&quot;...-...-.,.&quot;</span>..
+ <span class="m">0060</span> 022d000c 012d0034 1d220002 022d0018  .-...-.4.<span class="s2">&quot;...-..</span>
 <span class="s2"> 0070 012d002c 1f22001e 022d0008 09200001  .-.,.&quot;</span>...-... ..
- 0080 013d0034 21323000 023d0014 013d0030  .<span class="o">=</span>.4!20..<span class="o">=</span>...<span class="o">=</span>.0
- 0090 21223000 022d0004 09200080 013d0034  !<span class="s2">&quot;0..-... ...=.4</span>
+ <span class="m">0080</span> 013d0034 <span class="m">21323000</span> 023d0014 013d0030  .<span class="o">=</span>.4!20..<span class="o">=</span>...<span class="o">=</span>.0
+ <span class="m">0090</span> <span class="m">21223000</span> 022d0004 <span class="m">09200080</span> 013d0034  !<span class="s2">&quot;0..-... ...=.4</span>
 <span class="s2"> 00a0 22223000 022d0010 012d0034 013d0030  &quot;&quot;0..-...-.4.=.0</span>
 <span class="s2"> 00b0 20232000 022d0000 09dd0038 3ce00000   # ..-.....8&lt;...</span>
 
-<span class="s2">[Gamma@localhost input]$ ~/llvm/test/</span>
+<span class="s2">[Gamma@localhost input]</span>$<span class="s2"> ~/llvm/test/</span>
 <span class="s2">cmake_debug_build/bin/llc -march=cpu0el -relocation-model=pic -filetype=obj</span>
 <span class="s2">ch4_1_math.bc -o ch4_1_math.cpu0el.o</span>
-<span class="s2">[Gamma@localhost input]$ objdump -s ch4_1_math.cpu0el.o</span>
+<span class="s2">[Gamma@localhost input]</span>$<span class="s2"> objdump -s ch4_1_math.cpu0el.o</span>
 
 <span class="s2">ch4_1_math.cpu0el.o:     file format elf32-little</span>
 
@@ -128,15 +125,15 @@ Contents of section .text:
 <span class="s2"> 0000 c8ffdd09 05002009 34002d02 02002009  ...... .4.-... .</span>
 <span class="s2"> 0010 30002d02 fbff2009 2c002d02 30002d01  0.-... .,.-.0.-.</span>
 <span class="s2"> 0020 34003d01 00202311 28002d02 30002d01  4.=.. #.(.-.0.-.</span>
-<span class="s2"> 0030 34003d01 00202312 24002d02 30002d01  4.=.. #.$.-.0.-.</span>
+<span class="s2"> 0030 34003d01 00202312 24002d02 30002d01  4.=.. #.</span>$<span class="s2">.-.0.-.</span>
 <span class="s2"> 0040 34003d01 00202317 20002d02 34002d01  4.=.. #. .-.4.-.</span>
 <span class="s2"> 0050 0200221e 1c002d02 2c002d01 0100221e  ..&quot;</span>...-.,.-...<span class="s2">&quot;.</span>
 <span class="s2"> 0060 0c002d02 34002d01 0200221d 18002d02  ..-.4.-...&quot;</span>...-.
- 0070 2c002d01 1e00221f 08002d02 01002009  ,.-...<span class="s2">&quot;...-... .</span>
+ <span class="m">0070</span> 2c002d01 1e00221f 08002d02 <span class="m">01002009</span>  ,.-...<span class="s2">&quot;...-... .</span>
 <span class="s2"> 0080 34003d01 00303221 14003d02 30003d01  4.=..02!..=.0.=.</span>
 <span class="s2"> 0090 00302221 04002d02 80002009 34003d01  .0&quot;</span>!..-... .4.<span class="o">=</span>.
- 00a0 00302222 10002d02 34002d01 30003d01  .0<span class="s2">&quot;&quot;</span>..-.4.-.0.<span class="o">=</span>.
- 00b0 00202320 00002d02 3800dd09 0000e03c  . <span class="c"># ..-.8......&lt;</span>
+ 00a0 <span class="m">00302222</span> 10002d02 34002d01 30003d01  .0<span class="s2">&quot;&quot;</span>..-.4.-.0.<span class="o">=</span>.
+ 00b0 <span class="m">00202320</span> 00002d02 3800dd09 0000e03c  . <span class="c1"># ..-.8......&lt;</span>
 </pre></div>
 </div>
 <p>The first instruction is <strong>“addiu  $sp, -56”</strong> and its corresponding obj is
@@ -154,494 +151,498 @@ The big endian (B0, B1, B2, B3) = (09, dd, ff, c8), objdump from B0 to B3 is
 objdump from B0 to B3 is 0xc8ffdd09.</p>
 </div>
 <div class="section" id="elf-obj-related-code">
-<h2><a class="toc-backref" href="#id4">ELF obj related code</a><a class="headerlink" href="#elf-obj-related-code" title="Permalink to this headline">¶</a></h2>
+<h2><a class="toc-backref" href="#id5">ELF obj related code</a><a class="headerlink" href="#elf-obj-related-code" title="Permalink to this headline">¶</a></h2>
 <p>To support elf obj generation, the following code changed and added to
 Chapter5_1.</p>
 <p class="rubric">lbdex/chapters/Chapter5_1/InstPrinter/Cpu0InstPrinter.cpp</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="cp">#include &quot;MCTargetDesc/Cpu0MCExpr.h&quot;</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1">#include &quot;MCTargetDesc/Cpu0MCExpr.h&quot;</span>
 </pre></div>
 </div>
-<div class="highlight-c++"><div class="highlight"><pre>  <span class="p">}</span> <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="k">const</span> <span class="n">Cpu0MCExpr</span> <span class="o">*</span><span class="n">ME</span> <span class="o">=</span> <span class="n">dyn_cast</span><span class="o">&lt;</span><span class="n">Cpu0MCExpr</span><span class="o">&gt;</span><span class="p">(</span><span class="n">Expr</span><span class="p">))</span> <span class="p">{</span>
-    <span class="n">ME</span><span class="o">-&gt;</span><span class="n">print</span><span class="p">(</span><span class="n">OS</span><span class="p">,</span> <span class="n">MAI</span><span class="p">);</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span>  <span class="p">}</span> <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="n">const</span> <span class="n">Cpu0MCExpr</span> <span class="o">*</span><span class="n">ME</span> <span class="o">=</span> <span class="n">dyn_cast</span><span class="o">&lt;</span><span class="n">Cpu0MCExpr</span><span class="o">&gt;</span><span class="p">(</span><span class="n">Expr</span><span class="p">))</span> <span class="p">{</span>
+    <span class="n">ME</span><span class="o">-&gt;</span><span class="nb">print</span><span class="p">(</span><span class="n">OS</span><span class="p">,</span> <span class="n">MAI</span><span class="p">);</span>
     <span class="k">return</span><span class="p">;</span>
 </pre></div>
 </div>
 <p class="rubric">lbdex/chapters/Chapter5_1/MCTargetDesc/CMakeLists.txt</p>
-<div class="highlight-c++"><div class="highlight"><pre>  <span class="n">Cpu0AsmBackend</span><span class="p">.</span><span class="n">cpp</span>
-  <span class="n">Cpu0MCCodeEmitter</span><span class="p">.</span><span class="n">cpp</span>
-  <span class="n">Cpu0MCExpr</span><span class="p">.</span><span class="n">cpp</span>
-  <span class="n">Cpu0ELFObjectWriter</span><span class="p">.</span><span class="n">cpp</span>
-  <span class="n">Cpu0TargetStreamer</span><span class="p">.</span><span class="n">cpp</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span>  <span class="n">Cpu0AsmBackend</span><span class="o">.</span><span class="n">cpp</span>
+  <span class="n">Cpu0MCCodeEmitter</span><span class="o">.</span><span class="n">cpp</span>
+  <span class="n">Cpu0MCExpr</span><span class="o">.</span><span class="n">cpp</span>
+  <span class="n">Cpu0ELFObjectWriter</span><span class="o">.</span><span class="n">cpp</span>
+  <span class="n">Cpu0TargetStreamer</span><span class="o">.</span><span class="n">cpp</span>
 </pre></div>
 </div>
 <p class="rubric">lbdex/chapters/Chapter5_1/MCTargetDesc/Cpu0AsmBackend.h</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="c1">//===-- Cpu0AsmBackend.h - Cpu0 Asm Backend  ------------------------------===//</span>
-<span class="c1">//</span>
-<span class="c1">//                     The LLVM Compiler Infrastructure</span>
-<span class="c1">//</span>
-<span class="c1">// This file is distributed under the University of Illinois Open Source</span>
-<span class="c1">// License. See LICENSE.TXT for details.</span>
-<span class="c1">//</span>
-<span class="c1">//===----------------------------------------------------------------------===//</span>
-<span class="c1">//</span>
-<span class="c1">// This file defines the Cpu0AsmBackend class.</span>
-<span class="c1">//</span>
-<span class="c1">//===----------------------------------------------------------------------===//</span>
-<span class="c1">//</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">//===--</span> <span class="n">Cpu0AsmBackend</span><span class="o">.</span><span class="n">h</span> <span class="o">-</span> <span class="n">Cpu0</span> <span class="n">Asm</span> <span class="n">Backend</span>  <span class="o">------------------------------===//</span>
+<span class="o">//</span>
+<span class="o">//</span>                     <span class="n">The</span> <span class="n">LLVM</span> <span class="n">Compiler</span> <span class="n">Infrastructure</span>
+<span class="o">//</span>
+<span class="o">//</span> <span class="n">This</span> <span class="n">file</span> <span class="ow">is</span> <span class="n">distributed</span> <span class="n">under</span> <span class="n">the</span> <span class="n">University</span> <span class="n">of</span> <span class="n">Illinois</span> <span class="n">Open</span> <span class="n">Source</span>
+<span class="o">//</span> <span class="n">License</span><span class="o">.</span> <span class="n">See</span> <span class="n">LICENSE</span><span class="o">.</span><span class="n">TXT</span> <span class="k">for</span> <span class="n">details</span><span class="o">.</span>
+<span class="o">//</span>
+<span class="o">//===----------------------------------------------------------------------===//</span>
+<span class="o">//</span>
+<span class="o">//</span> <span class="n">This</span> <span class="n">file</span> <span class="n">defines</span> <span class="n">the</span> <span class="n">Cpu0AsmBackend</span> <span class="n">class</span><span class="o">.</span>
+<span class="o">//</span>
+<span class="o">//===----------------------------------------------------------------------===//</span>
+<span class="o">//</span>
 
-<span class="cp">#ifndef LLVM_LIB_TARGET_CPU0_MCTARGETDESC_CPU0ASMBACKEND_H</span>
-<span class="cp">#define LLVM_LIB_TARGET_CPU0_MCTARGETDESC_CPU0ASMBACKEND_H</span>
+<span class="c1">#ifndef LLVM_LIB_TARGET_CPU0_MCTARGETDESC_CPU0ASMBACKEND_H</span>
+<span class="c1">#define LLVM_LIB_TARGET_CPU0_MCTARGETDESC_CPU0ASMBACKEND_H</span>
 
-<span class="cp">#include &quot;Cpu0Config.h&quot;</span>
+<span class="c1">#include &quot;Cpu0Config.h&quot;</span>
 
-<span class="cp">#include &quot;MCTargetDesc/Cpu0FixupKinds.h&quot;</span>
-<span class="cp">#include &quot;llvm/ADT/Triple.h&quot;</span>
-<span class="cp">#include &quot;llvm/MC/MCAsmBackend.h&quot;</span>
+<span class="c1">#include &quot;MCTargetDesc/Cpu0FixupKinds.h&quot;</span>
+<span class="c1">#include &quot;llvm/ADT/Triple.h&quot;</span>
+<span class="c1">#include &quot;llvm/MC/MCAsmBackend.h&quot;</span>
 
-<span class="k">namespace</span> <span class="n">llvm</span> <span class="p">{</span>
+<span class="n">namespace</span> <span class="n">llvm</span> <span class="p">{</span>
 
 <span class="k">class</span> <span class="nc">MCAssembler</span><span class="p">;</span>
-<span class="k">struct</span> <span class="n">MCFixupKindInfo</span><span class="p">;</span>
+<span class="n">struct</span> <span class="n">MCFixupKindInfo</span><span class="p">;</span>
 <span class="k">class</span> <span class="nc">Target</span><span class="p">;</span>
 <span class="k">class</span> <span class="nc">MCObjectWriter</span><span class="p">;</span>
 
-<span class="k">class</span> <span class="nc">Cpu0AsmBackend</span> <span class="o">:</span> <span class="k">public</span> <span class="n">MCAsmBackend</span> <span class="p">{</span>
-  <span class="n">Triple</span><span class="o">::</span><span class="n">OSType</span> <span class="n">OSType</span><span class="p">;</span>
-  <span class="kt">bool</span> <span class="n">IsLittle</span><span class="p">;</span> <span class="c1">// Big or little endian</span>
+<span class="k">class</span> <span class="nc">Cpu0AsmBackend</span> <span class="p">:</span> <span class="n">public</span> <span class="n">MCAsmBackend</span> <span class="p">{</span>
+  <span class="n">Triple</span><span class="p">::</span><span class="n">OSType</span> <span class="n">OSType</span><span class="p">;</span>
+  <span class="nb">bool</span> <span class="n">IsLittle</span><span class="p">;</span> <span class="o">//</span> <span class="n">Big</span> <span class="ow">or</span> <span class="n">little</span> <span class="n">endian</span>
 
-<span class="nl">public:</span>
-  <span class="n">Cpu0AsmBackend</span><span class="p">(</span><span class="k">const</span> <span class="n">Target</span> <span class="o">&amp;</span><span class="n">T</span><span class="p">,</span> <span class="n">Triple</span><span class="o">::</span><span class="n">OSType</span> <span class="n">_OSType</span><span class="p">,</span> <span class="kt">bool</span> <span class="n">IsLittle</span><span class="p">)</span>
-      <span class="o">:</span> <span class="n">MCAsmBackend</span><span class="p">(),</span> <span class="n">OSType</span><span class="p">(</span><span class="n">_OSType</span><span class="p">),</span> <span class="n">IsLittle</span><span class="p">(</span><span class="n">IsLittle</span><span class="p">)</span> <span class="p">{}</span>
+<span class="n">public</span><span class="p">:</span>
+  <span class="n">Cpu0AsmBackend</span><span class="p">(</span><span class="n">const</span> <span class="n">Target</span> <span class="o">&amp;</span><span class="n">T</span><span class="p">,</span> <span class="n">Triple</span><span class="p">::</span><span class="n">OSType</span> <span class="n">_OSType</span><span class="p">,</span> <span class="nb">bool</span> <span class="n">IsLittle</span><span class="p">)</span>
+      <span class="p">:</span> <span class="n">MCAsmBackend</span><span class="p">(),</span> <span class="n">OSType</span><span class="p">(</span><span class="n">_OSType</span><span class="p">),</span> <span class="n">IsLittle</span><span class="p">(</span><span class="n">IsLittle</span><span class="p">)</span> <span class="p">{}</span>
 
-  <span class="n">MCObjectWriter</span> <span class="o">*</span><span class="n">createObjectWriter</span><span class="p">(</span><span class="n">raw_pwrite_stream</span> <span class="o">&amp;</span><span class="n">OS</span><span class="p">)</span> <span class="k">const</span> <span class="n">override</span><span class="p">;</span>
+  <span class="n">MCObjectWriter</span> <span class="o">*</span><span class="n">createObjectWriter</span><span class="p">(</span><span class="n">raw_pwrite_stream</span> <span class="o">&amp;</span><span class="n">OS</span><span class="p">)</span> <span class="n">const</span> <span class="n">override</span><span class="p">;</span>
 
-  <span class="kt">void</span> <span class="n">applyFixup</span><span class="p">(</span><span class="k">const</span> <span class="n">MCFixup</span> <span class="o">&amp;</span><span class="n">Fixup</span><span class="p">,</span> <span class="kt">char</span> <span class="o">*</span><span class="n">Data</span><span class="p">,</span> <span class="kt">unsigned</span> <span class="n">DataSize</span><span class="p">,</span>
-                  <span class="kt">uint64_t</span> <span class="n">Value</span><span class="p">,</span> <span class="kt">bool</span> <span class="n">IsPCRel</span><span class="p">)</span> <span class="k">const</span> <span class="n">override</span><span class="p">;</span>
+  <span class="n">void</span> <span class="n">applyFixup</span><span class="p">(</span><span class="n">const</span> <span class="n">MCFixup</span> <span class="o">&amp;</span><span class="n">Fixup</span><span class="p">,</span> <span class="n">char</span> <span class="o">*</span><span class="n">Data</span><span class="p">,</span> <span class="n">unsigned</span> <span class="n">DataSize</span><span class="p">,</span>
+                  <span class="n">uint64_t</span> <span class="n">Value</span><span class="p">,</span> <span class="nb">bool</span> <span class="n">IsPCRel</span><span class="p">)</span> <span class="n">const</span> <span class="n">override</span><span class="p">;</span>
 
-  <span class="k">const</span> <span class="n">MCFixupKindInfo</span> <span class="o">&amp;</span><span class="n">getFixupKindInfo</span><span class="p">(</span><span class="n">MCFixupKind</span> <span class="n">Kind</span><span class="p">)</span> <span class="k">const</span> <span class="n">override</span><span class="p">;</span>
+  <span class="n">const</span> <span class="n">MCFixupKindInfo</span> <span class="o">&amp;</span><span class="n">getFixupKindInfo</span><span class="p">(</span><span class="n">MCFixupKind</span> <span class="n">Kind</span><span class="p">)</span> <span class="n">const</span> <span class="n">override</span><span class="p">;</span>
 
-  <span class="kt">unsigned</span> <span class="n">getNumFixupKinds</span><span class="p">()</span> <span class="k">const</span> <span class="n">override</span> <span class="p">{</span>
-    <span class="k">return</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">NumTargetFixupKinds</span><span class="p">;</span>
+  <span class="n">unsigned</span> <span class="n">getNumFixupKinds</span><span class="p">()</span> <span class="n">const</span> <span class="n">override</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="n">Cpu0</span><span class="p">::</span><span class="n">NumTargetFixupKinds</span><span class="p">;</span>
   <span class="p">}</span>
 
-  <span class="c1">/// @name Target Relaxation Interfaces</span>
-  <span class="c1">/// @{</span>
+  <span class="o">///</span> <span class="nd">@name</span> <span class="n">Target</span> <span class="n">Relaxation</span> <span class="n">Interfaces</span>
+  <span class="o">///</span> <span class="o">@</span><span class="p">{</span>
 
-  <span class="c1">/// MayNeedRelaxation - Check whether the given instruction may need</span>
-  <span class="c1">/// relaxation.</span>
-  <span class="c1">///</span>
-  <span class="c1">/// \param Inst - The instruction to test.</span>
-  <span class="kt">bool</span> <span class="n">mayNeedRelaxation</span><span class="p">(</span><span class="k">const</span> <span class="n">MCInst</span> <span class="o">&amp;</span><span class="n">Inst</span><span class="p">)</span> <span class="k">const</span> <span class="n">override</span> <span class="p">{</span>
-    <span class="k">return</span> <span class="nb">false</span><span class="p">;</span>
+  <span class="o">///</span> <span class="n">MayNeedRelaxation</span> <span class="o">-</span> <span class="n">Check</span> <span class="n">whether</span> <span class="n">the</span> <span class="n">given</span> <span class="n">instruction</span> <span class="n">may</span> <span class="n">need</span>
+  <span class="o">///</span> <span class="n">relaxation</span><span class="o">.</span>
+  <span class="o">///</span>
+  <span class="o">///</span> \<span class="n">param</span> <span class="n">Inst</span> <span class="o">-</span> <span class="n">The</span> <span class="n">instruction</span> <span class="n">to</span> <span class="n">test</span><span class="o">.</span>
+  <span class="nb">bool</span> <span class="n">mayNeedRelaxation</span><span class="p">(</span><span class="n">const</span> <span class="n">MCInst</span> <span class="o">&amp;</span><span class="n">Inst</span><span class="p">)</span> <span class="n">const</span> <span class="n">override</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="n">false</span><span class="p">;</span>
   <span class="p">}</span>
 
-  <span class="c1">/// fixupNeedsRelaxation - Target specific predicate for whether a given</span>
-  <span class="c1">/// fixup requires the associated instruction to be relaxed.</span>
-   <span class="kt">bool</span> <span class="n">fixupNeedsRelaxation</span><span class="p">(</span><span class="k">const</span> <span class="n">MCFixup</span> <span class="o">&amp;</span><span class="n">Fixup</span><span class="p">,</span> <span class="kt">uint64_t</span> <span class="n">Value</span><span class="p">,</span>
-                             <span class="k">const</span> <span class="n">MCRelaxableFragment</span> <span class="o">*</span><span class="n">DF</span><span class="p">,</span>
-                             <span class="k">const</span> <span class="n">MCAsmLayout</span> <span class="o">&amp;</span><span class="n">Layout</span><span class="p">)</span> <span class="k">const</span> <span class="n">override</span> <span class="p">{</span>
-    <span class="c1">// FIXME.</span>
-    <span class="n">llvm_unreachable</span><span class="p">(</span><span class="s">&quot;RelaxInstruction() unimplemented&quot;</span><span class="p">);</span>
-    <span class="k">return</span> <span class="nb">false</span><span class="p">;</span>
+  <span class="o">///</span> <span class="n">fixupNeedsRelaxation</span> <span class="o">-</span> <span class="n">Target</span> <span class="n">specific</span> <span class="n">predicate</span> <span class="k">for</span> <span class="n">whether</span> <span class="n">a</span> <span class="n">given</span>
+  <span class="o">///</span> <span class="n">fixup</span> <span class="n">requires</span> <span class="n">the</span> <span class="n">associated</span> <span class="n">instruction</span> <span class="n">to</span> <span class="n">be</span> <span class="n">relaxed</span><span class="o">.</span>
+   <span class="nb">bool</span> <span class="n">fixupNeedsRelaxation</span><span class="p">(</span><span class="n">const</span> <span class="n">MCFixup</span> <span class="o">&amp;</span><span class="n">Fixup</span><span class="p">,</span> <span class="n">uint64_t</span> <span class="n">Value</span><span class="p">,</span>
+                             <span class="n">const</span> <span class="n">MCRelaxableFragment</span> <span class="o">*</span><span class="n">DF</span><span class="p">,</span>
+                             <span class="n">const</span> <span class="n">MCAsmLayout</span> <span class="o">&amp;</span><span class="n">Layout</span><span class="p">)</span> <span class="n">const</span> <span class="n">override</span> <span class="p">{</span>
+    <span class="o">//</span> <span class="n">FIXME</span><span class="o">.</span>
+    <span class="n">llvm_unreachable</span><span class="p">(</span><span class="s2">&quot;RelaxInstruction() unimplemented&quot;</span><span class="p">);</span>
+    <span class="k">return</span> <span class="n">false</span><span class="p">;</span>
   <span class="p">}</span>
 
-  <span class="c1">/// RelaxInstruction - Relax the instruction in the given fragment</span>
-  <span class="c1">/// to the next wider instruction.</span>
-  <span class="c1">///</span>
-  <span class="c1">/// \param Inst - The instruction to relax, which may be the same</span>
-  <span class="c1">/// as the output.</span>
-  <span class="c1">/// \param [out] Res On return, the relaxed instruction.</span>
-  <span class="kt">void</span> <span class="n">relaxInstruction</span><span class="p">(</span><span class="k">const</span> <span class="n">MCInst</span> <span class="o">&amp;</span><span class="n">Inst</span><span class="p">,</span> <span class="n">MCInst</span> <span class="o">&amp;</span><span class="n">Res</span><span class="p">)</span> <span class="k">const</span> <span class="n">override</span> <span class="p">{}</span>
+  <span class="o">///</span> <span class="n">RelaxInstruction</span> <span class="o">-</span> <span class="n">Relax</span> <span class="n">the</span> <span class="n">instruction</span> <span class="ow">in</span> <span class="n">the</span> <span class="n">given</span> <span class="n">fragment</span>
+  <span class="o">///</span> <span class="n">to</span> <span class="n">the</span> <span class="nb">next</span> <span class="n">wider</span> <span class="n">instruction</span><span class="o">.</span>
+  <span class="o">///</span>
+  <span class="o">///</span> \<span class="n">param</span> <span class="n">Inst</span> <span class="o">-</span> <span class="n">The</span> <span class="n">instruction</span> <span class="n">to</span> <span class="n">relax</span><span class="p">,</span> <span class="n">which</span> <span class="n">may</span> <span class="n">be</span> <span class="n">the</span> <span class="n">same</span>
+  <span class="o">///</span> <span class="k">as</span> <span class="n">the</span> <span class="n">output</span><span class="o">.</span>
+  <span class="o">///</span> \<span class="n">param</span> <span class="p">[</span><span class="n">out</span><span class="p">]</span> <span class="n">Res</span> <span class="n">On</span> <span class="k">return</span><span class="p">,</span> <span class="n">the</span> <span class="n">relaxed</span> <span class="n">instruction</span><span class="o">.</span>
+  <span class="n">void</span> <span class="n">relaxInstruction</span><span class="p">(</span><span class="n">const</span> <span class="n">MCInst</span> <span class="o">&amp;</span><span class="n">Inst</span><span class="p">,</span> <span class="n">MCInst</span> <span class="o">&amp;</span><span class="n">Res</span><span class="p">)</span> <span class="n">const</span> <span class="n">override</span> <span class="p">{}</span>
 
-  <span class="c1">/// @}</span>
+  <span class="o">///</span> <span class="o">@</span><span class="p">}</span>
 
-  <span class="kt">bool</span> <span class="n">writeNopData</span><span class="p">(</span><span class="kt">uint64_t</span> <span class="n">Count</span><span class="p">,</span> <span class="n">MCObjectWriter</span> <span class="o">*</span><span class="n">OW</span><span class="p">)</span> <span class="k">const</span> <span class="n">override</span><span class="p">;</span>
-<span class="p">};</span> <span class="c1">// class Cpu0AsmBackend</span>
+  <span class="nb">bool</span> <span class="n">writeNopData</span><span class="p">(</span><span class="n">uint64_t</span> <span class="n">Count</span><span class="p">,</span> <span class="n">MCObjectWriter</span> <span class="o">*</span><span class="n">OW</span><span class="p">)</span> <span class="n">const</span> <span class="n">override</span><span class="p">;</span>
+<span class="p">};</span> <span class="o">//</span> <span class="k">class</span> <span class="nc">Cpu0AsmBackend</span>
 
-<span class="p">}</span> <span class="c1">// namespace</span>
+<span class="p">}</span> <span class="o">//</span> <span class="n">namespace</span>
 
-<span class="cp">#endif</span>
+<span class="c1">#endif</span>
+
 </pre></div>
 </div>
 <p class="rubric">lbdex/chapters/Chapter5_1/MCTargetDesc/Cpu0AsmBackend.cpp</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="c1">//===-- Cpu0AsmBackend.cpp - Cpu0 Asm Backend  ----------------------------===//</span>
-<span class="c1">//</span>
-<span class="c1">//                     The LLVM Compiler Infrastructure</span>
-<span class="c1">//</span>
-<span class="c1">// This file is distributed under the University of Illinois Open Source</span>
-<span class="c1">// License. See LICENSE.TXT for details.</span>
-<span class="c1">//</span>
-<span class="c1">//===----------------------------------------------------------------------===//</span>
-<span class="c1">//</span>
-<span class="c1">// This file implements the Cpu0AsmBackend class.</span>
-<span class="c1">//</span>
-<span class="c1">//===----------------------------------------------------------------------===//</span>
-<span class="c1">//</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span>//===-- Cpu0AsmBackend.cpp - Cpu0 Asm Backend  ----------------------------===//
+//
+//                     The LLVM Compiler Infrastructure
+//
+// This file is distributed under the University of Illinois Open Source
+// License. See LICENSE.TXT for details.
+//
+//===----------------------------------------------------------------------===//
+//
+// This file implements the Cpu0AsmBackend class.
+//
+//===----------------------------------------------------------------------===//
+//
 
-<span class="cp">#include &quot;MCTargetDesc/Cpu0FixupKinds.h&quot;</span>
-<span class="cp">#include &quot;MCTargetDesc/Cpu0AsmBackend.h&quot;</span>
+#include &quot;MCTargetDesc/Cpu0FixupKinds.h&quot;
+#include &quot;MCTargetDesc/Cpu0AsmBackend.h&quot;
 
-<span class="cp">#include &quot;MCTargetDesc/Cpu0MCTargetDesc.h&quot;</span>
-<span class="cp">#include &quot;llvm/MC/MCAsmBackend.h&quot;</span>
-<span class="cp">#include &quot;llvm/MC/MCAssembler.h&quot;</span>
-<span class="cp">#include &quot;llvm/MC/MCDirectives.h&quot;</span>
-<span class="cp">#include &quot;llvm/MC/MCELFObjectWriter.h&quot;</span>
-<span class="cp">#include &quot;llvm/MC/MCFixupKindInfo.h&quot;</span>
-<span class="cp">#include &quot;llvm/MC/MCObjectWriter.h&quot;</span>
-<span class="cp">#include &quot;llvm/MC/MCSubtargetInfo.h&quot;</span>
-<span class="cp">#include &quot;llvm/Support/ErrorHandling.h&quot;</span>
-<span class="cp">#include &quot;llvm/Support/raw_ostream.h&quot;</span>
+#include &quot;MCTargetDesc/Cpu0MCTargetDesc.h&quot;
+#include &quot;llvm/MC/MCAsmBackend.h&quot;
+#include &quot;llvm/MC/MCAssembler.h&quot;
+#include &quot;llvm/MC/MCDirectives.h&quot;
+#include &quot;llvm/MC/MCELFObjectWriter.h&quot;
+#include &quot;llvm/MC/MCFixupKindInfo.h&quot;
+#include &quot;llvm/MC/MCObjectWriter.h&quot;
+#include &quot;llvm/MC/MCSubtargetInfo.h&quot;
+#include &quot;llvm/Support/ErrorHandling.h&quot;
+#include &quot;llvm/Support/raw_ostream.h&quot;
 
-<span class="k">using</span> <span class="k">namespace</span> <span class="n">llvm</span><span class="p">;</span>
+using namespace llvm;
 
-<span class="c1">//@adjustFixupValue {</span>
-<span class="c1">// Prepare value for the target space for it</span>
-<span class="k">static</span> <span class="kt">unsigned</span> <span class="nf">adjustFixupValue</span><span class="p">(</span><span class="k">const</span> <span class="n">MCFixup</span> <span class="o">&amp;</span><span class="n">Fixup</span><span class="p">,</span> <span class="kt">uint64_t</span> <span class="n">Value</span><span class="p">,</span>
-                                 <span class="n">MCContext</span> <span class="o">*</span><span class="n">Ctx</span> <span class="o">=</span> <span class="n">nullptr</span><span class="p">)</span> <span class="p">{</span>
+//@adjustFixupValue {
+// Prepare value for the target space for it
+static unsigned adjustFixupValue(const MCFixup &amp;Fixup, uint64_t Value,
+                                 MCContext *Ctx = nullptr) {
 
-  <span class="kt">unsigned</span> <span class="n">Kind</span> <span class="o">=</span> <span class="n">Fixup</span><span class="p">.</span><span class="n">getKind</span><span class="p">();</span>
+  unsigned Kind = Fixup.getKind();
 
-  <span class="c1">// Add/subtract and shift</span>
-  <span class="k">switch</span> <span class="p">(</span><span class="n">Kind</span><span class="p">)</span> <span class="p">{</span>
-  <span class="nl">default:</span>
-    <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
-  <span class="k">case</span> <span class="n">FK_GPRel_4</span>:
-  <span class="k">case</span> <span class="n">FK_Data_4</span>:
-  <span class="k">case</span> <span class="n">Cpu0</span>:<span class="o">:</span><span class="n">fixup_Cpu0_LO16</span><span class="o">:</span>
-    <span class="k">break</span><span class="p">;</span>
-  <span class="k">case</span> <span class="n">Cpu0</span>:<span class="o">:</span><span class="n">fixup_Cpu0_HI16</span><span class="o">:</span>
-  <span class="k">case</span> <span class="n">Cpu0</span>:<span class="o">:</span><span class="n">fixup_Cpu0_GOT_Local</span><span class="o">:</span>
-    <span class="c1">// Get the higher 16-bits. Also add 1 if bit 15 is 1.</span>
-    <span class="n">Value</span> <span class="o">=</span> <span class="p">((</span><span class="n">Value</span> <span class="o">+</span> <span class="mh">0x8000</span><span class="p">)</span> <span class="o">&gt;&gt;</span> <span class="mi">16</span><span class="p">)</span> <span class="o">&amp;</span> <span class="mh">0xffff</span><span class="p">;</span>
-    <span class="k">break</span><span class="p">;</span>
-  <span class="p">}</span>
+  // Add/subtract and shift
+  switch (Kind) {
+  default:
+    return 0;
+  case FK_GPRel_4:
+  case FK_Data_4:
+  case Cpu0::fixup_Cpu0_LO16:
+    break;
+  case Cpu0::fixup_Cpu0_HI16:
+  case Cpu0::fixup_Cpu0_GOT_Local:
+    // Get the higher 16-bits. Also add 1 if bit 15 is 1.
+    Value = ((Value + 0x8000) &gt;&gt; 16) &amp; 0xffff;
+    break;
+  }
 
-  <span class="k">return</span> <span class="n">Value</span><span class="p">;</span>
-<span class="p">}</span>
-<span class="c1">//@adjustFixupValue }</span>
+  return Value;
+}
+//@adjustFixupValue }
 
-<span class="n">MCObjectWriter</span> <span class="o">*</span>
-<span class="n">Cpu0AsmBackend</span><span class="o">::</span><span class="n">createObjectWriter</span><span class="p">(</span><span class="n">raw_pwrite_stream</span> <span class="o">&amp;</span><span class="n">OS</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
-  <span class="k">return</span> <span class="n">createCpu0ELFObjectWriter</span><span class="p">(</span><span class="n">OS</span><span class="p">,</span>
-    <span class="n">MCELFObjectTargetWriter</span><span class="o">::</span><span class="n">getOSABI</span><span class="p">(</span><span class="n">OSType</span><span class="p">),</span> <span class="n">IsLittle</span><span class="p">);</span>
-<span class="p">}</span>
+MCObjectWriter *
+Cpu0AsmBackend::createObjectWriter(raw_pwrite_stream &amp;OS) const {
+  return createCpu0ELFObjectWriter(OS,
+    MCELFObjectTargetWriter::getOSABI(OSType), IsLittle);
+}
 
-<span class="c1">/// ApplyFixup - Apply the \p Value for given \p Fixup into the provided</span>
-<span class="c1">/// data fragment, at the offset specified by the fixup and following the</span>
-<span class="c1">/// fixup kind as appropriate.</span>
-<span class="kt">void</span> <span class="n">Cpu0AsmBackend</span><span class="o">::</span><span class="n">applyFixup</span><span class="p">(</span><span class="k">const</span> <span class="n">MCFixup</span> <span class="o">&amp;</span><span class="n">Fixup</span><span class="p">,</span> <span class="kt">char</span> <span class="o">*</span><span class="n">Data</span><span class="p">,</span>
-                                <span class="kt">unsigned</span> <span class="n">DataSize</span><span class="p">,</span> <span class="kt">uint64_t</span> <span class="n">Value</span><span class="p">,</span>
-                                <span class="kt">bool</span> <span class="n">IsPCRel</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
-  <span class="n">MCFixupKind</span> <span class="n">Kind</span> <span class="o">=</span> <span class="n">Fixup</span><span class="p">.</span><span class="n">getKind</span><span class="p">();</span>
-  <span class="n">Value</span> <span class="o">=</span> <span class="n">adjustFixupValue</span><span class="p">(</span><span class="n">Fixup</span><span class="p">,</span> <span class="n">Value</span><span class="p">);</span>
+/// ApplyFixup - Apply the \p Value for given \p Fixup into the provided
+/// data fragment, at the offset specified by the fixup and following the
+/// fixup kind as appropriate.
+void Cpu0AsmBackend::applyFixup(const MCFixup &amp;Fixup, char *Data,
+                                unsigned DataSize, uint64_t Value,
+                                bool IsPCRel) const {
+  MCFixupKind Kind = Fixup.getKind();
+  Value = adjustFixupValue(Fixup, Value);
 
-  <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">Value</span><span class="p">)</span>
-    <span class="k">return</span><span class="p">;</span> <span class="c1">// Doesn&#39;t change encoding.</span>
+  if (!Value)
+    return; // Doesn&#39;t change encoding.
 
-  <span class="c1">// Where do we start in the object</span>
-  <span class="kt">unsigned</span> <span class="n">Offset</span> <span class="o">=</span> <span class="n">Fixup</span><span class="p">.</span><span class="n">getOffset</span><span class="p">();</span>
-  <span class="c1">// Number of bytes we need to fixup</span>
-  <span class="kt">unsigned</span> <span class="n">NumBytes</span> <span class="o">=</span> <span class="p">(</span><span class="n">getFixupKindInfo</span><span class="p">(</span><span class="n">Kind</span><span class="p">).</span><span class="n">TargetSize</span> <span class="o">+</span> <span class="mi">7</span><span class="p">)</span> <span class="o">/</span> <span class="mi">8</span><span class="p">;</span>
-  <span class="c1">// Used to point to big endian bytes</span>
-  <span class="kt">unsigned</span> <span class="n">FullSize</span><span class="p">;</span>
+  // Where do we start in the object
+  unsigned Offset = Fixup.getOffset();
+  // Number of bytes we need to fixup
+  unsigned NumBytes = (getFixupKindInfo(Kind).TargetSize + 7) / 8;
+  // Used to point to big endian bytes
+  unsigned FullSize;
 
-  <span class="k">switch</span> <span class="p">((</span><span class="kt">unsigned</span><span class="p">)</span><span class="n">Kind</span><span class="p">)</span> <span class="p">{</span>
-  <span class="nl">default:</span>
-    <span class="n">FullSize</span> <span class="o">=</span> <span class="mi">4</span><span class="p">;</span>
-    <span class="k">break</span><span class="p">;</span>
-  <span class="p">}</span>
+  switch ((unsigned)Kind) {
+  default:
+    FullSize = 4;
+    break;
+  }
 
-  <span class="c1">// Grab current value, if any, from bits.</span>
-  <span class="kt">uint64_t</span> <span class="n">CurVal</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+  // Grab current value, if any, from bits.
+  uint64_t CurVal = 0;
 
-  <span class="k">for</span> <span class="p">(</span><span class="kt">unsigned</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">!=</span> <span class="n">NumBytes</span><span class="p">;</span> <span class="o">++</span><span class="n">i</span><span class="p">)</span> <span class="p">{</span>
-    <span class="kt">unsigned</span> <span class="n">Idx</span> <span class="o">=</span> <span class="n">IsLittle</span> <span class="o">?</span> <span class="n">i</span> <span class="o">:</span> <span class="p">(</span><span class="n">FullSize</span> <span class="o">-</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">i</span><span class="p">);</span>
-    <span class="n">CurVal</span> <span class="o">|=</span> <span class="p">(</span><span class="kt">uint64_t</span><span class="p">)((</span><span class="kt">uint8_t</span><span class="p">)</span><span class="n">Data</span><span class="p">[</span><span class="n">Offset</span> <span class="o">+</span> <span class="n">Idx</span><span class="p">])</span> <span class="o">&lt;&lt;</span> <span class="p">(</span><span class="n">i</span><span class="o">*</span><span class="mi">8</span><span class="p">);</span>
-  <span class="p">}</span>
+  for (unsigned i = 0; i != NumBytes; ++i) {
+    unsigned Idx = IsLittle ? i : (FullSize - 1 - i);
+    CurVal |= (uint64_t)((uint8_t)Data[Offset + Idx]) &lt;&lt; (i*8);
+  }
 
-  <span class="kt">uint64_t</span> <span class="n">Mask</span> <span class="o">=</span> <span class="p">((</span><span class="kt">uint64_t</span><span class="p">)(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="o">&gt;&gt;</span>
-                    <span class="p">(</span><span class="mi">64</span> <span class="o">-</span> <span class="n">getFixupKindInfo</span><span class="p">(</span><span class="n">Kind</span><span class="p">).</span><span class="n">TargetSize</span><span class="p">));</span>
-  <span class="n">CurVal</span> <span class="o">|=</span> <span class="n">Value</span> <span class="o">&amp;</span> <span class="n">Mask</span><span class="p">;</span>
+  uint64_t Mask = ((uint64_t)(-1) &gt;&gt;
+                    (64 - getFixupKindInfo(Kind).TargetSize));
+  CurVal |= Value &amp; Mask;
 
-  <span class="c1">// Write out the fixed up bytes back to the code/data bits.</span>
-  <span class="k">for</span> <span class="p">(</span><span class="kt">unsigned</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">!=</span> <span class="n">NumBytes</span><span class="p">;</span> <span class="o">++</span><span class="n">i</span><span class="p">)</span> <span class="p">{</span>
-    <span class="kt">unsigned</span> <span class="n">Idx</span> <span class="o">=</span> <span class="n">IsLittle</span> <span class="o">?</span> <span class="n">i</span> <span class="o">:</span> <span class="p">(</span><span class="n">FullSize</span> <span class="o">-</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">i</span><span class="p">);</span>
-    <span class="n">Data</span><span class="p">[</span><span class="n">Offset</span> <span class="o">+</span> <span class="n">Idx</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="kt">uint8_t</span><span class="p">)((</span><span class="n">CurVal</span> <span class="o">&gt;&gt;</span> <span class="p">(</span><span class="n">i</span><span class="o">*</span><span class="mi">8</span><span class="p">))</span> <span class="o">&amp;</span> <span class="mh">0xff</span><span class="p">);</span>
-  <span class="p">}</span>
-<span class="p">}</span>
+  // Write out the fixed up bytes back to the code/data bits.
+  for (unsigned i = 0; i != NumBytes; ++i) {
+    unsigned Idx = IsLittle ? i : (FullSize - 1 - i);
+    Data[Offset + Idx] = (uint8_t)((CurVal &gt;&gt; (i*8)) &amp; 0xff);
+  }
+}
 
-<span class="c1">//@getFixupKindInfo {</span>
-<span class="k">const</span> <span class="n">MCFixupKindInfo</span> <span class="o">&amp;</span><span class="n">Cpu0AsmBackend</span><span class="o">::</span>
-<span class="n">getFixupKindInfo</span><span class="p">(</span><span class="n">MCFixupKind</span> <span class="n">Kind</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
-  <span class="k">const</span> <span class="k">static</span> <span class="n">MCFixupKindInfo</span> <span class="n">Infos</span><span class="p">[</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">NumTargetFixupKinds</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="c1">// This table *must* be in same the order of fixup_* kinds in</span>
-    <span class="c1">// Cpu0FixupKinds.h.</span>
-    <span class="c1">//</span>
-    <span class="c1">// name                        offset  bits  flags</span>
-    <span class="p">{</span> <span class="s">&quot;fixup_Cpu0_32&quot;</span><span class="p">,</span>             <span class="mi">0</span><span class="p">,</span>     <span class="mi">32</span><span class="p">,</span>   <span class="mi">0</span> <span class="p">},</span>
-    <span class="p">{</span> <span class="s">&quot;fixup_Cpu0_HI16&quot;</span><span class="p">,</span>           <span class="mi">0</span><span class="p">,</span>     <span class="mi">16</span><span class="p">,</span>   <span class="mi">0</span> <span class="p">},</span>
-    <span class="p">{</span> <span class="s">&quot;fixup_Cpu0_LO16&quot;</span><span class="p">,</span>           <span class="mi">0</span><span class="p">,</span>     <span class="mi">16</span><span class="p">,</span>   <span class="mi">0</span> <span class="p">},</span>
-    <span class="p">{</span> <span class="s">&quot;fixup_Cpu0_GPREL16&quot;</span><span class="p">,</span>        <span class="mi">0</span><span class="p">,</span>     <span class="mi">16</span><span class="p">,</span>   <span class="mi">0</span> <span class="p">},</span>
-    <span class="p">{</span> <span class="s">&quot;fixup_Cpu0_GOT_Global&quot;</span><span class="p">,</span>     <span class="mi">0</span><span class="p">,</span>     <span class="mi">16</span><span class="p">,</span>   <span class="mi">0</span> <span class="p">},</span>
-    <span class="p">{</span> <span class="s">&quot;fixup_Cpu0_GOT_Local&quot;</span><span class="p">,</span>      <span class="mi">0</span><span class="p">,</span>     <span class="mi">16</span><span class="p">,</span>   <span class="mi">0</span> <span class="p">},</span>
-    <span class="p">{</span> <span class="s">&quot;fixup_Cpu0_GOT_HI16&quot;</span><span class="p">,</span>       <span class="mi">0</span><span class="p">,</span>     <span class="mi">16</span><span class="p">,</span>   <span class="mi">0</span> <span class="p">},</span>
-    <span class="p">{</span> <span class="s">&quot;fixup_Cpu0_GOT_LO16&quot;</span><span class="p">,</span>       <span class="mi">0</span><span class="p">,</span>     <span class="mi">16</span><span class="p">,</span>   <span class="mi">0</span> <span class="p">}</span>
-  <span class="p">};</span>
+//@getFixupKindInfo {
+const MCFixupKindInfo &amp;Cpu0AsmBackend::
+getFixupKindInfo(MCFixupKind Kind) const {
+  const static MCFixupKindInfo Infos[Cpu0::NumTargetFixupKinds] = {
+    // This table *must* be in same the order of fixup_* kinds in
+    // Cpu0FixupKinds.h.
+    //
+    // name                        offset  bits  flags
+    { &quot;fixup_Cpu0_32&quot;,             0,     32,   0 },
+    { &quot;fixup_Cpu0_HI16&quot;,           0,     16,   0 },
+    { &quot;fixup_Cpu0_LO16&quot;,           0,     16,   0 },
+    { &quot;fixup_Cpu0_GPREL16&quot;,        0,     16,   0 },
+    { &quot;fixup_Cpu0_GOT_Global&quot;,     0,     16,   0 },
+    { &quot;fixup_Cpu0_GOT_Local&quot;,      0,     16,   0 },
+    { &quot;fixup_Cpu0_GOT_HI16&quot;,       0,     16,   0 },
+    { &quot;fixup_Cpu0_GOT_LO16&quot;,       0,     16,   0 }
+  };
 
-  <span class="k">if</span> <span class="p">(</span><span class="n">Kind</span> <span class="o">&lt;</span> <span class="n">FirstTargetFixupKind</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">MCAsmBackend</span><span class="o">::</span><span class="n">getFixupKindInfo</span><span class="p">(</span><span class="n">Kind</span><span class="p">);</span>
+  if (Kind &lt; FirstTargetFixupKind)
+    return MCAsmBackend::getFixupKindInfo(Kind);
 
-  <span class="n">assert</span><span class="p">(</span><span class="kt">unsigned</span><span class="p">(</span><span class="n">Kind</span> <span class="o">-</span> <span class="n">FirstTargetFixupKind</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">getNumFixupKinds</span><span class="p">()</span> <span class="o">&amp;&amp;</span>
-         <span class="s">&quot;Invalid kind!&quot;</span><span class="p">);</span>
-  <span class="k">return</span> <span class="n">Infos</span><span class="p">[</span><span class="n">Kind</span> <span class="o">-</span> <span class="n">FirstTargetFixupKind</span><span class="p">];</span>
-<span class="p">}</span>
-<span class="c1">//@getFixupKindInfo }</span>
+  assert(unsigned(Kind - FirstTargetFixupKind) &lt; getNumFixupKinds() &amp;&amp;
+         &quot;Invalid kind!&quot;);
+  return Infos[Kind - FirstTargetFixupKind];
+}
+//@getFixupKindInfo }
 
-<span class="c1">/// WriteNopData - Write an (optimal) nop sequence of Count bytes</span>
-<span class="c1">/// to the given output. If the target cannot generate such a sequence,</span>
-<span class="c1">/// it should return an error.</span>
-<span class="c1">///</span>
-<span class="c1">/// \return - True on success.</span>
-<span class="kt">bool</span> <span class="n">Cpu0AsmBackend</span><span class="o">::</span><span class="n">writeNopData</span><span class="p">(</span><span class="kt">uint64_t</span> <span class="n">Count</span><span class="p">,</span> <span class="n">MCObjectWriter</span> <span class="o">*</span><span class="n">OW</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
-  <span class="k">return</span> <span class="nb">true</span><span class="p">;</span>
-<span class="p">}</span>
+/// WriteNopData - Write an (optimal) nop sequence of Count bytes
+/// to the given output. If the target cannot generate such a sequence,
+/// it should return an error.
+///
+/// \return - True on success.
+bool Cpu0AsmBackend::writeNopData(uint64_t Count, MCObjectWriter *OW) const {
+  return true;
+}
 
-<span class="c1">// MCAsmBackend</span>
-<span class="n">MCAsmBackend</span> <span class="o">*</span><span class="n">llvm</span><span class="o">::</span><span class="n">createCpu0AsmBackendEL32</span><span class="p">(</span><span class="k">const</span> <span class="n">Target</span> <span class="o">&amp;</span><span class="n">T</span><span class="p">,</span>
-                                             <span class="k">const</span> <span class="n">MCRegisterInfo</span> <span class="o">&amp;</span><span class="n">MRI</span><span class="p">,</span>
-                                             <span class="k">const</span> <span class="n">Triple</span> <span class="o">&amp;</span><span class="n">TT</span><span class="p">,</span> <span class="n">StringRef</span> <span class="n">CPU</span><span class="p">)</span> <span class="p">{</span>
-  <span class="k">return</span> <span class="k">new</span> <span class="n">Cpu0AsmBackend</span><span class="p">(</span><span class="n">T</span><span class="p">,</span> <span class="n">TT</span><span class="p">.</span><span class="n">getOS</span><span class="p">(),</span> <span class="cm">/*IsLittle*/</span><span class="nb">true</span><span class="p">);</span>
-<span class="p">}</span>
+// MCAsmBackend
+MCAsmBackend *llvm::createCpu0AsmBackendEL32(const Target &amp;T,
+                                             const MCRegisterInfo &amp;MRI,
+                                             const Triple &amp;TT, StringRef CPU) {
+  return new Cpu0AsmBackend(T, TT.getOS(), /*IsLittle*/true);
+}
 
-<span class="n">MCAsmBackend</span> <span class="o">*</span><span class="n">llvm</span><span class="o">::</span><span class="n">createCpu0AsmBackendEB32</span><span class="p">(</span><span class="k">const</span> <span class="n">Target</span> <span class="o">&amp;</span><span class="n">T</span><span class="p">,</span>
-                                             <span class="k">const</span> <span class="n">MCRegisterInfo</span> <span class="o">&amp;</span><span class="n">MRI</span><span class="p">,</span>
-                                             <span class="k">const</span> <span class="n">Triple</span> <span class="o">&amp;</span><span class="n">TT</span><span class="p">,</span> <span class="n">StringRef</span> <span class="n">CPU</span><span class="p">)</span> <span class="p">{</span>
-  <span class="k">return</span> <span class="k">new</span> <span class="n">Cpu0AsmBackend</span><span class="p">(</span><span class="n">T</span><span class="p">,</span> <span class="n">TT</span><span class="p">.</span><span class="n">getOS</span><span class="p">(),</span> <span class="cm">/*IsLittle*/</span><span class="nb">false</span><span class="p">);</span>
-<span class="p">}</span>
+MCAsmBackend *llvm::createCpu0AsmBackendEB32(const Target &amp;T,
+                                             const MCRegisterInfo &amp;MRI,
+                                             const Triple &amp;TT, StringRef CPU) {
+  return new Cpu0AsmBackend(T, TT.getOS(), /*IsLittle*/false);
+}
+
 </pre></div>
 </div>
 <p class="rubric">lbdex/chapters/Chapter5_1/MCTargetDesc/Cpu0BaseInfo.h</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="cp">#include &quot;Cpu0FixupKinds.h&quot;</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1">#include &quot;Cpu0FixupKinds.h&quot;</span>
 </pre></div>
 </div>
 <p class="rubric">lbdex/chapters/Chapter5_1/MCTargetDesc/Cpu0ELFObjectWriter.cpp</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="c1">//===-- Cpu0ELFObjectWriter.cpp - Cpu0 ELF Writer -------------------------===//</span>
-<span class="c1">//</span>
-<span class="c1">//                     The LLVM Compiler Infrastructure</span>
-<span class="c1">//</span>
-<span class="c1">// This file is distributed under the University of Illinois Open Source</span>
-<span class="c1">// License. See LICENSE.TXT for details.</span>
-<span class="c1">//</span>
-<span class="c1">//===----------------------------------------------------------------------===//</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">//===--</span> <span class="n">Cpu0ELFObjectWriter</span><span class="o">.</span><span class="n">cpp</span> <span class="o">-</span> <span class="n">Cpu0</span> <span class="n">ELF</span> <span class="n">Writer</span> <span class="o">-------------------------===//</span>
+<span class="o">//</span>
+<span class="o">//</span>                     <span class="n">The</span> <span class="n">LLVM</span> <span class="n">Compiler</span> <span class="n">Infrastructure</span>
+<span class="o">//</span>
+<span class="o">//</span> <span class="n">This</span> <span class="n">file</span> <span class="ow">is</span> <span class="n">distributed</span> <span class="n">under</span> <span class="n">the</span> <span class="n">University</span> <span class="n">of</span> <span class="n">Illinois</span> <span class="n">Open</span> <span class="n">Source</span>
+<span class="o">//</span> <span class="n">License</span><span class="o">.</span> <span class="n">See</span> <span class="n">LICENSE</span><span class="o">.</span><span class="n">TXT</span> <span class="k">for</span> <span class="n">details</span><span class="o">.</span>
+<span class="o">//</span>
+<span class="o">//===----------------------------------------------------------------------===//</span>
 
-<span class="cp">#include &quot;Cpu0Config.h&quot;</span>
+<span class="c1">#include &quot;Cpu0Config.h&quot;</span>
 
-<span class="cp">#include &quot;MCTargetDesc/Cpu0BaseInfo.h&quot;</span>
-<span class="cp">#include &quot;MCTargetDesc/Cpu0FixupKinds.h&quot;</span>
-<span class="cp">#include &quot;MCTargetDesc/Cpu0MCTargetDesc.h&quot;</span>
-<span class="cp">#include &quot;llvm/MC/MCAssembler.h&quot;</span>
-<span class="cp">#include &quot;llvm/MC/MCELFObjectWriter.h&quot;</span>
-<span class="cp">#include &quot;llvm/MC/MCExpr.h&quot;</span>
-<span class="cp">#include &quot;llvm/MC/MCSection.h&quot;</span>
-<span class="cp">#include &quot;llvm/MC/MCValue.h&quot;</span>
-<span class="cp">#include &quot;llvm/Support/ErrorHandling.h&quot;</span>
-<span class="cp">#include &lt;list&gt;</span>
+<span class="c1">#include &quot;MCTargetDesc/Cpu0BaseInfo.h&quot;</span>
+<span class="c1">#include &quot;MCTargetDesc/Cpu0FixupKinds.h&quot;</span>
+<span class="c1">#include &quot;MCTargetDesc/Cpu0MCTargetDesc.h&quot;</span>
+<span class="c1">#include &quot;llvm/MC/MCAssembler.h&quot;</span>
+<span class="c1">#include &quot;llvm/MC/MCELFObjectWriter.h&quot;</span>
+<span class="c1">#include &quot;llvm/MC/MCExpr.h&quot;</span>
+<span class="c1">#include &quot;llvm/MC/MCSection.h&quot;</span>
+<span class="c1">#include &quot;llvm/MC/MCValue.h&quot;</span>
+<span class="c1">#include &quot;llvm/Support/ErrorHandling.h&quot;</span>
+<span class="c1">#include &lt;list&gt;</span>
 
-<span class="k">using</span> <span class="k">namespace</span> <span class="n">llvm</span><span class="p">;</span>
+<span class="n">using</span> <span class="n">namespace</span> <span class="n">llvm</span><span class="p">;</span>
 
-<span class="k">namespace</span> <span class="p">{</span>
-  <span class="k">class</span> <span class="nc">Cpu0ELFObjectWriter</span> <span class="o">:</span> <span class="k">public</span> <span class="n">MCELFObjectTargetWriter</span> <span class="p">{</span>
-  <span class="nl">public:</span>
-    <span class="n">Cpu0ELFObjectWriter</span><span class="p">(</span><span class="kt">uint8_t</span> <span class="n">OSABI</span><span class="p">);</span>
+<span class="n">namespace</span> <span class="p">{</span>
+  <span class="k">class</span> <span class="nc">Cpu0ELFObjectWriter</span> <span class="p">:</span> <span class="n">public</span> <span class="n">MCELFObjectTargetWriter</span> <span class="p">{</span>
+  <span class="n">public</span><span class="p">:</span>
+    <span class="n">Cpu0ELFObjectWriter</span><span class="p">(</span><span class="n">uint8_t</span> <span class="n">OSABI</span><span class="p">);</span>
 
     <span class="o">~</span><span class="n">Cpu0ELFObjectWriter</span><span class="p">()</span> <span class="n">override</span><span class="p">;</span>
 
-    <span class="kt">unsigned</span> <span class="n">GetRelocType</span><span class="p">(</span><span class="k">const</span> <span class="n">MCValue</span> <span class="o">&amp;</span><span class="n">Target</span><span class="p">,</span> <span class="k">const</span> <span class="n">MCFixup</span> <span class="o">&amp;</span><span class="n">Fixup</span><span class="p">,</span>
-                          <span class="kt">bool</span> <span class="n">IsPCRel</span><span class="p">)</span> <span class="k">const</span> <span class="n">override</span><span class="p">;</span>
-    <span class="kt">bool</span> <span class="n">needsRelocateWithSymbol</span><span class="p">(</span><span class="k">const</span> <span class="n">MCSymbol</span> <span class="o">&amp;</span><span class="n">Sym</span><span class="p">,</span>
-                                 <span class="kt">unsigned</span> <span class="n">Type</span><span class="p">)</span> <span class="k">const</span> <span class="n">override</span><span class="p">;</span>
+    <span class="n">unsigned</span> <span class="n">GetRelocType</span><span class="p">(</span><span class="n">const</span> <span class="n">MCValue</span> <span class="o">&amp;</span><span class="n">Target</span><span class="p">,</span> <span class="n">const</span> <span class="n">MCFixup</span> <span class="o">&amp;</span><span class="n">Fixup</span><span class="p">,</span>
+                          <span class="nb">bool</span> <span class="n">IsPCRel</span><span class="p">)</span> <span class="n">const</span> <span class="n">override</span><span class="p">;</span>
+    <span class="nb">bool</span> <span class="n">needsRelocateWithSymbol</span><span class="p">(</span><span class="n">const</span> <span class="n">MCSymbol</span> <span class="o">&amp;</span><span class="n">Sym</span><span class="p">,</span>
+                                 <span class="n">unsigned</span> <span class="n">Type</span><span class="p">)</span> <span class="n">const</span> <span class="n">override</span><span class="p">;</span>
   <span class="p">};</span>
 <span class="p">}</span>
 
-<span class="n">Cpu0ELFObjectWriter</span><span class="o">::</span><span class="n">Cpu0ELFObjectWriter</span><span class="p">(</span><span class="kt">uint8_t</span> <span class="n">OSABI</span><span class="p">)</span>
-  <span class="o">:</span> <span class="n">MCELFObjectTargetWriter</span><span class="p">(</span><span class="cm">/*_is64Bit=false*/</span> <span class="nb">false</span><span class="p">,</span> <span class="n">OSABI</span><span class="p">,</span> <span class="n">ELF</span><span class="o">::</span><span class="n">EM_CPU0</span><span class="p">,</span>
-                            <span class="cm">/*HasRelocationAddend*/</span> <span class="nb">false</span><span class="p">)</span> <span class="p">{}</span>
+<span class="n">Cpu0ELFObjectWriter</span><span class="p">::</span><span class="n">Cpu0ELFObjectWriter</span><span class="p">(</span><span class="n">uint8_t</span> <span class="n">OSABI</span><span class="p">)</span>
+  <span class="p">:</span> <span class="n">MCELFObjectTargetWriter</span><span class="p">(</span><span class="o">/*</span><span class="n">_is64Bit</span><span class="o">=</span><span class="n">false</span><span class="o">*/</span> <span class="n">false</span><span class="p">,</span> <span class="n">OSABI</span><span class="p">,</span> <span class="n">ELF</span><span class="p">::</span><span class="n">EM_CPU0</span><span class="p">,</span>
+                            <span class="o">/*</span><span class="n">HasRelocationAddend</span><span class="o">*/</span> <span class="n">false</span><span class="p">)</span> <span class="p">{}</span>
 
-<span class="n">Cpu0ELFObjectWriter</span><span class="o">::~</span><span class="n">Cpu0ELFObjectWriter</span><span class="p">()</span> <span class="p">{}</span>
+<span class="n">Cpu0ELFObjectWriter</span><span class="p">::</span><span class="o">~</span><span class="n">Cpu0ELFObjectWriter</span><span class="p">()</span> <span class="p">{}</span>
 
-<span class="c1">//@GetRelocType {</span>
-<span class="kt">unsigned</span> <span class="n">Cpu0ELFObjectWriter</span><span class="o">::</span><span class="n">GetRelocType</span><span class="p">(</span><span class="k">const</span> <span class="n">MCValue</span> <span class="o">&amp;</span><span class="n">Target</span><span class="p">,</span>
-                                           <span class="k">const</span> <span class="n">MCFixup</span> <span class="o">&amp;</span><span class="n">Fixup</span><span class="p">,</span>
-                                           <span class="kt">bool</span> <span class="n">IsPCRel</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
-  <span class="c1">// determine the type of the relocation</span>
-  <span class="kt">unsigned</span> <span class="n">Type</span> <span class="o">=</span> <span class="p">(</span><span class="kt">unsigned</span><span class="p">)</span><span class="n">ELF</span><span class="o">::</span><span class="n">R_CPU0_NONE</span><span class="p">;</span>
-  <span class="kt">unsigned</span> <span class="n">Kind</span> <span class="o">=</span> <span class="p">(</span><span class="kt">unsigned</span><span class="p">)</span><span class="n">Fixup</span><span class="p">.</span><span class="n">getKind</span><span class="p">();</span>
+<span class="o">//</span><span class="nd">@GetRelocType</span> <span class="p">{</span>
+<span class="n">unsigned</span> <span class="n">Cpu0ELFObjectWriter</span><span class="p">::</span><span class="n">GetRelocType</span><span class="p">(</span><span class="n">const</span> <span class="n">MCValue</span> <span class="o">&amp;</span><span class="n">Target</span><span class="p">,</span>
+                                           <span class="n">const</span> <span class="n">MCFixup</span> <span class="o">&amp;</span><span class="n">Fixup</span><span class="p">,</span>
+                                           <span class="nb">bool</span> <span class="n">IsPCRel</span><span class="p">)</span> <span class="n">const</span> <span class="p">{</span>
+  <span class="o">//</span> <span class="n">determine</span> <span class="n">the</span> <span class="nb">type</span> <span class="n">of</span> <span class="n">the</span> <span class="n">relocation</span>
+  <span class="n">unsigned</span> <span class="n">Type</span> <span class="o">=</span> <span class="p">(</span><span class="n">unsigned</span><span class="p">)</span><span class="n">ELF</span><span class="p">::</span><span class="n">R_CPU0_NONE</span><span class="p">;</span>
+  <span class="n">unsigned</span> <span class="n">Kind</span> <span class="o">=</span> <span class="p">(</span><span class="n">unsigned</span><span class="p">)</span><span class="n">Fixup</span><span class="o">.</span><span class="n">getKind</span><span class="p">();</span>
 
-  <span class="k">switch</span> <span class="p">(</span><span class="n">Kind</span><span class="p">)</span> <span class="p">{</span>
-  <span class="nl">default:</span>
-    <span class="n">llvm_unreachable</span><span class="p">(</span><span class="s">&quot;invalid fixup kind!&quot;</span><span class="p">);</span>
-  <span class="k">case</span> <span class="n">FK_Data_4</span>:
-    <span class="n">Type</span> <span class="o">=</span> <span class="n">ELF</span><span class="o">::</span><span class="n">R_CPU0_32</span><span class="p">;</span>
+  <span class="n">switch</span> <span class="p">(</span><span class="n">Kind</span><span class="p">)</span> <span class="p">{</span>
+  <span class="n">default</span><span class="p">:</span>
+    <span class="n">llvm_unreachable</span><span class="p">(</span><span class="s2">&quot;invalid fixup kind!&quot;</span><span class="p">);</span>
+  <span class="n">case</span> <span class="n">FK_Data_4</span><span class="p">:</span>
+    <span class="n">Type</span> <span class="o">=</span> <span class="n">ELF</span><span class="p">::</span><span class="n">R_CPU0_32</span><span class="p">;</span>
     <span class="k">break</span><span class="p">;</span>
-  <span class="k">case</span> <span class="n">Cpu0</span>:<span class="o">:</span><span class="n">fixup_Cpu0_32</span><span class="o">:</span>
-    <span class="n">Type</span> <span class="o">=</span> <span class="n">ELF</span><span class="o">::</span><span class="n">R_CPU0_32</span><span class="p">;</span>
+  <span class="n">case</span> <span class="n">Cpu0</span><span class="p">::</span><span class="n">fixup_Cpu0_32</span><span class="p">:</span>
+    <span class="n">Type</span> <span class="o">=</span> <span class="n">ELF</span><span class="p">::</span><span class="n">R_CPU0_32</span><span class="p">;</span>
     <span class="k">break</span><span class="p">;</span>
-  <span class="k">case</span> <span class="n">Cpu0</span>:<span class="o">:</span><span class="n">fixup_Cpu0_GPREL16</span><span class="o">:</span>
-    <span class="n">Type</span> <span class="o">=</span> <span class="n">ELF</span><span class="o">::</span><span class="n">R_CPU0_GPREL16</span><span class="p">;</span>
+  <span class="n">case</span> <span class="n">Cpu0</span><span class="p">::</span><span class="n">fixup_Cpu0_GPREL16</span><span class="p">:</span>
+    <span class="n">Type</span> <span class="o">=</span> <span class="n">ELF</span><span class="p">::</span><span class="n">R_CPU0_GPREL16</span><span class="p">;</span>
     <span class="k">break</span><span class="p">;</span>
-  <span class="k">case</span> <span class="n">Cpu0</span>:<span class="o">:</span><span class="n">fixup_Cpu0_GOT_Global</span><span class="o">:</span>
-  <span class="k">case</span> <span class="n">Cpu0</span>:<span class="o">:</span><span class="n">fixup_Cpu0_GOT_Local</span><span class="o">:</span>
-    <span class="n">Type</span> <span class="o">=</span> <span class="n">ELF</span><span class="o">::</span><span class="n">R_CPU0_GOT16</span><span class="p">;</span>
+  <span class="n">case</span> <span class="n">Cpu0</span><span class="p">::</span><span class="n">fixup_Cpu0_GOT_Global</span><span class="p">:</span>
+  <span class="n">case</span> <span class="n">Cpu0</span><span class="p">::</span><span class="n">fixup_Cpu0_GOT_Local</span><span class="p">:</span>
+    <span class="n">Type</span> <span class="o">=</span> <span class="n">ELF</span><span class="p">::</span><span class="n">R_CPU0_GOT16</span><span class="p">;</span>
     <span class="k">break</span><span class="p">;</span>
-  <span class="k">case</span> <span class="n">Cpu0</span>:<span class="o">:</span><span class="n">fixup_Cpu0_HI16</span><span class="o">:</span>
-    <span class="n">Type</span> <span class="o">=</span> <span class="n">ELF</span><span class="o">::</span><span class="n">R_CPU0_HI16</span><span class="p">;</span>
+  <span class="n">case</span> <span class="n">Cpu0</span><span class="p">::</span><span class="n">fixup_Cpu0_HI16</span><span class="p">:</span>
+    <span class="n">Type</span> <span class="o">=</span> <span class="n">ELF</span><span class="p">::</span><span class="n">R_CPU0_HI16</span><span class="p">;</span>
     <span class="k">break</span><span class="p">;</span>
-  <span class="k">case</span> <span class="n">Cpu0</span>:<span class="o">:</span><span class="n">fixup_Cpu0_LO16</span><span class="o">:</span>
-    <span class="n">Type</span> <span class="o">=</span> <span class="n">ELF</span><span class="o">::</span><span class="n">R_CPU0_LO16</span><span class="p">;</span>
+  <span class="n">case</span> <span class="n">Cpu0</span><span class="p">::</span><span class="n">fixup_Cpu0_LO16</span><span class="p">:</span>
+    <span class="n">Type</span> <span class="o">=</span> <span class="n">ELF</span><span class="p">::</span><span class="n">R_CPU0_LO16</span><span class="p">;</span>
     <span class="k">break</span><span class="p">;</span>
-  <span class="k">case</span> <span class="n">Cpu0</span>:<span class="o">:</span><span class="n">fixup_Cpu0_GOT_HI16</span><span class="o">:</span>
-    <span class="n">Type</span> <span class="o">=</span> <span class="n">ELF</span><span class="o">::</span><span class="n">R_CPU0_GOT_HI16</span><span class="p">;</span>
+  <span class="n">case</span> <span class="n">Cpu0</span><span class="p">::</span><span class="n">fixup_Cpu0_GOT_HI16</span><span class="p">:</span>
+    <span class="n">Type</span> <span class="o">=</span> <span class="n">ELF</span><span class="p">::</span><span class="n">R_CPU0_GOT_HI16</span><span class="p">;</span>
     <span class="k">break</span><span class="p">;</span>
-  <span class="k">case</span> <span class="n">Cpu0</span>:<span class="o">:</span><span class="n">fixup_Cpu0_GOT_LO16</span><span class="o">:</span>
-    <span class="n">Type</span> <span class="o">=</span> <span class="n">ELF</span><span class="o">::</span><span class="n">R_CPU0_GOT_LO16</span><span class="p">;</span>
+  <span class="n">case</span> <span class="n">Cpu0</span><span class="p">::</span><span class="n">fixup_Cpu0_GOT_LO16</span><span class="p">:</span>
+    <span class="n">Type</span> <span class="o">=</span> <span class="n">ELF</span><span class="p">::</span><span class="n">R_CPU0_GOT_LO16</span><span class="p">;</span>
     <span class="k">break</span><span class="p">;</span>
   <span class="p">}</span>
 
   <span class="k">return</span> <span class="n">Type</span><span class="p">;</span>
 <span class="p">}</span>
-<span class="c1">//@GetRelocType }</span>
+<span class="o">//</span><span class="nd">@GetRelocType</span> <span class="p">}</span>
 
-<span class="kt">bool</span>
-<span class="n">Cpu0ELFObjectWriter</span><span class="o">::</span><span class="n">needsRelocateWithSymbol</span><span class="p">(</span><span class="k">const</span> <span class="n">MCSymbol</span> <span class="o">&amp;</span><span class="n">Sym</span><span class="p">,</span>
-                                             <span class="kt">unsigned</span> <span class="n">Type</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
-  <span class="c1">// FIXME: This is extremelly conservative. This really needs to use a</span>
-  <span class="c1">// whitelist with a clear explanation for why each realocation needs to</span>
-  <span class="c1">// point to the symbol, not to the section.</span>
-  <span class="k">switch</span> <span class="p">(</span><span class="n">Type</span><span class="p">)</span> <span class="p">{</span>
-  <span class="nl">default:</span>
-    <span class="k">return</span> <span class="nb">true</span><span class="p">;</span>
+<span class="nb">bool</span>
+<span class="n">Cpu0ELFObjectWriter</span><span class="p">::</span><span class="n">needsRelocateWithSymbol</span><span class="p">(</span><span class="n">const</span> <span class="n">MCSymbol</span> <span class="o">&amp;</span><span class="n">Sym</span><span class="p">,</span>
+                                             <span class="n">unsigned</span> <span class="n">Type</span><span class="p">)</span> <span class="n">const</span> <span class="p">{</span>
+  <span class="o">//</span> <span class="n">FIXME</span><span class="p">:</span> <span class="n">This</span> <span class="ow">is</span> <span class="n">extremelly</span> <span class="n">conservative</span><span class="o">.</span> <span class="n">This</span> <span class="n">really</span> <span class="n">needs</span> <span class="n">to</span> <span class="n">use</span> <span class="n">a</span>
+  <span class="o">//</span> <span class="n">whitelist</span> <span class="k">with</span> <span class="n">a</span> <span class="n">clear</span> <span class="n">explanation</span> <span class="k">for</span> <span class="n">why</span> <span class="n">each</span> <span class="n">realocation</span> <span class="n">needs</span> <span class="n">to</span>
+  <span class="o">//</span> <span class="n">point</span> <span class="n">to</span> <span class="n">the</span> <span class="n">symbol</span><span class="p">,</span> <span class="ow">not</span> <span class="n">to</span> <span class="n">the</span> <span class="n">section</span><span class="o">.</span>
+  <span class="n">switch</span> <span class="p">(</span><span class="n">Type</span><span class="p">)</span> <span class="p">{</span>
+  <span class="n">default</span><span class="p">:</span>
+    <span class="k">return</span> <span class="n">true</span><span class="p">;</span>
 
-  <span class="k">case</span> <span class="n">ELF</span>:<span class="o">:</span><span class="n">R_CPU0_GOT16</span><span class="o">:</span>
-  <span class="c1">// For Cpu0 pic mode, I think it&#39;s OK to return true but I didn&#39;t confirm.</span>
-  <span class="c1">//  llvm_unreachable(&quot;Should have been handled already&quot;);</span>
-    <span class="k">return</span> <span class="nb">true</span><span class="p">;</span>
+  <span class="n">case</span> <span class="n">ELF</span><span class="p">::</span><span class="n">R_CPU0_GOT16</span><span class="p">:</span>
+  <span class="o">//</span> <span class="n">For</span> <span class="n">Cpu0</span> <span class="n">pic</span> <span class="n">mode</span><span class="p">,</span> <span class="n">I</span> <span class="n">think</span> <span class="n">it</span><span class="s1">&#39;s OK to return true but I didn&#39;</span><span class="n">t</span> <span class="n">confirm</span><span class="o">.</span>
+  <span class="o">//</span>  <span class="n">llvm_unreachable</span><span class="p">(</span><span class="s2">&quot;Should have been handled already&quot;</span><span class="p">);</span>
+    <span class="k">return</span> <span class="n">true</span><span class="p">;</span>
 
-  <span class="c1">// These relocations might be paired with another relocation. The pairing is</span>
-  <span class="c1">// done by the static linker by matching the symbol. Since we only see one</span>
-  <span class="c1">// relocation at a time, we have to force them to relocate with a symbol to</span>
-  <span class="c1">// avoid ending up with a pair where one points to a section and another</span>
-  <span class="c1">// points to a symbol.</span>
-  <span class="k">case</span> <span class="n">ELF</span>:<span class="o">:</span><span class="n">R_CPU0_HI16</span><span class="o">:</span>
-  <span class="k">case</span> <span class="n">ELF</span>:<span class="o">:</span><span class="n">R_CPU0_LO16</span><span class="o">:</span>
-  <span class="c1">// R_CPU0_32 should be a relocation record, I don&#39;t know why Mips set it to </span>
-  <span class="c1">// false.</span>
-  <span class="k">case</span> <span class="n">ELF</span>:<span class="o">:</span><span class="n">R_CPU0_32</span><span class="o">:</span>
-    <span class="k">return</span> <span class="nb">true</span><span class="p">;</span>
+  <span class="o">//</span> <span class="n">These</span> <span class="n">relocations</span> <span class="n">might</span> <span class="n">be</span> <span class="n">paired</span> <span class="k">with</span> <span class="n">another</span> <span class="n">relocation</span><span class="o">.</span> <span class="n">The</span> <span class="n">pairing</span> <span class="ow">is</span>
+  <span class="o">//</span> <span class="n">done</span> <span class="n">by</span> <span class="n">the</span> <span class="n">static</span> <span class="n">linker</span> <span class="n">by</span> <span class="n">matching</span> <span class="n">the</span> <span class="n">symbol</span><span class="o">.</span> <span class="n">Since</span> <span class="n">we</span> <span class="n">only</span> <span class="n">see</span> <span class="n">one</span>
+  <span class="o">//</span> <span class="n">relocation</span> <span class="n">at</span> <span class="n">a</span> <span class="n">time</span><span class="p">,</span> <span class="n">we</span> <span class="n">have</span> <span class="n">to</span> <span class="n">force</span> <span class="n">them</span> <span class="n">to</span> <span class="n">relocate</span> <span class="k">with</span> <span class="n">a</span> <span class="n">symbol</span> <span class="n">to</span>
+  <span class="o">//</span> <span class="n">avoid</span> <span class="n">ending</span> <span class="n">up</span> <span class="k">with</span> <span class="n">a</span> <span class="n">pair</span> <span class="n">where</span> <span class="n">one</span> <span class="n">points</span> <span class="n">to</span> <span class="n">a</span> <span class="n">section</span> <span class="ow">and</span> <span class="n">another</span>
+  <span class="o">//</span> <span class="n">points</span> <span class="n">to</span> <span class="n">a</span> <span class="n">symbol</span><span class="o">.</span>
+  <span class="n">case</span> <span class="n">ELF</span><span class="p">::</span><span class="n">R_CPU0_HI16</span><span class="p">:</span>
+  <span class="n">case</span> <span class="n">ELF</span><span class="p">::</span><span class="n">R_CPU0_LO16</span><span class="p">:</span>
+  <span class="o">//</span> <span class="n">R_CPU0_32</span> <span class="n">should</span> <span class="n">be</span> <span class="n">a</span> <span class="n">relocation</span> <span class="n">record</span><span class="p">,</span> <span class="n">I</span> <span class="n">don</span><span class="s1">&#39;t know why Mips set it to </span>
+  <span class="o">//</span> <span class="n">false</span><span class="o">.</span>
+  <span class="n">case</span> <span class="n">ELF</span><span class="p">::</span><span class="n">R_CPU0_32</span><span class="p">:</span>
+    <span class="k">return</span> <span class="n">true</span><span class="p">;</span>
 
-  <span class="k">case</span> <span class="n">ELF</span>:<span class="o">:</span><span class="n">R_CPU0_GPREL16</span><span class="o">:</span>
-    <span class="k">return</span> <span class="nb">false</span><span class="p">;</span>
+  <span class="n">case</span> <span class="n">ELF</span><span class="p">::</span><span class="n">R_CPU0_GPREL16</span><span class="p">:</span>
+    <span class="k">return</span> <span class="n">false</span><span class="p">;</span>
   <span class="p">}</span>
 <span class="p">}</span>
 
-<span class="n">MCObjectWriter</span> <span class="o">*</span><span class="n">llvm</span><span class="o">::</span><span class="n">createCpu0ELFObjectWriter</span><span class="p">(</span><span class="n">raw_pwrite_stream</span> <span class="o">&amp;</span><span class="n">OS</span><span class="p">,</span>
-                                                <span class="kt">uint8_t</span> <span class="n">OSABI</span><span class="p">,</span>
-                                                <span class="kt">bool</span> <span class="n">IsLittleEndian</span><span class="p">)</span> <span class="p">{</span>
-  <span class="n">MCELFObjectTargetWriter</span> <span class="o">*</span><span class="n">MOTW</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Cpu0ELFObjectWriter</span><span class="p">(</span><span class="n">OSABI</span><span class="p">);</span>
-  <span class="k">return</span> <span class="nf">createELFObjectWriter</span><span class="p">(</span><span class="n">MOTW</span><span class="p">,</span> <span class="n">OS</span><span class="p">,</span> <span class="n">IsLittleEndian</span><span class="p">);</span>
+<span class="n">MCObjectWriter</span> <span class="o">*</span><span class="n">llvm</span><span class="p">::</span><span class="n">createCpu0ELFObjectWriter</span><span class="p">(</span><span class="n">raw_pwrite_stream</span> <span class="o">&amp;</span><span class="n">OS</span><span class="p">,</span>
+                                                <span class="n">uint8_t</span> <span class="n">OSABI</span><span class="p">,</span>
+                                                <span class="nb">bool</span> <span class="n">IsLittleEndian</span><span class="p">)</span> <span class="p">{</span>
+  <span class="n">MCELFObjectTargetWriter</span> <span class="o">*</span><span class="n">MOTW</span> <span class="o">=</span> <span class="n">new</span> <span class="n">Cpu0ELFObjectWriter</span><span class="p">(</span><span class="n">OSABI</span><span class="p">);</span>
+  <span class="k">return</span> <span class="n">createELFObjectWriter</span><span class="p">(</span><span class="n">MOTW</span><span class="p">,</span> <span class="n">OS</span><span class="p">,</span> <span class="n">IsLittleEndian</span><span class="p">);</span>
 <span class="p">}</span>
+
 </pre></div>
 </div>
 <p class="rubric">lbdex/chapters/Chapter5_1/MCTargetDesc/Cpu0FixupKinds.h</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="c1">//===-- Cpu0FixupKinds.h - Cpu0 Specific Fixup Entries ----------*- C++ -*-===//</span>
-<span class="c1">//</span>
-<span class="c1">//                     The LLVM Compiler Infrastructure</span>
-<span class="c1">//</span>
-<span class="c1">// This file is distributed under the University of Illinois Open Source</span>
-<span class="c1">// License. See LICENSE.TXT for details.</span>
-<span class="c1">//</span>
-<span class="c1">//===----------------------------------------------------------------------===//</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">//===--</span> <span class="n">Cpu0FixupKinds</span><span class="o">.</span><span class="n">h</span> <span class="o">-</span> <span class="n">Cpu0</span> <span class="n">Specific</span> <span class="n">Fixup</span> <span class="n">Entries</span> <span class="o">----------*-</span> <span class="n">C</span><span class="o">++</span> <span class="o">-*-===//</span>
+<span class="o">//</span>
+<span class="o">//</span>                     <span class="n">The</span> <span class="n">LLVM</span> <span class="n">Compiler</span> <span class="n">Infrastructure</span>
+<span class="o">//</span>
+<span class="o">//</span> <span class="n">This</span> <span class="n">file</span> <span class="ow">is</span> <span class="n">distributed</span> <span class="n">under</span> <span class="n">the</span> <span class="n">University</span> <span class="n">of</span> <span class="n">Illinois</span> <span class="n">Open</span> <span class="n">Source</span>
+<span class="o">//</span> <span class="n">License</span><span class="o">.</span> <span class="n">See</span> <span class="n">LICENSE</span><span class="o">.</span><span class="n">TXT</span> <span class="k">for</span> <span class="n">details</span><span class="o">.</span>
+<span class="o">//</span>
+<span class="o">//===----------------------------------------------------------------------===//</span>
 
-<span class="cp">#ifndef LLVM_LIB_TARGET_CPU0_MCTARGETDESC_CPU0FIXUPKINDS_H</span>
-<span class="cp">#define LLVM_LIB_TARGET_CPU0_MCTARGETDESC_CPU0FIXUPKINDS_H</span>
+<span class="c1">#ifndef LLVM_LIB_TARGET_CPU0_MCTARGETDESC_CPU0FIXUPKINDS_H</span>
+<span class="c1">#define LLVM_LIB_TARGET_CPU0_MCTARGETDESC_CPU0FIXUPKINDS_H</span>
 
-<span class="cp">#include &quot;Cpu0Config.h&quot;</span>
+<span class="c1">#include &quot;Cpu0Config.h&quot;</span>
 
-<span class="cp">#include &quot;llvm/MC/MCFixup.h&quot;</span>
+<span class="c1">#include &quot;llvm/MC/MCFixup.h&quot;</span>
 
-<span class="k">namespace</span> <span class="n">llvm</span> <span class="p">{</span>
-<span class="k">namespace</span> <span class="n">Cpu0</span> <span class="p">{</span>
-  <span class="c1">// Although most of the current fixup types reflect a unique relocation</span>
-  <span class="c1">// one can have multiple fixup types for a given relocation and thus need</span>
-  <span class="c1">// to be uniquely named.</span>
-  <span class="c1">//</span>
-  <span class="c1">// This table *must* be in the save order of</span>
-  <span class="c1">// MCFixupKindInfo Infos[Cpu0::NumTargetFixupKinds]</span>
-  <span class="c1">// in Cpu0AsmBackend.cpp.</span>
-  <span class="c1">//@Fixups {</span>
-  <span class="k">enum</span> <span class="n">Fixups</span> <span class="p">{</span>
-    <span class="c1">//@ Pure upper 32 bit fixup resulting in - R_CPU0_32.</span>
+<span class="n">namespace</span> <span class="n">llvm</span> <span class="p">{</span>
+<span class="n">namespace</span> <span class="n">Cpu0</span> <span class="p">{</span>
+  <span class="o">//</span> <span class="n">Although</span> <span class="n">most</span> <span class="n">of</span> <span class="n">the</span> <span class="n">current</span> <span class="n">fixup</span> <span class="n">types</span> <span class="n">reflect</span> <span class="n">a</span> <span class="n">unique</span> <span class="n">relocation</span>
+  <span class="o">//</span> <span class="n">one</span> <span class="n">can</span> <span class="n">have</span> <span class="n">multiple</span> <span class="n">fixup</span> <span class="n">types</span> <span class="k">for</span> <span class="n">a</span> <span class="n">given</span> <span class="n">relocation</span> <span class="ow">and</span> <span class="n">thus</span> <span class="n">need</span>
+  <span class="o">//</span> <span class="n">to</span> <span class="n">be</span> <span class="n">uniquely</span> <span class="n">named</span><span class="o">.</span>
+  <span class="o">//</span>
+  <span class="o">//</span> <span class="n">This</span> <span class="n">table</span> <span class="o">*</span><span class="n">must</span><span class="o">*</span> <span class="n">be</span> <span class="ow">in</span> <span class="n">the</span> <span class="n">save</span> <span class="n">order</span> <span class="n">of</span>
+  <span class="o">//</span> <span class="n">MCFixupKindInfo</span> <span class="n">Infos</span><span class="p">[</span><span class="n">Cpu0</span><span class="p">::</span><span class="n">NumTargetFixupKinds</span><span class="p">]</span>
+  <span class="o">//</span> <span class="ow">in</span> <span class="n">Cpu0AsmBackend</span><span class="o">.</span><span class="n">cpp</span><span class="o">.</span>
+  <span class="o">//</span><span class="nd">@Fixups</span> <span class="p">{</span>
+  <span class="n">enum</span> <span class="n">Fixups</span> <span class="p">{</span>
+    <span class="o">//@</span> <span class="n">Pure</span> <span class="n">upper</span> <span class="mi">32</span> <span class="n">bit</span> <span class="n">fixup</span> <span class="n">resulting</span> <span class="ow">in</span> <span class="o">-</span> <span class="n">R_CPU0_32</span><span class="o">.</span>
     <span class="n">fixup_Cpu0_32</span> <span class="o">=</span> <span class="n">FirstTargetFixupKind</span><span class="p">,</span>
 
-    <span class="c1">// Pure upper 16 bit fixup resulting in - R_CPU0_HI16.</span>
+    <span class="o">//</span> <span class="n">Pure</span> <span class="n">upper</span> <span class="mi">16</span> <span class="n">bit</span> <span class="n">fixup</span> <span class="n">resulting</span> <span class="ow">in</span> <span class="o">-</span> <span class="n">R_CPU0_HI16</span><span class="o">.</span>
     <span class="n">fixup_Cpu0_HI16</span><span class="p">,</span>
 
-    <span class="c1">// Pure lower 16 bit fixup resulting in - R_CPU0_LO16.</span>
+    <span class="o">//</span> <span class="n">Pure</span> <span class="n">lower</span> <span class="mi">16</span> <span class="n">bit</span> <span class="n">fixup</span> <span class="n">resulting</span> <span class="ow">in</span> <span class="o">-</span> <span class="n">R_CPU0_LO16</span><span class="o">.</span>
     <span class="n">fixup_Cpu0_LO16</span><span class="p">,</span>
 
-    <span class="c1">// 16 bit fixup for GP offest resulting in - R_CPU0_GPREL16.</span>
+    <span class="o">//</span> <span class="mi">16</span> <span class="n">bit</span> <span class="n">fixup</span> <span class="k">for</span> <span class="n">GP</span> <span class="n">offest</span> <span class="n">resulting</span> <span class="ow">in</span> <span class="o">-</span> <span class="n">R_CPU0_GPREL16</span><span class="o">.</span>
     <span class="n">fixup_Cpu0_GPREL16</span><span class="p">,</span>
 
-    <span class="c1">// Global symbol fixup resulting in - R_CPU0_GOT16.</span>
+    <span class="o">//</span> <span class="n">Global</span> <span class="n">symbol</span> <span class="n">fixup</span> <span class="n">resulting</span> <span class="ow">in</span> <span class="o">-</span> <span class="n">R_CPU0_GOT16</span><span class="o">.</span>
     <span class="n">fixup_Cpu0_GOT_Global</span><span class="p">,</span>
 
-    <span class="c1">// Local symbol fixup resulting in - R_CPU0_GOT16.</span>
+    <span class="o">//</span> <span class="n">Local</span> <span class="n">symbol</span> <span class="n">fixup</span> <span class="n">resulting</span> <span class="ow">in</span> <span class="o">-</span> <span class="n">R_CPU0_GOT16</span><span class="o">.</span>
     <span class="n">fixup_Cpu0_GOT_Local</span><span class="p">,</span>
 
     
 
-    <span class="c1">// resulting in - R_CPU0_GOT_HI16</span>
+    <span class="o">//</span> <span class="n">resulting</span> <span class="ow">in</span> <span class="o">-</span> <span class="n">R_CPU0_GOT_HI16</span>
     <span class="n">fixup_Cpu0_GOT_HI16</span><span class="p">,</span>
 
-    <span class="c1">// resulting in - R_CPU0_GOT_LO16</span>
+    <span class="o">//</span> <span class="n">resulting</span> <span class="ow">in</span> <span class="o">-</span> <span class="n">R_CPU0_GOT_LO16</span>
     <span class="n">fixup_Cpu0_GOT_LO16</span><span class="p">,</span>
 
-    <span class="c1">// Marker</span>
+    <span class="o">//</span> <span class="n">Marker</span>
     <span class="n">LastTargetFixupKind</span><span class="p">,</span>
     <span class="n">NumTargetFixupKinds</span> <span class="o">=</span> <span class="n">LastTargetFixupKind</span> <span class="o">-</span> <span class="n">FirstTargetFixupKind</span>
   <span class="p">};</span>
-  <span class="c1">//@Fixups }</span>
-<span class="p">}</span> <span class="c1">// namespace Cpu0</span>
-<span class="p">}</span> <span class="c1">// namespace llvm</span>
+  <span class="o">//</span><span class="nd">@Fixups</span> <span class="p">}</span>
+<span class="p">}</span> <span class="o">//</span> <span class="n">namespace</span> <span class="n">Cpu0</span>
+<span class="p">}</span> <span class="o">//</span> <span class="n">namespace</span> <span class="n">llvm</span>
 
-<span class="cp">#endif </span><span class="c1">// LLVM_CPU0_CPU0FIXUPKINDS_H</span>
+<span class="c1">#endif // LLVM_CPU0_CPU0FIXUPKINDS_H</span>
+
 </pre></div>
 </div>
 <p class="rubric">lbdex/chapters/Chapter5_1/MCTargetDesc/Cpu0MCCodeEmitter.h</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="c1">//===-- Cpu0MCCodeEmitter.h - Convert Cpu0 Code to Machine Code -----------===//</span>
-<span class="c1">//</span>
-<span class="c1">//                     The LLVM Compiler Infrastructure</span>
-<span class="c1">//</span>
-<span class="c1">// This file is distributed under the University of Illinois Open Source</span>
-<span class="c1">// License. See LICENSE.TXT for details.</span>
-<span class="c1">//</span>
-<span class="c1">//===----------------------------------------------------------------------===//</span>
-<span class="c1">//</span>
-<span class="c1">// This file defines the Cpu0MCCodeEmitter class.</span>
-<span class="c1">//</span>
-<span class="c1">//===----------------------------------------------------------------------===//</span>
-<span class="c1">//</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">//===--</span> <span class="n">Cpu0MCCodeEmitter</span><span class="o">.</span><span class="n">h</span> <span class="o">-</span> <span class="n">Convert</span> <span class="n">Cpu0</span> <span class="n">Code</span> <span class="n">to</span> <span class="n">Machine</span> <span class="n">Code</span> <span class="o">-----------===//</span>
+<span class="o">//</span>
+<span class="o">//</span>                     <span class="n">The</span> <span class="n">LLVM</span> <span class="n">Compiler</span> <span class="n">Infrastructure</span>
+<span class="o">//</span>
+<span class="o">//</span> <span class="n">This</span> <span class="n">file</span> <span class="ow">is</span> <span class="n">distributed</span> <span class="n">under</span> <span class="n">the</span> <span class="n">University</span> <span class="n">of</span> <span class="n">Illinois</span> <span class="n">Open</span> <span class="n">Source</span>
+<span class="o">//</span> <span class="n">License</span><span class="o">.</span> <span class="n">See</span> <span class="n">LICENSE</span><span class="o">.</span><span class="n">TXT</span> <span class="k">for</span> <span class="n">details</span><span class="o">.</span>
+<span class="o">//</span>
+<span class="o">//===----------------------------------------------------------------------===//</span>
+<span class="o">//</span>
+<span class="o">//</span> <span class="n">This</span> <span class="n">file</span> <span class="n">defines</span> <span class="n">the</span> <span class="n">Cpu0MCCodeEmitter</span> <span class="n">class</span><span class="o">.</span>
+<span class="o">//</span>
+<span class="o">//===----------------------------------------------------------------------===//</span>
+<span class="o">//</span>
 
-<span class="cp">#ifndef LLVM_LIB_TARGET_CPU0_MCTARGETDESC_CPU0MCCODEEMITTER_H</span>
-<span class="cp">#define LLVM_LIB_TARGET_CPU0_MCTARGETDESC_CPU0MCCODEEMITTER_H</span>
+<span class="c1">#ifndef LLVM_LIB_TARGET_CPU0_MCTARGETDESC_CPU0MCCODEEMITTER_H</span>
+<span class="c1">#define LLVM_LIB_TARGET_CPU0_MCTARGETDESC_CPU0MCCODEEMITTER_H</span>
 
-<span class="cp">#include &quot;Cpu0Config.h&quot;</span>
+<span class="c1">#include &quot;Cpu0Config.h&quot;</span>
 
-<span class="cp">#include &quot;llvm/MC/MCCodeEmitter.h&quot;</span>
-<span class="cp">#include &quot;llvm/Support/DataTypes.h&quot;</span>
+<span class="c1">#include &quot;llvm/MC/MCCodeEmitter.h&quot;</span>
+<span class="c1">#include &quot;llvm/Support/DataTypes.h&quot;</span>
 
-<span class="k">using</span> <span class="k">namespace</span> <span class="n">llvm</span><span class="p">;</span>
+<span class="n">using</span> <span class="n">namespace</span> <span class="n">llvm</span><span class="p">;</span>
 
-<span class="k">namespace</span> <span class="n">llvm</span> <span class="p">{</span>
+<span class="n">namespace</span> <span class="n">llvm</span> <span class="p">{</span>
 <span class="k">class</span> <span class="nc">MCContext</span><span class="p">;</span>
 <span class="k">class</span> <span class="nc">MCExpr</span><span class="p">;</span>
 <span class="k">class</span> <span class="nc">MCInst</span><span class="p">;</span>
@@ -651,334 +652,336 @@ Chapter5_1.</p>
 <span class="k">class</span> <span class="nc">MCSubtargetInfo</span><span class="p">;</span>
 <span class="k">class</span> <span class="nc">raw_ostream</span><span class="p">;</span>
 
-<span class="k">class</span> <span class="nc">Cpu0MCCodeEmitter</span> <span class="o">:</span> <span class="k">public</span> <span class="n">MCCodeEmitter</span> <span class="p">{</span>
-  <span class="n">Cpu0MCCodeEmitter</span><span class="p">(</span><span class="k">const</span> <span class="n">Cpu0MCCodeEmitter</span> <span class="o">&amp;</span><span class="p">)</span> <span class="o">=</span> <span class="k">delete</span><span class="p">;</span>
-  <span class="kt">void</span> <span class="k">operator</span><span class="o">=</span><span class="p">(</span><span class="k">const</span> <span class="n">Cpu0MCCodeEmitter</span> <span class="o">&amp;</span><span class="p">)</span> <span class="o">=</span> <span class="k">delete</span><span class="p">;</span>
-  <span class="k">const</span> <span class="n">MCInstrInfo</span> <span class="o">&amp;</span><span class="n">MCII</span><span class="p">;</span>
+<span class="k">class</span> <span class="nc">Cpu0MCCodeEmitter</span> <span class="p">:</span> <span class="n">public</span> <span class="n">MCCodeEmitter</span> <span class="p">{</span>
+  <span class="n">Cpu0MCCodeEmitter</span><span class="p">(</span><span class="n">const</span> <span class="n">Cpu0MCCodeEmitter</span> <span class="o">&amp;</span><span class="p">)</span> <span class="o">=</span> <span class="n">delete</span><span class="p">;</span>
+  <span class="n">void</span> <span class="n">operator</span><span class="o">=</span><span class="p">(</span><span class="n">const</span> <span class="n">Cpu0MCCodeEmitter</span> <span class="o">&amp;</span><span class="p">)</span> <span class="o">=</span> <span class="n">delete</span><span class="p">;</span>
+  <span class="n">const</span> <span class="n">MCInstrInfo</span> <span class="o">&amp;</span><span class="n">MCII</span><span class="p">;</span>
   <span class="n">MCContext</span> <span class="o">&amp;</span><span class="n">Ctx</span><span class="p">;</span>
-  <span class="kt">bool</span> <span class="n">IsLittleEndian</span><span class="p">;</span>
+  <span class="nb">bool</span> <span class="n">IsLittleEndian</span><span class="p">;</span>
 
-<span class="nl">public:</span>
-  <span class="n">Cpu0MCCodeEmitter</span><span class="p">(</span><span class="k">const</span> <span class="n">MCInstrInfo</span> <span class="o">&amp;</span><span class="n">mcii</span><span class="p">,</span> <span class="n">MCContext</span> <span class="o">&amp;</span><span class="n">Ctx_</span><span class="p">,</span> <span class="kt">bool</span> <span class="n">IsLittle</span><span class="p">)</span>
-      <span class="o">:</span> <span class="n">MCII</span><span class="p">(</span><span class="n">mcii</span><span class="p">),</span> <span class="n">Ctx</span><span class="p">(</span><span class="n">Ctx_</span><span class="p">),</span> <span class="n">IsLittleEndian</span><span class="p">(</span><span class="n">IsLittle</span><span class="p">)</span> <span class="p">{}</span>
+<span class="n">public</span><span class="p">:</span>
+  <span class="n">Cpu0MCCodeEmitter</span><span class="p">(</span><span class="n">const</span> <span class="n">MCInstrInfo</span> <span class="o">&amp;</span><span class="n">mcii</span><span class="p">,</span> <span class="n">MCContext</span> <span class="o">&amp;</span><span class="n">Ctx_</span><span class="p">,</span> <span class="nb">bool</span> <span class="n">IsLittle</span><span class="p">)</span>
+      <span class="p">:</span> <span class="n">MCII</span><span class="p">(</span><span class="n">mcii</span><span class="p">),</span> <span class="n">Ctx</span><span class="p">(</span><span class="n">Ctx_</span><span class="p">),</span> <span class="n">IsLittleEndian</span><span class="p">(</span><span class="n">IsLittle</span><span class="p">)</span> <span class="p">{}</span>
 
   <span class="o">~</span><span class="n">Cpu0MCCodeEmitter</span><span class="p">()</span> <span class="n">override</span> <span class="p">{}</span>
 
-  <span class="kt">void</span> <span class="n">EmitByte</span><span class="p">(</span><span class="kt">unsigned</span> <span class="kt">char</span> <span class="n">C</span><span class="p">,</span> <span class="n">raw_ostream</span> <span class="o">&amp;</span><span class="n">OS</span><span class="p">)</span> <span class="k">const</span><span class="p">;</span>
+  <span class="n">void</span> <span class="n">EmitByte</span><span class="p">(</span><span class="n">unsigned</span> <span class="n">char</span> <span class="n">C</span><span class="p">,</span> <span class="n">raw_ostream</span> <span class="o">&amp;</span><span class="n">OS</span><span class="p">)</span> <span class="n">const</span><span class="p">;</span>
 
-  <span class="kt">void</span> <span class="n">EmitInstruction</span><span class="p">(</span><span class="kt">uint64_t</span> <span class="n">Val</span><span class="p">,</span> <span class="kt">unsigned</span> <span class="n">Size</span><span class="p">,</span> <span class="n">raw_ostream</span> <span class="o">&amp;</span><span class="n">OS</span><span class="p">)</span> <span class="k">const</span><span class="p">;</span>
+  <span class="n">void</span> <span class="n">EmitInstruction</span><span class="p">(</span><span class="n">uint64_t</span> <span class="n">Val</span><span class="p">,</span> <span class="n">unsigned</span> <span class="n">Size</span><span class="p">,</span> <span class="n">raw_ostream</span> <span class="o">&amp;</span><span class="n">OS</span><span class="p">)</span> <span class="n">const</span><span class="p">;</span>
 
-  <span class="kt">void</span> <span class="n">encodeInstruction</span><span class="p">(</span><span class="k">const</span> <span class="n">MCInst</span> <span class="o">&amp;</span><span class="n">MI</span><span class="p">,</span> <span class="n">raw_ostream</span> <span class="o">&amp;</span><span class="n">OS</span><span class="p">,</span>
+  <span class="n">void</span> <span class="n">encodeInstruction</span><span class="p">(</span><span class="n">const</span> <span class="n">MCInst</span> <span class="o">&amp;</span><span class="n">MI</span><span class="p">,</span> <span class="n">raw_ostream</span> <span class="o">&amp;</span><span class="n">OS</span><span class="p">,</span>
                          <span class="n">SmallVectorImpl</span><span class="o">&lt;</span><span class="n">MCFixup</span><span class="o">&gt;</span> <span class="o">&amp;</span><span class="n">Fixups</span><span class="p">,</span>
-                         <span class="k">const</span> <span class="n">MCSubtargetInfo</span> <span class="o">&amp;</span><span class="n">STI</span><span class="p">)</span> <span class="k">const</span> <span class="n">override</span><span class="p">;</span>
+                         <span class="n">const</span> <span class="n">MCSubtargetInfo</span> <span class="o">&amp;</span><span class="n">STI</span><span class="p">)</span> <span class="n">const</span> <span class="n">override</span><span class="p">;</span>
 
-  <span class="c1">// getBinaryCodeForInstr - TableGen&#39;erated function for getting the</span>
-  <span class="c1">// binary encoding for an instruction.</span>
-  <span class="kt">uint64_t</span> <span class="n">getBinaryCodeForInstr</span><span class="p">(</span><span class="k">const</span> <span class="n">MCInst</span> <span class="o">&amp;</span><span class="n">MI</span><span class="p">,</span>
+  <span class="o">//</span> <span class="n">getBinaryCodeForInstr</span> <span class="o">-</span> <span class="n">TableGen</span><span class="s1">&#39;erated function for getting the</span>
+  <span class="o">//</span> <span class="n">binary</span> <span class="n">encoding</span> <span class="k">for</span> <span class="n">an</span> <span class="n">instruction</span><span class="o">.</span>
+  <span class="n">uint64_t</span> <span class="n">getBinaryCodeForInstr</span><span class="p">(</span><span class="n">const</span> <span class="n">MCInst</span> <span class="o">&amp;</span><span class="n">MI</span><span class="p">,</span>
                                  <span class="n">SmallVectorImpl</span><span class="o">&lt;</span><span class="n">MCFixup</span><span class="o">&gt;</span> <span class="o">&amp;</span><span class="n">Fixups</span><span class="p">,</span>
-                                 <span class="k">const</span> <span class="n">MCSubtargetInfo</span> <span class="o">&amp;</span><span class="n">STI</span><span class="p">)</span> <span class="k">const</span><span class="p">;</span>
+                                 <span class="n">const</span> <span class="n">MCSubtargetInfo</span> <span class="o">&amp;</span><span class="n">STI</span><span class="p">)</span> <span class="n">const</span><span class="p">;</span>
 
-  <span class="c1">// getBranch16TargetOpValue - Return binary encoding of the branch</span>
-  <span class="c1">// target operand, such as BEQ, BNE. If the machine operand</span>
-  <span class="c1">// requires relocation, record the relocation and return zero.</span>
-  <span class="kt">unsigned</span> <span class="n">getBranch16TargetOpValue</span><span class="p">(</span><span class="k">const</span> <span class="n">MCInst</span> <span class="o">&amp;</span><span class="n">MI</span><span class="p">,</span> <span class="kt">unsigned</span> <span class="n">OpNo</span><span class="p">,</span>
+  <span class="o">//</span> <span class="n">getBranch16TargetOpValue</span> <span class="o">-</span> <span class="n">Return</span> <span class="n">binary</span> <span class="n">encoding</span> <span class="n">of</span> <span class="n">the</span> <span class="n">branch</span>
+  <span class="o">//</span> <span class="n">target</span> <span class="n">operand</span><span class="p">,</span> <span class="n">such</span> <span class="k">as</span> <span class="n">BEQ</span><span class="p">,</span> <span class="n">BNE</span><span class="o">.</span> <span class="n">If</span> <span class="n">the</span> <span class="n">machine</span> <span class="n">operand</span>
+  <span class="o">//</span> <span class="n">requires</span> <span class="n">relocation</span><span class="p">,</span> <span class="n">record</span> <span class="n">the</span> <span class="n">relocation</span> <span class="ow">and</span> <span class="k">return</span> <span class="n">zero</span><span class="o">.</span>
+  <span class="n">unsigned</span> <span class="n">getBranch16TargetOpValue</span><span class="p">(</span><span class="n">const</span> <span class="n">MCInst</span> <span class="o">&amp;</span><span class="n">MI</span><span class="p">,</span> <span class="n">unsigned</span> <span class="n">OpNo</span><span class="p">,</span>
                                     <span class="n">SmallVectorImpl</span><span class="o">&lt;</span><span class="n">MCFixup</span><span class="o">&gt;</span> <span class="o">&amp;</span><span class="n">Fixups</span><span class="p">,</span>
-                                    <span class="k">const</span> <span class="n">MCSubtargetInfo</span> <span class="o">&amp;</span><span class="n">STI</span><span class="p">)</span> <span class="k">const</span><span class="p">;</span>
+                                    <span class="n">const</span> <span class="n">MCSubtargetInfo</span> <span class="o">&amp;</span><span class="n">STI</span><span class="p">)</span> <span class="n">const</span><span class="p">;</span>
 
-  <span class="c1">// getBranch24TargetOpValue - Return binary encoding of the branch</span>
-  <span class="c1">// target operand, such as JMP #BB01, JEQ, JSUB. If the machine operand</span>
-  <span class="c1">// requires relocation, record the relocation and return zero.</span>
-  <span class="kt">unsigned</span> <span class="n">getBranch24TargetOpValue</span><span class="p">(</span><span class="k">const</span> <span class="n">MCInst</span> <span class="o">&amp;</span><span class="n">MI</span><span class="p">,</span> <span class="kt">unsigned</span> <span class="n">OpNo</span><span class="p">,</span>
+  <span class="o">//</span> <span class="n">getBranch24TargetOpValue</span> <span class="o">-</span> <span class="n">Return</span> <span class="n">binary</span> <span class="n">encoding</span> <span class="n">of</span> <span class="n">the</span> <span class="n">branch</span>
+  <span class="o">//</span> <span class="n">target</span> <span class="n">operand</span><span class="p">,</span> <span class="n">such</span> <span class="k">as</span> <span class="n">JMP</span> <span class="c1">#BB01, JEQ, JSUB. If the machine operand</span>
+  <span class="o">//</span> <span class="n">requires</span> <span class="n">relocation</span><span class="p">,</span> <span class="n">record</span> <span class="n">the</span> <span class="n">relocation</span> <span class="ow">and</span> <span class="k">return</span> <span class="n">zero</span><span class="o">.</span>
+  <span class="n">unsigned</span> <span class="n">getBranch24TargetOpValue</span><span class="p">(</span><span class="n">const</span> <span class="n">MCInst</span> <span class="o">&amp;</span><span class="n">MI</span><span class="p">,</span> <span class="n">unsigned</span> <span class="n">OpNo</span><span class="p">,</span>
                                     <span class="n">SmallVectorImpl</span><span class="o">&lt;</span><span class="n">MCFixup</span><span class="o">&gt;</span> <span class="o">&amp;</span><span class="n">Fixups</span><span class="p">,</span>
-                                    <span class="k">const</span> <span class="n">MCSubtargetInfo</span> <span class="o">&amp;</span><span class="n">STI</span><span class="p">)</span> <span class="k">const</span><span class="p">;</span>
+                                    <span class="n">const</span> <span class="n">MCSubtargetInfo</span> <span class="o">&amp;</span><span class="n">STI</span><span class="p">)</span> <span class="n">const</span><span class="p">;</span>
                                   
-  <span class="c1">// getJumpTargetOpValue - Return binary encoding of the jump</span>
-  <span class="c1">// target operand, such as JSUB #function_addr. </span>
-  <span class="c1">// If the machine operand requires relocation,</span>
-  <span class="c1">// record the relocation and return zero.</span>
-   <span class="kt">unsigned</span> <span class="n">getJumpTargetOpValue</span><span class="p">(</span><span class="k">const</span> <span class="n">MCInst</span> <span class="o">&amp;</span><span class="n">MI</span><span class="p">,</span> <span class="kt">unsigned</span> <span class="n">OpNo</span><span class="p">,</span>
+  <span class="o">//</span> <span class="n">getJumpTargetOpValue</span> <span class="o">-</span> <span class="n">Return</span> <span class="n">binary</span> <span class="n">encoding</span> <span class="n">of</span> <span class="n">the</span> <span class="n">jump</span>
+  <span class="o">//</span> <span class="n">target</span> <span class="n">operand</span><span class="p">,</span> <span class="n">such</span> <span class="k">as</span> <span class="n">JSUB</span> <span class="c1">#function_addr. </span>
+  <span class="o">//</span> <span class="n">If</span> <span class="n">the</span> <span class="n">machine</span> <span class="n">operand</span> <span class="n">requires</span> <span class="n">relocation</span><span class="p">,</span>
+  <span class="o">//</span> <span class="n">record</span> <span class="n">the</span> <span class="n">relocation</span> <span class="ow">and</span> <span class="k">return</span> <span class="n">zero</span><span class="o">.</span>
+   <span class="n">unsigned</span> <span class="n">getJumpTargetOpValue</span><span class="p">(</span><span class="n">const</span> <span class="n">MCInst</span> <span class="o">&amp;</span><span class="n">MI</span><span class="p">,</span> <span class="n">unsigned</span> <span class="n">OpNo</span><span class="p">,</span>
                                  <span class="n">SmallVectorImpl</span><span class="o">&lt;</span><span class="n">MCFixup</span><span class="o">&gt;</span> <span class="o">&amp;</span><span class="n">Fixups</span><span class="p">,</span>
-                                 <span class="k">const</span> <span class="n">MCSubtargetInfo</span> <span class="o">&amp;</span><span class="n">STI</span><span class="p">)</span> <span class="k">const</span><span class="p">;</span>
+                                 <span class="n">const</span> <span class="n">MCSubtargetInfo</span> <span class="o">&amp;</span><span class="n">STI</span><span class="p">)</span> <span class="n">const</span><span class="p">;</span>
 
-  <span class="c1">// getMachineOpValue - Return binary encoding of operand. If the machin</span>
-  <span class="c1">// operand requires relocation, record the relocation and return zero.</span>
-  <span class="kt">unsigned</span> <span class="n">getMachineOpValue</span><span class="p">(</span><span class="k">const</span> <span class="n">MCInst</span> <span class="o">&amp;</span><span class="n">MI</span><span class="p">,</span> <span class="k">const</span> <span class="n">MCOperand</span> <span class="o">&amp;</span><span class="n">MO</span><span class="p">,</span>
+  <span class="o">//</span> <span class="n">getMachineOpValue</span> <span class="o">-</span> <span class="n">Return</span> <span class="n">binary</span> <span class="n">encoding</span> <span class="n">of</span> <span class="n">operand</span><span class="o">.</span> <span class="n">If</span> <span class="n">the</span> <span class="n">machin</span>
+  <span class="o">//</span> <span class="n">operand</span> <span class="n">requires</span> <span class="n">relocation</span><span class="p">,</span> <span class="n">record</span> <span class="n">the</span> <span class="n">relocation</span> <span class="ow">and</span> <span class="k">return</span> <span class="n">zero</span><span class="o">.</span>
+  <span class="n">unsigned</span> <span class="n">getMachineOpValue</span><span class="p">(</span><span class="n">const</span> <span class="n">MCInst</span> <span class="o">&amp;</span><span class="n">MI</span><span class="p">,</span> <span class="n">const</span> <span class="n">MCOperand</span> <span class="o">&amp;</span><span class="n">MO</span><span class="p">,</span>
                              <span class="n">SmallVectorImpl</span><span class="o">&lt;</span><span class="n">MCFixup</span><span class="o">&gt;</span> <span class="o">&amp;</span><span class="n">Fixups</span><span class="p">,</span>
-                             <span class="k">const</span> <span class="n">MCSubtargetInfo</span> <span class="o">&amp;</span><span class="n">STI</span><span class="p">)</span> <span class="k">const</span><span class="p">;</span>
+                             <span class="n">const</span> <span class="n">MCSubtargetInfo</span> <span class="o">&amp;</span><span class="n">STI</span><span class="p">)</span> <span class="n">const</span><span class="p">;</span>
 
-  <span class="kt">unsigned</span> <span class="n">getMemEncoding</span><span class="p">(</span><span class="k">const</span> <span class="n">MCInst</span> <span class="o">&amp;</span><span class="n">MI</span><span class="p">,</span> <span class="kt">unsigned</span> <span class="n">OpNo</span><span class="p">,</span>
+  <span class="n">unsigned</span> <span class="n">getMemEncoding</span><span class="p">(</span><span class="n">const</span> <span class="n">MCInst</span> <span class="o">&amp;</span><span class="n">MI</span><span class="p">,</span> <span class="n">unsigned</span> <span class="n">OpNo</span><span class="p">,</span>
                           <span class="n">SmallVectorImpl</span><span class="o">&lt;</span><span class="n">MCFixup</span><span class="o">&gt;</span> <span class="o">&amp;</span><span class="n">Fixups</span><span class="p">,</span>
-                          <span class="k">const</span> <span class="n">MCSubtargetInfo</span> <span class="o">&amp;</span><span class="n">STI</span><span class="p">)</span> <span class="k">const</span><span class="p">;</span>
+                          <span class="n">const</span> <span class="n">MCSubtargetInfo</span> <span class="o">&amp;</span><span class="n">STI</span><span class="p">)</span> <span class="n">const</span><span class="p">;</span>
 
-  <span class="kt">unsigned</span> <span class="n">getExprOpValue</span><span class="p">(</span><span class="k">const</span> <span class="n">MCExpr</span> <span class="o">*</span><span class="n">Expr</span><span class="p">,</span> <span class="n">SmallVectorImpl</span><span class="o">&lt;</span><span class="n">MCFixup</span><span class="o">&gt;</span> <span class="o">&amp;</span><span class="n">Fixups</span><span class="p">,</span>
-                          <span class="k">const</span> <span class="n">MCSubtargetInfo</span> <span class="o">&amp;</span><span class="n">STI</span><span class="p">)</span> <span class="k">const</span><span class="p">;</span>
-<span class="p">};</span> <span class="c1">// class Cpu0MCCodeEmitter</span>
-<span class="p">}</span> <span class="c1">// namespace llvm.</span>
+  <span class="n">unsigned</span> <span class="n">getExprOpValue</span><span class="p">(</span><span class="n">const</span> <span class="n">MCExpr</span> <span class="o">*</span><span class="n">Expr</span><span class="p">,</span> <span class="n">SmallVectorImpl</span><span class="o">&lt;</span><span class="n">MCFixup</span><span class="o">&gt;</span> <span class="o">&amp;</span><span class="n">Fixups</span><span class="p">,</span>
+                          <span class="n">const</span> <span class="n">MCSubtargetInfo</span> <span class="o">&amp;</span><span class="n">STI</span><span class="p">)</span> <span class="n">const</span><span class="p">;</span>
+<span class="p">};</span> <span class="o">//</span> <span class="k">class</span> <span class="nc">Cpu0MCCodeEmitter</span>
+<span class="p">}</span> <span class="o">//</span> <span class="n">namespace</span> <span class="n">llvm</span><span class="o">.</span>
 
-<span class="cp">#endif</span>
+<span class="c1">#endif</span>
+
 </pre></div>
 </div>
 <p class="rubric">lbdex/chapters/Chapter5_1/MCTargetDesc/Cpu0MCCodeEmitter.cpp</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="c1">//===-- Cpu0MCCodeEmitter.cpp - Convert Cpu0 Code to Machine Code ---------===//</span>
-<span class="c1">//</span>
-<span class="c1">//                     The LLVM Compiler Infrastructure</span>
-<span class="c1">//</span>
-<span class="c1">// This file is distributed under the University of Illinois Open Source</span>
-<span class="c1">// License. See LICENSE.TXT for details.</span>
-<span class="c1">//</span>
-<span class="c1">//===----------------------------------------------------------------------===//</span>
-<span class="c1">//</span>
-<span class="c1">// This file implements the Cpu0MCCodeEmitter class.</span>
-<span class="c1">//</span>
-<span class="c1">//===----------------------------------------------------------------------===//</span>
-<span class="c1">//</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span>//===-- Cpu0MCCodeEmitter.cpp - Convert Cpu0 Code to Machine Code ---------===//
+//
+//                     The LLVM Compiler Infrastructure
+//
+// This file is distributed under the University of Illinois Open Source
+// License. See LICENSE.TXT for details.
+//
+//===----------------------------------------------------------------------===//
+//
+// This file implements the Cpu0MCCodeEmitter class.
+//
+//===----------------------------------------------------------------------===//
+//
 
-<span class="cp">#include &quot;Cpu0MCCodeEmitter.h&quot;</span>
+#include &quot;Cpu0MCCodeEmitter.h&quot;
 
-<span class="cp">#include &quot;MCTargetDesc/Cpu0BaseInfo.h&quot;</span>
-<span class="cp">#include &quot;MCTargetDesc/Cpu0FixupKinds.h&quot;</span>
-<span class="cp">#include &quot;MCTargetDesc/Cpu0MCExpr.h&quot;</span>
-<span class="cp">#include &quot;MCTargetDesc/Cpu0MCTargetDesc.h&quot;</span>
-<span class="cp">#include &quot;llvm/ADT/APFloat.h&quot;</span>
-<span class="cp">#include &quot;llvm/MC/MCCodeEmitter.h&quot;</span>
-<span class="cp">#include &quot;llvm/MC/MCContext.h&quot;</span>
-<span class="cp">#include &quot;llvm/MC/MCExpr.h&quot;</span>
-<span class="cp">#include &quot;llvm/MC/MCInst.h&quot;</span>
-<span class="cp">#include &quot;llvm/MC/MCInstrInfo.h&quot;</span>
-<span class="cp">#include &quot;llvm/MC/MCRegisterInfo.h&quot;</span>
-<span class="cp">#include &quot;llvm/MC/MCSubtargetInfo.h&quot;</span>
-<span class="cp">#include &quot;llvm/Support/raw_ostream.h&quot;</span>
+#include &quot;MCTargetDesc/Cpu0BaseInfo.h&quot;
+#include &quot;MCTargetDesc/Cpu0FixupKinds.h&quot;
+#include &quot;MCTargetDesc/Cpu0MCExpr.h&quot;
+#include &quot;MCTargetDesc/Cpu0MCTargetDesc.h&quot;
+#include &quot;llvm/ADT/APFloat.h&quot;
+#include &quot;llvm/MC/MCCodeEmitter.h&quot;
+#include &quot;llvm/MC/MCContext.h&quot;
+#include &quot;llvm/MC/MCExpr.h&quot;
+#include &quot;llvm/MC/MCInst.h&quot;
+#include &quot;llvm/MC/MCInstrInfo.h&quot;
+#include &quot;llvm/MC/MCRegisterInfo.h&quot;
+#include &quot;llvm/MC/MCSubtargetInfo.h&quot;
+#include &quot;llvm/Support/raw_ostream.h&quot;
 
-<span class="cp">#define DEBUG_TYPE &quot;mccodeemitter&quot;</span>
+#define DEBUG_TYPE &quot;mccodeemitter&quot;
 
-<span class="cp">#define GET_INSTRMAP_INFO</span>
-<span class="cp">#include &quot;Cpu0GenInstrInfo.inc&quot;</span>
-<span class="cp">#undef GET_INSTRMAP_INFO</span>
+#define GET_INSTRMAP_INFO
+#include &quot;Cpu0GenInstrInfo.inc&quot;
+#undef GET_INSTRMAP_INFO
 
-<span class="k">namespace</span> <span class="n">llvm</span> <span class="p">{</span>
-<span class="n">MCCodeEmitter</span> <span class="o">*</span><span class="n">llvm</span><span class="o">::</span><span class="n">createCpu0MCCodeEmitterEB</span><span class="p">(</span><span class="k">const</span> <span class="n">MCInstrInfo</span> <span class="o">&amp;</span><span class="n">MCII</span><span class="p">,</span>
-                                               <span class="k">const</span> <span class="n">MCRegisterInfo</span> <span class="o">&amp;</span><span class="n">MRI</span><span class="p">,</span>
-                                               <span class="n">MCContext</span> <span class="o">&amp;</span><span class="n">Ctx</span><span class="p">)</span> <span class="p">{</span>
-  <span class="k">return</span> <span class="k">new</span> <span class="n">Cpu0MCCodeEmitter</span><span class="p">(</span><span class="n">MCII</span><span class="p">,</span> <span class="n">Ctx</span><span class="p">,</span> <span class="nb">false</span><span class="p">);</span>
-<span class="p">}</span>
+namespace llvm {
+MCCodeEmitter *llvm::createCpu0MCCodeEmitterEB(const MCInstrInfo &amp;MCII,
+                                               const MCRegisterInfo &amp;MRI,
+                                               MCContext &amp;Ctx) {
+  return new Cpu0MCCodeEmitter(MCII, Ctx, false);
+}
 
-<span class="n">MCCodeEmitter</span> <span class="o">*</span><span class="n">llvm</span><span class="o">::</span><span class="n">createCpu0MCCodeEmitterEL</span><span class="p">(</span><span class="k">const</span> <span class="n">MCInstrInfo</span> <span class="o">&amp;</span><span class="n">MCII</span><span class="p">,</span>
-                                               <span class="k">const</span> <span class="n">MCRegisterInfo</span> <span class="o">&amp;</span><span class="n">MRI</span><span class="p">,</span>
-                                               <span class="n">MCContext</span> <span class="o">&amp;</span><span class="n">Ctx</span><span class="p">)</span> <span class="p">{</span>
-  <span class="k">return</span> <span class="k">new</span> <span class="n">Cpu0MCCodeEmitter</span><span class="p">(</span><span class="n">MCII</span><span class="p">,</span> <span class="n">Ctx</span><span class="p">,</span> <span class="nb">true</span><span class="p">);</span>
-<span class="p">}</span>
-<span class="p">}</span> <span class="c1">// End of namespace llvm</span>
+MCCodeEmitter *llvm::createCpu0MCCodeEmitterEL(const MCInstrInfo &amp;MCII,
+                                               const MCRegisterInfo &amp;MRI,
+                                               MCContext &amp;Ctx) {
+  return new Cpu0MCCodeEmitter(MCII, Ctx, true);
+}
+} // End of namespace llvm
 
-<span class="kt">void</span> <span class="n">Cpu0MCCodeEmitter</span><span class="o">::</span><span class="n">EmitByte</span><span class="p">(</span><span class="kt">unsigned</span> <span class="kt">char</span> <span class="n">C</span><span class="p">,</span> <span class="n">raw_ostream</span> <span class="o">&amp;</span><span class="n">OS</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
-  <span class="n">OS</span> <span class="o">&lt;&lt;</span> <span class="p">(</span><span class="kt">char</span><span class="p">)</span><span class="n">C</span><span class="p">;</span>
-<span class="p">}</span>
+void Cpu0MCCodeEmitter::EmitByte(unsigned char C, raw_ostream &amp;OS) const {
+  OS &lt;&lt; (char)C;
+}
 
-<span class="kt">void</span> <span class="n">Cpu0MCCodeEmitter</span><span class="o">::</span><span class="n">EmitInstruction</span><span class="p">(</span><span class="kt">uint64_t</span> <span class="n">Val</span><span class="p">,</span> <span class="kt">unsigned</span> <span class="n">Size</span><span class="p">,</span> <span class="n">raw_ostream</span> <span class="o">&amp;</span><span class="n">OS</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
-  <span class="c1">// Output the instruction encoding in little endian byte order.</span>
-  <span class="k">for</span> <span class="p">(</span><span class="kt">unsigned</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">Size</span><span class="p">;</span> <span class="o">++</span><span class="n">i</span><span class="p">)</span> <span class="p">{</span>
-    <span class="kt">unsigned</span> <span class="n">Shift</span> <span class="o">=</span> <span class="n">IsLittleEndian</span> <span class="o">?</span> <span class="n">i</span> <span class="o">*</span> <span class="mi">8</span> <span class="o">:</span> <span class="p">(</span><span class="n">Size</span> <span class="o">-</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">i</span><span class="p">)</span> <span class="o">*</span> <span class="mi">8</span><span class="p">;</span>
-    <span class="n">EmitByte</span><span class="p">((</span><span class="n">Val</span> <span class="o">&gt;&gt;</span> <span class="n">Shift</span><span class="p">)</span> <span class="o">&amp;</span> <span class="mh">0xff</span><span class="p">,</span> <span class="n">OS</span><span class="p">);</span>
-  <span class="p">}</span>
-<span class="p">}</span>
+void Cpu0MCCodeEmitter::EmitInstruction(uint64_t Val, unsigned Size, raw_ostream &amp;OS) const {
+  // Output the instruction encoding in little endian byte order.
+  for (unsigned i = 0; i &lt; Size; ++i) {
+    unsigned Shift = IsLittleEndian ? i * 8 : (Size - 1 - i) * 8;
+    EmitByte((Val &gt;&gt; Shift) &amp; 0xff, OS);
+  }
+}
 
-<span class="c1">/// encodeInstruction - Emit the instruction.</span>
-<span class="c1">/// Size the instruction (currently only 4 bytes)</span>
-<span class="kt">void</span> <span class="n">Cpu0MCCodeEmitter</span><span class="o">::</span>
-<span class="n">encodeInstruction</span><span class="p">(</span><span class="k">const</span> <span class="n">MCInst</span> <span class="o">&amp;</span><span class="n">MI</span><span class="p">,</span> <span class="n">raw_ostream</span> <span class="o">&amp;</span><span class="n">OS</span><span class="p">,</span>
-                  <span class="n">SmallVectorImpl</span><span class="o">&lt;</span><span class="n">MCFixup</span><span class="o">&gt;</span> <span class="o">&amp;</span><span class="n">Fixups</span><span class="p">,</span>
-                  <span class="k">const</span> <span class="n">MCSubtargetInfo</span> <span class="o">&amp;</span><span class="n">STI</span><span class="p">)</span> <span class="k">const</span>
-<span class="p">{</span>
-  <span class="kt">uint32_t</span> <span class="n">Binary</span> <span class="o">=</span> <span class="n">getBinaryCodeForInstr</span><span class="p">(</span><span class="n">MI</span><span class="p">,</span> <span class="n">Fixups</span><span class="p">,</span> <span class="n">STI</span><span class="p">);</span>
+/// encodeInstruction - Emit the instruction.
+/// Size the instruction (currently only 4 bytes)
+void Cpu0MCCodeEmitter::
+encodeInstruction(const MCInst &amp;MI, raw_ostream &amp;OS,
+                  SmallVectorImpl&lt;MCFixup&gt; &amp;Fixups,
+                  const MCSubtargetInfo &amp;STI) const
+{
+  uint32_t Binary = getBinaryCodeForInstr(MI, Fixups, STI);
 
-  <span class="c1">// Check for unimplemented opcodes.</span>
-  <span class="c1">// Unfortunately in CPU0 both NOT and SLL will come in with Binary == 0</span>
-  <span class="c1">// so we have to special check for them.</span>
-  <span class="kt">unsigned</span> <span class="n">Opcode</span> <span class="o">=</span> <span class="n">MI</span><span class="p">.</span><span class="n">getOpcode</span><span class="p">();</span>
-  <span class="k">if</span> <span class="p">((</span><span class="n">Opcode</span> <span class="o">!=</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">NOP</span><span class="p">)</span> <span class="o">&amp;&amp;</span> <span class="p">(</span><span class="n">Opcode</span> <span class="o">!=</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">SHL</span><span class="p">)</span> <span class="o">&amp;&amp;</span> <span class="o">!</span><span class="n">Binary</span><span class="p">)</span>
-    <span class="n">llvm_unreachable</span><span class="p">(</span><span class="s">&quot;unimplemented opcode in encodeInstruction()&quot;</span><span class="p">);</span>
+  // Check for unimplemented opcodes.
+  // Unfortunately in CPU0 both NOT and SLL will come in with Binary == 0
+  // so we have to special check for them.
+  unsigned Opcode = MI.getOpcode();
+  if ((Opcode != Cpu0::NOP) &amp;&amp; (Opcode != Cpu0::SHL) &amp;&amp; !Binary)
+    llvm_unreachable(&quot;unimplemented opcode in encodeInstruction()&quot;);
 
-  <span class="k">const</span> <span class="n">MCInstrDesc</span> <span class="o">&amp;</span><span class="n">Desc</span> <span class="o">=</span> <span class="n">MCII</span><span class="p">.</span><span class="n">get</span><span class="p">(</span><span class="n">MI</span><span class="p">.</span><span class="n">getOpcode</span><span class="p">());</span>
-  <span class="kt">uint64_t</span> <span class="n">TSFlags</span> <span class="o">=</span> <span class="n">Desc</span><span class="p">.</span><span class="n">TSFlags</span><span class="p">;</span>
+  const MCInstrDesc &amp;Desc = MCII.get(MI.getOpcode());
+  uint64_t TSFlags = Desc.TSFlags;
 
-  <span class="c1">// Pseudo instructions don&#39;t get encoded and shouldn&#39;t be here</span>
-  <span class="c1">// in the first place!</span>
-  <span class="k">if</span> <span class="p">((</span><span class="n">TSFlags</span> <span class="o">&amp;</span> <span class="n">Cpu0II</span><span class="o">::</span><span class="n">FormMask</span><span class="p">)</span> <span class="o">==</span> <span class="n">Cpu0II</span><span class="o">::</span><span class="n">Pseudo</span><span class="p">)</span>
-    <span class="n">llvm_unreachable</span><span class="p">(</span><span class="s">&quot;Pseudo opcode found in encodeInstruction()&quot;</span><span class="p">);</span>
+  // Pseudo instructions don&#39;t get encoded and shouldn&#39;t be here
+  // in the first place!
+  if ((TSFlags &amp; Cpu0II::FormMask) == Cpu0II::Pseudo)
+    llvm_unreachable(&quot;Pseudo opcode found in encodeInstruction()&quot;);
 
-  <span class="c1">// For now all instructions are 4 bytes</span>
-  <span class="kt">int</span> <span class="n">Size</span> <span class="o">=</span> <span class="mi">4</span><span class="p">;</span> <span class="c1">// FIXME: Have Desc.getSize() return the correct value!</span>
+  // For now all instructions are 4 bytes
+  int Size = 4; // FIXME: Have Desc.getSize() return the correct value!
 
-  <span class="n">EmitInstruction</span><span class="p">(</span><span class="n">Binary</span><span class="p">,</span> <span class="n">Size</span><span class="p">,</span> <span class="n">OS</span><span class="p">);</span>
-<span class="p">}</span>
+  EmitInstruction(Binary, Size, OS);
+}
 
-<span class="c1">//@CH8_1 {</span>
-<span class="c1">/// getBranch16TargetOpValue - Return binary encoding of the branch</span>
-<span class="c1">/// target operand. If the machine operand requires relocation,</span>
-<span class="c1">/// record the relocation and return zero.</span>
-<span class="kt">unsigned</span> <span class="n">Cpu0MCCodeEmitter</span><span class="o">::</span>
-<span class="n">getBranch16TargetOpValue</span><span class="p">(</span><span class="k">const</span> <span class="n">MCInst</span> <span class="o">&amp;</span><span class="n">MI</span><span class="p">,</span> <span class="kt">unsigned</span> <span class="n">OpNo</span><span class="p">,</span>
-                         <span class="n">SmallVectorImpl</span><span class="o">&lt;</span><span class="n">MCFixup</span><span class="o">&gt;</span> <span class="o">&amp;</span><span class="n">Fixups</span><span class="p">,</span>
-                         <span class="k">const</span> <span class="n">MCSubtargetInfo</span> <span class="o">&amp;</span><span class="n">STI</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
-  <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
-<span class="p">}</span>
+//@CH8_1 {
+/// getBranch16TargetOpValue - Return binary encoding of the branch
+/// target operand. If the machine operand requires relocation,
+/// record the relocation and return zero.
+unsigned Cpu0MCCodeEmitter::
+getBranch16TargetOpValue(const MCInst &amp;MI, unsigned OpNo,
+                         SmallVectorImpl&lt;MCFixup&gt; &amp;Fixups,
+                         const MCSubtargetInfo &amp;STI) const {
+  return 0;
+}
 
-<span class="c1">/// getBranch24TargetOpValue - Return binary encoding of the branch</span>
-<span class="c1">/// target operand. If the machine operand requires relocation,</span>
-<span class="c1">/// record the relocation and return zero.</span>
-<span class="kt">unsigned</span> <span class="n">Cpu0MCCodeEmitter</span><span class="o">::</span>
-<span class="n">getBranch24TargetOpValue</span><span class="p">(</span><span class="k">const</span> <span class="n">MCInst</span> <span class="o">&amp;</span><span class="n">MI</span><span class="p">,</span> <span class="kt">unsigned</span> <span class="n">OpNo</span><span class="p">,</span>
-                       <span class="n">SmallVectorImpl</span><span class="o">&lt;</span><span class="n">MCFixup</span><span class="o">&gt;</span> <span class="o">&amp;</span><span class="n">Fixups</span><span class="p">,</span>
-                       <span class="k">const</span> <span class="n">MCSubtargetInfo</span> <span class="o">&amp;</span><span class="n">STI</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
-  <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
-<span class="p">}</span>
+/// getBranch24TargetOpValue - Return binary encoding of the branch
+/// target operand. If the machine operand requires relocation,
+/// record the relocation and return zero.
+unsigned Cpu0MCCodeEmitter::
+getBranch24TargetOpValue(const MCInst &amp;MI, unsigned OpNo,
+                       SmallVectorImpl&lt;MCFixup&gt; &amp;Fixups,
+                       const MCSubtargetInfo &amp;STI) const {
+  return 0;
+}
 
-<span class="c1">/// getJumpTargetOpValue - Return binary encoding of the jump</span>
-<span class="c1">/// target operand, such as JSUB. </span>
-<span class="c1">/// If the machine operand requires relocation,</span>
-<span class="c1">/// record the relocation and return zero.</span>
-<span class="c1">//@getJumpTargetOpValue {</span>
-<span class="kt">unsigned</span> <span class="n">Cpu0MCCodeEmitter</span><span class="o">::</span>
-<span class="n">getJumpTargetOpValue</span><span class="p">(</span><span class="k">const</span> <span class="n">MCInst</span> <span class="o">&amp;</span><span class="n">MI</span><span class="p">,</span> <span class="kt">unsigned</span> <span class="n">OpNo</span><span class="p">,</span>
-                     <span class="n">SmallVectorImpl</span><span class="o">&lt;</span><span class="n">MCFixup</span><span class="o">&gt;</span> <span class="o">&amp;</span><span class="n">Fixups</span><span class="p">,</span>
-                     <span class="k">const</span> <span class="n">MCSubtargetInfo</span> <span class="o">&amp;</span><span class="n">STI</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
-  <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
-<span class="p">}</span>
-<span class="c1">//@CH8_1 }</span>
+/// getJumpTargetOpValue - Return binary encoding of the jump
+/// target operand, such as JSUB. 
+/// If the machine operand requires relocation,
+/// record the relocation and return zero.
+//@getJumpTargetOpValue {
+unsigned Cpu0MCCodeEmitter::
+getJumpTargetOpValue(const MCInst &amp;MI, unsigned OpNo,
+                     SmallVectorImpl&lt;MCFixup&gt; &amp;Fixups,
+                     const MCSubtargetInfo &amp;STI) const {
+  return 0;
+}
+//@CH8_1 }
 
-<span class="c1">//@getExprOpValue {</span>
-<span class="kt">unsigned</span> <span class="n">Cpu0MCCodeEmitter</span><span class="o">::</span>
-<span class="n">getExprOpValue</span><span class="p">(</span><span class="k">const</span> <span class="n">MCExpr</span> <span class="o">*</span><span class="n">Expr</span><span class="p">,</span><span class="n">SmallVectorImpl</span><span class="o">&lt;</span><span class="n">MCFixup</span><span class="o">&gt;</span> <span class="o">&amp;</span><span class="n">Fixups</span><span class="p">,</span>
-               <span class="k">const</span> <span class="n">MCSubtargetInfo</span> <span class="o">&amp;</span><span class="n">STI</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
-<span class="c1">//@getExprOpValue body {</span>
-  <span class="n">MCExpr</span><span class="o">::</span><span class="n">ExprKind</span> <span class="n">Kind</span> <span class="o">=</span> <span class="n">Expr</span><span class="o">-&gt;</span><span class="n">getKind</span><span class="p">();</span>
-  <span class="k">if</span> <span class="p">(</span><span class="n">Kind</span> <span class="o">==</span> <span class="n">MCExpr</span><span class="o">::</span><span class="n">Constant</span><span class="p">)</span> <span class="p">{</span>
-    <span class="k">return</span> <span class="n">cast</span><span class="o">&lt;</span><span class="n">MCConstantExpr</span><span class="o">&gt;</span><span class="p">(</span><span class="n">Expr</span><span class="p">)</span><span class="o">-&gt;</span><span class="n">getValue</span><span class="p">();</span>
-  <span class="p">}</span>
+//@getExprOpValue {
+unsigned Cpu0MCCodeEmitter::
+getExprOpValue(const MCExpr *Expr,SmallVectorImpl&lt;MCFixup&gt; &amp;Fixups,
+               const MCSubtargetInfo &amp;STI) const {
+//@getExprOpValue body {
+  MCExpr::ExprKind Kind = Expr-&gt;getKind();
+  if (Kind == MCExpr::Constant) {
+    return cast&lt;MCConstantExpr&gt;(Expr)-&gt;getValue();
+  }
 
-  <span class="k">if</span> <span class="p">(</span><span class="n">Kind</span> <span class="o">==</span> <span class="n">MCExpr</span><span class="o">::</span><span class="n">Binary</span><span class="p">)</span> <span class="p">{</span>
-    <span class="kt">unsigned</span> <span class="n">Res</span> <span class="o">=</span> <span class="n">getExprOpValue</span><span class="p">(</span><span class="n">cast</span><span class="o">&lt;</span><span class="n">MCBinaryExpr</span><span class="o">&gt;</span><span class="p">(</span><span class="n">Expr</span><span class="p">)</span><span class="o">-&gt;</span><span class="n">getLHS</span><span class="p">(),</span> <span class="n">Fixups</span><span class="p">,</span> <span class="n">STI</span><span class="p">);</span>
-    <span class="n">Res</span> <span class="o">+=</span> <span class="n">getExprOpValue</span><span class="p">(</span><span class="n">cast</span><span class="o">&lt;</span><span class="n">MCBinaryExpr</span><span class="o">&gt;</span><span class="p">(</span><span class="n">Expr</span><span class="p">)</span><span class="o">-&gt;</span><span class="n">getRHS</span><span class="p">(),</span> <span class="n">Fixups</span><span class="p">,</span> <span class="n">STI</span><span class="p">);</span>
-    <span class="k">return</span> <span class="n">Res</span><span class="p">;</span>
-  <span class="p">}</span>
+  if (Kind == MCExpr::Binary) {
+    unsigned Res = getExprOpValue(cast&lt;MCBinaryExpr&gt;(Expr)-&gt;getLHS(), Fixups, STI);
+    Res += getExprOpValue(cast&lt;MCBinaryExpr&gt;(Expr)-&gt;getRHS(), Fixups, STI);
+    return Res;
+  }
 
-  <span class="k">if</span> <span class="p">(</span><span class="n">Kind</span> <span class="o">==</span> <span class="n">MCExpr</span><span class="o">::</span><span class="n">Target</span><span class="p">)</span> <span class="p">{</span>
-    <span class="k">const</span> <span class="n">Cpu0MCExpr</span> <span class="o">*</span><span class="n">Cpu0Expr</span> <span class="o">=</span> <span class="n">cast</span><span class="o">&lt;</span><span class="n">Cpu0MCExpr</span><span class="o">&gt;</span><span class="p">(</span><span class="n">Expr</span><span class="p">);</span>
+  if (Kind == MCExpr::Target) {
+    const Cpu0MCExpr *Cpu0Expr = cast&lt;Cpu0MCExpr&gt;(Expr);
 
-    <span class="n">Cpu0</span><span class="o">::</span><span class="n">Fixups</span> <span class="n">FixupKind</span> <span class="o">=</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">Fixups</span><span class="p">(</span><span class="mi">0</span><span class="p">);</span>
-    <span class="k">switch</span> <span class="p">(</span><span class="n">Cpu0Expr</span><span class="o">-&gt;</span><span class="n">getKind</span><span class="p">())</span> <span class="p">{</span>
-    <span class="nl">default:</span> <span class="n">llvm_unreachable</span><span class="p">(</span><span class="s">&quot;Unsupported fixup kind for target expression!&quot;</span><span class="p">);</span>
-    <span class="k">case</span> <span class="n">Cpu0MCExpr</span>:<span class="o">:</span><span class="n">VK_Cpu0_HI</span><span class="o">:</span>
-      <span class="n">FixupKind</span> <span class="o">=</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">fixup_Cpu0_HI16</span><span class="p">;</span>
-      <span class="k">break</span><span class="p">;</span>
-    <span class="k">case</span> <span class="n">Cpu0MCExpr</span>:<span class="o">:</span><span class="n">VK_Cpu0_LO</span><span class="o">:</span>
-      <span class="n">FixupKind</span> <span class="o">=</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">fixup_Cpu0_LO16</span><span class="p">;</span>
-      <span class="k">break</span><span class="p">;</span>
-    <span class="p">}</span>
-    <span class="n">Fixups</span><span class="p">.</span><span class="n">push_back</span><span class="p">(</span><span class="n">MCFixup</span><span class="o">::</span><span class="n">create</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">Cpu0Expr</span><span class="p">,</span> <span class="n">MCFixupKind</span><span class="p">(</span><span class="n">FixupKind</span><span class="p">)));</span>
-    <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
-  <span class="p">}</span>
+    Cpu0::Fixups FixupKind = Cpu0::Fixups(0);
+    switch (Cpu0Expr-&gt;getKind()) {
+    default: llvm_unreachable(&quot;Unsupported fixup kind for target expression!&quot;);
+    case Cpu0MCExpr::VK_Cpu0_HI:
+      FixupKind = Cpu0::fixup_Cpu0_HI16;
+      break;
+    case Cpu0MCExpr::VK_Cpu0_LO:
+      FixupKind = Cpu0::fixup_Cpu0_LO16;
+      break;
+    }
+    Fixups.push_back(MCFixup::create(0, Cpu0Expr, MCFixupKind(FixupKind)));
+    return 0;
+  }
 
-  <span class="c1">// All of the information is in the fixup.</span>
-  <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
-<span class="p">}</span>
+  // All of the information is in the fixup.
+  return 0;
+}
 
-<span class="c1">/// getMachineOpValue - Return binary encoding of operand. If the machine</span>
-<span class="c1">/// operand requires relocation, record the relocation and return zero.</span>
-<span class="kt">unsigned</span> <span class="n">Cpu0MCCodeEmitter</span><span class="o">::</span>
-<span class="n">getMachineOpValue</span><span class="p">(</span><span class="k">const</span> <span class="n">MCInst</span> <span class="o">&amp;</span><span class="n">MI</span><span class="p">,</span> <span class="k">const</span> <span class="n">MCOperand</span> <span class="o">&amp;</span><span class="n">MO</span><span class="p">,</span>
-                  <span class="n">SmallVectorImpl</span><span class="o">&lt;</span><span class="n">MCFixup</span><span class="o">&gt;</span> <span class="o">&amp;</span><span class="n">Fixups</span><span class="p">,</span>
-                  <span class="k">const</span> <span class="n">MCSubtargetInfo</span> <span class="o">&amp;</span><span class="n">STI</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
-  <span class="k">if</span> <span class="p">(</span><span class="n">MO</span><span class="p">.</span><span class="n">isReg</span><span class="p">())</span> <span class="p">{</span>
-    <span class="kt">unsigned</span> <span class="n">Reg</span> <span class="o">=</span> <span class="n">MO</span><span class="p">.</span><span class="n">getReg</span><span class="p">();</span>
-    <span class="kt">unsigned</span> <span class="n">RegNo</span> <span class="o">=</span> <span class="n">Ctx</span><span class="p">.</span><span class="n">getRegisterInfo</span><span class="p">()</span><span class="o">-&gt;</span><span class="n">getEncodingValue</span><span class="p">(</span><span class="n">Reg</span><span class="p">);</span>
-    <span class="k">return</span> <span class="n">RegNo</span><span class="p">;</span>
-  <span class="p">}</span> <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="n">MO</span><span class="p">.</span><span class="n">isImm</span><span class="p">())</span> <span class="p">{</span>
-    <span class="k">return</span> <span class="k">static_cast</span><span class="o">&lt;</span><span class="kt">unsigned</span><span class="o">&gt;</span><span class="p">(</span><span class="n">MO</span><span class="p">.</span><span class="n">getImm</span><span class="p">());</span>
-  <span class="p">}</span> <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="n">MO</span><span class="p">.</span><span class="n">isFPImm</span><span class="p">())</span> <span class="p">{</span>
-    <span class="k">return</span> <span class="k">static_cast</span><span class="o">&lt;</span><span class="kt">unsigned</span><span class="o">&gt;</span><span class="p">(</span><span class="n">APFloat</span><span class="p">(</span><span class="n">MO</span><span class="p">.</span><span class="n">getFPImm</span><span class="p">())</span>
-        <span class="p">.</span><span class="n">bitcastToAPInt</span><span class="p">().</span><span class="n">getHiBits</span><span class="p">(</span><span class="mi">32</span><span class="p">).</span><span class="n">getLimitedValue</span><span class="p">());</span>
-  <span class="p">}</span>
-  <span class="c1">// MO must be an Expr.</span>
-  <span class="n">assert</span><span class="p">(</span><span class="n">MO</span><span class="p">.</span><span class="n">isExpr</span><span class="p">());</span>
-  <span class="k">return</span> <span class="nf">getExprOpValue</span><span class="p">(</span><span class="n">MO</span><span class="p">.</span><span class="n">getExpr</span><span class="p">(),</span><span class="n">Fixups</span><span class="p">,</span> <span class="n">STI</span><span class="p">);</span>
-<span class="p">}</span>
+/// getMachineOpValue - Return binary encoding of operand. If the machine
+/// operand requires relocation, record the relocation and return zero.
+unsigned Cpu0MCCodeEmitter::
+getMachineOpValue(const MCInst &amp;MI, const MCOperand &amp;MO,
+                  SmallVectorImpl&lt;MCFixup&gt; &amp;Fixups,
+                  const MCSubtargetInfo &amp;STI) const {
+  if (MO.isReg()) {
+    unsigned Reg = MO.getReg();
+    unsigned RegNo = Ctx.getRegisterInfo()-&gt;getEncodingValue(Reg);
+    return RegNo;
+  } else if (MO.isImm()) {
+    return static_cast&lt;unsigned&gt;(MO.getImm());
+  } else if (MO.isFPImm()) {
+    return static_cast&lt;unsigned&gt;(APFloat(MO.getFPImm())
+        .bitcastToAPInt().getHiBits(32).getLimitedValue());
+  }
+  // MO must be an Expr.
+  assert(MO.isExpr());
+  return getExprOpValue(MO.getExpr(),Fixups, STI);
+}
 
-<span class="c1">/// getMemEncoding - Return binary encoding of memory related operand.</span>
-<span class="c1">/// If the offset operand requires relocation, record the relocation.</span>
-<span class="kt">unsigned</span>
-<span class="n">Cpu0MCCodeEmitter</span><span class="o">::</span><span class="n">getMemEncoding</span><span class="p">(</span><span class="k">const</span> <span class="n">MCInst</span> <span class="o">&amp;</span><span class="n">MI</span><span class="p">,</span> <span class="kt">unsigned</span> <span class="n">OpNo</span><span class="p">,</span>
-                                  <span class="n">SmallVectorImpl</span><span class="o">&lt;</span><span class="n">MCFixup</span><span class="o">&gt;</span> <span class="o">&amp;</span><span class="n">Fixups</span><span class="p">,</span>
-                                  <span class="k">const</span> <span class="n">MCSubtargetInfo</span> <span class="o">&amp;</span><span class="n">STI</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
-  <span class="c1">// Base register is encoded in bits 20-16, offset is encoded in bits 15-0.</span>
-  <span class="n">assert</span><span class="p">(</span><span class="n">MI</span><span class="p">.</span><span class="n">getOperand</span><span class="p">(</span><span class="n">OpNo</span><span class="p">).</span><span class="n">isReg</span><span class="p">());</span>
-  <span class="kt">unsigned</span> <span class="n">RegBits</span> <span class="o">=</span> <span class="n">getMachineOpValue</span><span class="p">(</span><span class="n">MI</span><span class="p">,</span> <span class="n">MI</span><span class="p">.</span><span class="n">getOperand</span><span class="p">(</span><span class="n">OpNo</span><span class="p">),</span> <span class="n">Fixups</span><span class="p">,</span> <span class="n">STI</span><span class="p">)</span> <span class="o">&lt;&lt;</span> <span class="mi">16</span><span class="p">;</span>
-  <span class="kt">unsigned</span> <span class="n">OffBits</span> <span class="o">=</span> <span class="n">getMachineOpValue</span><span class="p">(</span><span class="n">MI</span><span class="p">,</span> <span class="n">MI</span><span class="p">.</span><span class="n">getOperand</span><span class="p">(</span><span class="n">OpNo</span><span class="o">+</span><span class="mi">1</span><span class="p">),</span> <span class="n">Fixups</span><span class="p">,</span> <span class="n">STI</span><span class="p">);</span>
+/// getMemEncoding - Return binary encoding of memory related operand.
+/// If the offset operand requires relocation, record the relocation.
+unsigned
+Cpu0MCCodeEmitter::getMemEncoding(const MCInst &amp;MI, unsigned OpNo,
+                                  SmallVectorImpl&lt;MCFixup&gt; &amp;Fixups,
+                                  const MCSubtargetInfo &amp;STI) const {
+  // Base register is encoded in bits 20-16, offset is encoded in bits 15-0.
+  assert(MI.getOperand(OpNo).isReg());
+  unsigned RegBits = getMachineOpValue(MI, MI.getOperand(OpNo), Fixups, STI) &lt;&lt; 16;
+  unsigned OffBits = getMachineOpValue(MI, MI.getOperand(OpNo+1), Fixups, STI);
 
-  <span class="k">return</span> <span class="p">(</span><span class="n">OffBits</span> <span class="o">&amp;</span> <span class="mh">0xFFFF</span><span class="p">)</span> <span class="o">|</span> <span class="n">RegBits</span><span class="p">;</span>
-<span class="p">}</span>
+  return (OffBits &amp; 0xFFFF) | RegBits;
+}
 
-<span class="cp">#include &quot;Cpu0GenMCCodeEmitter.inc&quot;</span>
+#include &quot;Cpu0GenMCCodeEmitter.inc&quot;
+
 </pre></div>
 </div>
 <p class="rubric">lbdex/chapters/Chapter5_1/MCTargetDesc/Cpu0MCTargetDesc.h</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="n">MCCodeEmitter</span> <span class="o">*</span><span class="nf">createCpu0MCCodeEmitterEB</span><span class="p">(</span><span class="k">const</span> <span class="n">MCInstrInfo</span> <span class="o">&amp;</span><span class="n">MCII</span><span class="p">,</span>
-                                         <span class="k">const</span> <span class="n">MCRegisterInfo</span> <span class="o">&amp;</span><span class="n">MRI</span><span class="p">,</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">MCCodeEmitter</span> <span class="o">*</span><span class="n">createCpu0MCCodeEmitterEB</span><span class="p">(</span><span class="n">const</span> <span class="n">MCInstrInfo</span> <span class="o">&amp;</span><span class="n">MCII</span><span class="p">,</span>
+                                         <span class="n">const</span> <span class="n">MCRegisterInfo</span> <span class="o">&amp;</span><span class="n">MRI</span><span class="p">,</span>
                                          <span class="n">MCContext</span> <span class="o">&amp;</span><span class="n">Ctx</span><span class="p">);</span>
-<span class="n">MCCodeEmitter</span> <span class="o">*</span><span class="nf">createCpu0MCCodeEmitterEL</span><span class="p">(</span><span class="k">const</span> <span class="n">MCInstrInfo</span> <span class="o">&amp;</span><span class="n">MCII</span><span class="p">,</span>
-                                         <span class="k">const</span> <span class="n">MCRegisterInfo</span> <span class="o">&amp;</span><span class="n">MRI</span><span class="p">,</span>
+<span class="n">MCCodeEmitter</span> <span class="o">*</span><span class="n">createCpu0MCCodeEmitterEL</span><span class="p">(</span><span class="n">const</span> <span class="n">MCInstrInfo</span> <span class="o">&amp;</span><span class="n">MCII</span><span class="p">,</span>
+                                         <span class="n">const</span> <span class="n">MCRegisterInfo</span> <span class="o">&amp;</span><span class="n">MRI</span><span class="p">,</span>
                                          <span class="n">MCContext</span> <span class="o">&amp;</span><span class="n">Ctx</span><span class="p">);</span>
 
-<span class="n">MCAsmBackend</span> <span class="o">*</span><span class="nf">createCpu0AsmBackendEB32</span><span class="p">(</span><span class="k">const</span> <span class="n">Target</span> <span class="o">&amp;</span><span class="n">T</span><span class="p">,</span>
-                                       <span class="k">const</span> <span class="n">MCRegisterInfo</span> <span class="o">&amp;</span><span class="n">MRI</span><span class="p">,</span>
-                                       <span class="k">const</span> <span class="n">Triple</span> <span class="o">&amp;</span><span class="n">TT</span><span class="p">,</span> <span class="n">StringRef</span> <span class="n">CPU</span><span class="p">);</span>
-<span class="n">MCAsmBackend</span> <span class="o">*</span><span class="nf">createCpu0AsmBackendEL32</span><span class="p">(</span><span class="k">const</span> <span class="n">Target</span> <span class="o">&amp;</span><span class="n">T</span><span class="p">,</span>
-                                       <span class="k">const</span> <span class="n">MCRegisterInfo</span> <span class="o">&amp;</span><span class="n">MRI</span><span class="p">,</span>
-                                       <span class="k">const</span> <span class="n">Triple</span> <span class="o">&amp;</span><span class="n">TT</span><span class="p">,</span> <span class="n">StringRef</span> <span class="n">CPU</span><span class="p">);</span>
+<span class="n">MCAsmBackend</span> <span class="o">*</span><span class="n">createCpu0AsmBackendEB32</span><span class="p">(</span><span class="n">const</span> <span class="n">Target</span> <span class="o">&amp;</span><span class="n">T</span><span class="p">,</span>
+                                       <span class="n">const</span> <span class="n">MCRegisterInfo</span> <span class="o">&amp;</span><span class="n">MRI</span><span class="p">,</span>
+                                       <span class="n">const</span> <span class="n">Triple</span> <span class="o">&amp;</span><span class="n">TT</span><span class="p">,</span> <span class="n">StringRef</span> <span class="n">CPU</span><span class="p">);</span>
+<span class="n">MCAsmBackend</span> <span class="o">*</span><span class="n">createCpu0AsmBackendEL32</span><span class="p">(</span><span class="n">const</span> <span class="n">Target</span> <span class="o">&amp;</span><span class="n">T</span><span class="p">,</span>
+                                       <span class="n">const</span> <span class="n">MCRegisterInfo</span> <span class="o">&amp;</span><span class="n">MRI</span><span class="p">,</span>
+                                       <span class="n">const</span> <span class="n">Triple</span> <span class="o">&amp;</span><span class="n">TT</span><span class="p">,</span> <span class="n">StringRef</span> <span class="n">CPU</span><span class="p">);</span>
 
-<span class="n">MCObjectWriter</span> <span class="o">*</span><span class="nf">createCpu0ELFObjectWriter</span><span class="p">(</span><span class="n">raw_pwrite_stream</span> <span class="o">&amp;</span><span class="n">OS</span><span class="p">,</span>
-                                          <span class="kt">uint8_t</span> <span class="n">OSABI</span><span class="p">,</span>
-                                          <span class="kt">bool</span> <span class="n">IsLittleEndian</span><span class="p">);</span>
+<span class="n">MCObjectWriter</span> <span class="o">*</span><span class="n">createCpu0ELFObjectWriter</span><span class="p">(</span><span class="n">raw_pwrite_stream</span> <span class="o">&amp;</span><span class="n">OS</span><span class="p">,</span>
+                                          <span class="n">uint8_t</span> <span class="n">OSABI</span><span class="p">,</span>
+                                          <span class="nb">bool</span> <span class="n">IsLittleEndian</span><span class="p">);</span>
 </pre></div>
 </div>
 <p class="rubric">lbdex/chapters/Chapter5_1/MCTargetDesc/Cpu0MCTargetDesc.cpp</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="k">static</span> <span class="n">MCStreamer</span> <span class="o">*</span><span class="nf">createMCStreamer</span><span class="p">(</span><span class="k">const</span> <span class="n">Triple</span> <span class="o">&amp;</span><span class="n">TT</span><span class="p">,</span> <span class="n">MCContext</span> <span class="o">&amp;</span><span class="n">Context</span><span class="p">,</span> 
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">static</span> <span class="n">MCStreamer</span> <span class="o">*</span><span class="n">createMCStreamer</span><span class="p">(</span><span class="n">const</span> <span class="n">Triple</span> <span class="o">&amp;</span><span class="n">TT</span><span class="p">,</span> <span class="n">MCContext</span> <span class="o">&amp;</span><span class="n">Context</span><span class="p">,</span> 
                                     <span class="n">MCAsmBackend</span> <span class="o">&amp;</span><span class="n">MAB</span><span class="p">,</span> <span class="n">raw_pwrite_stream</span> <span class="o">&amp;</span><span class="n">OS</span><span class="p">,</span> 
-                                    <span class="n">MCCodeEmitter</span> <span class="o">*</span><span class="n">Emitter</span><span class="p">,</span> <span class="kt">bool</span> <span class="n">RelaxAll</span><span class="p">)</span> <span class="p">{</span>
+                                    <span class="n">MCCodeEmitter</span> <span class="o">*</span><span class="n">Emitter</span><span class="p">,</span> <span class="nb">bool</span> <span class="n">RelaxAll</span><span class="p">)</span> <span class="p">{</span>
   <span class="k">return</span> <span class="n">createELFStreamer</span><span class="p">(</span><span class="n">Context</span><span class="p">,</span> <span class="n">MAB</span><span class="p">,</span> <span class="n">OS</span><span class="p">,</span> <span class="n">Emitter</span><span class="p">,</span> <span class="n">RelaxAll</span><span class="p">);</span>
 <span class="p">}</span>
 
-<span class="k">static</span> <span class="n">MCTargetStreamer</span> <span class="o">*</span><span class="nf">createCpu0AsmTargetStreamer</span><span class="p">(</span><span class="n">MCStreamer</span> <span class="o">&amp;</span><span class="n">S</span><span class="p">,</span>
+<span class="n">static</span> <span class="n">MCTargetStreamer</span> <span class="o">*</span><span class="n">createCpu0AsmTargetStreamer</span><span class="p">(</span><span class="n">MCStreamer</span> <span class="o">&amp;</span><span class="n">S</span><span class="p">,</span>
                                                      <span class="n">formatted_raw_ostream</span> <span class="o">&amp;</span><span class="n">OS</span><span class="p">,</span>
                                                      <span class="n">MCInstPrinter</span> <span class="o">*</span><span class="n">InstPrint</span><span class="p">,</span>
-                                                     <span class="kt">bool</span> <span class="n">isVerboseAsm</span><span class="p">)</span> <span class="p">{</span>
-  <span class="k">return</span> <span class="k">new</span> <span class="n">Cpu0TargetAsmStreamer</span><span class="p">(</span><span class="n">S</span><span class="p">,</span> <span class="n">OS</span><span class="p">);</span>
+                                                     <span class="nb">bool</span> <span class="n">isVerboseAsm</span><span class="p">)</span> <span class="p">{</span>
+  <span class="k">return</span> <span class="n">new</span> <span class="n">Cpu0TargetAsmStreamer</span><span class="p">(</span><span class="n">S</span><span class="p">,</span> <span class="n">OS</span><span class="p">);</span>
 <span class="p">}</span>
 </pre></div>
 </div>
-<div class="highlight-c++"><div class="highlight"><pre><span class="k">extern</span> <span class="s">&quot;C&quot;</span> <span class="kt">void</span> <span class="n">LLVMInitializeCpu0TargetMC</span><span class="p">()</span> <span class="p">{</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">extern</span> <span class="s2">&quot;C&quot;</span> <span class="n">void</span> <span class="n">LLVMInitializeCpu0TargetMC</span><span class="p">()</span> <span class="p">{</span>
 </pre></div>
 </div>
-<div class="highlight-c++"><div class="highlight"><pre>     <span class="c1">// Register the elf streamer.</span>
-    <span class="n">TargetRegistry</span><span class="o">::</span><span class="n">RegisterELFStreamer</span><span class="p">(</span><span class="o">*</span><span class="n">T</span><span class="p">,</span> <span class="n">createMCStreamer</span><span class="p">);</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span>     <span class="o">//</span> <span class="n">Register</span> <span class="n">the</span> <span class="n">elf</span> <span class="n">streamer</span><span class="o">.</span>
+    <span class="n">TargetRegistry</span><span class="p">::</span><span class="n">RegisterELFStreamer</span><span class="p">(</span><span class="o">*</span><span class="n">T</span><span class="p">,</span> <span class="n">createMCStreamer</span><span class="p">);</span>
 
-    <span class="c1">// Register the asm target streamer.</span>
-    <span class="n">TargetRegistry</span><span class="o">::</span><span class="n">RegisterAsmTargetStreamer</span><span class="p">(</span><span class="o">*</span><span class="n">T</span><span class="p">,</span> <span class="n">createCpu0AsmTargetStreamer</span><span class="p">);</span>
+    <span class="o">//</span> <span class="n">Register</span> <span class="n">the</span> <span class="n">asm</span> <span class="n">target</span> <span class="n">streamer</span><span class="o">.</span>
+    <span class="n">TargetRegistry</span><span class="p">::</span><span class="n">RegisterAsmTargetStreamer</span><span class="p">(</span><span class="o">*</span><span class="n">T</span><span class="p">,</span> <span class="n">createCpu0AsmTargetStreamer</span><span class="p">);</span>
 </pre></div>
 </div>
-<div class="highlight-c++"><div class="highlight"><pre>  <span class="c1">// Register the MC Code Emitter</span>
-  <span class="n">TargetRegistry</span><span class="o">::</span><span class="n">RegisterMCCodeEmitter</span><span class="p">(</span><span class="n">TheCpu0Target</span><span class="p">,</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span>  <span class="o">//</span> <span class="n">Register</span> <span class="n">the</span> <span class="n">MC</span> <span class="n">Code</span> <span class="n">Emitter</span>
+  <span class="n">TargetRegistry</span><span class="p">::</span><span class="n">RegisterMCCodeEmitter</span><span class="p">(</span><span class="n">TheCpu0Target</span><span class="p">,</span>
                                         <span class="n">createCpu0MCCodeEmitterEB</span><span class="p">);</span>
-  <span class="n">TargetRegistry</span><span class="o">::</span><span class="n">RegisterMCCodeEmitter</span><span class="p">(</span><span class="n">TheCpu0elTarget</span><span class="p">,</span>
+  <span class="n">TargetRegistry</span><span class="p">::</span><span class="n">RegisterMCCodeEmitter</span><span class="p">(</span><span class="n">TheCpu0elTarget</span><span class="p">,</span>
                                         <span class="n">createCpu0MCCodeEmitterEL</span><span class="p">);</span>
 
-  <span class="c1">// Register the asm backend.</span>
-  <span class="n">TargetRegistry</span><span class="o">::</span><span class="n">RegisterMCAsmBackend</span><span class="p">(</span><span class="n">TheCpu0Target</span><span class="p">,</span>
+  <span class="o">//</span> <span class="n">Register</span> <span class="n">the</span> <span class="n">asm</span> <span class="n">backend</span><span class="o">.</span>
+  <span class="n">TargetRegistry</span><span class="p">::</span><span class="n">RegisterMCAsmBackend</span><span class="p">(</span><span class="n">TheCpu0Target</span><span class="p">,</span>
                                        <span class="n">createCpu0AsmBackendEB32</span><span class="p">);</span>
-  <span class="n">TargetRegistry</span><span class="o">::</span><span class="n">RegisterMCAsmBackend</span><span class="p">(</span><span class="n">TheCpu0elTarget</span><span class="p">,</span>
+  <span class="n">TargetRegistry</span><span class="p">::</span><span class="n">RegisterMCAsmBackend</span><span class="p">(</span><span class="n">TheCpu0elTarget</span><span class="p">,</span>
                                        <span class="n">createCpu0AsmBackendEL32</span><span class="p">);</span>
 </pre></div>
 </div>
-<div class="highlight-c++"><div class="highlight"><pre><span class="p">}</span>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="p">}</span>
 </pre></div>
 </div>
 <p>The applyFixup() of Cpu0AsmBackend.cpp will fix up the <strong>jeq</strong>, <strong>jub</strong>, ...
@@ -995,17 +998,17 @@ be introduced in later chapter ELF Support.</p>
 Cpu0MCCodeEmitter.cpp will be called since it override the same name of
 function in parent class MCCodeEmitter.</p>
 <p class="rubric">lbdex/chapters/Chapter2/Cpu0InstrInfo.td</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="c1">// Address operand</span>
-<span class="n">def</span> <span class="n">mem</span> <span class="o">:</span> <span class="n">Operand</span><span class="o">&lt;</span><span class="n">iPTR</span><span class="o">&gt;</span> <span class="p">{</span>
-  <span class="n">let</span> <span class="n">PrintMethod</span> <span class="o">=</span> <span class="s">&quot;printMemOperand&quot;</span><span class="p">;</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">//</span> <span class="n">Address</span> <span class="n">operand</span>
+<span class="k">def</span> <span class="nf">mem</span> <span class="p">:</span> <span class="n">Operand</span><span class="o">&lt;</span><span class="n">iPTR</span><span class="o">&gt;</span> <span class="p">{</span>
+  <span class="n">let</span> <span class="n">PrintMethod</span> <span class="o">=</span> <span class="s2">&quot;printMemOperand&quot;</span><span class="p">;</span>
   <span class="n">let</span> <span class="n">MIOperandInfo</span> <span class="o">=</span> <span class="p">(</span><span class="n">ops</span> <span class="n">CPURegs</span><span class="p">,</span> <span class="n">simm16</span><span class="p">);</span>
-  <span class="n">let</span> <span class="n">EncoderMethod</span> <span class="o">=</span> <span class="s">&quot;getMemEncoding&quot;</span><span class="p">;</span>
+  <span class="n">let</span> <span class="n">EncoderMethod</span> <span class="o">=</span> <span class="s2">&quot;getMemEncoding&quot;</span><span class="p">;</span>
 </pre></div>
 </div>
-<div class="highlight-c++"><div class="highlight"><pre><span class="p">}</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">}</span>
 </pre></div>
 </div>
-<div class="highlight-c++"><pre>multiclass LoadM32&lt;bits&lt;8&gt; op, string instr_asm, PatFrag OpNode,
+<div class="highlight-default"><div class="highlight"><pre><span></span>multiclass LoadM32&lt;bits&lt;8&gt; op, string instr_asm, PatFrag OpNode,
                    bit Pseudo = 0&gt; {
   def #NAME# : LoadM&lt;op, instr_asm, OpNode, GPROut, mem, Pseudo&gt;;
 }
@@ -1015,7 +1018,7 @@ multiclass StoreM32&lt;bits&lt;8&gt; op, string instr_asm, PatFrag OpNode,
                     bit Pseudo = 0&gt; {
   def #NAME# : StoreM&lt;op, instr_asm, OpNode, CPURegs, mem, Pseudo&gt;;
 }
-</pre>
+</pre></div>
 </div>
 <p>The &#8220;let EncoderMethod = &#8220;getMemEncoding&#8221;;&#8221; in Cpu0InstrInfo.td as above will
 making llvm call function getMemEncoding() when either <strong>ld</strong> or <strong>st</strong>
@@ -1024,14 +1027,14 @@ Operand.</p>
 <p>The other functions in Cpu0MCCodeEmitter.cpp are called by these two functions.</p>
 </div>
 <div class="section" id="backend-target-registration-structure">
-<h2><a class="toc-backref" href="#id5">Backend Target Registration Structure</a><a class="headerlink" href="#backend-target-registration-structure" title="Permalink to this headline">¶</a></h2>
+<h2><a class="toc-backref" href="#id6">Backend Target Registration Structure</a><a class="headerlink" href="#backend-target-registration-structure" title="Permalink to this headline">¶</a></h2>
 <p>Now, let&#8217;s examine Cpu0MCTargetDesc.cpp.
 Cpu0MCTargetDesc.cpp do the target registration as mentioned in
 the previous chapter here <a class="footnote-reference" href="#target-registration" id="id1">[1]</a>, and the assembly
 output has explained here <a class="footnote-reference" href="#add-asmprinter" id="id2">[2]</a>.
 List the register functions of ELF obj output as follows,</p>
 <p class="rubric">Register function of elf streamer</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="c1">// Register the elf streamer.</span>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="c1">// Register the elf streamer.</span>
 <span class="n">TargetRegistry</span><span class="o">::</span><span class="n">RegisterELFStreamer</span><span class="p">(</span><span class="o">*</span><span class="n">T</span><span class="p">,</span> <span class="n">createMCStreamer</span><span class="p">);</span>
 
   <span class="k">static</span> <span class="n">MCStreamer</span> <span class="o">*</span><span class="nf">createMCStreamer</span><span class="p">(</span><span class="k">const</span> <span class="n">Triple</span> <span class="o">&amp;</span><span class="n">TT</span><span class="p">,</span> <span class="n">MCContext</span> <span class="o">&amp;</span><span class="n">Context</span><span class="p">,</span>
@@ -1052,14 +1055,14 @@ List the register functions of ELF obj output as follows,</p>
 </pre></div>
 </div>
 <p>Above createELFStreamer takes care the elf obj streamer.
-<a class="pageref" href="#genobj-f10">Figure  1</a> as follow is MCELFStreamer inheritance tree.
+<a class="reference internal" href="#genobj-f10"><span class="std std-numref">Fig. 20</span></a> as follow is MCELFStreamer inheritance tree.
 You can find a lot of operations in that inheritance tree.</p>
-<div class="figure align-center" id="genobj-f10">
-<a class="reference internal image-reference" href="_images/101.png"><img alt="_images/101.png" src="_images/101.png" style="width: 783.0px; height: 596.0px;" /></a>
-<p class="caption">Figure 1: MCELFStreamer inherit tree</p>
+<div class="figure align-center" id="id3">
+<span id="genobj-f10"></span><a class="reference internal image-reference" href="_images/101.png"><img alt="_images/101.png" src="_images/101.png" style="width: 783.0px; height: 596.0px;" /></a>
+<p class="caption"><span class="caption-number">Fig. 20 </span><span class="caption-text">MCELFStreamer inherit tree</span></p>
 </div>
 <p class="rubric">Register function of asm target streamer</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="c1">// Register the asm target streamer.</span>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="c1">// Register the asm target streamer.</span>
 <span class="n">TargetRegistry</span><span class="o">::</span><span class="n">RegisterAsmTargetStreamer</span><span class="p">(</span><span class="o">*</span><span class="n">T</span><span class="p">,</span> <span class="n">createCpu0AsmTargetStreamer</span><span class="p">);</span>
 
   <span class="k">static</span> <span class="n">MCTargetStreamer</span> <span class="o">*</span><span class="nf">createCpu0AsmTargetStreamer</span><span class="p">(</span><span class="n">MCStreamer</span> <span class="o">&amp;</span><span class="n">S</span><span class="p">,</span>
@@ -1071,7 +1074,7 @@ You can find a lot of operations in that inheritance tree.</p>
 
     <span class="c1">// Cpu0TargetStreamer.h</span>
     <span class="k">class</span> <span class="nc">Cpu0TargetStreamer</span> <span class="o">:</span> <span class="k">public</span> <span class="n">MCTargetStreamer</span> <span class="p">{</span>
-    <span class="nl">public:</span>
+    <span class="k">public</span><span class="o">:</span>
       <span class="n">Cpu0TargetStreamer</span><span class="p">(</span><span class="n">MCStreamer</span> <span class="o">&amp;</span><span class="n">S</span><span class="p">);</span>
     <span class="p">};</span>
 
@@ -1079,14 +1082,14 @@ You can find a lot of operations in that inheritance tree.</p>
     <span class="k">class</span> <span class="nc">Cpu0TargetAsmStreamer</span> <span class="o">:</span> <span class="k">public</span> <span class="n">Cpu0TargetStreamer</span> <span class="p">{</span>
       <span class="n">formatted_raw_ostream</span> <span class="o">&amp;</span><span class="n">OS</span><span class="p">;</span>
 
-    <span class="nl">public:</span>
+    <span class="k">public</span><span class="o">:</span>
       <span class="n">Cpu0TargetAsmStreamer</span><span class="p">(</span><span class="n">MCStreamer</span> <span class="o">&amp;</span><span class="n">S</span><span class="p">,</span> <span class="n">formatted_raw_ostream</span> <span class="o">&amp;</span><span class="n">OS</span><span class="p">);</span>
     <span class="p">};</span>
 </pre></div>
 </div>
 <p>Above instancing MCTargetStreamer instance.</p>
 <p class="rubric">Register function of MC Code Emitter</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="c1">// Register the MC Code Emitter</span>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="c1">// Register the MC Code Emitter</span>
 <span class="n">TargetRegistry</span><span class="o">::</span><span class="n">RegisterMCCodeEmitter</span><span class="p">(</span><span class="n">TheCpu0Target</span><span class="p">,</span>
                                       <span class="n">createCpu0MCCodeEmitterEB</span><span class="p">);</span>
 <span class="n">TargetRegistry</span><span class="o">::</span><span class="n">RegisterMCCodeEmitter</span><span class="p">(</span><span class="n">TheCpu0elTarget</span><span class="p">,</span>
@@ -1120,7 +1123,7 @@ LLVM keeps a function pointer to createXXX() when we call target registry, and
 will call these createXXX() function back at proper time with arguments
 assigned during the target registration process, RegisterXXX().</p>
 <p class="rubric">Register function of asm backend</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="c1">// Register the asm backend.</span>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="c1">// Register the asm backend.</span>
 <span class="n">TargetRegistry</span><span class="o">::</span><span class="n">RegisterMCAsmBackend</span><span class="p">(</span><span class="n">TheCpu0Target</span><span class="p">,</span>
                                      <span class="n">createCpu0AsmBackendEB32</span><span class="p">);</span>
 <span class="n">TargetRegistry</span><span class="o">::</span><span class="n">RegisterMCAsmBackend</span><span class="p">(</span><span class="n">TheCpu0elTarget</span><span class="p">,</span>
@@ -1167,7 +1170,7 @@ parent, MCAsmBackend.</p>
 
 
       </div>
-      <div class="bottomnav">
+      <div class="bottomnav" role="navigation" aria-label="bottom navigation">
       
         <p>
         «&#160;&#160;<a href="otherinst.html">Arithmetic and logic instructions</a>
@@ -1179,9 +1182,9 @@ parent, MCAsmBackend.</p>
 
       </div>
 
-    <div class="footer">
-        &copy; Copyright 2013, LLVM.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.
+    <div class="footer" role="contentinfo">
+        &copy; Copyright 2016, Chen Chung-Shu.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.4.
     </div>
   </body>
 </html>

@@ -174,7 +174,7 @@ TargetMachine structure
   Cpu0 backend class access link
 
 Chapter3_1 add most Cpu0 backend classes. The code of Chapter3_1 can be 
-summaried as :num:`Figure #backendstructure-f1`. 
+summaried as :numref:`backendstructure-f1`. 
 Class Cpu0Subtarget supply the interface getInstrInfo(), getFrameLowering(), 
 ..., to get other Cpu0 classes.
 Most classes (like Cpu0InstrInfo, Cpu0RegisterInfo, ...) have Subtarget 
@@ -190,9 +190,9 @@ Mips16, MipsSE and Mips64 files/classes name to define classes functions for 16,
 32 and 64 bits architecture, respectively.
 Since Cpu0Subtarget creates Cpu0InstrInfo, Cpu0RegisterInfo, ..., at constuctor
 function, it can provide the class reference through the interfaces shown in 
-:num:`Figure #backendstructure-f1`.
+:numref:`backendstructure-f1`.
 
-Below :num:`Figure #backendstructure-f2` shows Cpu0 TableGen inheritance 
+Below :numref:`backendstructure-f2` shows Cpu0 TableGen inheritance 
 relationship. 
 Last chapter mentioned llvm TableGen (llvm-tblgen) is used in code generation 
 process.
@@ -1501,7 +1501,7 @@ The following methods are implemented:
   the instruction has a fixed or a variable stack frame, either the stack pointer 
   %a10 or the frame pointer %a14 is used as the base register. 
   The offset is computed accordingly. 
-  :num:`Figure #backendstructure-f10` demonstrates for both cases how a stack slot 
+  :numref:`backendstructure-f10` demonstrates for both cases how a stack slot 
   is addressed. 
 
 If the addressing mode of the affected instruction cannot handle the address 

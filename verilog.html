@@ -10,12 +10,11 @@
     
     <link rel="stylesheet" href="_static/haiku.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    <link rel="stylesheet" href="_static/print.css" type="text/css" />
     
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '3.7.1',
+        VERSION:     '3.7.2',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -24,19 +23,17 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    <script type="text/javascript" src="_static/theme_extras.js"></script>
     <link rel="author" title="About these documents" href="about.html" />
     <link rel="top" title="Tutorial: Creating an LLVM Backend for the Cpu0 Architecture" href="index.html" />
     <link rel="next" title="Appendix A: Getting Started: Installing LLVM and the Cpu0 example code" href="install.html" />
     <link rel="prev" title="C++ support" href="c++.html" /> 
   </head>
-  <body>
-      <div class="header"><h1 class="heading"><a href="index.html">
+  <body role="document">
+      <div class="header" role="banner"><h1 class="heading"><a href="index.html">
           <span>Tutorial: Creating an LLVM Backend for the Cpu0 Architecture</span></a></h1>
         <h2 class="heading"><span>Verify backend on Verilog simulator</span></h2>
       </div>
-      <div class="topnav">
+      <div class="topnav" role="navigation" aria-label="top navigation">
       
         <p>
         «&#160;&#160;<a href="c++.html">C++ support</a>
@@ -54,20 +51,20 @@
 <span id="sec-verilog"></span><h1>Verify backend on Verilog simulator<a class="headerlink" href="#verify-backend-on-verilog-simulator" title="Permalink to this headline">¶</a></h1>
 <div class="contents local topic" id="contents">
 <ul class="simple">
-<li><a class="reference internal" href="#create-verilog-simulator-of-cpu0" id="id13">Create verilog simulator of Cpu0</a></li>
-<li><a class="reference internal" href="#verify-backend" id="id14">Verify backend</a></li>
-<li><a class="reference internal" href="#other-llvm-based-tools-for-cpu0-processor" id="id15">Other llvm based tools for Cpu0 processor</a></li>
+<li><a class="reference internal" href="#create-verilog-simulator-of-cpu0" id="id9">Create verilog simulator of Cpu0</a></li>
+<li><a class="reference internal" href="#verify-backend" id="id10">Verify backend</a></li>
+<li><a class="reference internal" href="#other-llvm-based-tools-for-cpu0-processor" id="id11">Other llvm based tools for Cpu0 processor</a></li>
 </ul>
 </div>
 <p>Until now, we have an llvm backend to compile C or assembly as the blue part of
-<a class="pageref" href="#runbackend-f1">Figure  1</a>. If without global variable, the elf obj can be
-dumped to hex file via <tt class="docutils literal"><span class="pre">llvm-objdump</span> <span class="pre">-d</span></tt> which finished in Chapter ELF Support.</p>
-<div class="figure align-center" id="runbackend-f1">
-<a class="reference internal image-reference" href="_images/18.png"><img alt="_images/18.png" src="_images/18.png" /></a>
-<p class="caption">Figure 1: Cpu0 backend without linker</p>
+<a class="reference internal" href="#runbackend-f1"><span class="std std-numref">Fig. 33</span></a>. If without global variable, the elf obj can be
+dumped to hex file via <code class="docutils literal"><span class="pre">llvm-objdump</span> <span class="pre">-d</span></code> which finished in Chapter ELF Support.</p>
+<div class="figure align-center" id="id8">
+<span id="runbackend-f1"></span><a class="reference internal image-reference" href="_images/18.png"><img alt="_images/18.png" src="_images/18.png" style="width: 629.0px; height: 91.0px;" /></a>
+<p class="caption"><span class="caption-number">Fig. 33 </span><span class="caption-text">Cpu0 backend without linker</span></p>
 </div>
 <p>This chapter will implement Cpu0 instructions by Verilog language as the red
-part of <a class="pageref" href="#runbackend-f1">Figure  1</a>.
+part of <a class="reference internal" href="#runbackend-f1"><span class="std std-numref">Fig. 33</span></a>.
 With this Verilog machine, we can write a C++ main
 function as well as the assembly boot code, and translate this
 main()+bootcode() into obj file.
@@ -77,51 +74,53 @@ include the disassemble code as comment.
 Furthermore, we can run this hex program on the Cpu0 Verilog machine on PC and
 see the Cpu0 instructions execution result.</p>
 <div class="section" id="create-verilog-simulator-of-cpu0">
-<h2><a class="toc-backref" href="#id13">Create verilog simulator of Cpu0</a><a class="headerlink" href="#create-verilog-simulator-of-cpu0" title="Permalink to this headline">¶</a></h2>
+<h2><a class="toc-backref" href="#id9">Create verilog simulator of Cpu0</a><a class="headerlink" href="#create-verilog-simulator-of-cpu0" title="Permalink to this headline">¶</a></h2>
 <p>Verilog language is an IEEE standard in IC design. There are a lot of books and
-documents for this language. Free documents existed in Web sites <a class="footnote-reference" href="#id7" id="id1">[1]</a> <a class="footnote-reference" href="#id8" id="id2">[2]</a> <a class="footnote-reference" href="#id9" id="id3">[3]</a>
-<a class="footnote-reference" href="#id10" id="id4">[4]</a> <a class="footnote-reference" href="#id11" id="id5">[5]</a>. Verilog also called as Verilog HDL but not VHDL.
+documents for this language. Free documents existed in Web sites <a class="footnote-reference" href="#free-doc1" id="id1">[1]</a>
+<a class="footnote-reference" href="#free-doc2" id="id2">[2]</a> <a class="footnote-reference" href="#free-doc3" id="id3">[3]</a> <a class="footnote-reference" href="#free-doc4" id="id4">[4]</a> <a class="footnote-reference" href="#free-doc5" id="id5">[5]</a>.
+Verilog also called as Verilog HDL but not VHDL.
 VHDL is the same purpose language which compete against Verilog.
-About VHDL reference here <a class="footnote-reference" href="#id12" id="id6">[6]</a>.
+About VHDL reference here <a class="footnote-reference" href="#vhdl" id="id6">[6]</a>.
 Example code lbdex/verilog/cpu0.v is the Cpu0 design in Verilog.
 In Appendix A, we have downloaded and installed Icarus Verilog tool both on
 iMac and Linux. The cpu0.v and cpu0Is.v are simple design
 with only few hundreds lines of code totally.
 Although it has not the pipeline features, we can assume the
-Cpu0 backend code run on the pipeline machine with NOP instruction fill in
-branch delay slot because the pipeline version use the same machine
+Cpu0 backend code can run on the pipeline machine with NOP instruction fill in
+branch delay slot because the pipeline version uses the same machine
 instructions. Verilog is a C like language in syntex and
 this book is a compiler book, so we list the cpu0.v as well as the building
 command directly as below.
-We expect readers can understand the Verilog code just with a little patient
+We expect readers can understand the Verilog code just with a little patience
 and no further explanation needed.
-According computer architecture, there are two type of I/O.
+There are two type of I/O according computer architecture.
 One is memory mapped I/O, the other is instruction I/O.
-Cpu0 use memory mapped I/O where memory address 0x80000 as the output port.
+Cpu0 uses memory mapped I/O where memory address 0x80000 as the output port.
 When meet the instruction <strong>&#8220;st $ra, cx($rb)&#8221;</strong>, where cx($rb) is
-0x80000, Cpu0 display the content as follows,</p>
-<div class="highlight-c++"><pre>ST : begin
+0x80000, Cpu0 displays the content as follows,</p>
+<div class="highlight-c++"><div class="highlight"><pre><span></span>ST : begin
   ...
   if (R[b]+c16 == `IOADDR) begin
-    outw(R[a]);</pre>
+    outw(R[a]);
+</pre></div>
 </div>
 <p class="rubric">lbdex/verilog/cpu0.v</p>
-<div class="highlight-c++"><pre>`define MEMSIZE   'h80000
-`define MEMEMPTY   8'hFF
-`define NULL       8'h00
-`define IOADDR    'h80000  // IO mapping address
+<div class="highlight-default"><div class="highlight"><pre><span></span>`define MEMSIZE   &#39;h80000
+`define MEMEMPTY   8&#39;hFF
+`define NULL       8&#39;h00
+`define IOADDR    &#39;h80000  // IO mapping address
 
 // Operand width
-`define INT32 2'b11     // 32 bits
-`define INT24 2'b10     // 24 bits
-`define INT16 2'b01     // 16 bits
-`define BYTE  2'b00     // 8  bits
+`define INT32 2&#39;b11     // 32 bits
+`define INT24 2&#39;b10     // 24 bits
+`define INT16 2&#39;b01     // 16 bits
+`define BYTE  2&#39;b00     // 8  bits
 
-`define EXE 3'b000
-`define RESET 3'b001
-`define ABORT 3'b010
-`define IRQ 3'b011
-`define ERROR 3'b100
+`define EXE 3&#39;b000
+`define RESET 3&#39;b001
+`define ABORT 3&#39;b010
+`define IRQ 3&#39;b011
+`define ERROR 3&#39;b100
 
 // Reference web: http://ccckmit.wikidot.com/ocs:cpu0
 module cpu0(input clock, reset, input [2:0] itype, output reg [2:0] tick, 
@@ -134,8 +133,8 @@ module cpu0(input clock, reset, input [2:0] itype, output reg [2:0] tick,
   reg [7:0] op;
   reg [3:0] a, b, c;
   reg [4:0] c5;
-  reg signed [31:0] c12, c16, uc16, c24, Ra, Rb, Rc, pc0; // pc0: instruction pc
-  reg [31:0] URa, URb, URc, HI, LO, CF, tmp;
+  reg signed [31:0] c12, c16, c24, Ra, Rb, Rc, pc0; // pc0: instruction pc
+  reg [31:0] uc16, URa, URb, URc, HI, LO, CF, tmp;
   reg [63:0] cycles;
 
   // register name
@@ -167,31 +166,36 @@ module cpu0(input clock, reset, input [2:0] itype, output reg [2:0] tick,
   
   `define LE   CF[0]  // Endian bit, Big Endian:0, Little Endian:1
   // Instruction Opcode 
-  parameter [7:0] NOP=8'h00,LD=8'h01,ST=8'h02,LB=8'h03,LBu=8'h04,SB=8'h05,
-  LH=8'h06,LHu=8'h07,SH=8'h08,ADDiu=8'h09,MOVZ=8'h0A,MOVN=8'h0B,ANDi=8'h0C,
-  ORi=8'h0D,XORi=8'h0E,LUi=8'h0F,
-  CMP=8'h10,
-  ADDu=8'h11,SUBu=8'h12,ADD=8'h13,SUB=8'h14,CLZ=8'h15,CLO=8'h16,MUL=8'h17,
-  AND=8'h18,OR=8'h19,XOR=8'h1A,
-  ROL=8'h1B,ROR=8'h1C,SRA=8'h1D,SHL=8'h1E,SHR=8'h1F,
-  SRAV=8'h20,SHLV=8'h21,SHRV=8'h22,ROLV=8'h23,RORV=8'h24,
+  parameter [7:0] NOP=8&#39;h00,LD=8&#39;h01,ST=8&#39;h02,LB=8&#39;h03,LBu=8&#39;h04,SB=8&#39;h05,
+  LH=8&#39;h06,LHu=8&#39;h07,SH=8&#39;h08,ADDiu=8&#39;h09,MOVZ=8&#39;h0A,MOVN=8&#39;h0B,ANDi=8&#39;h0C,
+  ORi=8&#39;h0D,XORi=8&#39;h0E,LUi=8&#39;h0F,
+  CMP=8&#39;h10,
+  ADDu=8&#39;h11,SUBu=8&#39;h12,ADD=8&#39;h13,SUB=8&#39;h14,CLZ=8&#39;h15,CLO=8&#39;h16,MUL=8&#39;h17,
+  AND=8&#39;h18,OR=8&#39;h19,XOR=8&#39;h1A,
+  ROL=8&#39;h1B,ROR=8&#39;h1C,SRA=8&#39;h1D,SHL=8&#39;h1E,SHR=8&#39;h1F,
+  SRAV=8&#39;h20,SHLV=8&#39;h21,SHRV=8&#39;h22,ROLV=8&#39;h23,RORV=8&#39;h24,
 `ifdef CPU0II
-  SLTi=8'h26,SLTiu=8'h27, SLT=8'h28,SLTu=8'h29,
-  BEQ=8'h37,BNE=8'h38,
+  SLTi=8&#39;h26,SLTiu=8&#39;h27, SLT=8&#39;h28,SLTu=8&#39;h29,
+  BEQ=8&#39;h37,BNE=8&#39;h38,
 `endif
-  JEQ=8'h30,JNE=8'h31,JLT=8'h32,JGT=8'h33,JLE=8'h34,JGE=8'h35,
-  JMP=8'h36,
-  JALR=8'h39,BAL=8'h3A,JSUB=8'h3B,RET=8'h3C,
-  MULT=8'h41,MULTu=8'h42,DIV=8'h43,DIVu=8'h44,
-  MFHI=8'h46,MFLO=8'h47,MTHI=8'h48,MTLO=8'h49,
-  MFC0=8'h50,MTC0=8'h51,C0MOV=8'h52;
+  JEQ=8&#39;h30,JNE=8&#39;h31,JLT=8&#39;h32,JGT=8&#39;h33,JLE=8&#39;h34,JGE=8&#39;h35,
+  JMP=8&#39;h36,
+  JALR=8&#39;h39,BAL=8&#39;h3A,JSUB=8&#39;h3B,RET=8&#39;h3C,
+  MULT=8&#39;h41,MULTu=8&#39;h42,DIV=8&#39;h43,DIVu=8&#39;h44,
+  MFHI=8&#39;h46,MFLO=8&#39;h47,MTHI=8&#39;h48,MTLO=8&#39;h49,
+  MFC0=8&#39;h50,MTC0=8&#39;h51,C0MOV=8&#39;h52;
 
   reg [0:0] inExe = 0;
   reg [2:0] state, next_state; 
   reg [2:0] st_taskInt, ns_taskInt; 
-  parameter Reset=3'h0, Fetch=3'h1, Decode=3'h2, Execute=3'h3, MemAccess=3'h4, 
-            WriteBack=3'h5;
+  parameter Reset=3&#39;h0, Fetch=3&#39;h1, Decode=3&#39;h2, Execute=3&#39;h3, MemAccess=3&#39;h4, 
+            WriteBack=3&#39;h5;
   integer i;
+`ifdef SIMULATE_DELAY_SLOT
+  reg [0:0] nextInstIsDelaySlot;
+  reg [0:0] isDelaySlot;
+  reg signed [31:0] delaySlotNextPC;
+`endif
 
   //transform data from the memory to little-endian form
   task changeEndian(input [31:0] value, output [31:0] changeEndian); begin
@@ -235,6 +239,24 @@ module cpu0(input clock, reset, input [2:0] itype, output reg [2:0] tick,
     if (i &lt; 2) C0R[i] = data;
   end endtask
 
+  task PCSet(input [31:0] data); begin
+  `ifdef SIMULATE_DELAY_SLOT
+    nextInstIsDelaySlot = 1;
+    delaySlotNextPC = data;
+  `else
+    `PC = data;
+  `endif
+  end endtask
+
+  task retValSet(input [3:0] i, input [31:0] data); begin
+    if (i != 0)
+    `ifdef SIMULATE_DELAY_SLOT
+      R[i] = data + 4;
+    `else
+      R[i] = data;
+    `endif
+  end endtask
+  
   task regHILOSet(input [31:0] data1, input [31:0] data2); begin
     HI = data1;
     LO = data2;
@@ -245,20 +267,20 @@ module cpu0(input clock, reset, input [2:0] itype, output reg [2:0] tick,
     if (`LE) begin // Little Endian
       changeEndian(data, data);
     end 
-    if (data[7:0] != 8'h00) begin
-      $write("%c", data[7:0]);
-      if (data[15:8] != 8'h00) 
-        $write("%c", data[15:8]);
-      if (data[23:16] != 8'h00) 
-        $write("%c", data[23:16]);
-      if (data[31:24] != 8'h00) 
-        $write("%c", data[31:24]);
+    if (data[7:0] != 8&#39;h00) begin
+      $write(&quot;%c&quot;, data[7:0]);
+      if (data[15:8] != 8&#39;h00) 
+        $write(&quot;%c&quot;, data[15:8]);
+      if (data[23:16] != 8&#39;h00) 
+        $write(&quot;%c&quot;, data[23:16]);
+      if (data[31:24] != 8&#39;h00) 
+        $write(&quot;%c&quot;, data[31:24]);
     end
   end endtask
 
   // output a character (a byte)
   task outc(input [7:0] data); begin
-    $write("%c", data);
+    $write(&quot;%c&quot;, data);
   end endtask
 
   task taskInterrupt(input [2:0] iMode); begin
@@ -276,18 +298,29 @@ module cpu0(input clock, reset, input [2:0] itype, output reg [2:0] tick,
       `ERROR: begin `PC = 12; end
     endcase
   end
-  $display("taskInterrupt(%3b)", iMode);
+  $display(&quot;taskInterrupt(%3b)&quot;, iMode);
   end endtask
 
   task taskExecute; begin
     tick = tick+1;
-    cycles = cycles+1;
     case (state)
     Fetch: begin  // Tick 1 : instruction fetch, throw PC to address bus, 
                   // memory.read(m[PC])
       memReadStart(`PC, `INT32);
       pc0  = `PC;
-      `PC = `PC+4;
+   `ifdef SIMULATE_DELAY_SLOT
+     if (nextInstIsDelaySlot == 1) begin
+       isDelaySlot = 1;
+       nextInstIsDelaySlot = 0;
+       `PC = delaySlotNextPC;
+     end
+     else begin
+       if (isDelaySlot == 1) isDelaySlot = 0;
+       `PC = `PC+4;
+     end
+   `else
+     `PC = `PC+4;
+   `endif
       next_state = Decode;
     end
     Decode: begin  // Tick 2 : instruction decode, ir = m[PC]
@@ -323,10 +356,10 @@ module cpu0(input clock, reset, input [2:0] itype, output reg [2:0] tick,
       // SH Ra,[Rb+Cx]; Ra=&gt;(2bytes)[Rb+Cx]
       SH:    memWriteStart(Rb+c16, Ra, `INT16);
       // Conditional move
-      MOVZ:  if (Rc==0) R[a]=Rb;             // move if Rc equal to 0
-      MOVN:  if (Rc!=0) R[a]=Rb;             // move if Rc not equal to 0
+      MOVZ:  if (Rc==0) regSet(a, Rb);             // move if Rc equal to 0
+      MOVN:  if (Rc!=0) regSet(a, Rb);             // move if Rc not equal to 0
       // Mathematic 
-      ADDiu: R[a] = Rb+c16;                   // ADDiu Ra, Rb+Cx; Ra&lt;=Rb+Cx
+      ADDiu: regSet(a, Rb+c16);                   // ADDiu Ra, Rb+Cx; Ra&lt;=Rb+Cx
       CMP:   begin `N=(Rb-Rc&lt;0);`Z=(Rb-Rc==0); end // CMP Rb, Rc; SW=(Rb &gt;=&lt; Rc)
       ADDu:  regSet(a, Rb+Rc);               // ADDu Ra,Rb,Rc; Ra&lt;=Rb+Rc
       ADD:   begin regSet(a, Rb+Rc); if (a &lt; Rb) `V = 1; else `V = 0; 
@@ -339,13 +372,13 @@ module cpu0(input clock, reset, input [2:0] itype, output reg [2:0] tick,
         if (`V) begin `I0 = 1; `I = 1; end
       end         // SUB Ra,Rb,Rc; Ra&lt;=Rb-Rc
       CLZ:   begin
-        for (i=0; (i&lt;32)&amp;&amp;((Rb&amp;32'h80000000)==32'h00000000); i=i+1) begin
+        for (i=0; (i&lt;32)&amp;&amp;((Rb&amp;32&#39;h80000000)==32&#39;h00000000); i=i+1) begin
             Rb=Rb&lt;&lt;1;
         end
         regSet(a, i);
       end
       CLO:   begin
-        for (i=0; (i&lt;32)&amp;&amp;((Rb&amp;32'h80000000)==32'h80000000); i=i+1) begin
+        for (i=0; (i&lt;32)&amp;&amp;((Rb&amp;32&#39;h80000000)==32&#39;h80000000); i=i+1) begin
             Rb=Rb&lt;&lt;1;
         end
         regSet(a, i);
@@ -365,13 +398,13 @@ module cpu0(input clock, reset, input [2:0] itype, output reg [2:0] tick,
       XORi:  regSet(a, Rb^uc16);             // XORi Ra,Rb,c16; Ra&lt;=(Rb xor c16)
       LUi:   regSet(a, uc16&lt;&lt;16);
       SHL:   regSet(a, Rb&lt;&lt;c5);     // Shift Left; SHL Ra,Rb,Cx; Ra&lt;=(Rb &lt;&lt; Cx)
-      SRA:   regSet(a, (Rb&amp;'h80000000)|(Rb&gt;&gt;c5)); 
+      SRA:   regSet(a, (Rb&amp;&#39;h80000000)|(Rb&gt;&gt;c5)); 
                                 // Shift Right with signed bit fill;
                                 // SHR Ra,Rb,Cx; Ra&lt;=(Rb&amp;0x80000000)|(Rb&gt;&gt;Cx)
       SHR:   regSet(a, Rb&gt;&gt;c5);     // Shift Right with 0 fill; 
                                     // SHR Ra,Rb,Cx; Ra&lt;=(Rb &gt;&gt; Cx)
       SHLV:  regSet(a, Rb&lt;&lt;Rc);     // Shift Left; SHLV Ra,Rb,Rc; Ra&lt;=(Rb &lt;&lt; Rc)
-      SRAV:  regSet(a, (Rb&amp;'h80000000)|(Rb&gt;&gt;Rc)); 
+      SRAV:  regSet(a, (Rb&amp;&#39;h80000000)|(Rb&gt;&gt;Rc)); 
                                 // Shift Right with signed bit fill;
                                 // SHRV Ra,Rb,Rc; Ra&lt;=(Rb&amp;0x80000000)|(Rb&gt;&gt;Rc)
       SHRV:  regSet(a, Rb&gt;&gt;Rc);     // Shift Right with 0 fill; 
@@ -401,30 +434,30 @@ module cpu0(input clock, reset, input [2:0] itype, output reg [2:0] tick,
       MFC0:  regSet(a, C0R[b]);     // MFC0 a, b; Ra&lt;=C0R[Rb]
       MTC0:  C0regSet(a, Rb);       // MTC0 a, b; C0R[a]&lt;=Rb
       C0MOV: C0regSet(a, C0R[b]);   // C0MOV a, b; C0R[a]&lt;=C0R[b]
-`ifdef CPU0II
+   `ifdef CPU0II
       // set
       SLT:   if (Rb &lt; Rc) R[a]=1; else R[a]=0;
       SLTu:  if (Rb &lt; Rc) R[a]=1; else R[a]=0;
       SLTi:  if (Rb &lt; c16) R[a]=1; else R[a]=0;
       SLTiu: if (Rb &lt; c16) R[a]=1; else R[a]=0;
       // Branch Instructions
-      BEQ:   if (Ra==Rb) `PC=`PC+c16; 
-      BNE:   if (Ra!=Rb) `PC=`PC+c16;
-`endif
+      BEQ:   if (Ra==Rb) PCSet(`PC+c16);
+      BNE:   if (Ra!=Rb) PCSet(`PC+c16);
+    `endif
       // Jump Instructions
-      JEQ:   if (`Z) `PC=`PC+c24;            // JEQ Cx; if SW(=) PC  PC+Cx
-      JNE:   if (!`Z) `PC=`PC+c24;           // JNE Cx; if SW(!=) PC PC+Cx
-      JLT:   if (`N)`PC=`PC+c24;             // JLT Cx; if SW(&lt;) PC  PC+Cx
-      JGT:   if (!`N&amp;&amp;!`Z) `PC=`PC+c24;      // JGT Cx; if SW(&gt;) PC  PC+Cx
-      JLE:   if (`N || `Z) `PC=`PC+c24;      // JLE Cx; if SW(&lt;=) PC PC+Cx    
-      JGE:   if (!`N || `Z) `PC=`PC+c24;     // JGE Cx; if SW(&gt;=) PC PC+Cx
-      JMP:   `PC = `PC+c24;                  // JMP Cx; PC &lt;= PC+Cx
-      JALR:  begin R[a] =`PC;`PC=Rb; end // JALR Ra,Rb; Ra&lt;=PC; PC&lt;=Rb
-      BAL:   begin `LR=`PC;`PC=`PC + c24; end // BAL Cx; LR&lt;=PC; PC&lt;=PC+Cx
-      JSUB:  begin `LR=`PC;`PC=`PC + c24; end // JSUB Cx; LR&lt;=PC; PC&lt;=PC+Cx
-      RET:   begin `PC=Ra; end               // RET; PC &lt;= Ra
+      JEQ:   if (`Z) PCSet(`PC+c24);            // JEQ Cx; if SW(=) PC  PC+Cx
+      JNE:   if (!`Z) PCSet(`PC+c24);           // JNE Cx; if SW(!=) PC PC+Cx
+      JLT:   if (`N) PCSet(`PC+c24);            // JLT Cx; if SW(&lt;) PC  PC+Cx
+      JGT:   if (!`N&amp;&amp;!`Z) PCSet(`PC+c24);      // JGT Cx; if SW(&gt;) PC  PC+Cx
+      JLE:   if (`N || `Z) PCSet(`PC+c24);      // JLE Cx; if SW(&lt;=) PC PC+Cx    
+      JGE:   if (!`N || `Z) PCSet(`PC+c24);     // JGE Cx; if SW(&gt;=) PC PC+Cx
+      JMP:   `PC = `PC+c24;                     // JMP Cx; PC &lt;= PC+Cx
+      JALR:  begin retValSet(a, `PC); PCSet(Rb); end    // JALR Ra,Rb; Ra&lt;=PC; PC&lt;=Rb
+      BAL:   begin `LR = `PC; `PC = `PC+c24; end // BAL Cx; LR&lt;=PC; PC&lt;=PC+Cx
+      JSUB:  begin retValSet(14, `PC); PCSet(`PC+c24); end // JSUB Cx; LR&lt;=PC; PC&lt;=PC+Cx
+      RET:   begin PCSet(Ra); end               // RET; PC &lt;= Ra
       default : 
-        $display("%4dns %8x : OP code %8x not support", $stime, pc0, op);
+        $display(&quot;%4dns %8x : OP code %8x not support&quot;, $stime, pc0, op);
       endcase
       if (`IE &amp;&amp; `I &amp;&amp; (`I0E &amp;&amp; `I0 || `I1E &amp;&amp; `I1 || `I2E &amp;&amp; `I2)) begin
         `EPC = `PC;
@@ -449,26 +482,26 @@ module cpu0(input clock, reset, input [2:0] itype, output reg [2:0] tick,
       LD  : begin
         memReadEnd(R[a]);
         if (`D)
-          $display("%4dns %8x : %8x m[%-04x+%-04x]=%8x  SW=%8x", $stime, pc0, 
+          $display(&quot;%4dns %8x : %8x m[%-04x+%-04x]=%8x  SW=%8x&quot;, $stime, pc0, 
                    ir, R[b], c16, R[a], `SW);
       end
       endcase
       case (op)
       LB  : begin 
-        if (R[a] &gt; 8'h7f) R[a]=R[a]|32'hffffff80;
+        if (R[a] &gt; 8&#39;h7f) R[a]=R[a]|32&#39;hffffff80;
       end
       LH  : begin 
-        if (R[a] &gt; 16'h7fff) R[a]=R[a]|32'hffff8000;
+        if (R[a] &gt; 16&#39;h7fff) R[a]=R[a]|32&#39;hffff8000;
       end
       endcase
       case (op)
       MULT, MULTu, DIV, DIVu, MTHI, MTLO :
         if (`D)
-          $display("%4dns %8x : %8x HI=%8x LO=%8x SW=%8x", $stime, pc0, ir, HI, 
+          $display(&quot;%4dns %8x : %8x HI=%8x LO=%8x SW=%8x&quot;, $stime, pc0, ir, HI, 
                    LO, `SW);
       ST : begin
         if (`D)
-          $display("%4dns %8x : %8x m[%-04x+%-04x]=%8x  SW=%8x", $stime, pc0, 
+          $display(&quot;%4dns %8x : %8x m[%-04x+%-04x]=%8x  SW=%8x&quot;, $stime, pc0, 
                    ir, R[b], c16, R[a], `SW);
         if (R[b]+c16 == `IOADDR) begin
           outw(R[a]);
@@ -476,7 +509,7 @@ module cpu0(input clock, reset, input [2:0] itype, output reg [2:0] tick,
       end
       SB : begin
         if (`D)
-          $display("%4dns %8x : %8x m[%-04x+%-04x]=%c  SW=%8x, R[a]=%8x", 
+          $display(&quot;%4dns %8x : %8x m[%-04x+%-04x]=%c  SW=%8x, R[a]=%8x&quot;, 
                    $stime, pc0, ir, R[b], c16, R[a][7:0], `SW, R[a]);
         if (R[b]+c16 == `IOADDR) begin
           if (`LE)
@@ -487,20 +520,20 @@ module cpu0(input clock, reset, input [2:0] itype, output reg [2:0] tick,
       end
       MFC0, MTC0 :
         if (`D)
-          $display("%4dns %8x : %8x R[%02d]=%-8x  C0R[%02d]=%-8x SW=%8x", 
+          $display(&quot;%4dns %8x : %8x R[%02d]=%-8x  C0R[%02d]=%-8x SW=%8x&quot;, 
                    $stime, pc0, ir, a, R[a], a, C0R[a], `SW);
       C0MOV :
         if (`D)
-          $display("%4dns %8x : %8x C0R[%02d]=%-8x C0R[%02d]=%-8x SW=%8x", 
+          $display(&quot;%4dns %8x : %8x C0R[%02d]=%-8x C0R[%02d]=%-8x SW=%8x&quot;, 
                    $stime, pc0, ir, a, C0R[a], b, C0R[b], `SW);
       default :
         if (`D) // Display the written register content
-          $display("%4dns %8x : %8x R[%02d]=%-8x SW=%8x", $stime, pc0, ir, 
+          $display(&quot;%4dns %8x : %8x R[%02d]=%-8x SW=%8x&quot;, $stime, pc0, ir, 
                    a, R[a], `SW);
       endcase
       if (`PC &lt; 0) begin
-        $display("total cpu cycles = %-d", cycles);
-        $display("RET to PC &lt; 0, finished!");
+        $display(&quot;total cpu cycles = %-d&quot;, cycles);
+        $display(&quot;RET to PC &lt; 0, finished!&quot;);
         $finish;
       end
       next_state = Fetch;
@@ -527,11 +560,14 @@ module cpu0(input clock, reset, input [2:0] itype, output reg [2:0] tick,
       `M = `RESET;
       state = Fetch;
     end else begin
-      // `D = 1; // Trace register content at beginning
+    `ifdef TRACE
+      `D = 1; // Trace register content at beginning
+    `endif
       taskExecute();
       state = next_state;
     end
     pc = `PC;
+    cycles = cycles + 1;
   end
 endmodule
 
@@ -563,7 +599,7 @@ module memory0(input clock, reset, en, rw, input [1:0] m_size,
   `define LE  mconfig[0][0:0]   // Endian bit, Big Endian:0, Little Endian:1
 
 `ifdef DLINKER
-`include "dynlinker.v"
+`include &quot;dynlinker.v&quot;
 `endif
   initial begin
   // erase memory
@@ -571,14 +607,14 @@ module memory0(input clock, reset, en, rw, input [1:0] m_size,
        m[i] = `MEMEMPTY;
     end
   // load config from file to memory
-    $readmemh("cpu0.config", mconfig);
+    $readmemh(&quot;cpu0.config&quot;, mconfig);
   // load program from file to memory
-    $readmemh("cpu0.hex", m);
+    $readmemh(&quot;cpu0.hex&quot;, m);
   // display memory contents
     `ifdef TRACE
       for (i=0; i &lt; `MEMSIZE &amp;&amp; (m[i] != `MEMEMPTY || m[i+1] != `MEMEMPTY || 
          m[i+2] != `MEMEMPTY || m[i+3] != `MEMEMPTY); i=i+4) begin
-        $display("%8x: %8x", i, {m[i], m[i+1], m[i+2], m[i+3]});
+        $display(&quot;%8x: %8x&quot;, i, {m[i], m[i+1], m[i+2], m[i+3]});
       end
     `endif
 `ifdef DLINKER
@@ -612,26 +648,26 @@ module memory0(input clock, reset, en, rw, input [1:0] m_size,
       end else if (en == 1 &amp;&amp; rw == 1) begin // r_w==1:read
         if (`LE) begin // Little Endian
           case (m_size)
-          `BYTE:  data = {8'h00,     8'h00,     8'h00,     m[abus]};
-          `INT16: data = {8'h00,     8'h00,     m[abus+1], m[abus]};
-          `INT24: data = {8'h00,     m[abus+2], m[abus+1], m[abus]};
+          `BYTE:  data = {8&#39;h00,     8&#39;h00,     8&#39;h00,     m[abus]};
+          `INT16: data = {8&#39;h00,     8&#39;h00,     m[abus+1], m[abus]};
+          `INT24: data = {8&#39;h00,     m[abus+2], m[abus+1], m[abus]};
           `INT32: data = {m[abus+3], m[abus+2], m[abus+1], m[abus]};
           endcase
         end else begin // Big Endian
           case (m_size)
-          `BYTE:  data = {8'h00  , 8'h00,     8'h00,     m[abus]  };
-          `INT16: data = {8'h00  , 8'h00,     m[abus],   m[abus+1]};
-          `INT24: data = {8'h00  , m[abus],   m[abus+1], m[abus+2]};
+          `BYTE:  data = {8&#39;h00  , 8&#39;h00,     8&#39;h00,     m[abus]  };
+          `INT16: data = {8&#39;h00  , 8&#39;h00,     m[abus],   m[abus+1]};
+          `INT24: data = {8&#39;h00  , m[abus],   m[abus+1], m[abus+2]};
           `INT32: data = {m[abus], m[abus+1], m[abus+2], m[abus+3]};
           endcase
         end
       end else
-        data = 32'hZZZZZZZZ;
+        data = 32&#39;hZZZZZZZZ;
       `ifdef DLINKER
-      `include "flashio.v"
+      `include &quot;flashio.v&quot;
       `endif
     end else 
-      data = 32'hZZZZZZZZ;
+      data = 32&#39;hZZZZZZZZ;
   end
   assign dbus_out = data;
   assign cfg = mconfig[0][0:0];
@@ -663,31 +699,42 @@ module main;
   always #10 clock=clock+1;
 
 endmodule
-</pre>
+</pre></div>
 </div>
-<p class="rubric">lbdex/verilog/cpu0Is.v</p>
-<div class="highlight-c++"><pre>// TRACE: Display the memory contents of the loaded program and data
-//`define TRACE 
+<p class="rubric">lbdex/verilog/Makefile</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>#TRACE=-D TRACE
+all:
+	iverilog ${TRACE} -o cpu0Is cpu0.v 
+	iverilog ${TRACE} -D CPU0II -o cpu0IIs cpu0.v 
+	iverilog ${TRACE} -D DLINKER -o cpu0Id cpu0.v 
+	iverilog ${TRACE} -D DLINKER -D CPU0II -o cpu0IId cpu0.v 
+	iverilog ${TRACE} -D SIMULATE_DELAY_SLOT -o cpu0Isp cpu0.v 
+	iverilog ${TRACE} -D SIMULATE_DELAY_SLOT -D CPU0II -o cpu0IIsp cpu0.v 
+	iverilog ${TRACE} -D SIMULATE_DELAY_SLOT -D DLINKER -o cpu0Idp cpu0.v 
+	iverilog ${TRACE} -D SIMULATE_DELAY_SLOT -D DLINKER -D CPU0II -o cpu0IIdp cpu0.v
 
-`include "cpu0.v"
+.PHONY: clean
+clean:
+	rm -rf dlconfig cpu0.hex cpu0Is cpu0IIs cpu0Id cpu0IId cpu0Isp cpu0IIsp 
+	rm -f cpu0Idp cpu0IIdp *~ cpu0.config
 
-</pre>
+</pre></div>
 </div>
 <p>Since Cpu0 Verilog machine supports both big and little endian, the memory
 and cpu module both have a wire connectting each other.
 The endian information stored in ROM of memory module, and memory module send
 the information when it is up according the following code,</p>
 <p class="rubric">lbdex/verilog/cpu0.v</p>
-<div class="highlight-bash"><div class="highlight"><pre>assign <span class="nv">cfg</span> <span class="o">=</span> mconfig<span class="o">[</span>0<span class="o">][</span>0:0<span class="o">]</span>;
+<div class="highlight-bash"><div class="highlight"><pre><span></span>assign <span class="nv">cfg</span> <span class="o">=</span> mconfig<span class="o">[</span>0<span class="o">][</span>0:0<span class="o">]</span><span class="p">;</span>
 ...
-wire cfg;
+wire cfg<span class="p">;</span>
 
 cpu0 cpu<span class="o">(</span>.clock<span class="o">(</span>clock<span class="o">)</span>, .itype<span class="o">(</span>itype<span class="o">)</span>, .pc<span class="o">(</span>pc<span class="o">)</span>, .tick<span class="o">(</span>tick<span class="o">)</span>, .ir<span class="o">(</span>ir<span class="o">)</span>,
 .mar<span class="o">(</span>mar<span class="o">)</span>, .mdr<span class="o">(</span>mdr<span class="o">)</span>, .dbus<span class="o">(</span>dbus<span class="o">)</span>, .m_en<span class="o">(</span>m_en<span class="o">)</span>, .m_rw<span class="o">(</span>m_rw<span class="o">)</span>, .m_size<span class="o">(</span>m_size<span class="o">)</span>,
-.cfg<span class="o">(</span>cfg<span class="o">))</span>;
+.cfg<span class="o">(</span>cfg<span class="o">))</span><span class="p">;</span>
 
 memory0 mem<span class="o">(</span>.clock<span class="o">(</span>clock<span class="o">)</span>, .reset<span class="o">(</span>reset<span class="o">)</span>, .en<span class="o">(</span>m_en<span class="o">)</span>, .rw<span class="o">(</span>m_rw<span class="o">)</span>,
-.m_size<span class="o">(</span>m_size<span class="o">)</span>, .abus<span class="o">(</span>mar<span class="o">)</span>, .dbus_in<span class="o">(</span>mdr<span class="o">)</span>, .dbus_out<span class="o">(</span>dbus<span class="o">)</span>, .cfg<span class="o">(</span>cfg<span class="o">))</span>;
+.m_size<span class="o">(</span>m_size<span class="o">)</span>, .abus<span class="o">(</span>mar<span class="o">)</span>, .dbus_in<span class="o">(</span>mdr<span class="o">)</span>, .dbus_out<span class="o">(</span>dbus<span class="o">)</span>, .cfg<span class="o">(</span>cfg<span class="o">))</span><span class="p">;</span>
 </pre></div>
 </div>
 <p>Instead of set endian tranfer in memory module, the endian transfer can be set
@@ -697,347 +744,347 @@ But according book &#8220;Computer
 Architecture: A Quantitative Approach&#8221;, some operations may have no tolerance
 in time of execution stage. Any endian swap will make the clock cycle time
 longer and affect the CPU performance. So, I set the endian transfer in memory
-module in Verilog. In system with bus, it suppose set in bus system I think.</p>
-<div class="highlight-bash"><div class="highlight"><pre>JonathantekiiMac:raw Jonathan<span class="nv">$ </span><span class="nb">pwd</span>
-/Users/Jonathan/test/2/lbd/lbdex/verilog/raw
-JonathantekiiMac:raw Jonathan<span class="nv">$ </span>iverilog -o cpu0Is cpu0Is.v
-</pre></div>
-</div>
+module in Verilog. In system with bus, it will be set in bus system I think.</p>
 </div>
 <div class="section" id="verify-backend">
-<h2><a class="toc-backref" href="#id14">Verify backend</a><a class="headerlink" href="#verify-backend" title="Permalink to this headline">¶</a></h2>
+<h2><a class="toc-backref" href="#id10">Verify backend</a><a class="headerlink" href="#verify-backend" title="Permalink to this headline">¶</a></h2>
 <p>Now let&#8217;s compile ch_run_backend.cpp as below. Since code size grows up from
 low to high address and stack grows up from high to low address. We set $sp
 at 0x6ffc because assuming cpu0.v uses 0x7000 bytes of memory.</p>
 <p class="rubric">lbdex/input/start.h</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="cp">#define SET_SW \</span>
-<span class="cp">asm(&quot;andi $sw, $zero, 0&quot;); \</span>
-<span class="cp">asm(&quot;ori  $sw, $sw, 0x1e00&quot;); </span><span class="c1">// enable all interrupts</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1">#define SET_SW \</span>
+<span class="n">asm</span><span class="p">(</span><span class="s2">&quot;andi $sw, $zero, 0&quot;</span><span class="p">);</span> \
+<span class="n">asm</span><span class="p">(</span><span class="s2">&quot;ori  $sw, $sw, 0x1e00&quot;</span><span class="p">);</span> <span class="o">//</span> <span class="n">enable</span> <span class="nb">all</span> <span class="n">interrupts</span>
 
-<span class="cp">#define initRegs() \</span>
-<span class="cp">  asm(&quot;addiu $1,  $zero, 0&quot;); \</span>
-<span class="cp">  asm(&quot;addiu $2,  $zero, 0&quot;); \</span>
-<span class="cp">  asm(&quot;addiu $3,  $zero, 0&quot;); \</span>
-<span class="cp">  asm(&quot;addiu $4,  $zero, 0&quot;); \</span>
-<span class="cp">  asm(&quot;addiu $5,  $zero, 0&quot;); \</span>
-<span class="cp">  asm(&quot;addiu $t9, $zero, 0&quot;); \</span>
-<span class="cp">  asm(&quot;addiu $7,  $zero, 0&quot;); \</span>
-<span class="cp">  asm(&quot;addiu $8,  $zero, 0&quot;); \</span>
-<span class="cp">  asm(&quot;addiu $9,  $zero, 0&quot;); \</span>
-<span class="cp">  asm(&quot;addiu $10, $zero, 0&quot;); \</span>
-<span class="cp">  SET_SW;                     \</span>
-<span class="cp">  asm(&quot;addiu $fp, $zero, 0&quot;);</span>
+<span class="c1">#define initRegs() \</span>
+  <span class="n">asm</span><span class="p">(</span><span class="s2">&quot;addiu $1,  $zero, 0&quot;</span><span class="p">);</span> \
+  <span class="n">asm</span><span class="p">(</span><span class="s2">&quot;addiu $2,  $zero, 0&quot;</span><span class="p">);</span> \
+  <span class="n">asm</span><span class="p">(</span><span class="s2">&quot;addiu $3,  $zero, 0&quot;</span><span class="p">);</span> \
+  <span class="n">asm</span><span class="p">(</span><span class="s2">&quot;addiu $4,  $zero, 0&quot;</span><span class="p">);</span> \
+  <span class="n">asm</span><span class="p">(</span><span class="s2">&quot;addiu $5,  $zero, 0&quot;</span><span class="p">);</span> \
+  <span class="n">asm</span><span class="p">(</span><span class="s2">&quot;addiu $t9, $zero, 0&quot;</span><span class="p">);</span> \
+  <span class="n">asm</span><span class="p">(</span><span class="s2">&quot;addiu $7,  $zero, 0&quot;</span><span class="p">);</span> \
+  <span class="n">asm</span><span class="p">(</span><span class="s2">&quot;addiu $8,  $zero, 0&quot;</span><span class="p">);</span> \
+  <span class="n">asm</span><span class="p">(</span><span class="s2">&quot;addiu $9,  $zero, 0&quot;</span><span class="p">);</span> \
+  <span class="n">asm</span><span class="p">(</span><span class="s2">&quot;addiu $10, $zero, 0&quot;</span><span class="p">);</span> \
+  <span class="n">SET_SW</span><span class="p">;</span>                     \
+  <span class="n">asm</span><span class="p">(</span><span class="s2">&quot;addiu $fp, $zero, 0&quot;</span><span class="p">);</span>
+
 </pre></div>
 </div>
 <p class="rubric">lbdex/input/boot.cpp</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="cp">#include &quot;start.h&quot;</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span>
+<span class="c1">#include &quot;start.h&quot;</span>
 
-<span class="c1">// boot:</span>
-  <span class="k">asm</span><span class="p">(</span><span class="s">&quot;boot:&quot;</span><span class="p">);</span>
-<span class="c1">//  asm(&quot;_start:&quot;);</span>
-  <span class="k">asm</span><span class="p">(</span><span class="s">&quot;jmp 12&quot;</span><span class="p">);</span> <span class="c1">// RESET: jmp RESET_START;</span>
-  <span class="k">asm</span><span class="p">(</span><span class="s">&quot;jmp 4&quot;</span><span class="p">);</span>  <span class="c1">// ERROR: jmp ERR_HANDLE;</span>
-  <span class="k">asm</span><span class="p">(</span><span class="s">&quot;jmp 4&quot;</span><span class="p">);</span>  <span class="c1">// IRQ: jmp IRQ_HANDLE;</span>
-  <span class="k">asm</span><span class="p">(</span><span class="s">&quot;jmp -4&quot;</span><span class="p">);</span> <span class="c1">// ERR_HANDLE: jmp ERR_HANDLE; (loop forever)</span>
+<span class="o">//</span> <span class="n">boot</span><span class="p">:</span>
+  <span class="n">asm</span><span class="p">(</span><span class="s2">&quot;boot:&quot;</span><span class="p">);</span>
+<span class="o">//</span>  <span class="n">asm</span><span class="p">(</span><span class="s2">&quot;_start:&quot;</span><span class="p">);</span>
+  <span class="n">asm</span><span class="p">(</span><span class="s2">&quot;jmp 12&quot;</span><span class="p">);</span> <span class="o">//</span> <span class="n">RESET</span><span class="p">:</span> <span class="n">jmp</span> <span class="n">RESET_START</span><span class="p">;</span>
+  <span class="n">asm</span><span class="p">(</span><span class="s2">&quot;jmp 4&quot;</span><span class="p">);</span>  <span class="o">//</span> <span class="n">ERROR</span><span class="p">:</span> <span class="n">jmp</span> <span class="n">ERR_HANDLE</span><span class="p">;</span>
+  <span class="n">asm</span><span class="p">(</span><span class="s2">&quot;jmp 4&quot;</span><span class="p">);</span>  <span class="o">//</span> <span class="n">IRQ</span><span class="p">:</span> <span class="n">jmp</span> <span class="n">IRQ_HANDLE</span><span class="p">;</span>
+  <span class="n">asm</span><span class="p">(</span><span class="s2">&quot;jmp -4&quot;</span><span class="p">);</span> <span class="o">//</span> <span class="n">ERR_HANDLE</span><span class="p">:</span> <span class="n">jmp</span> <span class="n">ERR_HANDLE</span><span class="p">;</span> <span class="p">(</span><span class="n">loop</span> <span class="n">forever</span><span class="p">)</span>
 
-<span class="c1">// RESET_START:</span>
+<span class="o">//</span> <span class="n">RESET_START</span><span class="p">:</span>
   <span class="n">initRegs</span><span class="p">();</span>
-  <span class="k">asm</span><span class="p">(</span><span class="s">&quot;addiu $gp, $ZERO, 0&quot;</span><span class="p">);</span>
-  <span class="k">asm</span><span class="p">(</span><span class="s">&quot;addiu $lr, $ZERO, -1&quot;</span><span class="p">);</span>
+  <span class="n">asm</span><span class="p">(</span><span class="s2">&quot;addiu $gp, $ZERO, 0&quot;</span><span class="p">);</span>
+  <span class="n">asm</span><span class="p">(</span><span class="s2">&quot;addiu $lr, $ZERO, -1&quot;</span><span class="p">);</span>
   
-  <span class="k">asm</span><span class="p">(</span><span class="s">&quot;addiu $sp, $zero, 0x6ffc&quot;</span><span class="p">);</span>
-  <span class="k">asm</span><span class="p">(</span><span class="s">&quot;mfc0 $3, $pc&quot;</span><span class="p">);</span>
-  <span class="k">asm</span><span class="p">(</span><span class="s">&quot;addiu $3, $3, 0x8&quot;</span><span class="p">);</span> <span class="c1">// Assume main() entry point is at the next next </span>
-                             <span class="c1">// instruction.</span>
-  <span class="k">asm</span><span class="p">(</span><span class="s">&quot;jr $3&quot;</span><span class="p">);</span>
-  <span class="k">asm</span><span class="p">(</span><span class="s">&quot;nop&quot;</span><span class="p">);</span>
+  <span class="n">asm</span><span class="p">(</span><span class="s2">&quot;addiu $sp, $zero, 0x6ffc&quot;</span><span class="p">);</span>
+  <span class="n">asm</span><span class="p">(</span><span class="s2">&quot;mfc0 $3, $pc&quot;</span><span class="p">);</span>
+  <span class="n">asm</span><span class="p">(</span><span class="s2">&quot;addiu $3, $3, 0x8&quot;</span><span class="p">);</span> <span class="o">//</span> <span class="n">Assume</span> <span class="n">main</span><span class="p">()</span> <span class="n">entry</span> <span class="n">point</span> <span class="ow">is</span> <span class="n">at</span> <span class="n">the</span> <span class="nb">next</span> <span class="nb">next</span> 
+                             <span class="o">//</span> <span class="n">instruction</span><span class="o">.</span>
+  <span class="n">asm</span><span class="p">(</span><span class="s2">&quot;jr $3&quot;</span><span class="p">);</span>
+  <span class="n">asm</span><span class="p">(</span><span class="s2">&quot;nop&quot;</span><span class="p">);</span>
 </pre></div>
 </div>
 <p class="rubric">lbdex/input/print.h</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="cp">#ifndef _PRINT_H_</span>
-<span class="cp">#define _PRINT_H_</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1">#ifndef _PRINT_H_</span>
+<span class="c1">#define _PRINT_H_</span>
 
-<span class="cp">#define OUT_MEM 0x80000</span>
+<span class="c1">#define OUT_MEM 0x80000</span>
 
-<span class="kt">void</span> <span class="nf">print_char</span><span class="p">(</span><span class="k">const</span> <span class="kt">char</span> <span class="n">c</span><span class="p">);</span>
-<span class="kt">void</span> <span class="nf">dump_mem</span><span class="p">(</span><span class="kt">unsigned</span> <span class="kt">char</span> <span class="o">*</span><span class="n">str</span><span class="p">,</span> <span class="kt">int</span> <span class="n">n</span><span class="p">);</span>
-<span class="kt">void</span> <span class="nf">print_string</span><span class="p">(</span><span class="k">const</span> <span class="kt">char</span> <span class="o">*</span><span class="n">str</span><span class="p">);</span>
-<span class="kt">void</span> <span class="nf">print_integer</span><span class="p">(</span><span class="kt">int</span> <span class="n">x</span><span class="p">);</span>
-<span class="cp">#endif</span>
+<span class="n">void</span> <span class="n">print_char</span><span class="p">(</span><span class="n">const</span> <span class="n">char</span> <span class="n">c</span><span class="p">);</span>
+<span class="n">void</span> <span class="n">dump_mem</span><span class="p">(</span><span class="n">unsigned</span> <span class="n">char</span> <span class="o">*</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span> <span class="n">n</span><span class="p">);</span>
+<span class="n">void</span> <span class="n">print_string</span><span class="p">(</span><span class="n">const</span> <span class="n">char</span> <span class="o">*</span><span class="nb">str</span><span class="p">);</span>
+<span class="n">void</span> <span class="n">print_integer</span><span class="p">(</span><span class="nb">int</span> <span class="n">x</span><span class="p">);</span>
+<span class="c1">#endif</span>
 </pre></div>
 </div>
 <p class="rubric">lbdex/input/print.cpp</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="cp">#include &quot;print.h&quot;</span>
-<span class="cp">#include &quot;itoa.cpp&quot;</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1">#include &quot;print.h&quot;</span>
+<span class="c1">#include &quot;itoa.cpp&quot;</span>
 
-<span class="c1">// For memory IO</span>
-<span class="kt">void</span> <span class="nf">print_char</span><span class="p">(</span><span class="k">const</span> <span class="kt">char</span> <span class="n">c</span><span class="p">)</span>
+<span class="o">//</span> <span class="n">For</span> <span class="n">memory</span> <span class="n">IO</span>
+<span class="n">void</span> <span class="n">print_char</span><span class="p">(</span><span class="n">const</span> <span class="n">char</span> <span class="n">c</span><span class="p">)</span>
 <span class="p">{</span>
-  <span class="kt">char</span> <span class="o">*</span><span class="n">p</span> <span class="o">=</span> <span class="p">(</span><span class="kt">char</span><span class="o">*</span><span class="p">)</span><span class="n">OUT_MEM</span><span class="p">;</span>
+  <span class="n">char</span> <span class="o">*</span><span class="n">p</span> <span class="o">=</span> <span class="p">(</span><span class="n">char</span><span class="o">*</span><span class="p">)</span><span class="n">OUT_MEM</span><span class="p">;</span>
   <span class="o">*</span><span class="n">p</span> <span class="o">=</span> <span class="n">c</span><span class="p">;</span>
 
   <span class="k">return</span><span class="p">;</span>
 <span class="p">}</span>
 
-<span class="kt">void</span> <span class="nf">print_string</span><span class="p">(</span><span class="k">const</span> <span class="kt">char</span> <span class="o">*</span><span class="n">str</span><span class="p">)</span>
+<span class="n">void</span> <span class="n">print_string</span><span class="p">(</span><span class="n">const</span> <span class="n">char</span> <span class="o">*</span><span class="nb">str</span><span class="p">)</span>
 <span class="p">{</span>
-  <span class="k">const</span> <span class="kt">char</span> <span class="o">*</span><span class="n">p</span><span class="p">;</span>
+  <span class="n">const</span> <span class="n">char</span> <span class="o">*</span><span class="n">p</span><span class="p">;</span>
 
-  <span class="k">for</span> <span class="p">(</span><span class="n">p</span> <span class="o">=</span> <span class="n">str</span><span class="p">;</span> <span class="o">*</span><span class="n">p</span> <span class="o">!=</span> <span class="sc">&#39;\0&#39;</span><span class="p">;</span> <span class="n">p</span><span class="o">++</span><span class="p">)</span>
+  <span class="k">for</span> <span class="p">(</span><span class="n">p</span> <span class="o">=</span> <span class="nb">str</span><span class="p">;</span> <span class="o">*</span><span class="n">p</span> <span class="o">!=</span> <span class="s1">&#39;</span><span class="se">\0</span><span class="s1">&#39;</span><span class="p">;</span> <span class="n">p</span><span class="o">++</span><span class="p">)</span>
     <span class="n">print_char</span><span class="p">(</span><span class="o">*</span><span class="n">p</span><span class="p">);</span>
   <span class="n">print_char</span><span class="p">(</span><span class="o">*</span><span class="n">p</span><span class="p">);</span>
-  <span class="n">print_char</span><span class="p">(</span><span class="sc">&#39;\n&#39;</span><span class="p">);</span>
+  <span class="n">print_char</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">);</span>
 
   <span class="k">return</span><span class="p">;</span>
 <span class="p">}</span>
 
-<span class="c1">// For memory IO</span>
-<span class="kt">void</span> <span class="nf">print_integer</span><span class="p">(</span><span class="kt">int</span> <span class="n">x</span><span class="p">)</span>
+<span class="o">//</span> <span class="n">For</span> <span class="n">memory</span> <span class="n">IO</span>
+<span class="n">void</span> <span class="n">print_integer</span><span class="p">(</span><span class="nb">int</span> <span class="n">x</span><span class="p">)</span>
 <span class="p">{</span>
-  <span class="kt">char</span> <span class="n">str</span><span class="p">[</span><span class="n">INT_DIGITS</span> <span class="o">+</span> <span class="mi">2</span><span class="p">];</span>
-  <span class="n">itoa</span><span class="p">(</span><span class="n">str</span><span class="p">,</span> <span class="n">x</span><span class="p">);</span>
-  <span class="n">print_string</span><span class="p">(</span><span class="n">str</span><span class="p">);</span>
+  <span class="n">char</span> <span class="nb">str</span><span class="p">[</span><span class="n">INT_DIGITS</span> <span class="o">+</span> <span class="mi">2</span><span class="p">];</span>
+  <span class="n">itoa</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">x</span><span class="p">);</span>
+  <span class="n">print_string</span><span class="p">(</span><span class="nb">str</span><span class="p">);</span>
 
   <span class="k">return</span><span class="p">;</span>
 <span class="p">}</span>
+
 </pre></div>
 </div>
 <p class="rubric">lbdex/input/ch_nolld.h</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="cp">#include &quot;debug.h&quot;</span>
-<span class="cp">#include &quot;boot.cpp&quot;</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span>
+<span class="c1">#include &quot;debug.h&quot;</span>
+<span class="c1">#include &quot;boot.cpp&quot;</span>
 
-<span class="cp">#include &quot;print.h&quot;</span>
+<span class="c1">#include &quot;print.h&quot;</span>
 
-<span class="kt">int</span> <span class="nf">test_nolld</span><span class="p">();</span>
+<span class="nb">int</span> <span class="n">test_nolld</span><span class="p">();</span>
 </pre></div>
 </div>
 <p class="rubric">lbdex/input/ch_nolld.cpp</p>
-<div class="highlight-c++"><pre>#define TEST_ROXV
-#define RUN_ON_VERILOG
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1">#define TEST_ROXV</span>
+<span class="c1">#define RUN_ON_VERILOG</span>
 
-#include "print.cpp"
+<span class="c1">#include &quot;print.cpp&quot;</span>
 
-#include "ch4_1_math.cpp"
-#include "ch4_1_rotate.cpp"
-#include "ch4_1_mult2.cpp"
-#include "ch4_1_mod.cpp"
-#include "ch4_1_div.cpp"
-#include "ch4_2_logic.cpp"
-#include "ch7_1_localpointer.cpp"
-#include "ch7_1_char_short.cpp"
-#include "ch7_1_bool.cpp"
-#include "ch7_1_longlong.cpp"
-#include "ch7_1_vector.cpp"
-#include "ch8_1_ctrl.cpp"
-#include "ch8_2_deluselessjmp.cpp"
-#include "ch8_2_select.cpp"
-#include "ch9_3_vararg.cpp"
-#include "ch9_3_stacksave.cpp"
-#include "ch9_3_bswap.cpp"
-#include "ch9_3_alloc.cpp"
-#include "ch11_2.cpp"
+<span class="c1">#include &quot;ch4_1_math.cpp&quot;</span>
+<span class="c1">#include &quot;ch4_1_rotate.cpp&quot;</span>
+<span class="c1">#include &quot;ch4_1_mult2.cpp&quot;</span>
+<span class="c1">#include &quot;ch4_1_mod.cpp&quot;</span>
+<span class="c1">#include &quot;ch4_1_div.cpp&quot;</span>
+<span class="c1">#include &quot;ch4_2_logic.cpp&quot;</span>
+<span class="c1">#include &quot;ch7_1_localpointer.cpp&quot;</span>
+<span class="c1">#include &quot;ch7_1_char_short.cpp&quot;</span>
+<span class="c1">#include &quot;ch7_1_bool.cpp&quot;</span>
+<span class="c1">#include &quot;ch7_1_longlong.cpp&quot;</span>
+<span class="c1">#include &quot;ch7_1_vector.cpp&quot;</span>
+<span class="c1">#include &quot;ch8_1_ctrl.cpp&quot;</span>
+<span class="c1">#include &quot;ch8_2_deluselessjmp.cpp&quot;</span>
+<span class="c1">#include &quot;ch8_2_select.cpp&quot;</span>
+<span class="c1">#include &quot;ch9_3_vararg.cpp&quot;</span>
+<span class="c1">#include &quot;ch9_3_stacksave.cpp&quot;</span>
+<span class="c1">#include &quot;ch9_3_bswap.cpp&quot;</span>
+<span class="c1">#include &quot;ch9_3_alloc.cpp&quot;</span>
+<span class="c1">#include &quot;ch11_2.cpp&quot;</span>
 
-// Test build only for the following files on build-run_backend.sh since it 
-// needs lld linker support.
-// Test in build-slink.sh
-#include "ch6_1.cpp"
-#include "ch9_1_struct.cpp"
-#include "ch9_1_constructor.cpp"
-#include "ch9_3_template.cpp"
-#include "ch12_inherit.cpp"
+<span class="o">//</span> <span class="n">Test</span> <span class="n">build</span> <span class="n">only</span> <span class="k">for</span> <span class="n">the</span> <span class="n">following</span> <span class="n">files</span> <span class="n">on</span> <span class="n">build</span><span class="o">-</span><span class="n">run_backend</span><span class="o">.</span><span class="n">sh</span> <span class="n">since</span> <span class="n">it</span> 
+<span class="o">//</span> <span class="n">needs</span> <span class="n">lld</span> <span class="n">linker</span> <span class="n">support</span><span class="o">.</span>
+<span class="o">//</span> <span class="n">Test</span> <span class="ow">in</span> <span class="n">build</span><span class="o">-</span><span class="n">slink</span><span class="o">.</span><span class="n">sh</span>
+<span class="c1">#include &quot;ch6_1.cpp&quot;</span>
+<span class="c1">#include &quot;ch9_1_struct.cpp&quot;</span>
+<span class="c1">#include &quot;ch9_1_constructor.cpp&quot;</span>
+<span class="c1">#include &quot;ch9_3_template.cpp&quot;</span>
+<span class="c1">#include &quot;ch12_inherit.cpp&quot;</span>
 
-void test_asm_build()
-{
-  #include "ch11_1.cpp"
-#ifdef CPU032II
-  #include "ch11_1_2.cpp"
-#endif
-}
-
-int test_rotate()
-{
-  int a = test_rotate_left1(); // rolv 4, 30 = 1
-  int b = test_rotate_left(); // rol 8, 30  = 2
-  int c = test_rotate_right(); // rorv 1, 30 = 4
-  
-  return (a+b+c);
-}
-
-int test_nolld()
-{
-  bool pass = true;
-  int a = 0;
-
-  a = test_math();
-  print_integer(a);  // a = 74
-  if (a != 74) pass = false;
-  a = test_rotate();
-  print_integer(a);  // a = 7
-  if (a != 7) pass = false;
-  a = test_mult();
-  print_integer(a);  // a = 0
-  if (a != 0) pass = false;
-  a = test_mod();
-  print_integer(a);  // a = 0
-  if (a != 0) pass = false;
-  a = test_div();
-  print_integer(a);  // a = 253
-  if (a != 253) pass = false;
-  a = test_local_pointer();
-  print_integer(a);  // a = 3
-  if (a != 3) pass = false;
-  a = (int)test_load_bool();
-  print_integer(a);  // a = 1
-  if (a != 1) pass = false;
-  a = test_andorxornot();
-  print_integer(a); // a = 14
-  if (a != 14) pass = false;
-  a = test_setxx();
-  print_integer(a); // a = 3
-  if (a != 3) pass = false;
-  a = test_signed_char();
-  print_integer(a); // a = -126
-  if (a != -126) pass = false;
-  a = test_unsigned_char();
-  print_integer(a); // a = 130
-  if (a != 130) pass = false;
-  a = test_signed_short();
-  print_integer(a); // a = -32766
-  if (a != -32766) pass = false;
-  a = test_unsigned_short();
-  print_integer(a); // a = 32770
-  if (a != 32770) pass = false;
-  long long b = test_longlong();
-  print_integer((int)(b &gt;&gt; 32)); // 393307
-  if ((int)(b &gt;&gt; 32) != 393307) pass = false;
-  print_integer((int)b); // 16777222
-  if ((int)(b) != 16777222) pass = false;
-  a = test_cmplt_short();
-  print_integer(a); // a = 2
-  if (a != 2) pass = false;
-  a = test_cmplt_long();
-  print_integer(a); // a = 4
-  if (a != 4) pass = false;
-  a = test_control1();
-  print_integer(a);	// a = 51
-  if (a != 51) pass = false;
-  a = test_DelUselessJMP();
-  print_integer(a); // a = 2
-  if (a != 2) pass = false;
-  a = test_movx_1();
-  print_integer(a); // a = 3
-  if (a != 3) pass = false;
-  a = test_movx_2();
-  print_integer(a); // a = 1
-  if (a != 1) pass = false;
-  print_integer(2147483647); // test mod % (mult) from itoa.cpp
-  print_integer(-2147483648); // test mod % (multu) from itoa.cpp
-  a = test_vararg();
-  print_integer(a); // a = 15
-  if (a != 15) pass = false;
-  a = test_stacksaverestore(100);
-  print_integer(a); // a = 5
-  if (a != 5) pass = false;
-  a = test_bswap();
-  print_integer(a); // a = 0
-  if (a != 0) pass = false;
-  a = test_alloc();
-  print_integer(a); // a = 31
-  if (a != 31) pass = false;
-  a = test_inlineasm();
-  print_integer(a); // a = 49
-  if (a != 49) pass = false;
-
-  return pass;
-}
-</pre>
-</div>
-<p class="rubric">lbdex/input/ch_run_backend.cpp</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="cp">#include &quot;ch_nolld.h&quot;</span>
-
-<span class="kt">int</span> <span class="nf">main</span><span class="p">()</span>
+<span class="n">void</span> <span class="n">test_asm_build</span><span class="p">()</span>
 <span class="p">{</span>
-  <span class="kt">bool</span> <span class="n">pass</span> <span class="o">=</span> <span class="nb">true</span><span class="p">;</span>
-  <span class="n">pass</span> <span class="o">=</span> <span class="n">test_nolld</span><span class="p">();</span>
-
-  <span class="k">return</span> <span class="n">pass</span><span class="p">;</span>
+  <span class="c1">#include &quot;ch11_1.cpp&quot;</span>
+<span class="c1">#ifdef CPU032II</span>
+  <span class="c1">#include &quot;ch11_1_2.cpp&quot;</span>
+<span class="c1">#endif</span>
 <span class="p">}</span>
 
-<span class="cp">#include &quot;ch_nolld.cpp&quot;</span>
+<span class="nb">int</span> <span class="n">test_rotate</span><span class="p">()</span>
+<span class="p">{</span>
+  <span class="nb">int</span> <span class="n">a</span> <span class="o">=</span> <span class="n">test_rotate_left1</span><span class="p">();</span> <span class="o">//</span> <span class="n">rolv</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">30</span> <span class="o">=</span> <span class="mi">1</span>
+  <span class="nb">int</span> <span class="n">b</span> <span class="o">=</span> <span class="n">test_rotate_left</span><span class="p">();</span> <span class="o">//</span> <span class="n">rol</span> <span class="mi">8</span><span class="p">,</span> <span class="mi">30</span>  <span class="o">=</span> <span class="mi">2</span>
+  <span class="nb">int</span> <span class="n">c</span> <span class="o">=</span> <span class="n">test_rotate_right</span><span class="p">();</span> <span class="o">//</span> <span class="n">rorv</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">30</span> <span class="o">=</span> <span class="mi">4</span>
+  
+  <span class="k">return</span> <span class="p">(</span><span class="n">a</span><span class="o">+</span><span class="n">b</span><span class="o">+</span><span class="n">c</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="nb">int</span> <span class="n">test_nolld</span><span class="p">()</span>
+<span class="p">{</span>
+  <span class="nb">bool</span> <span class="k">pass</span> <span class="o">=</span> <span class="n">true</span><span class="p">;</span>
+  <span class="nb">int</span> <span class="n">a</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+
+  <span class="n">a</span> <span class="o">=</span> <span class="n">test_math</span><span class="p">();</span>
+  <span class="n">print_integer</span><span class="p">(</span><span class="n">a</span><span class="p">);</span>  <span class="o">//</span> <span class="n">a</span> <span class="o">=</span> <span class="mi">74</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">a</span> <span class="o">!=</span> <span class="mi">74</span><span class="p">)</span> <span class="k">pass</span> <span class="o">=</span> <span class="n">false</span><span class="p">;</span>
+  <span class="n">a</span> <span class="o">=</span> <span class="n">test_rotate</span><span class="p">();</span>
+  <span class="n">print_integer</span><span class="p">(</span><span class="n">a</span><span class="p">);</span>  <span class="o">//</span> <span class="n">a</span> <span class="o">=</span> <span class="mi">7</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">a</span> <span class="o">!=</span> <span class="mi">7</span><span class="p">)</span> <span class="k">pass</span> <span class="o">=</span> <span class="n">false</span><span class="p">;</span>
+  <span class="n">a</span> <span class="o">=</span> <span class="n">test_mult</span><span class="p">();</span>
+  <span class="n">print_integer</span><span class="p">(</span><span class="n">a</span><span class="p">);</span>  <span class="o">//</span> <span class="n">a</span> <span class="o">=</span> <span class="mi">0</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">a</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">)</span> <span class="k">pass</span> <span class="o">=</span> <span class="n">false</span><span class="p">;</span>
+  <span class="n">a</span> <span class="o">=</span> <span class="n">test_mod</span><span class="p">();</span>
+  <span class="n">print_integer</span><span class="p">(</span><span class="n">a</span><span class="p">);</span>  <span class="o">//</span> <span class="n">a</span> <span class="o">=</span> <span class="mi">0</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">a</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">)</span> <span class="k">pass</span> <span class="o">=</span> <span class="n">false</span><span class="p">;</span>
+  <span class="n">a</span> <span class="o">=</span> <span class="n">test_div</span><span class="p">();</span>
+  <span class="n">print_integer</span><span class="p">(</span><span class="n">a</span><span class="p">);</span>  <span class="o">//</span> <span class="n">a</span> <span class="o">=</span> <span class="mi">253</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">a</span> <span class="o">!=</span> <span class="mi">253</span><span class="p">)</span> <span class="k">pass</span> <span class="o">=</span> <span class="n">false</span><span class="p">;</span>
+  <span class="n">a</span> <span class="o">=</span> <span class="n">test_local_pointer</span><span class="p">();</span>
+  <span class="n">print_integer</span><span class="p">(</span><span class="n">a</span><span class="p">);</span>  <span class="o">//</span> <span class="n">a</span> <span class="o">=</span> <span class="mi">3</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">a</span> <span class="o">!=</span> <span class="mi">3</span><span class="p">)</span> <span class="k">pass</span> <span class="o">=</span> <span class="n">false</span><span class="p">;</span>
+  <span class="n">a</span> <span class="o">=</span> <span class="p">(</span><span class="nb">int</span><span class="p">)</span><span class="n">test_load_bool</span><span class="p">();</span>
+  <span class="n">print_integer</span><span class="p">(</span><span class="n">a</span><span class="p">);</span>  <span class="o">//</span> <span class="n">a</span> <span class="o">=</span> <span class="mi">1</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">a</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">)</span> <span class="k">pass</span> <span class="o">=</span> <span class="n">false</span><span class="p">;</span>
+  <span class="n">a</span> <span class="o">=</span> <span class="n">test_andorxornot</span><span class="p">();</span>
+  <span class="n">print_integer</span><span class="p">(</span><span class="n">a</span><span class="p">);</span> <span class="o">//</span> <span class="n">a</span> <span class="o">=</span> <span class="mi">14</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">a</span> <span class="o">!=</span> <span class="mi">14</span><span class="p">)</span> <span class="k">pass</span> <span class="o">=</span> <span class="n">false</span><span class="p">;</span>
+  <span class="n">a</span> <span class="o">=</span> <span class="n">test_setxx</span><span class="p">();</span>
+  <span class="n">print_integer</span><span class="p">(</span><span class="n">a</span><span class="p">);</span> <span class="o">//</span> <span class="n">a</span> <span class="o">=</span> <span class="mi">3</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">a</span> <span class="o">!=</span> <span class="mi">3</span><span class="p">)</span> <span class="k">pass</span> <span class="o">=</span> <span class="n">false</span><span class="p">;</span>
+  <span class="n">a</span> <span class="o">=</span> <span class="n">test_signed_char</span><span class="p">();</span>
+  <span class="n">print_integer</span><span class="p">(</span><span class="n">a</span><span class="p">);</span> <span class="o">//</span> <span class="n">a</span> <span class="o">=</span> <span class="o">-</span><span class="mi">126</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">a</span> <span class="o">!=</span> <span class="o">-</span><span class="mi">126</span><span class="p">)</span> <span class="k">pass</span> <span class="o">=</span> <span class="n">false</span><span class="p">;</span>
+  <span class="n">a</span> <span class="o">=</span> <span class="n">test_unsigned_char</span><span class="p">();</span>
+  <span class="n">print_integer</span><span class="p">(</span><span class="n">a</span><span class="p">);</span> <span class="o">//</span> <span class="n">a</span> <span class="o">=</span> <span class="mi">130</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">a</span> <span class="o">!=</span> <span class="mi">130</span><span class="p">)</span> <span class="k">pass</span> <span class="o">=</span> <span class="n">false</span><span class="p">;</span>
+  <span class="n">a</span> <span class="o">=</span> <span class="n">test_signed_short</span><span class="p">();</span>
+  <span class="n">print_integer</span><span class="p">(</span><span class="n">a</span><span class="p">);</span> <span class="o">//</span> <span class="n">a</span> <span class="o">=</span> <span class="o">-</span><span class="mi">32766</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">a</span> <span class="o">!=</span> <span class="o">-</span><span class="mi">32766</span><span class="p">)</span> <span class="k">pass</span> <span class="o">=</span> <span class="n">false</span><span class="p">;</span>
+  <span class="n">a</span> <span class="o">=</span> <span class="n">test_unsigned_short</span><span class="p">();</span>
+  <span class="n">print_integer</span><span class="p">(</span><span class="n">a</span><span class="p">);</span> <span class="o">//</span> <span class="n">a</span> <span class="o">=</span> <span class="mi">32770</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">a</span> <span class="o">!=</span> <span class="mi">32770</span><span class="p">)</span> <span class="k">pass</span> <span class="o">=</span> <span class="n">false</span><span class="p">;</span>
+  <span class="n">long</span> <span class="n">long</span> <span class="n">b</span> <span class="o">=</span> <span class="n">test_longlong</span><span class="p">();</span>
+  <span class="n">print_integer</span><span class="p">((</span><span class="nb">int</span><span class="p">)(</span><span class="n">b</span> <span class="o">&gt;&gt;</span> <span class="mi">32</span><span class="p">));</span> <span class="o">//</span> <span class="mi">393307</span>
+  <span class="k">if</span> <span class="p">((</span><span class="nb">int</span><span class="p">)(</span><span class="n">b</span> <span class="o">&gt;&gt;</span> <span class="mi">32</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">393307</span><span class="p">)</span> <span class="k">pass</span> <span class="o">=</span> <span class="n">false</span><span class="p">;</span>
+  <span class="n">print_integer</span><span class="p">((</span><span class="nb">int</span><span class="p">)</span><span class="n">b</span><span class="p">);</span> <span class="o">//</span> <span class="mi">16777222</span>
+  <span class="k">if</span> <span class="p">((</span><span class="nb">int</span><span class="p">)(</span><span class="n">b</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">16777222</span><span class="p">)</span> <span class="k">pass</span> <span class="o">=</span> <span class="n">false</span><span class="p">;</span>
+  <span class="n">a</span> <span class="o">=</span> <span class="n">test_cmplt_short</span><span class="p">();</span>
+  <span class="n">print_integer</span><span class="p">(</span><span class="n">a</span><span class="p">);</span> <span class="o">//</span> <span class="n">a</span> <span class="o">=</span> <span class="mi">2</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">a</span> <span class="o">!=</span> <span class="mi">2</span><span class="p">)</span> <span class="k">pass</span> <span class="o">=</span> <span class="n">false</span><span class="p">;</span>
+  <span class="n">a</span> <span class="o">=</span> <span class="n">test_cmplt_long</span><span class="p">();</span>
+  <span class="n">print_integer</span><span class="p">(</span><span class="n">a</span><span class="p">);</span> <span class="o">//</span> <span class="n">a</span> <span class="o">=</span> <span class="mi">4</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">a</span> <span class="o">!=</span> <span class="mi">4</span><span class="p">)</span> <span class="k">pass</span> <span class="o">=</span> <span class="n">false</span><span class="p">;</span>
+  <span class="n">a</span> <span class="o">=</span> <span class="n">test_control1</span><span class="p">();</span>
+  <span class="n">print_integer</span><span class="p">(</span><span class="n">a</span><span class="p">);</span>	<span class="o">//</span> <span class="n">a</span> <span class="o">=</span> <span class="mi">51</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">a</span> <span class="o">!=</span> <span class="mi">51</span><span class="p">)</span> <span class="k">pass</span> <span class="o">=</span> <span class="n">false</span><span class="p">;</span>
+  <span class="n">a</span> <span class="o">=</span> <span class="n">test_DelUselessJMP</span><span class="p">();</span>
+  <span class="n">print_integer</span><span class="p">(</span><span class="n">a</span><span class="p">);</span> <span class="o">//</span> <span class="n">a</span> <span class="o">=</span> <span class="mi">2</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">a</span> <span class="o">!=</span> <span class="mi">2</span><span class="p">)</span> <span class="k">pass</span> <span class="o">=</span> <span class="n">false</span><span class="p">;</span>
+  <span class="n">a</span> <span class="o">=</span> <span class="n">test_movx_1</span><span class="p">();</span>
+  <span class="n">print_integer</span><span class="p">(</span><span class="n">a</span><span class="p">);</span> <span class="o">//</span> <span class="n">a</span> <span class="o">=</span> <span class="mi">3</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">a</span> <span class="o">!=</span> <span class="mi">3</span><span class="p">)</span> <span class="k">pass</span> <span class="o">=</span> <span class="n">false</span><span class="p">;</span>
+  <span class="n">a</span> <span class="o">=</span> <span class="n">test_movx_2</span><span class="p">();</span>
+  <span class="n">print_integer</span><span class="p">(</span><span class="n">a</span><span class="p">);</span> <span class="o">//</span> <span class="n">a</span> <span class="o">=</span> <span class="mi">1</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">a</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">)</span> <span class="k">pass</span> <span class="o">=</span> <span class="n">false</span><span class="p">;</span>
+  <span class="n">print_integer</span><span class="p">(</span><span class="mi">2147483647</span><span class="p">);</span> <span class="o">//</span> <span class="n">test</span> <span class="n">mod</span> <span class="o">%</span> <span class="p">(</span><span class="n">mult</span><span class="p">)</span> <span class="kn">from</span> <span class="nn">itoa.cpp</span>
+  <span class="n">print_integer</span><span class="p">(</span><span class="o">-</span><span class="mi">2147483648</span><span class="p">);</span> <span class="o">//</span> <span class="n">test</span> <span class="n">mod</span> <span class="o">%</span> <span class="p">(</span><span class="n">multu</span><span class="p">)</span> <span class="kn">from</span> <span class="nn">itoa.cpp</span>
+  <span class="n">a</span> <span class="o">=</span> <span class="n">test_vararg</span><span class="p">();</span>
+  <span class="n">print_integer</span><span class="p">(</span><span class="n">a</span><span class="p">);</span> <span class="o">//</span> <span class="n">a</span> <span class="o">=</span> <span class="mi">15</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">a</span> <span class="o">!=</span> <span class="mi">15</span><span class="p">)</span> <span class="k">pass</span> <span class="o">=</span> <span class="n">false</span><span class="p">;</span>
+  <span class="n">a</span> <span class="o">=</span> <span class="n">test_stacksaverestore</span><span class="p">(</span><span class="mi">100</span><span class="p">);</span>
+  <span class="n">print_integer</span><span class="p">(</span><span class="n">a</span><span class="p">);</span> <span class="o">//</span> <span class="n">a</span> <span class="o">=</span> <span class="mi">5</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">a</span> <span class="o">!=</span> <span class="mi">5</span><span class="p">)</span> <span class="k">pass</span> <span class="o">=</span> <span class="n">false</span><span class="p">;</span>
+  <span class="n">a</span> <span class="o">=</span> <span class="n">test_bswap</span><span class="p">();</span>
+  <span class="n">print_integer</span><span class="p">(</span><span class="n">a</span><span class="p">);</span> <span class="o">//</span> <span class="n">a</span> <span class="o">=</span> <span class="mi">0</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">a</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">)</span> <span class="k">pass</span> <span class="o">=</span> <span class="n">false</span><span class="p">;</span>
+  <span class="n">a</span> <span class="o">=</span> <span class="n">test_alloc</span><span class="p">();</span>
+  <span class="n">print_integer</span><span class="p">(</span><span class="n">a</span><span class="p">);</span> <span class="o">//</span> <span class="n">a</span> <span class="o">=</span> <span class="mi">31</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">a</span> <span class="o">!=</span> <span class="mi">31</span><span class="p">)</span> <span class="k">pass</span> <span class="o">=</span> <span class="n">false</span><span class="p">;</span>
+  <span class="n">a</span> <span class="o">=</span> <span class="n">test_inlineasm</span><span class="p">();</span>
+  <span class="n">print_integer</span><span class="p">(</span><span class="n">a</span><span class="p">);</span> <span class="o">//</span> <span class="n">a</span> <span class="o">=</span> <span class="mi">49</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">a</span> <span class="o">!=</span> <span class="mi">49</span><span class="p">)</span> <span class="k">pass</span> <span class="o">=</span> <span class="n">false</span><span class="p">;</span>
+
+  <span class="k">return</span> <span class="k">pass</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p class="rubric">lbdex/input/ch_run_backend.cpp</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>
+<span class="c1">#include &quot;ch_nolld.h&quot;</span>
+
+<span class="nb">int</span> <span class="n">main</span><span class="p">()</span>
+<span class="p">{</span>
+  <span class="nb">bool</span> <span class="k">pass</span> <span class="o">=</span> <span class="n">true</span><span class="p">;</span>
+  <span class="k">pass</span> <span class="o">=</span> <span class="n">test_nolld</span><span class="p">();</span>
+
+  <span class="k">return</span> <span class="k">pass</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="c1">#include &quot;ch_nolld.cpp&quot;</span>
 </pre></div>
 </div>
 <p class="rubric">lbdex/input/functions.sh</p>
-<div class="highlight-c++"><pre>prologue() {
+<div class="highlight-default"><div class="highlight"><pre><span></span>prologue() {
   if [ $argNum == 0 ]; then
-    echo "useage: bash $sh_name cpu_type endian"
-    echo "  cpu_type: cpu032I or cpu032II"
-    echo "  endian: be (big endian, default) or le (little endian)"
-    echo "for example:"
-    echo "  bash build-slinker.sh cpu032I be"
+    echo &quot;useage: bash $sh_name cpu_type endian&quot;
+    echo &quot;  cpu_type: cpu032I or cpu032II&quot;
+    echo &quot;  endian: be (big endian, default) or le (little endian)&quot;
+    echo &quot;for example:&quot;
+    echo &quot;  bash build-slinker.sh cpu032I be&quot;
     exit 1;
   fi
   if [ $arg1 != cpu032I ] &amp;&amp; [ $arg1 != cpu032II ]; then
-    echo "1st argument is cpu032I or cpu032II"
+    echo &quot;1st argument is cpu032I or cpu032II&quot;
     exit 1
   fi
 
   OS=`uname -s`
-  echo "OS =" ${OS}
+  echo &quot;OS =&quot; ${OS}
 
-  if [ "$OS" == "Linux" ]; then
+  if [ &quot;$OS&quot; == &quot;Linux&quot; ]; then
     TOOLDIR=~/llvm/test/cmake_debug_build/bin
   else
     TOOLDIR=~/llvm/test/cmake_debug_build/Debug/bin
   fi
 
   CPU=$arg1
-  echo "CPU =" "${CPU}"
+  echo &quot;CPU =&quot; &quot;${CPU}&quot;
 
-  if [ "$arg2" != "" ] &amp;&amp; [ $arg2 != le ] &amp;&amp; [ $arg2 != be ]; then
-    echo "2nd argument is be (big endian, default) or le (little endian)"
+  if [ &quot;$arg2&quot; != &quot;&quot; ] &amp;&amp; [ $arg2 != le ] &amp;&amp; [ $arg2 != be ]; then
+    echo &quot;2nd argument is be (big endian, default) or le (little endian)&quot;
     exit 1
   fi
-  if [ "$arg2" == "" ] || [ $arg2 == be ]; then
+  if [ &quot;$arg2&quot; == &quot;&quot; ] || [ $arg2 == be ]; then
     endian=
   else
     endian=el
   fi
-  echo "endian =" "${endian}"
+  echo &quot;endian =&quot; &quot;${endian}&quot;
 
   bash clean.sh
 }
 
 isLittleEndian() {
-  echo "endian = " "$endian"
-  if [ "$endian" == "LittleEndian" ] ; then
-    le="true"
-  elif [ "$endian" == "BigEndian" ] ; then
-    le="false"
+  echo &quot;endian = &quot; &quot;$endian&quot;
+  if [ &quot;$endian&quot; == &quot;LittleEndian&quot; ] ; then
+    le=&quot;true&quot;
+  elif [ &quot;$endian&quot; == &quot;BigEndian&quot; ] ; then
+    le=&quot;false&quot;
   else
-    echo "!endian unknown"
+    echo &quot;!endian unknown&quot;
     exit 1
   fi
 }
 
 elf2hex() {
   ${TOOLDIR}/llvm-objdump -elf2hex -le=${le} a.out &gt; ../verilog/cpu0.hex
-  if [ ${le} == "true" ] ; then
-    echo "1   /* 0: big endian, 1: little endian */" &gt; ../verilog/cpu0.config
+  if [ ${le} == &quot;true&quot; ] ; then
+    echo &quot;1   /* 0: big endian, 1: little endian */&quot; &gt; ../verilog/cpu0.config
   else
-    echo "0   /* 0: big endian, 1: little endian */" &gt; ../verilog/cpu0.config
+    echo &quot;0   /* 0: big endian, 1: little endian */&quot; &gt; ../verilog/cpu0.config
   fi
   cat ../verilog/cpu0.config
 }
 
 epilogue() {
-  endian=`${TOOLDIR}/llvm-readobj -h a.out|grep "DataEncoding"|awk '{print $2}'`
+  endian=`${TOOLDIR}/llvm-readobj -h a.out|grep &quot;DataEncoding&quot;|awk &#39;{print $2}&#39;`
   isLittleEndian;
   elf2hex;
 }
-</pre>
+</pre></div>
 </div>
 <p class="rubric">lbdex/input/build-run_backend.sh</p>
-<div class="highlight-c++"><pre>#!/usr/bin/env bash
+<div class="highlight-default"><div class="highlight"><pre><span></span>#!/usr/bin/env bash
 
 source functions.sh
 
@@ -1046,9 +1093,9 @@ argNum=$#
 arg1=$1
 arg2=$2
 
-DEFFLAGS=""
-if [ "$arg1" == cpu032II ] ; then
-  DEFFLAGS=${DEFFLAGS}" -DCPU032II"
+DEFFLAGS=&quot;&quot;
+if [ &quot;$arg1&quot; == cpu032II ] ; then
+  DEFFLAGS=${DEFFLAGS}&quot; -DCPU032II&quot;
 fi
 echo ${DEFFLAGS}
 
@@ -1065,32 +1112,38 @@ clang ${DEFFLAGS} -target mips-unknown-linux-gnu -c ch_run_backend.cpp \
 -emit-llvm -o ch_run_backend.bc
 ${TOOLDIR}/llc -march=cpu0${endian} -mcpu=${CPU} -relocation-model=static \
 -filetype=obj -enable-cpu0-tail-calls ch_run_backend.bc -o ch_run_backend.cpu0.o
+# print must at the same line, otherwise it will spilt into 2 lines
 ${TOOLDIR}/llvm-objdump -d ch_run_backend.cpu0.o | tail -n +8| awk \
-'{print "/* " $1 " */\t" $2 " " $3 " " $4 " " $5 "\t/* " $6"\t" $7" " $8" \
-" $9" " $10 "\t*/"}' &gt; ../verilog/cpu0.hex
+&#39;{print &quot;/* &quot; $1 &quot; */\t&quot; $2 &quot; &quot; $3 &quot; &quot; $4 &quot; &quot; $5 &quot;\t/* &quot; $6&quot;\t&quot; $7&quot; &quot; $8&quot; &quot; $9&quot; &quot; $10 &quot;\t*/&quot;}&#39; \
+ &gt; ../verilog/cpu0.hex
 
-if [ "$arg2" == le ] ; then
-  echo "1   /* 0: big endian, 1: little endian */" &gt; ../verilog/cpu0.config
+if [ &quot;$arg2&quot; == le ] ; then
+  echo &quot;1   /* 0: big endian, 1: little endian */&quot; &gt; ../verilog/cpu0.config
 else
-  echo "0   /* 0: big endian, 1: little endian */" &gt; ../verilog/cpu0.config
+  echo &quot;0   /* 0: big endian, 1: little endian */&quot; &gt; ../verilog/cpu0.config
 fi
 cat ../verilog/cpu0.config
-</pre>
+</pre></div>
 </div>
 <p>To run program without linker implementation at this point, the boot.cpp is
 arranaged at the beginning of code and the main() of ch_run_backend.cpp is
 immediately after.
-Let&#8217;s run Chapter11_2/ with <tt class="docutils literal"><span class="pre">llvm-objdump</span> <span class="pre">-d</span></tt> for input file
+Let&#8217;s run Chapter11_2/ with <code class="docutils literal"><span class="pre">llvm-objdump</span> <span class="pre">-d</span></code> for input file
 ch_run_backend.cpp to generate the hex file via build-run_bacekend.sh, then
 feed it to cpu0Is Verilog simulator to get the output result as below.
 Remind ch_run_backend.cpp have to be compiled with option
-<tt class="docutils literal"><span class="pre">clang</span> <span class="pre">-target</span> <span class="pre">mips-unknown-linux-gnu</span></tt> since the example code ch9_3.cpp which
+<code class="docutils literal"><span class="pre">clang</span> <span class="pre">-target</span> <span class="pre">mips-unknown-linux-gnu</span></code> since the example code ch9_3.cpp which
 uses the vararg needs to be compiled with this option. Other example codes have
 no differences between this option and default option.</p>
-<div class="highlight-bash"><div class="highlight"><pre>JonathantekiiMac:input Jonathan<span class="nv">$ </span>bash build-run_backend.sh cpu032I be
-JonathantekiiMac:input Jonathan<span class="nv">$ </span><span class="nb">cd</span> ../verilog
-JonathantekiiMac:verilog Jonathan<span class="nv">$ </span>./cpu0Is
-WARNING: cpu0Is.v:386: <span class="nv">$readmemh</span><span class="o">(</span>cpu0.hex<span class="o">)</span>: Not enough words in the file <span class="k">for </span>the
+<div class="highlight-bash"><div class="highlight"><pre><span></span>JonathantekiiMac:input Jonathan$ <span class="nb">pwd</span>
+/Users/Jonathan/llvm/test/lbdex/input
+JonathantekiiMac:input Jonathan$ bash build-run_backend.sh cpu032I be
+JonathantekiiMac:input Jonathan$ <span class="nb">cd</span> ../verilog <span class="nb">cd</span> ../verilog
+JonathantekiiMac:input Jonathan$ <span class="nb">pwd</span>
+/Users/Jonathan/llvm/test/lbdex/verilog
+JonathantekiiMac:verilog Jonathan$ make
+JonathantekiiMac:verilog Jonathan$ ./cpu0Isp
+WARNING: cpu0Is.v:386: <span class="nv">$readmemh</span><span class="o">(</span>cpu0.hex<span class="o">)</span>: Not enough words in the file <span class="k">for</span> the
 taskInterrupt<span class="o">(</span>001<span class="o">)</span>
 74
 7
@@ -1120,35 +1173,39 @@ taskInterrupt<span class="o">(</span>001<span class="o">)</span>
 0
 31
 49
-total cpu <span class="nv">cycles</span> <span class="o">=</span> 52060
+total cpu <span class="nv">cycles</span> <span class="o">=</span> 51230
 RET to PC &lt; 0, finished!
 
-JonathantekiiMac:input Jonathan<span class="nv">$ </span>bash build-run_backend.sh cpu032II be
-JonathantekiiMac:input Jonathan<span class="nv">$ </span><span class="nb">cd</span> ../verilog
-JonathantekiiMac:verilog Jonathan<span class="nv">$ </span>./cpu0IIs
+JonathantekiiMac:input Jonathan$ bash build-run_backend.sh cpu032II be
+JonathantekiiMac:input Jonathan$ <span class="nb">cd</span> ../verilog
+JonathantekiiMac:verilog Jonathan$ ./cpu0IIsp
 ...
-total cpu <span class="nv">cycles</span> <span class="o">=</span> 49625
+total cpu <span class="nv">cycles</span> <span class="o">=</span> 48920
 RET to PC &lt; 0, finished!
 </pre></div>
 </div>
 <p>The &#8220;total cpu cycles&#8221; can be calculated in this verilog simualtor, and the
 backend compiler and CPU performance can be reviewed.
-Only the CPU cycles are counted, it exclude I/O cycles since I/O or display
+Only the CPU cycles are counted, it not include I/O cycles since I/O
 cycles time is unknown.
 As explained in chapter &#8220;Control flow statements&#8221;, cpu032II uses slt and beq
 has better performance than cmp and jeq in cpu032I.
-You can trace the memory binary code and destination
-register changed at every instruction execution by the following change and
-get the result as below,</p>
-<p class="rubric">lbdex/verilog/cpu0Is.v</p>
-<div class="highlight-c++"><pre>`define TRACE</pre>
+The cycle counting on cpu0IIsp is accurate include delay slot while cpu0IIs has
+no delay slot support.
+Although cpu0IIs has no delay slot support, it can run program
+correctly since Cpu0 backend compiler always fill delay slot with &#8220;nop&#8221;.
+Instructions &#8220;jmp&#8221; has no delay slot so it is better in dynamic linker
+implementation. Instruction &#8220;bal&#8221; has no delay slot because we want
+Cpu0LongBranch.cpp generated code can run both correctly in cpu0IIsp and cpu0IIs.</p>
+<p>You can trace the memory binary code and destination
+register changed at every instruction execution by unmark TRACE in Makefile as
+below,</p>
+<p class="rubric">lbdex/verilog/Makefile</p>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="n">TRACE</span><span class="o">=-</span><span class="n">D</span> <span class="n">TRACE</span>
+</pre></div>
 </div>
-<p class="rubric">lbdex/verilog/cpu0.v</p>
-<div class="highlight-c++"><pre>...
-`D = 1; // Trace register content at beginning</pre>
-</div>
-<div class="highlight-bash"><div class="highlight"><pre>JonathantekiiMac:raw Jonathan<span class="nv">$ </span>./cpu0Is
-WARNING: cpu0.v:386: <span class="nv">$readmemh</span><span class="o">(</span>cpu0.hex<span class="o">)</span>: Not enough words in the file <span class="k">for </span>the
+<div class="highlight-bash"><div class="highlight"><pre><span></span>JonathantekiiMac:raw Jonathan$ ./cpu0Is
+WARNING: cpu0.v:386: <span class="nv">$readmemh</span><span class="o">(</span>cpu0.hex<span class="o">)</span>: Not enough words in the file <span class="k">for</span> the
 requested range <span class="o">[</span>0:28671<span class="o">]</span>.
 00000000: 2600000c
 00000004: 26000004
@@ -1158,8 +1215,8 @@ requested range <span class="o">[</span>0:28671<span class="o">]</span>.
 00000014: 09200000
 ...
 taskInterrupt<span class="o">(</span>001<span class="o">)</span>
-1530ns 00000054 : 02ed002c m<span class="o">[</span>28620+44  <span class="o">]=</span>-1          <span class="nv">SW</span><span class="o">=</span>00000000
-1610ns 00000058 : 02bd0028 m<span class="o">[</span>28620+40  <span class="o">]=</span>0           <span class="nv">SW</span><span class="o">=</span>00000000
+1530ns <span class="m">00000054</span> : 02ed002c m<span class="o">[</span>28620+44  <span class="o">]=</span>-1          <span class="nv">SW</span><span class="o">=</span>00000000
+1610ns <span class="m">00000058</span> : 02bd0028 m<span class="o">[</span>28620+40  <span class="o">]=</span><span class="m">0</span>           <span class="nv">SW</span><span class="o">=</span>00000000
 ...
 RET to PC &lt; 0, finished!
 </pre></div>
@@ -1171,71 +1228,82 @@ The first column is the nano seconds of timing. The second
 is instruction address. The third is instruction content.
 Now, most example codes depicted in the previous chapters are verified by
 print the variable with print_integer().</p>
-<p>This chapter shows Verilog PC output by displays the integer value located at
+<p>This chapter shows Verilog PC output by displaying the integer value located at
 I/O memory mapped address directly.
-Since the cpu0.v machine is created by Verilog language, it suppose can run on
+Since the cpu0.v machine is created by Verilog language, suppose it can run on
 real FPGA device.
 The real output hardware
 interface/port is hardware output device dependent, such as RS232, speaker,
 LED, .... You should implement the I/O interface/port when you want to program
-FPGA and wire I/O device to the I/O port.</p>
+FPGA and wire I/O device to the I/O port.
+Through running the compiled code on Verilog simulator, beside of verifying the
+correction of our program, the exact cycles is being understood too.
+Though the Verilog simulator is slow for running the whole system program and
+not include the cycles counting in cache and I/O, it is a simple and easy way
+to verify your idea about CPU design at begging stage with small program pattern.
+The overall system simulator is complex to create. Even wiki web site here
+<a class="footnote-reference" href="#wiki-sim" id="id7">[7]</a> include tools for creating the simulator, it needs a lot of effort.</p>
 <p>To generate cpu032II as well as little endian code, you can run with the
 following command. File build-run_backend.sh write the endian information to
 ../verilog/cpu0.config as below.</p>
-<div class="highlight-bash"><div class="highlight"><pre>JonathantekiiMac:input Jonathan<span class="nv">$ </span>bash build-run_backend.sh cpu032I le
+<div class="highlight-bash"><div class="highlight"><pre><span></span>JonathantekiiMac:input Jonathan$ bash build-run_backend.sh cpu032I le
 </pre></div>
 </div>
 <p class="rubric">../verilog/cpu0.config</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="mi">1</span>   <span class="cm">/* 0: big endian, 1: little endian */</span>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="mi">1</span>   <span class="cm">/* 0: big endian, 1: little endian */</span>
 </pre></div>
 </div>
 <p>The following files test more features.</p>
 <p class="rubric">lbdex/input/ch_nolld2.h</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="cp">#include &quot;debug.h&quot;</span>
-<span class="cp">#include &quot;boot.cpp&quot;</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span>
+<span class="c1">#include &quot;debug.h&quot;</span>
+<span class="c1">#include &quot;boot.cpp&quot;</span>
 
-<span class="cp">#include &quot;print.h&quot;</span>
+<span class="c1">#include &quot;print.h&quot;</span>
 
-<span class="kt">int</span> <span class="nf">test_nolld2</span><span class="p">();</span>
+<span class="nb">int</span> <span class="n">test_nolld2</span><span class="p">();</span>
 </pre></div>
 </div>
 <p class="rubric">lbdex/input/ch_nolld2.cpp</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="cp">#include &quot;print.cpp&quot;</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span>
+<span class="c1">#include &quot;print.cpp&quot;</span>
 
-<span class="cp">#include &quot;ch8_2_longbranch.cpp&quot;</span>
-<span class="cp">#include &quot;ch9_4.cpp&quot;</span>
+<span class="c1">#include &quot;ch8_2_longbranch.cpp&quot;</span>
+<span class="c1">#include &quot;ch9_4.cpp&quot;</span>
 
-<span class="kt">int</span> <span class="nf">test_nolld2</span><span class="p">()</span>
+<span class="nb">int</span> <span class="n">test_nolld2</span><span class="p">()</span>
 <span class="p">{</span>
-  <span class="kt">bool</span> <span class="n">pass</span> <span class="o">=</span> <span class="nb">true</span><span class="p">;</span>
-  <span class="kt">int</span> <span class="n">a</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+  <span class="nb">bool</span> <span class="k">pass</span> <span class="o">=</span> <span class="n">true</span><span class="p">;</span>
+  <span class="nb">int</span> <span class="n">a</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
 
   <span class="n">a</span> <span class="o">=</span> <span class="n">test_longbranch</span><span class="p">();</span>
-  <span class="n">print_integer</span><span class="p">(</span><span class="n">a</span><span class="p">);</span>	<span class="c1">// a = 1</span>
-  <span class="k">if</span> <span class="p">(</span><span class="n">a</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">)</span> <span class="n">pass</span> <span class="o">=</span> <span class="nb">false</span><span class="p">;</span>
-  <span class="n">a</span> <span class="o">=</span> <span class="n">test_alloc</span><span class="p">();</span>  <span class="c1">// 31</span>
-  <span class="n">print_integer</span><span class="p">(</span><span class="n">a</span><span class="p">);</span>  <span class="c1">// a = 1</span>
-  <span class="k">if</span> <span class="p">(</span><span class="n">a</span> <span class="o">!=</span> <span class="mi">31</span><span class="p">)</span> <span class="n">pass</span> <span class="o">=</span> <span class="nb">false</span><span class="p">;</span>
-  <span class="k">return</span> <span class="n">pass</span><span class="p">;</span>
+  <span class="n">print_integer</span><span class="p">(</span><span class="n">a</span><span class="p">);</span>	<span class="o">//</span> <span class="n">a</span> <span class="o">=</span> <span class="mi">1</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">a</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">)</span> <span class="k">pass</span> <span class="o">=</span> <span class="n">false</span><span class="p">;</span>
+  <span class="n">a</span> <span class="o">=</span> <span class="n">test_alloc</span><span class="p">();</span>  <span class="o">//</span> <span class="mi">31</span>
+  <span class="n">print_integer</span><span class="p">(</span><span class="n">a</span><span class="p">);</span>  <span class="o">//</span> <span class="n">a</span> <span class="o">=</span> <span class="mi">1</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">a</span> <span class="o">!=</span> <span class="mi">31</span><span class="p">)</span> <span class="k">pass</span> <span class="o">=</span> <span class="n">false</span><span class="p">;</span>
+  <span class="k">return</span> <span class="k">pass</span><span class="p">;</span>
 <span class="p">}</span>
+
 </pre></div>
 </div>
 <p class="rubric">lbdex/input/ch_run_backend2.cpp</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="cp">#include &quot;ch_nolld2.h&quot;</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span>
+<span class="c1">#include &quot;ch_nolld2.h&quot;</span>
 
-<span class="kt">int</span> <span class="nf">main</span><span class="p">()</span>
+<span class="nb">int</span> <span class="n">main</span><span class="p">()</span>
 <span class="p">{</span>
-  <span class="kt">bool</span> <span class="n">pass</span> <span class="o">=</span> <span class="nb">true</span><span class="p">;</span>
-  <span class="n">pass</span> <span class="o">=</span> <span class="n">test_nolld2</span><span class="p">();</span>
+  <span class="nb">bool</span> <span class="k">pass</span> <span class="o">=</span> <span class="n">true</span><span class="p">;</span>
+  <span class="k">pass</span> <span class="o">=</span> <span class="n">test_nolld2</span><span class="p">();</span>
 
-  <span class="k">return</span> <span class="n">pass</span><span class="p">;</span>
+  <span class="k">return</span> <span class="k">pass</span><span class="p">;</span>
 <span class="p">}</span>
 
-<span class="cp">#include &quot;ch_nolld2.cpp&quot;</span>
+<span class="c1">#include &quot;ch_nolld2.cpp&quot;</span>
 </pre></div>
 </div>
 <p class="rubric">lbdex/input/build-run_backend2.sh</p>
-<div class="highlight-c++"><pre>#!/usr/bin/env bash
+<div class="highlight-default"><div class="highlight"><pre><span></span>#!/usr/bin/env bash
 
 source functions.sh
 
@@ -1244,9 +1312,9 @@ argNum=$#
 arg1=$1
 arg2=$2
 
-DEFFLAGS=""
-if [ "$arg1" == cpu032II ] ; then
-  DEFFLAGS=${DEFFLAGS}" -DCPU032II"
+DEFFLAGS=&quot;&quot;
+if [ &quot;$arg1&quot; == cpu032II ] ; then
+  DEFFLAGS=${DEFFLAGS}&quot; -DCPU032II&quot;
 fi
 echo ${DEFFLAGS}
 
@@ -1257,21 +1325,21 @@ clang ${DEFFLAGS} -c ch_run_backend2.cpp \
 ${TOOLDIR}/llc -march=cpu0${endian} -mcpu=${CPU} -relocation-model=static \
 -filetype=obj ch_run_backend2.bc -o ch_run_backend2.cpu0.o
 ${TOOLDIR}/llvm-objdump -d ch_run_backend2.cpu0.o | tail -n +8| awk \
-'{print "/* " $1 " */\t" $2 " " $3 " " $4 " " $5 "\t/* " $6"\t" $7" " $8" \
-" $9" " $10 "\t*/"}' &gt; ../verilog/cpu0.hex
+&#39;{print &quot;/* &quot; $1 &quot; */\t&quot; $2 &quot; &quot; $3 &quot; &quot; $4 &quot; &quot; $5 &quot;\t/* &quot; $6&quot;\t&quot; $7&quot; &quot; $8&quot; \
+&quot; $9&quot; &quot; $10 &quot;\t*/&quot;}&#39; &gt; ../verilog/cpu0.hex
 
-if [ "$arg2" == le ] ; then
-  echo "1   /* 0: big endian, 1: little endian */" &gt; ../verilog/cpu0.config
+if [ &quot;$arg2&quot; == le ] ; then
+  echo &quot;1   /* 0: big endian, 1: little endian */&quot; &gt; ../verilog/cpu0.config
 else
-  echo "0   /* 0: big endian, 1: little endian */" &gt; ../verilog/cpu0.config
+  echo &quot;0   /* 0: big endian, 1: little endian */&quot; &gt; ../verilog/cpu0.config
 fi
 cat ../verilog/cpu0.config
-</pre>
+</pre></div>
 </div>
-<div class="highlight-bash"><div class="highlight"><pre>JonathantekiiMac:input Jonathan<span class="nv">$ </span>bash build-run_backend.sh cpu032II le
+<div class="highlight-bash"><div class="highlight"><pre><span></span>JonathantekiiMac:input Jonathan$ bash build-run_backend.sh cpu032II le
 ...
-JonathantekiiMac:input Jonathan<span class="nv">$ </span><span class="nb">cd</span> ../verilog
-JonathantekiiMac:verilog Jonathan<span class="nv">$ </span>./cpu0IIs
+JonathantekiiMac:input Jonathan$ <span class="nb">cd</span> ../verilog
+JonathantekiiMac:verilog Jonathan$ ./cpu0IIs
 ...
 31
 ...
@@ -1279,44 +1347,50 @@ JonathantekiiMac:verilog Jonathan<span class="nv">$ </span>./cpu0IIs
 </div>
 </div>
 <div class="section" id="other-llvm-based-tools-for-cpu0-processor">
-<h2><a class="toc-backref" href="#id15">Other llvm based tools for Cpu0 processor</a><a class="headerlink" href="#other-llvm-based-tools-for-cpu0-processor" title="Permalink to this headline">¶</a></h2>
+<h2><a class="toc-backref" href="#id11">Other llvm based tools for Cpu0 processor</a><a class="headerlink" href="#other-llvm-based-tools-for-cpu0-processor" title="Permalink to this headline">¶</a></h2>
 <p>You can find the Cpu0 ELF linker implementation based on lld which is the
 llvm official linker project, as well as elf2hex which extended from llvm-objdump
 driver at web: <a class="reference external" href="http://jonathan2251.github.io/lbt/index.html">http://jonathan2251.github.io/lbt/index.html</a>.</p>
-<table class="docutils footnote" frame="void" id="id7" rules="none">
+<table class="docutils footnote" frame="void" id="free-doc1" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
 <tr><td class="label"><a class="fn-backref" href="#id1">[1]</a></td><td><a class="reference external" href="http://ccckmit.wikidot.com/ve:main">http://ccckmit.wikidot.com/ve:main</a></td></tr>
 </tbody>
 </table>
-<table class="docutils footnote" frame="void" id="id8" rules="none">
+<table class="docutils footnote" frame="void" id="free-doc2" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
 <tr><td class="label"><a class="fn-backref" href="#id2">[2]</a></td><td><a class="reference external" href="http://www.ece.umd.edu/courses/enee359a/">http://www.ece.umd.edu/courses/enee359a/</a></td></tr>
 </tbody>
 </table>
-<table class="docutils footnote" frame="void" id="id9" rules="none">
+<table class="docutils footnote" frame="void" id="free-doc3" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
 <tr><td class="label"><a class="fn-backref" href="#id3">[3]</a></td><td><a class="reference external" href="http://www.ece.umd.edu/courses/enee359a/verilog_tutorial.pdf">http://www.ece.umd.edu/courses/enee359a/verilog_tutorial.pdf</a></td></tr>
 </tbody>
 </table>
-<table class="docutils footnote" frame="void" id="id10" rules="none">
+<table class="docutils footnote" frame="void" id="free-doc4" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
 <tr><td class="label"><a class="fn-backref" href="#id4">[4]</a></td><td><a class="reference external" href="http://d1.amobbs.com/bbs_upload782111/files_33/ourdev_585395BQ8J9A.pdf">http://d1.amobbs.com/bbs_upload782111/files_33/ourdev_585395BQ8J9A.pdf</a></td></tr>
 </tbody>
 </table>
-<table class="docutils footnote" frame="void" id="id11" rules="none">
+<table class="docutils footnote" frame="void" id="free-doc5" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
 <tr><td class="label"><a class="fn-backref" href="#id5">[5]</a></td><td><a class="reference external" href="http://en.wikipedia.org/wiki/Verilog">http://en.wikipedia.org/wiki/Verilog</a></td></tr>
 </tbody>
 </table>
-<table class="docutils footnote" frame="void" id="id12" rules="none">
+<table class="docutils footnote" frame="void" id="vhdl" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
 <tr><td class="label"><a class="fn-backref" href="#id6">[6]</a></td><td><a class="reference external" href="http://en.wikipedia.org/wiki/VHDL">http://en.wikipedia.org/wiki/VHDL</a></td></tr>
+</tbody>
+</table>
+<table class="docutils footnote" frame="void" id="wiki-sim" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id7">[7]</a></td><td><a class="reference external" href="https://en.wikipedia.org/wiki/Computer_architecture_simulator">https://en.wikipedia.org/wiki/Computer_architecture_simulator</a></td></tr>
 </tbody>
 </table>
 </div>
@@ -1324,7 +1398,7 @@ driver at web: <a class="reference external" href="http://jonathan2251.github.io
 
 
       </div>
-      <div class="bottomnav">
+      <div class="bottomnav" role="navigation" aria-label="bottom navigation">
       
         <p>
         «&#160;&#160;<a href="c++.html">C++ support</a>
@@ -1336,9 +1410,9 @@ driver at web: <a class="reference external" href="http://jonathan2251.github.io
 
       </div>
 
-    <div class="footer">
-        &copy; Copyright 2013, LLVM.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.
+    <div class="footer" role="contentinfo">
+        &copy; Copyright 2016, Chen Chung-Shu.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.4.
     </div>
   </body>
 </html>
