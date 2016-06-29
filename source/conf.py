@@ -55,7 +55,7 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = u'LLVMBackendCpu0'
+project = u'TutorialLLVMBackendCpu0'
 copyright = u'2016, Chen Chung-Shu'
 author = u'Chen Chung-Shu'
 
@@ -267,7 +267,7 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-    (master_doc, 'LLVMBackendCpu0.tex', u'Tutorial: Creating an LLVM Backend for the Cpu0 Architecture',
+    (master_doc, 'TutorialLLVMBackendCpu0.tex', u'Tutorial: Creating an LLVM Backend for the Cpu0 Architecture',
      u'Chen Chung-Shu', 'manual'),
 ]
 
@@ -303,7 +303,7 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    (master_doc, 'LLVMBackendCpu0', u'Tutorial: Creating an LLVM Backend for the Cpu0 Architecture',
+    (master_doc, 'TutorialLLVMBackendCpu0', u'Tutorial: Creating an LLVM Backend for the Cpu0 Architecture',
      [u'Chen Chung-Shu', u'Anoushe Jamshidi'], 1)
 ]
 
@@ -318,7 +318,7 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-    (master_doc, 'LLVMBackendCpu0', u'Tutorial: Creating an LLVM Backend for the Cpu0 Architecture',
+    (master_doc, 'TutorialLLVMBackendCpu0', u'Tutorial: Creating an LLVM Backend for the Cpu0 Architecture',
    u'Chen Chung-Shu 陳鍾樞 gamma_chen@yahoo.com.tw', 'Tutorial: Creating an LLVM Backend for the Cpu0 Architecture', 'Tutorial: Creating an LLVM Backend for the Cpu0 Architecture.js.',
    'Computers'),
 
