@@ -35,7 +35,7 @@ The other is passing arguments in the registers which are reserved for function
 arguments, and put the other arguments in stack if it over the number of 
 registers reserved for function call. For example, Mips pass the first 4 
 arguments in register $a0, $a1, $a2, $a3, and the other arguments in stack 
-if it over 4 arguments. :num:`Figure #funccall-f1` is the Mips stack frame.
+if it over 4 arguments. :numref:`funccall-f1` is the Mips stack frame.
 
 .. _funccall-f1:
 .. figure:: ../Fig/funccall/1.png
@@ -160,7 +160,7 @@ See comments **"//"**.
 
 From the mips assembly code generated as above, we see that it saves the first 4 
 arguments to $a0..$a3 and last 2 arguments to 16($sp) and 20($sp). 
-:num:`Figure #funccall-f2` is the arguments location for example code 
+:numref:`funccall-f2` is the arguments location for example code 
 ch9_1.cpp. 
 It loads argument 5 from 48($sp) in sum_i() since the argument 5 is saved to 
 16($sp) in main(). 
@@ -179,7 +179,7 @@ argument 5.
 
 The 007-2418-003.pdf in here [#mipsasm]_ is the Mips assembly language manual. 
 Here [#abi]_ is Mips Application Binary Interface which include the 
-:num:`Figure #funccall-f1`.
+:numref:`funccall-f1`.
 
 Load incoming arguments from stack frame
 -----------------------------------------
@@ -350,8 +350,8 @@ GetMemOperand(..., FI, ...) return the Memory location of the frame index
 variable, which is the offset.
 
 For input ch9_incoming.cpp as below, LowerFormalArguments() will generate the 
-red circled parts of DAG nodes as :num:`Figure #funccall-f-incoming-arg1` and 
-:num:`Figure #funccall-f-incoming-arg2` for ``llc -cpu0-s32-calls=true`` and 
+red circled parts of DAG nodes as :numref:`funccall-f-incoming-arg1` and 
+:numref:`funccall-f-incoming-arg2` for ``llc -cpu0-s32-calls=true`` and 
 ``llc -cpu0-s32-calls=false``, respectively.
 The root node at bottom is created by
 
@@ -734,7 +734,7 @@ the correct number of values!
 Store outgoing arguments to stack frame
 ----------------------------------------
 
-:num:`Figure #funccall-f2` depicts two steps to take care arguments passing. 
+:numref:`funccall-f2` depicts two steps to take care arguments passing. 
 One is store outgoing arguments in caller function, the other is load 
 incoming arguments in callee function. 
 We defined LowerFormalArguments() for **“load incoming arguments”** in callee 
@@ -868,9 +868,9 @@ Read Lowercall() with Graphivz's help
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The whole DAGs created for outgoing arguments as 
-:num:`Figure #funccall-f-outgoing-arg` for ch9_outgoing.cpp with cpu032I.
+:numref:`funccall-f-outgoing-arg` for ch9_outgoing.cpp with cpu032I.
 LowerCall() will generate the DAG nodes as 
-:num:`Figure #funccall-f-outgoing-arg-lowercal` 
+:numref:`funccall-f-outgoing-arg-lowercal` 
 for ch9_outgoing.cpp with cpu032I. The corresponding code of DAGs Store and 
 TargetGlobalAddress are listed in the figure, user can match the other DAGs
 to function LowerCall() easily.
@@ -1640,7 +1640,7 @@ false for this function as follows,
 Since tailcall optimization will translate jmp instruction directly instead of
 jsub. The callseq_start, callseq_end, and the DAG nodes created in 
 LowerCallResult() and LowerReturn() are needless. It creates DAGs as 
-:num:`Figure #funccall-f-outgoing-arg-tailcall` for ch9_2_tailcall.cpp as 
+:numref:`funccall-f-outgoing-arg-tailcall` for ch9_2_tailcall.cpp as 
 follows,
 
 .. _funccall-f-outgoing-arg-tailcall:
@@ -2699,14 +2699,14 @@ As you can see, the dynamic stack allocation needs frame pointer register **fp**
 support. As above assembly, the sp is adjusted to (sp - 48) when it 
 entered the function as usual by instruction **addiu $sp, $sp, -48**. 
 Next, the fp is set to sp where is the position just above alloca() spaces area 
-as :num:`Figure #funccall-f4` when meets instruction **move $fp, $sp**. 
+as :numref:`funccall-f4` when meets instruction **move $fp, $sp**. 
 After that, the sp is changed to the area just below of alloca().
 Remind, the alloca() area which the b point to, 
 **"*b = (int*)__builtin_alloca(sizeof(int) * 2 * x6)"**, is 
 allocated at run time since the spaces is variable size which depend on x1 
 variable and cannot be calculated at link time. 
 
-:num:`Figure #funccall-f5` depicted how the stack pointer changes back to the 
+:numref:`funccall-f5` depicted how the stack pointer changes back to the 
 caller stack bottom. As above, the **fp** is set to the address just above of 
 alloca(). 
 The first step is changing the sp to fp by instruction **move $sp, $fp**.
@@ -2745,7 +2745,7 @@ Actually, we can keep the alloca() spaces size on a specific memory address
 and the sp can back to the the old sp by add the alloca() spaces size. 
 Most ABI like Mips
 and ARM access the above area of alloca() by fp and the below area of alloca()
-by sp, as :num:`Figure #funccall-f6` depicted. The reason for this definition 
+by sp, as :numref:`funccall-f6` depicted. The reason for this definition 
 is the speed for local variable access. Since the RISC CPU use immediate offset
 for load and store as below, using fp and sp for access both areas of
 local variables have better performance compare to use the sp only.

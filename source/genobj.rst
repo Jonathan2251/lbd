@@ -242,7 +242,7 @@ List the register functions of ELF obj output as follows,
     }
 
 Above createELFStreamer takes care the elf obj streamer. 
-:num:`Figure #genobj-f10` as follow is MCELFStreamer inheritance tree. 
+:numref:`genobj-f10` as follow is MCELFStreamer inheritance tree. 
 You can find a lot of operations in that inheritance tree.
 
 .. _genobj-f10:

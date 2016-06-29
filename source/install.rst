@@ -68,7 +68,7 @@ Before installing cmake, ensure you can install applications you download
 from the Internet. 
 Open :menuselection:`System Preferences --> Security & Privacy`. Click the 
 **lock** to make changes, and under "Allow applications downloaded from:" select 
-the radio button next to "Anywhere." See :num:`Figure #install-f2` below for an 
+the radio button next to "Anywhere." See :numref:`install-f2` below for an 
 illustration. You may want to revert this setting after installing cmake.
 
 .. _install-f2:
@@ -112,8 +112,8 @@ These tools mentioned in this section is for coding and debug.
 You can work even without these tools. 
 Files compare tools Kdiff3 came from web site [#kdiff3]_. 
 FileMerge is a part of Xcode, you can type FileMerge in Finder – Applications 
-as :num:`Figure #install-f11` and drag it into the Dock as 
-:num:`Figure #install-f12`.
+as :numref:`install-f11` and drag it into the Dock as 
+:numref:`install-f12`.
 
 .. _install-f11:
 .. figure:: ../Fig/install/11.png
@@ -129,7 +129,7 @@ as :num:`Figure #install-f11` and drag it into the Dock as
 
 Download tool Graphviz for display llvm IR nodes in debugging, 
 [#graphviz-dm]_. 
-We choose mountainlion as :num:`Figure #install-f13` since our iMac is Mountain 
+We choose mountainlion as :numref:`install-f13` since our iMac is Mountain 
 Lion.
 
 .. _install-f13:
@@ -162,8 +162,8 @@ like the obj file, \*.o, that will be generated in chapter of Generating object
 files if you havn't gobjdump available. 
 You can download from App Store. 
 To dump binary file, first, open the binary file, next, select menu 
-**“File – Hex Front Document”** as :num:`Figure #install-f14`. 
-Then select **“Front document's file”** as :num:`Figure #install-f15`.
+**“File – Hex Front Document”** as :numref:`install-f14`. 
+Then select **“Front document's file”** as :numref:`install-f15`.
 
 .. _install-f14:
 .. figure:: ../Fig/install/14.png
@@ -262,7 +262,7 @@ Build llvm by Xcode
 ~~~~~~~~~~~~~~~~~~~
 
 Now, LLVM.xcodeproj is created. Open the cmake_release_build/LLVM.xcodeproj by 
-Xcode and click menu **“Product – Build”** as :num:`Figure #install-f10`.
+Xcode and click menu **“Product – Build”** as :numref:`install-f10`.
 
 .. _install-f10:
 .. figure:: ../Fig/install/10.png

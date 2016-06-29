@@ -84,6 +84,48 @@ After upgrade to iMac OS X 10.11.1, pdflatex link is missing, fix it by set in
   export PATH=$PATH:...:/usr/local/texlive/2012/bin/universal-darwin
 
 
+Install pip and update Sphinx version
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Install pip and upgrade Sphinx to newer version as follows,
+
+.. code-block:: bash
+  
+  114-43-186-160:Downloads Jonathan$ curl -O https://bootstrap.pypa.io/get-pip.py
+  ...
+  114-43-186-160:Downloads Jonathan$ sudo python get-pip.py
+  ...
+  114-43-186-160:Downloads Jonathan$ sudo pip install Sphinx-1.4.4-py2.py3-none-any.whl
+  ...
+
+After make this document, I encounter the following error.
+
+.. code-block:: bash
+  
+  114-43-186-160:test-lbt Jonathan$ make html
+  Makefile:253: warning: overriding commands for target `clean'
+  Makefile:52: warning: ignoring old commands for target `clean'
+  sphinx-build -b html -d build/doctrees   source build/html
+  Running Sphinx v1.4.4
+  loading pickled environment... not yet created
+  
+  Exception occurred:
+    File "/Library/Python/2.7/site-packages/sphinx/ext/intersphinx.py", line 148, 
+    in _strip_basic_auth
+      url_parts = parse.urlsplit(url)
+  AttributeError: 'Module_six_moves_urllib_parse' object has no attribute 'urlsplit'
+  The full traceback has been saved in /var/folders/rf/
+  8bgdgt9d6vgf5sn8h8_zycd00000gn/T/sphinx-err-HgctP4.log, if you want to report 
+  the issue to the developers.
+  Please also report this if it was a user error, so that a better error message 
+  can be provided next time.
+  A bug report can be filed in the tracker at <https://github.com/sphinx-doc/sphinx/issues>. Thanks!
+  make: *** [html] Error 1
+
+After changed /Library/Python/2.7/site-packages/sphinx/ext/intersphinx.py 
+according https://github.com/sphinx-doc/sphinx/commit/7586297d6df6fbae4b860a604422d4eddc40b32e
+I fixed the problem.
+
 Generate Cpu0 document
 ~~~~~~~~~~~~~~~~~~~~~~~
 

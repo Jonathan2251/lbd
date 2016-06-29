@@ -57,11 +57,14 @@ Ulrich Weigand <Ulrich.Weigand@de.ibm.com> in AsmParser question answer.
 Revision history
 ----------------
 
-Version 3.7.2, Not release yet
+Version 3.7.3, Not release yet.
+
+Version 3.7.2, Released June 29, 2016
   Add Verilog delay slot simulation.
   Explain "tablegen(" in CMakeLists.txt.
   Correct typing.
-  Add lbdex/install_llvm/*.sh for installation.
+  Add lbdex/install_llvm/\*.sh for installation.
+  Upgrade sphinx to 1.4.4.
 
 Version 3.7.1, Released November 7, 2015
   Remove EM_CPU0_EL.
@@ -556,7 +559,7 @@ Outline of Chapters
 
   Code generation and execution flow
 
-The upper half of :num:`Figure #about-f1` is the work flow and software package 
+The upper half of :numref:`about-f1` is the work flow and software package 
 of a computer program be generated and executed. IR stands for Intermediate 
 Representation. 
 The lower half is this book's work flow and software package of the toolchain 

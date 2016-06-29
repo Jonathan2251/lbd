@@ -432,7 +432,7 @@ result with Graphviz as follows,
   Writing '/tmp/llvm_84ibpm/dag.main.dot'...  done. 
   118-165-12-177:input Jonathan$ Graphviz /tmp/llvm_84ibpm/dag.main.dot 
 
-It will show the /tmp/llvm_84ibpm/dag.main.dot as :num:`Figure #otherinst-f1`.
+It will show the /tmp/llvm_84ibpm/dag.main.dot as :numref:`otherinst-f1`.
 
 .. _otherinst-f1:
 .. figure:: ../Fig/otherinst/1.png
@@ -443,7 +443,7 @@ It will show the /tmp/llvm_84ibpm/dag.main.dot as :num:`Figure #otherinst-f1`.
 
   llc option -view-dag-combine1-dags graphic view
   
-:num:`Figure #otherinst-f1` is the stage of "Initial selection DAG". 
+:numref:`otherinst-f1` is the stage of "Initial selection DAG". 
 List the other view options and their corresponding stages of DAG translation as 
 follows,
 
@@ -534,7 +534,7 @@ Copy the reference as follows,
 
 Run Chapter3_5/ with input file ch4_1_mult.bc via option ``llc –view-isel-dags``, 
 will get the following error message and the llvm DAGs of 
-:num:`Figure #otherinst-f2` below.
+:numref:`otherinst-f2` below.
 
 .. code-block:: bash
 
@@ -560,7 +560,7 @@ will get the following error message and the llvm DAGs of
 LLVM replaces srem divide operation with multiply operation in DAG optimization 
 because DIV operation costs more in time than MUL. 
 Example code **“int b = 11; b=(b+1)%12;”** is translated into DAGs as
-:num:`Figure #otherinst-f2`. 
+:numref:`otherinst-f2`. 
 The DAGs of generated result is verified and explained by calculating the value 
 in each node. 
 The 0xC*0x2AAAAAAB=0x2,00000004, (mulhs 0xC, 0x2AAAAAAAB) meaning get the Signed 
@@ -630,7 +630,7 @@ Chapter4_1/ as follows,
 
 
 Let's run above changes with ch4_1_mult.cpp as well as ``llc -view-sched-dags`` option 
-to get :num:`Figure #otherinst-f3`. 
+to get :numref:`otherinst-f3`. 
 Instruction SMMUL will get the high word of multiply result.
 
 .. _otherinst-f3:
@@ -720,7 +720,7 @@ After that, MFHI instruction moves the HI register to Cpu0 field "a" register,
 $ra. 
 MFHI instruction is FL format and only use Cpu0 field "a" register, we set 
 the $rb and imm16 to 0. 
-:num:`Figure #otherinst-f4` and ch4_1_mult.cpu0.s are the results of compile 
+:numref:`otherinst-f4` and ch4_1_mult.cpu0.s are the results of compile 
 ch4_1_mult.bc.
 
 .. _otherinst-f4:

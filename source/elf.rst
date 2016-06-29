@@ -70,7 +70,7 @@ ELF format
 -----------
 
 ELF is a format used both in obj and executable file. 
-So, there are two views in it as :num:`Figure #elf-f1`.
+So, there are two views in it as :numref:`elf-f1`.
 
 .. _elf-f1:
 .. figure:: ../Fig/elf/1.png
@@ -81,7 +81,7 @@ So, there are two views in it as :num:`Figure #elf-f1`.
 
     ELF file format overview
 
-As :num:`Figure #elf-f1`, the “Section header table” include sections .text, 
+As :numref:`elf-f1`, the “Section header table” include sections .text, 
 .rodata, ..., .data which are sections layout for code, read only data, ..., 
 and read/write data. 
 “Program header table” include segments for run time code and data. 

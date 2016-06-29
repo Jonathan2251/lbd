@@ -124,7 +124,7 @@ if $cond != 0. So we set the corresponding translation to
 (JNEOp (CMPOp RC:$cond, ZEROReg), bb:$dst).
 
 The CMP instruction will set the result to register SW, and then JNE check the 
-condition based on SW status as :num:`Figure #ctrlflow-f1`. 
+condition based on SW status as :numref:`ctrlflow-f1`. 
 Since SW belongs to a different register class, it will be
 correct even an instruction is inserted between CMP and JNE as follows,
 

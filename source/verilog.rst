@@ -8,7 +8,7 @@ Verify backend on Verilog simulator
    :depth: 4
 
 Until now, we have an llvm backend to compile C or assembly as the blue part of 
-:num:`Figure #runbackend-f1`. If without global variable, the elf obj can be 
+:numref:`runbackend-f1`. If without global variable, the elf obj can be 
 dumped to hex file via ``llvm-objdump -d`` which finished in Chapter ELF Support.
 
 .. _runbackend-f1: 
@@ -20,7 +20,7 @@ dumped to hex file via ``llvm-objdump -d`` which finished in Chapter ELF Support
 
 
 This chapter will implement Cpu0 instructions by Verilog language as the red 
-part of :num:`Figure #runbackend-f1`.
+part of :numref:`runbackend-f1`.
 With this Verilog machine, we can write a C++ main 
 function as well as the assembly boot code, and translate this 
 main()+bootcode() into obj file.

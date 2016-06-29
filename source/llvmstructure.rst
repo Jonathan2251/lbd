@@ -50,7 +50,7 @@ Brief introduction
 
 Cpu0 is a 32-bit architecture. It has 16 general purpose registers (R0, ..., 
 R15), co-processor registers (like Mips), and other special registers. Its 
-structure is illustrated in :num:`Figure #llvmstructure-f1` below.
+structure is illustrated in :numref:`llvmstructure-f1` below.
 
 .. _llvmstructure-f1: 
 .. figure:: ../Fig/llvmstructure/1.png
@@ -105,7 +105,7 @@ The Cpu0 instruction set can be divided into three types: L-type instructions,
 which are generally associated with memory operations, A-type instructions for 
 arithmetic operations, and J-type instructions that are typically used when 
 altering control flow (i.e. jumps).  
-:num:`Figure #llvmstructure-f2` illustrates how the bitfields are broken down 
+:numref:`llvmstructure-f2` illustrates how the bitfields are broken down 
 for each type of instruction.
 
 .. _llvmstructure-f2: 
@@ -555,7 +555,7 @@ The Status Register
 
 The Cpu0 status word register (SW) contains the state of the Negative (N), 
 Zero (Z), Carry (C), Overflow (V), Debug (D), Mode (M), and Interrupt (I) flags.
-The bit layout of the SW register is shown in :num:`Figure #llvmstructure-f3` 
+The bit layout of the SW register is shown in :numref:`llvmstructure-f3` 
 below.
 
 .. _llvmstructure-f3: 
@@ -642,7 +642,7 @@ LLVM written by Chris Lattner [#aosa-book]_.
 
 The most popular design for a traditional static compiler (like most C 
 compilers) is the three phase design whose major components are the front end, 
-the optimizer and the back end, as seen in :num:`Figure #llvmstructure-f6`. 
+the optimizer and the back end, as seen in :numref:`llvmstructure-f6`. 
 The front end parses source code, checking it for errors, and builds a 
 language-specific Abstract Syntax Tree (AST) to represent the input code. 
 The AST is optionally converted to a new representation for optimization, and 
@@ -676,7 +676,7 @@ to support multiple source languages or target architectures.
 If the compiler uses a common code representation in its optimizer, then a 
 front end can be written for any language that can compile to it, and a back 
 end can be written for any target that can compile from it, as shown in 
-:num:`Figure #llvmstructure-f7`.
+:numref:`llvmstructure-f7`.
 
 .. _llvmstructure-f7: 
 .. figure:: ../Fig/llvmstructure/7.png
@@ -809,7 +809,7 @@ LLVM's solution to this is for each target to provide a target description
 in a declarative domain-specific language (a set of .td files) processed by the 
 tblgen tool. 
 The (simplified) build process for the x86 target is shown in 
-:num:`Figure #llvmstructure-f8`.
+:numref:`llvmstructure-f8`.
 
 .. _llvmstructure-f8: 
 .. figure:: ../Fig/llvmstructure/8.png
@@ -953,10 +953,10 @@ next 2 sections for DAG and Instruction Selection.
 
 The llvm code generation sequence also can be obtained by 
 ``llc -debug-pass=Structure`` as the following. The first 4 code generation 
-sequences from :num:`Figure #llvmstructure-f9` are in the 
+sequences from :numref:`llvmstructure-f9` are in the 
 **'DAG->DAG Pattern Instruction Selection'** of the ``llc -debug-pass=Structure`` 
 displayed. The order of Peephole Optimizations and Prologue/Epilogue Insertion
-is inconsistent between :num:`Figure #llvmstructure-f9` and 
+is inconsistent between :numref:`llvmstructure-f9` and 
 ``llc -debug-pass=Structure`` (please check the * in the following). 
 No need to be bothered with this since the the LLVM is under development and 
 changed from time to time. 
@@ -1125,7 +1125,7 @@ DAG (Directed Acyclic Graph)
 Many important techniques for local optimization begin by transforming a basic 
 block into DAG [#dragonbooks-8.5]_. 
 For example, the basic block code and it's corresponding DAG as 
-:num:`Figure #llvmstructure-f10`.
+:numref:`llvmstructure-f10`.
 
 .. _llvmstructure-f10: 
 .. figure:: ../Fig/llvmstructure/10.png
@@ -1169,7 +1169,7 @@ Instruction Selection
 ~~~~~~~~~~~~~~~~~~~~~
 
 The major function of backend is translating IR code into machine code at 
-stage of Instruction Selection as :num:`Figure #llvmstructure-f11`.
+stage of Instruction Selection as :numref:`llvmstructure-f11`.
 
 .. _llvmstructure-f11: 
 .. figure:: ../Fig/llvmstructure/11.png
@@ -1183,7 +1183,7 @@ stage of Instruction Selection as :num:`Figure #llvmstructure-f11`.
 For machine instruction selection, the best solution is representing IR and 
 machine instruction by DAG. 
 To simplify in view, the register leaf is skipped in 
-:num:`Figure #llvmstructure-f12`. 
+:numref:`llvmstructure-f12`. 
 The r\ :sub:`j`\  + r\ :sub:`k`\  is IR DAG representation (for symbol 
 notation, not llvm SSA form). 
 ADD is machine instruction.
@@ -1221,7 +1221,7 @@ Now, let's check the ADDiu instruction defined in Cpu0InstrInfo.td as follows,
     :end-before: #endif
 
 
-:num:`Figure #llvmstructure-f13` shows how the pattern match work in the IR 
+:numref:`llvmstructure-f13` shows how the pattern match work in the IR 
 node **add** and instruction **ADDiu** both defined in Cpu0InstrInfo.td. In 
 this example, IR node "add %a, 5" will be translated to "addiu $r1, 5" after %a 
 is allcated to register $r1 in regiter allocation stage since the IR 
@@ -1303,7 +1303,7 @@ For the following basic block code,
   d = a – d
   %e = fmadd %a, %c, %b // in llvm SSA IR form
 
-We can apply :num:`Figure #llvmstructure-f8` Instruction Tree Patterns to get the 
+We can apply :numref:`llvmstructure-f8` Instruction Tree Patterns to get the 
 following machine code,
 
 .. code-block:: c++
