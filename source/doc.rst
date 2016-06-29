@@ -318,7 +318,7 @@ follows,
   remul.ll                         v              urem, -> div, mfhi                                       4
   return-vector-float4.ll          v              return vector, -> lui lui ...                            3
   return-vector.ll                 v              return vector, -> ld ld ..., st st ...                   3
-  return_address.ll                v              llvm.returnaddress, -> addu	$2, $zero, $lr             9
+  return_address.ll                v              llvm.returnaddress, -> addu	$2, $zero, $lr               9
   rotate.ll                        v              rotl, rotr, -> rolv, rol, rorv                           4
   sb1.ll                           v              store i8, sb                                             7
   select.ll                        v              select, -> movn, movz                                    8
@@ -374,7 +374,7 @@ follows,
   
 
 These supported test items are in lbdex/regression-test/Cpu0 which can be 
-gotten from untar lbdex.tar.gz.
+gotten from ``tar -xf lbdex.tar.gz``.
 
 
 .. [#sphinx-install] http://docs.geoserver.org/latest/en/docguide/install.html

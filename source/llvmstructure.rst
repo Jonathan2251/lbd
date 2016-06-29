@@ -1089,7 +1089,7 @@ For example, if using limited virtual registers to generate the following code,
       %a = add i32 2, i32 0
       st %a,  i32* %c, 2
 
-Above code must run in sequence. On the other hand, the SSA form as the 
+Above code have to run in sequence. On the other hand, the SSA form as the 
 following can be reodered and run in parallel with the following different 
 version [#dragonbooks-10.2.3]_.
 
@@ -1881,7 +1881,7 @@ So,
   imm_type = immSExt16
   RC = CPURegs
 
-To expand the td, one principle is:
+To expand the td, some principles are:
 
 - let: meaning override the existed field from parent class.
 

@@ -675,6 +675,11 @@ virtual machine and seeing the CPU0 running result on PC computer.
 Details how to set up the LLVM source code, development tools, and environment
 setting for Mac OS X and Linux platforms.
 
+:ref:`sec-appendix-doc`:
+
+This book uses Sphix to generate pdf and epub format of document further.
+Details how to install tools to and generate these docuemnts.
+
 
 .. [#llvm-license] http://llvm.org/docs/DeveloperPolicy.html#license
 
