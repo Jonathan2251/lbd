@@ -817,12 +817,15 @@ The result as follows,
 .. literalinclude:: ../lbdex/input/ch7_1_localarrayinit.cpp
     :start-after: /// start
 
-.. code-block:: bash
+.. code-block:: console
 
   118-165-79-206:input Jonathan$ clang -target mips-unknown-linux-gnu -c 
   ch7_1_localarrayinit.cpp -emit-llvm -o ch7_1_localarrayinit.bc
   118-165-79-206:input Jonathan$ llvm-dis ch7_1_localarrayinit.bc -o -
   ...
+  
+.. code-block:: llvm
+
   define i32 @main() nounwind ssp {
   entry:
     %retval = alloca i32, align 4
@@ -835,6 +838,8 @@ The result as follows,
   }
   ; Function Attrs: nounwind
   declare void @llvm.memcpy.p0i8.p0i8.i32(i8* nocapture, i8* nocapture, i32, i32, i1) #1
+
+.. code-block:: console
 
   118-165-79-206:input Jonathan$ ~/llvm/test/cmake_debug_build/
   bin/llc -march=cpu0 -relocation-model=pic -filetype=asm ch7_1_localarrayinit.bc -o -
@@ -876,14 +881,16 @@ too.
 .. literalinclude:: ../lbdex/input/ch7_1_vector.cpp
     :start-after: /// start
 
-.. code-block:: bash
+.. code-block:: console
 
   118-165-79-206:input Jonathan$ clang -target mips-unknown-linux-gnu -c 
   ch7_1_localpointer_vector.cpp -emit-llvm -o ch7_1_vector.bc
   118-165-79-206:input Jonathan$ ~/llvm/test/cmake_debug_build/Debug/bin/
-  llvm-dis ch7_1_vector.bc -o -
-  
+  llvm-dis ch7_1_vector.bc -o -  
   ...
+  
+.. code-block:: llvm
+
   ; Function Attrs: nounwind
   define i32 @_Z16test_cmplt_shortv() #0 {
     %a0 = alloca <4 x i32>, align 16

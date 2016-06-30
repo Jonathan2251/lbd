@@ -58,7 +58,7 @@ Cpu0 uses memory mapped I/O where memory address 0x80000 as the output port.
 When meet the instruction **"st $ra, cx($rb)"**, where cx($rb) is 
 0x80000, Cpu0 displays the content as follows,
 
-.. code-block:: c++
+.. code-block:: verilog
 
       ST : begin
         ...
@@ -78,7 +78,7 @@ The endian information stored in ROM of memory module, and memory module send
 the information when it is up according the following code,
 
 .. rubric:: lbdex/verilog/cpu0.v
-.. code-block:: bash
+.. code-block:: console
 
     assign cfg = mconfig[0][0:0];
     ...
@@ -155,7 +155,7 @@ uses the vararg needs to be compiled with this option. Other example codes have
 no differences between this option and default option. 
 
 
-.. code-block:: bash
+.. code-block:: console
 
   JonathantekiiMac:input Jonathan$ pwd
   /Users/Jonathan/llvm/test/lbdex/input
@@ -229,7 +229,7 @@ below,
 
       TRACE=-D TRACE
 
-.. code-block:: bash
+.. code-block:: console
 
   JonathantekiiMac:raw Jonathan$ ./cpu0Is
   WARNING: cpu0.v:386: $readmemh(cpu0.hex): Not enough words in the file for the 
@@ -276,7 +276,7 @@ To generate cpu032II as well as little endian code, you can run with the
 following command. File build-run_backend.sh write the endian information to 
 ../verilog/cpu0.config as below.
 
-.. code-block:: bash
+.. code-block:: console
 
   JonathantekiiMac:input Jonathan$ bash build-run_backend.sh cpu032I le
 
@@ -302,7 +302,7 @@ The following files test more features.
 .. rubric:: lbdex/input/build-run_backend2.sh
 .. literalinclude:: ../lbdex/input/build-run_backend2.sh
   
-.. code-block:: bash
+.. code-block:: console
 
   JonathantekiiMac:input Jonathan$ bash build-run_backend.sh cpu032II le
   ...

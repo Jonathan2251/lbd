@@ -294,7 +294,7 @@ Now, let's build Chapter4_1/ and run with input file ch4_math.ll as follows,
 .. rubric:: lbdex/input/ch4_math.ll
 .. literalinclude:: ../lbdex/input/ch4_math.ll
   
-.. code-block:: bash
+.. code-block:: console
 
   118-165-78-12:input Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
   Debug/bin/llc -march=cpu0 -relocation-model=pic -filetype=asm ch4_math.ll -o -
@@ -343,7 +343,7 @@ follows,
 .. literalinclude:: ../lbdex/input/ch4_1_addsuboverflow.cpp
     :start-after: /// start
 
-.. code-block:: bash
+.. code-block:: console
 
   118-165-78-12:input Jonathan$ clang -target mips-unknown-linux-gnu -c 
   ch4_1_addsuboverflow.cpp -emit-llvm -o ch4_1_addsuboverflow.bc
@@ -407,7 +407,7 @@ Instruction Selection Process" of web "The LLVM Target-Independent Code Generato
   
 By tracking ``llc -debug``, you can see the steps of DAG translation as follows,
 
-.. code-block:: bash
+.. code-block:: console
 
   Initial selection DAG
   Optimized lowered selection DAG
@@ -424,7 +424,7 @@ By tracking ``llc -debug``, you can see the steps of DAG translation as follows,
 Let's run ``llc`` with option -view-dag-combine1-dags, and open the output 
 result with Graphviz as follows,
 
-.. code-block:: bash
+.. code-block:: console
 
   118-165-12-177:input Jonathan$ /Users/Jonathan/llvm/test/
   cmake_debug_build/Debug/bin/llc -view-dag-combine1-dags -march=cpu0 
@@ -479,7 +479,7 @@ corresponding llvm IR, as follows,
 .. literalinclude:: ../lbdex/input/ch4_1_mult.cpp
     :start-after: /// start
 
-.. code-block:: bash
+.. code-block:: console
 
   ...
   define i32 @_Z8test_multv() #0 {
@@ -536,7 +536,7 @@ Run Chapter3_5/ with input file ch4_1_mult.bc via option ``llc –view-isel-dags
 will get the following error message and the llvm DAGs of 
 :numref:`otherinst-f2` below.
 
-.. code-block:: bash
+.. code-block:: console
 
   118-165-79-37:input Jonathan$ /Users/Jonathan/llvm/test/
   cmake_debug_build/Debug/bin/llc -march=cpu0 -view-isel-dags -relocation-model=
@@ -644,7 +644,7 @@ Instruction SMMUL will get the high word of multiply result.
 
 The following is the result of run above changes with ch4_1_mult.bc.
 
-.. code-block:: bash
+.. code-block:: console
 
   118-165-66-82:input Jonathan$ /Users/Jonathan/llvm/test/cmake_
   debug_build/Debug/bin/llc -march=cpu0 -relocation-model=pic -filetype=asm 
@@ -732,7 +732,7 @@ ch4_1_mult.bc.
 
   DAG for ch4_1_mult.bc with Mips style MULT
 
-.. code-block:: bash
+.. code-block:: console
 
   118-165-66-82:input Jonathan$ cat ch4_1_mult.cpu0.s 
     ...
@@ -804,7 +804,7 @@ llvm **“Constant Propagation Optimization”** useless in it.
 .. literalinclude:: ../lbdex/input/ch4_1_mod.cpp
     :start-after: /// start
 
-.. code-block:: bash
+.. code-block:: console
 
   118-165-77-79:input Jonathan$ clang -target mips-unknown-linux-gnu -c 
   ch4_1_mod.cpp -emit-llvm -o ch4_1_mod.bc
@@ -819,7 +819,7 @@ llvm **“Constant Propagation Optimization”** useless in it.
 To explains how to work with **“div”**, let's run ch4_1_mod.cpp with debug option
 as follows,
 
-.. code-block:: bash
+.. code-block:: console
 
   118-165-83-58:input Jonathan$ clang -target mips-unknown-linux-gnu -c 
   ch4_1_mod.cpp -I/Applications/Xcode.app/Contents/Developer/Platforms/
@@ -1001,12 +1001,14 @@ Compile ch4_1_rotate.cpp will get Cpu0 "rol" instruction.
 .. literalinclude:: ../lbdex/input/ch4_1_rotate.cpp
     :start-after: /// start
 
-.. code-block:: bash
+.. code-block:: console
   
   114-43-200-122:input Jonathan$ clang -target mips-unknown-linux-gnu -c 
   ch4_1_rotate.cpp -emit-llvm -o ch4_1_rotate.bc
   114-43-200-122:input Jonathan$ llvm-dis ch4_1_rotate.bc -o -
   
+.. code-block:: llvm
+
   define i32 @_Z16test_rotate_leftv() #0 {
     %a = alloca i32, align 4
     %result = alloca i32, align 4
@@ -1021,6 +1023,8 @@ Compile ch4_1_rotate.cpp will get Cpu0 "rol" instruction.
     ret i32 %6
   }
   
+.. code-block:: console
+
   114-43-200-122:input Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/Debug/
   bin/llc -march=cpu0 -relocation-model=pic -filetype=asm ch4_1_rotate.bc -o -
     ...
@@ -1088,7 +1092,7 @@ run result of bc and asm instructions for ch4_2_logic.cpp as below.
 .. literalinclude:: ../lbdex/input/ch4_2_logic.cpp
     :start-after: /// start
 
-.. code-block:: bash
+.. code-block:: console
 
   114-43-204-152:input Jonathan$ clang -target mips-unknown-linux-gnu -c 
   ch4_2_logic.cpp -emit-llvm -o ch4_2_logic.bc
@@ -1271,7 +1275,7 @@ cmp uses $sw dedicated register.
 .. literalinclude:: ../lbdex/input/ch4_2_slt_explain.cpp
     :start-after: /// start
 
-.. code-block:: bash
+.. code-block:: console
 
   118-165-78-10:input Jonathan$ clang -target mips-unknown-linux-gnu -O2 
   -c ch4_2_slt_explain.cpp -emit-llvm -o ch4_2_slt_explain.bc
@@ -1311,7 +1315,7 @@ instruction reorder since both of them use \$sw register. The
 `llc -mcpu=cpu032II` has not this problem because it uses slti [#Quantitative]_. 
 The slti version can reorder as follows,
 
-.. code-block:: bash
+.. code-block:: console
 
     ...
     ld  $2, 16($sp)

@@ -729,7 +729,7 @@ The most important aspect of it, though, is that it is itself defined as a
 first class language with well-defined semantics. 
 To make this concrete, here is a simple example of a .ll file:
 
-.. code-block:: c++
+.. code-block:: llvm
 
   define i32 @add1(i32 %a, i32 %b) {
   entry:
@@ -748,7 +748,10 @@ To make this concrete, here is a simple example of a .ll file:
   done:
     ret i32 %b
   }
-  // This LLVM IR corresponds to this C code, which provides two different ways to
+
+.. code-block:: c++
+
+  // Above LLVM IR corresponds to this C code, which provides two different ways to
   //  add integers:
   unsigned add1(unsigned a, unsigned b) {
     return a+b;
@@ -856,7 +859,7 @@ representation.
 Comment is “;” in llvm representation. 
 Following is the llvm SSA instructions.
 
-.. code-block:: c++
+.. code-block:: llvm
 
   store i32 0, i32* %a  ; store i32 type of 0 to virtual register %a, %a is
               ;  pointer type which point to i32 value
@@ -878,7 +881,7 @@ next 2 sections for DAG and Instruction Selection.
 
 1. Instruction Selection
 
-.. code-block:: c++
+.. code-block:: console
 
   // In this stage, transfer the llvm opcode into machine opcode, but the operand
   //  still is llvm virtual operand.
@@ -888,7 +891,7 @@ next 2 sections for DAG and Instruction Selection.
 
 2. Scheduling and Formation
 
-.. code-block:: c++
+.. code-block:: console
 
   // In this stage, reorder the instructions sequence for optimization in
   //  instructions cycle or in register pressure.
@@ -961,7 +964,7 @@ is inconsistent between :numref:`llvmstructure-f9` and
 No need to be bothered with this since the the LLVM is under development and 
 changed from time to time. 
 
-.. code-block:: bash
+.. code-block:: console
 
   118-165-79-200:input Jonathan$ llc --help-hidden
   OVERVIEW: llvm system compiler
@@ -1077,7 +1080,7 @@ include stages of **Instruction Selection**, **Scheduling and Formation** and
 **Register Allocation**, won't loss any optimization opportunity. 
 For example, if using limited virtual registers to generate the following code,
 
-.. code-block:: c++
+.. code-block:: console
 
     %a = add nsw i32 1, i32 0
     store i32 %a, i32* %c, align 4
@@ -1093,7 +1096,7 @@ Above code have to run in sequence. On the other hand, the SSA form as the
 following can be reodered and run in parallel with the following different 
 version [#dragonbooks-10.2.3]_.
 
-.. code-block:: c++
+.. code-block:: console
 
     %a = add nsw i32 1, i32 0
     store i32 %a, i32* %c, align 4
@@ -1257,7 +1260,7 @@ It can be represented by DAG list (fadd (fmul ra, rc), rb).
 For this implementation, we can assign fmadd DAG pattern to instruction td as 
 follows,
 
-.. code-block:: c++
+.. code:: c++
 
   def FMADDS : AForm_1<59, 29,
             (ops F4RC:$FRT, F4RC:$FRA, F4RC:$FRC, F4RC:$FRB),
@@ -1270,11 +1273,13 @@ F4RC:$FRB))] is the pattern which include nodes **fmul** and **fadd**.
 
 Now, for the following basic block notation IR and llvm SSA IR code,
 
-.. code-block:: c++
+.. code:: c++
 
   d = a * c
   e = d + b
   ...
+  
+.. code-block:: llvm
   
   %d = fmul %a, %c
   %e = fadd %d, %b
@@ -1286,7 +1291,7 @@ the Instruction Selection Process will translate this two IR DAG node
 **fmul** and **fadd** if the FMADDS is appear before FMUL and FADD in your td 
 file.
 
-.. code-block:: c++
+.. code-block:: console
 
   %e = fmadd %a, %c, %b
   ...
@@ -1297,7 +1302,7 @@ So, this notation form is used in this book sometimes.
 
 For the following basic block code,
 
-.. code-block:: c++
+.. code-block:: console
 
   a = b + c   // in notation IR form
   d = a – d
@@ -1306,7 +1311,7 @@ For the following basic block code,
 We can apply :numref:`llvmstructure-f8` Instruction Tree Patterns to get the 
 following machine code,
 
-.. code-block:: c++
+.. code-block:: console
 
   load  rb, M(sp+8); // assume b allocate in sp+8, sp is stack point register
   load  rc, M(sp+16);
@@ -1325,7 +1330,7 @@ Caller and callee saved registers
     
 Run Mips backend with above input will get the following result.
 
-.. code-block:: bash
+.. code-block:: console
 
   JonathantekiiMac:input Jonathan$ ~/llvm/release/cmake_debug_build/Debug/bin/llc 
   -O0 -march=mips -relocation-model=static -filetype=asm 
@@ -1439,7 +1444,7 @@ relocation records. Chapter "ELF Support" include the relocation records
 introduction. The following files are modified to add Cpu0 backend as follows,
 
 .. rubric:: lbdex/src/modify/src/config-ix.cmake
-.. code-block:: c++
+.. code:: cmake
   
   ...
   elseif (LLVM_NATIVE_ARCH MATCHES "cpu0")
@@ -1447,7 +1452,7 @@ introduction. The following files are modified to add Cpu0 backend as follows,
   ...
 
 .. rubric:: lbdex/src/modify/src/CMakeLists.txt
-.. code-block:: c++
+.. code-block:: cmake
   
   set(LLVM_ALL_TARGETS
     ...
@@ -1857,7 +1862,7 @@ The Cpu0InstrFormats.td is included by Cpu0InstInfo.td as follows,
 ADDiu is a instance of class ArithLogicI which inherited from FL, and can be 
 expanded and get member value further as follows,
 
-.. code-block:: c++
+.. code:: c++
 
   def ADDiu   : ArithLogicI<0x09, "addiu", add, simm16, immSExt16, CPURegs>;
   
@@ -1872,7 +1877,7 @@ expanded and get member value further as follows,
   
 So,
 
-.. code-block:: c++
+.. code-block:: console
   
   op = 0x09
   instr_asm = “addiu”
@@ -1965,7 +1970,7 @@ The "tablegen(" in above CMakeLists.txt is defined in
 cmake/modules/TableGen.cmake as below, 
 
 .. rubric:: src/cmake/modules/TableGen.cmake
-.. code-block:: c++
+.. code:: cmake
 
   function(tablegen project ofn)
     ...
@@ -1988,7 +1993,7 @@ cmake/modules/TableGen.cmake as below,
   endmacro()
 
 .. rubric:: src/utils/TableGen/CMakeLists.txt
-.. code-block:: c++
+.. code-block:: cmake
 
   add_tablegen(llvm-tblgen LLVM
     ...
@@ -2001,7 +2006,7 @@ lbdex/chapters/Chapter2/CMakeLists.txt and the following code define a target
 "Cpu0CommonTableGen" with it's output files "Cpu0Gen*.inc" as follows,
 
 .. rubric:: src/cmake/modules/TableGen.cmake
-.. code-block:: c++
+.. code:: cmake
 
   function(tablegen project ofn)
     ...
@@ -2105,7 +2110,7 @@ relocation records listed in the early sub-section.
 You can update your llvm working copy and find the modified files by 
 commands, cp -rf lbdex/src/modify/src/* <yourllvm/workingcopy/sourcedir>/.
 
-.. code-block:: bash
+.. code-block:: console
 
   118-165-78-230:test Jonathan$ pwd
   /Users/Jonathan/test
@@ -2130,7 +2135,7 @@ Next configure the Cpu0 example code to chapter2 as follows,
 Now, run the ``cmake`` command and Xcode to build td (the following cmake 
 command is for my setting),
 
-.. code-block:: bash
+.. code-block:: console
 
   118-165-78-230:cmake_debug_build Jonathan$ cmake -DCMAKE_CXX_COMPILER=clang++ 
   -DCMAKE_C_COMPILER=clang -DCMAKE_BUILD_TYPE=Debug -G "Xcode" ../src/
@@ -2146,7 +2151,7 @@ command is for my setting),
 
 After build, you can type command ``llc –version`` to find the cpu0 backend,
 
-.. code-block:: bash
+.. code-block:: console
 
   118-165-78-230:cmake_debug_build Jonathan$ /Users/Jonathan/llvm/test/
   cmake_debug_build/Debug/bin/llc --version
@@ -2166,7 +2171,7 @@ sub-section "Target Registration" [#asadasd]_.
 
 Let's build lbdex/chapters/Chapter2 code as follows,
 
-.. code-block:: bash
+.. code-block:: console
 
   118-165-75-57:test Jonathan$ pwd
   /Users/Jonathan/test
@@ -2250,7 +2255,7 @@ Now try to run  command ``llc`` to compile input file ch3.cpp as follows,
 
 First step, compile it with clang and get output ch3.bc as follows,
 
-.. code-block:: bash
+.. code-block:: console
 
   118-165-78-230:input Jonathan$ pwd
   /Users/Jonathan/llvm/test/lbdex/input
@@ -2261,7 +2266,7 @@ As above, compile C to .bc by ``clang -target mips-unknown-linux-gnu`` because
 Cpu0 borrows the ABI from Mips.
 Next step, transfer bitcode .bc to human readable text format as follows,
 
-.. code-block:: bash
+.. code-block:: console
 
   118-165-78-230:test Jonathan$ llvm-dis ch3.bc -o -
   
@@ -2280,7 +2285,7 @@ Next step, transfer bitcode .bc to human readable text format as follows,
 
 Now, when compiling ch3.bc will get the error message as follows,
 
-.. code-block:: c++
+.. code-block:: console
 
   118-165-78-230:input Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
   Debug/bin/llc -march=cpu0 -relocation-model=pic -filetype=asm ch3.bc -o 

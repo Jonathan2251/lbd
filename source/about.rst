@@ -58,6 +58,7 @@ Revision history
 ----------------
 
 Version 3.7.3, Not release yet.
+  Refine code-block according sphinx lexers.
 
 Version 3.7.2, Released June 29, 2016
   Add Verilog delay slot simulation.

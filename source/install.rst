@@ -25,7 +25,7 @@ This chapter details the installation of related software for this book.
 If you are know well in llvm/clang installation or think it is too details, you
 can run the bash script files after you install the Xcode and cmake as follows,
 
-.. code-block:: bash
+.. code-block:: console
 
   118-165-78-111:test Jonathan$ pwd
   /Users/Jonathan/test
@@ -80,7 +80,7 @@ illustration. You may want to revert this setting after installing cmake.
 Alternatively, you can mount the cmake .dmg image file you downloaded. Untar 
 the latest cmake for Darwin, copy the cmake /Applications/ and set PATH as follows,
 
-.. code-block:: bash
+.. code-block:: console
   
   114-43-208-90:cmake_release_build Jonathan$ cat ~/.profile
   export PATH=$PATH:/Applications/CMake.app/Contents/bin
@@ -92,7 +92,7 @@ Install Icarus Verilog tool on iMac
 
 Install Icarus Verilog tool by command ``brew install icarus-verilog`` as follows,
 
-.. code-block:: bash
+.. code-block:: console
 
   JonathantekiiMac:~ Jonathan$ brew install icarus-verilog
   ==> Downloading ftp://icarus.com/pub/eda/verilog/v0.9/verilog-0.9.5.tar.gz
@@ -146,7 +146,7 @@ For example, we install the Graphviz in directory
 /Applications/Graphviz.app/Contents/MacOS/, so add this path to 
 /User/Jonathan/.profile as follows,
 
-.. code-block:: bash
+.. code-block:: console
 
   118-165-12-177:InputFiles Jonathan$ cat /Users/Jonathan/.profile
   export PATH=$PATH:/Applications/Xcode.app/Contents/bin:
@@ -179,7 +179,7 @@ Then select **“Front document's file”** as :numref:`install-f15`.
   
 Install binutils by command ``brew install binutils`` as follows,
 
-.. code-block:: bash
+.. code-block:: console
 
   118-165-77-214:~ Jonathan$ brew install binutils
   ==> Downloading http://ftpmirror.gnu.org/binutils/binutils-2.22.tar.gz
@@ -212,7 +212,7 @@ After that, move the clang source code to src/tools/clang as shown as follows.
 The compiler-rt should not installed in iMac OS X 10.9 and Xcode 5.x. If you 
 did as clang installation web document, it will has compiler error.
 
-.. code-block:: bash
+.. code-block:: console
 
   118-165-78-111:Downloads Jonathan$ tar -xvf cfe-3.7.0.src.tar.xz 
   118-165-78-111:Downloads Jonathan$ tar -xvf llvm-3.7.0.src.tar.xz 
@@ -244,7 +244,7 @@ We installed llvm source code with clang on directory
 /Users/Jonathan/llvm/release/ in last section.
 Now, will generate the LLVM.xcodeproj in this chapter.
 
-.. code-block:: bash
+.. code-block:: console
   
   114-43-213-176:release Jonathan$ pwd
   /Users/Jonathan/llvm/release
@@ -273,7 +273,7 @@ Xcode and click menu **“Product – Build”** as :numref:`install-f10`.
 After few minutes of build, the clang, llc, llvm-as, ..., can be found in 
 cmake_release_build/Debug/bin/ as follows.
 
-.. code-block:: bash
+.. code-block:: console
 
   118-165-78-111:cmake_release_build Jonathan$ cd Debug/bin/
   118-165-78-111:bin Jonathan$ pwd
@@ -293,7 +293,7 @@ $PATH by command ``source .profile`` as follows.
 Please add path /Applications//Xcode.app/Contents/Developer/usr/bin to .profile 
 if you didn't add it after Xcode download.
 
-.. code-block:: bash
+.. code-block:: console
 
   118-165-65-128:~ Jonathan$ pwd
   /Users/Jonathan
@@ -325,7 +325,7 @@ Steps as follows,
   
 The details of installing Cpu0 backend example code as follows,
 
-.. code-block:: bash
+.. code-block:: console
 
   118-165-78-111:llvm Jonathan$ mkdir test
   118-165-78-111:llvm Jonathan$ cd test
@@ -356,7 +356,7 @@ The details of installing Cpu0 backend example code as follows,
 
 Next, please copy Cpu0 example code according the following commands, 
 
-.. code-block:: bash
+.. code-block:: console
   
   118-165-78-111:test Jonathan$ pwd
   /Users/Jonathan/llvm/test
@@ -371,7 +371,7 @@ Next, please copy Cpu0 example code according the following commands,
 
 Now, it's ready for building llvm/test/src code by command ``cmake`` as follows. 
 
-.. code-block:: bash
+.. code-block:: console
 
   118-165-78-111:test Jonathan$ pwd
   /Users/Jonathan/llvm/test
@@ -405,7 +405,7 @@ as the Linux as the following section.
 Since Xcode use clang compiler and lldb instead of gcc and gdb, we can run lldb 
 debug as follows, 
 
-.. code-block:: bash
+.. code-block:: console
 
   118-165-65-128:InputFiles Jonathan$ pwd
   /Users/Jonathan/lbdex/InputFiles
@@ -490,7 +490,7 @@ First, install the llvm release build by,
 Next, build with cmake command, ``cmake -DCMAKE_BUILD_TYPE=Release -DCLANG_BUILD
 _EXAMPLES=ON -DLLVM_BUILD_EXAMPLES=ON -G "Unix Makefiles" ../src/``, as follows.
 
-.. code-block:: bash
+.. code-block:: console
 
   [Gamma@localhost cmake_release_build]$ pwd
   /home/cschen/llvm/release/cmake_release_build
@@ -512,7 +512,7 @@ in cmake_release_build/bin/ after a few tens minutes of build.
 To speed up make process via SMP power, please check your core numbers by the 
 following command then do make the next.
 
-.. code-block:: bash
+.. code-block:: console
 
   [Gamma@localhost cmake_release_build]$ cat /proc/cpuinfo | grep processor | wc -l
   8
@@ -522,7 +522,7 @@ Next, edit
 /home/Gamma/.bash_profile with adding /home/cschen/llvm/release/cmake_release_build/
 bin to PATH to enable the clang, llc, ..., command search path, as follows,
 
-.. code-block:: bash
+.. code-block:: console
 
   [Gamma@localhost ~]$ pwd
   /home/Gamma
@@ -582,7 +582,7 @@ list steps, and the corresponding commands shown as below,
    test/cmake_debug_build. Otherwise you will waste extra time for 
    command ``make`` in Cpu0 example code build with clang.
 
-.. code-block:: bash
+.. code-block:: console
 
   [Gamma@localhost llvm]$ mkdir test
   [Gamma@localhost llvm]$ cd test
@@ -611,7 +611,7 @@ Now, create directory cmake_debug_build and do cmake just like build the
 llvm/release, except we do Debug build with Cpu0 backend only, and use clang as 
 our compiler instead, as follows,
 
-.. code-block:: bash
+.. code-block:: console
 
   [Gamma@localhost test]$ pwd
   /home/cschen/llvm/test

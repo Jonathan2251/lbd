@@ -28,7 +28,7 @@ version first, then explain the code changes after that.
 .. literalinclude:: ../lbdex/input/ch6_1.cpp
     :start-after: /// start
 
-.. code-block:: bash
+.. code-block:: console
 
   118-165-78-166:input Jonathan$ llvm-dis ch6_1.bc -o -
   ...
@@ -60,7 +60,7 @@ Let's run Chapter6_1/ with ch6_1.cpp via four different options
 ``llc  -relocation-model=pic -cpu0-use-small-section=true`` to tracing the 
 DAGs and Cpu0 instructions.
 
-.. code-block:: bash
+.. code-block:: console
 
   118-165-78-166:input Jonathan$ clang -target mips-unknown-linux-gnu -c 
   ch6_1.cpp -emit-llvm -o ch6_1.bc
@@ -123,7 +123,7 @@ DAGs and Cpu0 instructions.
   	.4byte	100                     # 0x64
   	.size	gI, 4
 
-.. code-block:: bash
+.. code-block:: console
 
   118-165-78-166:input Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
   Debug/bin/llc -march=cpu0 -relocation-model=static -cpu0-use-small-section=true 
@@ -181,7 +181,7 @@ DAGs and Cpu0 instructions.
   	.4byte	100                     # 0x64
   	.size	gI, 4
 
-.. code-block:: bash
+.. code-block:: console
 
   118-165-78-166:input Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
   Debug/bin/llc -march=cpu0 -relocation-model=pic -cpu0-use-small-section=false 
@@ -241,7 +241,7 @@ DAGs and Cpu0 instructions.
     .4byte  100                     # 0x64
     .size gI, 4
 
-.. code-block:: bash
+.. code-block:: console
 
   118-165-78-166:input Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
   Debug/bin/llc -march=cpu0 -relocation-model=pic -cpu0-use-small-section=true 
@@ -562,7 +562,7 @@ data or bss
 The data/bss are 32 bits addressable areas since Cpu0 is a 32 bits architecture. 
 Option cpu0-use-small-section=false will generate the following instructions.
 
-.. code-block:: bash
+.. code-block:: console
 
     ...
     lui $2, %hi(gI)
@@ -639,7 +639,7 @@ stage "Legalized selection DAG" as below.
     ...
   }
 
-.. code-block:: bash
+.. code-block:: console
 
   118-165-78-166:input Jonathan$ clang -target mips-unknown-linux-gnu -c 
   ch6_1.cpp -emit-llvm -o ch6_1.bc
@@ -702,7 +702,7 @@ instructions as below.
     :start-after: //#if CH >= CH6_1 6
     :end-before: //#endif
 
-.. code-block:: bash
+.. code-block:: console
 
     ...
     lui	$2, %hi(gI)
@@ -725,7 +725,7 @@ sdata or sbss
 The sdata/sbss are 16 bits addressable areas which placed in ELF for fast access. 
 Option cpu0-use-small-section=true will generate the following instructions.
 
-.. code-block:: bash
+.. code-block:: console
 
     ori	$2, $gp, %gp_rel(gI)
     ld	$2, 0($2)
@@ -764,7 +764,7 @@ stage "Legalized selection DAG" as below.
     ...
   }
 
-.. code-block:: bash
+.. code-block:: console
 
   ...
   Type-legalized selection DAG: BB#0 '_Z3funv:entry'
@@ -813,7 +813,7 @@ instruction as below.
     :start-after: //#if CH >= CH6_1 7
     :end-before: //@ wrapper_pic
 
-.. code-block:: bash
+.. code-block:: console
 
     ori	$2, $gp, %gp_rel(gI)
     ...
@@ -870,7 +870,7 @@ sdata or sbss
 Option ``llc -relocation-model=pic -cpu0-use-small-section=true`` will 
 generate the following instructions.
 
-.. code-block:: bash
+.. code-block:: console
 
     ...
     .set	noreorder
@@ -943,7 +943,7 @@ pseudo instruction at function entry point as below.
 
   }
 
-.. code-block:: bash
+.. code-block:: console
 
     ...
     .set	noreorder
@@ -983,7 +983,7 @@ displayed in comments of Cpu0MCInstLower.cpp.
     :start-after: #if CH >= CH6_1 //2
     :end-before: #endif
 
-.. code-block:: bash
+.. code-block:: console
 
   118-165-76-131:input Jonathan$ /Users/Jonathan/llvm/test/
   cmake_debug_build/Debug/bin/llc -march=cpu0 -relocation-model=pic -filetype=
@@ -1075,7 +1075,7 @@ in stage "Legalized selection DAG" as below.
     ...
   }
 
-.. code-block:: bash
+.. code-block:: console
 
   ...
   Type-legalized selection DAG: BB#0 '_Z3funv:entry'
@@ -1119,7 +1119,7 @@ Finally, the pattern Cpu0 instruction **ld** defined before in Cpu0InstrInfo.td
 will translate DAG (load EntryToken, (Cpu0ISD::Wrapper Register %GP, 
 TargetGlobalAddress<i32* @gI> 0)) into Cpu0 instruction as follows,
 
-.. code-block:: bash
+.. code-block:: console
 
     ...
     ld	$2, %got(gI)($gp)
@@ -1168,7 +1168,7 @@ in stage "Legalized selection DAG" as below.
     :start-after: //@large section
     :end-before: #endif
 
-.. code-block:: bash
+.. code-block:: console
 
   ...
   Type-legalized selection DAG: BB#0 '_Z3funv:'
@@ -1218,7 +1218,7 @@ will translate DAG (load EntryToken, (Cpu0ISD::Wrapper (add Cpu0ISD::Hi<gI
 offset Hi16>, Register %GP), Cpu0ISD::Lo<gI offset Lo16>)) into Cpu0 
 instructions as below.
 
-.. code-block:: bash
+.. code-block:: console
 
     ...
     ori	$2, $zero, %got_hi(gI)
