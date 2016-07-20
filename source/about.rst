@@ -57,7 +57,9 @@ Ulrich Weigand <Ulrich.Weigand@de.ibm.com> in AsmParser question answer.
 Revision history
 ----------------
 
-Version 3.7.3, Not release yet.
+Version 3.7.4, Not release yet.
+
+Version 3.7.3, Released July 20, 2016
   Refine code-block according sphinx lexers.
   Add search this book.
 
