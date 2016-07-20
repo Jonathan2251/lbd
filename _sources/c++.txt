@@ -31,7 +31,7 @@ as the following will generate these exception handler IRs both on iMac and Linu
 .. literalinclude:: ../lbdex/input/ch12_eh.cpp
     :start-after: /// start
 
-.. code-block:: bash
+.. code-block:: console
 
   JonathantekiiMac:input Jonathan$ clang -c ch12_eh.cpp -emit-llvm 
   -o ch12_eh.bc
@@ -40,7 +40,7 @@ as the following will generate these exception handler IRs both on iMac and Linu
   
 .. literalinclude:: ../lbdex/output/ch12_eh.ll
 
-.. code-block:: bash
+.. code:: console
 
   JonathantekiiMac:input Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
   Debug/bin/llc -march=cpu0 -relocation-model=static -filetype=asm ch12_eh.bc -o -
@@ -69,7 +69,7 @@ exception C++ keywords. It can compile ch12_eh.bc as follows,
 
   }
 
-.. code-block:: bash
+.. code-block:: console
 
   JonathantekiiMac:input Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
   Debug/bin/llc -march=cpu0 -relocation-model=static -filetype=asm ch12_eh.bc -o -
@@ -261,7 +261,7 @@ programming.
   }
 
 
-.. code-block:: bash
+.. code-block:: console
 
   JonathantekiiMac:input Jonathan$ clang -target mips-unknown-linux-gnu -c 
   ch12_thread_var.cpp -emit-llvm -std=c++11 -o ch12_thread_var.bc
@@ -270,7 +270,7 @@ programming.
   
 .. literalinclude:: ../lbdex/output/ch12_thread_var.ll
 
-.. code-block:: bash
+.. code-block:: console
 
   JonathantekiiMac:input Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
   Debug/bin/llc -march=cpu0 -relocation-model=pic -filetype=asm ch12_thread_var.bc 
@@ -286,7 +286,7 @@ which call the function __tls_get_addr too to get the thread_local variable
 address. 
 In static mode, the thread variable is accessed by machine instructions as follows,
 
-.. code-block:: bash
+.. code-block:: console
 
   JonathantekiiMac:input Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
   Debug/bin/llc -march=cpu0 -relocation-model=static -filetype=asm 
@@ -303,7 +303,7 @@ protected through kernel mode program.
 As a result, the user mode program cannot access this area of memory and 
 no space to breathe for hack program.
 
-.. code-block:: bash
+.. code-block:: console
 
   JonathantekiiMac:input Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
   Debug/bin/llc -march=mips -relocation-model=static -filetype=asm 

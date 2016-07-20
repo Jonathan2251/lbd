@@ -21,7 +21,7 @@ Currently, we only support translation of llvm IR code into assembly code.
 If you try running Chapter4_2/ to translate it into obj code will get the error 
 message as follows,
 
-.. code-block:: bash
+.. code-block:: console
 
   [Gamma@localhost 3]$ ~/llvm/test/cmake_debug_build/bin/
   llc -march=cpu0 -relocation-model=pic -filetype=obj ch4_1_math_math.bc -o 
@@ -34,7 +34,7 @@ It produces obj files both for big endian and little endian with command
 ``llc -march=cpu0`` and ``llc -march=cpu0el``, respectively. 
 Run with them will get the obj files as follows,
 
-.. code-block:: bash
+.. code-block:: console
 
   [Gamma@localhost input]$ cat ch4_1_math.cpu0.s 
   ...

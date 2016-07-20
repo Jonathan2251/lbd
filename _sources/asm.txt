@@ -25,7 +25,7 @@ Run Chapter10_1/ with ch11_1.cpp will get the following error message.
 .. literalinclude:: ../lbdex/input/ch11_1.cpp
     :start-after: /// start
 
-.. code-block:: bash
+.. code:: bash
 
   JonathantekiiMac:input Jonathan$ clang -c ch11_1.cpp -emit-llvm -o 
   ch11_1.bc
@@ -319,7 +319,7 @@ Run Chapter11_1 with ch11_2 will get the following error.
 .. literalinclude:: ../lbdex/input/ch11_2.cpp
     :start-after: /// start
 
-.. code-block:: bash
+.. code:: bash
   
   1-160-129-73:input Jonathan$ ~/llvm/test/cmake_debug_build/Debug/bin/llc 
   -march=cpu0 -relocation-model=static -filetype=asm ch11_2.bc -o -
@@ -875,7 +875,7 @@ of Cpu0ISelLowering.cpp will create different range of const operand by I, J,
 K, L, N, O, or P, and register operand by r . For instance, the following 
 __asm__ will create the llvm asm immediately after it.
 
-.. code-block:: c++
+.. code:: c++
 
   __asm__ __volatile__("addiu %0,%1,%2"
                        :"=r"(foo) // 15

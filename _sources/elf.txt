@@ -94,7 +94,7 @@ ELF header and Section header table
 Let's run Chapter9_3/ with ch6_1.cpp, and dump ELF header information by 
 ``readelf -h`` to see what information the ELF header contains.
 
-.. code-block:: bash
+.. code-block:: console
 
   [Gamma@localhost input]$ ~/llvm/test/cmake_debug_build/bin/llc -march=cpu0 
   -relocation-model=pic -filetype=obj ch6_1.bc -o ch6_1.cpu0.o
@@ -154,7 +154,7 @@ MIPSR3000.
 It is unknown because cpu0 is not a popular CPU recognized by utility readelf. 
 Let's check ELF segments information as follows,
 
-.. code-block:: bash
+.. code-block:: console
 
   [Gamma@localhost input]$ readelf -l ch6_1.cpu0.o 
   
@@ -168,7 +168,7 @@ So, the segments is empty.
 Check ELF sections information as follows. 
 Every section contains offset and size information.
 
-.. code-block:: bash
+.. code-block:: console
 
   [Gamma@localhost input]$ readelf -S ch6_1.cpu0.o 
   There are 10 section headers, starting at offset 0xd4:
@@ -198,7 +198,7 @@ Relocation Record
 
 Cpu0 backend translate global variable as follows,
 
-.. code-block:: bash
+.. code-block:: console
 
   [Gamma@localhost input]$ clang -target mips-unknown-linux-gnu -c ch6_1.cpp 
   -emit-llvm -o ch6_1.bc
@@ -376,7 +376,7 @@ In iMac, ``gobjdump -tr`` can display the information of relocation records
 like ``readelf -tr``. LLVM tool llvm-objdump is the same tool as objdump. 
 Let's run gobjdump and llvm-objdump commands as follows to see the differences. 
 
-.. code-block:: bash
+.. code-block:: console
 
   118-165-83-12:input Jonathan$ clang -target mips-unknown-linux-gnu -c 
   ch9_3.cpp -emit-llvm -o ch9_3.bc
@@ -508,7 +508,7 @@ llvm-objdump -d
 Run the last Chapter example code with command ``llvm-objdump -d`` for dumping 
 file from elf to hex as follows, 
 
-.. code-block:: bash
+.. code-block:: console
 
   JonathantekiiMac:input Jonathan$ clang -target mips-unknown-linux-gnu -c 
   ch8_1_1.cpp -emit-llvm -o ch8_1_1.bc
@@ -598,7 +598,7 @@ instructions).
 Now, run Chapter10_1/ with command ``llvm-objdump -d ch8_1_1.cpu0.o`` will get 
 the following result.
 
-.. code-block:: bash
+.. code-block:: console
 
   JonathantekiiMac:input Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_
   build/Debug/bin/llc -march=cpu0 -relocation-model=pic -filetype=obj 

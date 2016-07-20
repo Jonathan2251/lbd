@@ -258,6 +258,8 @@ follows, and do building with Xcode on iMac or make on linux again.
 
   #define CH       CH3_1
   
+.. code-block:: console
+
   118-165-78-230:input Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
   Debug/bin/llc -march=cpu0 -relocation-model=pic -filetype=asm ch3.bc -o 
   ch3.cpu0.s
@@ -280,7 +282,7 @@ With the added code of supporting cpu032I and cpu32II in Cpu0.td and
 Cpu0InstrInfo.td of Chapter3_1, the command ``llc -march=cpu0 -mcpu=help`` can 
 display messages as follows,
 
-.. code-block:: bash
+.. code-block:: console
   
   JonathantekiiMac:input Jonathan$ /Users/Jonathan/llvm/test/
   cmake_debug_build/Debug/bin/llc -march=cpu0 -mcpu=help
@@ -408,7 +410,7 @@ Cpu0InstPrinter.cpp as above. It will be triggered since Cpu0InstrInfo.td
 defined **'let PrintMethod = \"printMemOperand\";'** as follows,
 
 .. rubric:: lbdex/chapters/Chapter2/Cpu0InstrInfo.td
-.. code-block:: c++
+.. code:: c++
 
   // Address operand
   def mem : Operand<i32> {
@@ -439,7 +441,7 @@ defined **'let PrintMethod = \"printMemOperand\";'** as follows,
 Cpu0InstPrinter::printMemOperand() will print backend operands for "local 
 variable access", which like the following,
 
-.. code-block:: bash
+.. code-block:: console
 
 	  ld	$2, 16($fp)
 	  st	$2, 8($fp)
@@ -785,7 +787,7 @@ Cpu0AsmPrinter to LLVMBuild.txt as follows,
 Now, run Chapter3_2/Cpu0 for AsmPrinter support, will get new error message as 
 follows,
 
-.. code-block:: bash
+.. code-block:: console
 
   118-165-78-230:input Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
   Debug/bin/llc -march=cpu0 -relocation-model=pic -filetype=asm ch3.bc -o 
@@ -804,7 +806,7 @@ The IR DAG to machine instruction DAG transformation is introduced in the
 previous chapter. 
 Now, let's check what IR DAG nodes the file ch3.bc has. List ch3.ll as follows,
 
-.. code-block:: c++
+.. code:: c++
 
   // ch3.ll
   define i32 @main() nounwind uwtable { 
@@ -959,7 +961,7 @@ information which called by llvm at proper time.
 Build Chapter3_3 and run with it, finding the error message of Chapter3_2 is 
 gone. The new error message for Chapter3_3 as follows,
 
-.. code-block:: bash
+.. code-block:: console
 
   118-165-78-230:input Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
   Debug/bin/llc -march=cpu0 -relocation-model=pic -filetype=asm ch3.bc -o 
@@ -987,7 +989,7 @@ Handle return register \$lr
 
 The following code is the result of running Mips backend with ch3.cpp.
 
-.. code-block:: bash
+.. code-block:: console
   
   JonathantekiiMac:input Jonathan$ ~/llvm/release/cmake_debug_build/Debug/bin/llc 
   -march=mips -relocation-model=pic -filetype=asm ch3.bc -o -
@@ -1049,7 +1051,7 @@ spill $ra register. This will save a lot of time if it is in a hot function.
 .. literalinclude:: ../lbdex/input/ch8_2_longbranch.cpp
     :start-after: /// start
 
-.. code-block:: bash
+.. code-block:: console
   
   JonathantekiiMac:input Jonathan$ clang -target mips-unknown-linux-gnu -c 
   ch8_2_longbranch.cpp -emit-llvm -o ch8_2_longbranch.bc
@@ -1218,7 +1220,7 @@ To handle IR ret, these code in Cpu0InstrInfo.td do things as below.
 3. After instruction selection, the Cpu0ISD::Ret is replaced by Cpu0::RetLR 
    as below. This effect come from "def RetLR" as step 1.
 
-.. code-block:: bash
+.. code-block:: console
 
   ===== Instruction selection begins: BB#0 'entry'
   Selecting: 0x1ea4050: ch = Cpu0ISD::Ret 0x1ea3f50, 0x1ea3e50, 
@@ -1296,7 +1298,7 @@ Build Chapter3_4 and run with it, finding the error message in Chapter3_3 is
 gone. The compile result will hang on and please press "ctrl+C" to escape out 
 as follows,
 
-.. code-block:: bash
+.. code-block:: console
   
   118-165-78-230:input Jonathan$ clang -target mips-unknown-linux-gnu -c 
   ch3.cpp -emit-llvm -o ch3.bc
@@ -1323,7 +1325,7 @@ Instruction "store i32 0, i32* %1" in above IR need Cpu0 allocate a stack slot
 and save to the stack slot.
 However, the ch3.cpp can be run with option ``clang -O2`` as follows,
 
-.. code-block:: bash
+.. code-block:: console
   
   118-165-78-230:input Jonathan$ clang -O2 -target mips-unknown-linux-gnu -c 
   ch3.cpp -emit-llvm -o ch3.bc
@@ -1362,7 +1364,7 @@ To see how the **'DAG->DAG Pattern Instruction Selection'** work in llc, let's
 compile with ``llc -debug`` option and get the following result. 
 The DAGs which before and after instruction selection stage are shown as follows,
 
-.. code-block:: bash
+.. code-block:: console
 
   118-165-78-230:input Jonathan$ clang -O2 -target mips-unknown-linux-gnu -c 
   ch3.cpp -emit-llvm -o ch3.bc
@@ -1547,7 +1549,7 @@ Now we explain the Prologue and Epilogue further by example code.
 For the following llvm IR code of ch3.cpp, Chapter3_5 of Cpu0 backend will emit 
 the corresponding machine instructions as follows,
 
-.. code-block:: bash
+.. code-block:: console
 
   118-165-78-230:input Jonathan$ clang -target mips-unknown-linux-gnu -c 
   ch3.cpp -emit-llvm -o ch3.bc
@@ -1614,7 +1616,7 @@ In emitPrologue(), it emits machine instructions to adjust sp (stack pointer
 register) for local variables. 
 For our example, it will emit the instruction,
 
-.. code-block:: c++
+.. code:: c++
 
   addiu $sp, $sp, -8
 
@@ -1830,7 +1832,7 @@ Run Chapter3_5 with ch3_largeframe.cpp will get the following result.
 .. literalinclude:: ../lbdex/input/ch3_largeframe.cpp
     :start-after: /// start
 
-.. code-block:: bash
+.. code-block:: console
 
   118-165-78-12:input Jonathan$ clang -target mips-unknown-linux-gnu -c 
   ch3_largeframe.cpp -emit-llvm -o ch3_largeframe.bc
@@ -1964,7 +1966,7 @@ Summary of this Chapter
 
 Summary the functions for llvm backend stages as the following table.
 
-.. code-block:: bash
+.. code-block:: console
 
   118-165-79-200:input Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
   Debug/bin/llc -march=cpu0 -relocation-model=pic -filetype=asm ch3.bc 

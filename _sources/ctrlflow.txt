@@ -26,7 +26,7 @@ Run ch8_1_1.cpp with clang will get result as follows,
 .. literalinclude:: ../lbdex/input/ch8_1_1.cpp
     :start-after: /// start
 
-.. code-block:: bash
+.. code-block:: llvm
 
     ...
     %0 = load i32* %a, align 4
@@ -50,7 +50,7 @@ Ignore %1, we get the form (br (brcond (setcc(%2, Constant<c>, setne)),
 BasicBlock_02), BasicBlock_01). 
 For explanation, listing the IR DAG as follows,
 
-.. code-block:: bash
+.. code-block:: console
 
     %cond=setcc(%2, Constant<c>, setne)
     brcond %cond, BasicBlock_02
@@ -58,7 +58,7 @@ For explanation, listing the IR DAG as follows,
     
 We want to translate them into Cpu0 instructions DAG as follows,
 
-.. code-block:: bash
+.. code-block:: console
 
     addiu %3, ZERO, Constant<c>
     cmp %2, %3
@@ -73,7 +73,7 @@ jmp BasicBlock_01 by the following pattern definition,
     :start-after: //#if CH >= CH8_1 3
     :end-before: //#endif
 
-.. code-block:: c++
+.. code-block:: console
 
     ...
     def JMP     : UncondBranch<0x26, "jmp">;
@@ -87,7 +87,7 @@ To solve this chained IR to machine instructions translation, we define the
 following pattern,
 
 .. rubric:: lbdex/chapters/Chapter8_1/Cpu0InstrInfo.td
-.. code-block:: c++
+.. code:: c++
 
   // brcond patterns
   multiclass BrcondPatsCmp<RegisterClass RC, Instruction JEQOp, Instruction JNEOp, 
@@ -137,7 +137,7 @@ correct even an instruction is inserted between CMP and JNE as follows,
 
   JNE (CMP $r2, $r3),
 
-.. code-block:: c++
+.. code-block:: console
 
     cmp %2, %3
     addiu $r1, $r2, 3   // $r1 register never be allocated to $SW because in 
@@ -180,7 +180,7 @@ Chapter8_1/ include support for control flow statement.
 Run with it as well as the following ``llc`` option, you will get the obj file. 
 Dump it's content by gobjdump or hexdump after as follows,
 
-.. code-block:: bash
+.. code-block:: console
 
     118-165-79-206:input Jonathan$ /Users/Jonathan/llvm/test/
     cmake_debug_build/Debug/bin/llc -march=cpu0 -mcpu=cpu032I -relocation-model=pic 
@@ -198,7 +198,7 @@ Dump it's content by gobjdump or hexdump after as follows,
     ld  $4, 32($fp)
     ...
 
-.. code-block:: bash
+.. code-block:: console
     
     118-165-79-206:input Jonathan$ /Users/Jonathan/llvm/test/
     cmake_debug_build/Debug/bin/llc -march=cpu0 -mcpu=cpu032I -relocation-model=pic 
@@ -221,7 +221,7 @@ The $BB0_2 address is equal to PC+16 for the jne branch instruction execute at
 decode stage. 
 List and explain this again as follows,
 
-.. code-block:: bash
+.. code-block:: console
 
                 // Fetch instruction stage for jne instruction. The fetch stage 
                 // can be divided into 2 cycles. First cycle fetch the 
@@ -246,7 +246,7 @@ instruction in average.
 The cpu032I spends 2 instructions in conditional branch, (jne(cmp...)), while 
 cpu032II use one instruction (bne) as follws,
 
-.. code-block:: bash
+.. code-block:: console
 
   JonathantekiiMac:input Jonathan$ /Users/Jonathan/llvm/test/
   cmake_debug_build/Debug/bin/llc -march=cpu0 -mcpu=cpu032I -relocation-model=pic 
@@ -401,7 +401,7 @@ The code of Chapter8_2 will compile the following example as follows,
 .. literalinclude:: ../lbdex/input/ch8_2_longbranch.cpp
     :start-after: /// start
 
-.. code-block:: bash
+.. code-block:: console
 
   118-165-78-10:input Jonathan$ ~/llvm/test/cmake_debug_build/Debug/bin/llc 
   -march=cpu0 -mcpu=cpu032II -relocation-model=pic -filetype=asm 
@@ -527,7 +527,7 @@ Now, let's run Chapter8_2/ with ch8_2_deluselessjmp.cpp for explanation.
 .. literalinclude:: ../lbdex/input/ch8_2_deluselessjmp.cpp
     :start-after: /// start
 
-.. code-block:: bash
+.. code-block:: console
 
   118-165-78-10:input Jonathan$ clang -target mips-unknown-linux-gnu 
   -c ch8_2_deluselessjmp.cpp -emit-llvm -o ch8_2_deluselessjmp.bc
@@ -643,7 +643,7 @@ Conditional instruction
 
 If you run Chapter8_1 with ch8_2_select.cpp will get the following result.
 
-.. code-block:: bash
+.. code-block:: console
 
   114-37-150-209:input Jonathan$ clang -O1 -target mips-unknown-linux-gnu 
   -c ch8_2_select.cpp -emit-llvm -o ch8_2_select.bc
@@ -753,7 +753,7 @@ Let's run Chapter8_2 with ch8_2_select.cpp to get the following result.
 Again, the cpu032II uses **slt** instead of **cmp** has a little improved in 
 instructions number.
 
-.. code-block:: bash
+.. code-block:: console
 
   114-37-150-209:input Jonathan$ ~/llvm/test/cmake_debug_build/Debug/bin/llc 
   -march=cpu0 -mcpu=cpu032I -relocation-model=static -filetype=asm ch8_2_select.bc -o -
@@ -816,7 +816,7 @@ in Chapter Global variables can be tested now as follows.
 .. literalinclude:: ../lbdex/input/ch8_2_select_global_pic.cpp
     :start-after: /// start
 
-.. code-block:: bash
+.. code-block:: console
   
   JonathantekiiMac:input Jonathan$ clang -O1 -target mips-unknown-linux-gnu 
   -c ch8_2_select_global_pic.cpp -emit-llvm -o ch8_2_select_global_pic.bc
@@ -927,7 +927,7 @@ The following input let you know the benefits of phi node as follows,
 .. literalinclude:: ../lbdex/input/ch8_2_phinode.cpp
     :start-after: /// start
 
-.. code-block:: bash
+.. code-block:: console
   
   114-43-212-251:input Jonathan$ clang -O3 -target mips-unknown-linux-gnu -c 
   ch8_2_phinode.cpp -emit-llvm -o ch8_2_phinode.bc

@@ -1465,7 +1465,7 @@ In LowerCall(), Flags.isByVal() will be true if it meets **byval** for struct
 type in caller function as follows,
 
 .. rubric:: lbdex/input/tailcall.ll
-.. code-block:: c++
+.. code-block:: llvm
 
   define internal fastcc i32 @caller9_1() nounwind noinline {
   entry:
@@ -1478,7 +1478,7 @@ In LowerFormalArguments(), Flags.isByVal() will be true if it meet **byval**
 for in callee function as follows,
 
 .. rubric:: lbdex/input/tailcall.ll
-.. code-block:: c++
+.. code-block:: llvm
 
   define i32 @caller12(%struct.S* nocapture byval %a0) nounwind {
   entry:
@@ -1510,7 +1510,7 @@ to make tail call optimization.
 
 Run Chapter9_2/ with ch9_2_tailcall.cpp will get the following result.
 
-.. code-block:: bash
+.. code-block:: console
 
   JonathantekiiMac:input Jonathan$ clang -O1 -target mips-unknown-linux-gnu -c 
   ch9_2_tailcall.cpp -emit-llvm -o ch9_2_tailcall.bc
@@ -1708,7 +1708,7 @@ ch9_2_tailcall.cpp since the limitation of arguments size is not satisfied.
 If runnig with ``clang -O3`` option, it can get the same or better performance 
 than tail call as follows,
 
-.. code-block:: bash
+.. code-block:: console
 
   JonathantekiiMac:input Jonathan$ clang -O1 -target mips-unknown-linux-gnu -c 
   ch9_2_tailcall.cpp -emit-llvm -o ch9_2_tailcall.bc
@@ -1866,7 +1866,7 @@ Run Chapter9_2/ with ch9_3_vararg.cpp to get the following error,
 .. literalinclude:: ../lbdex/input/ch9_3_vararg.cpp
     :start-after: /// start
 
-.. code-block:: bash
+.. code-block:: console
 
   118-165-78-230:input Jonathan$ clang -target mips-unknown-linux-gnu -c 
   ch9_3_vararg.cpp -emit-llvm -o ch9_3_vararg.bc
@@ -1886,7 +1886,7 @@ Run Chapter9_2/ with ch9_3_vararg.cpp to get the following error,
 
 Run Chapter9_2 with ch9_3_alloc.cpp will get the following error.
 
-.. code-block:: bash
+.. code-block:: console
 
   118-165-72-242:input Jonathan$ clang -target mips-unknown-linux-gnu -c 
   ch9_3_alloc.cpp -emit-llvm -o ch9_3_alloc.bc
@@ -1950,7 +1950,7 @@ We putting the comments in the result for explanation.
 .. literalinclude:: ../lbdex/input/ch9_gprestore.cpp
     :start-after: /// start
 
-.. code-block:: bash
+.. code-block:: console
 
   118-165-78-230:input Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
   Debug/bin/llc -march=cpu0 -mcpu=cpu032II-cpu0-s32-calls=true
@@ -2014,7 +2014,7 @@ issue.
 If enable "-cpu0-no-cpload", and undefine ENABLE_GPRESTORE or enable 
 "-cpu0-reserve-gp", .cpload and $gp save/restore won't be issue as follow,
 
-.. code-block:: bash
+.. code-block:: console
 
   118-165-78-230:input Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
   Debug/bin/llc -march=cpu0 -mcpu=cpu032II-cpu0-s32-calls=true 
@@ -2060,7 +2060,7 @@ version. But now, llvm Mips replace .cpload with real instructions and remove
 assembly document I reference say $gp is caller save register, Cpu0 stay and
 follow this document at this point and supply reserve $gp register as option.
 
-.. code-block:: bash
+.. code-block:: console
 
   118-165-78-230:input Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
   Debug/bin/llc -march=mips -relocation-model=pic -filetype=asm ch9_gprestore.bc 
@@ -2190,7 +2190,7 @@ user run with ``llc -filetype=obj``.
 The added code of Cpu0MCInstLower.cpp as above takes care the .cprestore machine 
 instructions.
 
-.. code-block:: bash
+.. code-block:: console
 
   118-165-76-131:input Jonathan$ /Users/Jonathan/llvm/test/
   cmake_debug_build/Debug/bin/llc -march=cpu0 -relocation-model=pic -filetype=
@@ -2218,7 +2218,7 @@ instructions.
 
 Run ``llc -static`` will call jsub instruction instead of jalr as follows,
 
-.. code-block:: bash
+.. code-block:: console
 
   118-165-76-131:input Jonathan$ /Users/Jonathan/llvm/test/
   cmake_debug_build/Debug/bin/llc -march=cpu0 -relocation-model=static -filetype=
@@ -2232,7 +2232,7 @@ Run with ``llc -filetype=obj``, you can find the Cx of **“jsub Cx”** is 0 si
 the Cx is calculated by linker as below. 
 Mips has the same 0 in it's jal instruction. 
 
-.. code-block:: bash
+.. code-block:: console
 
   // jsub _Z5sum_iiiiiii translate into 2B 00 00 00
   00F0: 2B 00 00 00 01 2D 00 34 00 ED 00 3C 09 DD 00 40 
@@ -2278,7 +2278,7 @@ this feature.
 Run Chapter9_3/ with ch9_3_vararg.cpp as well as clang option, 
 **clang -target mips-unknown-linux-gnu**, to get the following result,
 
-.. code-block:: bash
+.. code-block:: console
 
   118-165-76-131:input Jonathan$ clang -target mips-unknown-linux-gnu -c 
   ch9_3_vararg.cpp -emit-llvm -o ch9_3_vararg.bc
@@ -2593,7 +2593,7 @@ Chapter9_3 supports dynamic stack allocation with the following code added.
 
 Run Chapter9_3 with ch9_3_alloc.cpp will get the following correct result.
 
-.. code-block:: bash
+.. code-block:: console
 
   118-165-72-242:input Jonathan$ clang -target mips-unknown-linux-gnu -c 
   ch9_3_alloc.cpp -emit-llvm -o ch9_3_alloc.bc

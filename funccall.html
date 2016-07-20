@@ -2796,21 +2796,21 @@ copyByValRegs(SDValue Chain, SDLoc DL, std::vector&lt;SDValue&gt; &amp;OutChains
 <p>In LowerCall(), Flags.isByVal() will be true if it meets <strong>byval</strong> for struct
 type in caller function as follows,</p>
 <p class="rubric">lbdex/input/tailcall.ll</p>
-<div class="highlight-c++"><div class="highlight"><pre><span></span>define internal fastcc i32 @caller9_1() nounwind noinline {
-entry:
-  ...
-  %call = tail call i32 @callee9(%struct.S* byval @gs1) nounwind
-  ret i32 %call
-}
+<div class="highlight-llvm"><div class="highlight"><pre><span></span><span class="k">define</span> <span class="k">internal</span> <span class="k">fastcc</span> <span class="k">i32</span> <span class="vg">@caller9_1</span><span class="p">()</span> <span class="k">nounwind</span> <span class="k">noinline</span> <span class="p">{</span>
+<span class="nl">entry:</span>
+  <span class="p">...</span>
+  <span class="nv">%call</span> <span class="p">=</span> <span class="k">tail</span> <span class="k">call</span> <span class="k">i32</span> <span class="vg">@callee9</span><span class="p">(</span><span class="nv">%struct.S</span><span class="p">*</span> <span class="k">byval</span> <span class="vg">@gs1</span><span class="p">)</span> <span class="k">nounwind</span>
+  <span class="k">ret</span> <span class="k">i32</span> <span class="nv">%call</span>
+<span class="p">}</span>
 </pre></div>
 </div>
 <p>In LowerFormalArguments(), Flags.isByVal() will be true if it meet <strong>byval</strong>
 for in callee function as follows,</p>
 <p class="rubric">lbdex/input/tailcall.ll</p>
-<div class="highlight-c++"><div class="highlight"><pre><span></span>define i32 @caller12(%struct.S* nocapture byval %a0) nounwind {
-entry:
-  ...
-}
+<div class="highlight-llvm"><div class="highlight"><pre><span></span><span class="k">define</span> <span class="k">i32</span> <span class="vg">@caller12</span><span class="p">(</span><span class="nv">%struct.S</span><span class="p">*</span> <span class="k">nocapture</span> <span class="k">byval</span> <span class="nv">%a0</span><span class="p">)</span> <span class="k">nounwind</span> <span class="p">{</span>
+<span class="nl">entry:</span>
+  <span class="p">...</span>
+<span class="p">}</span>
 </pre></div>
 </div>
 <p>At this point, I don&#8217;t know how to create a make clang to generate byval IR with
@@ -2846,99 +2846,99 @@ to make tail call optimization.</p>
 </pre></div>
 </div>
 <p>Run Chapter9_2/ with ch9_2_tailcall.cpp will get the following result.</p>
-<div class="highlight-bash"><div class="highlight"><pre><span></span>JonathantekiiMac:input Jonathan$ clang -O1 -target mips-unknown-linux-gnu -c
-ch9_2_tailcall.cpp -emit-llvm -o ch9_2_tailcall.bc
-JonathantekiiMac:input Jonathan$ ~/llvm/test/cmake_debug_build/bin/
-llvm-dis ch9_2_tailcall.bc -o -
-...
-<span class="p">;</span> Function Attrs: nounwind readnone
-define i32 @_Z9factoriali<span class="o">(</span>i32 %x<span class="o">)</span> <span class="c1">#0 {</span>
-  %1 <span class="o">=</span> icmp sgt i32 %x, 0
-  br i1 %1, label %tailrecurse, label %tailrecurse._crit_edge
+<div class="highlight-console"><div class="highlight"><pre><span></span><span class="gp">JonathantekiiMac:input Jonathan$</span> clang -O1 -target mips-unknown-linux-gnu -c
+<span class="go">ch9_2_tailcall.cpp -emit-llvm -o ch9_2_tailcall.bc</span>
+<span class="gp">JonathantekiiMac:input Jonathan$</span> ~/llvm/test/cmake_debug_build/bin/
+<span class="go">llvm-dis ch9_2_tailcall.bc -o -</span>
+<span class="go">...</span>
+<span class="go">; Function Attrs: nounwind readnone</span>
+<span class="go">define i32 @_Z9factoriali(i32 %x) #0 {</span>
+<span class="gp">  %</span><span class="nv">1</span> <span class="o">=</span> icmp sgt i32 %x, 0
+<span class="go">  br i1 %1, label %tailrecurse, label %tailrecurse._crit_edge</span>
 
-tailrecurse:                                      <span class="p">;</span> <span class="nv">preds</span> <span class="o">=</span> %tailrecurse, %0
-  %x.tr2 <span class="o">=</span> phi i32 <span class="o">[</span> %2, %tailrecurse <span class="o">]</span>, <span class="o">[</span> %x, %0 <span class="o">]</span>
-  %accumulator.tr1 <span class="o">=</span> phi i32 <span class="o">[</span> %3, %tailrecurse <span class="o">]</span>, <span class="o">[</span> 1, %0 <span class="o">]</span>
-  %2 <span class="o">=</span> add nsw i32 %x.tr2, -1
-  %3 <span class="o">=</span> mul nsw i32 %x.tr2, %accumulator.tr1
-  %4 <span class="o">=</span> icmp sgt i32 %2, 0
-  br i1 %4, label %tailrecurse, label %tailrecurse._crit_edge
+<span class="go">tailrecurse:                                      ; preds = %tailrecurse, %0</span>
+<span class="gp">  %</span>x.tr2 <span class="o">=</span> phi i32 <span class="o">[</span> %2, %tailrecurse <span class="o">]</span>, <span class="o">[</span> %x, %0 <span class="o">]</span>
+<span class="gp">  %</span>accumulator.tr1 <span class="o">=</span> phi i32 <span class="o">[</span> %3, %tailrecurse <span class="o">]</span>, <span class="o">[</span> 1, %0 <span class="o">]</span>
+<span class="gp">  %</span><span class="nv">2</span> <span class="o">=</span> add nsw i32 %x.tr2, -1
+<span class="gp">  %</span><span class="nv">3</span> <span class="o">=</span> mul nsw i32 %x.tr2, %accumulator.tr1
+<span class="gp">  %</span><span class="nv">4</span> <span class="o">=</span> icmp sgt i32 %2, 0
+<span class="go">  br i1 %4, label %tailrecurse, label %tailrecurse._crit_edge</span>
 
-tailrecurse._crit_edge:                           <span class="p">;</span> <span class="nv">preds</span> <span class="o">=</span> %tailrecurse, %0
-  %accumulator.tr.lcssa <span class="o">=</span> phi i32 <span class="o">[</span> 1, %0 <span class="o">]</span>, <span class="o">[</span> %3, %tailrecurse <span class="o">]</span>
-  ret i32 %accumulator.tr.lcssa
-<span class="o">}</span>
+<span class="go">tailrecurse._crit_edge:                           ; preds = %tailrecurse, %0</span>
+<span class="gp">  %</span>accumulator.tr.lcssa <span class="o">=</span> phi i32 <span class="o">[</span> 1, %0 <span class="o">]</span>, <span class="o">[</span> %3, %tailrecurse <span class="o">]</span>
+<span class="go">  ret i32 %accumulator.tr.lcssa</span>
+<span class="go">}</span>
 
-<span class="p">;</span> Function Attrs: nounwind readnone
-define i32 @_Z13test_tailcalli<span class="o">(</span>i32 %a<span class="o">)</span> <span class="c1">#0 {</span>
-  %1 <span class="o">=</span> tail call i32 @_Z9factoriali<span class="o">(</span>i32 %a<span class="o">)</span>
-  ret i32 %1
-<span class="o">}</span>
-...
-JonathantekiiMac:input Jonathan$ ~/llvm/test/cmake_debug_build/bin/
-llc -march<span class="o">=</span>cpu0 -mcpu<span class="o">=</span>cpu032II -relocation-model<span class="o">=</span>static -filetype<span class="o">=</span>asm
--enable-cpu0-tail-calls ch9_2_tailcall.bc -stats -o -
-        .text
-        .section .mdebug.abi32
-        .previous
-        .file <span class="s2">&quot;ch9_2_tailcall.bc&quot;</span>
-        .globl        _Z9factoriali
-        .align        2
-        .type _Z9factoriali,@function
-        .ent  _Z9factoriali           <span class="c1"># @_Z9factoriali</span>
-_Z9factoriali:
-        .frame        <span class="nv">$sp</span>,0,<span class="nv">$lr</span>
-        .mask         0x00000000,0
-        .set  noreorder
-        .set  nomacro
-<span class="c1"># BB#0:</span>
-        addiu <span class="nv">$2</span>, <span class="nv">$zero</span>, 1
-        slt   <span class="nv">$3</span>, <span class="nv">$4</span>, <span class="nv">$2</span>
-        bne   <span class="nv">$3</span>, <span class="nv">$zero</span>, <span class="nv">$BB0_2</span>
-        nop
-<span class="nv">$BB0_1</span>:                                 <span class="c1"># %tailrecurse</span>
-                                        <span class="c1"># =&gt;This Inner Loop Header: Depth=1</span>
-        mul   <span class="nv">$2</span>, <span class="nv">$4</span>, <span class="nv">$2</span>
-        addiu <span class="nv">$4</span>, <span class="nv">$4</span>, -1
-        addiu <span class="nv">$3</span>, <span class="nv">$zero</span>, 0
-        slt   <span class="nv">$3</span>, <span class="nv">$3</span>, <span class="nv">$4</span>
-        bne   <span class="nv">$3</span>, <span class="nv">$zero</span>, <span class="nv">$BB0_1</span>
-        nop
-<span class="nv">$BB0_2</span>:                                 <span class="c1"># %tailrecurse._crit_edge</span>
-        ret   <span class="nv">$lr</span>
-        nop
-        .set  macro
-        .set  reorder
-        .end  _Z9factoriali
-<span class="nv">$tmp0</span>:
-        .size _Z9factoriali, <span class="o">(</span><span class="nv">$tmp0</span><span class="o">)</span>-_Z9factoriali
+<span class="go">; Function Attrs: nounwind readnone</span>
+<span class="go">define i32 @_Z13test_tailcalli(i32 %a) #0 {</span>
+<span class="gp">  %</span><span class="nv">1</span> <span class="o">=</span> tail call i32 @_Z9factoriali<span class="o">(</span>i32 %a<span class="o">)</span>
+<span class="go">  ret i32 %1</span>
+<span class="go">}</span>
+<span class="go">...</span>
+<span class="gp">JonathantekiiMac:input Jonathan$</span> ~/llvm/test/cmake_debug_build/bin/
+<span class="go">llc -march=cpu0 -mcpu=cpu032II -relocation-model=static -filetype=asm</span>
+<span class="go">-enable-cpu0-tail-calls ch9_2_tailcall.bc -stats -o -</span>
+<span class="go">        .text</span>
+<span class="go">        .section .mdebug.abi32</span>
+<span class="go">        .previous</span>
+<span class="go">        .file &quot;ch9_2_tailcall.bc&quot;</span>
+<span class="go">        .globl        _Z9factoriali</span>
+<span class="go">        .align        2</span>
+<span class="go">        .type _Z9factoriali,@function</span>
+<span class="go">        .ent  _Z9factoriali           # @_Z9factoriali</span>
+<span class="go">_Z9factoriali:</span>
+<span class="go">        .frame        $sp,0,$lr</span>
+<span class="go">        .mask         0x00000000,0</span>
+<span class="go">        .set  noreorder</span>
+<span class="go">        .set  nomacro</span>
+<span class="gp">#</span> BB#0:
+<span class="go">        addiu $2, $zero, 1</span>
+<span class="go">        slt   $3, $4, $2</span>
+<span class="go">        bne   $3, $zero, $BB0_2</span>
+<span class="go">        nop</span>
+<span class="gp">$</span>BB0_1:                                 <span class="c1"># %tailrecurse</span>
+<span class="gp">                                        #</span> <span class="o">=</span>&gt;This Inner Loop Header: <span class="nv">Depth</span><span class="o">=</span>1
+<span class="go">        mul   $2, $4, $2</span>
+<span class="go">        addiu $4, $4, -1</span>
+<span class="go">        addiu $3, $zero, 0</span>
+<span class="go">        slt   $3, $3, $4</span>
+<span class="go">        bne   $3, $zero, $BB0_1</span>
+<span class="go">        nop</span>
+<span class="gp">$</span>BB0_2:                                 <span class="c1"># %tailrecurse._crit_edge</span>
+<span class="go">        ret   $lr</span>
+<span class="go">        nop</span>
+<span class="go">        .set  macro</span>
+<span class="go">        .set  reorder</span>
+<span class="go">        .end  _Z9factoriali</span>
+<span class="gp">$</span>tmp0:
+<span class="go">        .size _Z9factoriali, ($tmp0)-_Z9factoriali</span>
 
-        .globl        _Z13test_tailcalli
-        .align        2
-        .type _Z13test_tailcalli,@function
-        .ent  _Z13test_tailcalli      <span class="c1"># @_Z13test_tailcalli</span>
-_Z13test_tailcalli:
-        .frame        <span class="nv">$sp</span>,0,<span class="nv">$lr</span>
-        .mask         0x00000000,0
-        .set  noreorder
-        .set  nomacro
-<span class="c1"># BB#0:</span>
-        jmp   _Z9factoriali
-        nop
-        .set  macro
-        .set  reorder
-        .end  _Z13test_tailcalli
-<span class="nv">$tmp1</span>:
-        .size _Z13test_tailcalli, <span class="o">(</span><span class="nv">$tmp1</span><span class="o">)</span>-_Z13test_tailcalli
+<span class="go">        .globl        _Z13test_tailcalli</span>
+<span class="go">        .align        2</span>
+<span class="go">        .type _Z13test_tailcalli,@function</span>
+<span class="go">        .ent  _Z13test_tailcalli      # @_Z13test_tailcalli</span>
+<span class="go">_Z13test_tailcalli:</span>
+<span class="go">        .frame        $sp,0,$lr</span>
+<span class="go">        .mask         0x00000000,0</span>
+<span class="go">        .set  noreorder</span>
+<span class="go">        .set  nomacro</span>
+<span class="gp">#</span> BB#0:
+<span class="go">        jmp   _Z9factoriali</span>
+<span class="go">        nop</span>
+<span class="go">        .set  macro</span>
+<span class="go">        .set  reorder</span>
+<span class="go">        .end  _Z13test_tailcalli</span>
+<span class="gp">$</span>tmp1:
+<span class="go">        .size _Z13test_tailcalli, ($tmp1)-_Z13test_tailcalli</span>
 
 
-<span class="o">===</span>-------------------------------------------------------------------------<span class="o">===</span>
-                          ... Statistics Collected ...
-<span class="o">===</span>-------------------------------------------------------------------------<span class="o">===</span>
+<span class="go">===-------------------------------------------------------------------------===</span>
+<span class="go">                          ... Statistics Collected ...</span>
+<span class="go">===-------------------------------------------------------------------------===</span>
 
- ...
- <span class="m">1</span> cpu0-lower        - Number of tail calls
- ...
+<span class="go"> ...</span>
+<span class="go"> 1 cpu0-lower        - Number of tail calls</span>
+<span class="go"> ...</span>
 </pre></div>
 </div>
 <p>The tail call optimization is applied in cpu032II only for this example (it uses
@@ -3119,138 +3119,138 @@ in Cpu0GenMCPseudoLowering.inc.</p>
 ch9_2_tailcall.cpp since the limitation of arguments size is not satisfied.
 If runnig with <code class="docutils literal"><span class="pre">clang</span> <span class="pre">-O3</span></code> option, it can get the same or better performance
 than tail call as follows,</p>
-<div class="highlight-bash"><div class="highlight"><pre><span></span>JonathantekiiMac:input Jonathan$ clang -O1 -target mips-unknown-linux-gnu -c
-ch9_2_tailcall.cpp -emit-llvm -o ch9_2_tailcall.bc
-JonathantekiiMac:input Jonathan$ ~/llvm/test/cmake_debug_build/bin/
-llvm-dis ch9_2_tailcall.bc -o -
-...
-<span class="p">;</span> Function Attrs: nounwind readnone
-define i32 @_Z9factoriali<span class="o">(</span>i32 %x<span class="o">)</span> <span class="c1">#0 {</span>
-  %1 <span class="o">=</span> icmp sgt i32 %x, 0
-  br i1 %1, label %tailrecurse.preheader, label %tailrecurse._crit_edge
+<div class="highlight-console"><div class="highlight"><pre><span></span><span class="gp">JonathantekiiMac:input Jonathan$</span> clang -O1 -target mips-unknown-linux-gnu -c
+<span class="go">ch9_2_tailcall.cpp -emit-llvm -o ch9_2_tailcall.bc</span>
+<span class="gp">JonathantekiiMac:input Jonathan$</span> ~/llvm/test/cmake_debug_build/bin/
+<span class="go">llvm-dis ch9_2_tailcall.bc -o -</span>
+<span class="go">...</span>
+<span class="go">; Function Attrs: nounwind readnone</span>
+<span class="go">define i32 @_Z9factoriali(i32 %x) #0 {</span>
+<span class="gp">  %</span><span class="nv">1</span> <span class="o">=</span> icmp sgt i32 %x, 0
+<span class="go">  br i1 %1, label %tailrecurse.preheader, label %tailrecurse._crit_edge</span>
 
-tailrecurse.preheader:                            <span class="p">;</span> <span class="nv">preds</span> <span class="o">=</span> %0
-  br label %tailrecurse
+<span class="go">tailrecurse.preheader:                            ; preds = %0</span>
+<span class="go">  br label %tailrecurse</span>
 
-tailrecurse:                                      <span class="p">;</span> <span class="nv">preds</span> <span class="o">=</span> %tailrecurse,
-%tailrecurse.preheader
-  %x.tr2 <span class="o">=</span> phi i32 <span class="o">[</span> %2, %tailrecurse <span class="o">]</span>, <span class="o">[</span> %x, %tailrecurse.preheader <span class="o">]</span>
-  %accumulator.tr1 <span class="o">=</span> phi i32 <span class="o">[</span> %3, %tailrecurse <span class="o">]</span>, <span class="o">[</span> 1, %tailrecurse.preheader <span class="o">]</span>
-  %2 <span class="o">=</span> add nsw i32 %x.tr2, -1
-  %3 <span class="o">=</span> mul nsw i32 %x.tr2, %accumulator.tr1
-  %4 <span class="o">=</span> icmp sgt i32 %2, 0
-  br i1 %4, label %tailrecurse, label %tailrecurse._crit_edge.loopexit
+<span class="go">tailrecurse:                                      ; preds = %tailrecurse,</span>
+<span class="gp">%</span>tailrecurse.preheader
+<span class="gp">  %</span>x.tr2 <span class="o">=</span> phi i32 <span class="o">[</span> %2, %tailrecurse <span class="o">]</span>, <span class="o">[</span> %x, %tailrecurse.preheader <span class="o">]</span>
+<span class="gp">  %</span>accumulator.tr1 <span class="o">=</span> phi i32 <span class="o">[</span> %3, %tailrecurse <span class="o">]</span>, <span class="o">[</span> 1, %tailrecurse.preheader <span class="o">]</span>
+<span class="gp">  %</span><span class="nv">2</span> <span class="o">=</span> add nsw i32 %x.tr2, -1
+<span class="gp">  %</span><span class="nv">3</span> <span class="o">=</span> mul nsw i32 %x.tr2, %accumulator.tr1
+<span class="gp">  %</span><span class="nv">4</span> <span class="o">=</span> icmp sgt i32 %2, 0
+<span class="go">  br i1 %4, label %tailrecurse, label %tailrecurse._crit_edge.loopexit</span>
 
-tailrecurse._crit_edge.loopexit:                  <span class="p">;</span> <span class="nv">preds</span> <span class="o">=</span> %tailrecurse
-  %.lcssa <span class="o">=</span> phi i32 <span class="o">[</span> %3, %tailrecurse <span class="o">]</span>
-  br label %tailrecurse._crit_edge
+<span class="go">tailrecurse._crit_edge.loopexit:                  ; preds = %tailrecurse</span>
+<span class="gp">  %</span>.lcssa <span class="o">=</span> phi i32 <span class="o">[</span> %3, %tailrecurse <span class="o">]</span>
+<span class="go">  br label %tailrecurse._crit_edge</span>
 
-tailrecurse._crit_edge:                           <span class="p">;</span> <span class="nv">preds</span> <span class="o">=</span> %tailrecurse._crit
-  _edge.loopexit, %0
-  %accumulator.tr.lcssa <span class="o">=</span> phi i32 <span class="o">[</span> 1, %0 <span class="o">]</span>, <span class="o">[</span> %.lcssa, %tailrecurse._crit_edge
-  .loopexit <span class="o">]</span>
-  ret i32 %accumulator.tr.lcssa
-<span class="o">}</span>
+<span class="go">tailrecurse._crit_edge:                           ; preds = %tailrecurse._crit</span>
+<span class="go">  _edge.loopexit, %0</span>
+<span class="gp">  %</span>accumulator.tr.lcssa <span class="o">=</span> phi i32 <span class="o">[</span> 1, %0 <span class="o">]</span>, <span class="o">[</span> %.lcssa, %tailrecurse._crit_edge
+<span class="go">  .loopexit ]</span>
+<span class="go">  ret i32 %accumulator.tr.lcssa</span>
+<span class="go">}</span>
 
-<span class="p">;</span> Function Attrs: nounwind readnone
-define i32 @_Z13test_tailcalli<span class="o">(</span>i32 %a<span class="o">)</span> <span class="c1">#0 {</span>
-  %1 <span class="o">=</span> icmp sgt i32 %a, 0
-  br i1 %1, label %tailrecurse.i.preheader, label %_Z9factoriali.exit
+<span class="go">; Function Attrs: nounwind readnone</span>
+<span class="go">define i32 @_Z13test_tailcalli(i32 %a) #0 {</span>
+<span class="gp">  %</span><span class="nv">1</span> <span class="o">=</span> icmp sgt i32 %a, 0
+<span class="go">  br i1 %1, label %tailrecurse.i.preheader, label %_Z9factoriali.exit</span>
 
-tailrecurse.i.preheader:                          <span class="p">;</span> <span class="nv">preds</span> <span class="o">=</span> %0
-  br label %tailrecurse.i
+<span class="go">tailrecurse.i.preheader:                          ; preds = %0</span>
+<span class="go">  br label %tailrecurse.i</span>
 
-tailrecurse.i:                                    <span class="p">;</span> <span class="nv">preds</span> <span class="o">=</span> %tailrecurse.i,
-  %tailrecurse.i.preheader
-  %x.tr2.i <span class="o">=</span> phi i32 <span class="o">[</span> %2, %tailrecurse.i <span class="o">]</span>, <span class="o">[</span> %a, %tailrecurse.i.preheader <span class="o">]</span>
-  %accumulator.tr1.i <span class="o">=</span> phi i32 <span class="o">[</span> %3, %tailrecurse.i <span class="o">]</span>, <span class="o">[</span> 1, %tailrecurse.i.
-  preheader <span class="o">]</span>
-  %2 <span class="o">=</span> add nsw i32 %x.tr2.i, -1
-  %3 <span class="o">=</span> mul nsw i32 %accumulator.tr1.i, %x.tr2.i
-  %4 <span class="o">=</span> icmp sgt i32 %2, 0
-  br i1 %4, label %tailrecurse.i, label %_Z9factoriali.exit.loopexit
+<span class="go">tailrecurse.i:                                    ; preds = %tailrecurse.i,</span>
+<span class="gp">  %</span>tailrecurse.i.preheader
+<span class="gp">  %</span>x.tr2.i <span class="o">=</span> phi i32 <span class="o">[</span> %2, %tailrecurse.i <span class="o">]</span>, <span class="o">[</span> %a, %tailrecurse.i.preheader <span class="o">]</span>
+<span class="gp">  %</span>accumulator.tr1.i <span class="o">=</span> phi i32 <span class="o">[</span> %3, %tailrecurse.i <span class="o">]</span>, <span class="o">[</span> 1, %tailrecurse.i.
+<span class="go">  preheader ]</span>
+<span class="gp">  %</span><span class="nv">2</span> <span class="o">=</span> add nsw i32 %x.tr2.i, -1
+<span class="gp">  %</span><span class="nv">3</span> <span class="o">=</span> mul nsw i32 %accumulator.tr1.i, %x.tr2.i
+<span class="gp">  %</span><span class="nv">4</span> <span class="o">=</span> icmp sgt i32 %2, 0
+<span class="go">  br i1 %4, label %tailrecurse.i, label %_Z9factoriali.exit.loopexit</span>
 
-_Z9factoriali.exit.loopexit:                      <span class="p">;</span> <span class="nv">preds</span> <span class="o">=</span> %tailrecurse.i
-  %.lcssa <span class="o">=</span> phi i32 <span class="o">[</span> %3, %tailrecurse.i <span class="o">]</span>
-  br label %_Z9factoriali.exit
+<span class="go">_Z9factoriali.exit.loopexit:                      ; preds = %tailrecurse.i</span>
+<span class="gp">  %</span>.lcssa <span class="o">=</span> phi i32 <span class="o">[</span> %3, %tailrecurse.i <span class="o">]</span>
+<span class="go">  br label %_Z9factoriali.exit</span>
 
-_Z9factoriali.exit:                               <span class="p">;</span> <span class="nv">preds</span> <span class="o">=</span> %_Z9factoriali.
-  exit.loopexit, %0
-  %accumulator.tr.lcssa.i <span class="o">=</span> phi i32 <span class="o">[</span> 1, %0 <span class="o">]</span>, <span class="o">[</span> %.lcssa, %_Z9factoriali.
-  exit.loopexit <span class="o">]</span>
-  ret i32 %accumulator.tr.lcssa.i
-<span class="o">}</span>
-...
-JonathantekiiMac:input Jonathan$ ~/llvm/test/cmake_debug_build/bin/
-llc -march<span class="o">=</span>cpu0 -mcpu<span class="o">=</span>cpu032I -relocation-model<span class="o">=</span>static -filetype<span class="o">=</span>asm
-ch9_2_tailcall.bc -o -
-        .text
-        .section .mdebug.abiS32
-        .previous
-        .file <span class="s2">&quot;ch9_2_tailcall.bc&quot;</span>
-        .globl        _Z9factoriali
-        .align        2
-        .type _Z9factoriali,@function
-        .ent  _Z9factoriali           <span class="c1"># @_Z9factoriali</span>
-_Z9factoriali:
-        .frame        <span class="nv">$sp</span>,0,<span class="nv">$lr</span>
-        .mask         0x00000000,0
-        .set  noreorder
-        .set  nomacro
-<span class="c1"># BB#0:</span>
-        addiu <span class="nv">$2</span>, <span class="nv">$zero</span>, 1
-        ld    <span class="nv">$3</span>, 0<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-        cmp   <span class="nv">$sw</span>, <span class="nv">$3</span>, <span class="nv">$2</span>
-        jlt   <span class="nv">$sw</span>, <span class="nv">$BB0_2</span>
-        nop
-<span class="nv">$BB0_1</span>:                                 <span class="c1"># %tailrecurse</span>
-                                        <span class="c1"># =&gt;This Inner Loop Header: Depth=1</span>
-        mul   <span class="nv">$2</span>, <span class="nv">$3</span>, <span class="nv">$2</span>
-        addiu <span class="nv">$3</span>, <span class="nv">$3</span>, -1
-        addiu <span class="nv">$4</span>, <span class="nv">$zero</span>, 0
-        cmp   <span class="nv">$sw</span>, <span class="nv">$3</span>, <span class="nv">$4</span>
-        jgt   <span class="nv">$sw</span>, <span class="nv">$BB0_1</span>
-        nop
-<span class="nv">$BB0_2</span>:                                 <span class="c1"># %tailrecurse._crit_edge</span>
-        ret   <span class="nv">$lr</span>
-        nop
-        .set  macro
-        .set  reorder
-        .end  _Z9factoriali
-<span class="nv">$tmp0</span>:
-        .size _Z9factoriali, <span class="o">(</span><span class="nv">$tmp0</span><span class="o">)</span>-_Z9factoriali
+<span class="go">_Z9factoriali.exit:                               ; preds = %_Z9factoriali.</span>
+<span class="go">  exit.loopexit, %0</span>
+<span class="gp">  %</span>accumulator.tr.lcssa.i <span class="o">=</span> phi i32 <span class="o">[</span> 1, %0 <span class="o">]</span>, <span class="o">[</span> %.lcssa, %_Z9factoriali.
+<span class="go">  exit.loopexit ]</span>
+<span class="go">  ret i32 %accumulator.tr.lcssa.i</span>
+<span class="go">}</span>
+<span class="go">...</span>
+<span class="gp">JonathantekiiMac:input Jonathan$</span> ~/llvm/test/cmake_debug_build/bin/
+<span class="go">llc -march=cpu0 -mcpu=cpu032I -relocation-model=static -filetype=asm</span>
+<span class="go">ch9_2_tailcall.bc -o -</span>
+<span class="go">        .text</span>
+<span class="go">        .section .mdebug.abiS32</span>
+<span class="go">        .previous</span>
+<span class="go">        .file &quot;ch9_2_tailcall.bc&quot;</span>
+<span class="go">        .globl        _Z9factoriali</span>
+<span class="go">        .align        2</span>
+<span class="go">        .type _Z9factoriali,@function</span>
+<span class="go">        .ent  _Z9factoriali           # @_Z9factoriali</span>
+<span class="go">_Z9factoriali:</span>
+<span class="go">        .frame        $sp,0,$lr</span>
+<span class="go">        .mask         0x00000000,0</span>
+<span class="go">        .set  noreorder</span>
+<span class="go">        .set  nomacro</span>
+<span class="gp">#</span> BB#0:
+<span class="go">        addiu $2, $zero, 1</span>
+<span class="go">        ld    $3, 0($sp)</span>
+<span class="go">        cmp   $sw, $3, $2</span>
+<span class="go">        jlt   $sw, $BB0_2</span>
+<span class="go">        nop</span>
+<span class="gp">$</span>BB0_1:                                 <span class="c1"># %tailrecurse</span>
+<span class="gp">                                        #</span> <span class="o">=</span>&gt;This Inner Loop Header: <span class="nv">Depth</span><span class="o">=</span>1
+<span class="go">        mul   $2, $3, $2</span>
+<span class="go">        addiu $3, $3, -1</span>
+<span class="go">        addiu $4, $zero, 0</span>
+<span class="go">        cmp   $sw, $3, $4</span>
+<span class="go">        jgt   $sw, $BB0_1</span>
+<span class="go">        nop</span>
+<span class="gp">$</span>BB0_2:                                 <span class="c1"># %tailrecurse._crit_edge</span>
+<span class="go">        ret   $lr</span>
+<span class="go">        nop</span>
+<span class="go">        .set  macro</span>
+<span class="go">        .set  reorder</span>
+<span class="go">        .end  _Z9factoriali</span>
+<span class="gp">$</span>tmp0:
+<span class="go">        .size _Z9factoriali, ($tmp0)-_Z9factoriali</span>
 
-        .globl        _Z13test_tailcalli
-        .align        2
-        .type _Z13test_tailcalli,@function
-        .ent  _Z13test_tailcalli      <span class="c1"># @_Z13test_tailcalli</span>
-_Z13test_tailcalli:
-        .frame        <span class="nv">$sp</span>,0,<span class="nv">$lr</span>
-        .mask         0x00000000,0
-        .set  noreorder
-        .set  nomacro
-<span class="c1"># BB#0:</span>
-        addiu <span class="nv">$2</span>, <span class="nv">$zero</span>, 1
-        ld    <span class="nv">$3</span>, 0<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-        cmp   <span class="nv">$sw</span>, <span class="nv">$3</span>, <span class="nv">$2</span>
-        jlt   <span class="nv">$sw</span>, <span class="nv">$BB1_2</span>
-        nop
-<span class="nv">$BB1_1</span>:                                 <span class="c1"># %tailrecurse.i</span>
-                                        <span class="c1"># =&gt;This Inner Loop Header: Depth=1</span>
-        mul   <span class="nv">$2</span>, <span class="nv">$2</span>, <span class="nv">$3</span>
-        addiu <span class="nv">$3</span>, <span class="nv">$3</span>, -1
-        addiu <span class="nv">$4</span>, <span class="nv">$zero</span>, 0
-        cmp   <span class="nv">$sw</span>, <span class="nv">$3</span>, <span class="nv">$4</span>
-        jgt   <span class="nv">$sw</span>, <span class="nv">$BB1_1</span>
-        nop
-<span class="nv">$BB1_2</span>:                                 <span class="c1"># %_Z9factoriali.exit</span>
-        ret   <span class="nv">$lr</span>
-        nop
-        .set  macro
-        .set  reorder
-        .end  _Z13test_tailcalli
-<span class="nv">$tmp1</span>:
-        .size _Z13test_tailcalli, <span class="o">(</span><span class="nv">$tmp1</span><span class="o">)</span>-_Z13test_tailcalli
+<span class="go">        .globl        _Z13test_tailcalli</span>
+<span class="go">        .align        2</span>
+<span class="go">        .type _Z13test_tailcalli,@function</span>
+<span class="go">        .ent  _Z13test_tailcalli      # @_Z13test_tailcalli</span>
+<span class="go">_Z13test_tailcalli:</span>
+<span class="go">        .frame        $sp,0,$lr</span>
+<span class="go">        .mask         0x00000000,0</span>
+<span class="go">        .set  noreorder</span>
+<span class="go">        .set  nomacro</span>
+<span class="gp">#</span> BB#0:
+<span class="go">        addiu $2, $zero, 1</span>
+<span class="go">        ld    $3, 0($sp)</span>
+<span class="go">        cmp   $sw, $3, $2</span>
+<span class="go">        jlt   $sw, $BB1_2</span>
+<span class="go">        nop</span>
+<span class="gp">$</span>BB1_1:                                 <span class="c1"># %tailrecurse.i</span>
+<span class="gp">                                        #</span> <span class="o">=</span>&gt;This Inner Loop Header: <span class="nv">Depth</span><span class="o">=</span>1
+<span class="go">        mul   $2, $2, $3</span>
+<span class="go">        addiu $3, $3, -1</span>
+<span class="go">        addiu $4, $zero, 0</span>
+<span class="go">        cmp   $sw, $3, $4</span>
+<span class="go">        jgt   $sw, $BB1_1</span>
+<span class="go">        nop</span>
+<span class="gp">$</span>BB1_2:                                 <span class="c1"># %_Z9factoriali.exit</span>
+<span class="go">        ret   $lr</span>
+<span class="go">        nop</span>
+<span class="go">        .set  macro</span>
+<span class="go">        .set  reorder</span>
+<span class="go">        .end  _Z13test_tailcalli</span>
+<span class="gp">$</span>tmp1:
+<span class="go">        .size _Z13test_tailcalli, ($tmp1)-_Z13test_tailcalli</span>
 </pre></div>
 </div>
 <p>According above llvm IR, <code class="docutils literal"><span class="pre">clang</span> <span class="pre">-O3</span></code> option remove recursion to loop by
@@ -3296,15 +3296,15 @@ addressing mode, variable number of arguments and dynamic stack allocation.</p>
 <span class="p">}</span>
 </pre></div>
 </div>
-<div class="highlight-bash"><div class="highlight"><pre><span></span>118-165-78-230:input Jonathan$ clang -target mips-unknown-linux-gnu -c
-ch9_3_vararg.cpp -emit-llvm -o ch9_3_vararg.bc
-118-165-78-230:input Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
-Debug/bin/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>pic -filetype<span class="o">=</span>asm ch9_3_vararg.bc -o -
-...
-LLVM ERROR: Cannot <span class="k">select</span>: 0x7f8b6902fd10: <span class="nv">ch</span> <span class="o">=</span> vastart 0x7f8b6902fa10,
-0x7f8b6902fb10, 0x7f8b6902fc10 <span class="o">[</span><span class="nv">ORD</span><span class="o">=</span>9<span class="o">]</span> <span class="o">[</span><span class="nv">ID</span><span class="o">=</span>22<span class="o">]</span>
-  0x7f8b6902fb10: <span class="nv">i32</span> <span class="o">=</span> FrameIndex&lt;5&gt; <span class="o">[</span><span class="nv">ORD</span><span class="o">=</span>7<span class="o">]</span> <span class="o">[</span><span class="nv">ID</span><span class="o">=</span>9<span class="o">]</span>
-In <span class="k">function</span>: _Z5sum_iiz
+<div class="highlight-console"><div class="highlight"><pre><span></span><span class="gp">118-165-78-230:input Jonathan$</span> clang -target mips-unknown-linux-gnu -c
+<span class="go">ch9_3_vararg.cpp -emit-llvm -o ch9_3_vararg.bc</span>
+<span class="gp">118-165-78-230:input Jonathan$</span> /Users/Jonathan/llvm/test/cmake_debug_build/
+<span class="go">Debug/bin/llc -march=cpu0 -relocation-model=pic -filetype=asm ch9_3_vararg.bc -o -</span>
+<span class="go">...</span>
+<span class="go">LLVM ERROR: Cannot select: 0x7f8b6902fd10: ch = vastart 0x7f8b6902fa10,</span>
+<span class="go">0x7f8b6902fb10, 0x7f8b6902fc10 [ORD=9] [ID=22]</span>
+<span class="go">  0x7f8b6902fb10: i32 = FrameIndex&lt;5&gt; [ORD=7] [ID=9]</span>
+<span class="go">In function: _Z5sum_iiz</span>
 </pre></div>
 </div>
 <p class="rubric">lbdex/input/ch9_3_alloc.cpp</p>
@@ -3344,26 +3344,26 @@ In <span class="k">function</span>: _Z5sum_iiz
 </pre></div>
 </div>
 <p>Run Chapter9_2 with ch9_3_alloc.cpp will get the following error.</p>
-<div class="highlight-bash"><div class="highlight"><pre><span></span>118-165-72-242:input Jonathan$ clang -target mips-unknown-linux-gnu -c
-ch9_3_alloc.cpp -emit-llvm -o ch9_3_alloc.bc
-118-165-72-242:input Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
-Debug/bin/llc -march<span class="o">=</span>cpu0 -mcpu<span class="o">=</span>cpu032I -cpu0-s32-calls<span class="o">=</span><span class="nb">false</span>
--relocation-model<span class="o">=</span>pic -filetype<span class="o">=</span>asm ch9_3_alloc.bc -o -
-...
-LLVM ERROR: Cannot <span class="k">select</span>: 0x7ffd8b02ff10: i32,ch <span class="o">=</span> dynamic_stackalloc
-0x7ffd8b02f910:1, 0x7ffd8b02fe10, 0x7ffd8b02c010 <span class="o">[</span><span class="nv">ORD</span><span class="o">=</span>12<span class="o">]</span> <span class="o">[</span><span class="nv">ID</span><span class="o">=</span>48<span class="o">]</span>
-  0x7ffd8b02fe10: <span class="nv">i32</span> <span class="o">=</span> and 0x7ffd8b02fc10, 0x7ffd8b02fd10 <span class="o">[</span><span class="nv">ORD</span><span class="o">=</span>12<span class="o">]</span> <span class="o">[</span><span class="nv">ID</span><span class="o">=</span>47<span class="o">]</span>
-    0x7ffd8b02fc10: <span class="nv">i32</span> <span class="o">=</span> add 0x7ffd8b02fa10, 0x7ffd8b02fb10 <span class="o">[</span><span class="nv">ORD</span><span class="o">=</span>12<span class="o">]</span> <span class="o">[</span><span class="nv">ID</span><span class="o">=</span>46<span class="o">]</span>
-      0x7ffd8b02fa10: <span class="nv">i32</span> <span class="o">=</span> shl 0x7ffd8b02f910, 0x7ffd8b02f510 <span class="o">[</span><span class="nv">ID</span><span class="o">=</span>45<span class="o">]</span>
-        0x7ffd8b02f910: i32,ch <span class="o">=</span> load 0x7ffd8b02ee10, 0x7ffd8b02e310,
-        0x7ffd8b02b310&lt;LD4<span class="o">[</span>%1<span class="o">]</span>&gt; <span class="o">[</span><span class="nv">ID</span><span class="o">=</span>44<span class="o">]</span>
-          0x7ffd8b02e310: <span class="nv">i32</span> <span class="o">=</span> FrameIndex&lt;1&gt; <span class="o">[</span><span class="nv">ORD</span><span class="o">=</span>3<span class="o">]</span> <span class="o">[</span><span class="nv">ID</span><span class="o">=</span>10<span class="o">]</span>
-          0x7ffd8b02b310: <span class="nv">i32</span> <span class="o">=</span> undef <span class="o">[</span><span class="nv">ORD</span><span class="o">=</span>1<span class="o">]</span> <span class="o">[</span><span class="nv">ID</span><span class="o">=</span>2<span class="o">]</span>
-        0x7ffd8b02f510: <span class="nv">i32</span> <span class="o">=</span> Constant&lt;2&gt; <span class="o">[</span><span class="nv">ID</span><span class="o">=</span>25<span class="o">]</span>
-      0x7ffd8b02fb10: <span class="nv">i32</span> <span class="o">=</span> Constant&lt;7&gt; <span class="o">[</span><span class="nv">ORD</span><span class="o">=</span>12<span class="o">]</span> <span class="o">[</span><span class="nv">ID</span><span class="o">=</span>16<span class="o">]</span>
-    0x7ffd8b02fd10: <span class="nv">i32</span> <span class="o">=</span> Constant&lt;-8&gt; <span class="o">[</span><span class="nv">ORD</span><span class="o">=</span>12<span class="o">]</span> <span class="o">[</span><span class="nv">ID</span><span class="o">=</span>17<span class="o">]</span>
-  0x7ffd8b02c010: <span class="nv">i32</span> <span class="o">=</span> Constant&lt;0&gt; <span class="o">[</span><span class="nv">ORD</span><span class="o">=</span>12<span class="o">]</span> <span class="o">[</span><span class="nv">ID</span><span class="o">=</span>8<span class="o">]</span>
-In <span class="k">function</span>: _Z5sum_iiiiiii
+<div class="highlight-console"><div class="highlight"><pre><span></span><span class="gp">118-165-72-242:input Jonathan$</span> clang -target mips-unknown-linux-gnu -c
+<span class="go">ch9_3_alloc.cpp -emit-llvm -o ch9_3_alloc.bc</span>
+<span class="gp">118-165-72-242:input Jonathan$</span> /Users/Jonathan/llvm/test/cmake_debug_build/
+<span class="go">Debug/bin/llc -march=cpu0 -mcpu=cpu032I -cpu0-s32-calls=false</span>
+<span class="go">-relocation-model=pic -filetype=asm ch9_3_alloc.bc -o -</span>
+<span class="go">...</span>
+<span class="go">LLVM ERROR: Cannot select: 0x7ffd8b02ff10: i32,ch = dynamic_stackalloc</span>
+<span class="go">0x7ffd8b02f910:1, 0x7ffd8b02fe10, 0x7ffd8b02c010 [ORD=12] [ID=48]</span>
+<span class="go">  0x7ffd8b02fe10: i32 = and 0x7ffd8b02fc10, 0x7ffd8b02fd10 [ORD=12] [ID=47]</span>
+<span class="go">    0x7ffd8b02fc10: i32 = add 0x7ffd8b02fa10, 0x7ffd8b02fb10 [ORD=12] [ID=46]</span>
+<span class="go">      0x7ffd8b02fa10: i32 = shl 0x7ffd8b02f910, 0x7ffd8b02f510 [ID=45]</span>
+<span class="go">        0x7ffd8b02f910: i32,ch = load 0x7ffd8b02ee10, 0x7ffd8b02e310,</span>
+<span class="go">        0x7ffd8b02b310&lt;LD4[%1]&gt; [ID=44]</span>
+<span class="go">          0x7ffd8b02e310: i32 = FrameIndex&lt;1&gt; [ORD=3] [ID=10]</span>
+<span class="go">          0x7ffd8b02b310: i32 = undef [ORD=1] [ID=2]</span>
+<span class="go">        0x7ffd8b02f510: i32 = Constant&lt;2&gt; [ID=25]</span>
+<span class="go">      0x7ffd8b02fb10: i32 = Constant&lt;7&gt; [ORD=12] [ID=16]</span>
+<span class="go">    0x7ffd8b02fd10: i32 = Constant&lt;-8&gt; [ORD=12] [ID=17]</span>
+<span class="go">  0x7ffd8b02c010: i32 = Constant&lt;0&gt; [ORD=12] [ID=8]</span>
+<span class="go">In function: _Z5sum_iiiiiii</span>
 </pre></div>
 </div>
 <div class="section" id="the-gp-register-caller-saved-register-in-pic-addressing-mode">
@@ -3407,40 +3407,40 @@ We putting the comments in the result for explanation.</p>
 <span class="p">}</span>
 </pre></div>
 </div>
-<div class="highlight-bash"><div class="highlight"><pre><span></span>118-165-78-230:input Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
-Debug/bin/llc -march<span class="o">=</span>cpu0 -mcpu<span class="o">=</span>cpu032II-cpu0-s32-calls<span class="o">=</span><span class="nb">true</span>
--relocation-model<span class="o">=</span>pic -filetype<span class="o">=</span>asm ch9_gprestore.bc -o -
-...
-  .cpload <span class="nv">$t9</span>
-  .set  nomacro
-<span class="c1"># BB#0:                                 # %entry</span>
-  addiu <span class="nv">$sp</span>, <span class="nv">$sp</span>, -24
-<span class="nv">$tmp0</span>:
-  .cfi_def_cfa_offset 24
-  st  <span class="nv">$lr</span>, 12<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>            <span class="c1"># 4-byte Folded Spill</span>
-  st  <span class="nv">$fp</span>, 16<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>              <span class="c1"># 4-byte Folded Spill</span>
-<span class="nv">$tmp1</span>:
-  .cfi_offset 14, -4
-<span class="nv">$tmp2</span>:
-  .cfi_offset 12, -8
-  .cprestore  <span class="m">8</span>    // save <span class="nv">$gp</span> to 8<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-  ld  <span class="nv">$t9</span>, %call16<span class="o">(</span>_Z5sum_ii<span class="o">)(</span><span class="nv">$gp</span><span class="o">)</span>
-  addiu <span class="nv">$4</span>, <span class="nv">$zero</span>, 1
-  jalr  <span class="nv">$t9</span>
-  nop
-  ld  <span class="nv">$gp</span>, 8<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>  // restore <span class="nv">$gp</span> from 8<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-  add <span class="nv">$8</span>, <span class="nv">$zero</span>, <span class="nv">$2</span>
-  ld  <span class="nv">$t9</span>, %call16<span class="o">(</span>_Z5sum_ii<span class="o">)(</span><span class="nv">$gp</span><span class="o">)</span>
-  addiu <span class="nv">$4</span>, <span class="nv">$zero</span>, 2
-  jalr  <span class="nv">$t9</span>
-  nop
-  ld  <span class="nv">$gp</span>, 8<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>  // restore <span class="nv">$gp</span> from 8<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-  addu  <span class="nv">$2</span>, <span class="nv">$2</span>, <span class="nv">$8</span>
-  ld  <span class="nv">$8</span>, 8<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>              <span class="c1"># 4-byte Folded Reload</span>
-  ld  <span class="nv">$lr</span>, 12<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>            <span class="c1"># 4-byte Folded Reload</span>
-  addiu <span class="nv">$sp</span>, <span class="nv">$sp</span>, 16
-  ret <span class="nv">$lr</span>
-  nop
+<div class="highlight-console"><div class="highlight"><pre><span></span><span class="gp">118-165-78-230:input Jonathan$</span> /Users/Jonathan/llvm/test/cmake_debug_build/
+<span class="go">Debug/bin/llc -march=cpu0 -mcpu=cpu032II-cpu0-s32-calls=true</span>
+<span class="go">-relocation-model=pic -filetype=asm ch9_gprestore.bc -o -</span>
+<span class="go">...</span>
+<span class="go">  .cpload $t9</span>
+<span class="go">  .set  nomacro</span>
+<span class="gp">#</span> BB#0:                                 <span class="c1"># %entry</span>
+<span class="go">  addiu $sp, $sp, -24</span>
+<span class="gp">$</span>tmp0:
+<span class="go">  .cfi_def_cfa_offset 24</span>
+<span class="go">  st  $lr, 12($sp)            # 4-byte Folded Spill</span>
+<span class="go">  st  $fp, 16($sp)              # 4-byte Folded Spill</span>
+<span class="gp">$</span>tmp1:
+<span class="go">  .cfi_offset 14, -4</span>
+<span class="gp">$</span>tmp2:
+<span class="go">  .cfi_offset 12, -8</span>
+<span class="go">  .cprestore  8    // save $gp to 8($sp)</span>
+<span class="go">  ld  $t9, %call16(_Z5sum_ii)($gp)</span>
+<span class="go">  addiu $4, $zero, 1</span>
+<span class="go">  jalr  $t9</span>
+<span class="go">  nop</span>
+<span class="go">  ld  $gp, 8($sp)  // restore $gp from 8($sp)</span>
+<span class="go">  add $8, $zero, $2</span>
+<span class="go">  ld  $t9, %call16(_Z5sum_ii)($gp)</span>
+<span class="go">  addiu $4, $zero, 2</span>
+<span class="go">  jalr  $t9</span>
+<span class="go">  nop</span>
+<span class="go">  ld  $gp, 8($sp)  // restore $gp from 8($sp)</span>
+<span class="go">  addu  $2, $2, $8</span>
+<span class="go">  ld  $8, 8($sp)              # 4-byte Folded Reload</span>
+<span class="go">  ld  $lr, 12($sp)            # 4-byte Folded Reload</span>
+<span class="go">  addiu $sp, $sp, 16</span>
+<span class="go">  ret $lr</span>
+<span class="go">  nop</span>
 </pre></div>
 </div>
 <p>As above code comment, <strong>“.cprestore 8”</strong> is a pseudo instruction for saving
@@ -3467,42 +3467,42 @@ function with C and assembly mixed, programmer can set $gp value through .cpload
 issue.</p>
 <p>If enable &#8220;-cpu0-no-cpload&#8221;, and undefine ENABLE_GPRESTORE or enable
 &#8220;-cpu0-reserve-gp&#8221;, .cpload and $gp save/restore won&#8217;t be issue as follow,</p>
-<div class="highlight-bash"><div class="highlight"><pre><span></span>118-165-78-230:input Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
-Debug/bin/llc -march<span class="o">=</span>cpu0 -mcpu<span class="o">=</span>cpu032II-cpu0-s32-calls<span class="o">=</span><span class="nb">true</span>
--relocation-model<span class="o">=</span>pic -filetype<span class="o">=</span>asm ch9_gprestore.bc -cpu0-no-cpload
--cpu0-reserve-gp -o -
-...
-<span class="c1"># BB#0:</span>
-  addiu <span class="nv">$sp</span>, <span class="nv">$sp</span>, -24
-<span class="nv">$tmp0</span>:
-  .cfi_def_cfa_offset 24
-  st  <span class="nv">$lr</span>, 20<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>            <span class="c1"># 4-byte Folded Spill</span>
-  st  <span class="nv">$fp</span>, 16<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>            <span class="c1"># 4-byte Folded Spill</span>
-<span class="nv">$tmp1</span>:
-  .cfi_offset 14, -4
-<span class="nv">$tmp2</span>:
-  .cfi_offset 12, -8
-  move   <span class="nv">$fp</span>, <span class="nv">$sp</span>
-<span class="nv">$tmp3</span>:
-  .cfi_def_cfa_register 12
-  ld  <span class="nv">$t9</span>, %call16<span class="o">(</span>_Z5sum_ii<span class="o">)(</span><span class="nv">$gp</span><span class="o">)</span>
-  addiu <span class="nv">$4</span>, <span class="nv">$zero</span>, 1
-  jalr  <span class="nv">$t9</span>
-  nop
-  st  <span class="nv">$2</span>, 12<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-  addiu <span class="nv">$4</span>, <span class="nv">$zero</span>, 2
-  ld  <span class="nv">$t9</span>, %call16<span class="o">(</span>_Z5sum_ii<span class="o">)(</span><span class="nv">$gp</span><span class="o">)</span>
-  jalr  <span class="nv">$t9</span>
-  nop
-  ld  <span class="nv">$3</span>, 12<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-  addu  <span class="nv">$2</span>, <span class="nv">$3</span>, <span class="nv">$2</span>
-  st  <span class="nv">$2</span>, 12<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-  move   <span class="nv">$sp</span>, <span class="nv">$fp</span>
-  ld  <span class="nv">$fp</span>, 16<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>            <span class="c1"># 4-byte Folded Reload</span>
-  ld  <span class="nv">$lr</span>, 20<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>            <span class="c1"># 4-byte Folded Reload</span>
-  addiu <span class="nv">$sp</span>, <span class="nv">$sp</span>, 24
-  ret <span class="nv">$lr</span>
-  nop
+<div class="highlight-console"><div class="highlight"><pre><span></span><span class="gp">118-165-78-230:input Jonathan$</span> /Users/Jonathan/llvm/test/cmake_debug_build/
+<span class="go">Debug/bin/llc -march=cpu0 -mcpu=cpu032II-cpu0-s32-calls=true</span>
+<span class="go">-relocation-model=pic -filetype=asm ch9_gprestore.bc -cpu0-no-cpload</span>
+<span class="go">-cpu0-reserve-gp -o -</span>
+<span class="go">...</span>
+<span class="gp">#</span> BB#0:
+<span class="go">  addiu $sp, $sp, -24</span>
+<span class="gp">$</span>tmp0:
+<span class="go">  .cfi_def_cfa_offset 24</span>
+<span class="go">  st  $lr, 20($sp)            # 4-byte Folded Spill</span>
+<span class="go">  st  $fp, 16($sp)            # 4-byte Folded Spill</span>
+<span class="gp">$</span>tmp1:
+<span class="go">  .cfi_offset 14, -4</span>
+<span class="gp">$</span>tmp2:
+<span class="go">  .cfi_offset 12, -8</span>
+<span class="go">  move   $fp, $sp</span>
+<span class="gp">$</span>tmp3:
+<span class="go">  .cfi_def_cfa_register 12</span>
+<span class="go">  ld  $t9, %call16(_Z5sum_ii)($gp)</span>
+<span class="go">  addiu $4, $zero, 1</span>
+<span class="go">  jalr  $t9</span>
+<span class="go">  nop</span>
+<span class="go">  st  $2, 12($fp)</span>
+<span class="go">  addiu $4, $zero, 2</span>
+<span class="go">  ld  $t9, %call16(_Z5sum_ii)($gp)</span>
+<span class="go">  jalr  $t9</span>
+<span class="go">  nop</span>
+<span class="go">  ld  $3, 12($fp)</span>
+<span class="go">  addu  $2, $3, $2</span>
+<span class="go">  st  $2, 12($fp)</span>
+<span class="go">  move   $sp, $fp</span>
+<span class="go">  ld  $fp, 16($sp)            # 4-byte Folded Reload</span>
+<span class="go">  ld  $lr, 20($sp)            # 4-byte Folded Reload</span>
+<span class="go">  addiu $sp, $sp, 24</span>
+<span class="go">  ret $lr</span>
+<span class="go">  nop</span>
 </pre></div>
 </div>
 <p>LLVM Mips 3.1 issues the .cpload and .cprestore and Cpu0 borrows it from that
@@ -3510,46 +3510,46 @@ version. But now, llvm Mips replace .cpload with real instructions and remove
 .cprestore. It treats $gp as reserved register in PIC mode. Since the Mips
 assembly document I reference say $gp is caller save register, Cpu0 stay and
 follow this document at this point and supply reserve $gp register as option.</p>
-<div class="highlight-bash"><div class="highlight"><pre><span></span>118-165-78-230:input Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
-Debug/bin/llc -march<span class="o">=</span>mips -relocation-model<span class="o">=</span>pic -filetype<span class="o">=</span>asm ch9_gprestore.bc
--o -
-...
-<span class="c1"># BB#0:                                 # %entry</span>
-  lui <span class="nv">$2</span>, %hi<span class="o">(</span>_gp_disp<span class="o">)</span>
-  ori <span class="nv">$2</span>, <span class="nv">$2</span>, %lo<span class="o">(</span>_gp_disp<span class="o">)</span>
-  addiu <span class="nv">$sp</span>, <span class="nv">$sp</span>, -32
-<span class="nv">$tmp0</span>:
-  .cfi_def_cfa_offset 32
-  sw  <span class="nv">$ra</span>, 28<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>            <span class="c1"># 4-byte Folded Spill</span>
-  sw  <span class="nv">$fp</span>, 24<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>            <span class="c1"># 4-byte Folded Spill</span>
-  sw  <span class="nv">$16</span>, 20<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>            <span class="c1"># 4-byte Folded Spill</span>
-<span class="nv">$tmp1</span>:
-  .cfi_offset 31, -4
-<span class="nv">$tmp2</span>:
-  .cfi_offset 30, -8
-<span class="nv">$tmp3</span>:
-  .cfi_offset 16, -12
-  move   <span class="nv">$fp</span>, <span class="nv">$sp</span>
-<span class="nv">$tmp4</span>:
-  .cfi_def_cfa_register 30
-  addu  <span class="nv">$16</span>, <span class="nv">$2</span>, <span class="nv">$25</span>
-  lw  <span class="nv">$25</span>, %call16<span class="o">(</span>_Z5sum_ii<span class="o">)(</span><span class="nv">$16</span><span class="o">)</span>
-  addiu <span class="nv">$4</span>, <span class="nv">$zero</span>, 1
-  jalr  <span class="nv">$25</span>
-  move   <span class="nv">$gp</span>, <span class="nv">$16</span>
-  sw  <span class="nv">$2</span>, 16<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-  lw  <span class="nv">$25</span>, %call16<span class="o">(</span>_Z5sum_ii<span class="o">)(</span><span class="nv">$16</span><span class="o">)</span>
-  jalr  <span class="nv">$25</span>
-  addiu <span class="nv">$4</span>, <span class="nv">$zero</span>, 2
-  lw  <span class="nv">$1</span>, 16<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-  addu  <span class="nv">$2</span>, <span class="nv">$1</span>, <span class="nv">$2</span>
-  sw  <span class="nv">$2</span>, 16<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-  move   <span class="nv">$sp</span>, <span class="nv">$fp</span>
-  lw  <span class="nv">$16</span>, 20<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>            <span class="c1"># 4-byte Folded Reload</span>
-  lw  <span class="nv">$fp</span>, 24<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>            <span class="c1"># 4-byte Folded Reload</span>
-  lw  <span class="nv">$ra</span>, 28<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>            <span class="c1"># 4-byte Folded Reload</span>
-  jr  <span class="nv">$ra</span>
-  addiu <span class="nv">$sp</span>, <span class="nv">$sp</span>, 32
+<div class="highlight-console"><div class="highlight"><pre><span></span><span class="gp">118-165-78-230:input Jonathan$</span> /Users/Jonathan/llvm/test/cmake_debug_build/
+<span class="go">Debug/bin/llc -march=mips -relocation-model=pic -filetype=asm ch9_gprestore.bc</span>
+<span class="go">-o -</span>
+<span class="go">...</span>
+<span class="gp">#</span> BB#0:                                 <span class="c1"># %entry</span>
+<span class="go">  lui $2, %hi(_gp_disp)</span>
+<span class="go">  ori $2, $2, %lo(_gp_disp)</span>
+<span class="go">  addiu $sp, $sp, -32</span>
+<span class="gp">$</span>tmp0:
+<span class="go">  .cfi_def_cfa_offset 32</span>
+<span class="go">  sw  $ra, 28($sp)            # 4-byte Folded Spill</span>
+<span class="go">  sw  $fp, 24($sp)            # 4-byte Folded Spill</span>
+<span class="go">  sw  $16, 20($sp)            # 4-byte Folded Spill</span>
+<span class="gp">$</span>tmp1:
+<span class="go">  .cfi_offset 31, -4</span>
+<span class="gp">$</span>tmp2:
+<span class="go">  .cfi_offset 30, -8</span>
+<span class="gp">$</span>tmp3:
+<span class="go">  .cfi_offset 16, -12</span>
+<span class="go">  move   $fp, $sp</span>
+<span class="gp">$</span>tmp4:
+<span class="go">  .cfi_def_cfa_register 30</span>
+<span class="go">  addu  $16, $2, $25</span>
+<span class="go">  lw  $25, %call16(_Z5sum_ii)($16)</span>
+<span class="go">  addiu $4, $zero, 1</span>
+<span class="go">  jalr  $25</span>
+<span class="go">  move   $gp, $16</span>
+<span class="go">  sw  $2, 16($fp)</span>
+<span class="go">  lw  $25, %call16(_Z5sum_ii)($16)</span>
+<span class="go">  jalr  $25</span>
+<span class="go">  addiu $4, $zero, 2</span>
+<span class="go">  lw  $1, 16($fp)</span>
+<span class="go">  addu  $2, $1, $2</span>
+<span class="go">  sw  $2, 16($fp)</span>
+<span class="go">  move   $sp, $fp</span>
+<span class="go">  lw  $16, 20($sp)            # 4-byte Folded Reload</span>
+<span class="go">  lw  $fp, 24($sp)            # 4-byte Folded Reload</span>
+<span class="go">  lw  $ra, 28($sp)            # 4-byte Folded Reload</span>
+<span class="go">  jr  $ra</span>
+<span class="go">  addiu $sp, $sp, 32</span>
 </pre></div>
 </div>
 <p>The following code added in Chapter9_3/ to issue <strong>“.cprestore”</strong> or the
@@ -3846,46 +3846,46 @@ void Cpu0MCInstLower::LowerCPRESTORE(int64_t Offset,
 user run with <code class="docutils literal"><span class="pre">llc</span> <span class="pre">-filetype=obj</span></code>.
 The added code of Cpu0MCInstLower.cpp as above takes care the .cprestore machine
 instructions.</p>
-<div class="highlight-bash"><div class="highlight"><pre><span></span>118-165-76-131:input Jonathan$ /Users/Jonathan/llvm/test/
-cmake_debug_build/Debug/bin/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>pic -filetype<span class="o">=</span>
-obj ch9_1.bc -o ch9_1.cpu0.o
-118-165-76-131:input Jonathan$ hexdump  ch9_1.cpu0.o
-...
-// .cprestore machine instruction “ <span class="m">01</span> ad <span class="m">00</span> 18”
-00000d0 <span class="m">01</span> ad <span class="m">00</span> <span class="m">18</span> <span class="m">09</span> <span class="m">20</span> <span class="m">00</span> <span class="m">00</span> <span class="m">01</span> 2d <span class="m">00</span> <span class="m">40</span> <span class="m">09</span> <span class="m">20</span> <span class="m">00</span> 06
-...
+<div class="highlight-console"><div class="highlight"><pre><span></span><span class="gp">118-165-76-131:input Jonathan$</span> /Users/Jonathan/llvm/test/
+<span class="go">cmake_debug_build/Debug/bin/llc -march=cpu0 -relocation-model=pic -filetype=</span>
+<span class="go">obj ch9_1.bc -o ch9_1.cpu0.o</span>
+<span class="gp">118-165-76-131:input Jonathan$</span> hexdump  ch9_1.cpu0.o
+<span class="go">...</span>
+<span class="go">// .cprestore machine instruction “ 01 ad 00 18”</span>
+<span class="go">00000d0 01 ad 00 18 09 20 00 00 01 2d 00 40 09 20 00 06</span>
+<span class="go">...</span>
 
-118-165-67-25:input Jonathan$ cat ch9_1.cpu0.s
-...
-  .ent  _Z5sum_iiiiiii          <span class="c1"># @_Z5sum_iiiiiii</span>
-_Z5sum_iiiiiii:
-...
-  .cpload <span class="nv">$t9</span> // assign <span class="nv">$gp</span> <span class="o">=</span> <span class="nv">$t9</span> by loader when loader load re-entry <span class="k">function</span>
-              // <span class="o">(</span>shared library<span class="o">)</span> of _Z5sum_iiiiiii
-  .set  nomacro
-<span class="c1"># BB#0:</span>
-...
-  .ent  main                    <span class="c1"># @main</span>
-...
-  .cprestore  <span class="m">24</span>  // save <span class="nv">$gp</span> to 24<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-...
+<span class="gp">118-165-67-25:input Jonathan$</span> cat ch9_1.cpu0.s
+<span class="go">...</span>
+<span class="go">  .ent  _Z5sum_iiiiiii          # @_Z5sum_iiiiiii</span>
+<span class="go">_Z5sum_iiiiiii:</span>
+<span class="go">...</span>
+<span class="go">  .cpload $t9 // assign $gp = $t9 by loader when loader load re-entry function</span>
+<span class="go">              // (shared library) of _Z5sum_iiiiiii</span>
+<span class="go">  .set  nomacro</span>
+<span class="gp">#</span> BB#0:
+<span class="go">...</span>
+<span class="go">  .ent  main                    # @main</span>
+<span class="go">...</span>
+<span class="go">  .cprestore  24  // save $gp to 24($sp)</span>
+<span class="go">...</span>
 </pre></div>
 </div>
 <p>Run <code class="docutils literal"><span class="pre">llc</span> <span class="pre">-static</span></code> will call jsub instruction instead of jalr as follows,</p>
-<div class="highlight-bash"><div class="highlight"><pre><span></span>118-165-76-131:input Jonathan$ /Users/Jonathan/llvm/test/
-cmake_debug_build/Debug/bin/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>static -filetype<span class="o">=</span>
-asm ch9_1.bc -o ch9_1.cpu0.s
-118-165-76-131:input Jonathan$ cat ch9_1.cpu0.s
-...
-  jsub  _Z5sum_iiiiiii
-...
+<div class="highlight-console"><div class="highlight"><pre><span></span><span class="gp">118-165-76-131:input Jonathan$</span> /Users/Jonathan/llvm/test/
+<span class="go">cmake_debug_build/Debug/bin/llc -march=cpu0 -relocation-model=static -filetype=</span>
+<span class="go">asm ch9_1.bc -o ch9_1.cpu0.s</span>
+<span class="gp">118-165-76-131:input Jonathan$</span> cat ch9_1.cpu0.s
+<span class="go">...</span>
+<span class="go">  jsub  _Z5sum_iiiiiii</span>
+<span class="go">...</span>
 </pre></div>
 </div>
 <p>Run with <code class="docutils literal"><span class="pre">llc</span> <span class="pre">-filetype=obj</span></code>, you can find the Cx of <strong>“jsub Cx”</strong> is 0 since
 the Cx is calculated by linker as below.
 Mips has the same 0 in it&#8217;s jal instruction.</p>
-<div class="highlight-bash"><div class="highlight"><pre><span></span>// jsub _Z5sum_iiiiiii translate into 2B <span class="m">00</span> <span class="m">00</span> 00
-00F0: 2B <span class="m">00</span> <span class="m">00</span> <span class="m">00</span> <span class="m">01</span> 2D <span class="m">00</span> <span class="m">34</span> <span class="m">00</span> ED <span class="m">00</span> 3C <span class="m">09</span> DD <span class="m">00</span> 40
+<div class="highlight-console"><div class="highlight"><pre><span></span><span class="go">// jsub _Z5sum_iiiiiii translate into 2B 00 00 00</span>
+<span class="go">00F0: 2B 00 00 00 01 2D 00 34 00 ED 00 3C 09 DD 00 40</span>
 </pre></div>
 </div>
 <p>The following code will emit &#8220;ld $gp, ($gp save slot on stack)&#8221; after jalr by
@@ -4039,122 +4039,122 @@ This subsection supports variable number of arguments since C language supports
 this feature.</p>
 <p>Run Chapter9_3/ with ch9_3_vararg.cpp as well as clang option,
 <strong>clang -target mips-unknown-linux-gnu</strong>, to get the following result,</p>
-<div class="highlight-bash"><div class="highlight"><pre><span></span>118-165-76-131:input Jonathan$ clang -target mips-unknown-linux-gnu -c
-ch9_3_vararg.cpp -emit-llvm -o ch9_3_vararg.bc
-118-165-76-131:input Jonathan$ /Users/Jonathan/llvm/test/
-cmake_debug_build/Debug/bin/llc -march<span class="o">=</span>cpu0 -mcpu<span class="o">=</span>cpu032I -cpu0-s32-calls<span class="o">=</span><span class="nb">false</span>
--relocation-model<span class="o">=</span>pic -filetype<span class="o">=</span>asm ch9_3_vararg.bc -o ch9_3_vararg.cpu0.s
-118-165-76-131:input Jonathan$ cat ch9_3_vararg.cpu0.s
-  .section .mdebug.abi32
-  .previous
-  .file <span class="s2">&quot;ch9_3_vararg.bc&quot;</span>
-  .text
-  .globl  _Z5sum_iiz
-  .align  2
-  .type _Z5sum_iiz,@function
-  .ent  _Z5sum_iiz              <span class="c1"># @_Z5sum_iiz</span>
-_Z5sum_iiz:
-  .frame  <span class="nv">$fp</span>,24,<span class="nv">$lr</span>
-  .mask   0x00001000,-4
-  .set  noreorder
-  .set  nomacro
-<span class="c1"># BB#0:</span>
-  addiu <span class="nv">$sp</span>, <span class="nv">$sp</span>, -24
-  st  <span class="nv">$fp</span>, 20<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>            <span class="c1"># 4-byte Folded Spill</span>
-  move    <span class="nv">$fp</span>, <span class="nv">$sp</span>
-  ld  <span class="nv">$2</span>, 24<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>     // amount
-  st  <span class="nv">$2</span>, 16<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>     // amount
-  addiu <span class="nv">$2</span>, <span class="nv">$zero</span>, 0
-  st  <span class="nv">$2</span>, 12<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>     // i
-  st  <span class="nv">$2</span>, 8<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>     // val
-  st  <span class="nv">$2</span>, 4<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>      // sum
-  addiu <span class="nv">$3</span>, <span class="nv">$fp</span>, 28
-  st  <span class="nv">$3</span>, 0<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>      // <span class="nv">arg_ptr</span> <span class="o">=</span> 2nd <span class="nv">argument</span> <span class="o">=</span> <span class="p">&amp;</span>arg<span class="o">[</span>1<span class="o">]</span>,
-              // since <span class="p">&amp;</span>arg<span class="o">[</span>0<span class="o">]</span> <span class="o">=</span> 24<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-  st  <span class="nv">$2</span>, 12<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-<span class="nv">$BB0_1</span>:                                 <span class="c1"># =&gt;This Inner Loop Header: Depth=1</span>
-  ld  <span class="nv">$2</span>, 16<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-  ld  <span class="nv">$3</span>, 12<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-  cmp <span class="nv">$sw</span>, <span class="nv">$3</span>, <span class="nv">$2</span>        // compare<span class="o">(</span>i, amount<span class="o">)</span>
-  jge <span class="nv">$BB0_4</span>
-  nop
-  jmp <span class="nv">$BB0_2</span>
-  nop
-<span class="nv">$BB0_2</span>:                                 <span class="c1">#   in Loop: Header=BB0_1 Depth=1</span>
-              // i &lt; amount
-  ld  <span class="nv">$2</span>, 0<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-  addiu <span class="nv">$3</span>, <span class="nv">$2</span>, <span class="m">4</span>   // arg_ptr  + 4
-  st  <span class="nv">$3</span>, 0<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-  ld  <span class="nv">$2</span>, 0<span class="o">(</span><span class="nv">$2</span><span class="o">)</span>     // *arg_ptr
-  st  <span class="nv">$2</span>, 8<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-  ld  <span class="nv">$3</span>, 4<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>      // sum
-  add <span class="nv">$2</span>, <span class="nv">$3</span>, <span class="nv">$2</span>      // sum +<span class="o">=</span> *arg_ptr
-  st  <span class="nv">$2</span>, 4<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-<span class="c1"># BB#3:                                 #   in Loop: Header=BB0_1 Depth=1</span>
-              // i &gt;<span class="o">=</span> amount
-  ld  <span class="nv">$2</span>, 12<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-  addiu <span class="nv">$2</span>, <span class="nv">$2</span>, <span class="m">1</span>   // i++
-  st  <span class="nv">$2</span>, 12<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-  jmp <span class="nv">$BB0_1</span>
-  nop
-<span class="nv">$BB0_4</span>:
-  ld  <span class="nv">$2</span>, 4<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-  move    <span class="nv">$sp</span>, <span class="nv">$fp</span>
-  ld  <span class="nv">$fp</span>, 20<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>            <span class="c1"># 4-byte Folded Reload</span>
-  addiu <span class="nv">$sp</span>, <span class="nv">$sp</span>, 24
-  ret <span class="nv">$lr</span>
-  .set  macro
-  .set  reorder
-  .end  _Z5sum_iiz
-<span class="nv">$tmp1</span>:
-  .size _Z5sum_iiz, <span class="o">(</span><span class="nv">$tmp1</span><span class="o">)</span>-_Z5sum_iiz
+<div class="highlight-console"><div class="highlight"><pre><span></span><span class="gp">118-165-76-131:input Jonathan$</span> clang -target mips-unknown-linux-gnu -c
+<span class="go">ch9_3_vararg.cpp -emit-llvm -o ch9_3_vararg.bc</span>
+<span class="gp">118-165-76-131:input Jonathan$</span> /Users/Jonathan/llvm/test/
+<span class="go">cmake_debug_build/Debug/bin/llc -march=cpu0 -mcpu=cpu032I -cpu0-s32-calls=false</span>
+<span class="go">-relocation-model=pic -filetype=asm ch9_3_vararg.bc -o ch9_3_vararg.cpu0.s</span>
+<span class="gp">118-165-76-131:input Jonathan$</span> cat ch9_3_vararg.cpu0.s
+<span class="go">  .section .mdebug.abi32</span>
+<span class="go">  .previous</span>
+<span class="go">  .file &quot;ch9_3_vararg.bc&quot;</span>
+<span class="go">  .text</span>
+<span class="go">  .globl  _Z5sum_iiz</span>
+<span class="go">  .align  2</span>
+<span class="go">  .type _Z5sum_iiz,@function</span>
+<span class="go">  .ent  _Z5sum_iiz              # @_Z5sum_iiz</span>
+<span class="go">_Z5sum_iiz:</span>
+<span class="go">  .frame  $fp,24,$lr</span>
+<span class="go">  .mask   0x00001000,-4</span>
+<span class="go">  .set  noreorder</span>
+<span class="go">  .set  nomacro</span>
+<span class="gp">#</span> BB#0:
+<span class="go">  addiu $sp, $sp, -24</span>
+<span class="go">  st  $fp, 20($sp)            # 4-byte Folded Spill</span>
+<span class="go">  move    $fp, $sp</span>
+<span class="go">  ld  $2, 24($fp)     // amount</span>
+<span class="go">  st  $2, 16($fp)     // amount</span>
+<span class="go">  addiu $2, $zero, 0</span>
+<span class="go">  st  $2, 12($fp)     // i</span>
+<span class="go">  st  $2, 8($fp)     // val</span>
+<span class="go">  st  $2, 4($fp)      // sum</span>
+<span class="go">  addiu $3, $fp, 28</span>
+<span class="go">  st  $3, 0($fp)      // arg_ptr = 2nd argument = &amp;arg[1],</span>
+<span class="go">              // since &amp;arg[0] = 24($sp)</span>
+<span class="go">  st  $2, 12($fp)</span>
+<span class="gp">$</span>BB0_1:                                 <span class="c1"># =&gt;This Inner Loop Header: Depth=1</span>
+<span class="go">  ld  $2, 16($fp)</span>
+<span class="go">  ld  $3, 12($fp)</span>
+<span class="go">  cmp $sw, $3, $2        // compare(i, amount)</span>
+<span class="go">  jge $BB0_4</span>
+<span class="go">  nop</span>
+<span class="go">  jmp $BB0_2</span>
+<span class="go">  nop</span>
+<span class="gp">$</span>BB0_2:                                 <span class="c1">#   in Loop: Header=BB0_1 Depth=1</span>
+<span class="go">              // i &lt; amount</span>
+<span class="go">  ld  $2, 0($fp)</span>
+<span class="go">  addiu $3, $2, 4   // arg_ptr  + 4</span>
+<span class="go">  st  $3, 0($fp)</span>
+<span class="go">  ld  $2, 0($2)     // *arg_ptr</span>
+<span class="go">  st  $2, 8($fp)</span>
+<span class="go">  ld  $3, 4($fp)      // sum</span>
+<span class="go">  add $2, $3, $2      // sum += *arg_ptr</span>
+<span class="go">  st  $2, 4($fp)</span>
+<span class="gp">#</span> BB#3:                                 <span class="c1">#   in Loop: Header=BB0_1 Depth=1</span>
+<span class="go">              // i &gt;= amount</span>
+<span class="go">  ld  $2, 12($fp)</span>
+<span class="go">  addiu $2, $2, 1   // i++</span>
+<span class="go">  st  $2, 12($fp)</span>
+<span class="go">  jmp $BB0_1</span>
+<span class="go">  nop</span>
+<span class="gp">$</span>BB0_4:
+<span class="go">  ld  $2, 4($fp)</span>
+<span class="go">  move    $sp, $fp</span>
+<span class="go">  ld  $fp, 20($sp)            # 4-byte Folded Reload</span>
+<span class="go">  addiu $sp, $sp, 24</span>
+<span class="go">  ret $lr</span>
+<span class="go">  .set  macro</span>
+<span class="go">  .set  reorder</span>
+<span class="go">  .end  _Z5sum_iiz</span>
+<span class="gp">$</span>tmp1:
+<span class="go">  .size _Z5sum_iiz, ($tmp1)-_Z5sum_iiz</span>
 
-  .globl  _Z11test_varargv
-  .align  2
-  .type _Z11test_varargv,@function
-  .ent  _Z11test_varargv                    <span class="c1"># @_Z11test_varargv</span>
-_Z11test_varargv:
-  .frame  <span class="nv">$sp</span>,88,<span class="nv">$lr</span>
-  .mask   0x00004000,-4
-  .set  noreorder
-  .cpload <span class="nv">$t9</span>
-  .set  nomacro
-<span class="c1"># BB#0:</span>
-  addiu <span class="nv">$sp</span>, <span class="nv">$sp</span>, -48
-  st  <span class="nv">$lr</span>, 44<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>            <span class="c1"># 4-byte Folded Spill</span>
-  st  <span class="nv">$fp</span>, 40<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>            <span class="c1"># 4-byte Folded Spill</span>
-  move    <span class="nv">$fp</span>, <span class="nv">$sp</span>
-  .cprestore  32
-  addiu <span class="nv">$2</span>, <span class="nv">$zero</span>, 5
-  st  <span class="nv">$2</span>, 24<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-  addiu <span class="nv">$2</span>, <span class="nv">$zero</span>, 4
-  st  <span class="nv">$2</span>, 20<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-  addiu <span class="nv">$2</span>, <span class="nv">$zero</span>, 3
-  st  <span class="nv">$2</span>, 16<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-  addiu <span class="nv">$2</span>, <span class="nv">$zero</span>, 2
-  st  <span class="nv">$2</span>, 12<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-  addiu <span class="nv">$2</span>, <span class="nv">$zero</span>, 1
-  st  <span class="nv">$2</span>, 8<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-  addiu <span class="nv">$2</span>, <span class="nv">$zero</span>, 0
-  st  <span class="nv">$2</span>, 4<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-  addiu <span class="nv">$2</span>, <span class="nv">$zero</span>, 6
-  st  <span class="nv">$2</span>, 0<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-  ld  <span class="nv">$t9</span>, %call16<span class="o">(</span>_Z5sum_iiz<span class="o">)(</span><span class="nv">$gp</span><span class="o">)</span>
-  jalr  <span class="nv">$t9</span>
-  nop
-  ld  <span class="nv">$gp</span>, 28<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-  st  <span class="nv">$2</span>, 36<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-  move    <span class="nv">$sp</span>, <span class="nv">$fp</span>
-  ld  <span class="nv">$fp</span>, 40<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>            <span class="c1"># 4-byte Folded Reload</span>
-  ld  <span class="nv">$lr</span>, 44<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>            <span class="c1"># 4-byte Folded Reload</span>
-  addiu <span class="nv">$sp</span>, <span class="nv">$sp</span>, 48
-  ret <span class="nv">$lr</span>
-  nop
-  .set  macro
-  .set  reorder
-  .end  _Z11test_varargv
-<span class="nv">$tmp1</span>:
-  .size _Z11test_varargv, <span class="o">(</span><span class="nv">$tmp1</span><span class="o">)</span>-_Z11test_varargv
+<span class="go">  .globl  _Z11test_varargv</span>
+<span class="go">  .align  2</span>
+<span class="go">  .type _Z11test_varargv,@function</span>
+<span class="go">  .ent  _Z11test_varargv                    # @_Z11test_varargv</span>
+<span class="go">_Z11test_varargv:</span>
+<span class="go">  .frame  $sp,88,$lr</span>
+<span class="go">  .mask   0x00004000,-4</span>
+<span class="go">  .set  noreorder</span>
+<span class="go">  .cpload $t9</span>
+<span class="go">  .set  nomacro</span>
+<span class="gp">#</span> BB#0:
+<span class="go">  addiu $sp, $sp, -48</span>
+<span class="go">  st  $lr, 44($sp)            # 4-byte Folded Spill</span>
+<span class="go">  st  $fp, 40($sp)            # 4-byte Folded Spill</span>
+<span class="go">  move    $fp, $sp</span>
+<span class="go">  .cprestore  32</span>
+<span class="go">  addiu $2, $zero, 5</span>
+<span class="go">  st  $2, 24($sp)</span>
+<span class="go">  addiu $2, $zero, 4</span>
+<span class="go">  st  $2, 20($sp)</span>
+<span class="go">  addiu $2, $zero, 3</span>
+<span class="go">  st  $2, 16($sp)</span>
+<span class="go">  addiu $2, $zero, 2</span>
+<span class="go">  st  $2, 12($sp)</span>
+<span class="go">  addiu $2, $zero, 1</span>
+<span class="go">  st  $2, 8($sp)</span>
+<span class="go">  addiu $2, $zero, 0</span>
+<span class="go">  st  $2, 4($sp)</span>
+<span class="go">  addiu $2, $zero, 6</span>
+<span class="go">  st  $2, 0($sp)</span>
+<span class="go">  ld  $t9, %call16(_Z5sum_iiz)($gp)</span>
+<span class="go">  jalr  $t9</span>
+<span class="go">  nop</span>
+<span class="go">  ld  $gp, 28($fp)</span>
+<span class="go">  st  $2, 36($fp)</span>
+<span class="go">  move    $sp, $fp</span>
+<span class="go">  ld  $fp, 40($sp)            # 4-byte Folded Reload</span>
+<span class="go">  ld  $lr, 44($sp)            # 4-byte Folded Reload</span>
+<span class="go">  addiu $sp, $sp, 48</span>
+<span class="go">  ret $lr</span>
+<span class="go">  nop</span>
+<span class="go">  .set  macro</span>
+<span class="go">  .set  reorder</span>
+<span class="go">  .end  _Z11test_varargv</span>
+<span class="gp">$</span>tmp1:
+<span class="go">  .size _Z11test_varargv, ($tmp1)-_Z11test_varargv</span>
 </pre></div>
 </div>
 <p>The analysis of output ch9_3_vararg.cpu0.s as above in comment.
@@ -4633,105 +4633,105 @@ getFrameRegister(const MachineFunction &amp;MF) const {
 </pre></div>
 </div>
 <p>Run Chapter9_3 with ch9_3_alloc.cpp will get the following correct result.</p>
-<div class="highlight-bash"><div class="highlight"><pre><span></span>118-165-72-242:input Jonathan$ clang -target mips-unknown-linux-gnu -c
-ch9_3_alloc.cpp -emit-llvm -o ch9_3_alloc.bc
-118-165-72-242:input Jonathan$ llvm-dis ch9_3_alloc.bc -o ch9_3_alloc.ll
-118-165-72-242:input Jonathan$ cat ch9_3_alloc.ll
-<span class="p">;</span> <span class="nv">ModuleID</span> <span class="o">=</span> <span class="s1">&#39;ch9_3_alloc.bc&#39;</span>
-target <span class="nv">datalayout</span> <span class="o">=</span> <span class="s2">&quot;e-p:64:64:64-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:64:64-</span>
-<span class="s2">f32:32:32-f64:64:64-v64:64:64-v128:128:128-a0:0:64-s0:64:64-f80:128:128-n8:16:</span>
-<span class="s2">32:64-S128&quot;</span>
-target <span class="nv">triple</span> <span class="o">=</span> <span class="s2">&quot;x86_64-apple-macosx10.8.0&quot;</span>
+<div class="highlight-console"><div class="highlight"><pre><span></span><span class="gp">118-165-72-242:input Jonathan$</span> clang -target mips-unknown-linux-gnu -c
+<span class="go">ch9_3_alloc.cpp -emit-llvm -o ch9_3_alloc.bc</span>
+<span class="gp">118-165-72-242:input Jonathan$</span> llvm-dis ch9_3_alloc.bc -o ch9_3_alloc.ll
+<span class="gp">118-165-72-242:input Jonathan$</span> cat ch9_3_alloc.ll
+<span class="go">; ModuleID = &#39;ch9_3_alloc.bc&#39;</span>
+<span class="go">target datalayout = &quot;e-p:64:64:64-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:64:64-</span>
+<span class="go">f32:32:32-f64:64:64-v64:64:64-v128:128:128-a0:0:64-s0:64:64-f80:128:128-n8:16:</span>
+<span class="go">32:64-S128&quot;</span>
+<span class="go">target triple = &quot;x86_64-apple-macosx10.8.0&quot;</span>
 
-define i32 @_Z5sum_iiiiiii<span class="o">(</span>i32 %x1, i32 %x2, i32 %x3, i32 %x4, i32 %x5, i32 %x6<span class="o">)</span>
- nounwind uwtable ssp <span class="o">{</span>
-  ...
-  %9 <span class="o">=</span> alloca i8, i32 %8      // int* <span class="nv">b</span> <span class="o">=</span> <span class="o">(</span>int*<span class="o">)</span>__builtin_alloca<span class="o">(</span>sizeof<span class="o">(</span>int<span class="o">)</span> * <span class="m">1</span> * x1<span class="o">)</span><span class="p">;</span>
-  %10 <span class="o">=</span> bitcast i8* %9 to i32*
-  store i32* %10, i32** %b, align 4
-  ...
-<span class="o">}</span>
-...
+<span class="go">define i32 @_Z5sum_iiiiiii(i32 %x1, i32 %x2, i32 %x3, i32 %x4, i32 %x5, i32 %x6)</span>
+<span class="go"> nounwind uwtable ssp {</span>
+<span class="go">  ...</span>
+<span class="gp">  %</span><span class="nv">9</span> <span class="o">=</span> alloca i8, i32 %8      // int* <span class="nv">b</span> <span class="o">=</span> <span class="o">(</span>int*<span class="o">)</span>__builtin_alloca<span class="o">(</span>sizeof<span class="o">(</span>int<span class="o">)</span> * <span class="m">1</span> * x1<span class="o">)</span><span class="p">;</span>
+<span class="gp">  %</span><span class="nv">10</span> <span class="o">=</span> bitcast i8* %9 to i32*
+<span class="go">  store i32* %10, i32** %b, align 4</span>
+<span class="go">  ...</span>
+<span class="go">}</span>
+<span class="go">...</span>
 
-118-165-72-242:input Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
-Debug/bin/llc -march<span class="o">=</span>cpu0 -mcpu<span class="o">=</span>cpu032I -cpu0-s32-calls<span class="o">=</span><span class="nb">false</span>
--relocation-model<span class="o">=</span>pic -filetype<span class="o">=</span>asm ch9_3_alloc.bc -o ch9_3_alloc.cpu0.s
-118-165-72-242:input Jonathan$ cat ch9_3_alloc.cpu0.s
-...
-    .globl  _Z10weight_sumiiiiii
-  .align  2
-  .type _Z10weight_sumiiiiii,@function
-  .ent  _Z10weight_sumiiiiii    <span class="c1"># @_Z10weight_sumiiiiii</span>
-_Z10weight_sumiiiiii:
-  .frame  <span class="nv">$fp</span>,48,<span class="nv">$lr</span>
-  .mask   0x00005000,-4
-  .set  noreorder
-  .cpload <span class="nv">$t9</span>
-  .set  nomacro
-<span class="c1"># BB#0:</span>
-  addiu <span class="nv">$sp</span>, <span class="nv">$sp</span>, -48
-  st  <span class="nv">$lr</span>, 44<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>            <span class="c1"># 4-byte Folded Spill</span>
-  st  <span class="nv">$fp</span>, 40<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>            <span class="c1"># 4-byte Folded Spill</span>
-  move   <span class="nv">$fp</span>, <span class="nv">$sp</span>
-  .cprestore  24
-  ld  <span class="nv">$2</span>, 68<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-  ld  <span class="nv">$3</span>, 64<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-  ld  <span class="nv">$t9</span>, 60<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-  ld  <span class="nv">$7</span>, 56<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-  st  <span class="nv">$4</span>, 36<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-  st  <span class="nv">$5</span>, 32<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-  st  <span class="nv">$7</span>, 28<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-  st  <span class="nv">$t9</span>, 24<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-  st  <span class="nv">$3</span>, 20<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-  st  <span class="nv">$2</span>, 16<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-  shl <span class="nv">$2</span>, <span class="nv">$2</span>, <span class="m">2</span>    // <span class="nv">$2</span> <span class="o">=</span> sizeof<span class="o">(</span>int<span class="o">)</span> * <span class="m">1</span> * x2<span class="p">;</span>
-  addiu <span class="nv">$2</span>, <span class="nv">$2</span>, 7
-  addiu <span class="nv">$3</span>, <span class="nv">$zero</span>, -8
-  and <span class="nv">$2</span>, <span class="nv">$2</span>, <span class="nv">$3</span>
-  addiu <span class="nv">$sp</span>, <span class="nv">$sp</span>, 0
-  subu  <span class="nv">$2</span>, <span class="nv">$sp</span>, <span class="nv">$2</span>
-  addu  <span class="nv">$sp</span>, <span class="nv">$zero</span>, <span class="nv">$2</span>  // <span class="nb">set</span> sp to the bottom of alloca area
-  addiu <span class="nv">$sp</span>, <span class="nv">$sp</span>, 0
-  st  <span class="nv">$2</span>, 12<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-  st  <span class="nv">$2</span>, 8<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-  ld  <span class="nv">$2</span>, 12<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-  ld  <span class="nv">$3</span>, 28<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-  st  <span class="nv">$3</span>, 0<span class="o">(</span><span class="nv">$2</span><span class="o">)</span>    // *b <span class="o">=</span> x3
-  ld  <span class="nv">$5</span>, 32<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-  ld  <span class="nv">$2</span>, 36<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-  ld  <span class="nv">$3</span>, 20<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-  ld  <span class="nv">$4</span>, 28<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-  ld  <span class="nv">$t9</span>, 24<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-  ld  <span class="nv">$7</span>, 16<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-  addiu <span class="nv">$sp</span>, <span class="nv">$sp</span>, -24
-  st  <span class="nv">$7</span>, 20<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-  st  <span class="nv">$t9</span>, 12<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-  st  <span class="nv">$4</span>, 8<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-  shl <span class="nv">$3</span>, <span class="nv">$3</span>, 1
-  st  <span class="nv">$3</span>, 16<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-  addiu <span class="nv">$3</span>, <span class="nv">$zero</span>, 3
-  mul <span class="nv">$4</span>, <span class="nv">$2</span>, <span class="nv">$3</span>
-  ld  <span class="nv">$t9</span>, %call16<span class="o">(</span>_Z3sumiiiiii<span class="o">)(</span><span class="nv">$gp</span><span class="o">)</span>
-  jalr  <span class="nv">$t9</span>
-  nop
-  ld  <span class="nv">$gp</span>, 24<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-  addiu <span class="nv">$sp</span>, <span class="nv">$sp</span>, 24
-  st  <span class="nv">$2</span>, 4<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-  ld  <span class="nv">$3</span>, 8<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-  ld  <span class="nv">$3</span>, 0<span class="o">(</span><span class="nv">$3</span><span class="o">)</span>
-  addu  <span class="nv">$2</span>, <span class="nv">$2</span>, <span class="nv">$3</span>
-  move   <span class="nv">$sp</span>, <span class="nv">$fp</span>
-  ld  <span class="nv">$fp</span>, 40<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>            <span class="c1"># 4-byte Folded Reload</span>
-  ld  <span class="nv">$lr</span>, 44<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>            <span class="c1"># 4-byte Folded Reload</span>
-  addiu <span class="nv">$sp</span>, <span class="nv">$sp</span>, 48
-  ret <span class="nv">$lr</span>
-  nop
-  .set  macro
-  .set  reorder
-  .end  _Z10weight_sumiiiiii
-<span class="nv">$func_end1</span>:
-  .size _Z10weight_sumiiiiii, <span class="o">(</span><span class="nv">$func_end1</span><span class="o">)</span>-_Z10weight_sumiiiiii
-...
+<span class="gp">118-165-72-242:input Jonathan$</span> /Users/Jonathan/llvm/test/cmake_debug_build/
+<span class="go">Debug/bin/llc -march=cpu0 -mcpu=cpu032I -cpu0-s32-calls=false</span>
+<span class="go">-relocation-model=pic -filetype=asm ch9_3_alloc.bc -o ch9_3_alloc.cpu0.s</span>
+<span class="gp">118-165-72-242:input Jonathan$</span> cat ch9_3_alloc.cpu0.s
+<span class="go">...</span>
+<span class="go">    .globl  _Z10weight_sumiiiiii</span>
+<span class="go">  .align  2</span>
+<span class="go">  .type _Z10weight_sumiiiiii,@function</span>
+<span class="go">  .ent  _Z10weight_sumiiiiii    # @_Z10weight_sumiiiiii</span>
+<span class="go">_Z10weight_sumiiiiii:</span>
+<span class="go">  .frame  $fp,48,$lr</span>
+<span class="go">  .mask   0x00005000,-4</span>
+<span class="go">  .set  noreorder</span>
+<span class="go">  .cpload $t9</span>
+<span class="go">  .set  nomacro</span>
+<span class="gp">#</span> BB#0:
+<span class="go">  addiu $sp, $sp, -48</span>
+<span class="go">  st  $lr, 44($sp)            # 4-byte Folded Spill</span>
+<span class="go">  st  $fp, 40($sp)            # 4-byte Folded Spill</span>
+<span class="go">  move   $fp, $sp</span>
+<span class="go">  .cprestore  24</span>
+<span class="go">  ld  $2, 68($fp)</span>
+<span class="go">  ld  $3, 64($fp)</span>
+<span class="go">  ld  $t9, 60($fp)</span>
+<span class="go">  ld  $7, 56($fp)</span>
+<span class="go">  st  $4, 36($fp)</span>
+<span class="go">  st  $5, 32($fp)</span>
+<span class="go">  st  $7, 28($fp)</span>
+<span class="go">  st  $t9, 24($fp)</span>
+<span class="go">  st  $3, 20($fp)</span>
+<span class="go">  st  $2, 16($fp)</span>
+<span class="go">  shl $2, $2, 2    // $2 = sizeof(int) * 1 * x2;</span>
+<span class="go">  addiu $2, $2, 7</span>
+<span class="go">  addiu $3, $zero, -8</span>
+<span class="go">  and $2, $2, $3</span>
+<span class="go">  addiu $sp, $sp, 0</span>
+<span class="go">  subu  $2, $sp, $2</span>
+<span class="go">  addu  $sp, $zero, $2  // set sp to the bottom of alloca area</span>
+<span class="go">  addiu $sp, $sp, 0</span>
+<span class="go">  st  $2, 12($fp)</span>
+<span class="go">  st  $2, 8($fp)</span>
+<span class="go">  ld  $2, 12($fp)</span>
+<span class="go">  ld  $3, 28($fp)</span>
+<span class="go">  st  $3, 0($2)    // *b = x3</span>
+<span class="go">  ld  $5, 32($fp)</span>
+<span class="go">  ld  $2, 36($fp)</span>
+<span class="go">  ld  $3, 20($fp)</span>
+<span class="go">  ld  $4, 28($fp)</span>
+<span class="go">  ld  $t9, 24($fp)</span>
+<span class="go">  ld  $7, 16($fp)</span>
+<span class="go">  addiu $sp, $sp, -24</span>
+<span class="go">  st  $7, 20($sp)</span>
+<span class="go">  st  $t9, 12($sp)</span>
+<span class="go">  st  $4, 8($sp)</span>
+<span class="go">  shl $3, $3, 1</span>
+<span class="go">  st  $3, 16($sp)</span>
+<span class="go">  addiu $3, $zero, 3</span>
+<span class="go">  mul $4, $2, $3</span>
+<span class="go">  ld  $t9, %call16(_Z3sumiiiiii)($gp)</span>
+<span class="go">  jalr  $t9</span>
+<span class="go">  nop</span>
+<span class="go">  ld  $gp, 24($fp)</span>
+<span class="go">  addiu $sp, $sp, 24</span>
+<span class="go">  st  $2, 4($fp)</span>
+<span class="go">  ld  $3, 8($fp)</span>
+<span class="go">  ld  $3, 0($3)</span>
+<span class="go">  addu  $2, $2, $3</span>
+<span class="go">  move   $sp, $fp</span>
+<span class="go">  ld  $fp, 40($sp)            # 4-byte Folded Reload</span>
+<span class="go">  ld  $lr, 44($sp)            # 4-byte Folded Reload</span>
+<span class="go">  addiu $sp, $sp, 48</span>
+<span class="go">  ret $lr</span>
+<span class="go">  nop</span>
+<span class="go">  .set  macro</span>
+<span class="go">  .set  reorder</span>
+<span class="go">  .end  _Z10weight_sumiiiiii</span>
+<span class="gp">$</span>func_end1:
+<span class="go">  .size _Z10weight_sumiiiiii, ($func_end1)-_Z10weight_sumiiiiii</span>
+<span class="go">...</span>
 </pre></div>
 </div>
 <p>As you can see, the dynamic stack allocation needs frame pointer register <strong>fp</strong>

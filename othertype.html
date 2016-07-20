@@ -1164,49 +1164,52 @@ The result as follows,</p>
 <span class="p">}</span>
 </pre></div>
 </div>
-<div class="highlight-bash"><div class="highlight"><pre><span></span>118-165-79-206:input Jonathan$ clang -target mips-unknown-linux-gnu -c
-ch7_1_localarrayinit.cpp -emit-llvm -o ch7_1_localarrayinit.bc
-118-165-79-206:input Jonathan$ llvm-dis ch7_1_localarrayinit.bc -o -
-...
-define i32 @main<span class="o">()</span> nounwind ssp <span class="o">{</span>
-entry:
-  %retval <span class="o">=</span> alloca i32, align 4
-  %a <span class="o">=</span> alloca <span class="o">[</span><span class="m">3</span> x i32<span class="o">]</span>, align 4
-  store i32 0, i32* %retval
-  %0 <span class="o">=</span> bitcast <span class="o">[</span><span class="m">3</span> x i32<span class="o">]</span>* %a to i8*
-  call void @llvm.memcpy.p0i8.p0i8.i32<span class="o">(</span>i8* %0, i8* bitcast <span class="o">([</span><span class="m">3</span> x i32<span class="o">]</span>*
-    @_ZZ4mainE1a to i8*<span class="o">)</span>, i32 12, i32 4, i1 <span class="nb">false</span><span class="o">)</span>
-  ret i32 0
-<span class="o">}</span>
-<span class="p">;</span> Function Attrs: nounwind
-<span class="nb">declare</span> void @llvm.memcpy.p0i8.p0i8.i32<span class="o">(</span>i8* nocapture, i8* nocapture, i32, i32, i1<span class="o">)</span> <span class="c1">#1</span>
-
-118-165-79-206:input Jonathan$ ~/llvm/test/cmake_debug_build/
-bin/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>pic -filetype<span class="o">=</span>asm ch7_1_localarrayinit.bc -o -
-        ...
-<span class="c1"># BB#0:                                 # %entry</span>
-        addiu <span class="nv">$sp</span>, <span class="nv">$sp</span>, -16
-        addiu <span class="nv">$2</span>, <span class="nv">$zero</span>, 0
-        st    <span class="nv">$2</span>, 12<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-        ld    <span class="nv">$2</span>, %got<span class="o">(</span><span class="nv">$_ZZ4mainE1a</span><span class="o">)(</span><span class="nv">$gp</span><span class="o">)</span>
-        ori   <span class="nv">$2</span>, <span class="nv">$2</span>, %lo<span class="o">(</span><span class="nv">$_ZZ4mainE1a</span><span class="o">)</span>
-        ld    <span class="nv">$3</span>, 8<span class="o">(</span><span class="nv">$2</span><span class="o">)</span>
-        st    <span class="nv">$3</span>, 8<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-        ld    <span class="nv">$3</span>, 4<span class="o">(</span><span class="nv">$2</span><span class="o">)</span>
-        st    <span class="nv">$3</span>, 4<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-        ld    <span class="nv">$2</span>, 0<span class="o">(</span><span class="nv">$2</span><span class="o">)</span>
-        st    <span class="nv">$2</span>, 0<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-        addiu <span class="nv">$sp</span>, <span class="nv">$sp</span>, 16
-        ret   <span class="nv">$lr</span>
-        ...
-        .type <span class="nv">$_ZZ4mainE1a</span>,@object    <span class="c1"># @_ZZ4mainE1a</span>
-        .section      .rodata,<span class="s2">&quot;a&quot;</span>,@progbits
-        .align        2
-<span class="nv">$_ZZ4mainE1a</span>:
-        .4byte        <span class="m">0</span>                       <span class="c1"># 0x0</span>
-        .4byte        <span class="m">1</span>                       <span class="c1"># 0x1</span>
-        .4byte        <span class="m">2</span>                       <span class="c1"># 0x2</span>
-        .size <span class="nv">$_ZZ4mainE1a</span>, 12
+<div class="highlight-console"><div class="highlight"><pre><span></span><span class="gp">118-165-79-206:input Jonathan$</span> clang -target mips-unknown-linux-gnu -c
+<span class="go">ch7_1_localarrayinit.cpp -emit-llvm -o ch7_1_localarrayinit.bc</span>
+<span class="gp">118-165-79-206:input Jonathan$</span> llvm-dis ch7_1_localarrayinit.bc -o -
+<span class="go">...</span>
+</pre></div>
+</div>
+<div class="highlight-llvm"><div class="highlight"><pre><span></span><span class="k">define</span> <span class="k">i32</span> <span class="vg">@main</span><span class="p">()</span> <span class="k">nounwind</span> <span class="k">ssp</span> <span class="p">{</span>
+<span class="nl">entry:</span>
+  <span class="nv">%retval</span> <span class="p">=</span> <span class="k">alloca</span> <span class="k">i32</span><span class="p">,</span> <span class="k">align</span> <span class="m">4</span>
+  <span class="nv">%a</span> <span class="p">=</span> <span class="k">alloca</span> <span class="p">[</span><span class="m">3</span> <span class="k">x</span> <span class="k">i32</span><span class="p">],</span> <span class="k">align</span> <span class="m">4</span>
+  <span class="k">store</span> <span class="k">i32</span> <span class="m">0</span><span class="p">,</span> <span class="k">i32</span><span class="p">*</span> <span class="nv">%retval</span>
+  <span class="nv nv-Anonymous">%0</span> <span class="p">=</span> <span class="k">bitcast</span> <span class="p">[</span><span class="m">3</span> <span class="k">x</span> <span class="k">i32</span><span class="p">]*</span> <span class="nv">%a</span> <span class="k">to</span> <span class="k">i8</span><span class="p">*</span>
+  <span class="k">call</span> <span class="kt">void</span> <span class="vg">@llvm.memcpy.p0i8.p0i8.i32</span><span class="p">(</span><span class="k">i8</span><span class="p">*</span> <span class="nv nv-Anonymous">%0</span><span class="p">,</span> <span class="k">i8</span><span class="p">*</span> <span class="k">bitcast</span> <span class="p">([</span><span class="m">3</span> <span class="k">x</span> <span class="k">i32</span><span class="p">]*</span>
+    <span class="vg">@_ZZ4mainE1a</span> <span class="k">to</span> <span class="k">i8</span><span class="p">*),</span> <span class="k">i32</span> <span class="m">12</span><span class="p">,</span> <span class="k">i32</span> <span class="m">4</span><span class="p">,</span> <span class="k">i1</span> <span class="k">false</span><span class="p">)</span>
+  <span class="k">ret</span> <span class="k">i32</span> <span class="m">0</span>
+<span class="p">}</span>
+<span class="c">; Function Attrs: nounwind</span>
+<span class="k">declare</span> <span class="kt">void</span> <span class="vg">@llvm.memcpy.p0i8.p0i8.i32</span><span class="p">(</span><span class="k">i8</span><span class="p">*</span> <span class="k">nocapture</span><span class="p">,</span> <span class="k">i8</span><span class="p">*</span> <span class="k">nocapture</span><span class="p">,</span> <span class="k">i32</span><span class="p">,</span> <span class="k">i32</span><span class="p">,</span> <span class="k">i1</span><span class="p">)</span> <span class="vg">#1</span>
+</pre></div>
+</div>
+<div class="highlight-console"><div class="highlight"><pre><span></span><span class="gp">118-165-79-206:input Jonathan$</span> ~/llvm/test/cmake_debug_build/
+<span class="go">bin/llc -march=cpu0 -relocation-model=pic -filetype=asm ch7_1_localarrayinit.bc -o -</span>
+<span class="go">        ...</span>
+<span class="gp">#</span> BB#0:                                 <span class="c1"># %entry</span>
+<span class="go">        addiu $sp, $sp, -16</span>
+<span class="go">        addiu $2, $zero, 0</span>
+<span class="go">        st    $2, 12($fp)</span>
+<span class="go">        ld    $2, %got($_ZZ4mainE1a)($gp)</span>
+<span class="go">        ori   $2, $2, %lo($_ZZ4mainE1a)</span>
+<span class="go">        ld    $3, 8($2)</span>
+<span class="go">        st    $3, 8($fp)</span>
+<span class="go">        ld    $3, 4($2)</span>
+<span class="go">        st    $3, 4($fp)</span>
+<span class="go">        ld    $2, 0($2)</span>
+<span class="go">        st    $2, 0($fp)</span>
+<span class="go">        addiu $sp, $sp, 16</span>
+<span class="go">        ret   $lr</span>
+<span class="go">        ...</span>
+<span class="go">        .type $_ZZ4mainE1a,@object    # @_ZZ4mainE1a</span>
+<span class="go">        .section      .rodata,&quot;a&quot;,@progbits</span>
+<span class="go">        .align        2</span>
+<span class="gp">$</span>_ZZ4mainE1a:
+<span class="go">        .4byte        0                       # 0x0</span>
+<span class="go">        .4byte        1                       # 0x1</span>
+<span class="go">        .4byte        2                       # 0x2</span>
+<span class="go">        .size $_ZZ4mainE1a, 12</span>
 </pre></div>
 </div>
 </div>
@@ -1242,77 +1245,78 @@ too.</p>
 <span class="p">}</span>
 </pre></div>
 </div>
-<div class="highlight-bash"><div class="highlight"><pre><span></span>118-165-79-206:input Jonathan$ clang -target mips-unknown-linux-gnu -c
-ch7_1_localpointer_vector.cpp -emit-llvm -o ch7_1_vector.bc
-118-165-79-206:input Jonathan$ ~/llvm/test/cmake_debug_build/Debug/bin/
-llvm-dis ch7_1_vector.bc -o -
+<div class="highlight-console"><div class="highlight"><pre><span></span><span class="gp">118-165-79-206:input Jonathan$</span> clang -target mips-unknown-linux-gnu -c
+<span class="go">ch7_1_localpointer_vector.cpp -emit-llvm -o ch7_1_vector.bc</span>
+<span class="gp">118-165-79-206:input Jonathan$</span> ~/llvm/test/cmake_debug_build/Debug/bin/
+<span class="go">llvm-dis ch7_1_vector.bc -o -</span>
+<span class="go">...</span>
+</pre></div>
+</div>
+<div class="highlight-llvm"><div class="highlight"><pre><span></span><span class="c">; Function Attrs: nounwind</span>
+<span class="k">define</span> <span class="k">i32</span> <span class="vg">@_Z16test_cmplt_shortv</span><span class="p">()</span> <span class="vg">#0</span> <span class="p">{</span>
+  <span class="nv">%a0</span> <span class="p">=</span> <span class="k">alloca</span> <span class="p">&lt;</span><span class="m">4</span> <span class="k">x</span> <span class="k">i32</span><span class="p">&gt;,</span> <span class="k">align</span> <span class="m">16</span>
+  <span class="nv">%b0</span> <span class="p">=</span> <span class="k">alloca</span> <span class="p">&lt;</span><span class="m">4</span> <span class="k">x</span> <span class="k">i32</span><span class="p">&gt;,</span> <span class="k">align</span> <span class="m">16</span>
+  <span class="nv">%c0</span> <span class="p">=</span> <span class="k">alloca</span> <span class="p">&lt;</span><span class="m">4</span> <span class="k">x</span> <span class="k">i32</span><span class="p">&gt;,</span> <span class="k">align</span> <span class="m">16</span>
+  <span class="k">store</span> <span class="k">volatile</span> <span class="p">&lt;</span><span class="m">4</span> <span class="k">x</span> <span class="k">i32</span><span class="p">&gt;</span> <span class="p">&lt;</span><span class="k">i32</span> <span class="m">0</span><span class="p">,</span> <span class="k">i32</span> <span class="m">1</span><span class="p">,</span> <span class="k">i32</span> <span class="m">2</span><span class="p">,</span> <span class="k">i32</span> <span class="m">3</span><span class="p">&gt;,</span> <span class="p">&lt;</span><span class="m">4</span> <span class="k">x</span> <span class="k">i32</span><span class="p">&gt;*</span> <span class="nv">%a0</span><span class="p">,</span> <span class="k">align</span> <span class="m">16</span>
+  <span class="k">store</span> <span class="k">volatile</span> <span class="p">&lt;</span><span class="m">4</span> <span class="k">x</span> <span class="k">i32</span><span class="p">&gt;</span> <span class="p">&lt;</span><span class="k">i32</span> <span class="m">2</span><span class="p">,</span> <span class="k">i32</span> <span class="m">2</span><span class="p">,</span> <span class="k">i32</span> <span class="m">2</span><span class="p">,</span> <span class="k">i32</span> <span class="m">2</span><span class="p">&gt;,</span> <span class="p">&lt;</span><span class="m">4</span> <span class="k">x</span> <span class="k">i32</span><span class="p">&gt;*</span> <span class="nv">%b0</span><span class="p">,</span> <span class="k">align</span> <span class="m">16</span>
+  <span class="nv nv-Anonymous">%1</span> <span class="p">=</span> <span class="k">load</span> <span class="k">volatile</span> <span class="p">&lt;</span><span class="m">4</span> <span class="k">x</span> <span class="k">i32</span><span class="p">&gt;,</span> <span class="p">&lt;</span><span class="m">4</span> <span class="k">x</span> <span class="k">i32</span><span class="p">&gt;*</span> <span class="nv">%a0</span><span class="p">,</span> <span class="k">align</span> <span class="m">16</span>
+  <span class="nv nv-Anonymous">%2</span> <span class="p">=</span> <span class="k">load</span> <span class="k">volatile</span> <span class="p">&lt;</span><span class="m">4</span> <span class="k">x</span> <span class="k">i32</span><span class="p">&gt;,</span> <span class="p">&lt;</span><span class="m">4</span> <span class="k">x</span> <span class="k">i32</span><span class="p">&gt;*</span> <span class="nv">%b0</span><span class="p">,</span> <span class="k">align</span> <span class="m">16</span>
+  <span class="nv nv-Anonymous">%3</span> <span class="p">=</span> <span class="k">icmp</span> <span class="k">slt</span> <span class="p">&lt;</span><span class="m">4</span> <span class="k">x</span> <span class="k">i32</span><span class="p">&gt;</span> <span class="nv nv-Anonymous">%1</span><span class="p">,</span> <span class="nv nv-Anonymous">%2</span>
+  <span class="nv nv-Anonymous">%4</span> <span class="p">=</span> <span class="k">sext</span> <span class="p">&lt;</span><span class="m">4</span> <span class="k">x</span> <span class="k">i1</span><span class="p">&gt;</span> <span class="nv nv-Anonymous">%3</span> <span class="k">to</span> <span class="p">&lt;</span><span class="m">4</span> <span class="k">x</span> <span class="k">i32</span><span class="p">&gt;</span>
+  <span class="k">store</span> <span class="k">volatile</span> <span class="p">&lt;</span><span class="m">4</span> <span class="k">x</span> <span class="k">i32</span><span class="p">&gt;</span> <span class="nv nv-Anonymous">%4</span><span class="p">,</span> <span class="p">&lt;</span><span class="m">4</span> <span class="k">x</span> <span class="k">i32</span><span class="p">&gt;*</span> <span class="nv">%c0</span><span class="p">,</span> <span class="k">align</span> <span class="m">16</span>
+  <span class="nv nv-Anonymous">%5</span> <span class="p">=</span> <span class="k">load</span> <span class="k">volatile</span> <span class="p">&lt;</span><span class="m">4</span> <span class="k">x</span> <span class="k">i32</span><span class="p">&gt;,</span> <span class="p">&lt;</span><span class="m">4</span> <span class="k">x</span> <span class="k">i32</span><span class="p">&gt;*</span> <span class="nv">%c0</span><span class="p">,</span> <span class="k">align</span> <span class="m">16</span>
+  <span class="nv nv-Anonymous">%6</span> <span class="p">=</span> <span class="k">extractelement</span> <span class="p">&lt;</span><span class="m">4</span> <span class="k">x</span> <span class="k">i32</span><span class="p">&gt;</span> <span class="nv nv-Anonymous">%5</span><span class="p">,</span> <span class="k">i32</span> <span class="m">0</span>
+  <span class="nv nv-Anonymous">%7</span> <span class="p">=</span> <span class="k">load</span> <span class="k">volatile</span> <span class="p">&lt;</span><span class="m">4</span> <span class="k">x</span> <span class="k">i32</span><span class="p">&gt;,</span> <span class="p">&lt;</span><span class="m">4</span> <span class="k">x</span> <span class="k">i32</span><span class="p">&gt;*</span> <span class="nv">%c0</span><span class="p">,</span> <span class="k">align</span> <span class="m">16</span>
+  <span class="nv nv-Anonymous">%8</span> <span class="p">=</span> <span class="k">extractelement</span> <span class="p">&lt;</span><span class="m">4</span> <span class="k">x</span> <span class="k">i32</span><span class="p">&gt;</span> <span class="nv nv-Anonymous">%7</span><span class="p">,</span> <span class="k">i32</span> <span class="m">1</span>
+  <span class="nv nv-Anonymous">%9</span> <span class="p">=</span> <span class="k">add</span> <span class="k">nsw</span> <span class="k">i32</span> <span class="nv nv-Anonymous">%6</span><span class="p">,</span> <span class="nv nv-Anonymous">%8</span>
+  <span class="nv nv-Anonymous">%10</span> <span class="p">=</span> <span class="k">load</span> <span class="k">volatile</span> <span class="p">&lt;</span><span class="m">4</span> <span class="k">x</span> <span class="k">i32</span><span class="p">&gt;,</span> <span class="p">&lt;</span><span class="m">4</span> <span class="k">x</span> <span class="k">i32</span><span class="p">&gt;*</span> <span class="nv">%c0</span><span class="p">,</span> <span class="k">align</span> <span class="m">16</span>
+  <span class="nv nv-Anonymous">%11</span> <span class="p">=</span> <span class="k">extractelement</span> <span class="p">&lt;</span><span class="m">4</span> <span class="k">x</span> <span class="k">i32</span><span class="p">&gt;</span> <span class="nv nv-Anonymous">%10</span><span class="p">,</span> <span class="k">i32</span> <span class="m">2</span>
+  <span class="nv nv-Anonymous">%12</span> <span class="p">=</span> <span class="k">add</span> <span class="k">nsw</span> <span class="k">i32</span> <span class="nv nv-Anonymous">%9</span><span class="p">,</span> <span class="nv nv-Anonymous">%11</span>
+  <span class="nv nv-Anonymous">%13</span> <span class="p">=</span> <span class="k">load</span> <span class="k">volatile</span> <span class="p">&lt;</span><span class="m">4</span> <span class="k">x</span> <span class="k">i32</span><span class="p">&gt;,</span> <span class="p">&lt;</span><span class="m">4</span> <span class="k">x</span> <span class="k">i32</span><span class="p">&gt;*</span> <span class="nv">%c0</span><span class="p">,</span> <span class="k">align</span> <span class="m">16</span>
+  <span class="nv nv-Anonymous">%14</span> <span class="p">=</span> <span class="k">extractelement</span> <span class="p">&lt;</span><span class="m">4</span> <span class="k">x</span> <span class="k">i32</span><span class="p">&gt;</span> <span class="nv nv-Anonymous">%13</span><span class="p">,</span> <span class="k">i32</span> <span class="m">3</span>
+  <span class="nv nv-Anonymous">%15</span> <span class="p">=</span> <span class="k">add</span> <span class="k">nsw</span> <span class="k">i32</span> <span class="nv nv-Anonymous">%12</span><span class="p">,</span> <span class="nv nv-Anonymous">%14</span>
+  <span class="k">ret</span> <span class="k">i32</span> <span class="nv nv-Anonymous">%15</span>
+<span class="p">}</span>
 
-...
-<span class="p">;</span> Function Attrs: nounwind
-define i32 @_Z16test_cmplt_shortv<span class="o">()</span> <span class="c1">#0 {</span>
-  %a0 <span class="o">=</span> alloca &lt;<span class="m">4</span> x i32&gt;, align 16
-  %b0 <span class="o">=</span> alloca &lt;<span class="m">4</span> x i32&gt;, align 16
-  %c0 <span class="o">=</span> alloca &lt;<span class="m">4</span> x i32&gt;, align 16
-  store volatile &lt;<span class="m">4</span> x i32&gt; &lt;i32 0, i32 1, i32 2, i32 3&gt;, &lt;<span class="m">4</span> x i32&gt;* %a0, align 16
-  store volatile &lt;<span class="m">4</span> x i32&gt; &lt;i32 2, i32 2, i32 2, i32 2&gt;, &lt;<span class="m">4</span> x i32&gt;* %b0, align 16
-  %1 <span class="o">=</span> load volatile &lt;<span class="m">4</span> x i32&gt;, &lt;<span class="m">4</span> x i32&gt;* %a0, align 16
-  %2 <span class="o">=</span> load volatile &lt;<span class="m">4</span> x i32&gt;, &lt;<span class="m">4</span> x i32&gt;* %b0, align 16
-  %3 <span class="o">=</span> icmp slt &lt;<span class="m">4</span> x i32&gt; %1, %2
-  %4 <span class="o">=</span> sext &lt;<span class="m">4</span> x i1&gt; %3 to &lt;<span class="m">4</span> x i32&gt;
-  store volatile &lt;<span class="m">4</span> x i32&gt; %4, &lt;<span class="m">4</span> x i32&gt;* %c0, align 16
-  %5 <span class="o">=</span> load volatile &lt;<span class="m">4</span> x i32&gt;, &lt;<span class="m">4</span> x i32&gt;* %c0, align 16
-  %6 <span class="o">=</span> extractelement &lt;<span class="m">4</span> x i32&gt; %5, i32 0
-  %7 <span class="o">=</span> load volatile &lt;<span class="m">4</span> x i32&gt;, &lt;<span class="m">4</span> x i32&gt;* %c0, align 16
-  %8 <span class="o">=</span> extractelement &lt;<span class="m">4</span> x i32&gt; %7, i32 1
-  %9 <span class="o">=</span> add nsw i32 %6, %8
-  %10 <span class="o">=</span> load volatile &lt;<span class="m">4</span> x i32&gt;, &lt;<span class="m">4</span> x i32&gt;* %c0, align 16
-  %11 <span class="o">=</span> extractelement &lt;<span class="m">4</span> x i32&gt; %10, i32 2
-  %12 <span class="o">=</span> add nsw i32 %9, %11
-  %13 <span class="o">=</span> load volatile &lt;<span class="m">4</span> x i32&gt;, &lt;<span class="m">4</span> x i32&gt;* %c0, align 16
-  %14 <span class="o">=</span> extractelement &lt;<span class="m">4</span> x i32&gt; %13, i32 3
-  %15 <span class="o">=</span> add nsw i32 %12, %14
-  ret i32 %15
-<span class="o">}</span>
-
-<span class="p">;</span> Function Attrs: nounwind
-define i32 @_Z15test_cmplt_longv<span class="o">()</span> <span class="c1">#0 {</span>
-  %a0 <span class="o">=</span> alloca &lt;<span class="m">8</span> x i32&gt;, align 32
-  %b0 <span class="o">=</span> alloca &lt;<span class="m">8</span> x i32&gt;, align 32
-  %c0 <span class="o">=</span> alloca &lt;<span class="m">8</span> x i32&gt;, align 32
-  store volatile &lt;<span class="m">8</span> x i32&gt; &lt;i32 2, i32 2, i32 2, i32 2, i32 1, i32 1, i32 1,
-  i32 1&gt;, &lt;<span class="m">8</span> x i32&gt;* %a0, align 32
-  store volatile &lt;<span class="m">8</span> x i32&gt; &lt;i32 1, i32 1, i32 1, i32 1, i32 2, i32 2, i32 2,
-  i32 2&gt;, &lt;<span class="m">8</span> x i32&gt;* %b0, align 32
-  %1 <span class="o">=</span> load volatile &lt;<span class="m">8</span> x i32&gt;, &lt;<span class="m">8</span> x i32&gt;* %a0, align 32
-  %2 <span class="o">=</span> load volatile &lt;<span class="m">8</span> x i32&gt;, &lt;<span class="m">8</span> x i32&gt;* %b0, align 32
-  %3 <span class="o">=</span> icmp slt &lt;<span class="m">8</span> x i32&gt; %1, %2
-  %4 <span class="o">=</span> sext &lt;<span class="m">8</span> x i1&gt; %3 to &lt;<span class="m">8</span> x i32&gt;
-  store volatile &lt;<span class="m">8</span> x i32&gt; %4, &lt;<span class="m">8</span> x i32&gt;* %c0, align 32
-  %5 <span class="o">=</span> load volatile &lt;<span class="m">8</span> x i32&gt;, &lt;<span class="m">8</span> x i32&gt;* %c0, align 32
-  %6 <span class="o">=</span> extractelement &lt;<span class="m">8</span> x i32&gt; %5, i32 0
-  %7 <span class="o">=</span> load volatile &lt;<span class="m">8</span> x i32&gt;, &lt;<span class="m">8</span> x i32&gt;* %c0, align 32
-  %8 <span class="o">=</span> extractelement &lt;<span class="m">8</span> x i32&gt; %7, i32 1
-  %9 <span class="o">=</span> add nsw i32 %6, %8
-  %10 <span class="o">=</span> load volatile &lt;<span class="m">8</span> x i32&gt;, &lt;<span class="m">8</span> x i32&gt;* %c0, align 32
-  %11 <span class="o">=</span> extractelement &lt;<span class="m">8</span> x i32&gt; %10, i32 2
-  %12 <span class="o">=</span> add nsw i32 %9, %11
-  %13 <span class="o">=</span> load volatile &lt;<span class="m">8</span> x i32&gt;, &lt;<span class="m">8</span> x i32&gt;* %c0, align 32
-  %14 <span class="o">=</span> extractelement &lt;<span class="m">8</span> x i32&gt; %13, i32 3
-  %15 <span class="o">=</span> add nsw i32 %12, %14
-  %16 <span class="o">=</span> load volatile &lt;<span class="m">8</span> x i32&gt;, &lt;<span class="m">8</span> x i32&gt;* %c0, align 32
-  %17 <span class="o">=</span> extractelement &lt;<span class="m">8</span> x i32&gt; %16, i32 4
-  %18 <span class="o">=</span> add nsw i32 %15, %17
-  %19 <span class="o">=</span> load volatile &lt;<span class="m">8</span> x i32&gt;, &lt;<span class="m">8</span> x i32&gt;* %c0, align 32
-  %20 <span class="o">=</span> extractelement &lt;<span class="m">8</span> x i32&gt; %19, i32 5
-  %21 <span class="o">=</span> add nsw i32 %18, %20
-  %22 <span class="o">=</span> load volatile &lt;<span class="m">8</span> x i32&gt;, &lt;<span class="m">8</span> x i32&gt;* %c0, align 32
-  %23 <span class="o">=</span> extractelement &lt;<span class="m">8</span> x i32&gt; %22, i32 6
-  %24 <span class="o">=</span> add nsw i32 %21, %23
-  %25 <span class="o">=</span> load volatile &lt;<span class="m">8</span> x i32&gt;, &lt;<span class="m">8</span> x i32&gt;* %c0, align 32
-  %26 <span class="o">=</span> extractelement &lt;<span class="m">8</span> x i32&gt; %25, i32 7
-  %27 <span class="o">=</span> add nsw i32 %24, %26
-  ret i32 %27
-<span class="o">}</span>
+<span class="c">; Function Attrs: nounwind</span>
+<span class="k">define</span> <span class="k">i32</span> <span class="vg">@_Z15test_cmplt_longv</span><span class="p">()</span> <span class="vg">#0</span> <span class="p">{</span>
+  <span class="nv">%a0</span> <span class="p">=</span> <span class="k">alloca</span> <span class="p">&lt;</span><span class="m">8</span> <span class="k">x</span> <span class="k">i32</span><span class="p">&gt;,</span> <span class="k">align</span> <span class="m">32</span>
+  <span class="nv">%b0</span> <span class="p">=</span> <span class="k">alloca</span> <span class="p">&lt;</span><span class="m">8</span> <span class="k">x</span> <span class="k">i32</span><span class="p">&gt;,</span> <span class="k">align</span> <span class="m">32</span>
+  <span class="nv">%c0</span> <span class="p">=</span> <span class="k">alloca</span> <span class="p">&lt;</span><span class="m">8</span> <span class="k">x</span> <span class="k">i32</span><span class="p">&gt;,</span> <span class="k">align</span> <span class="m">32</span>
+  <span class="k">store</span> <span class="k">volatile</span> <span class="p">&lt;</span><span class="m">8</span> <span class="k">x</span> <span class="k">i32</span><span class="p">&gt;</span> <span class="p">&lt;</span><span class="k">i32</span> <span class="m">2</span><span class="p">,</span> <span class="k">i32</span> <span class="m">2</span><span class="p">,</span> <span class="k">i32</span> <span class="m">2</span><span class="p">,</span> <span class="k">i32</span> <span class="m">2</span><span class="p">,</span> <span class="k">i32</span> <span class="m">1</span><span class="p">,</span> <span class="k">i32</span> <span class="m">1</span><span class="p">,</span> <span class="k">i32</span> <span class="m">1</span><span class="p">,</span>
+  <span class="k">i32</span> <span class="m">1</span><span class="p">&gt;,</span> <span class="p">&lt;</span><span class="m">8</span> <span class="k">x</span> <span class="k">i32</span><span class="p">&gt;*</span> <span class="nv">%a0</span><span class="p">,</span> <span class="k">align</span> <span class="m">32</span>
+  <span class="k">store</span> <span class="k">volatile</span> <span class="p">&lt;</span><span class="m">8</span> <span class="k">x</span> <span class="k">i32</span><span class="p">&gt;</span> <span class="p">&lt;</span><span class="k">i32</span> <span class="m">1</span><span class="p">,</span> <span class="k">i32</span> <span class="m">1</span><span class="p">,</span> <span class="k">i32</span> <span class="m">1</span><span class="p">,</span> <span class="k">i32</span> <span class="m">1</span><span class="p">,</span> <span class="k">i32</span> <span class="m">2</span><span class="p">,</span> <span class="k">i32</span> <span class="m">2</span><span class="p">,</span> <span class="k">i32</span> <span class="m">2</span><span class="p">,</span>
+  <span class="k">i32</span> <span class="m">2</span><span class="p">&gt;,</span> <span class="p">&lt;</span><span class="m">8</span> <span class="k">x</span> <span class="k">i32</span><span class="p">&gt;*</span> <span class="nv">%b0</span><span class="p">,</span> <span class="k">align</span> <span class="m">32</span>
+  <span class="nv nv-Anonymous">%1</span> <span class="p">=</span> <span class="k">load</span> <span class="k">volatile</span> <span class="p">&lt;</span><span class="m">8</span> <span class="k">x</span> <span class="k">i32</span><span class="p">&gt;,</span> <span class="p">&lt;</span><span class="m">8</span> <span class="k">x</span> <span class="k">i32</span><span class="p">&gt;*</span> <span class="nv">%a0</span><span class="p">,</span> <span class="k">align</span> <span class="m">32</span>
+  <span class="nv nv-Anonymous">%2</span> <span class="p">=</span> <span class="k">load</span> <span class="k">volatile</span> <span class="p">&lt;</span><span class="m">8</span> <span class="k">x</span> <span class="k">i32</span><span class="p">&gt;,</span> <span class="p">&lt;</span><span class="m">8</span> <span class="k">x</span> <span class="k">i32</span><span class="p">&gt;*</span> <span class="nv">%b0</span><span class="p">,</span> <span class="k">align</span> <span class="m">32</span>
+  <span class="nv nv-Anonymous">%3</span> <span class="p">=</span> <span class="k">icmp</span> <span class="k">slt</span> <span class="p">&lt;</span><span class="m">8</span> <span class="k">x</span> <span class="k">i32</span><span class="p">&gt;</span> <span class="nv nv-Anonymous">%1</span><span class="p">,</span> <span class="nv nv-Anonymous">%2</span>
+  <span class="nv nv-Anonymous">%4</span> <span class="p">=</span> <span class="k">sext</span> <span class="p">&lt;</span><span class="m">8</span> <span class="k">x</span> <span class="k">i1</span><span class="p">&gt;</span> <span class="nv nv-Anonymous">%3</span> <span class="k">to</span> <span class="p">&lt;</span><span class="m">8</span> <span class="k">x</span> <span class="k">i32</span><span class="p">&gt;</span>
+  <span class="k">store</span> <span class="k">volatile</span> <span class="p">&lt;</span><span class="m">8</span> <span class="k">x</span> <span class="k">i32</span><span class="p">&gt;</span> <span class="nv nv-Anonymous">%4</span><span class="p">,</span> <span class="p">&lt;</span><span class="m">8</span> <span class="k">x</span> <span class="k">i32</span><span class="p">&gt;*</span> <span class="nv">%c0</span><span class="p">,</span> <span class="k">align</span> <span class="m">32</span>
+  <span class="nv nv-Anonymous">%5</span> <span class="p">=</span> <span class="k">load</span> <span class="k">volatile</span> <span class="p">&lt;</span><span class="m">8</span> <span class="k">x</span> <span class="k">i32</span><span class="p">&gt;,</span> <span class="p">&lt;</span><span class="m">8</span> <span class="k">x</span> <span class="k">i32</span><span class="p">&gt;*</span> <span class="nv">%c0</span><span class="p">,</span> <span class="k">align</span> <span class="m">32</span>
+  <span class="nv nv-Anonymous">%6</span> <span class="p">=</span> <span class="k">extractelement</span> <span class="p">&lt;</span><span class="m">8</span> <span class="k">x</span> <span class="k">i32</span><span class="p">&gt;</span> <span class="nv nv-Anonymous">%5</span><span class="p">,</span> <span class="k">i32</span> <span class="m">0</span>
+  <span class="nv nv-Anonymous">%7</span> <span class="p">=</span> <span class="k">load</span> <span class="k">volatile</span> <span class="p">&lt;</span><span class="m">8</span> <span class="k">x</span> <span class="k">i32</span><span class="p">&gt;,</span> <span class="p">&lt;</span><span class="m">8</span> <span class="k">x</span> <span class="k">i32</span><span class="p">&gt;*</span> <span class="nv">%c0</span><span class="p">,</span> <span class="k">align</span> <span class="m">32</span>
+  <span class="nv nv-Anonymous">%8</span> <span class="p">=</span> <span class="k">extractelement</span> <span class="p">&lt;</span><span class="m">8</span> <span class="k">x</span> <span class="k">i32</span><span class="p">&gt;</span> <span class="nv nv-Anonymous">%7</span><span class="p">,</span> <span class="k">i32</span> <span class="m">1</span>
+  <span class="nv nv-Anonymous">%9</span> <span class="p">=</span> <span class="k">add</span> <span class="k">nsw</span> <span class="k">i32</span> <span class="nv nv-Anonymous">%6</span><span class="p">,</span> <span class="nv nv-Anonymous">%8</span>
+  <span class="nv nv-Anonymous">%10</span> <span class="p">=</span> <span class="k">load</span> <span class="k">volatile</span> <span class="p">&lt;</span><span class="m">8</span> <span class="k">x</span> <span class="k">i32</span><span class="p">&gt;,</span> <span class="p">&lt;</span><span class="m">8</span> <span class="k">x</span> <span class="k">i32</span><span class="p">&gt;*</span> <span class="nv">%c0</span><span class="p">,</span> <span class="k">align</span> <span class="m">32</span>
+  <span class="nv nv-Anonymous">%11</span> <span class="p">=</span> <span class="k">extractelement</span> <span class="p">&lt;</span><span class="m">8</span> <span class="k">x</span> <span class="k">i32</span><span class="p">&gt;</span> <span class="nv nv-Anonymous">%10</span><span class="p">,</span> <span class="k">i32</span> <span class="m">2</span>
+  <span class="nv nv-Anonymous">%12</span> <span class="p">=</span> <span class="k">add</span> <span class="k">nsw</span> <span class="k">i32</span> <span class="nv nv-Anonymous">%9</span><span class="p">,</span> <span class="nv nv-Anonymous">%11</span>
+  <span class="nv nv-Anonymous">%13</span> <span class="p">=</span> <span class="k">load</span> <span class="k">volatile</span> <span class="p">&lt;</span><span class="m">8</span> <span class="k">x</span> <span class="k">i32</span><span class="p">&gt;,</span> <span class="p">&lt;</span><span class="m">8</span> <span class="k">x</span> <span class="k">i32</span><span class="p">&gt;*</span> <span class="nv">%c0</span><span class="p">,</span> <span class="k">align</span> <span class="m">32</span>
+  <span class="nv nv-Anonymous">%14</span> <span class="p">=</span> <span class="k">extractelement</span> <span class="p">&lt;</span><span class="m">8</span> <span class="k">x</span> <span class="k">i32</span><span class="p">&gt;</span> <span class="nv nv-Anonymous">%13</span><span class="p">,</span> <span class="k">i32</span> <span class="m">3</span>
+  <span class="nv nv-Anonymous">%15</span> <span class="p">=</span> <span class="k">add</span> <span class="k">nsw</span> <span class="k">i32</span> <span class="nv nv-Anonymous">%12</span><span class="p">,</span> <span class="nv nv-Anonymous">%14</span>
+  <span class="nv nv-Anonymous">%16</span> <span class="p">=</span> <span class="k">load</span> <span class="k">volatile</span> <span class="p">&lt;</span><span class="m">8</span> <span class="k">x</span> <span class="k">i32</span><span class="p">&gt;,</span> <span class="p">&lt;</span><span class="m">8</span> <span class="k">x</span> <span class="k">i32</span><span class="p">&gt;*</span> <span class="nv">%c0</span><span class="p">,</span> <span class="k">align</span> <span class="m">32</span>
+  <span class="nv nv-Anonymous">%17</span> <span class="p">=</span> <span class="k">extractelement</span> <span class="p">&lt;</span><span class="m">8</span> <span class="k">x</span> <span class="k">i32</span><span class="p">&gt;</span> <span class="nv nv-Anonymous">%16</span><span class="p">,</span> <span class="k">i32</span> <span class="m">4</span>
+  <span class="nv nv-Anonymous">%18</span> <span class="p">=</span> <span class="k">add</span> <span class="k">nsw</span> <span class="k">i32</span> <span class="nv nv-Anonymous">%15</span><span class="p">,</span> <span class="nv nv-Anonymous">%17</span>
+  <span class="nv nv-Anonymous">%19</span> <span class="p">=</span> <span class="k">load</span> <span class="k">volatile</span> <span class="p">&lt;</span><span class="m">8</span> <span class="k">x</span> <span class="k">i32</span><span class="p">&gt;,</span> <span class="p">&lt;</span><span class="m">8</span> <span class="k">x</span> <span class="k">i32</span><span class="p">&gt;*</span> <span class="nv">%c0</span><span class="p">,</span> <span class="k">align</span> <span class="m">32</span>
+  <span class="nv nv-Anonymous">%20</span> <span class="p">=</span> <span class="k">extractelement</span> <span class="p">&lt;</span><span class="m">8</span> <span class="k">x</span> <span class="k">i32</span><span class="p">&gt;</span> <span class="nv nv-Anonymous">%19</span><span class="p">,</span> <span class="k">i32</span> <span class="m">5</span>
+  <span class="nv nv-Anonymous">%21</span> <span class="p">=</span> <span class="k">add</span> <span class="k">nsw</span> <span class="k">i32</span> <span class="nv nv-Anonymous">%18</span><span class="p">,</span> <span class="nv nv-Anonymous">%20</span>
+  <span class="nv nv-Anonymous">%22</span> <span class="p">=</span> <span class="k">load</span> <span class="k">volatile</span> <span class="p">&lt;</span><span class="m">8</span> <span class="k">x</span> <span class="k">i32</span><span class="p">&gt;,</span> <span class="p">&lt;</span><span class="m">8</span> <span class="k">x</span> <span class="k">i32</span><span class="p">&gt;*</span> <span class="nv">%c0</span><span class="p">,</span> <span class="k">align</span> <span class="m">32</span>
+  <span class="nv nv-Anonymous">%23</span> <span class="p">=</span> <span class="k">extractelement</span> <span class="p">&lt;</span><span class="m">8</span> <span class="k">x</span> <span class="k">i32</span><span class="p">&gt;</span> <span class="nv nv-Anonymous">%22</span><span class="p">,</span> <span class="k">i32</span> <span class="m">6</span>
+  <span class="nv nv-Anonymous">%24</span> <span class="p">=</span> <span class="k">add</span> <span class="k">nsw</span> <span class="k">i32</span> <span class="nv nv-Anonymous">%21</span><span class="p">,</span> <span class="nv nv-Anonymous">%23</span>
+  <span class="nv nv-Anonymous">%25</span> <span class="p">=</span> <span class="k">load</span> <span class="k">volatile</span> <span class="p">&lt;</span><span class="m">8</span> <span class="k">x</span> <span class="k">i32</span><span class="p">&gt;,</span> <span class="p">&lt;</span><span class="m">8</span> <span class="k">x</span> <span class="k">i32</span><span class="p">&gt;*</span> <span class="nv">%c0</span><span class="p">,</span> <span class="k">align</span> <span class="m">32</span>
+  <span class="nv nv-Anonymous">%26</span> <span class="p">=</span> <span class="k">extractelement</span> <span class="p">&lt;</span><span class="m">8</span> <span class="k">x</span> <span class="k">i32</span><span class="p">&gt;</span> <span class="nv nv-Anonymous">%25</span><span class="p">,</span> <span class="k">i32</span> <span class="m">7</span>
+  <span class="nv nv-Anonymous">%27</span> <span class="p">=</span> <span class="k">add</span> <span class="k">nsw</span> <span class="k">i32</span> <span class="nv nv-Anonymous">%24</span><span class="p">,</span> <span class="nv nv-Anonymous">%26</span>
+  <span class="k">ret</span> <span class="k">i32</span> <span class="nv nv-Anonymous">%27</span>
+<span class="p">}</span>
 </pre></div>
 </div>
 <p class="rubric">lbdex/chapters/Chapter7_1/Cpu0ISelLowering.h</p>

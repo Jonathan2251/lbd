@@ -98,10 +98,10 @@ One is memory mapped I/O, the other is instruction I/O.
 Cpu0 uses memory mapped I/O where memory address 0x80000 as the output port.
 When meet the instruction <strong>&#8220;st $ra, cx($rb)&#8221;</strong>, where cx($rb) is
 0x80000, Cpu0 displays the content as follows,</p>
-<div class="highlight-c++"><div class="highlight"><pre><span></span>ST : begin
-  ...
-  if (R[b]+c16 == `IOADDR) begin
-    outw(R[a]);
+<div class="highlight-verilog"><div class="highlight"><pre><span></span><span class="no">ST</span> <span class="o">:</span> <span class="k">begin</span>
+  <span class="p">...</span>
+  <span class="k">if</span> <span class="p">(</span><span class="no">R</span><span class="p">[</span><span class="n">b</span><span class="p">]</span><span class="o">+</span><span class="n">c16</span> <span class="o">==</span> <span class="no">`IOADDR</span><span class="p">)</span> <span class="k">begin</span>
+    <span class="n">outw</span><span class="p">(</span><span class="no">R</span><span class="p">[</span><span class="n">a</span><span class="p">]);</span>
 </pre></div>
 </div>
 <p class="rubric">lbdex/verilog/cpu0.v</p>
@@ -725,16 +725,16 @@ and cpu module both have a wire connectting each other.
 The endian information stored in ROM of memory module, and memory module send
 the information when it is up according the following code,</p>
 <p class="rubric">lbdex/verilog/cpu0.v</p>
-<div class="highlight-bash"><div class="highlight"><pre><span></span>assign <span class="nv">cfg</span> <span class="o">=</span> mconfig<span class="o">[</span>0<span class="o">][</span>0:0<span class="o">]</span><span class="p">;</span>
-...
-wire cfg<span class="p">;</span>
+<div class="highlight-console"><div class="highlight"><pre><span></span><span class="go">assign cfg = mconfig[0][0:0];</span>
+<span class="go">...</span>
+<span class="go">wire cfg;</span>
 
-cpu0 cpu<span class="o">(</span>.clock<span class="o">(</span>clock<span class="o">)</span>, .itype<span class="o">(</span>itype<span class="o">)</span>, .pc<span class="o">(</span>pc<span class="o">)</span>, .tick<span class="o">(</span>tick<span class="o">)</span>, .ir<span class="o">(</span>ir<span class="o">)</span>,
-.mar<span class="o">(</span>mar<span class="o">)</span>, .mdr<span class="o">(</span>mdr<span class="o">)</span>, .dbus<span class="o">(</span>dbus<span class="o">)</span>, .m_en<span class="o">(</span>m_en<span class="o">)</span>, .m_rw<span class="o">(</span>m_rw<span class="o">)</span>, .m_size<span class="o">(</span>m_size<span class="o">)</span>,
-.cfg<span class="o">(</span>cfg<span class="o">))</span><span class="p">;</span>
+<span class="go">cpu0 cpu(.clock(clock), .itype(itype), .pc(pc), .tick(tick), .ir(ir),</span>
+<span class="go">.mar(mar), .mdr(mdr), .dbus(dbus), .m_en(m_en), .m_rw(m_rw), .m_size(m_size),</span>
+<span class="go">.cfg(cfg));</span>
 
-memory0 mem<span class="o">(</span>.clock<span class="o">(</span>clock<span class="o">)</span>, .reset<span class="o">(</span>reset<span class="o">)</span>, .en<span class="o">(</span>m_en<span class="o">)</span>, .rw<span class="o">(</span>m_rw<span class="o">)</span>,
-.m_size<span class="o">(</span>m_size<span class="o">)</span>, .abus<span class="o">(</span>mar<span class="o">)</span>, .dbus_in<span class="o">(</span>mdr<span class="o">)</span>, .dbus_out<span class="o">(</span>dbus<span class="o">)</span>, .cfg<span class="o">(</span>cfg<span class="o">))</span><span class="p">;</span>
+<span class="go">memory0 mem(.clock(clock), .reset(reset), .en(m_en), .rw(m_rw),</span>
+<span class="go">.m_size(m_size), .abus(mar), .dbus_in(mdr), .dbus_out(dbus), .cfg(cfg));</span>
 </pre></div>
 </div>
 <p>Instead of set endian tranfer in memory module, the endian transfer can be set
@@ -1135,53 +1135,53 @@ Remind ch_run_backend.cpp have to be compiled with option
 <code class="docutils literal"><span class="pre">clang</span> <span class="pre">-target</span> <span class="pre">mips-unknown-linux-gnu</span></code> since the example code ch9_3.cpp which
 uses the vararg needs to be compiled with this option. Other example codes have
 no differences between this option and default option.</p>
-<div class="highlight-bash"><div class="highlight"><pre><span></span>JonathantekiiMac:input Jonathan$ <span class="nb">pwd</span>
-/Users/Jonathan/llvm/test/lbdex/input
-JonathantekiiMac:input Jonathan$ bash build-run_backend.sh cpu032I be
-JonathantekiiMac:input Jonathan$ <span class="nb">cd</span> ../verilog <span class="nb">cd</span> ../verilog
-JonathantekiiMac:input Jonathan$ <span class="nb">pwd</span>
-/Users/Jonathan/llvm/test/lbdex/verilog
-JonathantekiiMac:verilog Jonathan$ make
-JonathantekiiMac:verilog Jonathan$ ./cpu0Isp
-WARNING: cpu0Is.v:386: <span class="nv">$readmemh</span><span class="o">(</span>cpu0.hex<span class="o">)</span>: Not enough words in the file <span class="k">for</span> the
-taskInterrupt<span class="o">(</span>001<span class="o">)</span>
-74
-7
-0
-0
-253
-3
-1
-14
-3
--126
-130
--32766
-32770
-393307
-16777222
-2
-4
-51
-2
-2147483647
--2147483648
-7
-120
-15
-5
-0
-31
-49
-total cpu <span class="nv">cycles</span> <span class="o">=</span> 51230
-RET to PC &lt; 0, finished!
+<div class="highlight-console"><div class="highlight"><pre><span></span><span class="gp">JonathantekiiMac:input Jonathan$</span> <span class="nb">pwd</span>
+<span class="go">/Users/Jonathan/llvm/test/lbdex/input</span>
+<span class="gp">JonathantekiiMac:input Jonathan$</span> bash build-run_backend.sh cpu032I be
+<span class="gp">JonathantekiiMac:input Jonathan$</span> <span class="nb">cd</span> ../verilog <span class="nb">cd</span> ../verilog
+<span class="gp">JonathantekiiMac:input Jonathan$</span> <span class="nb">pwd</span>
+<span class="go">/Users/Jonathan/llvm/test/lbdex/verilog</span>
+<span class="gp">JonathantekiiMac:verilog Jonathan$</span> make
+<span class="gp">JonathantekiiMac:verilog Jonathan$</span> ./cpu0Isp
+<span class="go">WARNING: cpu0Is.v:386: $readmemh(cpu0.hex): Not enough words in the file for the</span>
+<span class="go">taskInterrupt(001)</span>
+<span class="go">74</span>
+<span class="go">7</span>
+<span class="go">0</span>
+<span class="go">0</span>
+<span class="go">253</span>
+<span class="go">3</span>
+<span class="go">1</span>
+<span class="go">14</span>
+<span class="go">3</span>
+<span class="go">-126</span>
+<span class="go">130</span>
+<span class="go">-32766</span>
+<span class="go">32770</span>
+<span class="go">393307</span>
+<span class="go">16777222</span>
+<span class="go">2</span>
+<span class="go">4</span>
+<span class="go">51</span>
+<span class="go">2</span>
+<span class="go">2147483647</span>
+<span class="go">-2147483648</span>
+<span class="go">7</span>
+<span class="go">120</span>
+<span class="go">15</span>
+<span class="go">5</span>
+<span class="go">0</span>
+<span class="go">31</span>
+<span class="go">49</span>
+<span class="go">total cpu cycles = 51230</span>
+<span class="go">RET to PC &lt; 0, finished!</span>
 
-JonathantekiiMac:input Jonathan$ bash build-run_backend.sh cpu032II be
-JonathantekiiMac:input Jonathan$ <span class="nb">cd</span> ../verilog
-JonathantekiiMac:verilog Jonathan$ ./cpu0IIsp
-...
-total cpu <span class="nv">cycles</span> <span class="o">=</span> 48920
-RET to PC &lt; 0, finished!
+<span class="gp">JonathantekiiMac:input Jonathan$</span> bash build-run_backend.sh cpu032II be
+<span class="gp">JonathantekiiMac:input Jonathan$</span> <span class="nb">cd</span> ../verilog
+<span class="gp">JonathantekiiMac:verilog Jonathan$</span> ./cpu0IIsp
+<span class="go">...</span>
+<span class="go">total cpu cycles = 48920</span>
+<span class="go">RET to PC &lt; 0, finished!</span>
 </pre></div>
 </div>
 <p>The &#8220;total cpu cycles&#8221; can be calculated in this verilog simualtor, and the
@@ -1204,21 +1204,21 @@ below,</p>
 <div class="highlight-c++"><div class="highlight"><pre><span></span><span class="n">TRACE</span><span class="o">=-</span><span class="n">D</span> <span class="n">TRACE</span>
 </pre></div>
 </div>
-<div class="highlight-bash"><div class="highlight"><pre><span></span>JonathantekiiMac:raw Jonathan$ ./cpu0Is
-WARNING: cpu0.v:386: <span class="nv">$readmemh</span><span class="o">(</span>cpu0.hex<span class="o">)</span>: Not enough words in the file <span class="k">for</span> the
-requested range <span class="o">[</span>0:28671<span class="o">]</span>.
-00000000: 2600000c
-00000004: 26000004
-00000008: 26000004
-0000000c: 26fffffc
-00000010: 09100000
-00000014: 09200000
-...
-taskInterrupt<span class="o">(</span>001<span class="o">)</span>
-1530ns <span class="m">00000054</span> : 02ed002c m<span class="o">[</span>28620+44  <span class="o">]=</span>-1          <span class="nv">SW</span><span class="o">=</span>00000000
-1610ns <span class="m">00000058</span> : 02bd0028 m<span class="o">[</span>28620+40  <span class="o">]=</span><span class="m">0</span>           <span class="nv">SW</span><span class="o">=</span>00000000
-...
-RET to PC &lt; 0, finished!
+<div class="highlight-console"><div class="highlight"><pre><span></span><span class="gp">JonathantekiiMac:raw Jonathan$</span> ./cpu0Is
+<span class="go">WARNING: cpu0.v:386: $readmemh(cpu0.hex): Not enough words in the file for the</span>
+<span class="go">requested range [0:28671].</span>
+<span class="go">00000000: 2600000c</span>
+<span class="go">00000004: 26000004</span>
+<span class="go">00000008: 26000004</span>
+<span class="go">0000000c: 26fffffc</span>
+<span class="go">00000010: 09100000</span>
+<span class="go">00000014: 09200000</span>
+<span class="go">...</span>
+<span class="go">taskInterrupt(001)</span>
+<span class="go">1530ns 00000054 : 02ed002c m[28620+44  ]=-1          SW=00000000</span>
+<span class="go">1610ns 00000058 : 02bd0028 m[28620+40  ]=0           SW=00000000</span>
+<span class="go">...</span>
+<span class="go">RET to PC &lt; 0, finished!</span>
 </pre></div>
 </div>
 <p>As above result, cpu0.v dumps the memory first after reads input file cpu0.hex.
@@ -1246,7 +1246,7 @@ The overall system simulator is complex to create. Even wiki web site here
 <p>To generate cpu032II as well as little endian code, you can run with the
 following command. File build-run_backend.sh write the endian information to
 ../verilog/cpu0.config as below.</p>
-<div class="highlight-bash"><div class="highlight"><pre><span></span>JonathantekiiMac:input Jonathan$ bash build-run_backend.sh cpu032I le
+<div class="highlight-console"><div class="highlight"><pre><span></span><span class="gp">JonathantekiiMac:input Jonathan$</span> bash build-run_backend.sh cpu032I le
 </pre></div>
 </div>
 <p class="rubric">../verilog/cpu0.config</p>
@@ -1336,13 +1336,13 @@ fi
 cat ../verilog/cpu0.config
 </pre></div>
 </div>
-<div class="highlight-bash"><div class="highlight"><pre><span></span>JonathantekiiMac:input Jonathan$ bash build-run_backend.sh cpu032II le
-...
-JonathantekiiMac:input Jonathan$ <span class="nb">cd</span> ../verilog
-JonathantekiiMac:verilog Jonathan$ ./cpu0IIs
-...
-31
-...
+<div class="highlight-console"><div class="highlight"><pre><span></span><span class="gp">JonathantekiiMac:input Jonathan$</span> bash build-run_backend.sh cpu032II le
+<span class="go">...</span>
+<span class="gp">JonathantekiiMac:input Jonathan$</span> <span class="nb">cd</span> ../verilog
+<span class="gp">JonathantekiiMac:verilog Jonathan$</span> ./cpu0IIs
+<span class="go">...</span>
+<span class="go">31</span>
+<span class="go">...</span>
 </pre></div>
 </div>
 </div>

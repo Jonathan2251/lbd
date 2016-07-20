@@ -67,73 +67,73 @@ this chapter.</p>
 <p>Currently, we only support translation of llvm IR code into assembly code.
 If you try running Chapter4_2/ to translate it into obj code will get the error
 message as follows,</p>
-<div class="highlight-bash"><div class="highlight"><pre><span></span><span class="o">[</span>Gamma@localhost 3<span class="o">]</span>$ ~/llvm/test/cmake_debug_build/bin/
-llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>pic -filetype<span class="o">=</span>obj ch4_1_math_math.bc -o
-ch4_1_math.cpu0.o
-~/llvm/test/cmake_debug_build/bin/llc: target does not
-support generation of this file type!
+<div class="highlight-console"><div class="highlight"><pre><span></span><span class="gp">[Gamma@localhost 3]$</span> ~/llvm/test/cmake_debug_build/bin/
+<span class="go">llc -march=cpu0 -relocation-model=pic -filetype=obj ch4_1_math_math.bc -o</span>
+<span class="go">ch4_1_math.cpu0.o</span>
+<span class="go">~/llvm/test/cmake_debug_build/bin/llc: target does not</span>
+<span class="go">support generation of this file type!</span>
 </pre></div>
 </div>
 <p>Chapter5_1/ support obj file generation.
 It produces obj files both for big endian and little endian with command
 <code class="docutils literal"><span class="pre">llc</span> <span class="pre">-march=cpu0</span></code> and <code class="docutils literal"><span class="pre">llc</span> <span class="pre">-march=cpu0el</span></code>, respectively.
 Run with them will get the obj files as follows,</p>
-<div class="highlight-bash"><div class="highlight"><pre><span></span><span class="o">[</span>Gamma@localhost input<span class="o">]</span>$ cat ch4_1_math.cpu0.s
-...
-  .set  nomacro
-<span class="c1"># BB#0:                                 # %entry</span>
-  addiu <span class="nv">$sp</span>, <span class="nv">$sp</span>, -40
-<span class="nv">$tmp1</span>:
-  .cfi_def_cfa_offset 40
-  addiu <span class="nv">$2</span>, <span class="nv">$zero</span>, 5
-  st  <span class="nv">$2</span>, 36<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-  addiu <span class="nv">$2</span>, <span class="nv">$zero</span>, 2
-  st  <span class="nv">$2</span>, 32<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-  addiu <span class="nv">$2</span>, <span class="nv">$zero</span>, 0
-  st  <span class="nv">$2</span>, 28<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-...
+<div class="highlight-console"><div class="highlight"><pre><span></span><span class="gp">[Gamma@localhost input]$</span> cat ch4_1_math.cpu0.s
+<span class="go">...</span>
+<span class="go">  .set  nomacro</span>
+<span class="gp">#</span> BB#0:                                 <span class="c1"># %entry</span>
+<span class="go">  addiu $sp, $sp, -40</span>
+<span class="gp">$</span>tmp1:
+<span class="go">  .cfi_def_cfa_offset 40</span>
+<span class="go">  addiu $2, $zero, 5</span>
+<span class="go">  st  $2, 36($fp)</span>
+<span class="go">  addiu $2, $zero, 2</span>
+<span class="go">  st  $2, 32($fp)</span>
+<span class="go">  addiu $2, $zero, 0</span>
+<span class="go">  st  $2, 28($fp)</span>
+<span class="go">...</span>
 
-<span class="o">[</span>Gamma@localhost 3<span class="o">]</span>$ ~/llvm/test/cmake_debug_build/bin/
-llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>pic -filetype<span class="o">=</span>obj ch4_1_math.bc -o
-ch4_1_math.cpu0.o
-<span class="o">[</span>Gamma@localhost input<span class="o">]</span>$ objdump -s ch4_1_math.cpu0.o
+<span class="gp">[Gamma@localhost 3]$</span> ~/llvm/test/cmake_debug_build/bin/
+<span class="go">llc -march=cpu0 -relocation-model=pic -filetype=obj ch4_1_math.bc -o</span>
+<span class="go">ch4_1_math.cpu0.o</span>
+<span class="gp">[Gamma@localhost input]$</span> objdump -s ch4_1_math.cpu0.o
 
-ch4_1_math.cpu0.o:     file format elf32-big
+<span class="go">ch4_1_math.cpu0.o:     file format elf32-big</span>
 
-Contents of section .text:
- <span class="m">0000</span> 09ddffc8 <span class="m">09200005</span> 022d0034 <span class="m">09200002</span>  ..... ...-.4. ..
- <span class="m">0010</span> 022d0030 0920fffb 022d002c 012d0030  .-.0. ...-.,.-.0
- <span class="m">0020</span> 013d0034 <span class="m">11232000</span> 022d0028 012d0030  .<span class="o">=</span>.4.# ..-.<span class="o">(</span>.-.0
- <span class="m">0030</span> 013d0034 <span class="m">12232000</span> 022d0024 012d0030  .<span class="o">=</span>.4.# ..-.$.-.0
- <span class="m">0040</span> 013d0034 <span class="m">17232000</span> 022d0020 012d0034  .<span class="o">=</span>.4.# ..-. .-.4
- <span class="m">0050</span> 1e220002 022d001c 012d002c 1e220001  .<span class="s2">&quot;...-...-.,.&quot;</span>..
- <span class="m">0060</span> 022d000c 012d0034 1d220002 022d0018  .-...-.4.<span class="s2">&quot;...-..</span>
-<span class="s2"> 0070 012d002c 1f22001e 022d0008 09200001  .-.,.&quot;</span>...-... ..
- <span class="m">0080</span> 013d0034 <span class="m">21323000</span> 023d0014 013d0030  .<span class="o">=</span>.4!20..<span class="o">=</span>...<span class="o">=</span>.0
- <span class="m">0090</span> <span class="m">21223000</span> 022d0004 <span class="m">09200080</span> 013d0034  !<span class="s2">&quot;0..-... ...=.4</span>
-<span class="s2"> 00a0 22223000 022d0010 012d0034 013d0030  &quot;&quot;0..-...-.4.=.0</span>
-<span class="s2"> 00b0 20232000 022d0000 09dd0038 3ce00000   # ..-.....8&lt;...</span>
+<span class="go">Contents of section .text:</span>
+<span class="go"> 0000 09ddffc8 09200005 022d0034 09200002  ..... ...-.4. ..</span>
+<span class="go"> 0010 022d0030 0920fffb 022d002c 012d0030  .-.0. ...-.,.-.0</span>
+<span class="go"> 0020 013d0034 11232000 022d0028 012d0030  .=.4.# ..-.(.-.0</span>
+<span class="go"> 0030 013d0034 12232000 022d0024 012d0030  .=.4.# ..-.$.-.0</span>
+<span class="go"> 0040 013d0034 17232000 022d0020 012d0034  .=.4.# ..-. .-.4</span>
+<span class="go"> 0050 1e220002 022d001c 012d002c 1e220001  .&quot;...-...-.,.&quot;..</span>
+<span class="go"> 0060 022d000c 012d0034 1d220002 022d0018  .-...-.4.&quot;...-..</span>
+<span class="go"> 0070 012d002c 1f22001e 022d0008 09200001  .-.,.&quot;...-... ..</span>
+<span class="go"> 0080 013d0034 21323000 023d0014 013d0030  .=.4!20..=...=.0</span>
+<span class="go"> 0090 21223000 022d0004 09200080 013d0034  !&quot;0..-... ...=.4</span>
+<span class="go"> 00a0 22223000 022d0010 012d0034 013d0030  &quot;&quot;0..-...-.4.=.0</span>
+<span class="go"> 00b0 20232000 022d0000 09dd0038 3ce00000   # ..-.....8&lt;...</span>
 
-<span class="s2">[Gamma@localhost input]</span>$<span class="s2"> ~/llvm/test/</span>
-<span class="s2">cmake_debug_build/bin/llc -march=cpu0el -relocation-model=pic -filetype=obj</span>
-<span class="s2">ch4_1_math.bc -o ch4_1_math.cpu0el.o</span>
-<span class="s2">[Gamma@localhost input]</span>$<span class="s2"> objdump -s ch4_1_math.cpu0el.o</span>
+<span class="gp">[Gamma@localhost input]$</span> ~/llvm/test/
+<span class="go">cmake_debug_build/bin/llc -march=cpu0el -relocation-model=pic -filetype=obj</span>
+<span class="go">ch4_1_math.bc -o ch4_1_math.cpu0el.o</span>
+<span class="gp">[Gamma@localhost input]$</span> objdump -s ch4_1_math.cpu0el.o
 
-<span class="s2">ch4_1_math.cpu0el.o:     file format elf32-little</span>
+<span class="go">ch4_1_math.cpu0el.o:     file format elf32-little</span>
 
-<span class="s2">Contents of section .text:</span>
-<span class="s2"> 0000 c8ffdd09 05002009 34002d02 02002009  ...... .4.-... .</span>
-<span class="s2"> 0010 30002d02 fbff2009 2c002d02 30002d01  0.-... .,.-.0.-.</span>
-<span class="s2"> 0020 34003d01 00202311 28002d02 30002d01  4.=.. #.(.-.0.-.</span>
-<span class="s2"> 0030 34003d01 00202312 24002d02 30002d01  4.=.. #.</span>$<span class="s2">.-.0.-.</span>
-<span class="s2"> 0040 34003d01 00202317 20002d02 34002d01  4.=.. #. .-.4.-.</span>
-<span class="s2"> 0050 0200221e 1c002d02 2c002d01 0100221e  ..&quot;</span>...-.,.-...<span class="s2">&quot;.</span>
-<span class="s2"> 0060 0c002d02 34002d01 0200221d 18002d02  ..-.4.-...&quot;</span>...-.
- <span class="m">0070</span> 2c002d01 1e00221f 08002d02 <span class="m">01002009</span>  ,.-...<span class="s2">&quot;...-... .</span>
-<span class="s2"> 0080 34003d01 00303221 14003d02 30003d01  4.=..02!..=.0.=.</span>
-<span class="s2"> 0090 00302221 04002d02 80002009 34003d01  .0&quot;</span>!..-... .4.<span class="o">=</span>.
- 00a0 <span class="m">00302222</span> 10002d02 34002d01 30003d01  .0<span class="s2">&quot;&quot;</span>..-.4.-.0.<span class="o">=</span>.
- 00b0 <span class="m">00202320</span> 00002d02 3800dd09 0000e03c  . <span class="c1"># ..-.8......&lt;</span>
+<span class="go">Contents of section .text:</span>
+<span class="go"> 0000 c8ffdd09 05002009 34002d02 02002009  ...... .4.-... .</span>
+<span class="go"> 0010 30002d02 fbff2009 2c002d02 30002d01  0.-... .,.-.0.-.</span>
+<span class="go"> 0020 34003d01 00202311 28002d02 30002d01  4.=.. #.(.-.0.-.</span>
+<span class="go"> 0030 34003d01 00202312 24002d02 30002d01  4.=.. #.$.-.0.-.</span>
+<span class="go"> 0040 34003d01 00202317 20002d02 34002d01  4.=.. #. .-.4.-.</span>
+<span class="go"> 0050 0200221e 1c002d02 2c002d01 0100221e  ..&quot;...-.,.-...&quot;.</span>
+<span class="go"> 0060 0c002d02 34002d01 0200221d 18002d02  ..-.4.-...&quot;...-.</span>
+<span class="go"> 0070 2c002d01 1e00221f 08002d02 01002009  ,.-...&quot;...-... .</span>
+<span class="go"> 0080 34003d01 00303221 14003d02 30003d01  4.=..02!..=.0.=.</span>
+<span class="go"> 0090 00302221 04002d02 80002009 34003d01  .0&quot;!..-... .4.=.</span>
+<span class="go"> 00a0 00302222 10002d02 34002d01 30003d01  .0&quot;&quot;..-.4.-.0.=.</span>
+<span class="go"> 00b0 00202320 00002d02 3800dd09 0000e03c  . # ..-.8......&lt;</span>
 </pre></div>
 </div>
 <p>The first instruction is <strong>“addiu  $sp, -56”</strong> and its corresponding obj is
