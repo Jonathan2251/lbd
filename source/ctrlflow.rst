@@ -441,13 +441,11 @@ The code of Chapter8_2 will compile the following example as follows,
 	  lui	$1, %hi(.LBB0_4-.LBB0_2)
 	  addiu	$1, $1, %lo(.LBB0_4-.LBB0_2)
 	  bal	.LBB0_2
-	  nop
   .LBB0_2:
 	  addu	$1, $lr, $1
-	  addiu	$1, $1, 4
 	  ld	$lr, 0($sp)
 	  addiu	$sp, $sp, 8
-	  ret	$1
+	  jr	$1
 	  nop
   .LBB0_3:
 	  st	$2, 0($fp)

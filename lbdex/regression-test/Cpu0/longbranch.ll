@@ -33,10 +33,8 @@ end:
 ; O32-NEXT:        lui     $1, %hi(($[[BB2:BB[0-9_]+]])-($[[BB1:BB[0-9_]+]]))
 ; O32-NEXT:        addiu   $1, $1, %lo(($[[BB2]])-($[[BB1]]))
 ; O32-NEXT:        bal     $[[BB1]]
-; O32-NEXT:        nop
 ; O32-NEXT:   $[[BB1]]:
 ; O32-NEXT:        addu    $1, $lr, $1
-; O32-NEXT:        addiu   $1, $1, 4
 ; O32-NEXT:        ld      $lr, 0($sp)
 ; O32-NEXT:        addiu   $sp, $sp, 8
 ; O32-NEXT:        jr      $1
