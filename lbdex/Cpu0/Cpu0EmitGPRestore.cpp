@@ -62,11 +62,11 @@ bool Inserter::runOnMachineFunction(MachineFunction &F) {
     MachineBasicBlock& MBB = *MFI;
     MachineBasicBlock::iterator I = MFI->begin();
     
-    /// IsLandingPad - Indicate that this basic block is entered via an
+    /// isEHPad - Indicate that this basic block is entered via an
     /// exception handler.
     // If MBB is a landing pad, insert instruction that restores $gp after
     // EH_LABEL.
-    if (MBB.isLandingPad()) {
+    if (MBB.isEHPad()) {
       // Find EH_LABEL first.
       for (; I->getOpcode() != TargetOpcode::EH_LABEL; ++I) ;
 

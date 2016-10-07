@@ -122,7 +122,7 @@ void Cpu0AsmPrinter::EmitInstruction(const MachineInstr *MI) {
 
   //@print out instruction:
   //  Print out both ordinary instruction and boudle instruction
-  MachineBasicBlock::const_instr_iterator I = MI;
+  MachineBasicBlock::const_instr_iterator I = MI->getIterator();
   MachineBasicBlock::const_instr_iterator E = MI->getParent()->instr_end();
 
   do {
@@ -149,7 +149,7 @@ void Cpu0AsmPrinter::EmitInstruction(const MachineInstr *MI) {
       llvm_unreachable("Pseudo opcode found in EmitInstruction()");
 
     MCInst TmpInst0;
-    MCInstLowering.Lower(I, TmpInst0);
+    MCInstLowering.Lower(&*I, TmpInst0);
     OutStreamer->EmitInstruction(TmpInst0, getSubtargetInfo());
   } while ((++I != E) && I->isInsideBundle()); // Delay slot check
 }
@@ -427,7 +427,6 @@ void Cpu0AsmPrinter::printOperand(const MachineInstr *MI, int opNum,
   switch(MO.getTargetFlags()) {
   case Cpu0II::MO_GPREL:    O << "%gp_rel("; break;
   case Cpu0II::MO_GOT_CALL: O << "%call16("; break;
-  case Cpu0II::MO_GOT16:    O << "%got16(";  break;
   case Cpu0II::MO_GOT:      O << "%got(";    break;
   case Cpu0II::MO_ABS_HI:   O << "%hi(";     break;
   case Cpu0II::MO_ABS_LO:   O << "%lo(";     break;

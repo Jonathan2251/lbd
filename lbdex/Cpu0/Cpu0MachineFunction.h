@@ -17,38 +17,15 @@
 #include "Cpu0Config.h"
 #if CH >= CH3_1
 
-#include "llvm/ADT/StringMap.h"
 #include "llvm/CodeGen/MachineFrameInfo.h"
 #include "llvm/CodeGen/MachineFunction.h"
 #include "llvm/CodeGen/MachineMemOperand.h"
 #include "llvm/CodeGen/PseudoSourceValue.h"
-#include "llvm/IR/GlobalValue.h"
-#include "llvm/IR/ValueMap.h"
 #include "llvm/Target/TargetFrameLowering.h"
 #include "llvm/Target/TargetMachine.h"
 #include <map>
-#include <string>
-#include <utility>
 
 namespace llvm {
-
-/// \brief A class derived from PseudoSourceValue that represents a GOT entry
-/// resolved by lazy-binding.
-class Cpu0CallEntry : public PseudoSourceValue {
-public:
-  explicit Cpu0CallEntry(StringRef N);
-  explicit Cpu0CallEntry(const GlobalValue *V);
-  bool isConstant(const MachineFrameInfo *) const override;
-  bool isAliased(const MachineFrameInfo *) const override;
-  bool mayAlias(const MachineFrameInfo *) const override;
-
-private:
-  void printCustom(raw_ostream &O) const override;
-#ifndef NDEBUG
-  std::string Name;
-  const GlobalValue *Val;
-#endif
-};
 
 //@1 {
 /// Cpu0FunctionInfo - This class is derived from MachineFunction private
@@ -142,13 +119,13 @@ public:
 #endif
 
 #if CH >= CH9_2
-  /// \brief Create a MachinePointerInfo that has a Cpu0CallEntr object
-  /// representing a GOT entry for an external function.
-  MachinePointerInfo callPtrInfo(StringRef Name);
+  /// Create a MachinePointerInfo that has an ExternalSymbolPseudoSourceValue
+  /// object representing a GOT entry for an external function.
+  MachinePointerInfo callPtrInfo(const char *ES);
 
-  /// \brief Create a MachinePointerInfo that has a Cpu0CallEntr object
+  /// Create a MachinePointerInfo that has a GlobalValuePseudoSourceValue object
   /// representing a GOT entry for a global function.
-  MachinePointerInfo callPtrInfo(const GlobalValue *Val);
+  MachinePointerInfo callPtrInfo(const GlobalValue *GV);
 #endif
 
 private:
@@ -211,11 +188,6 @@ private:
   bool EmitNOAT;
 #endif
   unsigned MaxCallFrameSize;
-
-  /// Cpu0CallEntry maps.
-  StringMap<std::unique_ptr<const Cpu0CallEntry>> ExternalCallEntries;
-  ValueMap<const GlobalValue *, std::unique_ptr<const Cpu0CallEntry>>
-      GlobalCallEntries;
 };
 //@1 }
 

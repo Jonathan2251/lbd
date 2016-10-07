@@ -204,9 +204,9 @@ Xcode include clang execution file to compile code already, but if the version
 of Xcode's clang is not as new as the llvm we want to install later, then we 
 need to install and build the clang with llvm as this sub-section.
 
-Please download LLVM latest release version 3.7 (llvm, clang) from 
+Please download LLVM latest release version 3.9 (llvm, clang) from 
 the "LLVM Download Page" [#llvm-download]_. Then extract them using 
-``tar -xvf {llvm-3.7.0.src.tar.xz, cfe-3.7.0.src.tar.xz}``,
+``tar -xvf {llvm-3.9.0.src.tar.xz, cfe-3.9.0.src.tar.xz}``,
 and change the llvm source code root directory into src. 
 After that, move the clang source code to src/tools/clang as shown as follows. 
 The compiler-rt should not installed in iMac OS X 10.9 and Xcode 5.x. If you 
@@ -214,14 +214,14 @@ did as clang installation web document, it will has compiler error.
 
 .. code-block:: console
 
-  118-165-78-111:Downloads Jonathan$ tar -xvf cfe-3.7.0.src.tar.xz 
-  118-165-78-111:Downloads Jonathan$ tar -xvf llvm-3.7.0.src.tar.xz 
-  118-165-78-111:Downloads Jonathan$ mv llvm-3.7.0.src src
-  118-165-78-111:Downloads Jonathan$ mv cfe-3.7.0.src src/tools/clang
+  118-165-78-111:Downloads Jonathan$ tar -xvf cfe-3.9.0.src.tar.xz 
+  118-165-78-111:Downloads Jonathan$ tar -xvf llvm-3.9.0.src.tar.xz 
+  118-165-78-111:Downloads Jonathan$ mv llvm-3.9.0.src src
+  118-165-78-111:Downloads Jonathan$ mv cfe-3.9.0.src src/tools/clang
   118-165-78-111:Downloads Jonathan$ pwd
   /Users/Jonathan/Downloads
   118-165-78-111:Downloads Jonathan$ ls
-  cfe-3.7.0.src.tar.xz        llvm-3.7.0.src.tar.xz
+  cfe-3.9.0.src.tar.xz        llvm-3.9.0.src.tar.xz
   src
   118-165-78-111:Downloads Jonathan$ ls src/tools/
   CMakeLists.txt  clang       llvm-as         llvm-dis        llvm-mcmarkup 
@@ -316,9 +316,9 @@ llvm/test/ in this section.
 
 This book is on the process of merging into llvm trunk but not finished 
 yet.
-The merged llvm trunk version on lbd git hub is LLVM 3.7 released version.
-The lbd of Cpu0 example code is also based on llvm 3.7.
-So, please install the llvm 3.7 debug version as the llvm release 3.7 
+The merged llvm trunk version on lbd git hub is LLVM 3.9 released version.
+The lbd of Cpu0 example code is also based on llvm 3.9.
+So, please install the llvm 3.9 debug version as the llvm release 3.9 
 installation, but without clang since the clang will waste time in build the
 Cpu0 backend tutorial code.
 Steps as follows,
@@ -331,9 +331,9 @@ The details of installing Cpu0 backend example code as follows,
   118-165-78-111:llvm Jonathan$ cd test
   118-165-78-111:test Jonathan$ pwd
   /Users/Jonathan/llvm/test
-  118-165-78-111:test Jonathan$ cp /Users/Jonathan/Downloads/llvm-3.7.0.src.tar.xz .
-  118-165-78-111:test Jonathan$ tar -xvf llvm-3.7.0.src.tar.xz 
-  118-165-78-111:test Jonathan$ mv llvm-3.7.0.src src
+  118-165-78-111:test Jonathan$ cp /Users/Jonathan/Downloads/llvm-3.9.0.src.tar.xz .
+  118-165-78-111:test Jonathan$ tar -xvf llvm-3.9.0.src.tar.xz 
+  118-165-78-111:test Jonathan$ mv llvm-3.9.0.src src
   118-165-78-111:test Jonathan$ cp /Users/Jonathan/Downloads/
   lbdex.tar.gz .
   118-165-78-111:test Jonathan$ tar -zxvf lbdex.tar.gz
@@ -477,7 +477,7 @@ Download Graphviz from [#graphviz-download]_ according your
 Linux distribution. Files compare tools Kdiff3 came from web site [#kdiff3]_. 
 
 
-Install LLVM 3.7 release build on Linux
+Install LLVM 3.9 release build on Linux
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 First, install the llvm release build by,
@@ -501,7 +501,7 @@ _EXAMPLES=ON -DLLVM_BUILD_EXAMPLES=ON -G "Unix Makefiles" ../src/``, as follows.
   -- Constructing LLVMBuild project information
   ...
   -- Targeting XCore
-  -- Clang version: 3.7
+  -- Clang version: 3.9
   -- Found Subversion: /usr/bin/svn (found version "1.7.6") 
   -- Configuring done
   -- Generating done
@@ -553,9 +553,9 @@ Install Cpu0 debug build on Linux
 
 This book is on the process of merging into llvm trunk but not finished 
 yet.
-The merged llvm trunk version on lbd git hub is LLVM 3.7 released version.
-The Cpu0 example code is also based on llvm 3.7.
-So, please install the llvm 3.7 debug version as the llvm release 3.7 
+The merged llvm trunk version on lbd git hub is LLVM 3.9 released version.
+The Cpu0 example code is also based on llvm 3.9.
+So, please install the llvm 3.9 debug version as the llvm release 3.9 
 installation, but without clang since the clang will waste time in build the
 Cpu0 backend tutorial code.
 Steps as follows,
@@ -564,7 +564,7 @@ The details of installing Cpu0 backend example code according the following
 list steps, and the corresponding commands shown as below,
 
 1) Enter ~/llvm/test/ and 
-   get Cpu0 example code as well as the llvm 3.7.
+   get Cpu0 example code as well as the llvm 3.9.
 
 2) Make dir Cpu0 in src/lib/Target and download example code.
 
@@ -588,9 +588,9 @@ list steps, and the corresponding commands shown as below,
   [Gamma@localhost llvm]$ cd test
   [Gamma@localhost test]$ pwd
   /home/cschen/llvm/test
-  [Gamma@localhost test]$ cp /home/Gamma/Downloads/llvm-3.7.0.src.tar.xz .
-  [Gamma@localhost test]$ tar -xvf llvm-3.7.0.src.tar.xz 
-  [Gamma@localhost test]$ mv llvm-3.7.0.src src
+  [Gamma@localhost test]$ cp /home/Gamma/Downloads/llvm-3.9.0.src.tar.xz .
+  [Gamma@localhost test]$ tar -xvf llvm-3.9.0.src.tar.xz 
+  [Gamma@localhost test]$ mv llvm-3.9.0.src src
   [Gamma@localhost test]$ cp /Users/Jonathan/Downloads/
   lbdex.tar.gz .
   [Gamma@localhost test]$ tar -zxvf lbdex.tar.gz
@@ -620,8 +620,8 @@ our compiler instead, as follows,
   [Gamma@localhost cmake_debug_build]$ cmake -DCMAKE_CXX_COMPILER=clang++ 
   -DCMAKE_C_COMPILER=clang -DCMAKE_BUILD_TYPE=Debug -DLLVM_TARGETS_TO_BUILD=Cpu0 
   -G "Unix Makefiles" ../src/
-  -- The C compiler identification is Clang 3.7.0
-  -- The CXX compiler identification is Clang 3.7.0
+  -- The C compiler identification is Clang 3.9.0
+  -- The CXX compiler identification is Clang 3.9.0
   -- Check for working C compiler: /home/cschen/llvm/release/cmake_release_build/bin/
   clang
   -- Check for working C compiler: /home/cschen/llvm/release/cmake_release_build/bin/
@@ -725,7 +725,7 @@ Finally, try gdb as follows.
 
 .. [#llvm-cmake] http://llvm.org/docs/CMake.html?highlight=cmake
 
-.. [#llvm-download] http://llvm.org/releases/download.html#3.7
+.. [#llvm-download] http://llvm.org/releases/download.html#3.9
 
 .. [#cmake] http://www.cmake.org/cmake/resources/software.html
 

@@ -16,8 +16,8 @@ graphic tool of Graphviz which supply useful information with graphic view.
 Logic instructions support will come after arithmetic section.
 In spite of that llvm backend handle the IR only, we get the IR from the 
 corresponding C operators with designed C example code. 
-Through compiling with C code, readers can know exactly what C statements are
-handled by each chapter's appending code.
+Through compiling with C code, readers can know exactly what kind of C 
+statements are handled by each chapter's appending code.
 Instead of focusing on classes relationship in this backend structure of last
 chapter, readers should focus on the mapping of C operators and llvm IR and 
 how to define the mapping relationship of IR and instructions in td. 
@@ -176,10 +176,12 @@ operators **+, -, \***.
 SHL (defined before) and SHLV are for **<<**.
 SRA, SRAV, SHR and SHRV are for **>>**.
 
-In RISC CPU like Mips, the multiply/divide function unit and add/sub/logic unit 
-are designed from two different hardware circuits, and more, their data path are 
-separate. Cpu0 is same, so these two function units can be executed at same 
-time (instruction level parallelism). Reference [#instrstage]_ for instruction itineraries.
+In RISC CPU, such as Mips, the multiply/divide function unit and add/sub/logic 
+unit are designed from two different hardware circuits, and more, their data 
+path are separate. 
+Cpu0 is same, so these two function units can be executed at same time 
+(instruction level parallelism). 
+Reference [#instrstage]_ for instruction itineraries.
 
 Chapter4_1/ can handle **+, -, \*, <<,** and **>>** operators in C 
 language. 

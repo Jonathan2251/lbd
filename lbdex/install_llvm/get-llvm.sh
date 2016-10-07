@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-export VERSION=3.7.0
+VERSION=3.9.0
 
 # Download address can be gotten from "Copy link location" of right clicking 
 # mouse on firefox browser on llvm.org download page.

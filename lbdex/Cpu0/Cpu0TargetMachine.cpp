@@ -23,6 +23,7 @@
 #endif
 #include "llvm/IR/LegacyPassManager.h"
 #include "llvm/CodeGen/Passes.h"
+#include "llvm/CodeGen/TargetPassConfig.h"
 #include "llvm/Support/TargetRegistry.h"
 using namespace llvm;
 
@@ -66,6 +67,13 @@ static std::string computeDataLayout(const Triple &TT, StringRef CPU,
   return Ret;
 }
 
+static Reloc::Model getEffectiveRelocModel(CodeModel::Model CM,
+                                           Optional<Reloc::Model> RM) {
+  if (!RM.hasValue() || CM == CodeModel::JITDefault)
+    return Reloc::Static;
+  return *RM;
+}
+
 // DataLayout --> Big-endian, 32-bit pointer/ABI/alignment
 // The stack is always 8 byte aligned
 // On function prologue, the stack is created by decrementing
@@ -76,11 +84,13 @@ static std::string computeDataLayout(const Triple &TT, StringRef CPU,
 Cpu0TargetMachine::Cpu0TargetMachine(const Target &T, const Triple &TT,
                                      StringRef CPU, StringRef FS,
                                      const TargetOptions &Options,
-                                     Reloc::Model RM, CodeModel::Model CM,
-                                     CodeGenOpt::Level OL, bool isLittle)
+                                     Optional<Reloc::Model> RM,
+                                     CodeModel::Model CM, CodeGenOpt::Level OL,
+                                     bool isLittle)
   //- Default is big endian
     : LLVMTargetMachine(T, computeDataLayout(TT, CPU, Options, isLittle), TT,
-                        CPU, FS, Options, RM, CM, OL),
+                        CPU, FS, Options, getEffectiveRelocModel(CM, RM), CM,
+                        OL),
       isLittle(isLittle), TLOF(make_unique<Cpu0TargetObjectFile>()),
       ABI(Cpu0ABIInfo::computeTargetABI()),
       DefaultSubtarget(TT, CPU, FS, isLittle, *this) {
@@ -96,7 +106,8 @@ void Cpu0ebTargetMachine::anchor() { }
 Cpu0ebTargetMachine::Cpu0ebTargetMachine(const Target &T, const Triple &TT,
                                          StringRef CPU, StringRef FS,
                                          const TargetOptions &Options,
-                                         Reloc::Model RM, CodeModel::Model CM,
+                                         Optional<Reloc::Model> RM,
+                                         CodeModel::Model CM,
                                          CodeGenOpt::Level OL)
     : Cpu0TargetMachine(T, TT, CPU, FS, Options, RM, CM, OL, false) {}
 
@@ -105,7 +116,8 @@ void Cpu0elTargetMachine::anchor() { }
 Cpu0elTargetMachine::Cpu0elTargetMachine(const Target &T, const Triple &TT,
                                          StringRef CPU, StringRef FS,
                                          const TargetOptions &Options,
-                                         Reloc::Model RM, CodeModel::Model CM,
+                                         Optional<Reloc::Model> RM,
+                                         CodeModel::Model CM,
                                          CodeGenOpt::Level OL)
     : Cpu0TargetMachine(T, TT, CPU, FS, Options, RM, CM, OL, true) {}
 
@@ -180,7 +192,7 @@ void Cpu0PassConfig::addIRPasses() {
 // Install an instruction selector pass using
 // the ISelDag to gen Cpu0 code.
 bool Cpu0PassConfig::addInstSelector() {
-  addPass(createCpu0SEISelDag(getCpu0TargetMachine()));
+  addPass(createCpu0SEISelDag(getCpu0TargetMachine(), getOptLevel()));
   return false;
 }
 #endif

@@ -138,7 +138,7 @@ SelectAddr(SDNode *Parent, SDValue Addr, SDValue &Base, SDValue &Offset) {
 //@Select {
 /// Select instructions not customized! Used for
 /// expanded, promoted and normal instructions
-SDNode* Cpu0DAGToDAGISel::Select(SDNode *Node) {
+void Cpu0DAGToDAGISel::Select(SDNode *Node) {
 //@Select }
   unsigned Opcode = Node->getOpcode();
 
@@ -149,14 +149,12 @@ SDNode* Cpu0DAGToDAGISel::Select(SDNode *Node) {
   if (Node->isMachineOpcode()) {
     DEBUG(errs() << "== "; Node->dump(CurDAG); errs() << "\n");
     Node->setNodeId(-1);
-    return nullptr;
+    return;
   }
 
   // See if subclasses can handle this node.
-  std::pair<bool, SDNode*> Ret = selectNode(Node);
-
-  if (Ret.first)
-    return Ret.second;
+  if (trySelect(Node))
+    return;
 
   switch(Opcode) {
   default: break;
@@ -164,31 +162,13 @@ SDNode* Cpu0DAGToDAGISel::Select(SDNode *Node) {
 #if CH >= CH6_1 //3
   // Get target GOT address.
   case ISD::GLOBAL_OFFSET_TABLE:
-    return getGlobalBaseReg();
-#endif
-
-#if 0
-//#ifndef NDEBUG
-  case ISD::LOAD:
-  case ISD::STORE:
-    assert((Subtarget->systemSupportsUnalignedAccess() ||
-            cast<MemSDNode>(Node)->getMemoryVT().getSizeInBits() / 8 <=
-            cast<MemSDNode>(Node)->getAlignment()) &&
-           "Unexpected unaligned loads/stores.");
-    break;
+    ReplaceNode(Node, getGlobalBaseReg());
+    return;
 #endif
   }
 
   // Select the default instruction
-  SDNode *ResNode = SelectCode(Node);
-
-  DEBUG(errs() << "=> ");
-  if (ResNode == nullptr || ResNode == Node)
-    DEBUG(Node->dump(CurDAG));
-  else
-    DEBUG(ResNode->dump(CurDAG));
-  DEBUG(errs() << "\n");
-  return ResNode;
+  SelectCode(Node);
 }
 
 #if CH >= CH11_2

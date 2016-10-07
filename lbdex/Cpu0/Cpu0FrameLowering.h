@@ -37,7 +37,8 @@ public:
   bool hasFP(const MachineFunction &MF) const override;
 
 #if CH >= CH9_2
-  void eliminateCallFramePseudoInstr(MachineFunction &MF,
+  MachineBasicBlock::iterator
+  eliminateCallFramePseudoInstr(MachineFunction &MF,
                                   MachineBasicBlock &MBB,
                                   MachineBasicBlock::iterator I) const override;
 #endif

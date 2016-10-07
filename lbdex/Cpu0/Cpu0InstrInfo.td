@@ -396,7 +396,6 @@ class shift_rotate_imm<bits<8> op, bits<4> isRotate, string instr_asm,
      !strconcat(instr_asm, "\t$ra, $rb, $shamt"),
      [(set GPROut:$ra, (OpNode RC:$rb, PF:$shamt))], IIAlu> {
   let rc = 0;
-  let shamt = shamt;
 }
 
 // 32-bit shift instructions.

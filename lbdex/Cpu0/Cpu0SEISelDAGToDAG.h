@@ -24,13 +24,14 @@ namespace llvm {
 class Cpu0SEDAGToDAGISel : public Cpu0DAGToDAGISel {
 
 public:
-  explicit Cpu0SEDAGToDAGISel(Cpu0TargetMachine &TM) : Cpu0DAGToDAGISel(TM) {}
+  explicit Cpu0SEDAGToDAGISel(Cpu0TargetMachine &TM, CodeGenOpt::Level OL)
+      : Cpu0DAGToDAGISel(TM, OL) {}
 
 private:
 
   bool runOnMachineFunction(MachineFunction &MF) override;
 
-  std::pair<bool, SDNode*> selectNode(SDNode *Node) override;
+  bool trySelect(SDNode *Node) override;
 
   void processFunctionAfterISel(MachineFunction &MF) override;
 
@@ -39,17 +40,19 @@ private:
 //  void initGlobalBaseReg(MachineFunction &MF);
 
 #if CH >= CH4_1
-  std::pair<SDNode*, SDNode*> SelectMULT(SDNode *N, unsigned Opc, SDLoc DL,
-                                         EVT Ty, bool HasLo, bool HasHi);
+  std::pair<SDNode *, SDNode *> selectMULT(SDNode *N, unsigned Opc,
+                                           const SDLoc &DL, EVT Ty, bool HasLo,
+                                           bool HasHi);
 #endif
 
 #if CH >= CH7_1
-  SDNode *selectAddESubE(unsigned MOp, SDValue InFlag, SDValue CmpLHS,
-                         SDLoc DL, SDNode *Node) const;
+  void selectAddESubE(unsigned MOp, SDValue InFlag, SDValue CmpLHS,
+                      const SDLoc &DL, SDNode *Node) const;
 #endif
 };
 
-FunctionPass *createCpu0SEISelDag(Cpu0TargetMachine &TM);
+FunctionPass *createCpu0SEISelDag(Cpu0TargetMachine &TM,
+                                  CodeGenOpt::Level OptLevel);
 
 }
 

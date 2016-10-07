@@ -36,8 +36,8 @@ namespace llvm {
 
 class Cpu0DAGToDAGISel : public SelectionDAGISel {
 public:
-  explicit Cpu0DAGToDAGISel(Cpu0TargetMachine &TM)
-      : SelectionDAGISel(TM), Subtarget(nullptr) {}
+  explicit Cpu0DAGToDAGISel(Cpu0TargetMachine &TM, CodeGenOpt::Level OL)
+      : SelectionDAGISel(TM, OL), Subtarget(nullptr) {}
 
   // Pass Name
   const char *getPassName() const override {
@@ -65,9 +65,9 @@ private:
     return static_cast<const Cpu0TargetMachine &>(TM);
   }
 
-  SDNode *Select(SDNode *N) override;
+  void Select(SDNode *N) override;
 
-  virtual std::pair<bool, SDNode*> selectNode(SDNode *Node) = 0;
+  virtual bool trySelect(SDNode *Node) = 0;
 
   // Complex Pattern.
   bool SelectAddr(SDNode *Parent, SDValue N, SDValue &Base, SDValue &Offset);

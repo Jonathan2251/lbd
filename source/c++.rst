@@ -57,17 +57,10 @@ About the IRs of LLVM exception handling, please reference here [#exception]_.
 Chapter12_1 supports the llvm IRs of corresponding **try** and **catch** 
 exception C++ keywords. It can compile ch12_eh.bc as follows,
 
-.. rubric:: lbdex/chapters/Chapter12_1/Cpu0ISelLowering.cpp
-.. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.cpp
-    :start-after: //@Cpu0TargetLowering {
-    :end-before: #if CH >= CH3_2
-.. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.cpp
-    :start-after: #if CH >= CH12_1 //2
+.. rubric:: lbdex/chapters/Chapter12_1/Cpu0ISelLowering.h
+.. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.h
+    :start-after: #if CH >= CH12_1 //5
     :end-before: #endif
-	
-.. code-block:: c++
-
-  }
 
 .. code-block:: console
 
@@ -91,36 +84,12 @@ thread variable has different instances for each different thread in a process.
 The same thread share the thread variable but different threads have their own 
 thread variable with the same name [#thread-wiki]_.
 
-To support thread variable, the following code added to Chapter12_1.
+To support thread variable, tlsgd, tlsldm, dtp_hi, dtp_lo, gottp, tp_hi and
+tp_lo in evaluateRelocExpr() of Cpu0AsmParser.cpp, in printImpl() of
+Cpu0MCExpr.cpp and the following code are required.
 Most of them are for relocation record handle and display since the thread 
 variable created by OS or language library which support multi-threads 
 programming.
-
-.. rubric:: lbdex/chapters/Chapter12_1/AsmParser/Cpu0AsmParser.cpp
-.. literalinclude:: ../lbdex/Cpu0/AsmParser/Cpu0AsmParser.cpp
-    :start-after: //@getVariantKind {
-    :end-before: //@getVariantKind body {
-.. literalinclude:: ../lbdex/Cpu0/AsmParser/Cpu0AsmParser.cpp
-    :start-after: #if CH >= CH12_1
-    :end-before: #endif
-	
-.. code-block:: c++
-
-      ...
-  }
-
-.. rubric:: lbdex/chapters/Chapter12_1/InstPrinter/Cpu0InstPrinter.cpp
-.. literalinclude:: ../lbdex/Cpu0/InstPrinter/Cpu0InstPrinter.cpp
-    :start-after: //@printExpr {
-    :end-before: //@printExpr body {
-.. literalinclude:: ../lbdex/Cpu0/InstPrinter/Cpu0InstPrinter.cpp
-    :start-after: #if CH >= CH12_1
-    :end-before: #endif
-	
-.. code-block:: c++
-
-    ...
-  }
 
 .. rubric:: lbdex/chapters/Chapter12_1/MCTargetDesc/Cpu0AsmBackend.cpp
 .. literalinclude:: ../lbdex/Cpu0/MCTargetDesc/Cpu0AsmBackend.cpp
@@ -240,9 +209,9 @@ programming.
     :end-before: #endif
 
 
-.. rubric:: lbdex/chapters/Chapter12_1/Cpu0SelLowering.h
+.. rubric:: lbdex/chapters/Chapter12_1/Cpu0ISelLowering.h
 .. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.h
-    :start-after: #if CH >= CH12_1
+    :start-after: #if CH >= CH12_1 //1
     :end-before: #endif
 
 .. rubric:: lbdex/chapters/Chapter12_1/Cpu0MCInstLower.cpp
@@ -371,19 +340,6 @@ In order to support atomic in C++ and java, llvm provides the atomic IRs here
 
 To support llvm atomic IRs, the following code added to Chapter12_1.
 
-.. rubric:: lbdex/chapters/Chapter12_1/AsmParser/Cpu0AsmParser.cpp
-.. literalinclude:: ../lbdex/Cpu0/AsmParser/Cpu0AsmParser.cpp
-    :start-after: //@getVariantKind {
-    :end-before: //@getVariantKind body {
-.. literalinclude:: ../lbdex/Cpu0/AsmParser/Cpu0AsmParser.cpp
-    :start-after: #if CH >= CH12_1
-    :end-before: #endif
-
-.. code-block:: c++
-
-    ...
-  }
-
 .. rubric:: lbdex/chapters/Chapter12_1/Disassembler/Cpu0Disassembler.cpp
 .. literalinclude:: ../lbdex/Cpu0/Disassembler/Cpu0Disassembler.cpp
     :start-after: //@DecodeMem {
@@ -426,7 +382,7 @@ To support llvm atomic IRs, the following code added to Chapter12_1.
     :start-after: #if CH >= CH12_1 13
     :end-before: #endif
 
-.. rubric:: lbdex/chapters/Chapter12_1/Cpu0SelLowering.h
+.. rubric:: lbdex/chapters/Chapter12_1/Cpu0ISelLowering.h
 .. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.h
     :start-after: #if CH >= CH12_1 //2
     :end-before: #endif

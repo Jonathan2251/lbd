@@ -39,9 +39,8 @@ namespace Cpu0II {
     MO_NO_FLAG,
 
 #if CH >= CH6_1
-    /// MO_GOT16 - Represents the offset into the global offset table at which
+    /// MO_GOT - Represents the offset into the global offset table at which
     /// the address the relocation entry symbol resides during execution.
-    MO_GOT16,
     MO_GOT,
 #endif
 
@@ -82,13 +81,6 @@ namespace Cpu0II {
     MO_TP_HI,
     MO_TP_LO,
 #endif
-    MO_GOT_DISP,
-    MO_GOT_PAGE,
-    MO_GOT_OFST,
-
-    // N32/64 Flags.
-    MO_GPOFF_HI,
-    MO_GPOFF_LO,
 
     /// MO_GOT_HI16/LO16 - Relocations used for large GOTs.
     MO_GOT_HI16,

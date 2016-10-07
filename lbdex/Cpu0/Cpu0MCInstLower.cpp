@@ -40,42 +40,72 @@ void Cpu0MCInstLower::Initialize(MCContext* C) {
 MCOperand Cpu0MCInstLower::LowerSymbolOperand(const MachineOperand &MO,
                                               MachineOperandType MOTy,
                                               unsigned Offset) const {
-  MCSymbolRefExpr::VariantKind Kind;
+  MCSymbolRefExpr::VariantKind Kind = MCSymbolRefExpr::VK_None;
+  Cpu0MCExpr::Cpu0ExprKind TargetKind = Cpu0MCExpr::CEK_None;
   const MCSymbol *Symbol;
 
   switch(MO.getTargetFlags()) {
   default:                   llvm_unreachable("Invalid target flag!");
-  case Cpu0II::MO_NO_FLAG:   Kind = MCSymbolRefExpr::VK_None; break;
+  case Cpu0II::MO_NO_FLAG:
+    break;
 
 // Cpu0_GPREL is for llc -march=cpu0 -relocation-model=static -cpu0-islinux-
 //  format=false (global var in .sdata).
-  case Cpu0II::MO_GPREL:     Kind = MCSymbolRefExpr::VK_Cpu0_GPREL; break;
+  case Cpu0II::MO_GPREL:
+    TargetKind = Cpu0MCExpr::CEK_GPREL;
+    break;
 
 #if CH >= CH9_1 //1
-  case Cpu0II::MO_GOT_CALL:  Kind = MCSymbolRefExpr::VK_Cpu0_GOT_CALL; break;
+  case Cpu0II::MO_GOT_CALL:
+    TargetKind = Cpu0MCExpr::CEK_GOT_CALL;
+    break;
 #endif
-  case Cpu0II::MO_GOT16:     Kind = MCSymbolRefExpr::VK_Cpu0_GOT16; break;
-  case Cpu0II::MO_GOT:       Kind = MCSymbolRefExpr::VK_Cpu0_GOT; break;
+  case Cpu0II::MO_GOT:
+    TargetKind = Cpu0MCExpr::CEK_GOT;
+    break;
 // ABS_HI and ABS_LO is for llc -march=cpu0 -relocation-model=static (global 
 //  var in .data).
-  case Cpu0II::MO_ABS_HI:    Kind = MCSymbolRefExpr::VK_Cpu0_ABS_HI; break;
-  case Cpu0II::MO_ABS_LO:    Kind = MCSymbolRefExpr::VK_Cpu0_ABS_LO; break;
+  case Cpu0II::MO_ABS_HI:
+    TargetKind = Cpu0MCExpr::CEK_ABS_HI;
+    break;
+  case Cpu0II::MO_ABS_LO:
+    TargetKind = Cpu0MCExpr::CEK_ABS_LO;
+    break;
 #if CH >= CH12_1
-  case Cpu0II::MO_TLSGD:     Kind = MCSymbolRefExpr::VK_Cpu0_TLSGD; break;
-  case Cpu0II::MO_TLSLDM:    Kind = MCSymbolRefExpr::VK_Cpu0_TLSLDM; break;
-  case Cpu0II::MO_DTP_HI:    Kind = MCSymbolRefExpr::VK_Cpu0_DTP_HI; break;
-  case Cpu0II::MO_DTP_LO:    Kind = MCSymbolRefExpr::VK_Cpu0_DTP_LO; break;
-  case Cpu0II::MO_GOTTPREL:  Kind = MCSymbolRefExpr::VK_Cpu0_GOTTPREL; break;
-  case Cpu0II::MO_TP_HI:     Kind = MCSymbolRefExpr::VK_Cpu0_TP_HI; break;
-  case Cpu0II::MO_TP_LO:     Kind = MCSymbolRefExpr::VK_Cpu0_TP_LO; break;
+  case Cpu0II::MO_TLSGD:
+    TargetKind = Cpu0MCExpr::CEK_TLSGD;
+    break;
+  case Cpu0II::MO_TLSLDM:
+    TargetKind = Cpu0MCExpr::CEK_TLSLDM;
+    break;
+  case Cpu0II::MO_DTP_HI:
+    TargetKind = Cpu0MCExpr::CEK_DTP_HI;
+    break;
+  case Cpu0II::MO_DTP_LO:
+    TargetKind = Cpu0MCExpr::CEK_DTP_LO;
+    break;
+  case Cpu0II::MO_GOTTPREL:
+    TargetKind = Cpu0MCExpr::CEK_GOTTPREL;
+    break;
+  case Cpu0II::MO_TP_HI:
+    TargetKind = Cpu0MCExpr::CEK_TP_HI;
+    break;
+  case Cpu0II::MO_TP_LO:
+    TargetKind = Cpu0MCExpr::CEK_TP_LO;
+    break;
 #endif
-  case Cpu0II::MO_GOT_HI16:  Kind = MCSymbolRefExpr::VK_Cpu0_GOT_HI16; break;
-  case Cpu0II::MO_GOT_LO16:  Kind = MCSymbolRefExpr::VK_Cpu0_GOT_LO16; break;
+  case Cpu0II::MO_GOT_HI16:
+    TargetKind = Cpu0MCExpr::CEK_GOT_HI16;
+    break;
+  case Cpu0II::MO_GOT_LO16:
+    TargetKind = Cpu0MCExpr::CEK_GOT_LO16;
+    break;
   }
 
   switch (MOTy) {
   case MachineOperand::MO_GlobalAddress:
     Symbol = AsmPrinter.getSymbol(MO.getGlobal());
+    Offset += MO.getOffset();
     break;
 
 #if CH >= CH8_1
@@ -106,17 +136,20 @@ MCOperand Cpu0MCInstLower::LowerSymbolOperand(const MachineOperand &MO,
     llvm_unreachable("<unknown operand type>");
   }
 
-  const MCSymbolRefExpr *MCSym = MCSymbolRefExpr::create(Symbol, Kind, *Ctx);
+  const MCExpr *Expr = MCSymbolRefExpr::create(Symbol, Kind, *Ctx);
 
-  if (!Offset)
-    return MCOperand::createExpr(MCSym);
+  if (Offset) {
+    // Assume offset is never negative.
+    assert(Offset > 0);
+    Expr = MCBinaryExpr::createAdd(Expr, MCConstantExpr::create(Offset, *Ctx),
+                                   *Ctx);
+  }
 
-  // Assume offset is never negative.
-  assert(Offset > 0);
+  if (TargetKind != Cpu0MCExpr::CEK_None)
+    Expr = Cpu0MCExpr::create(TargetKind, Expr, *Ctx);
 
-  const MCConstantExpr *OffsetExpr =  MCConstantExpr::create(Offset, *Ctx);
-  const MCBinaryExpr *AddExpr = MCBinaryExpr::createAdd(MCSym, OffsetExpr, *Ctx);
-  return MCOperand::createExpr(AddExpr);
+  return MCOperand::createExpr(Expr);
+
 }
 //@LowerSymbolOperand }
 #endif // if CH >= CH6_1 //1
@@ -141,11 +174,11 @@ void Cpu0MCInstLower::LowerCPLOAD(SmallVector<MCInst, 4>& MCInsts) {
   MCOperand T9Reg = MCOperand::createReg(Cpu0::T9);
   StringRef SymName("_gp_disp");
   const MCSymbol *Sym = Ctx->getOrCreateSymbol(SymName);
-  const MCSymbolRefExpr *MCSym;
+  const Cpu0MCExpr *MCSym;
 
-  MCSym = MCSymbolRefExpr::create(Sym, MCSymbolRefExpr::VK_Cpu0_ABS_HI, *Ctx);
+  MCSym = Cpu0MCExpr::create(Sym, Cpu0MCExpr::CEK_ABS_HI, *Ctx);
   MCOperand SymHi = MCOperand::createExpr(MCSym);
-  MCSym = MCSymbolRefExpr::create(Sym, MCSymbolRefExpr::VK_Cpu0_ABS_LO, *Ctx);
+  MCSym = Cpu0MCExpr::create(Sym, Cpu0MCExpr::CEK_ABS_LO, *Ctx);
   MCOperand SymLo = MCOperand::createExpr(MCSym);
 
   MCInsts.resize(3);
@@ -227,7 +260,7 @@ MCOperand Cpu0MCInstLower::LowerOperand(const MachineOperand& MO,
 #if CH >= CH8_2 //1
 MCOperand Cpu0MCInstLower::createSub(MachineBasicBlock *BB1,
                                      MachineBasicBlock *BB2,
-                                     MCSymbolRefExpr::VariantKind Kind) const {
+                                     Cpu0MCExpr::Cpu0ExprKind Kind) const {
   const MCSymbolRefExpr *Sym1 = MCSymbolRefExpr::create(BB1->getSymbol(), *Ctx);
   const MCSymbolRefExpr *Sym2 = MCSymbolRefExpr::create(BB2->getSymbol(), *Ctx);
   const MCBinaryExpr *Sub = MCBinaryExpr::createSub(Sym1, Sym2, *Ctx);
@@ -245,12 +278,12 @@ lowerLongBranchLUi(const MachineInstr *MI, MCInst &OutMI) const {
   // Create %hi($tgt-$baltgt).
   OutMI.addOperand(createSub(MI->getOperand(1).getMBB(),
                              MI->getOperand(2).getMBB(),
-                             MCSymbolRefExpr::VK_Cpu0_ABS_HI));
+                             Cpu0MCExpr::CEK_ABS_HI));
 }
 
 void Cpu0MCInstLower::
 lowerLongBranchADDiu(const MachineInstr *MI, MCInst &OutMI, int Opcode,
-                     MCSymbolRefExpr::VariantKind Kind) const {
+                     Cpu0MCExpr::Cpu0ExprKind Kind) const {
   OutMI.setOpcode(Opcode);
 
   // Lower two register operands.
@@ -274,7 +307,7 @@ bool Cpu0MCInstLower::lowerLongBranch(const MachineInstr *MI,
     return true;
   case Cpu0::LONG_BRANCH_ADDiu:
     lowerLongBranchADDiu(MI, OutMI, Cpu0::ADDiu,
-                         MCSymbolRefExpr::VK_Cpu0_ABS_LO);
+                         Cpu0MCExpr::CEK_ABS_LO);
     return true;
   }
 }

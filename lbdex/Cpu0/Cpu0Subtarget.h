@@ -20,9 +20,9 @@
 #include "Cpu0FrameLowering.h"
 #include "Cpu0ISelLowering.h"
 #include "Cpu0InstrInfo.h"
+#include "llvm/CodeGen/SelectionDAGTargetInfo.h"
 #include "llvm/IR/DataLayout.h"
 #include "llvm/MC/MCInstrItineraries.h"
-#include "llvm/Target/TargetSelectionDAGInfo.h"
 #include "llvm/Target/TargetSubtargetInfo.h"
 #include <string>
 
@@ -231,13 +231,14 @@ protected:
 
   Triple TargetTriple;
 
-  const TargetSelectionDAGInfo TSInfo;
+  const SelectionDAGTargetInfo TSInfo;
 
   std::unique_ptr<const Cpu0InstrInfo> InstrInfo;
   std::unique_ptr<const Cpu0FrameLowering> FrameLowering;
   std::unique_ptr<const Cpu0TargetLowering> TLInfo;
 
 public:
+  bool isPositionIndependent() const;
   const Cpu0ABIInfo &getABI() const;
 
   /// This constructor initializes the data members to match that
@@ -277,7 +278,7 @@ public:
   Cpu0Subtarget &initializeSubtargetDependencies(StringRef CPU, StringRef FS,
                                                  const TargetMachine &TM);
 
-  const TargetSelectionDAGInfo *getSelectionDAGInfo() const override {
+  const SelectionDAGTargetInfo *getSelectionDAGInfo() const override {
     return &TSInfo;
   }
   const Cpu0InstrInfo *getInstrInfo() const override { return InstrInfo.get(); }

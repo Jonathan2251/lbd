@@ -61,7 +61,7 @@ bool Cpu0TargetObjectFile::
 IsGlobalInSmallSection(const GlobalValue *GV, const TargetMachine &TM,
                        SectionKind Kind) const {
   return (IsGlobalInSmallSectionImpl(GV, TM) &&
-          (Kind.isDataRel() || Kind.isBSS() || Kind.isCommon()));
+          (Kind.isData() || Kind.isBSS() || Kind.isCommon()));
 }
 
 /// Return true if this global address should be placed into small data/bss
@@ -82,8 +82,9 @@ IsGlobalInSmallSectionImpl(const GlobalValue *GV,
   if (!GVA)
     return false;
 
-  Type *Ty = GV->getType()->getElementType();
-  return IsInSmallSection(TM.getDataLayout()->getTypeAllocSize(Ty));
+  Type *Ty = GV->getValueType();
+  return IsInSmallSection(
+      GV->getParent()->getDataLayout().getTypeAllocSize(Ty));
 }
 
 
@@ -97,7 +98,7 @@ Cpu0TargetObjectFile::SelectSectionForGlobal(const GlobalValue *GV,
   // Handle Small Section classification here.
   if (Kind.isBSS() && IsGlobalInSmallSection(GV, TM, Kind))
     return SmallBSSSection;
-  if (Kind.isDataNoRel() && IsGlobalInSmallSection(GV, TM, Kind))
+  if (Kind.isData() && IsGlobalInSmallSection(GV, TM, Kind))
     return SmallDataSection;
 
   // Otherwise, we work the same as ELF.

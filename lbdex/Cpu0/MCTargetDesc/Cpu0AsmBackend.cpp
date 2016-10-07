@@ -60,7 +60,7 @@ static unsigned adjustFixupValue(const MCFixup &Fixup, uint64_t Value,
     break;
 #endif
   case Cpu0::fixup_Cpu0_HI16:
-  case Cpu0::fixup_Cpu0_GOT_Local:
+  case Cpu0::fixup_Cpu0_GOT:
 #if CH >= CH6_1
   case Cpu0::fixup_Cpu0_GOT_HI16:
 #endif
@@ -135,8 +135,7 @@ getFixupKindInfo(MCFixupKind Kind) const {
     { "fixup_Cpu0_HI16",           0,     16,   0 },
     { "fixup_Cpu0_LO16",           0,     16,   0 },
     { "fixup_Cpu0_GPREL16",        0,     16,   0 },
-    { "fixup_Cpu0_GOT_Global",     0,     16,   0 },
-    { "fixup_Cpu0_GOT_Local",      0,     16,   0 },
+    { "fixup_Cpu0_GOT",            0,     16,   0 },
 #if CH >= CH8_1 //2
     { "fixup_Cpu0_PC16",           0,     16,  MCFixupKindInfo::FKF_IsPCRel },
     { "fixup_Cpu0_PC24",           0,     24,  MCFixupKindInfo::FKF_IsPCRel },

@@ -105,7 +105,7 @@ bool Cpu0FrameLowering::hasFP(const MachineFunction &MF) const {
 
 #if CH >= CH9_2
 // Eliminate ADJCALLSTACKDOWN, ADJCALLSTACKUP pseudo instructions
-void Cpu0FrameLowering::
+MachineBasicBlock::iterator Cpu0FrameLowering::
 eliminateCallFramePseudoInstr(MachineFunction &MF, MachineBasicBlock &MBB,
                               MachineBasicBlock::iterator I) const {
 #if CH >= CH9_3 // dynamic alloc
@@ -120,7 +120,7 @@ eliminateCallFramePseudoInstr(MachineFunction &MF, MachineBasicBlock &MBB,
   }
 #endif // dynamic alloc
 
-  MBB.erase(I);
+  return MBB.erase(I);
 }
 #endif // #if CH >= CH9_2
 

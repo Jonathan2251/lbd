@@ -32,9 +32,8 @@ public:
   const Cpu0RegisterInfo &getRegisterInfo() const override;
 
 #if CH >= CH4_1
-  void copyPhysReg(MachineBasicBlock &MBB,
-                   MachineBasicBlock::iterator MI, DebugLoc DL,
-                   unsigned DestReg, unsigned SrcReg,
+  void copyPhysReg(MachineBasicBlock &MBB, MachineBasicBlock::iterator MI,
+                   const DebugLoc &DL, unsigned DestReg, unsigned SrcReg,
                    bool KillSrc) const override;
 #endif
 
@@ -56,7 +55,7 @@ public:
 
 #if CH >= CH3_4 //1
 //@expandPostRAPseudo
-  bool expandPostRAPseudo(MachineBasicBlock::iterator MI) const override;
+  bool expandPostRAPseudo(MachineInstr &MI) const override;
 #endif //#if CH >= CH3_4 //1
 
 #if CH >= CH3_5 //2
@@ -68,7 +67,7 @@ public:
   /// non-NULL parameter, the last instruction is not emitted, but instead
   /// its immediate operand is returned in NewImm.
   unsigned loadImmediate(int64_t Imm, MachineBasicBlock &MBB,
-                         MachineBasicBlock::iterator II, DebugLoc DL,
+                         MachineBasicBlock::iterator II, const DebugLoc &DL,
                          unsigned *NewImm) const;
 #endif //#if CH >= CH3_5 //2
 #if CH >= CH3_4 //2

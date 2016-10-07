@@ -55,11 +55,11 @@ private:
 #endif
 #if CH >= CH8_2 //1
   MCOperand createSub(MachineBasicBlock *BB1, MachineBasicBlock *BB2,
-                      MCSymbolRefExpr::VariantKind Kind) const;
+                      Cpu0MCExpr::Cpu0ExprKind Kind) const;
   void lowerLongBranchLUi(const MachineInstr *MI, MCInst &OutMI) const;
   void lowerLongBranchADDiu(const MachineInstr *MI, MCInst &OutMI,
                             int Opcode,
-                            MCSymbolRefExpr::VariantKind Kind) const;
+                            Cpu0MCExpr::Cpu0ExprKind Kind) const;
   bool lowerLongBranch(const MachineInstr *MI, MCInst &OutMI) const;
 #endif
 };

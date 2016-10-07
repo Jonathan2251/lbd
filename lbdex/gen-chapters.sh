@@ -220,6 +220,8 @@ remove_files()
   rm -f $dest_parent_dir/"Chapter3_4/MCTargetDesc/Cpu0MCExpr.cpp"
   rm -f $dest_parent_dir/"Chapter3_4/MCTargetDesc/Cpu0MCExpr.h"
   rm -f $dest_parent_dir/"Chapter3_4/MCTargetDesc/Cpu0TargetStreamer.cpp"
+  rm -f $dest_parent_dir/"Chapter3_4/Cpu0AnalyzeImmediate.cpp"
+  rm -f $dest_parent_dir/"Chapter3_4/Cpu0AnalyzeImmediate.h"
   rm -f $dest_parent_dir/"Chapter3_4/Cpu0Asm.td"
   rm -f $dest_parent_dir/"Chapter3_4/Cpu0CondMov.td"
   rm -f $dest_parent_dir/"Chapter3_4/Cpu0DelaySlotFiller.cpp"
@@ -326,6 +328,7 @@ remove_files()
   rm -f $dest_parent_dir/"Chapter8_1/Cpu0DelaySlotFiller.cpp"
   rm -f $dest_parent_dir/"Chapter8_1/Cpu0DelUselessJMP.cpp"
   rm -f $dest_parent_dir/"Chapter8_1/Cpu0EmitGPRestore.cpp"
+  rm -f $dest_parent_dir/"Chapter8_1/Cpu0LongBranch.cpp"
   rm -f $dest_parent_dir/"Chapter8_1/Cpu0RegisterInfoGPROutForAsm.td"
 
   rm -rf $dest_parent_dir/"Chapter8_2/AsmParser"

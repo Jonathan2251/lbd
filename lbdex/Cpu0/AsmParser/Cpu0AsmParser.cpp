@@ -10,6 +10,7 @@
 #include "Cpu0.h"
 #if CH >= CH11_1
 
+#include "MCTargetDesc/Cpu0MCExpr.h"
 #include "MCTargetDesc/Cpu0MCTargetDesc.h"
 #include "Cpu0RegisterInfo.h"
 #include "llvm/ADT/APInt.h"
@@ -20,12 +21,12 @@
 #include "llvm/MC/MCInstBuilder.h"
 #include "llvm/MC/MCParser/MCAsmLexer.h"
 #include "llvm/MC/MCParser/MCParsedAsmOperand.h"
+#include "llvm/MC/MCParser/MCTargetAsmParser.h"
 #include "llvm/MC/MCStreamer.h"
 #include "llvm/MC/MCSubtargetInfo.h"
 #include "llvm/MC/MCSymbol.h"
 #include "llvm/MC/MCParser/MCAsmLexer.h"
 #include "llvm/MC/MCParser/MCParsedAsmOperand.h"
-#include "llvm/MC/MCTargetAsmParser.h"
 #include "llvm/MC/MCValue.h"
 #include "llvm/Support/Debug.h"
 #include "llvm/Support/MathExtras.h"
@@ -58,7 +59,6 @@ private:
 
 namespace {
 class Cpu0AsmParser : public MCTargetAsmParser {
-  MCSubtargetInfo &STI;
   MCAsmParser &Parser;
   Cpu0AssemblerOptions Options;
 
@@ -105,6 +105,8 @@ class Cpu0AsmParser : public MCTargetAsmParser {
   bool parseMemOffset(const MCExpr *&Res);
   bool parseRelocOperand(const MCExpr *&Res);
 
+  const MCExpr *evaluateRelocExpr(const MCExpr *Expr, StringRef RelocStr);
+
   bool parseDirectiveSet();
 
   bool parseSetAtDirective();
@@ -114,8 +116,6 @@ class Cpu0AsmParser : public MCTargetAsmParser {
   bool parseSetReorderDirective();
   bool parseSetNoReorderDirective();
 
-  MCSymbolRefExpr::VariantKind getVariantKind(StringRef Symbol);
-
   int matchRegisterName(StringRef Symbol);
 
   int matchRegisterByNumber(unsigned RegNum, StringRef Mnemonic);
@@ -123,11 +123,11 @@ class Cpu0AsmParser : public MCTargetAsmParser {
   unsigned getReg(int RC,int RegNo);
 
 public:
-  Cpu0AsmParser(MCSubtargetInfo &sti, MCAsmParser &parser,
+  Cpu0AsmParser(const MCSubtargetInfo &sti, MCAsmParser &parser,
                 const MCInstrInfo &MII, const MCTargetOptions &Options)
-    : MCTargetAsmParser(), STI(sti), Parser(parser) {
+    : MCTargetAsmParser(Options, sti), Parser(parser) {
     // Initialize the set of available features.
-    setAvailableFeatures(ComputeAvailableFeatures(STI.getFeatureBits()));
+    setAvailableFeatures(ComputeAvailableFeatures(getSTI().getFeatureBits()));
   }
 
   MCAsmParser &getParser() const { return Parser; }
@@ -452,11 +452,11 @@ bool Cpu0AsmParser::MatchAndEmitInstruction(SMLoc IDLoc, unsigned &Opcode,
       SmallVector<MCInst, 4> Instructions;
       expandInstruction(Inst, IDLoc, Instructions);
       for(unsigned i =0; i < Instructions.size(); i++){
-        Out.EmitInstruction(Instructions[i], STI);
+        Out.EmitInstruction(Instructions[i], getSTI());
       }
     } else {
         Inst.setLoc(IDLoc);
-        Out.EmitInstruction(Inst, STI);
+        Out.EmitInstruction(Inst, getSTI());
       }
     return false;
   }
@@ -650,6 +650,32 @@ bool Cpu0AsmParser::ParseOperand(OperandVector &Operands,
   return true;
 }
 
+const MCExpr *Cpu0AsmParser::evaluateRelocExpr(const MCExpr *Expr,
+                                               StringRef RelocStr) {
+  Cpu0MCExpr::Cpu0ExprKind Kind =
+      StringSwitch<Cpu0MCExpr::Cpu0ExprKind>(RelocStr)
+          .Case("call16", Cpu0MCExpr::CEK_GOT_CALL)
+          .Case("call_hi", Cpu0MCExpr::CEK_CALL_HI16)
+          .Case("call_lo", Cpu0MCExpr::CEK_CALL_LO16)
+          .Case("dtp_hi", Cpu0MCExpr::CEK_DTP_HI)
+          .Case("dtp_lo", Cpu0MCExpr::CEK_DTP_LO)
+          .Case("got", Cpu0MCExpr::CEK_GOT)
+          .Case("got_hi", Cpu0MCExpr::CEK_GOT_HI16)
+          .Case("got_lo", Cpu0MCExpr::CEK_GOT_LO16)
+          .Case("gottprel", Cpu0MCExpr::CEK_GOTTPREL)
+          .Case("gp_rel", Cpu0MCExpr::CEK_GPREL)
+          .Case("hi", Cpu0MCExpr::CEK_ABS_HI)
+          .Case("lo", Cpu0MCExpr::CEK_ABS_LO)
+          .Case("tlsgd", Cpu0MCExpr::CEK_TLSGD)
+          .Case("tlsldm", Cpu0MCExpr::CEK_TLSLDM)
+          .Case("tp_hi", Cpu0MCExpr::CEK_TP_HI)
+          .Case("tp_lo", Cpu0MCExpr::CEK_TP_LO)
+          .Default(Cpu0MCExpr::CEK_None);
+
+  assert(Kind != Cpu0MCExpr::CEK_None);
+  return Cpu0MCExpr::create(Kind, Expr, getContext());
+}
+
 bool Cpu0AsmParser::parseRelocOperand(const MCExpr *&Res) {
 
   Parser.Lex(); // eat % token
@@ -689,27 +715,8 @@ bool Cpu0AsmParser::parseRelocOperand(const MCExpr *&Res) {
   } else
     return true; // parenthesis must follow reloc operand
 
-  // Check the type of the expression
-  if (const MCConstantExpr *MCE = dyn_cast<MCConstantExpr>(IdVal)) {
-    // it's a constant, evaluate lo or hi value
-    int Val = MCE->getValue();
-    if (Str == "lo") {
-      Val = Val & 0xffff;
-    } else if (Str == "hi") {
-      Val = (Val & 0xffff0000) >> 16;
-    }
-    Res = MCConstantExpr::create(Val, getContext());
-    return false;
-  }
-
-  if (const MCSymbolRefExpr *MSRE = dyn_cast<MCSymbolRefExpr>(IdVal)) {
-    // it's a symbol, create symbolic expression from symbol
-    StringRef Symbol = MSRE->getSymbol().getName();
-    MCSymbolRefExpr::VariantKind VK = getVariantKind(Str);
-    Res = MCSymbolRefExpr::create(Symbol,VK,getContext());
-    return false;
-  }
-  return true;
+  Res = evaluateRelocExpr(IdVal, Str);
+  return false;
 }
 
 bool Cpu0AsmParser::ParseRegister(unsigned &RegNo, SMLoc &StartLoc,
@@ -801,35 +808,6 @@ Cpu0AsmParser::OperandMatchResultTy Cpu0AsmParser::parseMemOperand(
   // and add memory operand
   Operands.push_back(Cpu0Operand::CreateMem(RegNo, IdVal, S, E));
   return MatchOperand_Success;
-}
-
-//@getVariantKind {
-MCSymbolRefExpr::VariantKind Cpu0AsmParser::getVariantKind(StringRef Symbol) {
-//@getVariantKind body {
-  MCSymbolRefExpr::VariantKind VK
-                   = StringSwitch<MCSymbolRefExpr::VariantKind>(Symbol)
-    .Case("hi",          MCSymbolRefExpr::VK_Cpu0_ABS_HI)
-    .Case("lo",          MCSymbolRefExpr::VK_Cpu0_ABS_LO)
-    .Case("gp_rel",      MCSymbolRefExpr::VK_Cpu0_GPREL)
-    .Case("call16",      MCSymbolRefExpr::VK_Cpu0_GOT_CALL)
-    .Case("got",         MCSymbolRefExpr::VK_Cpu0_GOT)
-#if CH >= CH12_1
-    .Case("tlsgd",       MCSymbolRefExpr::VK_Cpu0_TLSGD)
-    .Case("tlsldm",      MCSymbolRefExpr::VK_Cpu0_TLSLDM)
-    .Case("dtp_hi",      MCSymbolRefExpr::VK_Cpu0_DTP_HI)
-    .Case("dtp_lo",      MCSymbolRefExpr::VK_Cpu0_DTP_LO)
-    .Case("gottp",       MCSymbolRefExpr::VK_Cpu0_GOTTPREL)
-    .Case("tp_hi",       MCSymbolRefExpr::VK_Cpu0_TP_HI)
-    .Case("tp_lo",       MCSymbolRefExpr::VK_Cpu0_TP_LO)
-#endif
-    .Case("got_disp",    MCSymbolRefExpr::VK_Cpu0_GOT_DISP)
-    .Case("got_page",    MCSymbolRefExpr::VK_Cpu0_GOT_PAGE)
-    .Case("got_ofst",    MCSymbolRefExpr::VK_Cpu0_GOT_OFST)
-    .Case("hi(%neg(%gp_rel",    MCSymbolRefExpr::VK_Cpu0_GPOFF_HI)
-    .Case("lo(%neg(%gp_rel",    MCSymbolRefExpr::VK_Cpu0_GPOFF_LO)
-    .Default(MCSymbolRefExpr::VK_None);
-
-  return VK;
 }
 
 bool Cpu0AsmParser::

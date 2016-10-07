@@ -468,28 +468,6 @@ instructions **swi** (Software Interrupt), **jsub** and **jalr** (function call)
     ...
   }
 
-.. rubric:: lbdex/chapters/Chapter9_1/InstPrinter/Cpu0InstPrinter.cpp
-.. literalinclude:: ../lbdex/Cpu0/InstPrinter/Cpu0InstPrinter.cpp
-    :start-after: //@printExpr {
-    :end-before: //@printExpr body {
-
-.. code-block:: c++
-
-  . ...
-    switch (Kind) {
-    ...
-
-.. literalinclude:: ../lbdex/Cpu0/InstPrinter/Cpu0InstPrinter.cpp
-    :start-after: #if CH >= CH9_1
-    :end-before: #endif
-
-.. code-block:: c++
-
-    ...
-    }
-    ...
-  }
-
 .. rubric:: lbdex/chapters/Chapter9_1/MCTargetDesc/Cpu0AsmBackend.cpp
 .. literalinclude:: ../lbdex/Cpu0/MCTargetDesc/Cpu0AsmBackend.cpp
     :start-after: //@adjustFixupValue {
@@ -2139,7 +2117,7 @@ corresponding machine code before the first time of PIC function call.
 .. rubric:: lbdex/chapters/Chapter9_3/Cpu0RegisterInfo.cpp
 .. literalinclude:: ../lbdex/Cpu0/Cpu0RegisterInfo.cpp
     :start-after: //@eliminateFrameIndex {
-    :end-before: #if CH >= CH3_4
+    :end-before: #if CH >= CH3_5
 .. literalinclude:: ../lbdex/Cpu0/Cpu0RegisterInfo.cpp
     :start-after: #if CH >= CH9_3 //1
     :end-before: #endif //#if CH >= CH9_3 //1
@@ -2580,12 +2558,17 @@ Chapter9_3 supports dynamic stack allocation with the following code added.
 .. literalinclude:: ../lbdex/Cpu0/Cpu0RegisterInfo.cpp
     :start-after: #if CH >= CH9_3 //2
     :end-before: #endif
+
+.. code-block:: c++
+
+  }
+
 .. literalinclude:: ../lbdex/Cpu0/Cpu0RegisterInfo.cpp
     :start-after: //@eliminateFrameIndex {
-    :end-before: #if CH >= CH3_4
+    :end-before: #if CH >= CH3_5
 .. literalinclude:: ../lbdex/Cpu0/Cpu0RegisterInfo.cpp
     :start-after: #ifdef ENABLE_GPRESTORE //2
-    :end-before: #endif
+    :end-before: else
 	
 .. code-block:: c++
 

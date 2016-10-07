@@ -23,42 +23,6 @@ using namespace llvm;
 
 bool FixGlobalBaseReg;
 
-// class Cpu0CallEntry.
-Cpu0CallEntry::Cpu0CallEntry(StringRef N) {
-#ifndef NDEBUG
-  Name = N;
-  Val = nullptr;
-#endif
-}
-
-Cpu0CallEntry::Cpu0CallEntry(const GlobalValue *V) {
-#ifndef NDEBUG
-  Val = V;
-#endif
-}
-
-bool Cpu0CallEntry::isConstant(const MachineFrameInfo *) const {
-  return false;
-}
-
-bool Cpu0CallEntry::isAliased(const MachineFrameInfo *) const {
-  return false;
-}
-
-bool Cpu0CallEntry::mayAlias(const MachineFrameInfo *) const {
-  return false;
-}
-
-void Cpu0CallEntry::printCustom(raw_ostream &O) const {
-  O << "Cpu0CallEntry: ";
-#ifndef NDEBUG
-  if (Val)
-    O << Val->getName();
-  else
-    O << Name;
-#endif
-}
-
 Cpu0FunctionInfo::~Cpu0FunctionInfo() {}
 
 #if CH >= CH6_1
@@ -87,22 +51,12 @@ void Cpu0FunctionInfo::createEhDataRegsFI() {
 #endif
 
 #if CH >= CH9_2
-MachinePointerInfo Cpu0FunctionInfo::callPtrInfo(StringRef Name) {
-  std::unique_ptr<const Cpu0CallEntry> &E = ExternalCallEntries[Name];
-
-  if (!E)
-    E = llvm::make_unique<Cpu0CallEntry>(Name);
-
-  return MachinePointerInfo(E.get());
+MachinePointerInfo Cpu0FunctionInfo::callPtrInfo(const char *ES) {
+  return MachinePointerInfo(MF.getPSVManager().getExternalSymbolCallEntry(ES));
 }
 
-MachinePointerInfo Cpu0FunctionInfo::callPtrInfo(const GlobalValue *Val) {
-  std::unique_ptr<const Cpu0CallEntry> &E = GlobalCallEntries[Val];
-
-  if (!E)
-    E = llvm::make_unique<Cpu0CallEntry>(Val);
-
-  return MachinePointerInfo(E.get());
+MachinePointerInfo Cpu0FunctionInfo::callPtrInfo(const GlobalValue *GV) {
+  return MachinePointerInfo(MF.getPSVManager().getGlobalValueCallEntry(GV));
 }
 #endif
 

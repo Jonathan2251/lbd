@@ -1477,42 +1477,6 @@ introduction. The following files are modified to add Cpu0 backend as follows,
     };
     ...
   }
-  
-.. rubric:: lbdex/src/modify/src/include/llvm/MC/MCExpr.h
-.. code-block:: c++
-  
-  class MCSymbolRefExpr : public MCExpr {
-  public:
-    enum VariantKind {
-      ...
-      VK_Cpu0_GPREL,
-      VK_Cpu0_GOT_CALL,
-      VK_Cpu0_GOT16,
-      VK_Cpu0_GOT,
-      VK_Cpu0_ABS_HI,
-      VK_Cpu0_ABS_LO,
-      VK_Cpu0_TLSGD,
-      VK_Cpu0_TLSLDM,
-      VK_Cpu0_DTP_HI,
-      VK_Cpu0_DTP_LO,
-      VK_Cpu0_GOTTPREL,
-      VK_Cpu0_TP_HI,
-      VK_Cpu0_TP_LO,
-      VK_Cpu0_GPOFF_HI,
-      VK_Cpu0_GPOFF_LO,
-      VK_Cpu0_GOT_DISP,
-      VK_Cpu0_GOT_PAGE,
-      VK_Cpu0_GOT_OFST,
-      VK_Cpu0_HIGHER,
-      VK_Cpu0_HIGHEST,
-      VK_Cpu0_GOT_HI16,
-      VK_Cpu0_GOT_LO16,
-      VK_Cpu0_CALL_HI16,
-      VK_Cpu0_CALL_LO16,
-      ...
-    };
-    ...
-  };
 
 .. rubric:: lbdex/src/modify/src/include/llvm/Object/ELFObjectFile.h
 .. code-block:: c++
@@ -1568,52 +1532,6 @@ introduction. The following files are modified to add Cpu0 backend as follows,
   #include "ELFRelocs/Cpu0.def"
   };
   ...
-
-.. rubric:: lbdex/src/modify/src/lib/MC/MCELFStreamer.cpp
-.. code-block:: c++
-  
-  void MCELFStreamer::fixSymbolsInTLSFixups(const MCExpr *expr) {
-    ...
-      case MCSymbolRefExpr::VK_Cpu0_TLSGD:
-      case MCSymbolRefExpr::VK_Cpu0_GOTTPREL:
-      case MCSymbolRefExpr::VK_Cpu0_TP_HI:
-      case MCSymbolRefExpr::VK_Cpu0_TP_LO:
-    ...
-  }
-
-.. rubric:: lbdex/src/modify/src/lib/MC/MCExpr.cpp
-.. code-block:: c++
-  
-  StringRef MCSymbolRefExpr::getVariantKindName(VariantKind Kind) {
-    switch (Kind) {
-    ...
-    case VK_Cpu0_GPREL: return "GPREL";
-    case VK_Cpu0_GOT_CALL: return "GOT_CALL";
-    case VK_Cpu0_GOT16: return "GOT16";
-    case VK_Cpu0_GOT: return "GOT";
-    case VK_Cpu0_ABS_HI: return "ABS_HI";
-    case VK_Cpu0_ABS_LO: return "ABS_LO";
-    case VK_Cpu0_TLSGD: return "TLSGD";
-    case VK_Cpu0_TLSLDM: return "TLSLDM";
-    case VK_Cpu0_DTP_HI: return "DTP_HI";
-    case VK_Cpu0_DTP_LO: return "DTP_LO";
-    case VK_Cpu0_GOTTPREL: return "GOTTPREL";
-    case VK_Cpu0_TP_HI: return "TP_HI";
-    case VK_Cpu0_TP_LO: return "TP_LO";
-    case VK_Cpu0_GPOFF_HI: return "GPOFF_HI";
-    case VK_Cpu0_GPOFF_LO: return "GPOFF_LO";
-    case VK_Cpu0_GOT_DISP: return "GOT_DISP";
-    case VK_Cpu0_GOT_PAGE: return "GOT_PAGE";
-    case VK_Cpu0_GOT_OFST: return "GOT_OFST";
-    case VK_Cpu0_HIGHER:   return "HIGHER";
-    case VK_Cpu0_HIGHEST:  return "HIGHEST";
-    case VK_Cpu0_GOT_HI16: return "GOT_HI16";
-    case VK_Cpu0_GOT_LO16: return "GOT_LO16";
-    case VK_Cpu0_CALL_HI16: return "CALL_HI16";
-    case VK_Cpu0_CALL_LO16: return "CALL_LO16";
-    ...
-    }
-  }
 
 .. rubric:: lbdex/src/modify/src/lib/MC/MCSubtargetInfo.cpp
 .. code-block:: c++

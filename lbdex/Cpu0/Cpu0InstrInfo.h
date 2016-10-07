@@ -46,7 +46,7 @@ public:
   virtual const Cpu0RegisterInfo &getRegisterInfo() const = 0;
 
   /// Return the number of bytes of code the specified instruction may be.
-  unsigned GetInstSizeInBytes(const MachineInstr *MI) const;
+  unsigned GetInstSizeInBytes(const MachineInstr &MI) const;
 
 #if CH >= CH8_2 //1
   virtual unsigned getOppositeBranchOpc(unsigned Opc) const = 0;
@@ -90,17 +90,10 @@ public:
                               MachineBasicBlock::iterator I) const = 0;
 #endif
 
-#if CH >= CH3_3
-  virtual MachineInstr* emitFrameIndexDebugValue(MachineFunction &MF,
-                                                 int FrameIx, uint64_t Offset,
-                                                 const MDNode *MDPtr,
-                                                 DebugLoc DL) const;
-#endif
-
 protected:
 #if CH >= CH9_1 //4
   MachineMemOperand *GetMemOperand(MachineBasicBlock &MBB, int FI,
-                                   unsigned Flag) const;
+                                   MachineMemOperand::Flags Flags) const;
 #endif
 };
 const Cpu0InstrInfo *createCpu0SEInstrInfo(const Cpu0Subtarget &STI);

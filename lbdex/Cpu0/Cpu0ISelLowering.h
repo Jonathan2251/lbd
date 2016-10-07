@@ -106,8 +106,24 @@ namespace llvm {
 
 #if CH >= CH12_1 //2
     MachineBasicBlock *
-    EmitInstrWithCustomInserter(MachineInstr *MI,
+    EmitInstrWithCustomInserter(MachineInstr &MI,
                                 MachineBasicBlock *MBB) const override;
+#endif
+
+#if CH >= CH12_1 //5
+    /// If a physical register, this returns the register that receives the
+    /// exception address on entry to an EH pad.
+    unsigned
+    getExceptionPointerRegister(const Constant *PersonalityFn) const override {
+      return Cpu0::A0;
+    }
+
+    /// If a physical register, this returns the register that receives the
+    /// exception typeid on entry to a landing pad.
+    unsigned
+    getExceptionSelectorRegister(const Constant *PersonalityFn) const override {
+      return Cpu0::A1;
+    }
 #endif
 
   protected:
@@ -124,9 +140,9 @@ namespace llvm {
       unsigned GOTFlag = Cpu0II::MO_GOT;
       SDValue GOT = DAG.getNode(Cpu0ISD::Wrapper, DL, Ty, getGlobalReg(DAG, Ty),
                                 getTargetNode(N, Ty, DAG, GOTFlag));
-      SDValue Load = DAG.getLoad(Ty, DL, DAG.getEntryNode(), GOT,
-                                 MachinePointerInfo::getGOT(), false, false,
-                                 false, 0);
+      SDValue Load =
+          DAG.getLoad(Ty, DL, DAG.getEntryNode(), GOT,
+                      MachinePointerInfo::getGOT(DAG.getMachineFunction()));
       unsigned LoFlag = Cpu0II::MO_ABS_LO;
       SDValue Lo = DAG.getNode(Cpu0ISD::Lo, DL, Ty,
                                getTargetNode(N, Ty, DAG, LoFlag));
@@ -145,7 +161,7 @@ namespace llvm {
       SDLoc DL(N);
       SDValue Tgt = DAG.getNode(Cpu0ISD::Wrapper, DL, Ty, getGlobalReg(DAG, Ty),
                                 getTargetNode(N, Ty, DAG, Flag));
-      return DAG.getLoad(Ty, DL, Chain, Tgt, PtrInfo, false, false, false, 0);
+      return DAG.getLoad(Ty, DL, Chain, Tgt, PtrInfo);
     }
     //@getAddrGlobal }
 
@@ -165,8 +181,7 @@ namespace llvm {
       Hi = DAG.getNode(ISD::ADD, DL, Ty, Hi, getGlobalReg(DAG, Ty));
       SDValue Wrapper = DAG.getNode(Cpu0ISD::Wrapper, DL, Ty, Hi,
                                     getTargetNode(N, Ty, DAG, LoFlag));
-      return DAG.getLoad(Ty, DL, Chain, Wrapper, PtrInfo, false, false, false,
-                         0);
+      return DAG.getLoad(Ty, DL, Chain, Wrapper, PtrInfo);
     }
     //@getAddrGlobalLargeGOT }
 
@@ -333,12 +348,6 @@ namespace llvm {
                           unsigned Flag) const;
 #endif
 
-#if 0
-    // Create a TargetConstantPool node.
-    SDValue getTargetNode(ConstantPoolSDNode *N, EVT Ty, SelectionDAG &DAG,
-                          unsigned Flag) const;
-#endif
-
 #if CH >= CH9_2 //3
     Cpu0CC::SpecialCallingConvType getSpecialCallingConv(SDValue Callee) const;
 #endif
@@ -348,7 +357,7 @@ namespace llvm {
     SDValue LowerCallResult(SDValue Chain, SDValue InFlag,
                             CallingConv::ID CallConv, bool isVarArg,
                             const SmallVectorImpl<ISD::InputArg> &Ins,
-                            SDLoc dl, SelectionDAG &DAG,
+                            const SDLoc &dl, SelectionDAG &DAG,
                             SmallVectorImpl<SDValue> &InVals,
                             const SDNode *CallNode, const Type *RetTy) const;
 #endif
@@ -398,7 +407,7 @@ namespace llvm {
     /// copyByValArg - Copy argument registers which were used to pass a byval
     /// argument to the stack. Create a stack frame object for the byval
     /// argument.
-    void copyByValRegs(SDValue Chain, SDLoc DL,
+    void copyByValRegs(SDValue Chain, const SDLoc &DL,
                        std::vector<SDValue> &OutChains, SelectionDAG &DAG,
                        const ISD::ArgFlagsTy &Flags,
                        SmallVectorImpl<SDValue> &InVals,
@@ -408,7 +417,7 @@ namespace llvm {
 
 #if CH >= CH9_2 //5
     /// passByValArg - Pass a byval argument in registers or on stack.
-    void passByValArg(SDValue Chain, SDLoc DL,
+    void passByValArg(SDValue Chain, const SDLoc &DL,
                       std::deque< std::pair<unsigned, SDValue> > &RegsToPass,
                       SmallVectorImpl<SDValue> &MemOpChains, SDValue StackPtr,
                       MachineFrameInfo *MFI, SelectionDAG &DAG, SDValue Arg,
@@ -421,7 +430,7 @@ namespace llvm {
     /// to the stack. Also create a stack frame object for the first variable
     /// argument.
     void writeVarArgRegs(std::vector<SDValue> &OutChains, const Cpu0CC &CC,
-                         SDValue Chain, SDLoc DL, SelectionDAG &DAG) const;
+                         SDValue Chain, const SDLoc &DL, SelectionDAG &DAG) const;
 #endif
 
 #if CH >= CH3_1
@@ -430,13 +439,13 @@ namespace llvm {
       LowerFormalArguments(SDValue Chain,
                            CallingConv::ID CallConv, bool IsVarArg,
                            const SmallVectorImpl<ISD::InputArg> &Ins,
-                           SDLoc dl, SelectionDAG &DAG,
+                           const SDLoc &dl, SelectionDAG &DAG,
                            SmallVectorImpl<SDValue> &InVals) const override;
 #endif
 
 #if CH >= CH9_2 //6
     SDValue passArgOnStack(SDValue StackPtr, unsigned Offset, SDValue Chain,
-                           SDValue Arg, SDLoc DL, bool IsTailCall,
+                           SDValue Arg, const SDLoc &DL, bool IsTailCall,
                            SelectionDAG &DAG) const;
 #endif
 
@@ -457,7 +466,7 @@ namespace llvm {
                         CallingConv::ID CallConv, bool IsVarArg,
                         const SmallVectorImpl<ISD::OutputArg> &Outs,
                         const SmallVectorImpl<SDValue> &OutVals,
-                        SDLoc dl, SelectionDAG &DAG) const override;
+                        const SDLoc &dl, SelectionDAG &DAG) const override;
 #endif
 
 #if CH >= CH11_2
@@ -496,19 +505,23 @@ namespace llvm {
 #endif
 
 #if CH >= CH12_1 //4
+    bool shouldInsertFencesForAtomic(const Instruction *I) const override {
+      return true;
+    }
+
     /// Emit a sign-extension using shl/sra appropriately.
-    MachineBasicBlock *emitSignExtendToI32InReg(MachineInstr *MI,
+    MachineBasicBlock *emitSignExtendToI32InReg(MachineInstr &MI,
                                                 MachineBasicBlock *BB,
                                                 unsigned Size, unsigned DstReg,
                                                 unsigned SrcRec) const;
-    MachineBasicBlock *emitAtomicBinary(MachineInstr *MI, MachineBasicBlock *BB,
+    MachineBasicBlock *emitAtomicBinary(MachineInstr &MI, MachineBasicBlock *BB,
                     unsigned Size, unsigned BinOpcode, bool Nand = false) const;
-    MachineBasicBlock *emitAtomicBinaryPartword(MachineInstr *MI,
+    MachineBasicBlock *emitAtomicBinaryPartword(MachineInstr &MI,
                     MachineBasicBlock *BB, unsigned Size, unsigned BinOpcode,
                     bool Nand = false) const;
-    MachineBasicBlock *emitAtomicCmpSwap(MachineInstr *MI,
+    MachineBasicBlock *emitAtomicCmpSwap(MachineInstr &MI,
                                   MachineBasicBlock *BB, unsigned Size) const;
-    MachineBasicBlock *emitAtomicCmpSwapPartword(MachineInstr *MI,
+    MachineBasicBlock *emitAtomicCmpSwapPartword(MachineInstr &MI,
                                   MachineBasicBlock *BB, unsigned Size) const;
 #endif
   };

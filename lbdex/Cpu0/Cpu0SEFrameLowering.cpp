@@ -228,7 +228,7 @@ spillCalleeSavedRegisters(MachineBasicBlock &MBB,
                           const std::vector<CalleeSavedInfo> &CSI,
                           const TargetRegisterInfo *TRI) const {
   MachineFunction *MF = MBB.getParent();
-  MachineBasicBlock *EntryBlock = MF->begin();
+  MachineBasicBlock *EntryBlock = &MF->front();
   const TargetInstrInfo &TII = *MF->getSubtarget().getInstrInfo();
 
   for (unsigned i = 0, e = CSI.size(); i != e; ++i) {

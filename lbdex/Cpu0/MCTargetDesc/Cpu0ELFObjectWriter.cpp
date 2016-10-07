@@ -30,8 +30,8 @@ namespace {
 
     ~Cpu0ELFObjectWriter() override;
 
-    unsigned GetRelocType(const MCValue &Target, const MCFixup &Fixup,
-                          bool IsPCRel) const override;
+    unsigned getRelocType(MCContext &Ctx, const MCValue &Target,
+                        const MCFixup &Fixup, bool IsPCRel) const override;
     bool needsRelocateWithSymbol(const MCSymbol &Sym,
                                  unsigned Type) const override;
   };
@@ -44,7 +44,8 @@ Cpu0ELFObjectWriter::Cpu0ELFObjectWriter(uint8_t OSABI)
 Cpu0ELFObjectWriter::~Cpu0ELFObjectWriter() {}
 
 //@GetRelocType {
-unsigned Cpu0ELFObjectWriter::GetRelocType(const MCValue &Target,
+unsigned Cpu0ELFObjectWriter::getRelocType(MCContext &Ctx,
+                                           const MCValue &Target,
                                            const MCFixup &Fixup,
                                            bool IsPCRel) const {
   // determine the type of the relocation
@@ -73,8 +74,7 @@ unsigned Cpu0ELFObjectWriter::GetRelocType(const MCValue &Target,
     Type = ELF::R_CPU0_CALL16;
     break;
 #endif
-  case Cpu0::fixup_Cpu0_GOT_Global:
-  case Cpu0::fixup_Cpu0_GOT_Local:
+  case Cpu0::fixup_Cpu0_GOT:
     Type = ELF::R_CPU0_GOT16;
     break;
   case Cpu0::fixup_Cpu0_HI16:

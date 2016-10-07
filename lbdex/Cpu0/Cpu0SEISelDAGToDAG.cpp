@@ -47,8 +47,8 @@ bool Cpu0SEDAGToDAGISel::runOnMachineFunction(MachineFunction &MF) {
 
 #if CH >= CH4_1 //1
 /// Select multiply instructions.
-std::pair<SDNode*, SDNode*>
-Cpu0SEDAGToDAGISel::SelectMULT(SDNode *N, unsigned Opc, SDLoc DL, EVT Ty,
+std::pair<SDNode *, SDNode *>
+Cpu0SEDAGToDAGISel::selectMULT(SDNode *N, unsigned Opc, const SDLoc &DL, EVT Ty,
                              bool HasLo, bool HasHi) {
   SDNode *Lo = 0, *Hi = 0;
   SDNode *Mul = CurDAG->getMachineNode(Opc, DL, MVT::Glue, N->getOperand(0),
@@ -72,8 +72,8 @@ void Cpu0SEDAGToDAGISel::processFunctionAfterISel(MachineFunction &MF) {
 }
 
 #if CH >= CH7_1 //1
-SDNode *Cpu0SEDAGToDAGISel::selectAddESubE(unsigned MOp, SDValue InFlag,
-                                           SDValue CmpLHS, SDLoc DL,
+void Cpu0SEDAGToDAGISel::selectAddESubE(unsigned MOp, SDValue InFlag,
+                                           SDValue CmpLHS, const SDLoc &DL,
                                            SDNode *Node) const {
   unsigned Opc = InFlag.getOpcode(); (void)Opc;
   assert(((Opc == ISD::ADDC || Opc == ISD::ADDE) ||
@@ -96,13 +96,12 @@ SDNode *Cpu0SEDAGToDAGISel::selectAddESubE(unsigned MOp, SDValue InFlag,
   SDNode *AddCarry = CurDAG->getMachineNode(Cpu0::ADDu, DL, VT,
                                             SDValue(Carry,0), RHS);
 
-  return CurDAG->SelectNodeTo(Node, MOp, VT, MVT::Glue,
-                              LHS, SDValue(AddCarry,0));
+  CurDAG->SelectNodeTo(Node, MOp, VT, MVT::Glue, LHS, SDValue(AddCarry,0));
 }
 #endif
 
 //@selectNode
-std::pair<bool, SDNode*> Cpu0SEDAGToDAGISel::selectNode(SDNode *Node) {
+bool Cpu0SEDAGToDAGISel::trySelect(SDNode *Node) {
   unsigned Opcode = Node->getOpcode();
   SDLoc DL(Node);
 
@@ -110,7 +109,6 @@ std::pair<bool, SDNode*> Cpu0SEDAGToDAGISel::selectNode(SDNode *Node) {
   // Instruction Selection not handled by the auto-generated
   // tablegen selection should be handled here.
   ///
-  SDNode *Result;
 
   ///
   // Instruction Selection not handled by the auto-generated
@@ -125,14 +123,14 @@ std::pair<bool, SDNode*> Cpu0SEDAGToDAGISel::selectNode(SDNode *Node) {
 #if CH >= CH7_1 //2
   case ISD::SUBE: {
     SDValue InFlag = Node->getOperand(2);
-    Result = selectAddESubE(Cpu0::SUBu, InFlag, InFlag.getOperand(0), DL, Node);
-    return std::make_pair(true, Result);
+    selectAddESubE(Cpu0::SUBu, InFlag, InFlag.getOperand(0), DL, Node);
+    return true;
   }
 
   case ISD::ADDE: {
     SDValue InFlag = Node->getOperand(2);
-    Result = selectAddESubE(Cpu0::ADDu, InFlag, InFlag.getValue(0), DL, Node);
-    return std::make_pair(true, Result);
+    selectAddESubE(Cpu0::ADDu, InFlag, InFlag.getValue(0), DL, Node);
+    return true;
   }
 
   /// Mul with two results
@@ -140,16 +138,17 @@ std::pair<bool, SDNode*> Cpu0SEDAGToDAGISel::selectNode(SDNode *Node) {
   case ISD::UMUL_LOHI: {
     MultOpc = (Opcode == ISD::UMUL_LOHI ? Cpu0::MULTu : Cpu0::MULT);
 
-    std::pair<SDNode*, SDNode*> LoHi = SelectMULT(Node, MultOpc, DL, NodeTy,
-                                                  true, true);
+    std::pair<SDNode*, SDNode*> LoHi =
+        selectMULT(Node, MultOpc, DL, NodeTy, true, true);
 
     if (!SDValue(Node, 0).use_empty())
       ReplaceUses(SDValue(Node, 0), SDValue(LoHi.first, 0));
 
     if (!SDValue(Node, 1).use_empty())
       ReplaceUses(SDValue(Node, 1), SDValue(LoHi.second, 0));
-    Result = NULL;
-    return std::make_pair(true, Result);
+
+    CurDAG->RemoveDeadNode(Node);
+    return true;
   }
 #endif
 
@@ -157,8 +156,9 @@ std::pair<bool, SDNode*> Cpu0SEDAGToDAGISel::selectNode(SDNode *Node) {
   case ISD::MULHS:
   case ISD::MULHU: {
     MultOpc = (Opcode == ISD::MULHU ? Cpu0::MULTu : Cpu0::MULT);
-    Result = SelectMULT(Node, MultOpc, DL, NodeTy, false, true).second;
-    return std::make_pair(true, Result);
+    auto LoHi = selectMULT(Node, MultOpc, DL, NodeTy, false, true);
+    ReplaceNode(Node, LoHi.second);
+    return true;
   }
 
   case ISD::Constant: {
@@ -167,16 +167,19 @@ std::pair<bool, SDNode*> Cpu0SEDAGToDAGISel::selectNode(SDNode *Node) {
 
     if (Size == 32)
       break;
+
+    return true;
   }
 #endif
 
   }
 
-  return std::make_pair(false, nullptr);
+  return false;
 }
 
-FunctionPass *llvm::createCpu0SEISelDag(Cpu0TargetMachine &TM) {
-  return new Cpu0SEDAGToDAGISel(TM);
+FunctionPass *llvm::createCpu0SEISelDag(Cpu0TargetMachine &TM,
+                                        CodeGenOpt::Level OptLevel) {
+  return new Cpu0SEDAGToDAGISel(TM, OptLevel);
 }
 
 #endif // #if CH >= CH3_3

@@ -312,6 +312,19 @@ To support long branch the following code added in Chapter8_1.
     :start-after: #if CH >= CH8_2 //3
     :end-before: #endif
 
+.. rubric:: lbdex/chapters/Chapter8_2/MCTargetDesc/Cpu0MCCodeEmitter.cpp
+.. literalinclude:: ../lbdex/Cpu0/MCTargetDesc/Cpu0MCCodeEmitter.cpp
+    :start-after: //@getJumpTargetOpValue {
+    :end-before: #if CH >= CH8_1 //3
+.. literalinclude:: ../lbdex/Cpu0/MCTargetDesc/Cpu0MCCodeEmitter.cpp
+    :start-after: #elif CH >= CH8_2 //1
+    :end-before: #else
+
+.. code-block:: c++
+
+    ...
+  }
+
 .. rubric:: lbdex/chapters/Chapter8_2/Cpu0AsmPrinter.h
 .. literalinclude:: ../lbdex/Cpu0/Cpu0AsmPrinter.h
     :start-after: #if CH >= CH8_2 //1

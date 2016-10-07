@@ -38,8 +38,9 @@ class Cpu0TargetMachine : public LLVMTargetMachine {
   mutable StringMap<std::unique_ptr<Cpu0Subtarget>> SubtargetMap;
 public:
   Cpu0TargetMachine(const Target &T, const Triple &TT, StringRef CPU,
-                    StringRef FS, const TargetOptions &Options, Reloc::Model RM,
-                    CodeModel::Model CM, CodeGenOpt::Level OL, bool isLittle);
+                    StringRef FS, const TargetOptions &Options,
+                    Optional<Reloc::Model> RM, CodeModel::Model CM,
+                    CodeGenOpt::Level OL, bool isLittle);
   ~Cpu0TargetMachine() override;
 
   const Cpu0Subtarget *getSubtargetImpl() const {
@@ -65,7 +66,7 @@ class Cpu0ebTargetMachine : public Cpu0TargetMachine {
 public:
   Cpu0ebTargetMachine(const Target &T, const Triple &TT, StringRef CPU,
                       StringRef FS, const TargetOptions &Options,
-                      Reloc::Model RM, CodeModel::Model CM,
+                      Optional<Reloc::Model> RM, CodeModel::Model CM,
                       CodeGenOpt::Level OL);
 };
 
@@ -76,7 +77,7 @@ class Cpu0elTargetMachine : public Cpu0TargetMachine {
 public:
   Cpu0elTargetMachine(const Target &T, const Triple &TT, StringRef CPU,
                       StringRef FS, const TargetOptions &Options,
-                      Reloc::Model RM, CodeModel::Model CM,
+                      Optional<Reloc::Model> RM, CodeModel::Model CM,
                       CodeGenOpt::Level OL);
 };
 } // End llvm namespace

@@ -20,8 +20,8 @@
 #include "Cpu0TargetStreamer.h"
 #endif
 #include "llvm/MC/MachineLocation.h"
-#include "llvm/MC/MCCodeGenInfo.h"
 #include "llvm/MC/MCELFStreamer.h"
+#include "llvm/MC/MCInstrAnalysis.h"
 #include "llvm/MC/MCInstPrinter.h"
 #include "llvm/MC/MCInstrInfo.h"
 #include "llvm/MC/MCRegisterInfo.h"
@@ -101,18 +101,6 @@ static MCAsmInfo *createCpu0MCAsmInfo(const MCRegisterInfo &MRI,
   return MAI;
 }
 
-static MCCodeGenInfo *createCpu0MCCodeGenInfo(const Triple &TT, Reloc::Model RM,
-                                              CodeModel::Model CM,
-                                              CodeGenOpt::Level OL) {
-  MCCodeGenInfo *X = new MCCodeGenInfo();
-  if (CM == CodeModel::JITDefault)
-    RM = Reloc::Static;
-  else if (RM == Reloc::Default)
-    RM = Reloc::PIC_;
-  X->initMCCodeGenInfo(RM, CM, OL); // defined in lib/MC/MCCodeGenInfo.cpp
-  return X;
-}
-
 static MCInstPrinter *createCpu0MCInstPrinter(const Triple &T,
                                               unsigned SyntaxVariant,
                                               const MCAsmInfo &MAI,
@@ -120,6 +108,20 @@ static MCInstPrinter *createCpu0MCInstPrinter(const Triple &T,
                                               const MCRegisterInfo &MRI) {
   return new Cpu0InstPrinter(MAI, MII, MRI);
 }
+
+namespace {
+
+class Cpu0MCInstrAnalysis : public MCInstrAnalysis {
+public:
+  Cpu0MCInstrAnalysis(const MCInstrInfo *Info) : MCInstrAnalysis(Info) {}
+};
+}
+
+static MCInstrAnalysis *createCpu0MCInstrAnalysis(const MCInstrInfo *Info) {
+  return new Cpu0MCInstrAnalysis(Info);
+}
+
+
 #endif
 
 #if CH >= CH5_1 //1
@@ -144,10 +146,6 @@ extern "C" void LLVMInitializeCpu0TargetMC() {
     // Register the MC asm info.
     RegisterMCAsmInfoFn X(*T, createCpu0MCAsmInfo);
 
-    // Register the MC codegen info.
-    TargetRegistry::RegisterMCCodeGenInfo(*T,
-	                                      createCpu0MCCodeGenInfo);
-
     // Register the MC instruction info.
     TargetRegistry::RegisterMCInstrInfo(*T, createCpu0MCInstrInfo);
 
@@ -165,6 +163,8 @@ extern "C" void LLVMInitializeCpu0TargetMC() {
     // Register the MC subtarget info.
     TargetRegistry::RegisterMCSubtargetInfo(*T,
 	                                        createCpu0MCSubtargetInfo);
+    // Register the MC instruction analyzer.
+    TargetRegistry::RegisterMCInstrAnalysis(*T, createCpu0MCInstrAnalysis);
     // Register the MCInstPrinter.
     TargetRegistry::RegisterMCInstPrinter(*T,
 	                                      createCpu0MCInstPrinter);

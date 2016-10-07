@@ -60,16 +60,6 @@ bool Cpu0NoCpload;
 
 extern bool FixGlobalBaseReg;
 
-/// Select the Cpu0 CPU for the given triple and cpu name.
-/// FIXME: Merge with the copy in Cpu0MCTargetDesc.cpp
-static StringRef selectCpu0CPU(Triple TT, StringRef CPU) {
-  if (CPU.empty() || CPU == "generic") {
-    if (TT.getArch() == Triple::cpu0 || TT.getArch() == Triple::cpu0el)
-      CPU = "cpu032II";
-  }
-  return CPU;
-}
-
 void Cpu0Subtarget::anchor() { }
 
 //@1 {
@@ -94,7 +84,7 @@ Cpu0Subtarget::Cpu0Subtarget(const Triple &TT, const std::string &CPU,
   Cpu0ReserveGP = ReserveGPOpt;
   Cpu0NoCpload = NoCploadOpt;
 #ifdef ENABLE_GPRESTORE
-  if (TM.getRelocationModel() == Reloc::Static == Reloc::Static && !UseSmallSection && !Cpu0ReserveGP)
+  if (!TM.isPositionIndependent() && !UseSmallSection && !Cpu0ReserveGP)
     FixGlobalBaseReg = false;
   else
 #endif
@@ -102,17 +92,34 @@ Cpu0Subtarget::Cpu0Subtarget(const Triple &TT, const std::string &CPU,
 #endif //#if CH >= CH6_1
 }
 
+bool Cpu0Subtarget::isPositionIndependent() const {
+  return TM.isPositionIndependent();
+}
+
 Cpu0Subtarget &
 Cpu0Subtarget::initializeSubtargetDependencies(StringRef CPU, StringRef FS,
                                                const TargetMachine &TM) {
-  std::string CPUName = selectCpu0CPU(TargetTriple, CPU);
-
-  if (CPUName == "help")
-    CPUName = "cpu032II";
+  if (TargetTriple.getArch() == Triple::cpu0 || TargetTriple.getArch() == Triple::cpu0el) {
+    if (CPU.empty() || CPU == "generic") {
+      CPU = "cpu032II";
+    }
+    else if (CPU == "help") {
+      CPU = "";
+      return *this;
+    }
+    else if (CPU != "cpu032I" && CPU != "cpu032II") {
+      CPU = "cpu032II";
+    }
+  }
+  else {
+    errs() << "!!!Error, TargetTriple.getArch() = " << TargetTriple.getArch()
+           <<  "CPU = " << CPU << "\n";
+    exit(0);
+  }
   
-  if (CPUName == "cpu032I")
+  if (CPU == "cpu032I")
     Cpu0ArchVersion = Cpu032I;
-  else if (CPUName == "cpu032II")
+  else if (CPU == "cpu032II")
     Cpu0ArchVersion = Cpu032II;
 
   if (isCpu032I()) {
@@ -128,9 +135,9 @@ Cpu0Subtarget::initializeSubtargetDependencies(StringRef CPU, StringRef FS,
   }
 
   // Parse features string.
-  ParseSubtargetFeatures(CPUName, FS);
+  ParseSubtargetFeatures(CPU, FS);
   // Initialize scheduling itinerary for the specified CPU.
-  InstrItins = getInstrItineraryForCPU(CPUName);
+  InstrItins = getInstrItineraryForCPU(CPU);
 
   return *this;
 }

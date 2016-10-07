@@ -1,6 +1,6 @@
-// clang++ -c ch14_swap.cpp -emit-llvm -o ch14_swap.bc
-// ~/llvm/test/cmake_debug_build/bin/llvm-dis ch14_swap.bc -o -
-// ~/llvm/test/cmake_debug_build/bin/llc -march=cpu0 -relocation-model=pic -filetype=asm ch14_swap.bc -o -
+// clang++ -c ch12_swap.cpp -emit-llvm -o ch12_swap.bc
+// ~/llvm/test/cmake_debug_build/bin/llvm-dis ch12_swap.bc -o -
+// ~/llvm/test/cmake_debug_build/bin/llc -march=cpu0 -relocation-model=pic -filetype=asm ch12_swap.bc -o -
 
 #include <iostream>
 using namespace std;

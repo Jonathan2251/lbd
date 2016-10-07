@@ -38,9 +38,9 @@ const Cpu0RegisterInfo &Cpu0SEInstrInfo::getRegisterInfo() const {
 
 #if CH >= CH4_1
 void Cpu0SEInstrInfo::copyPhysReg(MachineBasicBlock &MBB,
-                                  MachineBasicBlock::iterator I, DebugLoc DL,
-                                  unsigned DestReg, unsigned SrcReg,
-                                  bool KillSrc) const {
+                                  MachineBasicBlock::iterator I,
+                                  const DebugLoc &DL, unsigned DestReg,
+                                  unsigned SrcReg, bool KillSrc) const {
   unsigned Opc = 0, ZeroReg = 0;
 
   if (Cpu0::CPURegsRegClass.contains(DestReg)) { // Copy to CPU Reg.
@@ -80,7 +80,6 @@ storeRegToStack(MachineBasicBlock &MBB, MachineBasicBlock::iterator I,
                 const TargetRegisterClass *RC, const TargetRegisterInfo *TRI,
                 int64_t Offset) const {
   DebugLoc DL;
-  if (I != MBB.end()) DL = I->getDebugLoc();
   MachineMemOperand *MMO = GetMemOperand(MBB, FI, MachineMemOperand::MOStore);
 
   unsigned Opc = 0;
@@ -110,11 +109,11 @@ loadRegFromStack(MachineBasicBlock &MBB, MachineBasicBlock::iterator I,
 #if CH >= CH3_4 //1
 //@expandPostRAPseudo
 /// Expand Pseudo instructions into real backend instructions
-bool Cpu0SEInstrInfo::expandPostRAPseudo(MachineBasicBlock::iterator MI) const {
+bool Cpu0SEInstrInfo::expandPostRAPseudo(MachineInstr &MI) const {
 //@expandPostRAPseudo-body
-  MachineBasicBlock &MBB = *MI->getParent();
+  MachineBasicBlock &MBB = *MI.getParent();
 
-  switch(MI->getDesc().getOpcode()) {
+  switch (MI.getDesc().getOpcode()) {
   default:
     return false;
   case Cpu0::RetLR:
@@ -141,8 +140,10 @@ void Cpu0SEInstrInfo::adjustStackPtr(unsigned SP, int64_t Amount,
   unsigned ADDu = Cpu0::ADDu;
   unsigned ADDiu = Cpu0::ADDiu;
 
-  if (isInt<16>(Amount))// addiu sp, sp, amount
+  if (isInt<16>(Amount)) {
+    // addiu sp, sp, amount
     BuildMI(MBB, I, DL, get(ADDiu), SP).addReg(SP).addImm(Amount);
+  }
   else { // Expand immediate that doesn't fit in 16-bit.
     unsigned Reg = loadImmediate(Amount, MBB, I, DL, nullptr);
     BuildMI(MBB, I, DL, get(ADDu), SP).addReg(SP).addReg(Reg, RegState::Kill);
@@ -153,7 +154,8 @@ void Cpu0SEInstrInfo::adjustStackPtr(unsigned SP, int64_t Amount,
 /// result of adding register REG and immediate IMM.
 unsigned
 Cpu0SEInstrInfo::loadImmediate(int64_t Imm, MachineBasicBlock &MBB,
-                               MachineBasicBlock::iterator II, DebugLoc DL,
+                               MachineBasicBlock::iterator II,
+                               const DebugLoc &DL,
                                unsigned *NewImm) const {
   Cpu0AnalyzeImmediate AnalyzeImm;
   unsigned Size = 32;
@@ -226,7 +228,7 @@ void Cpu0SEInstrInfo::expandEhReturn(MachineBasicBlock &MBB,
   // addu $sp, $sp, $v1
   // jr   $lr (via RetLR)
   const TargetMachine &TM = MBB.getParent()->getTarget();
-  if (TM.getRelocationModel() == Reloc::PIC_)
+  if (TM.isPositionIndependent())
     BuildMI(MBB, I, I->getDebugLoc(), get(ADDU), T9)
         .addReg(TargetReg)
         .addReg(ZERO);

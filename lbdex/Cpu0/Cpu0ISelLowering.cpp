@@ -217,8 +217,6 @@ Cpu0TargetLowering::Cpu0TargetLowering(const Cpu0TargetMachine &TM,
   setOperationAction(ISD::ATOMIC_LOAD,       MVT::i64,    Expand);
   setOperationAction(ISD::ATOMIC_STORE,      MVT::i32,    Expand);
   setOperationAction(ISD::ATOMIC_STORE,      MVT::i64,    Expand);
-
-  setInsertFencesForAtomic(true);
 #endif
 
 #if CH >= CH9_3 //2.5
@@ -237,11 +235,6 @@ Cpu0TargetLowering::Cpu0TargetLowering(const Cpu0TargetMachine &TM,
 
 #if CH >= CH9_3 //3
   setStackPointerRegisterToSaveRestore(Cpu0::SP);
-#endif
-
-#if CH >= CH12_1 //2
-  setExceptionPointerRegister(Cpu0::A0);
-  setExceptionSelectorRegister(Cpu0::A1);
 #endif
 
 #endif // #if CH >= CH3_2
@@ -371,9 +364,9 @@ addLiveIn(MachineFunction &MF, unsigned PReg, const TargetRegisterClass *RC)
 
 #if CH >= CH12_1 //8
 MachineBasicBlock *
-Cpu0TargetLowering::EmitInstrWithCustomInserter(MachineInstr *MI,
+Cpu0TargetLowering::EmitInstrWithCustomInserter(MachineInstr &MI,
                                                 MachineBasicBlock *BB) const {
-  switch (MI->getOpcode()) {
+  switch (MI.getOpcode()) {
   default:
     llvm_unreachable("Unexpected instr type to insert");
   case Cpu0::ATOMIC_LOAD_ADD_I8:
@@ -436,17 +429,16 @@ Cpu0TargetLowering::EmitInstrWithCustomInserter(MachineInstr *MI,
 
 // This function also handles Cpu0::ATOMIC_SWAP_I32 (when BinOpcode == 0), and
 // Cpu0::ATOMIC_LOAD_NAND_I32 (when Nand == true)
-MachineBasicBlock *
-Cpu0TargetLowering::emitAtomicBinary(MachineInstr *MI, MachineBasicBlock *BB,
-                                     unsigned Size, unsigned BinOpcode,
-                                     bool Nand) const {
+MachineBasicBlock *Cpu0TargetLowering::emitAtomicBinary(
+    MachineInstr &MI, MachineBasicBlock *BB, unsigned Size, unsigned BinOpcode,
+    bool Nand) const {
   assert((Size == 4) && "Unsupported size for EmitAtomicBinary.");
 
   MachineFunction *MF = BB->getParent();
   MachineRegisterInfo &RegInfo = MF->getRegInfo();
   const TargetRegisterClass *RC = getRegClassFor(MVT::getIntegerVT(Size * 8));
   const TargetInstrInfo *TII = Subtarget.getInstrInfo();
-  DebugLoc DL = MI->getDebugLoc();
+  DebugLoc DL = MI.getDebugLoc();
   unsigned LL, SC, AND, XOR, ZERO, BEQ;
 
   LL = Cpu0::LL;
@@ -456,9 +448,9 @@ Cpu0TargetLowering::emitAtomicBinary(MachineInstr *MI, MachineBasicBlock *BB,
   ZERO = Cpu0::ZERO;
   BEQ = Cpu0::BEQ;
 
-  unsigned OldVal = MI->getOperand(0).getReg();
-  unsigned Ptr = MI->getOperand(1).getReg();
-  unsigned Incr = MI->getOperand(2).getReg();
+  unsigned OldVal = MI.getOperand(0).getReg();
+  unsigned Ptr = MI.getOperand(1).getReg();
+  unsigned Incr = MI.getOperand(2).getReg();
 
   unsigned StoreVal = RegInfo.createVirtualRegister(RC);
   unsigned AndRes = RegInfo.createVirtualRegister(RC);
@@ -469,8 +461,7 @@ Cpu0TargetLowering::emitAtomicBinary(MachineInstr *MI, MachineBasicBlock *BB,
   const BasicBlock *LLVM_BB = BB->getBasicBlock();
   MachineBasicBlock *loopMBB = MF->CreateMachineBasicBlock(LLVM_BB);
   MachineBasicBlock *exitMBB = MF->CreateMachineBasicBlock(LLVM_BB);
-  MachineFunction::iterator It = BB;
-  ++It;
+  MachineFunction::iterator It = ++BB->getIterator();
   MF->insert(It, loopMBB);
   MF->insert(It, exitMBB);
 
@@ -509,16 +500,16 @@ Cpu0TargetLowering::emitAtomicBinary(MachineInstr *MI, MachineBasicBlock *BB,
   BuildMI(BB, DL, TII->get(SC), Success).addReg(StoreVal).addReg(Ptr).addImm(0);
   BuildMI(BB, DL, TII->get(BEQ)).addReg(Success).addReg(ZERO).addMBB(loopMBB);
 
-  MI->eraseFromParent(); // The instruction is gone now.
+  MI.eraseFromParent(); // The instruction is gone now.
 
   return exitMBB;
 }
 
 MachineBasicBlock *Cpu0TargetLowering::emitSignExtendToI32InReg(
-    MachineInstr *MI, MachineBasicBlock *BB, unsigned Size, unsigned DstReg,
+    MachineInstr &MI, MachineBasicBlock *BB, unsigned Size, unsigned DstReg,
     unsigned SrcReg) const {
   const TargetInstrInfo *TII = Subtarget.getInstrInfo();
-  DebugLoc DL = MI->getDebugLoc();
+  DebugLoc DL = MI.getDebugLoc();
 
   MachineFunction *MF = BB->getParent();
   MachineRegisterInfo &RegInfo = MF->getRegInfo();
@@ -535,7 +526,7 @@ MachineBasicBlock *Cpu0TargetLowering::emitSignExtendToI32InReg(
 }
 
 MachineBasicBlock *Cpu0TargetLowering::emitAtomicBinaryPartword(
-    MachineInstr *MI, MachineBasicBlock *BB, unsigned Size, unsigned BinOpcode,
+    MachineInstr &MI, MachineBasicBlock *BB, unsigned Size, unsigned BinOpcode,
     bool Nand) const {
   assert((Size == 1 || Size == 2) &&
          "Unsupported size for EmitAtomicBinaryPartial.");
@@ -544,11 +535,11 @@ MachineBasicBlock *Cpu0TargetLowering::emitAtomicBinaryPartword(
   MachineRegisterInfo &RegInfo = MF->getRegInfo();
   const TargetRegisterClass *RC = getRegClassFor(MVT::i32);
   const TargetInstrInfo *TII = Subtarget.getInstrInfo();
-  DebugLoc DL = MI->getDebugLoc();
+  DebugLoc DL = MI.getDebugLoc();
 
-  unsigned Dest = MI->getOperand(0).getReg();
-  unsigned Ptr = MI->getOperand(1).getReg();
-  unsigned Incr = MI->getOperand(2).getReg();
+  unsigned Dest = MI.getOperand(0).getReg();
+  unsigned Ptr = MI.getOperand(1).getReg();
+  unsigned Incr = MI.getOperand(2).getReg();
 
   unsigned AlignedAddr = RegInfo.createVirtualRegister(RC);
   unsigned ShiftAmt = RegInfo.createVirtualRegister(RC);
@@ -575,8 +566,8 @@ MachineBasicBlock *Cpu0TargetLowering::emitAtomicBinaryPartword(
   MachineBasicBlock *loopMBB = MF->CreateMachineBasicBlock(LLVM_BB);
   MachineBasicBlock *sinkMBB = MF->CreateMachineBasicBlock(LLVM_BB);
   MachineBasicBlock *exitMBB = MF->CreateMachineBasicBlock(LLVM_BB);
-  MachineFunction::iterator It = BB;
-  ++It;
+  MachineFunction::iterator It = ++BB->getIterator();
+
   MF->insert(It, loopMBB);
   MF->insert(It, sinkMBB);
   MF->insert(It, exitMBB);
@@ -689,12 +680,12 @@ MachineBasicBlock *Cpu0TargetLowering::emitAtomicBinaryPartword(
       .addReg(MaskedOldVal1).addReg(ShiftAmt);
   BB = emitSignExtendToI32InReg(MI, BB, Size, Dest, SrlRes);
 
-  MI->eraseFromParent(); // The instruction is gone now.
+  MI.eraseFromParent(); // The instruction is gone now.
 
   return exitMBB;
 }
 
-MachineBasicBlock * Cpu0TargetLowering::emitAtomicCmpSwap(MachineInstr *MI,
+MachineBasicBlock * Cpu0TargetLowering::emitAtomicCmpSwap(MachineInstr &MI,
                                                           MachineBasicBlock *BB,
                                                           unsigned Size) const {
   assert((Size == 4) && "Unsupported size for EmitAtomicCmpSwap.");
@@ -703,7 +694,7 @@ MachineBasicBlock * Cpu0TargetLowering::emitAtomicCmpSwap(MachineInstr *MI,
   MachineRegisterInfo &RegInfo = MF->getRegInfo();
   const TargetRegisterClass *RC = getRegClassFor(MVT::getIntegerVT(Size * 8));
   const TargetInstrInfo *TII = Subtarget.getInstrInfo();
-  DebugLoc DL = MI->getDebugLoc();
+  DebugLoc DL = MI.getDebugLoc();
   unsigned LL, SC, ZERO, BNE, BEQ;
 
   LL = Cpu0::LL;
@@ -712,10 +703,10 @@ MachineBasicBlock * Cpu0TargetLowering::emitAtomicCmpSwap(MachineInstr *MI,
   BNE = Cpu0::BNE;
   BEQ = Cpu0::BEQ;
 
-  unsigned Dest    = MI->getOperand(0).getReg();
-  unsigned Ptr     = MI->getOperand(1).getReg();
-  unsigned OldVal  = MI->getOperand(2).getReg();
-  unsigned NewVal  = MI->getOperand(3).getReg();
+  unsigned Dest    = MI.getOperand(0).getReg();
+  unsigned Ptr     = MI.getOperand(1).getReg();
+  unsigned OldVal  = MI.getOperand(2).getReg();
+  unsigned NewVal  = MI.getOperand(3).getReg();
 
   unsigned Success = RegInfo.createVirtualRegister(RC);
 
@@ -724,8 +715,8 @@ MachineBasicBlock * Cpu0TargetLowering::emitAtomicCmpSwap(MachineInstr *MI,
   MachineBasicBlock *loop1MBB = MF->CreateMachineBasicBlock(LLVM_BB);
   MachineBasicBlock *loop2MBB = MF->CreateMachineBasicBlock(LLVM_BB);
   MachineBasicBlock *exitMBB = MF->CreateMachineBasicBlock(LLVM_BB);
-  MachineFunction::iterator It = BB;
-  ++It;
+  MachineFunction::iterator It = ++BB->getIterator();
+
   MF->insert(It, loop1MBB);
   MF->insert(It, loop2MBB);
   MF->insert(It, exitMBB);
@@ -761,13 +752,13 @@ MachineBasicBlock * Cpu0TargetLowering::emitAtomicCmpSwap(MachineInstr *MI,
   BuildMI(BB, DL, TII->get(BEQ))
     .addReg(Success).addReg(ZERO).addMBB(loop1MBB);
 
-  MI->eraseFromParent(); // The instruction is gone now.
+  MI.eraseFromParent(); // The instruction is gone now.
 
   return exitMBB;
 }
 
 MachineBasicBlock *
-Cpu0TargetLowering::emitAtomicCmpSwapPartword(MachineInstr *MI,
+Cpu0TargetLowering::emitAtomicCmpSwapPartword(MachineInstr &MI,
                                               MachineBasicBlock *BB,
                                               unsigned Size) const {
   assert((Size == 1 || Size == 2) &&
@@ -777,12 +768,12 @@ Cpu0TargetLowering::emitAtomicCmpSwapPartword(MachineInstr *MI,
   MachineRegisterInfo &RegInfo = MF->getRegInfo();
   const TargetRegisterClass *RC = getRegClassFor(MVT::i32);
   const TargetInstrInfo *TII = Subtarget.getInstrInfo();
-  DebugLoc DL = MI->getDebugLoc();
+  DebugLoc DL = MI.getDebugLoc();
 
-  unsigned Dest    = MI->getOperand(0).getReg();
-  unsigned Ptr     = MI->getOperand(1).getReg();
-  unsigned CmpVal  = MI->getOperand(2).getReg();
-  unsigned NewVal  = MI->getOperand(3).getReg();
+  unsigned Dest    = MI.getOperand(0).getReg();
+  unsigned Ptr     = MI.getOperand(1).getReg();
+  unsigned CmpVal  = MI.getOperand(2).getReg();
+  unsigned NewVal  = MI.getOperand(3).getReg();
 
   unsigned AlignedAddr = RegInfo.createVirtualRegister(RC);
   unsigned ShiftAmt = RegInfo.createVirtualRegister(RC);
@@ -809,8 +800,8 @@ Cpu0TargetLowering::emitAtomicCmpSwapPartword(MachineInstr *MI,
   MachineBasicBlock *loop2MBB = MF->CreateMachineBasicBlock(LLVM_BB);
   MachineBasicBlock *sinkMBB = MF->CreateMachineBasicBlock(LLVM_BB);
   MachineBasicBlock *exitMBB = MF->CreateMachineBasicBlock(LLVM_BB);
-  MachineFunction::iterator It = BB;
-  ++It;
+  MachineFunction::iterator It = ++BB->getIterator();
+
   MF->insert(It, loop1MBB);
   MF->insert(It, loop2MBB);
   MF->insert(It, sinkMBB);
@@ -908,7 +899,7 @@ Cpu0TargetLowering::emitAtomicCmpSwapPartword(MachineInstr *MI,
       .addReg(MaskedOldVal0).addReg(ShiftAmt);
   BB = emitSignExtendToI32InReg(MI, BB, Size, Dest, SrlRes);
 
-  MI->eraseFromParent();   // The instruction is gone now.
+  MI.eraseFromParent();   // The instruction is gone now.
 
   return exitMBB;
 }
@@ -947,7 +938,7 @@ SDValue Cpu0TargetLowering::lowerGlobalAddress(SDValue Op,
   const GlobalValue *GV = N->getGlobal();
   //@lga 1 }
 
-  if (getTargetMachine().getRelocationModel() != Reloc::PIC_) {
+  if (!isPositionIndependent()) {
     //@ %gp_rel relocation
     if (TLOF->IsGlobalInSmallSection(GV, getTargetMachine())) {
       SDValue GA = DAG.getTargetGlobalAddress(GV, DL, MVT::i32, 0,
@@ -967,11 +958,13 @@ SDValue Cpu0TargetLowering::lowerGlobalAddress(SDValue Op,
 
   //@large section
   if (!TLOF->IsGlobalInSmallSection(GV, getTargetMachine()))
-    return getAddrGlobalLargeGOT(N, Ty, DAG, Cpu0II::MO_GOT_HI16,
-                                 Cpu0II::MO_GOT_LO16, DAG.getEntryNode(), 
-                                 MachinePointerInfo::getGOT());
-  return getAddrGlobal(N, Ty, DAG, Cpu0II::MO_GOT16, DAG.getEntryNode(), 
-                       MachinePointerInfo::getGOT());
+    return getAddrGlobalLargeGOT(
+        N, Ty, DAG, Cpu0II::MO_GOT_HI16, Cpu0II::MO_GOT_LO16, 
+        DAG.getEntryNode(), 
+        MachinePointerInfo::getGOT(DAG.getMachineFunction()));
+  return getAddrGlobal(
+      N, Ty, DAG, Cpu0II::MO_GOT, DAG.getEntryNode(), 
+      MachinePointerInfo::getGOT(DAG.getMachineFunction()));
 }
 #endif
 
@@ -984,6 +977,9 @@ lowerGlobalTLSAddress(SDValue Op, SelectionDAG &DAG) const
   // Local Exec TLS Model.
 
   GlobalAddressSDNode *GA = cast<GlobalAddressSDNode>(Op);
+  if (DAG.getTarget().Options.EmulatedTLS)
+    return LowerToTLSEmulatedModel(GA, DAG);
+
   SDLoc DL(GA);
   const GlobalValue *GV = GA->getGlobal();
   EVT PtrVT = getPointerTy(DAG.getDataLayout());
@@ -1011,7 +1007,7 @@ lowerGlobalTLSAddress(SDValue Op, SelectionDAG &DAG) const
 
     TargetLowering::CallLoweringInfo CLI(DAG);
     CLI.setDebugLoc(DL).setChain(DAG.getEntryNode())
-      .setCallee(CallingConv::C, PtrTy, TlsGetAddr, std::move(Args), 0);
+      .setCallee(CallingConv::C, PtrTy, TlsGetAddr, std::move(Args));
     std::pair<SDValue, SDValue> CallResult = LowerCallTo(CLI);
 
     SDValue Ret = CallResult.first;
@@ -1036,9 +1032,8 @@ lowerGlobalTLSAddress(SDValue Op, SelectionDAG &DAG) const
                                              Cpu0II::MO_GOTTPREL);
     TGA = DAG.getNode(Cpu0ISD::Wrapper, DL, PtrVT, getGlobalReg(DAG, PtrVT),
                       TGA);
-    Offset = DAG.getLoad(PtrVT, DL,
-                         DAG.getEntryNode(), TGA, MachinePointerInfo(),
-                         false, false, false, 0);
+    Offset =
+        DAG.getLoad(PtrVT, DL, DAG.getEntryNode(), TGA, MachinePointerInfo());
   } else {
     // Local Exec TLS Model
     assert(model == TLSModel::LocalExec);
@@ -1060,7 +1055,7 @@ SDValue Cpu0TargetLowering::lowerBlockAddress(SDValue Op,
   BlockAddressSDNode *N = cast<BlockAddressSDNode>(Op);
   EVT Ty = Op.getValueType();
 
-  if (getTargetMachine().getRelocationModel() != Reloc::PIC_)
+  if (!isPositionIndependent())
     return getAddrNonPIC(N, Ty, DAG);
 
   return getAddrLocal(N, Ty, DAG);
@@ -1072,7 +1067,7 @@ lowerJumpTable(SDValue Op, SelectionDAG &DAG) const
   JumpTableSDNode *N = cast<JumpTableSDNode>(Op);
   EVT Ty = Op.getValueType();
 
-  if (getTargetMachine().getRelocationModel() != Reloc::PIC_)
+  if (!isPositionIndependent())
     return getAddrNonPIC(N, Ty, DAG);
 
   return getAddrLocal(N, Ty, DAG);
@@ -1092,7 +1087,7 @@ SDValue Cpu0TargetLowering::lowerVASTART(SDValue Op, SelectionDAG &DAG) const {
   // memory location argument.
   const Value *SV = cast<SrcValueSDNode>(Op.getOperand(2))->getValue();
   return DAG.getStore(Op.getOperand(0), DL, FI, Op.getOperand(1),
-                      MachinePointerInfo(SV), false, false, 0);
+                      MachinePointerInfo(SV));
 }
 #endif
 
@@ -1294,21 +1289,20 @@ static const MCPhysReg O32IntRegs[] = {
 #if CH >= CH9_2 //1
 SDValue
 Cpu0TargetLowering::passArgOnStack(SDValue StackPtr, unsigned Offset,
-                                   SDValue Chain, SDValue Arg, SDLoc DL,
+                                   SDValue Chain, SDValue Arg, const SDLoc &DL,
                                    bool IsTailCall, SelectionDAG &DAG) const {
   if (!IsTailCall) {
     SDValue PtrOff =
         DAG.getNode(ISD::ADD, DL, getPointerTy(DAG.getDataLayout()), StackPtr,
                     DAG.getIntPtrConstant(Offset, DL));
-    return DAG.getStore(Chain, DL, Arg, PtrOff, MachinePointerInfo(), false,
-                        false, 0);
+    return DAG.getStore(Chain, DL, Arg, PtrOff, MachinePointerInfo());
   }
 
   MachineFrameInfo *MFI = DAG.getMachineFunction().getFrameInfo();
   int FI = MFI->CreateFixedObject(Arg.getValueSizeInBits() / 8, Offset, false);
   SDValue FIN = DAG.getFrameIndex(FI, getPointerTy(DAG.getDataLayout()));
   return DAG.getStore(Chain, DL, Arg, FIN, MachinePointerInfo(),
-                      /*isVolatile=*/ true, false, 0);
+                      /* Alignment = */ 0, MachineMemOperand::MOVolatile);
 }
 
 void Cpu0TargetLowering::
@@ -1388,7 +1382,7 @@ Cpu0TargetLowering::LowerCall(TargetLowering::CallLoweringInfo &CLI,
   MachineFrameInfo *MFI = MF.getFrameInfo();
   const TargetFrameLowering *TFL = MF.getSubtarget().getFrameLowering();
   Cpu0FunctionInfo *FuncInfo = MF.getInfo<Cpu0FunctionInfo>();
-  bool IsPIC = getTargetMachine().getRelocationModel() == Reloc::PIC_;
+  bool IsPIC = isPositionIndependent();
   Cpu0FunctionInfo *Cpu0FI = MF.getInfo<Cpu0FunctionInfo>();
 
   // Analyze operands of the call, assigning locations to each operand.
@@ -1439,7 +1433,7 @@ Cpu0TargetLowering::LowerCall(TargetLowering::CallLoweringInfo &CLI,
   // ByValChain is the output chain of the last Memcpy node created for copying
   // byval arguments to the stack.
   unsigned StackAlignment = TFL->getStackAlignment();
-  NextStackOffset = RoundUpToAlignment(NextStackOffset, StackAlignment);
+  NextStackOffset = alignTo(NextStackOffset, StackAlignment);
   SDValue NextStackOffsetVal = DAG.getIntPtrConstant(NextStackOffset, DL, true);
 
   //@TailCall 2 {
@@ -1592,7 +1586,7 @@ SDValue
 Cpu0TargetLowering::LowerCallResult(SDValue Chain, SDValue InFlag,
                                     CallingConv::ID CallConv, bool IsVarArg,
                                     const SmallVectorImpl<ISD::InputArg> &Ins,
-                                    SDLoc DL, SelectionDAG &DAG,
+                                    const SDLoc &DL, SelectionDAG &DAG,
                                     SmallVectorImpl<SDValue> &InVals,
                                     const SDNode *CallNode,
                                     const Type *RetTy) const {
@@ -1635,8 +1629,8 @@ SDValue
 Cpu0TargetLowering::LowerFormalArguments(SDValue Chain,
                                          CallingConv::ID CallConv,
                                          bool IsVarArg,
-                                      const SmallVectorImpl<ISD::InputArg> &Ins,
-                                         SDLoc DL, SelectionDAG &DAG,
+                                         const SmallVectorImpl<ISD::InputArg> &Ins,
+                                         const SDLoc &DL, SelectionDAG &DAG,
                                          SmallVectorImpl<SDValue> &InVals)
                                           const {
 #if CH >= CH3_4
@@ -1722,6 +1716,7 @@ Cpu0TargetLowering::LowerFormalArguments(SDValue Chain,
         ArgValue = DAG.getNode(ISD::BITCAST, DL, ValVT, ArgValue);
       InVals.push_back(ArgValue);
     } else { // VA.isRegLoc()
+      MVT LocVT = VA.getLocVT();
 
       // sanity check
       assert(VA.isMemLoc());
@@ -1732,9 +1727,9 @@ Cpu0TargetLowering::LowerFormalArguments(SDValue Chain,
 
       // Create load nodes to retrieve arguments from the stack
       SDValue FIN = DAG.getFrameIndex(FI, getPointerTy(DAG.getDataLayout()));
-      SDValue Load = DAG.getLoad(ValVT, DL, Chain, FIN,
-                                 MachinePointerInfo::getFixedStack(FI),
-                                 false, false, false, 0);
+      SDValue Load = DAG.getLoad(
+          LocVT, DL, Chain, FIN,
+          MachinePointerInfo::getFixedStack(DAG.getMachineFunction(), FI));
       InVals.push_back(Load);
       OutChains.push_back(Load.getValue(1));
     }
@@ -1800,7 +1795,7 @@ Cpu0TargetLowering::LowerReturn(SDValue Chain,
                                 CallingConv::ID CallConv, bool IsVarArg,
                                 const SmallVectorImpl<ISD::OutputArg> &Outs,
                                 const SmallVectorImpl<SDValue> &OutVals,
-                                SDLoc DL, SelectionDAG &DAG) const {
+                                const SDLoc &DL, SelectionDAG &DAG) const {
 #if CH >= CH3_4 //in LowerReturn
   // CCValAssign - represent the assignment of
   // the return value to a location
@@ -2292,7 +2287,7 @@ void Cpu0TargetLowering::Cpu0CC::handleByValArg(unsigned ValNo, MVT ValVT,
 
   struct ByValArgInfo ByVal;
   unsigned RegSize = regSize();
-  unsigned ByValSize = RoundUpToAlignment(ArgFlags.getByValSize(), RegSize);
+  unsigned ByValSize = alignTo(ArgFlags.getByValSize(), RegSize);
   unsigned Align = std::min(std::max(ArgFlags.getByValAlign(), RegSize),
                             RegSize * 2);
 
@@ -2378,7 +2373,7 @@ MVT Cpu0TargetLowering::Cpu0CC::getRegVT(MVT VT, const Type *OrigTy,
 
 #if CH >= CH9_1 //11
 void Cpu0TargetLowering::
-copyByValRegs(SDValue Chain, SDLoc DL, std::vector<SDValue> &OutChains,
+copyByValRegs(SDValue Chain, const SDLoc &DL, std::vector<SDValue> &OutChains,
               SelectionDAG &DAG, const ISD::ArgFlagsTy &Flags,
               SmallVectorImpl<SDValue> &InVals, const Argument *FuncArg,
               const Cpu0CC &CC, const ByValArgInfo &ByVal) const {
@@ -2416,8 +2411,7 @@ copyByValRegs(SDValue Chain, SDLoc DL, std::vector<SDValue> &OutChains,
     SDValue StorePtr = DAG.getNode(ISD::ADD, DL, PtrTy, FIN,
                                    DAG.getConstant(Offset, DL, PtrTy));
     SDValue Store = DAG.getStore(Chain, DL, DAG.getRegister(VReg, RegTy),
-                                 StorePtr, MachinePointerInfo(FuncArg, Offset),
-                                 false, false, 0);
+                                 StorePtr, MachinePointerInfo(FuncArg, Offset));
     OutChains.push_back(Store);
   }
 }
@@ -2426,7 +2420,7 @@ copyByValRegs(SDValue Chain, SDLoc DL, std::vector<SDValue> &OutChains,
 #if CH >= CH9_2 //7
 // Copy byVal arg to registers and stack.
 void Cpu0TargetLowering::
-passByValArg(SDValue Chain, SDLoc DL,
+passByValArg(SDValue Chain, const SDLoc &DL,
              std::deque< std::pair<unsigned, SDValue> > &RegsToPass,
              SmallVectorImpl<SDValue> &MemOpChains, SDValue StackPtr,
              MachineFrameInfo *MFI, SelectionDAG &DAG, SDValue Arg,
@@ -2450,8 +2444,7 @@ passByValArg(SDValue Chain, SDLoc DL,
       SDValue LoadPtr = DAG.getNode(ISD::ADD, DL, PtrTy, Arg,
                                     DAG.getConstant(OffsetInBytes, DL, PtrTy));
       SDValue LoadVal = DAG.getLoad(RegTy, DL, Chain, LoadPtr,
-                                    MachinePointerInfo(), false, false, false,
-                                    Alignment);
+                                    MachinePointerInfo());
       MemOpChains.push_back(LoadVal.getValue(1));
       unsigned ArgReg = ArgRegs[ByVal.FirstIdx + I];
       RegsToPass.push_back(std::make_pair(ArgReg, LoadVal));
@@ -2480,8 +2473,7 @@ passByValArg(SDValue Chain, SDLoc DL,
                                       DAG.getConstant(OffsetInBytes, DL, PtrTy));
         SDValue LoadVal = DAG.getExtLoad(
             ISD::ZEXTLOAD, DL, RegTy, Chain, LoadPtr, MachinePointerInfo(),
-            MVT::getIntegerVT(LoadSizeInBytes * 8), false, false, false,
-            Alignment);
+            MVT::getIntegerVT(LoadSizeInBytes * 8), Alignment);
         MemOpChains.push_back(LoadVal.getValue(1));
 
         // Shift the loaded value.
@@ -2529,7 +2521,7 @@ passByValArg(SDValue Chain, SDLoc DL,
 #if CH >= CH9_3 //11
 void Cpu0TargetLowering::writeVarArgRegs(std::vector<SDValue> &OutChains,
                                          const Cpu0CC &CC, SDValue Chain,
-                                         SDLoc DL, SelectionDAG &DAG) const {
+                                         const SDLoc &DL, SelectionDAG &DAG) const {
   unsigned NumRegs = CC.numIntArgRegs();
   const ArrayRef<MCPhysReg> ArgRegs = CC.intArgRegs();
   const CCState &CCInfo = CC.getCCInfo();
@@ -2545,7 +2537,7 @@ void Cpu0TargetLowering::writeVarArgRegs(std::vector<SDValue> &OutChains,
   int VaArgOffset;
 
   if (NumRegs == Idx)
-    VaArgOffset = RoundUpToAlignment(CCInfo.getNextStackOffset(), RegSize);
+    VaArgOffset = alignTo(CCInfo.getNextStackOffset(), RegSize);
   else
     VaArgOffset = (int)CC.reservedArgArea() - (int)(RegSize * (NumRegs - Idx));
 
@@ -2564,7 +2556,7 @@ void Cpu0TargetLowering::writeVarArgRegs(std::vector<SDValue> &OutChains,
     FI = MFI->CreateFixedObject(RegSize, VaArgOffset, true);
     SDValue PtrOff = DAG.getFrameIndex(FI, getPointerTy(DAG.getDataLayout()));
     SDValue Store = DAG.getStore(Chain, DL, ArgValue, PtrOff,
-                                 MachinePointerInfo(), false, false, 0);
+                                 MachinePointerInfo());
     cast<StoreSDNode>(Store.getNode())->getMemOperand()->setValue(
         (Value *)nullptr);
     OutChains.push_back(Store);

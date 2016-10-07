@@ -38,11 +38,8 @@ namespace Cpu0 {
     // 16 bit fixup for GP offest resulting in - R_CPU0_GPREL16.
     fixup_Cpu0_GPREL16,
 
-    // Global symbol fixup resulting in - R_CPU0_GOT16.
-    fixup_Cpu0_GOT_Global,
-
-    // Local symbol fixup resulting in - R_CPU0_GOT16.
-    fixup_Cpu0_GOT_Local,
+    // Symbol fixup resulting in - R_CPU0_GOT16.
+    fixup_Cpu0_GOT,
 
 #if CH >= CH8_1
     // PC relative branch fixup resulting in - R_CPU0_PC16.

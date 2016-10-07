@@ -6,7 +6,6 @@
 
 typedef long   vector8long   __attribute__((__vector_size__(32)));
 typedef long   vector8short   __attribute__((__vector_size__(16)));
-typedef bool   vector8bool   __attribute__((__ext_vector_type__(8)));
 
 
 int test_cmplt_short() {

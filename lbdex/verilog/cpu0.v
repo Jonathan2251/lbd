@@ -469,31 +469,12 @@ module memory0(input clock, reset, en, rw, input [1:0] m_size,
                output cfg);
   reg [31:0] mconfig [0:0];
   reg [7:0] m [0:`MEMSIZE-1];
-`ifdef DLINKER
-  reg [7:0] flash [0:`MEMSIZE-1];
-  reg [7:0] dsym [0:192-1];
-  reg [7:0] dstr [0:96-1];
-  reg [7:0] so_func_offset[0:384-1];
-  reg [7:0] globalAddr [0:3];
-  reg [31:0] pltAddr [0:0];
-  reg [31:0] gp;
-  reg [31:0] gpPlt;
-  reg [31:0] fabus;
-  integer j;
-  integer k;
-  integer l;
-  reg [31:0] j32;
-  integer numDynEntry;
-`endif
   reg [31:0] data;
 
   integer i;
 
   `define LE  mconfig[0][0:0]   // Endian bit, Big Endian:0, Little Endian:1
 
-`ifdef DLINKER
-`include "dynlinker.v"
-`endif
   initial begin
   // erase memory
     for (i=0; i < `MEMSIZE; i=i+1) begin
@@ -510,10 +491,6 @@ module memory0(input clock, reset, en, rw, input [1:0] m_size,
         $display("%8x: %8x", i, {m[i], m[i+1], m[i+2], m[i+3]});
       end
     `endif
-`ifdef DLINKER
-  loadToFlash();
-  createDynInfo();
-`endif
   end
 
   always @(clock or abus or en or rw or dbus_in) 
@@ -556,9 +533,6 @@ module memory0(input clock, reset, en, rw, input [1:0] m_size,
         end
       end else
         data = 32'hZZZZZZZZ;
-      `ifdef DLINKER
-      `include "flashio.v"
-      `endif
     end else 
       data = 32'hZZZZZZZZ;
   end
