@@ -32,15 +32,15 @@ entry:
 
 ; CHECK:        call_i8:
 ; CHECK:        call16(i8)
-; CHECK:        addiu   $4, $sp, 32
-; CHECK:        ld      $[[R0:[a-z0-9]+]], 60($sp)
-; CHECK:        ld      $[[R1:[a-z0-9]+]], 56($sp)
-; CHECK:        ld      $[[R2:[a-z0-9]+]], 52($sp)
-; CHECK:        ld      $[[R3:[a-z0-9]+]], 48($sp)
-; CHECK:        ld      $[[R4:[a-z0-9]+]], 44($sp)
-; CHECK:        ld      $[[R5:[a-z0-9]+]], 40($sp)
-; CHECK:        ld      $[[R6:[a-z0-9]+]], 36($sp)
-; CHECK:        ld      $[[R7:[a-z0-9]+]], 32($sp)
+; CHECK:        addiu   $4, $fp, 32
+; CHECK:        ld      $[[R0:[a-z0-9]+]], 60($fp)
+; CHECK:        ld      $[[R1:[a-z0-9]+]], 56($fp)
+; CHECK:        ld      $[[R2:[a-z0-9]+]], 52($fp)
+; CHECK:        ld      $[[R3:[a-z0-9]+]], 48($fp)
+; CHECK:        ld      $[[R4:[a-z0-9]+]], 44($fp)
+; CHECK:        ld      $[[R5:[a-z0-9]+]], 40($fp)
+; CHECK:        ld      $[[R6:[a-z0-9]+]], 36($fp)
+; CHECK:        ld      $[[R7:[a-z0-9]+]], 32($fp)
 }
 
 

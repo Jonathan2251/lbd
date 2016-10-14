@@ -1,4 +1,4 @@
-; RUN: llc  -march=cpu0el < %s | FileCheck %s -check-prefix=16
+; RUN: llc  -march=cpu0el -relocation-model=pic < %s | FileCheck %s -check-prefix=16
 
 @.str = private unnamed_addr constant [6 x i8] c"hello\00", align 1
 @_ZTIPKc = external constant i8*

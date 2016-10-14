@@ -1,4 +1,4 @@
-; RUN: llc < %s -march=cpu0el | FileCheck %s 
+; RUN: llc < %s -march=cpu0el -relocation-model=pic | FileCheck %s 
 
 @g0 = external global i32
 @g1 = external global i32

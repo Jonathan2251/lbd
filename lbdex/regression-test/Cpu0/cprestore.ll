@@ -1,4 +1,4 @@
-; RUN: llc -march=cpu0el < %s | FileCheck %s
+; RUN: llc -march=cpu0el -relocation-model=pic < %s | FileCheck %s
 
 ; CHECK: .set nomacro
 ; CHECK: .cprestore

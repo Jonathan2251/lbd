@@ -1,6 +1,6 @@
 ; Test to make sure that the 'private' is used correctly.
 ;
-; RUN: llc -march=cpu0el -mcpu=cpu032II < %s | FileCheck %s
+; RUN: llc -march=cpu0el -mcpu=cpu032II -relocation-model=pic < %s | FileCheck %s
 
 define private void @foo() {
 ; CHECK: foo:

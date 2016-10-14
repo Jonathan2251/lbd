@@ -1,4 +1,4 @@
-; RUN: llc -march=cpu0el < %s | FileCheck %s
+; RUN: llc -march=cpu0el -relocation-model=pic < %s | FileCheck %s
 
 define i64 @shl0(i64 %a, i32 %b) nounwind readnone {
 entry:

@@ -1,4 +1,4 @@
-; RUN: llc  < %s -march=cpu0 -mcpu=cpu032I -cpu0-s32-calls=true | FileCheck %s -check-prefix=CHECK
+; RUN: llc  < %s -march=cpu0 -mcpu=cpu032I -relocation-model=pic -cpu0-s32-calls=true | FileCheck %s -check-prefix=CHECK
 %struct.S2 = type { %struct.S1, %struct.S1 }
 %struct.S1 = type { i8, i8 }
 %struct.S4 = type { [7 x i8] }

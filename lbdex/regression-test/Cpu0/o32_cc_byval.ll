@@ -1,4 +1,4 @@
-; RUN: llc -march=cpu0el -mcpu=cpu032II < %s | FileCheck %s
+; RUN: llc -march=cpu0el -mcpu=cpu032II -relocation-model=pic < %s | FileCheck %s
 
 %0 = type { i8, i16, i32, i64, double, i32, [4 x i8] }
 %struct.S1 = type { i8, i16, i32, i64, double, i32 }

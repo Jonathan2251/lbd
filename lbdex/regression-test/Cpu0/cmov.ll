@@ -1,4 +1,4 @@
-; RUN: llc -march=cpu0 -cpu0-use-small-section=true < %s | FileCheck %s -check-prefix=O32
+; RUN: llc -march=cpu0 -relocation-model=pic -cpu0-use-small-section=true < %s | FileCheck %s -check-prefix=O32
 
 @i1 = global [3 x i32] [i32 1, i32 2, i32 3], align 4
 @i3 = common global i32* null, align 4

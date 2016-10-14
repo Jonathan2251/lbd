@@ -1,4 +1,4 @@
-; RUN: llc -march=cpu0el -mcpu=cpu032II < %s | FileCheck -check-prefix=CHECK-PIC %s
+; RUN: llc -march=cpu0el -mcpu=cpu032II -relocation-model=pic < %s | FileCheck -check-prefix=CHECK-PIC %s
 ; RUN: llc -march=cpu0el -mcpu=cpu032II -relocation-model=static < %s | FileCheck -check-prefix=CHECK-NONPIC %s
 
 @external_gd = external thread_local global i32

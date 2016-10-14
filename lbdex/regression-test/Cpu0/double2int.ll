@@ -1,4 +1,4 @@
-; RUN: llc -march=cpu0 < %s | FileCheck %s
+; RUN: llc -march=cpu0 -relocation-model=pic < %s | FileCheck %s
 
 define i32 @f1(double %d) nounwind readnone {
 entry:
