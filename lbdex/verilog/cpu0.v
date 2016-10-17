@@ -1,3 +1,4 @@
+`define SIMULATE_DELAY_SLOT
 `define MEMSIZE   'h80000
 `define MEMEMPTY   8'hFF
 `define NULL       8'h00
