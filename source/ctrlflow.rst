@@ -10,10 +10,12 @@ Control flow statements
 This chapter illustrates the corresponding IR for control flow statements, like 
 **“if else”**, **“while”** and **“for”** loop statements in C, and how to 
 translate these control flow statements of llvm IR into Cpu0 instructions in 
-section I. In section II, an optimization pass of control flow for backend is 
-introduced. It's a simple tutorial program to let readers know how to add a 
-backend optimization pass and program it. Section III, include the conditional 
-instructions handle since the clang will generate specific IRs, select and 
+section I. In section "Cpu0 backend Optimization: Remove useless JMP", 
+an optimization pass of control flow for backend is introduced. 
+It's a simple tutorial program to let readers know how to add a 
+backend optimization pass and program it. 
+Section "Conditional instruction", include the conditional 
+instructions handling since clang will generate specific IRs, select and 
 select_cc, to support the backend optimiation in control flow statement.
 
 
@@ -80,9 +82,9 @@ jmp BasicBlock_01 by the following pattern definition,
 
 The pattern [(br bb:$imm24)] in class UncondBranch is translated into jmp 
 machine instruction.
-The pair of **cmp** and **jne** Cpu0 instructions translation is more complicate
-than simple 
-one-to-one IR to machine instruction translation we have experienced until now. 
+The pair of **cmp** and **jne** Cpu0 instructions translation is more 
+complicated than all of the simple one-to-one IR to machine instruction 
+translation that we have experienced until now. 
 To solve this chained IR to machine instructions translation, we define the 
 following pattern,
 
@@ -118,7 +120,7 @@ and setne, we define setueq and setune, by reference Mips code even though
 we didn't find how to generate setune IR from C language. 
 We have tried to define unsigned int type, but clang still generates setne 
 instead of setune. 
-Pattern search order come along with their appear order in context. 
+Pattern search order come along with the order of their appearing in context. 
 The last pattern (brcond RC:$cond, bb:$dst) meaning branch to $dst 
 if $cond != 0. So we set the corresponding translation to 
 (JNEOp (CMPOp RC:$cond, ZEROReg), bb:$dst).
@@ -156,12 +158,12 @@ function code we defined before,
     :end-before: //@eliminateFrameIndex {
 
 Although the following definition in Cpu0RegisterInfo.td has no real effect in 
-Reserved Registers, you should comment the Reserved Registers in it for 
-readability. Setting SW both in register class CPURegs and SR to allow the SW 
-to be accessed by RISC instructions like ``andi`` and allow programmer use 
+Reserved Registers, it's better to comment the Reserved Registers in it for 
+readability. Setting SW in both register classes CPURegs and SR to allow access
+SW by RISC instructions like ``andi``, and allow programmers use 
 traditional assembly instruction ``cmp``. 
-The copyPhysReg() is called when DestReg and SrcReg are belonging to different 
-Register Class. 
+The copyPhysReg() is called when both DestReg and SrcReg are belonging to 
+different Register Classes. 
 
 .. rubric:: lbdex/chapters/Chapter2/Cpu0RegisterInfo.td
 .. literalinclude:: ../lbdex/Cpu0/Cpu0RegisterInfo.td
@@ -480,19 +482,19 @@ Cpu0 backend Optimization: Remove useless JMP
 ---------------------------------------------
 
 LLVM uses functional pass both in code generation and optimization. 
-Following the 3 tiers of compiler architecture, LLVM do much optimization in 
+Following the 3 tiers of compiler architecture, LLVM do most optimization in 
 middle tier of LLVM IR, SSA form. 
 Beyond middle tier optimization, there are opportunities in 
 optimization which depend on backend features. 
 The "fill delay slot" in Mips is an example of backend optimization used in 
 pipeline RISC machine.
-You can migrate from Mips if your backend is a pipeline RISC with 
+You can port it from Mips if your backend is a pipeline RISC with 
 delay slot. 
 In this section, we apply the "delete useless jmp" in Cpu0 
 backend optimization. 
 This algorithm is simple and effective to be a perfect tutorial in optimization. 
 Through this example, you can understand how to add an optimization pass and 
-coding your complicate optimization algorithm on your backend in real project.
+coding your complicated optimization algorithm on your backend in real project.
 
 Chapter8_2/ supports "delete useless jmp" optimization algorithm which add 
 codes as follows,
@@ -523,12 +525,12 @@ codes as follows,
 .. literalinclude:: ../lbdex/Cpu0/Cpu0DelUselessJMP.cpp
 
 
-As above code, except Cpu0DelUselessJMP.cpp, other files changed for registering  
-class DelJmp as a functional pass. 
+As above code, except Cpu0DelUselessJMP.cpp, other files are changed for 
+registering class DelJmp as a functional pass. 
 As the comment of above code, MBB is the current 
 block and MBBN is the next block. For each last instruction of every MBB, we 
-check if it is the JMP instruction as well as 
-its Operand is the next basic block. 
+check whether or not it is the JMP instruction and its Operand is the next 
+basic block. 
 By getMBB() in MachineOperand, you can get the MBB address. 
 For the member functions of MachineOperand, please check 
 include/llvm/CodeGen/MachineOperand.h
@@ -568,8 +570,8 @@ because we set the "STATISTIC(NumDelJmp, "Number of useless jmp deleted")" in
 code. It deletes 2 jmp instructions from block "# BB#0" and "$BB0_6".
 You can check it by ``llc -enable-cpu0-del-useless-jmp=false`` option to see 
 the difference to non-optimization version.
-If you run with ch8_1_1.cpp, will find 10 jmp instructions are deleted from 120 
-lines of assembly code, which meaning 8\% improvement in speed and code size 
+If you run with ch8_1_1.cpp, you will find 10 jmp instructions are deleted from 
+120 lines of assembly code, which meaning 8\% improvement in speed and code size 
 [#cache-speed]_.
 
 
@@ -577,15 +579,16 @@ Fill Branch Delay Slot
 -----------------------
  
 Cpu0 instruction set is designed to be a classical RISC pipeline machine.
-Classical machine has many perfect features [#Quantitative]_ [#wiki-pipeline]_.
-I changed Cpu0 backend to a 5 stages of classical RISC pipeline machine with 
-one delay slot like some of Mips model.
+Classical RISC machine has many perfect features [#Quantitative]_ [#wiki-pipeline]_.
+I change Cpu0 backend to a 5 stages of classical RISC pipeline machine with 
+one delay slot like some of Mips model (The original Cpu0 from its author, is a
+3 stages of RISC machine).
 With this change, the backend needs
 filling the NOP instruction in the branch delay slot.
-In order to make this tutorial as simple for learning, Cpu0 backend code not
-fill the branch delay slot with useful instruction for optimization.
-Readers can read the MipsDelaySlotFiller.cpp to know how to implement this
-optimization.
+In order to make this tutorial simple for learning, Cpu0 backend code not
+fill the branch delay slot with any useful instruction for optimization.
+Readers can reference the MipsDelaySlotFiller.cpp to know how to insert useful
+instructions in backend optimization.
 Following code added in Chapter8_2 for NOP fill in Branch Delay Slot.
 
 
@@ -617,7 +620,7 @@ Following code added in Chapter8_2 for NOP fill in Branch Delay Slot.
 
 To make the basic block label remains same, statement MIBundleBuilder() needs 
 to be inserted after the statement BuildMI(..., NOP) of Cpu0DelaySlotFiller.cpp.
-MIBundleBuilder() make both the branch instruction and NOP are bundled into one
+MIBundleBuilder() make both the branch instruction and NOP bundled into one
 instruction (first part is branch instruction and second part is NOP).
 
 .. rubric:: lbdex/chapters/Chapter3_2/Cpu0AsmPrinter.cpp
@@ -634,14 +637,13 @@ instruction (first part is branch instruction and second part is NOP).
     :start-after: #endif //#if CH >= CH8_2 //1
     :end-before: //@EmitInstruction }
 
-To print the NOP, the Cpu0AsmPrinter.cpp of Chapter3_2 has printed all bundle
-instructions in loop.
+In order to print the NOP, the Cpu0AsmPrinter.cpp of Chapter3_2 prints all 
+bundle instructions in loop.
 Without the loop, only the first part of the bundle instruction 
 (branch instruction only) is printed. 
-The result is NOP is missing and not be filled in branch delay slot.
 In llvm 3.1 the basice block label remains same even if you didn't do the bundle
 after it.
-But for some reasons, it changed in llvm some later version and you need doing 
+But for some reasons, it changed in llvm at some later version and you need doing 
 "bundle" in order to keep block label unchanged at later llvm phase.
 
 
@@ -652,7 +654,7 @@ Conditional instruction
 .. literalinclude:: ../lbdex/input/ch8_2_select.cpp
     :start-after: /// start
 
-If you run Chapter8_1 with ch8_2_select.cpp will get the following result.
+Run Chapter8_1 with ch8_2_select.cpp will get the following result.
 
 .. code-block:: console
 
@@ -698,11 +700,11 @@ If you run Chapter8_1 with ch8_2_select.cpp will get the following result.
   LLVM ERROR: Cannot select: 0x39f47c0: i32 = select_cc ...
 
 
-As llvm IR of ch8_2_select.bc as above, clang generates **select** IR for 
+As above llvm IR, ch8_2_select.bc, clang generates **select** IR for 
 small basic control block (if statement only include one assign statement). 
-This **select** IR is optimization result for CPU which has conditional 
+This **select** IR is the result of optimization for CPUs with conditional 
 instructions support. 
-And from above llc command debug trace message, IR **select** is changed to 
+And from above error message, obviously IR **select** is changed to 
 **select_cc** during DAG optimization stages.
 
 
@@ -755,11 +757,11 @@ Chapter8_2 supports **select** with the following code added and changed.
     :end-before: #endif
 
 
-Set ISD::SELECT_CC to Expand will stop llvm optimization to merge setcc and 
-select into one IR select_cc [#wb]_. 
-Next the LowerSELECT() return ISD::SELECT as 
-Op code directly. Finally the pattern define in Cpu0CondMov.td will 
-translate the **select** IR into **movz** or **movn** conditional instruction. 
+Set ISD::SELECT_CC to "Expand" will stop llvm optimization from merging "setcc" 
+and "select" into one IR "select_cc" [#wb]_. 
+Next the LowerOperation() return Op code directly for ISD::SELECT. 
+Finally the pattern defined in Cpu0CondMov.td will 
+translate the **select** IR into conditional instruction, **movz** or **movn**. 
 Let's run Chapter8_2 with ch8_2_select.cpp to get the following result. 
 Again, the cpu032II uses **slt** instead of **cmp** has a little improved in 
 instructions number.
@@ -783,22 +785,24 @@ instructions number.
 
 The clang uses **select** IR in small basic block 
 to reduce the branch cost in pipeline machine since the branch will make the 
-pipeline stall. 
+pipeline "stall". 
 But it needs the conditional instruction support [#Quantitative]_. 
-If your backend has no conditional instruction and need clang compiler with 
-optimization option **O1** level above, you can change clang to force it 
-generate traditional branch basic block instead of IR **select**.
-RISC CPU came from pipeline advantage and add more and more instruction as time 
-passed. Compare Mips and ARM, the Mips has only **movz** and **movn** two 
-instructions while ARM has many. We create Cpu0 instructions as a RISC pipeline 
-machine as well as simple instructions for compiler toolchain tutorial. 
-Anyway the **cmp** instruction hired because many programmer is used to 
-it in past and now (ARM use it). It match the thinking in assembly programming, 
+If your backend has no conditional instruction and needs clang compiler with 
+optimization option **O1** above level, you can change clang to force it 
+generating traditional branch basic block instead of generating IR **select**.
+RISC CPU came from the advantage of pipeline and add more and more instruction 
+when time passed. 
+Compare Mips and ARM, the Mips has only **movz** and **movn** two 
+instructions while ARM has many. We create Cpu0 instructions as a simple 
+instructions RISC pipeline machine for compiler toolchain tutorial. 
+However the **cmp** instruction is hired because many programmer is used to 
+it in past and now (ARM use it). 
+This instruction matches the thinking in assembly programming, 
 but the **slt** instruction is more efficient in RISC pipleline.
-If you designed a backend aimed for C/C++ highlevel language, you should 
-consider **slt** instead **cmp**. Assembly code are rare used in programming, 
-beside, the assembly programmer can accept **slt** either since usually they 
-are professional.
+If you designed a backend aimed for C/C++ highlevel language, you may consider 
+**slt** instead of **cmp** since assembly code are rare used in programming and 
+beside, the assembly programmer can accept **slt** not difficultly since usually 
+they are professional.
 
 File ch8_2_select2.cpp will generate IR **select** if compile with ``clang -O1``.
 
@@ -820,8 +824,8 @@ following table.
   ==================  ============================================================
 
 
-File ch8_2_select_global_pic.cpp for wrapper pic mode of global variable support which mentioned 
-in Chapter Global variables can be tested now as follows. 
+File ch8_2_select_global_pic.cpp mentioned in Chapter Global variables can be 
+tested now as follows,
 
 .. rubric:: lbdex/input/ch8_2_select_global_pic.cpp
 .. literalinclude:: ../lbdex/input/ch8_2_select_global_pic.cpp
@@ -926,12 +930,12 @@ in Chapter Global variables can be tested now as follows.
 Phi node
 ---------
 
-Since phi (Φ) node is popular used in SSA form [#ssa-wiki]_, of course llvm applies 
-phi node in IR for optimization work. 
-Phi node exists for "live variable analysis", an example for C is here 
+Since phi (Φ) node is popular used in SSA form [#ssa-wiki]_, llvm applies 
+phi node in IR for optimization work either. 
+Phi node exists for "live variable analysis". An example for C is here 
 [#phi-ex]_. 
-As mentioned in wiki web site of reference above, through dominance frontiers 
-identify compiler knows where to insert Φ functions.
+As mentioned in wiki web site of reference above, through finding dominance 
+frontiers, compiler knows where to insert Φ functions.
 The following input let you know the benefits of phi node as follows,
 
 .. rubric:: lbdex/input/ch8_2_phinode.cpp
@@ -1032,14 +1036,14 @@ The following input let you know the benefits of phi node as follows,
   
 Compile with ``clang -O3`` will generate phi function. The phi function can
 assign virtual register value directly from multi basic blocks.
-Compile with ``clang -O0`` doesn't generate phi, it assign virtual register
+Compile with ``clang -O0`` doesn't generate phi, it assigns virtual register
 value by loading stack slot where the stack slot is saved in each of multi 
 basic blocks before. 
-In this example the pointer of %1 point to the stack slot, and
+In this example the pointer of %1 point to the stack slot, and 
 "store i32 %8, i32* %1", " store i32 %14, i32* %1", "store i32 %20, i32* %1" 
 in label 6, 12 and 18, respectively. In other words, it needs 3 store 
 instructions. 
-It's possible that the compiler find that the a == 0 is always true after 
+It's possible that compiler finds that the a == 0 is always true after 
 optimization analysis through phi node. 
 If so, the phi node version will bring better
 result because ``clang -O0`` version uses load and store with pointer %1 which
@@ -1047,23 +1051,21 @@ may cut the optimization opportunity.
 
 If you are interested in more details than the wiki web site, please refer book
 here [#phi-book]_ for phi node, or book here [#dominator-dragonbooks]_ for the 
-dominator tree analysis if you have this book only.
+dominator tree analysis if you have this book.
 
 
 RISC CPU knowledge
 -------------------
 
-As mentioned in the previous section, Cpu0's instruction set is a RISC 
+As mentioned in the previous section, Cpu0 is a RISC 
 (Reduced Instruction Set 
-Computer) CPU with 5 stages of pipeline (Even though it is not a pipeline as
-the Verilog designed at later chapter at this point). 
-RISC CPU is full in the world. 
-Even the X86 of CISC (Complex Instruction Set Computer) is RISC inside. 
-(It translates CISC instruction into micro-instructions which do pipeline as 
-RISC). Knowledge with RISC will make you satisfied in compiler design. 
-List these two excellent books we have read which include the real RISC CPU 
-knowledge needed for reference. 
-Sure, there are many books in Computer Architecture, and some of them contain 
+Computer) CPU with 5 stages of pipeline. 
+RISC CPU is full in the world, even the X86 of CISC (Complex Instruction Set 
+Computer) is RISC inside (It translates CISC instruction into 
+micro-instructions which do pipeline as RISC). 
+Knowledge with RISC concept may make you satisfied in compiler design. 
+List these two excellent books we have read for reference. 
+Sure, there are many books in Computer Architecture and some of them contain 
 real RISC CPU knowledge needed, but these two are excellent and popular.
 
 Computer Organization and Design: The Hardware/Software Interface (The Morgan 
@@ -1073,10 +1075,9 @@ Computer Architecture: A Quantitative Approach (The Morgan Kaufmann Series in
 Computer Architecture and Design) 
 
 The book of “Computer Organization and Design: The Hardware/Software Interface” 
-(there are 4 editions at the book is written) is for the introduction 
-(simple). 
-“Computer Architecture: A Quantitative Approach” (there are 5 editions at 
-the book is written) is more complicate and deep in CPU architecture. 
+(there are 4 editions at the book is written) is for the introduction, while 
+“Computer Architecture: A Quantitative Approach” is more complicate and deep 
+in CPU architecture (there are 5 editions at the book is written). 
 
 Above two books use Mips CPU as an example since Mips is more RISC-like than 
 other market CPUs. 
