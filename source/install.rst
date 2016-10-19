@@ -646,7 +646,7 @@ our compiler instead, as follows,
 
 Then do make as follows,
 
-.. code-block:: bash
+.. code-block:: console
 
   [Gamma@localhost cmake_debug_build]$ make -j8 -l8
   Scanning dependencies of target LLVMSupport
@@ -676,7 +676,7 @@ If your setting has anything about gdb errors, please follow the errors
 indication (maybe need to download gdb again). 
 Finally, try gdb as follows.
 
-.. code-block:: bash
+.. code-block:: console
 
   [Gamma@localhost InputFiles]$ pwd
   ~/llvm/test/src/lib/Target/Cpu0/ExampleCode/

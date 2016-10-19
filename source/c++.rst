@@ -7,7 +7,7 @@ C++ support
    :local:
    :depth: 4
 
-This chapter supports C++ compiler features. 
+This chapter supports some C++ compiler features. 
 
 
 Exception handle
@@ -20,10 +20,9 @@ ch12_inherit.cpp as follows,
 .. literalinclude:: ../lbdex/input/ch12_inherit.cpp
     :start-after: /// start
 
-If using cout instead of printf in ch12_inherit.cpp on Linux won't generate exception 
-handler IRs.
-But on iMac, ch12_inherit.cpp will generate invoke, landing, resume and unreachable 
-exception handler IRs.
+If using cout instead of printf in ch12_inherit.cpp, it won't generate exception 
+handler IRs on Linux, whereas it will generate invoke, landing, resume 
+and unreachable exception handler IRs on iMac.
 Example code, ch12_eh.cpp, which supports **try** and **catch** exception handler 
 as the following will generate these exception handler IRs both on iMac and Linux.
 
@@ -73,7 +72,7 @@ exception C++ keywords. It can compile ch12_eh.bc as follows,
 Thread variable
 -------------------
 
-C++ include the thread variable as the following file ch12_thread_var.cpp.
+C++ support thread variable as the following file ch12_thread_var.cpp.
 
 .. rubric:: lbdex/input/ch12_thread_var.cpp
 .. literalinclude:: ../lbdex/input/ch12_thread_var.cpp
@@ -85,8 +84,8 @@ The same thread share the thread variable but different threads have their own
 thread variable with the same name [#thread-wiki]_.
 
 To support thread variable, tlsgd, tlsldm, dtp_hi, dtp_lo, gottp, tp_hi and
-tp_lo in evaluateRelocExpr() of Cpu0AsmParser.cpp, in printImpl() of
-Cpu0MCExpr.cpp and the following code are required.
+tp_lo in both evaluateRelocExpr() of Cpu0AsmParser.cpp and printImpl() of
+Cpu0MCExpr.cpp are needed, and the following code are required.
 Most of them are for relocation record handle and display since the thread 
 variable created by OS or language library which support multi-threads 
 programming.
@@ -250,10 +249,11 @@ programming.
 
 In pic mode, the __thread variable access by call function __tls_get_addr with 
 the address of thread variable. 
-The c++11 standard thread_local variable is accessed by call function _ZTW1b 
-which call the function __tls_get_addr too to get the thread_local variable 
+The c++11 standard thread_local variable is accessed by calling function _ZTW1b 
+which also call the function __tls_get_addr to get the thread_local variable 
 address. 
-In static mode, the thread variable is accessed by machine instructions as follows,
+In static mode, the thread variable is accessed by machine instructions as 
+follows,
 
 .. code-block:: console
 
@@ -267,9 +267,9 @@ In static mode, the thread variable is accessed by machine instructions as follo
 While Mips uses rdhwr instruction to access thread varaible as below, 
 Cpu0 access thread varaible without inventing any new instruction. 
 The thread variables are keeped in thread varaible memory location which 
-accessed through \%tp_hi and \%tp_lo. Furthermore, this section of memory is 
+accessed through \%tp_hi and \%tp_lo, and furthermore, this section of memory is 
 protected through kernel mode program. 
-As a result, the user mode program cannot access this area of memory and 
+Thus, the user mode program cannot access this area of memory and 
 no space to breathe for hack program.
 
 .. code-block:: console
@@ -331,14 +331,14 @@ programmer. But this solution is OS dependent.
 After c++11, programmer can use atomic to program and run the code 
 on every different platform since the thread and atomic are part of c++ standard.
 Beside of portability, the other important benifit is the compiler can generate
-high performance code by the target hardware instruction rather than couting on
+high performance code by the target hardware instructions rather than couting on
 lock() function only [#atomic-wiki]_ [#atomic-stackoverflow]_ 
 [#atomic-herbsutter]_.
 
 In order to support atomic in C++ and java, llvm provides the atomic IRs here 
 [#atomics-llvm]_ [#llvmlang-ordering]_.
 
-To support llvm atomic IRs, the following code added to Chapter12_1.
+For supporting llvm atomic IRs, the following code added to Chapter12_1.
 
 .. rubric:: lbdex/chapters/Chapter12_1/Disassembler/Cpu0Disassembler.cpp
 .. literalinclude:: ../lbdex/Cpu0/Disassembler/Cpu0Disassembler.cpp
@@ -485,7 +485,7 @@ calling EmitInstrWithCustomInserter() with Machine Instruction Opcode
 "ATOMIC_LOAD_ADD_I8" when it meets IR "load atomic i8*".
 
 The "setInsertFencesForAtomic(true);" in Cpu0ISelLowering.cpp will trigger 
-addIRPasses() of Cpu0TargetMachine.cpp, then createAtomicExpandPass() in 
+addIRPasses() of Cpu0TargetMachine.cpp, then the createAtomicExpandPass() of 
 addIRPasses() will create llvm IR ATOMIC_FENCE. Next, the lowerATOMIC_FENCE()
 of Cpu0ISelLowering.cpp will create Cpu0ISD::Sync when it meets IR ATOMIC_FENCE
 since "setOperationAction(ISD::ATOMIC_FENCE, MVT::Other, Custom);" of 
@@ -515,7 +515,7 @@ List the atomic IRs, corresponding DAGs and Opcode as the following table.
   ==========================  ===========================  ===========================
 
 Input files atomics.ll and atomics-fences.ll include the llvm atomic IRs test.
-Input files ch12_atomics.cpp and ch12_atomics-fences.cpp are the C++ source 
+Input files ch12_atomics.cpp and ch12_atomics-fences.cpp are the C++  
 files for generating llvm atomic IRs. The C++ files need to run with clang 
 options "clang++ -pthread -std=c++11".
 

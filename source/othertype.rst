@@ -42,14 +42,14 @@ Cpu0InstrInfo.td and Cpu0InstPrinter.cpp as follows,
 As comment in Cpu0InstPrinter.cpp, the printMemOperandEA is added at early 
 chapter 3_2 since the DAG data node, mem_ea of Cpu0InstrInfo.td, cannot be 
 disabled by ch7_1_localpointer, only opcode node can be disabled.
-Run ch7_1_localpointer.cpp with code Chapter7_1/ which support pointer to local variable, 
-will get result as follows,
+Run ch7_1_localpointer.cpp with code Chapter7_1/ which support pointer to local 
+variable, will get result as follows,
 
 .. rubric:: lbdex/input/ch7_1_localpointer.cpp
 .. literalinclude:: ../lbdex/input/ch7_1_localpointer.cpp
     :start-after: /// start
 
-.. code-block:: bash
+.. code-block:: console
 
   118-165-66-82:input Jonathan$ clang -target mips-unknown-linux-gnu -c 
   ch7_1_localpointer.cpp -emit-llvm -o ch7_1_localpointer.bc
@@ -106,7 +106,7 @@ Run Chapter7_1/ with ch7_1_char_in_struct.cpp will get the following result.
 .. literalinclude:: ../lbdex/input/ch7_1_char_in_struct.cpp
     :start-after: /// start
 
-.. code-block:: bash
+.. code-block:: console
   
   118-165-64-245:input Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
   Debug/bin/llvm-dis ch7_1_char_in_struct.bc -o -
@@ -197,7 +197,7 @@ Run Chapter7_1/ with ch7_1_char_short.cpp will get the following result.
 .. literalinclude:: ../lbdex/input/ch7_1_char_short.cpp
     :start-after: /// start
 
-.. code-block:: bash
+.. code-block:: console
   
   1-160-136-236:input Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
   Debug/bin/llvm-dis ch7_1_char_short.bc -o -
@@ -316,7 +316,7 @@ File ch_run_backend.cpp include the test fragment for bool as below.
 .. literalinclude:: ../lbdex/input/ch7_1_bool2.ll
     :start-after: /// start
 
-.. code-block:: bash
+.. code-block:: console
 
     118-165-64-245:input Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
     Debug/bin/llc -march=cpu0 -relocation-model=pic -filetype=asm ch7_1_bool2.ll -o -
@@ -459,7 +459,7 @@ Run Chapter7_1 with ch7_1_longlong.cpp to get the result as follows,
 .. literalinclude:: ../lbdex/input/ch7_1_longlong.cpp
     :start-after: /// start
 
-.. code-block:: bash
+.. code-block:: console
 
   1-160-134-62:input Jonathan$ clang -target mips-unknown-linux-gnu -c 
   ch7_1_longlong.cpp -emit-llvm -o ch7_1_longlong.bc
@@ -562,7 +562,7 @@ will call the library function to translate integer to float. This float (or
 double) function call for Cpu0 will be supported after the chapter of function 
 call. For hardware cost reason, many CPU have no hardware float instructions.
 They call library function to finish float operations. Mips sperarate float 
-operations with a sperarate co-processor for those need float intended 
+operations with a sperarate co-processor for those needing "float intended" 
 application.
 
 
@@ -577,7 +577,7 @@ For ch7_1_globalstructoffset.cpp, the llvm IR as follows,
 .. literalinclude:: ../lbdex/input/ch7_1_globalstructoffset.cpp
     :start-after: /// start
 
-.. code-block:: bash
+.. code-block:: console
 
   // ch7_1_globalstructoffset.ll
   ; ModuleID = 'ch7_1_globalstructoffset.bc'
@@ -604,7 +604,7 @@ For ch7_1_globalstructoffset.cpp, the llvm IR as follows,
 Run Chapter6_1/ with ch7_1_globalstructoffset.bc on static mode will get the 
 incorrect asm file as follows,
 
-.. code-block:: bash
+.. code-block:: console
 
   1-160-134-62:input Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/bin/
   Debug/llc -march=cpu0 -relocation-model=static -filetype=asm 
@@ -622,7 +622,7 @@ Type int is 4 bytes in Cpu0, and the date.day has fields year and month before
 it). 
 Let's use debug option in llc to see what's wrong,
 
-.. code-block:: bash
+.. code-block:: console
 
   jonathantekiimac:input Jonathan$ /Users/Jonathan/llvm/test/
   cmake_debug_build/Debug/bin/llc -march=cpu0 -debug -relocation-model=static 
@@ -802,7 +802,7 @@ Chapter7_1/ include these changes as above, you can run it with
 ch7_1_globalstructoffset.cpp to get the correct generated instruction 
 **“ld $r1, 8($r2)”** for date.day access, as follows.
 
-.. code-block:: bash
+.. code-block:: console
 
     ...
 	  lui	$2, %hi(date)
@@ -873,9 +873,9 @@ Vector type (SIMD) support
 ---------------------------
 
 Vector types are used when multiple primitive data are operated in parallel 
-using a single instruction (SIMD) [#vector]_. Since Mips supports the 
+using a single instruction (SIMD) [#vector]_. Mips supports the 
 following llvm IRs "icmp slt" and "sext" for vector type, Cpu0 supports them
-too.
+either.
 
 .. rubric:: lbdex/input/ch7_1_vector.cpp
 .. literalinclude:: ../lbdex/input/ch7_1_vector.cpp

@@ -59,6 +59,7 @@ Revision history
 
 Version 3.9.0, Not release yet.
   Porting to llvm 3.9.
+  Correct writing.
 
 Version 3.7.4, Released December 7, 2016
   Change bal instruction from with delay slot to without delay slot.
