@@ -417,28 +417,28 @@ Motivation
 
 We all learned computer knowledge from school through the concept of book.
 The concept is an effective way to know the big view. 
-But once getting into develop a real complicate system, we often feel the 
+But once getting into develop a real complicated system, we often feel the 
 concept from school or book is not much or not details enough. 
-Compiler is a very complicate system, so traditionally 
+Compiler is a very complicated system, so traditionally 
 the students in school learn this knowledge in concept and do the home work via 
 yacc/lex tools to translate part of C or other high level language into 
-immediate representation (IR) to feel the parsing knowledge and tools 
-application. 
+immediate representation (IR) or assembly to feel the parsing knowledge and 
+tools application. 
 
 On the other hand, the compiler engineers who graduated from school often facing 
 the real market complicated CPUs and specification. Since for market reason, 
 there are a serial of CPUs and ABI (Application Binary Interface) to deal with. 
-Moreover, for speed reason, the real compiler backend program is too complicate 
-to be a learning material in compiler backend designing even the market CPU 
-include only one CPU and ABI. 
+Moreover, for speed performance reason, the real compiler backend program is too 
+complicated to be a learning material in compiler backend designing even the 
+market CPU include only one CPU and ABI. 
 
 This book develop the compiler backend along with a simple school designed CPU 
 which called Cpu0. It include the implementation of a compiler backend, linker, 
 llvm-objdump, elf2hex as well as Verilog language source code of Cpu0 
 instruction set. 
 We provide readers full source code to compile C/C++ program and see 
-how the programs run on the Cpu0 machine you created by verilog language.
-Through this school learning purpose CPU, you have the chance to know the whole 
+how the programs run on the Cpu0 machine created by verilog language.
+Through this school learning purpose CPU, you get the chance to know the whole 
 thing in compiler backend, linker, system tools and CPU design. Usually it is 
 not easy from working in real CPU and compiler since the real job is too 
 complicated to be finished by one single person only.
@@ -450,7 +450,7 @@ The other is technical with following the 3 tiers of compiler software
 structure along with C++ object oriented technology.
 GCC started with C and adopted C++ after near 20 years later [#wiki-gcc]_.
 Maybe gcc adopted C++ just because llvm do that.
-I learned C++ object oriented programming during studied in school.
+I learned C++ object oriented programming during studing in school.
 After "Design Pattern", "C++/STL" and "object oriented design" books study,
 I understand the C is easy to trace while C++ is easy to creating reusable
 software units known as object.
@@ -461,8 +461,8 @@ ability, rewrite ability, reuse ability and performance to define the software
 quality.
 Object oriented programming exists for solving the big and complex
 software development. 
-Since compiler and OS are complex software without question, why gcc and linux 
-not using c++ [#wiki-cpp]_.
+Of course, compiler and OS are complex software without question, why do gcc 
+and linux not using c++ [#wiki-cpp]_?
 This is the reason I try to create a backend under llvm rather than gcc.
 
 Preface
@@ -486,17 +486,18 @@ backend's functionality.
 Since Cpu0 is a simple RISC CPU for educational purpose, it makes this llvm 
 backend code simple too and easy to learning. In addition, Cpu0 supply the 
 Verilog source code that you can run on your PC or FPGA platform when you go to 
-chapter Run backend. To explain the backend design, we carefully design C/C++
-program for each chapter new added function. Through these example code, 
-readers can understand what IRs (llvm immediate form) the backend transfer from
-and the C/C++ code corresponding to these IRs.
+chapter "Verify backend on Verilog simulator". To explain the backend design, 
+we carefully design C/C++ program for each chapter new added function. Through 
+these example code, readers can understand what IRs (llvm immediate form) the 
+backend transfer from and the C/C++ code corresponding to these IRs.
 
 This tutorial started using the LLVM 3.1 Mips backend as a reference and sync
 to llvm 3.5 Mips at version 3.5.3. As our experience, reference and sync with
-a released backend code will help upgrading your backend features and fix bugs.
+a released backend code will help upgrading your backend features and fixing 
+bugs.
 You can take advantage by compare difference from version to version, and hire
-llvm development team effort. Since 
-Cpu0 is an educational architecture, and it has missed some key pieces of 
+llvm development team effort. 
+Since Cpu0 is an educational architecture, and it has missed some key pieces of 
 documentation needed when developing a compiler, such as an Application Binary 
 Interface (ABI). We implement our backend by borrowing information from the Mips 
 ABI as a guide. You may want to familiarize yourself with the relevant parts of 
@@ -610,7 +611,7 @@ code are added by the end of this chapter.
 
 This chapter highlights the structure of an LLVM backend using by UML graphs, 
 and we continue to build the Cpu0 backend. 
-Around 3100 lines of source code are added, most of which are common from one 
+Thousands of lines of source code are added, most of which are common from one 
 LLVM backends to another, regardless of the target architecture. 
 By the end of this chapter, the Cpu0 LLVM backend will support less than ten 
 instructions to generate some initial assembly output. 
@@ -619,44 +620,41 @@ instructions to generate some initial assembly output.
 
 Over ten C operators and their corresponding LLVM IR instructions are introduced 
 in this chapter. 
-Around 345 lines of source code, mostly in .td Target Description files, are 
-added. With these 345 lines, the backend can now translate the **+, -, \*, /, 
-&, |, ^, <<, >>, !** and **%** C operators into the appropriate Cpu0 assembly 
-code. Usage of the ``llc`` debug option and of **Graphviz** as a debug tool are 
-introduced in this chapter.
+Few houndred lines of source code, mostly in .td Target Description files, are 
+added. With these houndred lines of source code, the backend can now translate 
+the **+, -, \*, /, &, |, ^, <<, >>, !** and **%** C operators into the 
+appropriate Cpu0 assembly code. Usage of the ``llc`` debug option and of 
+**Graphviz** as a debug tool are introduced in this chapter.
 
 :ref:`sec-genobjfiles`:
 
 Object file generation support for the Cpu0 backend is added in this chapter, 
 as the Target Registration structure is introduced. 
-With 700 lines of additional code, the Cpu0 backend can now generate big and 
-little endian ELF object files.
+Based on llvm structure, the Cpu0 backend can generate big and little endian 
+ELF object files without much effort.
 
 :ref:`sec-globalvars`:
 
-Global variable, struct and array support, char and short int, are added in 
-this chapter. 
-About 300 lines of source code are added to do this. The Cpu0 supports PIC and 
-static addressing mode, both addressing mode explained as their functionality 
-are implemented.
+Global variable handling is added in this chapter. Cpu0 supports PIC and static 
+addressing mode, both addressing mode explained as their functionality are 
+implemented.
 
 :ref:`sec-othertypesupport`:
 
-In addition to type int, other data type like pointer, char, bool, long long, 
+In addition to type int, other data type such as pointer, char, bool, long long, 
 structure and array are added in this chapter.
 
 :ref:`sec-controlflow`:
 
-Support for the **if, else, while, for, goto, switch, case** flow control 
-statements as well as both a simple optimization software pass and hardware 
+Support for flow control statements, such as, **if, else, while, for, goto, 
+switch, case** as well as both a simple optimization software pass and hardware 
 instructions for control statement optimization discussed in this chapter. 
-Around 500 lines of source code added.
 
 :ref:`sec-funccall`:
 
 This chapter details the implementation of function calls in the Cpu0 backend. 
 The stack frame, handling incoming & outgoing arguments, and their corresponding 
-standard LLVM functions are introduced. Over 700 lines of source code are added.
+standard LLVM functions are introduced. 
 
 :ref:`sec-elf`:
 
@@ -664,8 +662,8 @@ This chapter details Cpu0 support for the well-known ELF object file format.
 The ELF format and binutils tools are not a part of LLVM, but are introduced. 
 This chapter details how to use the ELF tools to verify and analyze the object 
 files created by the Cpu0 backend. 
-The ``llvm-objdump -d`` support for Cpu0 which translate elf into hex 
-file format is added in the last section of this chapter.
+The disassemble command ``llvm-objdump -d`` support for Cpu0 is added in the 
+last section of this chapter.
 
 :ref:`sec-asm`:
 
@@ -679,8 +677,8 @@ Support C++ language features. It's under working.
 :ref:`sec-verilog`:
 
 Create the CPU0 virtual machine with Verilog language of Icarus tool first. 
-With this tool, feeding the hex file which generated by llvm-objdump to the CPU0 
-virtual machine and seeing the CPU0 running result on PC computer.
+With this tool, feeding the hex file which generated by llvm-objdump to the Cpu0 
+virtual machine and seeing the Cpu0 running result on PC computer.
 
 :ref:`sec-appendix-installing`:
 
@@ -689,8 +687,9 @@ setting for Mac OS X and Linux platforms.
 
 :ref:`sec-appendix-doc`:
 
-This book uses Sphix to generate pdf and epub format of document further.
-Details how to install tools to and generate these docuemnts.
+This book uses Sphinx to generate pdf and epub format of document further.
+Details about how to install tools to and generate these docuemnts and 
+regression test for Cpu0 backend are included.
 
 
 .. [#llvm-license] http://llvm.org/docs/DeveloperPolicy.html#license
