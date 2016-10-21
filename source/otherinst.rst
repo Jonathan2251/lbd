@@ -11,8 +11,8 @@ This chapter adds more Cpu0 arithmetic instructions support first.
 The `section Display llvm IR nodes with Graphviz`_ 
 will show you the steps of DAG optimization and their corresponding ``llc`` 
 display options. 
-These DAGs translation in some steps of optimization can be displayed by the 
-graphic tool of Graphviz which supply useful information with graphic view. 
+These DAGs translation existed in some steps of optimization can be displayed by 
+the graphic tool of Graphviz which supply useful information in graphic view. 
 Logic instructions support will come after arithmetic section.
 In spite of that llvm backend handle the IR only, we get the IR from the 
 corresponding C operators with designed C example code. 

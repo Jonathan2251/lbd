@@ -22,7 +22,7 @@ pattern match in theoretic compiler and realistic llvm code generation phase,
 please focus on the classes relationship in this backend structure. 
 Once knowing the structure, you can 
 create your backend structure as quickly as we did, even though there are 5000 
-lines of code added in this chapter.
+lines of code around added in this chapter.
 
 TargetMachine structure
 -----------------------
@@ -326,9 +326,10 @@ display messages as follows,
   ...
 
 When user input ``-mcpu=cpu032I``, the variable IsCpu032I from Cpu0InstrInfo.td 
-will be true since the function isCpu032I() defined in Cpu0Subtarget.h will be 
-true by checking variable CPU in constructor function (the variable CPU is 
-"cpu032I" when user input -mcpu=cpu032I).
+will be true since the function isCpu032I() defined in Cpu0Subtarget.h is 
+true (set Cpu0ArchVersion to cpu032I in initializeSubtargetDependencies() called 
+in constructor function, the variable CPU in constructor function is "cpu032I" 
+when user input -mcpu=cpu032I).
 Please notice variable Cpu0ArchVersion must be initialized in 
 Cpu0Subtarget.cpp, otherwise variable Cpu0ArchVersion can be any value and  
 functions isCpu032I() and isCpu032II() which support ``llc -mcpu=cpu032I`` and 
@@ -353,8 +354,8 @@ follows,
 
   #define CH       CH4_1
 
-On the contrary, it can be disabled by define it to less than CH4_1, such as 
-CH3_5, as follows,
+On the contrary, it can be disabled by define it to less than CH4_1, for 
+instance CH3_5, as follows,
 
 .. rubric:: ~/llvm/test/src/lib/Target/Cpu0SetChapter.h
 .. code-block:: c++
