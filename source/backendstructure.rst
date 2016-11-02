@@ -9,14 +9,14 @@ Backend structure
 
 This chapter introduces the backend class inheritance tree and class members 
 first. 
-Next, following the backend structure, adding individual class implementation 
+Next, following the backend structure, adding individual classes implementation 
 in each section. 
 At the end of this chapter, we will have a backend to compile llvm 
 intermediate code into Cpu0 assembly code.
 
 Many lines of code are added in this chapter. 
-They almost are common in every backend except the backend name (cpu0 or 
-mips ...). Actually, we copy almost all the 
+They almost are common in every backend except the backend name (Cpu0 or 
+Mips ...). Actually, we copy almost all the 
 code from Mips and replace the name with Cpu0. In addition to knowing the DAGs 
 pattern match in theoretic compiler and realistic llvm code generation phase, 
 please focus on the classes relationship in this backend structure. 
