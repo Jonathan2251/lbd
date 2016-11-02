@@ -854,7 +854,7 @@ Following diagram come from tricore_llvm.pdf.
 LLVM is a Static Single Assignment (SSA) based representation. 
 LLVM provides an infinite virtual registers which can hold values of primitive 
 type (integral, floating point, or pointer values). 
-So, every operand can save in different virtual register in llvm SSA 
+So, every operand can be saved in different virtual register in llvm SSA 
 representation. 
 Comment is “;” in llvm representation. 
 Following is the llvm SSA instructions.
@@ -877,7 +877,7 @@ before go ahead, but we think the section
 4.2 of tricore_llvm.pdf is enough and suggesting you read the web site 
 documents as above only when you are still not 
 quite understand, even if you have read the articles of this section and 
-next 2 sections for DAG and Instruction Selection.
+next two sections for DAG and Instruction Selection.
 
 1. Instruction Selection
 
@@ -1078,7 +1078,8 @@ assigned exactly once and is keeped in different virtual register).
 As the result, the optimization steps used in code generation sequence which 
 include stages of **Instruction Selection**, **Scheduling and Formation** and 
 **Register Allocation**, won't loss any optimization opportunity. 
-For example, if using limited virtual registers to generate the following code,
+For example, if using limited virtual registers instead of unlimited as the 
+following code,
 
 .. code-block:: console
 
@@ -1086,6 +1087,10 @@ For example, if using limited virtual registers to generate the following code,
     store i32 %a, i32* %c, align 4
     %a = add nsw i32 2, i32 0
     store i32 %a, i32* %c, align 4
+
+Above using limited virtual registers, so virtual register %a used twice. 
+Compiler have to generate the following code since it assigns virtual register 
+%a as output at two different statement.
 
   => %a = add i32 1, i32 0
       st %a,  i32* %c, 1
@@ -1153,25 +1158,26 @@ remove" as the following table.
   ====================================  ==================================================================
 
 After removing b and traversing the DAGs from bottom to top (traverse binary 
-tree by Depth-first In-order search) , the first column of above table to get. 
+tree by Depth-first In-order search) , the first column of above table will be 
+gotten. 
   
 As you can imagine, the "common expression remove" can apply both in IR or 
 machine code.
 
-DAG likes a tree which opcode is the node and operand (register and 
+DAG is like a tree which opcode is the node and operand (register and 
 const/immediate/offset) is leaf. 
 It can also be represented by list as prefix order in tree. 
 For example, (+ b, c), (+ b, 1) is IR DAG representation.
 
 In addition to DAG optimization, the "kill" register has also mentioned in 
-section 8.5.5 of the compiler book [#dragonbooks-8.5]_. This concept also 
-used in llvm implementation.
+section 8.5.5 of the compiler book [#dragonbooks-8.5]_. This optimization 
+method also applied in llvm implementation.
 
 
 Instruction Selection
 ~~~~~~~~~~~~~~~~~~~~~
 
-The major function of backend is translating IR code into machine code at 
+The major function of backend is that translate IR code into machine code at 
 stage of Instruction Selection as :numref:`llvmstructure-f11`.
 
 .. _llvmstructure-f11: 
@@ -1224,19 +1230,20 @@ Now, let's check the ADDiu instruction defined in Cpu0InstrInfo.td as follows,
     :end-before: #endif
 
 
-:numref:`llvmstructure-f13` shows how the pattern match work in the IR 
-node **add** and instruction **ADDiu** both defined in Cpu0InstrInfo.td. In 
+:numref:`llvmstructure-f13` shows how the pattern match work in the IR node, 
+**add**, and instruction node, **ADDiu**, which both defined in 
+Cpu0InstrInfo.td. In 
 this example, IR node "add %a, 5" will be translated to "addiu $r1, 5" after %a 
 is allcated to register $r1 in regiter allocation stage since the IR 
 pattern[(set RC:$ra, (OpNode RC:$rb, imm_type:$imm16))] is set in ADDiu and the
-2nd operand is signed immediate which matched "%a, 5". In addition to pattern 
+2nd operand is "signed immediate" which matched "%a, 5". In addition to pattern 
 match, the .td also set assembly string "addiu" and op code 0x09. 
 With this information, the LLVM TableGen will generate instruction both in 
-assembly and binary automatically (the binary instruction issued in obj file of 
-ELF format which will be explained at later chapter). 
+assembly and binary automatically (the binary instruction can be issued in obj 
+file of ELF format which will be explained at later chapter). 
 Similarly, the machine instruction DAG nodes LD and ST can be translated from IR 
-DAG nodes **load** and **store**. Notice that the $r1 in this case is virtual 
-register name (not machine register). 
+DAG nodes **load** and **store**. Notice that the $rb in 
+:numref:`llvmstructure-f13` is virtual register name (not machine register). 
  
 .. _llvmstructure-f13: 
 .. figure:: ../Fig/llvmstructure/13.png
@@ -1477,42 +1484,6 @@ introduction. The following files are modified to add Cpu0 backend as follows,
     };
     ...
   }
-  
-.. rubric:: lbdex/src/modify/src/include/llvm/MC/MCExpr.h
-.. code-block:: c++
-  
-  class MCSymbolRefExpr : public MCExpr {
-  public:
-    enum VariantKind {
-      ...
-      VK_Cpu0_GPREL,
-      VK_Cpu0_GOT_CALL,
-      VK_Cpu0_GOT16,
-      VK_Cpu0_GOT,
-      VK_Cpu0_ABS_HI,
-      VK_Cpu0_ABS_LO,
-      VK_Cpu0_TLSGD,
-      VK_Cpu0_TLSLDM,
-      VK_Cpu0_DTP_HI,
-      VK_Cpu0_DTP_LO,
-      VK_Cpu0_GOTTPREL,
-      VK_Cpu0_TP_HI,
-      VK_Cpu0_TP_LO,
-      VK_Cpu0_GPOFF_HI,
-      VK_Cpu0_GPOFF_LO,
-      VK_Cpu0_GOT_DISP,
-      VK_Cpu0_GOT_PAGE,
-      VK_Cpu0_GOT_OFST,
-      VK_Cpu0_HIGHER,
-      VK_Cpu0_HIGHEST,
-      VK_Cpu0_GOT_HI16,
-      VK_Cpu0_GOT_LO16,
-      VK_Cpu0_CALL_HI16,
-      VK_Cpu0_CALL_LO16,
-      ...
-    };
-    ...
-  };
 
 .. rubric:: lbdex/src/modify/src/include/llvm/Object/ELFObjectFile.h
 .. code-block:: c++
@@ -1568,52 +1539,6 @@ introduction. The following files are modified to add Cpu0 backend as follows,
   #include "ELFRelocs/Cpu0.def"
   };
   ...
-
-.. rubric:: lbdex/src/modify/src/lib/MC/MCELFStreamer.cpp
-.. code-block:: c++
-  
-  void MCELFStreamer::fixSymbolsInTLSFixups(const MCExpr *expr) {
-    ...
-      case MCSymbolRefExpr::VK_Cpu0_TLSGD:
-      case MCSymbolRefExpr::VK_Cpu0_GOTTPREL:
-      case MCSymbolRefExpr::VK_Cpu0_TP_HI:
-      case MCSymbolRefExpr::VK_Cpu0_TP_LO:
-    ...
-  }
-
-.. rubric:: lbdex/src/modify/src/lib/MC/MCExpr.cpp
-.. code-block:: c++
-  
-  StringRef MCSymbolRefExpr::getVariantKindName(VariantKind Kind) {
-    switch (Kind) {
-    ...
-    case VK_Cpu0_GPREL: return "GPREL";
-    case VK_Cpu0_GOT_CALL: return "GOT_CALL";
-    case VK_Cpu0_GOT16: return "GOT16";
-    case VK_Cpu0_GOT: return "GOT";
-    case VK_Cpu0_ABS_HI: return "ABS_HI";
-    case VK_Cpu0_ABS_LO: return "ABS_LO";
-    case VK_Cpu0_TLSGD: return "TLSGD";
-    case VK_Cpu0_TLSLDM: return "TLSLDM";
-    case VK_Cpu0_DTP_HI: return "DTP_HI";
-    case VK_Cpu0_DTP_LO: return "DTP_LO";
-    case VK_Cpu0_GOTTPREL: return "GOTTPREL";
-    case VK_Cpu0_TP_HI: return "TP_HI";
-    case VK_Cpu0_TP_LO: return "TP_LO";
-    case VK_Cpu0_GPOFF_HI: return "GPOFF_HI";
-    case VK_Cpu0_GPOFF_LO: return "GPOFF_LO";
-    case VK_Cpu0_GOT_DISP: return "GOT_DISP";
-    case VK_Cpu0_GOT_PAGE: return "GOT_PAGE";
-    case VK_Cpu0_GOT_OFST: return "GOT_OFST";
-    case VK_Cpu0_HIGHER:   return "HIGHER";
-    case VK_Cpu0_HIGHEST:  return "HIGHEST";
-    case VK_Cpu0_GOT_HI16: return "GOT_HI16";
-    case VK_Cpu0_GOT_LO16: return "GOT_LO16";
-    case VK_Cpu0_CALL_HI16: return "CALL_HI16";
-    case VK_Cpu0_CALL_LO16: return "CALL_LO16";
-    ...
-    }
-  }
 
 .. rubric:: lbdex/src/modify/src/lib/MC/MCSubtargetInfo.cpp
 .. code-block:: c++
@@ -1770,8 +1695,7 @@ will translate these .td files into C++ source code written to files that have
 a .inc extension.  
 Please refer to [#tblgen]_ for more information regarding how to use tablegen.
 
-Every backend has a .td which defines some target information, which including 
-what other .td files are used by the backend. 
+Every backend has its own .td to define some target information. 
 These files have a similar syntax to C++. For Cpu0, the target description file 
 is called Cpu0Other.td, which is shown below:
 
@@ -1780,9 +1704,9 @@ is called Cpu0Other.td, which is shown below:
 
 Cpu0Other.td and Cpu0.td includes a few other .td files. 
 Cpu0RegisterInfo.td (shown below) describes the Cpu0's set of registers. 
-In this file, we see that registers have been given names, i.e. **"def PC"** 
-indicates that there is a register called PC.  Beside of registers, it also 
-define register classes. 
+In this file, we see that each register has been given a name. For example, 
+**"def PC"** indicates that there is a register name as PC. Beside of register 
+information, it also define register class information. 
 You may have multiple register classes such as CPURegs, SR, C0Regs and GPROut. 
 GPROut defined in Cpu0RegisterInfoGPROutForOther.td which include CPURegs 
 except SW, so SW won't be allocated as the output registers in register 
@@ -1806,7 +1730,7 @@ For example:
   }; 
   Date birthday;  // define birthday, an instance of Date
 
-The class **Date** has the members **year**, **month**, and **day**, however 
+The class **Date** has the members **year**, **month**, and **day**, but 
 these do not yet belong to an actual object. 
 By defining an instance of **Date** called **birthday**, you have allocated 
 memory for a specific object, and can set the **year**, **month**, and 
@@ -1814,14 +1738,15 @@ memory for a specific object, and can set the **year**, **month**, and
 
 In .td files, class describes the structure of how data is laid out, while 
 definitions act as the specific instances of the class. 
-If we look back at the Cpu0RegisterInfo.td file, we see a class called 
+If you look back at the Cpu0RegisterInfo.td file, you will see a class called 
 **Cpu0Reg** which is derived from the **Register** class provided 
 by LLVM.  **Cpu0Reg** inherits all the fields that exist 
 in the **Register** class. The "let HWEncoding = Enc" which meaning assign field 
 HWEncoding from parameter Enc. Since Cpu0 reserve 4 bits for 16 registers in 
-instruction format, the assigned value range is from 0 to 15. Assign the 0 to 15 
-to HWEncoding, then the backend register number can be gotten from the function 
-of llvm register class since TableGen will set this number correctly.
+instruction format, the assigned value range is from 0 to 15. 
+Once assigning the 0 to 15 to HWEncoding, the backend register number will be 
+gotten from the function of llvm register class since TableGen will set this 
+number automatically.
 
 The **def** keyword is used to create instances of class. 
 In the following line, the ZERO register is defined as a member of the 
@@ -1837,7 +1762,7 @@ class, thus the field **Enc** is set to 0, and the string **n** is set
 to **ZERO**.
 
 As the register lives in the **Cpu0** namespace, you can refer to the ZERO 
-register in C++ code in a backend using **Cpu0::ZERO**.
+register in backend C++ code by using **Cpu0::ZERO**.
 
 Notice the use of the **let** expressions: these allow you to override values 
 that are initially defined in a superclass. 
@@ -1859,7 +1784,7 @@ The Cpu0InstrFormats.td is included by Cpu0InstInfo.td as follows,
 .. literalinclude:: ../lbdex/chapters/Chapter2/Cpu0InstrFormats.td
 
   
-ADDiu is a instance of class ArithLogicI which inherited from FL, and can be 
+ADDiu is a instance of class ArithLogicI inherited from FL, it can be 
 expanded and get member value further as follows,
 
 .. code:: c++
@@ -2027,7 +1952,7 @@ source code during building llvm, the llvm-tblgen is always ready for backend's
 TableGen reguest.
 
 This book breaks the whole backend source code by function, add code chapter 
-by chapter and even section by section.
+by chapter.
 Don't try to understand everything in the text of book, the code added in each 
 chapter is a reading material too. 
 To understand the computer related knowledge in concept, you can ignore source 
@@ -2037,7 +1962,8 @@ Reading source code is a big opportunity in the open source development.
 
 Both CMakeLists.txt and LLVMBuild.txt coexist in sub-directories 
 **MCTargetDesc** and **TargetInfo**. 
-Their contents indicate they will generate Cpu0Desc and Cpu0Info libraries. 
+The contents of MakeLists.txt and LLVMBuild.txt in these two directories 
+instruct llvm generating Cpu0Desc and Cpu0Info libraries, repectively. 
 After building, you will find three libraries: **libLLVMCpu0CodeGen.a**, 
 **libLLVMCpu0Desc.a** and **libLLVMCpu0Info.a** in lib/ of your build 
 directory. 
@@ -2191,7 +2117,8 @@ Let's build lbdex/chapters/Chapter2 code as follows,
   -- Generating done
   -- Build files have been written to: /Users/Jonathan/llvm/test/cmake_debug_build
 
-To save time, we build Cpu0 target only by option -DLLVM_TARGETS_TO_BUILD=Cpu0.
+In order to save time, we build Cpu0 target only by option 
+-DLLVM_TARGETS_TO_BUILD=Cpu0.
 After cmake, please open Xcode and build the Xcode project file as appendix A,
 or refer appendix A to build it on linux if you work on unix/linux platform.
 After that, you can find the \*.inc files in directory 
@@ -2228,15 +2155,16 @@ After that, you can find the \*.inc files in directory
   }
   ...
 
-These \*.inc are created by llvm-tblgen from directory 
-cmake_debug_build/lib/Target/Cpu0 where input files are the Cpu0 backend \*.td 
-files. 
+These \*.inc are generated by llvm-tblgen at directory 
+cmake_debug_build/lib/Target/Cpu0 where their input files are the Cpu0 backend 
+\*.td files. 
 The llvm-tblgen is invoked by **tablegen** of 
 /Users/Jonathan/llvm/test/src/lib/Target/Cpu0/CMakeLists.txt. 
 These \*.inc files will be included by Cpu0 backend \*.cpp or \*.h files and 
 compile into \*.o further. 
 TableGen is the important tool illustrated in the early sub-section 
-".td: LLVM’s Target Description Files" of this chapter as follows,
+".td: LLVM’s Target Description Files" of this chapter. 
+List it again as follows,
  
 "The “mix and match” approach allows target authors to choose what makes sense 
 for their architecture and permits a large amount of code reuse across 

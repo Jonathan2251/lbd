@@ -7,16 +7,37 @@ Assembler
    :local:
    :depth: 4
 
-This chapter will add LLVM AsmParser support first and introduce inline 
-assembly handler next.
-With AsmParser and inline assembly support, we can hand code the assembly 
-language in C/C++ file and translate it into obj (elf format). 
+This chapter include the assembly programming support in Cpu0 backend.
+
+When it comes to assembly language programming, there are two type of
+writting in C/C++ as follows,
+
+.. rubric:: ordinary assembly
+.. code-block:: cpp-objdump
+
+  asm("ld	$2, 8($sp)");
+
+.. rubric:: inline assembly
+.. code-block:: cpp-objdump
+
+  int foo = 10;
+  const int bar = 15;
+  
+  __asm__ __volatile__("addu %0,%1,%2"
+                       :"=r"(foo) // 5
+                       :"r"(foo), "r"(bar)
+                       );
+
+In llvm, the first is supported by LLVM AsmParser, and the second is inline 
+assembly handler.
+With AsmParser and inline assembly support in Cpu0 backend, we can hand-code 
+the assembly language in C/C++ file and translate it into obj (elf format). 
 
 
 AsmParser support
 ------------------
 
-This section lists all the AsmParser code for cpu0 backend with only a few 
+This section lists all the AsmParser code for Cpu0 backend with only a few 
 explanation. Please refer here [#]_ for more AsmParser explanation.
 
 Run Chapter10_1/ with ch11_1.cpp will get the following error message.
@@ -25,7 +46,7 @@ Run Chapter10_1/ with ch11_1.cpp will get the following error message.
 .. literalinclude:: ../lbdex/input/ch11_1.cpp
     :start-after: /// start
 
-.. code:: bash
+.. code-block:: console
 
   JonathantekiiMac:input Jonathan$ clang -c ch11_1.cpp -emit-llvm -o 
   ch11_1.bc
@@ -35,9 +56,9 @@ Run Chapter10_1/ with ch11_1.cpp will get the following error message.
   LLVM ERROR: Inline asm not supported by this streamer because we don't have 
   an asm parser for this target
   
-Since we don't implement cpu0 assembler, it has the error message as above. 
-The cpu0 can translate LLVM IR into assembly and obj directly, but it cannot 
-translate hand code assembly instructions into obj. 
+Since we havn't implemented Cpu0 assembler, it has the error message as above. 
+The Cpu0 can translate LLVM IR into assembly and obj directly, but it cannot 
+translate hand-code assembly instructions into obj. 
 Directory AsmParser handle the assembly to obj translation.
 The Chapter11_1/ include AsmParser implementation as follows,
 
@@ -81,33 +102,33 @@ LLVMBuild.txt as follows,
 .. literalinclude:: ../lbdex/Cpu0/Cpu0RegisterInfoGPROutForAsm.td
 
 
-The CMakeLists.txt add code as above to generate Cpu0GenAsmMatcher.inc 
+The CMakeLists.txt adds code as above to generate Cpu0GenAsmMatcher.inc 
 used by Cpu0AsmParser.cpp. 
 Cpu0Asm.td include Cpu0RegisterInfoGPROutForAsm.td which define GPROut to 
 CPURegs while Cpu0Other.td include Cpu0RegisterInfoGPROutForOther.td which 
 define GPROut to CPURegs exclude SW. 
 Cpu0Other.td is used when translating llvm IR to Cpu0 instruction. 
-In this case, the register SW is reserved for keeping the CPU status and not 
+In latter case, the register SW is reserved for keeping the CPU status and not 
 allowed to be allocated as a general purpose register. 
-For example, if compile with C statement "a = (b & c);" and generate 
-"and $sw, $1, $2" instruction, then the $sw of interrupt status will be 
-destroyed. 
-When do assembling, instruction "andi $sw, $sw, 0xffdf" is allowed. 
-This assembly program is accepted and Cpu0 backend treats it is safe.
-For instance, assembler programmer can disable trace debug message by
-"andi $sw, $sw, 0xffdf" and enable debug message by "ori $sw, $sw, 0x0020" as 
-the dynamic linker example code using them in later chapter.
-Beside this, the interrupt bits can also be enabled or disabled by "ori" and 
+For example, if setting GPROut to include SW, when compile with C statement 
+"a = (b & c);", it may generate instruction "and $sw, $1, $2", as a result that 
+interrupt status in $sw will be destroyed. 
+When programming in assembly, instruction "andi $sw, $sw, 0xffdf" is allowed. 
+This assembly program is accepted and Cpu0 backend treats it safe since 
+assembler programmer can disable trace debug message by
+"andi $sw, $sw, 0xffdf" and enable debug message by "ori $sw, $sw, 0x0020".
+In addition, the interrupt bits can also be enabled or disabled by "ori" and 
 "andi" instructions.
 
 The EPC must set to CPURegs as follows, otherwise, MatchInstructionImpl() of 
 MatchAndEmitInstruction() will return fail for "asm("mfc0 $pc, $epc");".
 
 .. rubric:: lbdex/chapters/Chapter2/Cpu0RegisterInfo.td
+.. code-block:: c++
 
-def CPURegs : RegisterClass<"Cpu0", [i32], 32, (add
-  ...
-  , PC, EPC)>;
+  def CPURegs : RegisterClass<"Cpu0", [i32], 32, (add
+    ...
+    , PC, EPC)>;
 
 .. rubric:: lbdex/chapters/Chapter11_1/Cpu0.td
 .. literalinclude:: ../lbdex/Cpu0/Cpu0.td
@@ -152,7 +173,8 @@ def CPURegs : RegisterClass<"Cpu0", [i32], 32, (add
     :end-before: //#endif
 
 
-Above declare the **ParserMethod = "parseMemOperand"** and implement the 
+Above Cpu0InstrInfo.td declare the **let ParserMethod = "parseMemOperand"** and 
+implement the 
 parseMemOperand() in Cpu0AsmParser.cpp to handle the **"mem"** operand which 
 used in Cpu0 instructions ld and st. 
 For example, ld $2, 4($sp), the **mem** operand is 4($sp). 
@@ -220,8 +242,8 @@ LoadImm32Reg, are handled by Cpu0AsmParser.cpp as follows,
     ...
   }
 
-Finally, remind the CPURegs as below must follow the order of register number 
-because AsmParser uses them when do register number encode.
+Finally, remind that the CPURegs as below must follow the order of register 
+number because AsmParser uses them when do register number encoding.
 
 .. rubric:: lbdex/chapters/Chapter11_1/Cpu0RegisterInfo.td
 .. literalinclude:: ../lbdex/Cpu0/Cpu0RegisterInfo.td
@@ -231,7 +253,7 @@ because AsmParser uses them when do register number encode.
 
 Run Chapter11_1/ with ch11_1.cpp to get the correct result as follows,
 
-.. code-block:: bash
+.. code-block:: console
 
   JonathantekiiMac:input Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_
   build/Debug/bin/llc -march=cpu0 -relocation-model=pic -filetype=obj ch11_1.bc -o 
@@ -251,7 +273,7 @@ Run Chapter11_1/ with ch11_1.cpp to get the correct result as follows,
         ...
 
 The instructions cmp and jeg printed with explicit $sw displayed in assembly 
-and disassembly. You can change code in AsmParser and Dissassembly (the last 
+and disassembly. You can change the code in AsmParser and Dissassembly (the last 
 chapter) to hide the $sw printed in these instructions (such as "jeq 20" 
 rather than "jeq $sw, 20").
 
@@ -319,7 +341,7 @@ Run Chapter11_1 with ch11_2 will get the following error.
 .. literalinclude:: ../lbdex/input/ch11_2.cpp
     :start-after: /// start
 
-.. code:: bash
+.. code-block:: console
   
   1-160-129-73:input Jonathan$ ~/llvm/test/cmake_debug_build/Debug/bin/llc 
   -march=cpu0 -relocation-model=static -filetype=asm ch11_2.bc -o -
@@ -391,18 +413,19 @@ file name as Table: the structure of inline assembly.
   Cpu0InstrInfo.cpp              -                              
   =============================  ================================== 
 
-Except Cpu0ISelDAGToDAG.cpp, the other functions are same with backend. 
+Except Cpu0ISelDAGToDAG.cpp, the other functions are same with backend's compile 
+code. 
 The Cpu0ISelLowering.cpp inline asm is explained after the result of running 
 with ch11_2.cpp. 
 Cpu0ISelDAGToDAG.cpp just save OP code in SelectInlineAsmMemoryOperand(). 
-Since the the OP code is Cpu0 inline 
-assembly instruction, no llvm IR DAG translation needed further. Save OP 
-directly and return false to notiy llvm system that Cpu0 backend has finished 
+Since the the OP code is Cpu0 inline assembly instruction, 
+no llvm IR DAG translation needed further, just save OP 
+directly and return false to notify llvm system that Cpu0 backend has finished 
 processing this inline assembly instruction.
   
 Run Chapter11_2 with ch11_2.cpp will get the following result.
 
-.. code-block:: bash
+.. code-block:: console
   
   1-160-129-73:input Jonathan$ clang -target mips-unknown-linux-gnu -c 
   ch11_2.cpp -emit-llvm -o ch11_2.bc
@@ -875,37 +898,47 @@ of Cpu0ISelLowering.cpp will create different range of const operand by I, J,
 K, L, N, O, or P, and register operand by r . For instance, the following 
 __asm__ will create the llvm asm immediately after it.
 
-.. code:: c++
+.. code-block:: cpp-objdump
 
   __asm__ __volatile__("addiu %0,%1,%2"
                        :"=r"(foo) // 15
                        :"r"(foo), "I"(n_5)
                        );
 
+.. code-block:: llvm
+
   %2 = call i32 asm sideeffect "addiu $0,$1,$2", "=r,r,I"(i32 %1, i32 -5) #0, !srcloc !1
+
+.. code-block:: cpp-objdump
 
   __asm__ __volatile__("addiu %0,%1,%2"
                        :"=r"(foo) // 15
                        :"r"(foo), "N"(n_65531)
                        );
 
+.. code-block:: llvm
+
   %10 = call i32 asm sideeffect "addiu $0,$1,$2", "=r,r,N"(i32 %9, i32 -65531) #0, !srcloc !5
   
+.. code-block:: cpp-objdump
+
   __asm__ __volatile__("addiu %0,%1,%2"
                        :"=r"(foo) // 15
                        :"r"(foo), "P"(un5)
                        );
 
+.. code-block:: llvm
+
   %14 = call i32 asm sideeffect "addiu $0,$1,$2", "=r,r,P"(i32 %13, i32 5) #0, !srcloc !7
 
 The r in __asm__ will generate register, \%1, in llvm IR asm while I 
 in __asm__ will generate const operand, -5, in llvm IR asm. Remind, 
-the LowerAsmOperandForConstraint() limit the positive or negative const operand 
-value range to 16 bits since FL type immediate operand is 16 bits in Cpu0 
-instruction. The range of N is -65535 to -1 and range of P is 65535 to 1. 
+the LowerAsmOperandForConstraint() limit the range of positive or negative const 
+operand value to 16 bits since FL type immediate operand is 16 bits in Cpu0 
+instruction. So, the range of N is -65535 to -1 and the range of P is 65535 to 1. 
 For any value out of 
 the range, the code in LowerAsmOperandForConstraint() will treat it as error 
-since FL instruction format has 16 bits limitation.
+since FL instruction format has limitation of 16 bits.
 
 
 .. [#] http://www.embecosm.com/appnotes/ean10/ean10-howto-llvmas-1.0.html

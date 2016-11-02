@@ -119,9 +119,6 @@ Chapter5_1.
 .. literalinclude:: ../lbdex/Cpu0/InstPrinter/Cpu0InstPrinter.cpp
     :start-after: #if CH >= CH5_1 //1
     :end-before: #endif
-.. literalinclude:: ../lbdex/Cpu0/InstPrinter/Cpu0InstPrinter.cpp
-    :start-after: #if CH >= CH5_1 //2
-    :end-before: #endif
 
 .. rubric:: lbdex/chapters/Chapter5_1/MCTargetDesc/CMakeLists.txt
 .. literalinclude:: ../lbdex/Cpu0/MCTargetDesc/CMakeLists.txt
@@ -151,6 +148,12 @@ Chapter5_1.
 .. rubric:: lbdex/chapters/Chapter5_1/MCTargetDesc/Cpu0MCCodeEmitter.cpp
 .. literalinclude:: ../lbdex/chapters/Chapter5_1/MCTargetDesc/Cpu0MCCodeEmitter.cpp
 
+.. rubric:: lbdex/chapters/Chapter5_1/MCTargetDesc/Cpu0MCExpr.h
+.. literalinclude:: ../lbdex/Cpu0/MCTargetDesc/Cpu0MCExpr.h
+
+.. rubric:: lbdex/chapters/Chapter5_1/MCTargetDesc/Cpu0MCExpr.cpp
+.. literalinclude:: ../lbdex/Cpu0/MCTargetDesc/Cpu0MCExpr.cpp
+
 .. rubric:: lbdex/chapters/Chapter5_1/MCTargetDesc/Cpu0MCTargetDesc.h
 .. literalinclude:: ../lbdex/Cpu0/MCTargetDesc/Cpu0MCTargetDesc.h
     :start-after: #if CH >= CH5_1
@@ -174,6 +177,10 @@ Chapter5_1.
 
   }
 
+.. rubric:: lbdex/chapters/Chapter5_1/Cpu0MCInstLower.h
+.. literalinclude:: ../lbdex/Cpu0/Cpu0MCInstLower.h
+    :start-after: #if CH >= CH5_1
+    :end-before: #endif
 
 The applyFixup() of Cpu0AsmBackend.cpp will fix up the **jeq**, **jub**, ... 
 instructions of "address control flow statements" or "function call statements" 

@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '3.7.2',
+        VERSION:     '3.9.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -56,7 +56,7 @@
 <li><a class="reference internal" href="#atomic" id="id13">Atomic</a></li>
 </ul>
 </div>
-<p>This chapter supports C++ compiler features.</p>
+<p>This chapter supports some C++ compiler features.</p>
 <div class="section" id="exception-handle">
 <h2><a class="toc-backref" href="#id11">Exception handle</a><a class="headerlink" href="#exception-handle" title="Permalink to this headline">¶</a></h2>
 <p>The Chapter11_2 can be built and run with the C++ polymorphism example code of
@@ -142,10 +142,9 @@ ch12_inherit.cpp as follows,</p>
 
 </pre></div>
 </div>
-<p>If using cout instead of printf in ch12_inherit.cpp on Linux won&#8217;t generate exception
-handler IRs.
-But on iMac, ch12_inherit.cpp will generate invoke, landing, resume and unreachable
-exception handler IRs.
+<p>If using cout instead of printf in ch12_inherit.cpp, it won&#8217;t generate exception
+handler IRs on Linux, whereas it will generate invoke, landing, resume
+and unreachable exception handler IRs on iMac.
 Example code, ch12_eh.cpp, which supports <strong>try</strong> and <strong>catch</strong> exception handler
 as the following will generate these exception handler IRs both on iMac and Linux.</p>
 <p class="rubric">lbdex/input/ch12_eh.cpp</p>
@@ -177,6 +176,7 @@ as the following will generate these exception handler IRs both on iMac and Linu
 </pre></div>
 </div>
 <div class="highlight-default"><div class="highlight"><pre><span></span>; ModuleID = &#39;ch12_eh.bc&#39;
+source_filename = &quot;ch12_eh.bc&quot;
 target datalayout = &quot;E-m:m-p:32:32-i8:8:32-i16:16:32-i64:64-n32-S64&quot;
 target triple = &quot;mips-unknown-linux-gnu&quot;
 
@@ -203,14 +203,14 @@ define void @_Z15throw_exceptionii(i32 signext %a, i32 signext %b) #0 {
   %5 = icmp sgt i32 %3, %4
   br i1 %5, label %6, label %9
 
-; &lt;label&gt;:6                                       ; preds = %0
+; &lt;label&gt;:6:                                      ; preds = %0
   %7 = call i8* @__cxa_allocate_exception(i32 1) #1
   %8 = bitcast i8* %7 to %class.Ex1*
   call void @__cxa_throw(i8* %7, i8* bitcast ({ i8*, i8* }* @_ZTI3Ex1 to i8*), i
 8* null) #2
   unreachable
 
-; &lt;label&gt;:9                                       ; preds = %0
+; &lt;label&gt;:9:                                      ; preds = %0
   ret void
 }
 
@@ -223,35 +223,37 @@ personality_v0 to i8*) {
   %1 = alloca i32, align 4
   %2 = alloca i8*
   %3 = alloca i32
+  %4 = alloca i32
   invoke void @_Z15throw_exceptionii(i32 signext 2, i32 signext 1)
-          to label %4 unwind label %5
+          to label %5 unwind label %6
 
-; &lt;label&gt;:4                                       ; preds = %0
-  br label %12
+; &lt;label&gt;:5:                                      ; preds = %0
+  br label %13
 
-; &lt;label&gt;:5                                       ; preds = %0
-  %6 = landingpad { i8*, i32 }
+; &lt;label&gt;:6:                                      ; preds = %0
+  %7 = landingpad { i8*, i32 }
           catch i8* null
-  %7 = extractvalue { i8*, i32 } %6, 0
-  store i8* %7, i8** %2
-  %8 = extractvalue { i8*, i32 } %6, 1
-  store i32 %8, i32* %3
-  br label %9
+  %8 = extractvalue { i8*, i32 } %7, 0
+  store i8* %8, i8** %2
+  %9 = extractvalue { i8*, i32 } %7, 1
+  store i32 %9, i32* %3
+  br label %10
 
-; &lt;label&gt;:9                                       ; preds = %5
-  %10 = load i8*, i8** %2
-  %11 = call i8* @__cxa_begin_catch(i8* %10) #1
+; &lt;label&gt;:10:                                     ; preds = %6
+  %11 = load i8*, i8** %2
+  %12 = call i8* @__cxa_begin_catch(i8* %11) #1
   store i32 1, i32* %1
+  store i32 1, i32* %4
   call void @__cxa_end_catch()
-  br label %13
+  br label %14
 
-; &lt;label&gt;:12                                      ; preds = %4
+; &lt;label&gt;:13:                                     ; preds = %5
   store i32 0, i32* %1
-  br label %13
+  br label %14
 
-; &lt;label&gt;:13                                      ; preds = %12, %9
-  %14 = load i32, i32* %1
-  ret i32 %14
+; &lt;label&gt;:14:                                     ; preds = %13, %10
+  %15 = load i32, i32* %1
+  ret i32 %15
 }
 
 declare i32 @__gxx_personality_v0(...)
@@ -260,17 +262,16 @@ declare i8* @__cxa_begin_catch(i8*)
 
 declare void @__cxa_end_catch()
 
-attributes #0 = { &quot;disable-tail-calls&quot;=&quot;false&quot; &quot;less-precise-fpmad&quot;=&quot;false&quot; &quot;no-
-frame-pointer-elim&quot;=&quot;true&quot; &quot;no-frame-pointer-elim-non-leaf&quot; &quot;no-infs-fp-math&quot;=&quot;f
-alse&quot; &quot;no-nans-fp-math&quot;=&quot;false&quot; &quot;stack-protector-buffer-size&quot;=&quot;8&quot; &quot;target-cpu&quot;=&quot;
-mips32r2&quot; &quot;target-features&quot;=&quot;+mips32r2&quot; &quot;unsafe-fp-math&quot;=&quot;false&quot; &quot;use-soft-float
-&quot;=&quot;false&quot; }
+attributes #0 = { &quot;less-precise-fpmad&quot;=&quot;false&quot; &quot;no-frame-pointer-elim&quot;=&quot;true&quot; &quot;n
+o-frame-pointer-elim-non-leaf&quot; &quot;no-infs-fp-math&quot;=&quot;false&quot; &quot;no-nans-fp-math&quot;=&quot;fals
+e&quot; &quot;stack-protector-buffer-size&quot;=&quot;8&quot; &quot;target-cpu&quot;=&quot;mips32r2&quot; &quot;target-features&quot;=&quot;
++mips32r2&quot; &quot;unsafe-fp-math&quot;=&quot;false&quot; &quot;use-soft-float&quot;=&quot;false&quot; }
 attributes #1 = { nounwind }
 attributes #2 = { noreturn }
 
 !llvm.ident = !{!0}
 
-!0 = !{!&quot;clang version 3.7.0 (tags/RELEASE_370/final)&quot;}
+!0 = !{!&quot;Apple LLVM version 7.0.0 (clang-700.1.76)&quot;}
 </pre></div>
 </div>
 <div class="code console highlight-default"><div class="highlight"><pre><span></span>JonathantekiiMac:input Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
@@ -287,18 +288,20 @@ def!&quot;&#39; failed.
 <p>About the IRs of LLVM exception handling, please reference here <a class="footnote-reference" href="#exception" id="id1">[1]</a>.
 Chapter12_1 supports the llvm IRs of corresponding <strong>try</strong> and <strong>catch</strong>
 exception C++ keywords. It can compile ch12_eh.bc as follows,</p>
-<p class="rubric">lbdex/chapters/Chapter12_1/Cpu0ISelLowering.cpp</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">Cpu0TargetLowering</span><span class="p">::</span><span class="n">Cpu0TargetLowering</span><span class="p">(</span><span class="n">const</span> <span class="n">Cpu0TargetMachine</span> <span class="o">&amp;</span><span class="n">TM</span><span class="p">,</span>
-                                       <span class="n">const</span> <span class="n">Cpu0Subtarget</span> <span class="o">&amp;</span><span class="n">STI</span><span class="p">)</span>
-    <span class="p">:</span> <span class="n">TargetLowering</span><span class="p">(</span><span class="n">TM</span><span class="p">),</span> <span class="n">Subtarget</span><span class="p">(</span><span class="n">STI</span><span class="p">),</span> <span class="n">ABI</span><span class="p">(</span><span class="n">TM</span><span class="o">.</span><span class="n">getABI</span><span class="p">())</span> <span class="p">{</span>
+<p class="rubric">lbdex/chapters/Chapter12_1/Cpu0ISelLowering.h</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>    <span class="o">///</span> <span class="n">If</span> <span class="n">a</span> <span class="n">physical</span> <span class="n">register</span><span class="p">,</span> <span class="n">this</span> <span class="n">returns</span> <span class="n">the</span> <span class="n">register</span> <span class="n">that</span> <span class="n">receives</span> <span class="n">the</span>
+    <span class="o">///</span> <span class="n">exception</span> <span class="n">address</span> <span class="n">on</span> <span class="n">entry</span> <span class="n">to</span> <span class="n">an</span> <span class="n">EH</span> <span class="n">pad</span><span class="o">.</span>
+    <span class="n">unsigned</span>
+    <span class="n">getExceptionPointerRegister</span><span class="p">(</span><span class="n">const</span> <span class="n">Constant</span> <span class="o">*</span><span class="n">PersonalityFn</span><span class="p">)</span> <span class="n">const</span> <span class="n">override</span> <span class="p">{</span>
+      <span class="k">return</span> <span class="n">Cpu0</span><span class="p">::</span><span class="n">A0</span><span class="p">;</span>
+    <span class="p">}</span>
 
-</pre></div>
-</div>
-<div class="highlight-default"><div class="highlight"><pre><span></span>  <span class="n">setExceptionPointerRegister</span><span class="p">(</span><span class="n">Cpu0</span><span class="p">::</span><span class="n">A0</span><span class="p">);</span>
-  <span class="n">setExceptionSelectorRegister</span><span class="p">(</span><span class="n">Cpu0</span><span class="p">::</span><span class="n">A1</span><span class="p">);</span>
-</pre></div>
-</div>
-<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="p">}</span>
+    <span class="o">///</span> <span class="n">If</span> <span class="n">a</span> <span class="n">physical</span> <span class="n">register</span><span class="p">,</span> <span class="n">this</span> <span class="n">returns</span> <span class="n">the</span> <span class="n">register</span> <span class="n">that</span> <span class="n">receives</span> <span class="n">the</span>
+    <span class="o">///</span> <span class="n">exception</span> <span class="n">typeid</span> <span class="n">on</span> <span class="n">entry</span> <span class="n">to</span> <span class="n">a</span> <span class="n">landing</span> <span class="n">pad</span><span class="o">.</span>
+    <span class="n">unsigned</span>
+    <span class="n">getExceptionSelectorRegister</span><span class="p">(</span><span class="n">const</span> <span class="n">Constant</span> <span class="o">*</span><span class="n">PersonalityFn</span><span class="p">)</span> <span class="n">const</span> <span class="n">override</span> <span class="p">{</span>
+      <span class="k">return</span> <span class="n">Cpu0</span><span class="p">::</span><span class="n">A1</span><span class="p">;</span>
+    <span class="p">}</span>
 </pre></div>
 </div>
 <div class="highlight-console"><div class="highlight"><pre><span></span><span class="gp">JonathantekiiMac:input Jonathan$</span> /Users/Jonathan/llvm/test/cmake_debug_build/
@@ -310,7 +313,7 @@ exception C++ keywords. It can compile ch12_eh.bc as follows,</p>
   .previous
   .file  &quot;ch12_eh.bc&quot;
   .globl  _Z15throw_exceptionii
-  .align  2
+  .p2align  2
   .type  _Z15throw_exceptionii,@function
   .ent  _Z15throw_exceptionii   # @_Z15throw_exceptionii
 _Z15throw_exceptionii:
@@ -365,7 +368,7 @@ $func_end0:
   .cfi_endproc
 
   .globl  _Z14test_try_catchv
-  .align  2
+  .p2align  2
   .type  _Z14test_try_catchv,@function
   .ent  _Z14test_try_catchv     # @_Z14test_try_catchv
 _Z14test_try_catchv:
@@ -374,17 +377,17 @@ $func_begin0 = ($tmp7)
   .cfi_startproc
   .cfi_personality 0, __gxx_personality_v0
   .cfi_lsda 0, $exception0
-  .frame  $fp,32,$lr
+  .frame  $fp,40,$lr
   .mask   0x00005200,-4
   .set  noreorder
   .set  nomacro
 # BB#0:
-  addiu  $sp, $sp, -32
+  addiu  $sp, $sp, -40
 $tmp8:
-  .cfi_def_cfa_offset 32
-  st  $lr, 28($sp)            # 4-byte Folded Spill
-  st  $fp, 24($sp)            # 4-byte Folded Spill
-  st  $9, 20($sp)             # 4-byte Folded Spill
+  .cfi_def_cfa_offset 40
+  st  $lr, 36($sp)            # 4-byte Folded Spill
+  st  $fp, 32($sp)            # 4-byte Folded Spill
+  st  $9, 28($sp)             # 4-byte Folded Spill
 $tmp9:
   .cfi_offset 14, -4
 $tmp10:
@@ -403,24 +406,25 @@ $tmp4:
 $tmp5:
 # BB#2:
   addiu  $2, $zero, 0
-  st  $2, 16($fp)
+  st  $2, 24($fp)
 $BB1_3:
-  ld  $2, 16($fp)
+  ld  $2, 24($fp)
   move   $sp, $fp
-  ld  $9, 20($sp)             # 4-byte Folded Reload
-  ld  $fp, 24($sp)            # 4-byte Folded Reload
-  ld  $lr, 28($sp)            # 4-byte Folded Reload
-  addiu  $sp, $sp, 32
+  ld  $9, 28($sp)             # 4-byte Folded Reload
+  ld  $fp, 32($sp)            # 4-byte Folded Reload
+  ld  $lr, 36($sp)            # 4-byte Folded Reload
+  addiu  $sp, $sp, 40
   ret  $lr
   nop
 $BB1_1:
 $tmp6:
-  st  $4, 12($fp)
-  st  $5, 8($fp)
-  ld  $4, 12($fp)
+  st  $4, 20($fp)
+  st  $5, 16($fp)
+  ld  $4, 20($fp)
   jsub  __cxa_begin_catch
   nop
-  st  $9, 16($fp)
+  st  $9, 24($fp)
+  st  $9, 12($fp)
   jsub  __cxa_end_catch
   nop
   jmp  $BB1_3
@@ -431,7 +435,7 @@ $func_end1:
   .size  _Z14test_try_catchv, ($func_end1)-_Z14test_try_catchv
   .cfi_endproc
   .section  .gcc_except_table,&quot;a&quot;,@progbits
-  .align  2
+  .p2align  2
 GCC_except_table1:
 $exception0:
   .byte  255                     # @LPStart Encoding = omit
@@ -452,12 +456,12 @@ $exception0:
   .byte  0                       #   No further actions
                                         # &gt;&gt; Catch TypeInfos &lt;&lt;
   .4byte  0                       # TypeInfo 1
-  .align  2
+  .p2align  2
 
   .type  _ZTS3Ex1,@object        # @_ZTS3Ex1
   .section  .rodata._ZTS3Ex1,&quot;aG&quot;,@progbits,_ZTS3Ex1,comdat
   .weak  _ZTS3Ex1
-  .align  2
+  .p2align  2
 _ZTS3Ex1:
   .asciz  &quot;3Ex1&quot;
   .size  _ZTS3Ex1, 5
@@ -465,21 +469,21 @@ _ZTS3Ex1:
   .type  _ZTI3Ex1,@object        # @_ZTI3Ex1
   .section  .rodata._ZTI3Ex1,&quot;aG&quot;,@progbits,_ZTI3Ex1,comdat
   .weak  _ZTI3Ex1
-  .align  3
+  .p2align  3
 _ZTI3Ex1:
   .4byte  _ZTVN10__cxxabiv117__class_type_infoE+8
   .4byte  _ZTS3Ex1
   .size  _ZTI3Ex1, 8
 
 
-  .ident  &quot;clang version 3.7.0 (tags/RELEASE_370/final)&quot;
+  .ident  &quot;Apple LLVM version 7.0.0 (clang-700.1.76)&quot;
   .section  &quot;.note.GNU-stack&quot;,&quot;&quot;,@progbits
 </pre></div>
 </div>
 </div>
 <div class="section" id="thread-variable">
 <h2><a class="toc-backref" href="#id12">Thread variable</a><a class="headerlink" href="#thread-variable" title="Permalink to this headline">¶</a></h2>
-<p>C++ include the thread variable as the following file ch12_thread_var.cpp.</p>
+<p>C++ support thread variable as the following file ch12_thread_var.cpp.</p>
 <p class="rubric">lbdex/input/ch12_thread_var.cpp</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">__thread</span> <span class="nb">int</span> <span class="n">a</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
 <span class="n">thread_local</span> <span class="nb">int</span> <span class="n">b</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="o">//</span> <span class="n">need</span> <span class="n">option</span> <span class="o">-</span><span class="n">std</span><span class="o">=</span><span class="n">c</span><span class="o">++</span><span class="mi">11</span>
@@ -501,45 +505,12 @@ _ZTI3Ex1:
 thread variable has different instances for each different thread in a process.
 The same thread share the thread variable but different threads have their own
 thread variable with the same name <a class="footnote-reference" href="#thread-wiki" id="id2">[2]</a>.</p>
-<p>To support thread variable, the following code added to Chapter12_1.
+<p>To support thread variable, tlsgd, tlsldm, dtp_hi, dtp_lo, gottp, tp_hi and
+tp_lo in both evaluateRelocExpr() of Cpu0AsmParser.cpp and printImpl() of
+Cpu0MCExpr.cpp are needed, and the following code are required.
 Most of them are for relocation record handle and display since the thread
 variable created by OS or language library which support multi-threads
 programming.</p>
-<p class="rubric">lbdex/chapters/Chapter12_1/AsmParser/Cpu0AsmParser.cpp</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">MCSymbolRefExpr</span><span class="p">::</span><span class="n">VariantKind</span> <span class="n">Cpu0AsmParser</span><span class="p">::</span><span class="n">getVariantKind</span><span class="p">(</span><span class="n">StringRef</span> <span class="n">Symbol</span><span class="p">)</span> <span class="p">{</span>
-</pre></div>
-</div>
-<div class="highlight-default"><div class="highlight"><pre><span></span>    <span class="o">.</span><span class="n">Case</span><span class="p">(</span><span class="s2">&quot;tlsgd&quot;</span><span class="p">,</span>       <span class="n">MCSymbolRefExpr</span><span class="p">::</span><span class="n">VK_Cpu0_TLSGD</span><span class="p">)</span>
-    <span class="o">.</span><span class="n">Case</span><span class="p">(</span><span class="s2">&quot;tlsldm&quot;</span><span class="p">,</span>      <span class="n">MCSymbolRefExpr</span><span class="p">::</span><span class="n">VK_Cpu0_TLSLDM</span><span class="p">)</span>
-    <span class="o">.</span><span class="n">Case</span><span class="p">(</span><span class="s2">&quot;dtp_hi&quot;</span><span class="p">,</span>      <span class="n">MCSymbolRefExpr</span><span class="p">::</span><span class="n">VK_Cpu0_DTP_HI</span><span class="p">)</span>
-    <span class="o">.</span><span class="n">Case</span><span class="p">(</span><span class="s2">&quot;dtp_lo&quot;</span><span class="p">,</span>      <span class="n">MCSymbolRefExpr</span><span class="p">::</span><span class="n">VK_Cpu0_DTP_LO</span><span class="p">)</span>
-    <span class="o">.</span><span class="n">Case</span><span class="p">(</span><span class="s2">&quot;gottp&quot;</span><span class="p">,</span>       <span class="n">MCSymbolRefExpr</span><span class="p">::</span><span class="n">VK_Cpu0_GOTTPREL</span><span class="p">)</span>
-    <span class="o">.</span><span class="n">Case</span><span class="p">(</span><span class="s2">&quot;tp_hi&quot;</span><span class="p">,</span>       <span class="n">MCSymbolRefExpr</span><span class="p">::</span><span class="n">VK_Cpu0_TP_HI</span><span class="p">)</span>
-    <span class="o">.</span><span class="n">Case</span><span class="p">(</span><span class="s2">&quot;tp_lo&quot;</span><span class="p">,</span>       <span class="n">MCSymbolRefExpr</span><span class="p">::</span><span class="n">VK_Cpu0_TP_LO</span><span class="p">)</span>
-</pre></div>
-</div>
-<div class="highlight-c++"><div class="highlight"><pre><span></span>    <span class="p">...</span>
-<span class="p">}</span>
-</pre></div>
-</div>
-<p class="rubric">lbdex/chapters/Chapter12_1/InstPrinter/Cpu0InstPrinter.cpp</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">static</span> <span class="n">void</span> <span class="n">printExpr</span><span class="p">(</span><span class="n">const</span> <span class="n">MCExpr</span> <span class="o">*</span><span class="n">Expr</span><span class="p">,</span> <span class="n">const</span> <span class="n">MCAsmInfo</span> <span class="o">*</span><span class="n">MAI</span><span class="p">,</span>
-                      <span class="n">raw_ostream</span> <span class="o">&amp;</span><span class="n">OS</span><span class="p">)</span> <span class="p">{</span>
-</pre></div>
-</div>
-<div class="highlight-default"><div class="highlight"><pre><span></span>  <span class="n">case</span> <span class="n">MCSymbolRefExpr</span><span class="p">::</span><span class="n">VK_Cpu0_TLSGD</span><span class="p">:</span>     <span class="n">OS</span> <span class="o">&lt;&lt;</span> <span class="s2">&quot;%tlsgd(&quot;</span><span class="p">;</span>  <span class="k">break</span><span class="p">;</span>
-  <span class="n">case</span> <span class="n">MCSymbolRefExpr</span><span class="p">::</span><span class="n">VK_Cpu0_TLSLDM</span><span class="p">:</span>    <span class="n">OS</span> <span class="o">&lt;&lt;</span> <span class="s2">&quot;%tlsldm(&quot;</span><span class="p">;</span>  <span class="k">break</span><span class="p">;</span>
-  <span class="n">case</span> <span class="n">MCSymbolRefExpr</span><span class="p">::</span><span class="n">VK_Cpu0_DTP_HI</span><span class="p">:</span>    <span class="n">OS</span> <span class="o">&lt;&lt;</span> <span class="s2">&quot;</span><span class="si">%d</span><span class="s2">tp_hi(&quot;</span><span class="p">;</span>  <span class="k">break</span><span class="p">;</span>
-  <span class="n">case</span> <span class="n">MCSymbolRefExpr</span><span class="p">::</span><span class="n">VK_Cpu0_DTP_LO</span><span class="p">:</span>    <span class="n">OS</span> <span class="o">&lt;&lt;</span> <span class="s2">&quot;</span><span class="si">%d</span><span class="s2">tp_lo(&quot;</span><span class="p">;</span>  <span class="k">break</span><span class="p">;</span>
-  <span class="n">case</span> <span class="n">MCSymbolRefExpr</span><span class="p">::</span><span class="n">VK_Cpu0_GOTTPREL</span><span class="p">:</span>  <span class="n">OS</span> <span class="o">&lt;&lt;</span> <span class="s2">&quot;</span><span class="si">%g</span><span class="s2">ottprel(&quot;</span><span class="p">;</span> <span class="k">break</span><span class="p">;</span>
-  <span class="n">case</span> <span class="n">MCSymbolRefExpr</span><span class="p">::</span><span class="n">VK_Cpu0_TP_HI</span><span class="p">:</span>     <span class="n">OS</span> <span class="o">&lt;&lt;</span> <span class="s2">&quot;%tp_hi(&quot;</span><span class="p">;</span> <span class="k">break</span><span class="p">;</span>
-  <span class="n">case</span> <span class="n">MCSymbolRefExpr</span><span class="p">::</span><span class="n">VK_Cpu0_TP_LO</span><span class="p">:</span>     <span class="n">OS</span> <span class="o">&lt;&lt;</span> <span class="s2">&quot;%tp_lo(&quot;</span><span class="p">;</span> <span class="k">break</span><span class="p">;</span>
-</pre></div>
-</div>
-<div class="highlight-c++"><div class="highlight"><pre><span></span>  <span class="p">...</span>
-<span class="p">}</span>
-</pre></div>
-</div>
 <p class="rubric">lbdex/chapters/Chapter12_1/MCTargetDesc/Cpu0AsmBackend.cpp</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">const</span> <span class="n">MCFixupKindInfo</span> <span class="o">&amp;</span><span class="n">Cpu0AsmBackend</span><span class="p">::</span>
 <span class="n">getFixupKindInfo</span><span class="p">(</span><span class="n">MCFixupKind</span> <span class="n">Kind</span><span class="p">)</span> <span class="n">const</span> <span class="p">{</span>
@@ -603,7 +574,8 @@ programming.</p>
 </pre></div>
 </div>
 <p class="rubric">lbdex/chapters/Chapter12_1/MCTargetDesc/Cpu0ELFObjectWriter.cpp</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">unsigned</span> <span class="n">Cpu0ELFObjectWriter</span><span class="p">::</span><span class="n">GetRelocType</span><span class="p">(</span><span class="n">const</span> <span class="n">MCValue</span> <span class="o">&amp;</span><span class="n">Target</span><span class="p">,</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">unsigned</span> <span class="n">Cpu0ELFObjectWriter</span><span class="p">::</span><span class="n">getRelocType</span><span class="p">(</span><span class="n">MCContext</span> <span class="o">&amp;</span><span class="n">Ctx</span><span class="p">,</span>
+                                           <span class="n">const</span> <span class="n">MCValue</span> <span class="o">&amp;</span><span class="n">Target</span><span class="p">,</span>
                                            <span class="n">const</span> <span class="n">MCFixup</span> <span class="o">&amp;</span><span class="n">Fixup</span><span class="p">,</span>
                                            <span class="nb">bool</span> <span class="n">IsPCRel</span><span class="p">)</span> <span class="n">const</span> <span class="p">{</span>
   <span class="o">//</span> <span class="n">determine</span> <span class="n">the</span> <span class="nb">type</span> <span class="n">of</span> <span class="n">the</span> <span class="n">relocation</span>
@@ -661,25 +633,25 @@ programming.</p>
                <span class="n">const</span> <span class="n">MCSubtargetInfo</span> <span class="o">&amp;</span><span class="n">STI</span><span class="p">)</span> <span class="n">const</span> <span class="p">{</span>
 </pre></div>
 </div>
-<div class="highlight-default"><div class="highlight"><pre><span></span>    <span class="n">case</span> <span class="n">MCSymbolRefExpr</span><span class="p">::</span><span class="n">VK_Cpu0_TLSGD</span><span class="p">:</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span>    <span class="n">case</span> <span class="n">Cpu0MCExpr</span><span class="p">::</span><span class="n">CEK_TLSGD</span><span class="p">:</span>
       <span class="n">FixupKind</span> <span class="o">=</span> <span class="n">Cpu0</span><span class="p">::</span><span class="n">fixup_Cpu0_TLSGD</span><span class="p">;</span>
       <span class="k">break</span><span class="p">;</span>
-    <span class="n">case</span> <span class="n">MCSymbolRefExpr</span><span class="p">::</span><span class="n">VK_Cpu0_TLSLDM</span><span class="p">:</span>
+    <span class="n">case</span> <span class="n">Cpu0MCExpr</span><span class="p">::</span><span class="n">CEK_TLSLDM</span><span class="p">:</span>
       <span class="n">FixupKind</span> <span class="o">=</span> <span class="n">Cpu0</span><span class="p">::</span><span class="n">fixup_Cpu0_TLSLDM</span><span class="p">;</span>
       <span class="k">break</span><span class="p">;</span>
-    <span class="n">case</span> <span class="n">MCSymbolRefExpr</span><span class="p">::</span><span class="n">VK_Cpu0_DTP_HI</span><span class="p">:</span>
+    <span class="n">case</span> <span class="n">Cpu0MCExpr</span><span class="p">::</span><span class="n">CEK_DTP_HI</span><span class="p">:</span>
       <span class="n">FixupKind</span> <span class="o">=</span> <span class="n">Cpu0</span><span class="p">::</span><span class="n">fixup_Cpu0_DTP_HI</span><span class="p">;</span>
       <span class="k">break</span><span class="p">;</span>
-    <span class="n">case</span> <span class="n">MCSymbolRefExpr</span><span class="p">::</span><span class="n">VK_Cpu0_DTP_LO</span><span class="p">:</span>
+    <span class="n">case</span> <span class="n">Cpu0MCExpr</span><span class="p">::</span><span class="n">CEK_DTP_LO</span><span class="p">:</span>
       <span class="n">FixupKind</span> <span class="o">=</span> <span class="n">Cpu0</span><span class="p">::</span><span class="n">fixup_Cpu0_DTP_LO</span><span class="p">;</span>
       <span class="k">break</span><span class="p">;</span>
-    <span class="n">case</span> <span class="n">MCSymbolRefExpr</span><span class="p">::</span><span class="n">VK_Cpu0_GOTTPREL</span><span class="p">:</span>
+    <span class="n">case</span> <span class="n">Cpu0MCExpr</span><span class="p">::</span><span class="n">CEK_GOTTPREL</span><span class="p">:</span>
       <span class="n">FixupKind</span> <span class="o">=</span> <span class="n">Cpu0</span><span class="p">::</span><span class="n">fixup_Cpu0_GOTTPREL</span><span class="p">;</span>
       <span class="k">break</span><span class="p">;</span>
-    <span class="n">case</span> <span class="n">MCSymbolRefExpr</span><span class="p">::</span><span class="n">VK_Cpu0_TP_HI</span><span class="p">:</span>
+    <span class="n">case</span> <span class="n">Cpu0MCExpr</span><span class="p">::</span><span class="n">CEK_TP_HI</span><span class="p">:</span>
       <span class="n">FixupKind</span> <span class="o">=</span> <span class="n">Cpu0</span><span class="p">::</span><span class="n">fixup_Cpu0_TP_HI</span><span class="p">;</span>
       <span class="k">break</span><span class="p">;</span>
-    <span class="n">case</span> <span class="n">MCSymbolRefExpr</span><span class="p">::</span><span class="n">VK_Cpu0_TP_LO</span><span class="p">:</span>
+    <span class="n">case</span> <span class="n">Cpu0MCExpr</span><span class="p">::</span><span class="n">CEK_TP_LO</span><span class="p">:</span>
       <span class="n">FixupKind</span> <span class="o">=</span> <span class="n">Cpu0</span><span class="p">::</span><span class="n">fixup_Cpu0_TP_LO</span><span class="p">;</span>
       <span class="k">break</span><span class="p">;</span>
 </pre></div>
@@ -756,6 +728,9 @@ lowerGlobalTLSAddress(SDValue Op, SelectionDAG &amp;DAG) const
   // Local Exec TLS Model.
 
   GlobalAddressSDNode *GA = cast&lt;GlobalAddressSDNode&gt;(Op);
+  if (DAG.getTarget().Options.EmulatedTLS)
+    return LowerToTLSEmulatedModel(GA, DAG);
+
   SDLoc DL(GA);
   const GlobalValue *GV = GA-&gt;getGlobal();
   EVT PtrVT = getPointerTy(DAG.getDataLayout());
@@ -783,7 +758,7 @@ lowerGlobalTLSAddress(SDValue Op, SelectionDAG &amp;DAG) const
 
     TargetLowering::CallLoweringInfo CLI(DAG);
     CLI.setDebugLoc(DL).setChain(DAG.getEntryNode())
-      .setCallee(CallingConv::C, PtrTy, TlsGetAddr, std::move(Args), 0);
+      .setCallee(CallingConv::C, PtrTy, TlsGetAddr, std::move(Args));
     std::pair&lt;SDValue, SDValue&gt; CallResult = LowerCallTo(CLI);
 
     SDValue Ret = CallResult.first;
@@ -808,9 +783,8 @@ lowerGlobalTLSAddress(SDValue Op, SelectionDAG &amp;DAG) const
                                              Cpu0II::MO_GOTTPREL);
     TGA = DAG.getNode(Cpu0ISD::Wrapper, DL, PtrVT, getGlobalReg(DAG, PtrVT),
                       TGA);
-    Offset = DAG.getLoad(PtrVT, DL,
-                         DAG.getEntryNode(), TGA, MachinePointerInfo(),
-                         false, false, false, 0);
+    Offset =
+        DAG.getLoad(PtrVT, DL, DAG.getEntryNode(), TGA, MachinePointerInfo());
   } else {
     // Local Exec TLS Model
     assert(model == TLSModel::LocalExec);
@@ -826,29 +800,42 @@ lowerGlobalTLSAddress(SDValue Op, SelectionDAG &amp;DAG) const
 }
 </pre></div>
 </div>
-<p class="rubric">lbdex/chapters/Chapter12_1/Cpu0SelLowering.h</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span>    <span class="n">MachineBasicBlock</span> <span class="o">*</span>
-    <span class="n">EmitInstrWithCustomInserter</span><span class="p">(</span><span class="n">MachineInstr</span> <span class="o">*</span><span class="n">MI</span><span class="p">,</span>
-                                <span class="n">MachineBasicBlock</span> <span class="o">*</span><span class="n">MBB</span><span class="p">)</span> <span class="n">const</span> <span class="n">override</span><span class="p">;</span>
+<p class="rubric">lbdex/chapters/Chapter12_1/Cpu0ISelLowering.h</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>    <span class="n">SDValue</span> <span class="n">lowerGlobalTLSAddress</span><span class="p">(</span><span class="n">SDValue</span> <span class="n">Op</span><span class="p">,</span> <span class="n">SelectionDAG</span> <span class="o">&amp;</span><span class="n">DAG</span><span class="p">)</span> <span class="n">const</span><span class="p">;</span>
 </pre></div>
 </div>
 <p class="rubric">lbdex/chapters/Chapter12_1/Cpu0MCInstLower.cpp</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">MCOperand</span> <span class="n">Cpu0MCInstLower</span><span class="p">::</span><span class="n">LowerSymbolOperand</span><span class="p">(</span><span class="n">const</span> <span class="n">MachineOperand</span> <span class="o">&amp;</span><span class="n">MO</span><span class="p">,</span>
                                               <span class="n">MachineOperandType</span> <span class="n">MOTy</span><span class="p">,</span>
                                               <span class="n">unsigned</span> <span class="n">Offset</span><span class="p">)</span> <span class="n">const</span> <span class="p">{</span>
-  <span class="n">MCSymbolRefExpr</span><span class="p">::</span><span class="n">VariantKind</span> <span class="n">Kind</span><span class="p">;</span>
+  <span class="n">MCSymbolRefExpr</span><span class="p">::</span><span class="n">VariantKind</span> <span class="n">Kind</span> <span class="o">=</span> <span class="n">MCSymbolRefExpr</span><span class="p">::</span><span class="n">VK_None</span><span class="p">;</span>
+  <span class="n">Cpu0MCExpr</span><span class="p">::</span><span class="n">Cpu0ExprKind</span> <span class="n">TargetKind</span> <span class="o">=</span> <span class="n">Cpu0MCExpr</span><span class="p">::</span><span class="n">CEK_None</span><span class="p">;</span>
   <span class="n">const</span> <span class="n">MCSymbol</span> <span class="o">*</span><span class="n">Symbol</span><span class="p">;</span>
 
   <span class="n">switch</span><span class="p">(</span><span class="n">MO</span><span class="o">.</span><span class="n">getTargetFlags</span><span class="p">())</span> <span class="p">{</span>
 </pre></div>
 </div>
-<div class="highlight-default"><div class="highlight"><pre><span></span>  <span class="n">case</span> <span class="n">Cpu0II</span><span class="p">::</span><span class="n">MO_TLSGD</span><span class="p">:</span>     <span class="n">Kind</span> <span class="o">=</span> <span class="n">MCSymbolRefExpr</span><span class="p">::</span><span class="n">VK_Cpu0_TLSGD</span><span class="p">;</span> <span class="k">break</span><span class="p">;</span>
-  <span class="n">case</span> <span class="n">Cpu0II</span><span class="p">::</span><span class="n">MO_TLSLDM</span><span class="p">:</span>    <span class="n">Kind</span> <span class="o">=</span> <span class="n">MCSymbolRefExpr</span><span class="p">::</span><span class="n">VK_Cpu0_TLSLDM</span><span class="p">;</span> <span class="k">break</span><span class="p">;</span>
-  <span class="n">case</span> <span class="n">Cpu0II</span><span class="p">::</span><span class="n">MO_DTP_HI</span><span class="p">:</span>    <span class="n">Kind</span> <span class="o">=</span> <span class="n">MCSymbolRefExpr</span><span class="p">::</span><span class="n">VK_Cpu0_DTP_HI</span><span class="p">;</span> <span class="k">break</span><span class="p">;</span>
-  <span class="n">case</span> <span class="n">Cpu0II</span><span class="p">::</span><span class="n">MO_DTP_LO</span><span class="p">:</span>    <span class="n">Kind</span> <span class="o">=</span> <span class="n">MCSymbolRefExpr</span><span class="p">::</span><span class="n">VK_Cpu0_DTP_LO</span><span class="p">;</span> <span class="k">break</span><span class="p">;</span>
-  <span class="n">case</span> <span class="n">Cpu0II</span><span class="p">::</span><span class="n">MO_GOTTPREL</span><span class="p">:</span>  <span class="n">Kind</span> <span class="o">=</span> <span class="n">MCSymbolRefExpr</span><span class="p">::</span><span class="n">VK_Cpu0_GOTTPREL</span><span class="p">;</span> <span class="k">break</span><span class="p">;</span>
-  <span class="n">case</span> <span class="n">Cpu0II</span><span class="p">::</span><span class="n">MO_TP_HI</span><span class="p">:</span>     <span class="n">Kind</span> <span class="o">=</span> <span class="n">MCSymbolRefExpr</span><span class="p">::</span><span class="n">VK_Cpu0_TP_HI</span><span class="p">;</span> <span class="k">break</span><span class="p">;</span>
-  <span class="n">case</span> <span class="n">Cpu0II</span><span class="p">::</span><span class="n">MO_TP_LO</span><span class="p">:</span>     <span class="n">Kind</span> <span class="o">=</span> <span class="n">MCSymbolRefExpr</span><span class="p">::</span><span class="n">VK_Cpu0_TP_LO</span><span class="p">;</span> <span class="k">break</span><span class="p">;</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span>  <span class="n">case</span> <span class="n">Cpu0II</span><span class="p">::</span><span class="n">MO_TLSGD</span><span class="p">:</span>
+    <span class="n">TargetKind</span> <span class="o">=</span> <span class="n">Cpu0MCExpr</span><span class="p">::</span><span class="n">CEK_TLSGD</span><span class="p">;</span>
+    <span class="k">break</span><span class="p">;</span>
+  <span class="n">case</span> <span class="n">Cpu0II</span><span class="p">::</span><span class="n">MO_TLSLDM</span><span class="p">:</span>
+    <span class="n">TargetKind</span> <span class="o">=</span> <span class="n">Cpu0MCExpr</span><span class="p">::</span><span class="n">CEK_TLSLDM</span><span class="p">;</span>
+    <span class="k">break</span><span class="p">;</span>
+  <span class="n">case</span> <span class="n">Cpu0II</span><span class="p">::</span><span class="n">MO_DTP_HI</span><span class="p">:</span>
+    <span class="n">TargetKind</span> <span class="o">=</span> <span class="n">Cpu0MCExpr</span><span class="p">::</span><span class="n">CEK_DTP_HI</span><span class="p">;</span>
+    <span class="k">break</span><span class="p">;</span>
+  <span class="n">case</span> <span class="n">Cpu0II</span><span class="p">::</span><span class="n">MO_DTP_LO</span><span class="p">:</span>
+    <span class="n">TargetKind</span> <span class="o">=</span> <span class="n">Cpu0MCExpr</span><span class="p">::</span><span class="n">CEK_DTP_LO</span><span class="p">;</span>
+    <span class="k">break</span><span class="p">;</span>
+  <span class="n">case</span> <span class="n">Cpu0II</span><span class="p">::</span><span class="n">MO_GOTTPREL</span><span class="p">:</span>
+    <span class="n">TargetKind</span> <span class="o">=</span> <span class="n">Cpu0MCExpr</span><span class="p">::</span><span class="n">CEK_GOTTPREL</span><span class="p">;</span>
+    <span class="k">break</span><span class="p">;</span>
+  <span class="n">case</span> <span class="n">Cpu0II</span><span class="p">::</span><span class="n">MO_TP_HI</span><span class="p">:</span>
+    <span class="n">TargetKind</span> <span class="o">=</span> <span class="n">Cpu0MCExpr</span><span class="p">::</span><span class="n">CEK_TP_HI</span><span class="p">;</span>
+    <span class="k">break</span><span class="p">;</span>
+  <span class="n">case</span> <span class="n">Cpu0II</span><span class="p">::</span><span class="n">MO_TP_LO</span><span class="p">:</span>
+    <span class="n">TargetKind</span> <span class="o">=</span> <span class="n">Cpu0MCExpr</span><span class="p">::</span><span class="n">CEK_TP_LO</span><span class="p">;</span>
+    <span class="k">break</span><span class="p">;</span>
 </pre></div>
 </div>
 <div class="highlight-c++"><div class="highlight"><pre><span></span>  <span class="p">...</span>
@@ -864,6 +851,7 @@ lowerGlobalTLSAddress(SDValue Op, SelectionDAG &amp;DAG) const
 </pre></div>
 </div>
 <div class="highlight-default"><div class="highlight"><pre><span></span>; ModuleID = &#39;ch12_thread_var.bc&#39;
+source_filename = &quot;ch12_thread_var.bc&quot;
 target datalayout = &quot;E-m:m-p:32:32-i8:8:32-i16:16:32-i64:64-n32-S64&quot;
 target triple = &quot;mips-unknown-linux-gnu&quot;
 
@@ -889,20 +877,18 @@ define weak_odr hidden i32* @_ZTW1b() {
   ret i32* @b
 }
 
-attributes #0 = { nounwind &quot;disable-tail-calls&quot;=&quot;false&quot; &quot;less-precise-fpmad&quot;=&quot;fa
-lse&quot; &quot;no-frame-pointer-elim&quot;=&quot;true&quot; &quot;no-frame-pointer-elim-non-leaf&quot; &quot;no-infs-fp
--math&quot;=&quot;false&quot; &quot;no-nans-fp-math&quot;=&quot;false&quot; &quot;stack-protector-buffer-size&quot;=&quot;8&quot; &quot;targ
-et-cpu&quot;=&quot;mips32r2&quot; &quot;target-features&quot;=&quot;+mips32r2&quot; &quot;unsafe-fp-math&quot;=&quot;false&quot; &quot;use-s
-oft-float&quot;=&quot;false&quot; }
-attributes #1 = { &quot;disable-tail-calls&quot;=&quot;false&quot; &quot;less-precise-fpmad&quot;=&quot;false&quot; &quot;no-
-frame-pointer-elim&quot;=&quot;true&quot; &quot;no-frame-pointer-elim-non-leaf&quot; &quot;no-infs-fp-math&quot;=&quot;f
-alse&quot; &quot;no-nans-fp-math&quot;=&quot;false&quot; &quot;stack-protector-buffer-size&quot;=&quot;8&quot; &quot;target-cpu&quot;=&quot;
-mips32r2&quot; &quot;target-features&quot;=&quot;+mips32r2&quot; &quot;unsafe-fp-math&quot;=&quot;false&quot; &quot;use-soft-float
-&quot;=&quot;false&quot; }
+attributes #0 = { nounwind &quot;less-precise-fpmad&quot;=&quot;false&quot; &quot;no-frame-pointer-elim&quot;=
+&quot;true&quot; &quot;no-frame-pointer-elim-non-leaf&quot; &quot;no-infs-fp-math&quot;=&quot;false&quot; &quot;no-nans-fp-ma
+th&quot;=&quot;false&quot; &quot;stack-protector-buffer-size&quot;=&quot;8&quot; &quot;target-cpu&quot;=&quot;mips32r2&quot; &quot;target-fe
+atures&quot;=&quot;+mips32r2&quot; &quot;unsafe-fp-math&quot;=&quot;false&quot; &quot;use-soft-float&quot;=&quot;false&quot; }
+attributes #1 = { &quot;less-precise-fpmad&quot;=&quot;false&quot; &quot;no-frame-pointer-elim&quot;=&quot;true&quot; &quot;n
+o-frame-pointer-elim-non-leaf&quot; &quot;no-infs-fp-math&quot;=&quot;false&quot; &quot;no-nans-fp-math&quot;=&quot;fals
+e&quot; &quot;stack-protector-buffer-size&quot;=&quot;8&quot; &quot;target-cpu&quot;=&quot;mips32r2&quot; &quot;target-features&quot;=&quot;
++mips32r2&quot; &quot;unsafe-fp-math&quot;=&quot;false&quot; &quot;use-soft-float&quot;=&quot;false&quot; }
 
 !llvm.ident = !{!0}
 
-!0 = !{!&quot;clang version 3.7.0 (tags/RELEASE_370/final)&quot;}
+!0 = !{!&quot;Apple LLVM version 7.0.0 (clang-700.1.76)&quot;}
 </pre></div>
 </div>
 <div class="highlight-console"><div class="highlight"><pre><span></span><span class="gp">JonathantekiiMac:input Jonathan$</span> /Users/Jonathan/llvm/test/cmake_debug_build/
@@ -915,7 +901,7 @@ mips32r2&quot; &quot;target-features&quot;=&quot;+mips32r2&quot; &quot;unsafe-fp
   .previous
   .file  &quot;ch12_thread_var.bc&quot;
   .globl  _Z15test_thread_varv
-  .align  2
+  .p2align  2
   .type  _Z15test_thread_varv,@function
   .ent  _Z15test_thread_varv    # @_Z15test_thread_varv
 _Z15test_thread_varv:
@@ -951,7 +937,7 @@ $func_end0:
   .size  _Z15test_thread_varv, ($func_end0)-_Z15test_thread_varv
 
   .globl  _Z17test_thread_var_2v
-  .align  2
+  .p2align  2
   .type  _Z17test_thread_var_2v,@function
   .ent  _Z17test_thread_var_2v  # @_Z17test_thread_var_2v
 _Z17test_thread_var_2v:
@@ -1001,7 +987,7 @@ $func_end1:
 
   .hidden  _ZTW1b
   .weak  _ZTW1b
-  .align  2
+  .p2align  2
   .type  _ZTW1b,@function
   .ent  _ZTW1b                  # @_ZTW1b
 _ZTW1b:
@@ -1038,29 +1024,30 @@ $func_end2:
   .type  a,@object               # @a
   .section  .tbss,&quot;awT&quot;,@nobits
   .globl  a
-  .align  2
+  .p2align  2
 a:
   .4byte  0                       # 0x0
   .size  a, 4
 
   .type  b,@object               # @b
   .globl  b
-  .align  2
+  .p2align  2
 b:
   .4byte  0                       # 0x0
   .size  b, 4
 
 
-  .ident  &quot;clang version 3.7.0 (tags/RELEASE_370/final)&quot;
+  .ident  &quot;Apple LLVM version 7.0.0 (clang-700.1.76)&quot;
   .section  &quot;.note.GNU-stack&quot;,&quot;&quot;,@progbits
 </pre></div>
 </div>
 <p>In pic mode, the __thread variable access by call function __tls_get_addr with
 the address of thread variable.
-The c++11 standard thread_local variable is accessed by call function _ZTW1b
-which call the function __tls_get_addr too to get the thread_local variable
+The c++11 standard thread_local variable is accessed by calling function _ZTW1b
+which also call the function __tls_get_addr to get the thread_local variable
 address.
-In static mode, the thread variable is accessed by machine instructions as follows,</p>
+In static mode, the thread variable is accessed by machine instructions as
+follows,</p>
 <div class="highlight-console"><div class="highlight"><pre><span></span><span class="gp">JonathantekiiMac:input Jonathan$</span> /Users/Jonathan/llvm/test/cmake_debug_build/
 <span class="go">Debug/bin/llc -march=cpu0 -relocation-model=static -filetype=asm</span>
 <span class="go">ch12_thread_var.bc -o -</span>
@@ -1071,7 +1058,7 @@ In static mode, the thread variable is accessed by machine instructions as follo
   .previous
   .file  &quot;ch12_thread_var.bc&quot;
   .globl  _Z15test_thread_varv
-  .align  2
+  .p2align  2
   .type  _Z15test_thread_varv,@function
   .ent  _Z15test_thread_varv    # @_Z15test_thread_varv
 _Z15test_thread_varv:
@@ -1099,7 +1086,7 @@ $func_end0:
   .size  _Z15test_thread_varv, ($func_end0)-_Z15test_thread_varv
 
   .globl  _Z17test_thread_var_2v
-  .align  2
+  .p2align  2
   .type  _Z17test_thread_var_2v,@function
   .ent  _Z17test_thread_var_2v  # @_Z17test_thread_var_2v
 _Z17test_thread_var_2v:
@@ -1143,7 +1130,7 @@ $func_end1:
 
   .hidden  _ZTW1b
   .weak  _ZTW1b
-  .align  2
+  .p2align  2
   .type  _ZTW1b,@function
   .ent  _ZTW1b                  # @_ZTW1b
 _ZTW1b:
@@ -1167,29 +1154,29 @@ $func_end2:
   .type  a,@object               # @a
   .section  .tbss,&quot;awT&quot;,@nobits
   .globl  a
-  .align  2
+  .p2align  2
 a:
   .4byte  0                       # 0x0
   .size  a, 4
 
   .type  b,@object               # @b
   .globl  b
-  .align  2
+  .p2align  2
 b:
   .4byte  0                       # 0x0
   .size  b, 4
 
 
-  .ident  &quot;clang version 3.7.0 (tags/RELEASE_370/final)&quot;
+  .ident  &quot;Apple LLVM version 7.0.0 (clang-700.1.76)&quot;
   .section  &quot;.note.GNU-stack&quot;,&quot;&quot;,@progbits
 </pre></div>
 </div>
 <p>While Mips uses rdhwr instruction to access thread varaible as below,
 Cpu0 access thread varaible without inventing any new instruction.
 The thread variables are keeped in thread varaible memory location which
-accessed through %tp_hi and %tp_lo. Furthermore, this section of memory is
+accessed through %tp_hi and %tp_lo, and furthermore, this section of memory is
 protected through kernel mode program.
-As a result, the user mode program cannot access this area of memory and
+Thus, the user mode program cannot access this area of memory and
 no space to breathe for hack program.</p>
 <div class="highlight-console"><div class="highlight"><pre><span></span><span class="gp">JonathantekiiMac:input Jonathan$</span> /Users/Jonathan/llvm/test/cmake_debug_build/
 <span class="go">Debug/bin/llc -march=mips -relocation-model=static -filetype=asm</span>
@@ -1293,29 +1280,12 @@ programmer. But this solution is OS dependent.
 After c++11, programmer can use atomic to program and run the code
 on every different platform since the thread and atomic are part of c++ standard.
 Beside of portability, the other important benifit is the compiler can generate
-high performance code by the target hardware instruction rather than couting on
+high performance code by the target hardware instructions rather than couting on
 lock() function only <a class="footnote-reference" href="#atomic-wiki" id="id3">[3]</a> <a class="footnote-reference" href="#atomic-stackoverflow" id="id4">[4]</a>
 <a class="footnote-reference" href="#atomic-herbsutter" id="id5">[5]</a>.</p>
 <p>In order to support atomic in C++ and java, llvm provides the atomic IRs here
 <a class="footnote-reference" href="#atomics-llvm" id="id6">[6]</a> <a class="footnote-reference" href="#llvmlang-ordering" id="id7">[7]</a>.</p>
-<p>To support llvm atomic IRs, the following code added to Chapter12_1.</p>
-<p class="rubric">lbdex/chapters/Chapter12_1/AsmParser/Cpu0AsmParser.cpp</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">MCSymbolRefExpr</span><span class="p">::</span><span class="n">VariantKind</span> <span class="n">Cpu0AsmParser</span><span class="p">::</span><span class="n">getVariantKind</span><span class="p">(</span><span class="n">StringRef</span> <span class="n">Symbol</span><span class="p">)</span> <span class="p">{</span>
-</pre></div>
-</div>
-<div class="highlight-default"><div class="highlight"><pre><span></span>    <span class="o">.</span><span class="n">Case</span><span class="p">(</span><span class="s2">&quot;tlsgd&quot;</span><span class="p">,</span>       <span class="n">MCSymbolRefExpr</span><span class="p">::</span><span class="n">VK_Cpu0_TLSGD</span><span class="p">)</span>
-    <span class="o">.</span><span class="n">Case</span><span class="p">(</span><span class="s2">&quot;tlsldm&quot;</span><span class="p">,</span>      <span class="n">MCSymbolRefExpr</span><span class="p">::</span><span class="n">VK_Cpu0_TLSLDM</span><span class="p">)</span>
-    <span class="o">.</span><span class="n">Case</span><span class="p">(</span><span class="s2">&quot;dtp_hi&quot;</span><span class="p">,</span>      <span class="n">MCSymbolRefExpr</span><span class="p">::</span><span class="n">VK_Cpu0_DTP_HI</span><span class="p">)</span>
-    <span class="o">.</span><span class="n">Case</span><span class="p">(</span><span class="s2">&quot;dtp_lo&quot;</span><span class="p">,</span>      <span class="n">MCSymbolRefExpr</span><span class="p">::</span><span class="n">VK_Cpu0_DTP_LO</span><span class="p">)</span>
-    <span class="o">.</span><span class="n">Case</span><span class="p">(</span><span class="s2">&quot;gottp&quot;</span><span class="p">,</span>       <span class="n">MCSymbolRefExpr</span><span class="p">::</span><span class="n">VK_Cpu0_GOTTPREL</span><span class="p">)</span>
-    <span class="o">.</span><span class="n">Case</span><span class="p">(</span><span class="s2">&quot;tp_hi&quot;</span><span class="p">,</span>       <span class="n">MCSymbolRefExpr</span><span class="p">::</span><span class="n">VK_Cpu0_TP_HI</span><span class="p">)</span>
-    <span class="o">.</span><span class="n">Case</span><span class="p">(</span><span class="s2">&quot;tp_lo&quot;</span><span class="p">,</span>       <span class="n">MCSymbolRefExpr</span><span class="p">::</span><span class="n">VK_Cpu0_TP_LO</span><span class="p">)</span>
-</pre></div>
-</div>
-<div class="highlight-c++"><div class="highlight"><pre><span></span>  <span class="p">...</span>
-<span class="p">}</span>
-</pre></div>
-</div>
+<p>For supporting llvm atomic IRs, the following code added to Chapter12_1.</p>
 <p class="rubric">lbdex/chapters/Chapter12_1/Disassembler/Cpu0Disassembler.cpp</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">static</span> <span class="n">DecodeStatus</span> <span class="n">DecodeMem</span><span class="p">(</span><span class="n">MCInst</span> <span class="o">&amp;</span><span class="n">Inst</span><span class="p">,</span>
                               <span class="n">unsigned</span> <span class="n">Insn</span><span class="p">,</span>
@@ -1425,28 +1395,32 @@ def SYNC : Cpu0Inst&lt;(outs), (ins i32imm:$stype), &quot;sync $stype&quot;,
                     (SYNC 0), 1&gt;;
 </pre></div>
 </div>
-<p class="rubric">lbdex/chapters/Chapter12_1/Cpu0SelLowering.h</p>
+<p class="rubric">lbdex/chapters/Chapter12_1/Cpu0ISelLowering.h</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span>    <span class="n">MachineBasicBlock</span> <span class="o">*</span>
-    <span class="n">EmitInstrWithCustomInserter</span><span class="p">(</span><span class="n">MachineInstr</span> <span class="o">*</span><span class="n">MI</span><span class="p">,</span>
+    <span class="n">EmitInstrWithCustomInserter</span><span class="p">(</span><span class="n">MachineInstr</span> <span class="o">&amp;</span><span class="n">MI</span><span class="p">,</span>
                                 <span class="n">MachineBasicBlock</span> <span class="o">*</span><span class="n">MBB</span><span class="p">)</span> <span class="n">const</span> <span class="n">override</span><span class="p">;</span>
 </pre></div>
 </div>
 <div class="highlight-default"><div class="highlight"><pre><span></span>    <span class="n">SDValue</span> <span class="n">lowerATOMIC_FENCE</span><span class="p">(</span><span class="n">SDValue</span> <span class="n">Op</span><span class="p">,</span> <span class="n">SelectionDAG</span><span class="o">&amp;</span> <span class="n">DAG</span><span class="p">)</span> <span class="n">const</span><span class="p">;</span>
 </pre></div>
 </div>
-<div class="highlight-default"><div class="highlight"><pre><span></span>    <span class="o">///</span> <span class="n">Emit</span> <span class="n">a</span> <span class="n">sign</span><span class="o">-</span><span class="n">extension</span> <span class="n">using</span> <span class="n">shl</span><span class="o">/</span><span class="n">sra</span> <span class="n">appropriately</span><span class="o">.</span>
-    <span class="n">MachineBasicBlock</span> <span class="o">*</span><span class="n">emitSignExtendToI32InReg</span><span class="p">(</span><span class="n">MachineInstr</span> <span class="o">*</span><span class="n">MI</span><span class="p">,</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span>    <span class="nb">bool</span> <span class="n">shouldInsertFencesForAtomic</span><span class="p">(</span><span class="n">const</span> <span class="n">Instruction</span> <span class="o">*</span><span class="n">I</span><span class="p">)</span> <span class="n">const</span> <span class="n">override</span> <span class="p">{</span>
+      <span class="k">return</span> <span class="n">true</span><span class="p">;</span>
+    <span class="p">}</span>
+
+    <span class="o">///</span> <span class="n">Emit</span> <span class="n">a</span> <span class="n">sign</span><span class="o">-</span><span class="n">extension</span> <span class="n">using</span> <span class="n">shl</span><span class="o">/</span><span class="n">sra</span> <span class="n">appropriately</span><span class="o">.</span>
+    <span class="n">MachineBasicBlock</span> <span class="o">*</span><span class="n">emitSignExtendToI32InReg</span><span class="p">(</span><span class="n">MachineInstr</span> <span class="o">&amp;</span><span class="n">MI</span><span class="p">,</span>
                                                 <span class="n">MachineBasicBlock</span> <span class="o">*</span><span class="n">BB</span><span class="p">,</span>
                                                 <span class="n">unsigned</span> <span class="n">Size</span><span class="p">,</span> <span class="n">unsigned</span> <span class="n">DstReg</span><span class="p">,</span>
                                                 <span class="n">unsigned</span> <span class="n">SrcRec</span><span class="p">)</span> <span class="n">const</span><span class="p">;</span>
-    <span class="n">MachineBasicBlock</span> <span class="o">*</span><span class="n">emitAtomicBinary</span><span class="p">(</span><span class="n">MachineInstr</span> <span class="o">*</span><span class="n">MI</span><span class="p">,</span> <span class="n">MachineBasicBlock</span> <span class="o">*</span><span class="n">BB</span><span class="p">,</span>
+    <span class="n">MachineBasicBlock</span> <span class="o">*</span><span class="n">emitAtomicBinary</span><span class="p">(</span><span class="n">MachineInstr</span> <span class="o">&amp;</span><span class="n">MI</span><span class="p">,</span> <span class="n">MachineBasicBlock</span> <span class="o">*</span><span class="n">BB</span><span class="p">,</span>
                     <span class="n">unsigned</span> <span class="n">Size</span><span class="p">,</span> <span class="n">unsigned</span> <span class="n">BinOpcode</span><span class="p">,</span> <span class="nb">bool</span> <span class="n">Nand</span> <span class="o">=</span> <span class="n">false</span><span class="p">)</span> <span class="n">const</span><span class="p">;</span>
-    <span class="n">MachineBasicBlock</span> <span class="o">*</span><span class="n">emitAtomicBinaryPartword</span><span class="p">(</span><span class="n">MachineInstr</span> <span class="o">*</span><span class="n">MI</span><span class="p">,</span>
+    <span class="n">MachineBasicBlock</span> <span class="o">*</span><span class="n">emitAtomicBinaryPartword</span><span class="p">(</span><span class="n">MachineInstr</span> <span class="o">&amp;</span><span class="n">MI</span><span class="p">,</span>
                     <span class="n">MachineBasicBlock</span> <span class="o">*</span><span class="n">BB</span><span class="p">,</span> <span class="n">unsigned</span> <span class="n">Size</span><span class="p">,</span> <span class="n">unsigned</span> <span class="n">BinOpcode</span><span class="p">,</span>
                     <span class="nb">bool</span> <span class="n">Nand</span> <span class="o">=</span> <span class="n">false</span><span class="p">)</span> <span class="n">const</span><span class="p">;</span>
-    <span class="n">MachineBasicBlock</span> <span class="o">*</span><span class="n">emitAtomicCmpSwap</span><span class="p">(</span><span class="n">MachineInstr</span> <span class="o">*</span><span class="n">MI</span><span class="p">,</span>
+    <span class="n">MachineBasicBlock</span> <span class="o">*</span><span class="n">emitAtomicCmpSwap</span><span class="p">(</span><span class="n">MachineInstr</span> <span class="o">&amp;</span><span class="n">MI</span><span class="p">,</span>
                                   <span class="n">MachineBasicBlock</span> <span class="o">*</span><span class="n">BB</span><span class="p">,</span> <span class="n">unsigned</span> <span class="n">Size</span><span class="p">)</span> <span class="n">const</span><span class="p">;</span>
-    <span class="n">MachineBasicBlock</span> <span class="o">*</span><span class="n">emitAtomicCmpSwapPartword</span><span class="p">(</span><span class="n">MachineInstr</span> <span class="o">*</span><span class="n">MI</span><span class="p">,</span>
+    <span class="n">MachineBasicBlock</span> <span class="o">*</span><span class="n">emitAtomicCmpSwapPartword</span><span class="p">(</span><span class="n">MachineInstr</span> <span class="o">&amp;</span><span class="n">MI</span><span class="p">,</span>
                                   <span class="n">MachineBasicBlock</span> <span class="o">*</span><span class="n">BB</span><span class="p">,</span> <span class="n">unsigned</span> <span class="n">Size</span><span class="p">)</span> <span class="n">const</span><span class="p">;</span>
 </pre></div>
 </div>
@@ -1471,8 +1445,6 @@ def SYNC : Cpu0Inst&lt;(outs), (ins i32imm:$stype), &quot;sync $stype&quot;,
   <span class="n">setOperationAction</span><span class="p">(</span><span class="n">ISD</span><span class="p">::</span><span class="n">ATOMIC_LOAD</span><span class="p">,</span>       <span class="n">MVT</span><span class="p">::</span><span class="n">i64</span><span class="p">,</span>    <span class="n">Expand</span><span class="p">);</span>
   <span class="n">setOperationAction</span><span class="p">(</span><span class="n">ISD</span><span class="p">::</span><span class="n">ATOMIC_STORE</span><span class="p">,</span>      <span class="n">MVT</span><span class="p">::</span><span class="n">i32</span><span class="p">,</span>    <span class="n">Expand</span><span class="p">);</span>
   <span class="n">setOperationAction</span><span class="p">(</span><span class="n">ISD</span><span class="p">::</span><span class="n">ATOMIC_STORE</span><span class="p">,</span>      <span class="n">MVT</span><span class="p">::</span><span class="n">i64</span><span class="p">,</span>    <span class="n">Expand</span><span class="p">);</span>
-
-  <span class="n">setInsertFencesForAtomic</span><span class="p">(</span><span class="n">true</span><span class="p">);</span>
 </pre></div>
 </div>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">SDValue</span> <span class="n">Cpu0TargetLowering</span><span class="p">::</span>
@@ -1490,9 +1462,9 @@ def SYNC : Cpu0Inst&lt;(outs), (ins i32imm:$stype), &quot;sync $stype&quot;,
 </pre></div>
 </div>
 <div class="highlight-default"><div class="highlight"><pre><span></span>MachineBasicBlock *
-Cpu0TargetLowering::EmitInstrWithCustomInserter(MachineInstr *MI,
+Cpu0TargetLowering::EmitInstrWithCustomInserter(MachineInstr &amp;MI,
                                                 MachineBasicBlock *BB) const {
-  switch (MI-&gt;getOpcode()) {
+  switch (MI.getOpcode()) {
   default:
     llvm_unreachable(&quot;Unexpected instr type to insert&quot;);
   case Cpu0::ATOMIC_LOAD_ADD_I8:
@@ -1555,17 +1527,16 @@ Cpu0TargetLowering::EmitInstrWithCustomInserter(MachineInstr *MI,
 
 // This function also handles Cpu0::ATOMIC_SWAP_I32 (when BinOpcode == 0), and
 // Cpu0::ATOMIC_LOAD_NAND_I32 (when Nand == true)
-MachineBasicBlock *
-Cpu0TargetLowering::emitAtomicBinary(MachineInstr *MI, MachineBasicBlock *BB,
-                                     unsigned Size, unsigned BinOpcode,
-                                     bool Nand) const {
+MachineBasicBlock *Cpu0TargetLowering::emitAtomicBinary(
+    MachineInstr &amp;MI, MachineBasicBlock *BB, unsigned Size, unsigned BinOpcode,
+    bool Nand) const {
   assert((Size == 4) &amp;&amp; &quot;Unsupported size for EmitAtomicBinary.&quot;);
 
   MachineFunction *MF = BB-&gt;getParent();
   MachineRegisterInfo &amp;RegInfo = MF-&gt;getRegInfo();
   const TargetRegisterClass *RC = getRegClassFor(MVT::getIntegerVT(Size * 8));
   const TargetInstrInfo *TII = Subtarget.getInstrInfo();
-  DebugLoc DL = MI-&gt;getDebugLoc();
+  DebugLoc DL = MI.getDebugLoc();
   unsigned LL, SC, AND, XOR, ZERO, BEQ;
 
   LL = Cpu0::LL;
@@ -1575,9 +1546,9 @@ Cpu0TargetLowering::emitAtomicBinary(MachineInstr *MI, MachineBasicBlock *BB,
   ZERO = Cpu0::ZERO;
   BEQ = Cpu0::BEQ;
 
-  unsigned OldVal = MI-&gt;getOperand(0).getReg();
-  unsigned Ptr = MI-&gt;getOperand(1).getReg();
-  unsigned Incr = MI-&gt;getOperand(2).getReg();
+  unsigned OldVal = MI.getOperand(0).getReg();
+  unsigned Ptr = MI.getOperand(1).getReg();
+  unsigned Incr = MI.getOperand(2).getReg();
 
   unsigned StoreVal = RegInfo.createVirtualRegister(RC);
   unsigned AndRes = RegInfo.createVirtualRegister(RC);
@@ -1588,8 +1559,7 @@ Cpu0TargetLowering::emitAtomicBinary(MachineInstr *MI, MachineBasicBlock *BB,
   const BasicBlock *LLVM_BB = BB-&gt;getBasicBlock();
   MachineBasicBlock *loopMBB = MF-&gt;CreateMachineBasicBlock(LLVM_BB);
   MachineBasicBlock *exitMBB = MF-&gt;CreateMachineBasicBlock(LLVM_BB);
-  MachineFunction::iterator It = BB;
-  ++It;
+  MachineFunction::iterator It = ++BB-&gt;getIterator();
   MF-&gt;insert(It, loopMBB);
   MF-&gt;insert(It, exitMBB);
 
@@ -1628,16 +1598,16 @@ Cpu0TargetLowering::emitAtomicBinary(MachineInstr *MI, MachineBasicBlock *BB,
   BuildMI(BB, DL, TII-&gt;get(SC), Success).addReg(StoreVal).addReg(Ptr).addImm(0);
   BuildMI(BB, DL, TII-&gt;get(BEQ)).addReg(Success).addReg(ZERO).addMBB(loopMBB);
 
-  MI-&gt;eraseFromParent(); // The instruction is gone now.
+  MI.eraseFromParent(); // The instruction is gone now.
 
   return exitMBB;
 }
 
 MachineBasicBlock *Cpu0TargetLowering::emitSignExtendToI32InReg(
-    MachineInstr *MI, MachineBasicBlock *BB, unsigned Size, unsigned DstReg,
+    MachineInstr &amp;MI, MachineBasicBlock *BB, unsigned Size, unsigned DstReg,
     unsigned SrcReg) const {
   const TargetInstrInfo *TII = Subtarget.getInstrInfo();
-  DebugLoc DL = MI-&gt;getDebugLoc();
+  DebugLoc DL = MI.getDebugLoc();
 
   MachineFunction *MF = BB-&gt;getParent();
   MachineRegisterInfo &amp;RegInfo = MF-&gt;getRegInfo();
@@ -1654,7 +1624,7 @@ MachineBasicBlock *Cpu0TargetLowering::emitSignExtendToI32InReg(
 }
 
 MachineBasicBlock *Cpu0TargetLowering::emitAtomicBinaryPartword(
-    MachineInstr *MI, MachineBasicBlock *BB, unsigned Size, unsigned BinOpcode,
+    MachineInstr &amp;MI, MachineBasicBlock *BB, unsigned Size, unsigned BinOpcode,
     bool Nand) const {
   assert((Size == 1 || Size == 2) &amp;&amp;
          &quot;Unsupported size for EmitAtomicBinaryPartial.&quot;);
@@ -1663,11 +1633,11 @@ MachineBasicBlock *Cpu0TargetLowering::emitAtomicBinaryPartword(
   MachineRegisterInfo &amp;RegInfo = MF-&gt;getRegInfo();
   const TargetRegisterClass *RC = getRegClassFor(MVT::i32);
   const TargetInstrInfo *TII = Subtarget.getInstrInfo();
-  DebugLoc DL = MI-&gt;getDebugLoc();
+  DebugLoc DL = MI.getDebugLoc();
 
-  unsigned Dest = MI-&gt;getOperand(0).getReg();
-  unsigned Ptr = MI-&gt;getOperand(1).getReg();
-  unsigned Incr = MI-&gt;getOperand(2).getReg();
+  unsigned Dest = MI.getOperand(0).getReg();
+  unsigned Ptr = MI.getOperand(1).getReg();
+  unsigned Incr = MI.getOperand(2).getReg();
 
   unsigned AlignedAddr = RegInfo.createVirtualRegister(RC);
   unsigned ShiftAmt = RegInfo.createVirtualRegister(RC);
@@ -1694,8 +1664,8 @@ MachineBasicBlock *Cpu0TargetLowering::emitAtomicBinaryPartword(
   MachineBasicBlock *loopMBB = MF-&gt;CreateMachineBasicBlock(LLVM_BB);
   MachineBasicBlock *sinkMBB = MF-&gt;CreateMachineBasicBlock(LLVM_BB);
   MachineBasicBlock *exitMBB = MF-&gt;CreateMachineBasicBlock(LLVM_BB);
-  MachineFunction::iterator It = BB;
-  ++It;
+  MachineFunction::iterator It = ++BB-&gt;getIterator();
+
   MF-&gt;insert(It, loopMBB);
   MF-&gt;insert(It, sinkMBB);
   MF-&gt;insert(It, exitMBB);
@@ -1808,12 +1778,12 @@ MachineBasicBlock *Cpu0TargetLowering::emitAtomicBinaryPartword(
       .addReg(MaskedOldVal1).addReg(ShiftAmt);
   BB = emitSignExtendToI32InReg(MI, BB, Size, Dest, SrlRes);
 
-  MI-&gt;eraseFromParent(); // The instruction is gone now.
+  MI.eraseFromParent(); // The instruction is gone now.
 
   return exitMBB;
 }
 
-MachineBasicBlock * Cpu0TargetLowering::emitAtomicCmpSwap(MachineInstr *MI,
+MachineBasicBlock * Cpu0TargetLowering::emitAtomicCmpSwap(MachineInstr &amp;MI,
                                                           MachineBasicBlock *BB,
                                                           unsigned Size) const {
   assert((Size == 4) &amp;&amp; &quot;Unsupported size for EmitAtomicCmpSwap.&quot;);
@@ -1822,7 +1792,7 @@ MachineBasicBlock * Cpu0TargetLowering::emitAtomicCmpSwap(MachineInstr *MI,
   MachineRegisterInfo &amp;RegInfo = MF-&gt;getRegInfo();
   const TargetRegisterClass *RC = getRegClassFor(MVT::getIntegerVT(Size * 8));
   const TargetInstrInfo *TII = Subtarget.getInstrInfo();
-  DebugLoc DL = MI-&gt;getDebugLoc();
+  DebugLoc DL = MI.getDebugLoc();
   unsigned LL, SC, ZERO, BNE, BEQ;
 
   LL = Cpu0::LL;
@@ -1831,10 +1801,10 @@ MachineBasicBlock * Cpu0TargetLowering::emitAtomicCmpSwap(MachineInstr *MI,
   BNE = Cpu0::BNE;
   BEQ = Cpu0::BEQ;
 
-  unsigned Dest    = MI-&gt;getOperand(0).getReg();
-  unsigned Ptr     = MI-&gt;getOperand(1).getReg();
-  unsigned OldVal  = MI-&gt;getOperand(2).getReg();
-  unsigned NewVal  = MI-&gt;getOperand(3).getReg();
+  unsigned Dest    = MI.getOperand(0).getReg();
+  unsigned Ptr     = MI.getOperand(1).getReg();
+  unsigned OldVal  = MI.getOperand(2).getReg();
+  unsigned NewVal  = MI.getOperand(3).getReg();
 
   unsigned Success = RegInfo.createVirtualRegister(RC);
 
@@ -1843,8 +1813,8 @@ MachineBasicBlock * Cpu0TargetLowering::emitAtomicCmpSwap(MachineInstr *MI,
   MachineBasicBlock *loop1MBB = MF-&gt;CreateMachineBasicBlock(LLVM_BB);
   MachineBasicBlock *loop2MBB = MF-&gt;CreateMachineBasicBlock(LLVM_BB);
   MachineBasicBlock *exitMBB = MF-&gt;CreateMachineBasicBlock(LLVM_BB);
-  MachineFunction::iterator It = BB;
-  ++It;
+  MachineFunction::iterator It = ++BB-&gt;getIterator();
+
   MF-&gt;insert(It, loop1MBB);
   MF-&gt;insert(It, loop2MBB);
   MF-&gt;insert(It, exitMBB);
@@ -1880,13 +1850,13 @@ MachineBasicBlock * Cpu0TargetLowering::emitAtomicCmpSwap(MachineInstr *MI,
   BuildMI(BB, DL, TII-&gt;get(BEQ))
     .addReg(Success).addReg(ZERO).addMBB(loop1MBB);
 
-  MI-&gt;eraseFromParent(); // The instruction is gone now.
+  MI.eraseFromParent(); // The instruction is gone now.
 
   return exitMBB;
 }
 
 MachineBasicBlock *
-Cpu0TargetLowering::emitAtomicCmpSwapPartword(MachineInstr *MI,
+Cpu0TargetLowering::emitAtomicCmpSwapPartword(MachineInstr &amp;MI,
                                               MachineBasicBlock *BB,
                                               unsigned Size) const {
   assert((Size == 1 || Size == 2) &amp;&amp;
@@ -1896,12 +1866,12 @@ Cpu0TargetLowering::emitAtomicCmpSwapPartword(MachineInstr *MI,
   MachineRegisterInfo &amp;RegInfo = MF-&gt;getRegInfo();
   const TargetRegisterClass *RC = getRegClassFor(MVT::i32);
   const TargetInstrInfo *TII = Subtarget.getInstrInfo();
-  DebugLoc DL = MI-&gt;getDebugLoc();
+  DebugLoc DL = MI.getDebugLoc();
 
-  unsigned Dest    = MI-&gt;getOperand(0).getReg();
-  unsigned Ptr     = MI-&gt;getOperand(1).getReg();
-  unsigned CmpVal  = MI-&gt;getOperand(2).getReg();
-  unsigned NewVal  = MI-&gt;getOperand(3).getReg();
+  unsigned Dest    = MI.getOperand(0).getReg();
+  unsigned Ptr     = MI.getOperand(1).getReg();
+  unsigned CmpVal  = MI.getOperand(2).getReg();
+  unsigned NewVal  = MI.getOperand(3).getReg();
 
   unsigned AlignedAddr = RegInfo.createVirtualRegister(RC);
   unsigned ShiftAmt = RegInfo.createVirtualRegister(RC);
@@ -1928,8 +1898,8 @@ Cpu0TargetLowering::emitAtomicCmpSwapPartword(MachineInstr *MI,
   MachineBasicBlock *loop2MBB = MF-&gt;CreateMachineBasicBlock(LLVM_BB);
   MachineBasicBlock *sinkMBB = MF-&gt;CreateMachineBasicBlock(LLVM_BB);
   MachineBasicBlock *exitMBB = MF-&gt;CreateMachineBasicBlock(LLVM_BB);
-  MachineFunction::iterator It = BB;
-  ++It;
+  MachineFunction::iterator It = ++BB-&gt;getIterator();
+
   MF-&gt;insert(It, loop1MBB);
   MF-&gt;insert(It, loop2MBB);
   MF-&gt;insert(It, sinkMBB);
@@ -2027,7 +1997,7 @@ Cpu0TargetLowering::emitAtomicCmpSwapPartword(MachineInstr *MI,
       .addReg(MaskedOldVal0).addReg(ShiftAmt);
   BB = emitSignExtendToI32InReg(MI, BB, Size, Dest, SrlRes);
 
-  MI-&gt;eraseFromParent();   // The instruction is gone now.
+  MI.eraseFromParent();   // The instruction is gone now.
 
   return exitMBB;
 }
@@ -2098,7 +2068,7 @@ example, &#8220;def ATOMIC_LOAD_ADD_I8 : Atomic2Ops&lt;atomic_load_add_8, CPUReg
 calling EmitInstrWithCustomInserter() with Machine Instruction Opcode
 &#8220;ATOMIC_LOAD_ADD_I8&#8221; when it meets IR &#8220;load atomic i8*&#8221;.</p>
 <p>The &#8220;setInsertFencesForAtomic(true);&#8221; in Cpu0ISelLowering.cpp will trigger
-addIRPasses() of Cpu0TargetMachine.cpp, then createAtomicExpandPass() in
+addIRPasses() of Cpu0TargetMachine.cpp, then the createAtomicExpandPass() of
 addIRPasses() will create llvm IR ATOMIC_FENCE. Next, the lowerATOMIC_FENCE()
 of Cpu0ISelLowering.cpp will create Cpu0ISD::Sync when it meets IR ATOMIC_FENCE
 since &#8220;setOperationAction(ISD::ATOMIC_FENCE, MVT::Other, Custom);&#8221; of
@@ -2164,7 +2134,7 @@ it into instruction &#8220;sync&#8221; by &#8220;def SYNC&#8221; and alias &#822
 </tbody>
 </table>
 <p>Input files atomics.ll and atomics-fences.ll include the llvm atomic IRs test.
-Input files ch12_atomics.cpp and ch12_atomics-fences.cpp are the C++ source
+Input files ch12_atomics.cpp and ch12_atomics-fences.cpp are the C++
 files for generating llvm atomic IRs. The C++ files need to run with clang
 options &#8220;clang++ -pthread -std=c++11&#8221;.</p>
 <table class="docutils footnote" frame="void" id="exception" rules="none">

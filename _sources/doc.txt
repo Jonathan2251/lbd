@@ -17,8 +17,8 @@ This section illustrates how to generate Cpu0 backend document.
 Install sphinx
 ~~~~~~~~~~~~~~~
 
-LLVM and this book use sphinx to generate html document. This book uses Sphix to 
-generate pdf and epub format of document further.
+LLVM and this book use sphinx to generate html document. This book uses Sphinx 
+to generate pdf and epub format of document further.
 Sphinx uses restructured text format here [#rst-ref]_ [#rst-dir]_ [#rst]_.
 The installation of Sphinx reference [#sphinx-install]_.
 About the code-block in this document, please reference [#llvm-sphinx-quick]_ 
@@ -131,7 +131,7 @@ I fixed the problem.
 Generate Cpu0 document
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-Cpu0 example code is added step by step and chapter by chapter.
+Cpu0 example code is added chapter by chapter.
 It can be configured to a specific chapter by change CH definition in 
 Cpu0SetChapter.h. 
 For example, the following definition configue it to chapter 2.
@@ -181,9 +181,9 @@ About Cpu0 document
 ~~~~~~~~~~~~~~~~~~~~~
 
 Since llvm have a new release version about every 6 months and every name of 
-file, function, class, variable, ..., etc, can be changed, the Cpu0 document
-maintains is an effort because it adds the code step by step, chapter by chapter.
-In order to make the document as correct and easy to maintain. I use the 
+file, function, class, variable, ..., etc, may be changed, the Cpu0 document
+maintains is an effort because it adds the code chapter by chapter.
+In order to make the document as correct and easily maintain. I use the 
 ":start-after:" and ":end-before:" of restructured text format to keep the 
 document update to date. 
 For every new release, when the Cpu0 backend code is changed, the document will
@@ -202,8 +202,8 @@ directory clang/test/CodeGen of clang source code release.
 Cpu0 Regression Test
 ----------------------
 
-The last chapter can verify code by Verilog simulator without including global
-variable and some data which are put beyond stack.
+The last chapter can verify Cpu0 backend's generated code by Verilog simulator 
+for those code without global variable access.
 The chapter lld in web https://github.com/Jonathan2251/lbt.git will include
 llvm ELF linker implementation and can verify those test items which include 
 global variable access.
@@ -417,7 +417,7 @@ follows,
   ===============================  =============  =======================================================  ===========
   
 
-These supported test items are in lbdex/regression-test/Cpu0 which can be 
+These supported test cases are in lbdex/regression-test/Cpu0 which can be 
 gotten from ``tar -xf lbdex.tar.gz``.
 
 

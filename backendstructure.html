@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '3.7.2',
+        VERSION:     '3.9.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -66,20 +66,21 @@
 <li><a class="reference internal" href="#summary-of-this-chapter" id="id22">Summary of this Chapter</a></li>
 </ul>
 </div>
-<p>This chapter introduces the back end class inheritance tree and class members
+<p>This chapter introduces the backend class inheritance tree and class members
 first.
-Next, following the back end structure, adding individual class implementation
+Next, following the backend structure, adding individual classes implementation
 in each section.
-At the end of this chapter, we will have a back end to compile llvm
-intermediate code into cpu0 assembly code.</p>
-<p>Many code are added in this chapter. They almost are common in every back end
-except the back end name (cpu0 or mips ...). Actually, we copy almost all the
-code from mips and replace the name with cpu0. In addition to knowing the DAGs
+At the end of this chapter, we will have a backend to compile llvm
+intermediate code into Cpu0 assembly code.</p>
+<p>Many lines of code are added in this chapter.
+They almost are common in every backend except the backend name (Cpu0 or
+Mips ...). Actually, we copy almost all the
+code from Mips and replace the name with Cpu0. In addition to knowing the DAGs
 pattern match in theoretic compiler and realistic llvm code generation phase,
 please focus on the classes relationship in this backend structure.
 Once knowing the structure, you can
 create your backend structure as quickly as we did, even though there are 5000
-lines of code around in this chapter.</p>
+lines of code around added in this chapter.</p>
 <div class="section" id="targetmachine-structure">
 <h2><a class="toc-backref" href="#id12">TargetMachine structure</a><a class="headerlink" href="#targetmachine-structure" title="Permalink to this headline">¶</a></h2>
 <p class="rubric">lbdex/chapters/Chapter3_1/Cpu0TargetObjectFile.h</p>
@@ -200,8 +201,9 @@ lines of code around in this chapter.</p>
   <span class="n">mutable</span> <span class="n">StringMap</span><span class="o">&lt;</span><span class="n">std</span><span class="p">::</span><span class="n">unique_ptr</span><span class="o">&lt;</span><span class="n">Cpu0Subtarget</span><span class="o">&gt;&gt;</span> <span class="n">SubtargetMap</span><span class="p">;</span>
 <span class="n">public</span><span class="p">:</span>
   <span class="n">Cpu0TargetMachine</span><span class="p">(</span><span class="n">const</span> <span class="n">Target</span> <span class="o">&amp;</span><span class="n">T</span><span class="p">,</span> <span class="n">const</span> <span class="n">Triple</span> <span class="o">&amp;</span><span class="n">TT</span><span class="p">,</span> <span class="n">StringRef</span> <span class="n">CPU</span><span class="p">,</span>
-                    <span class="n">StringRef</span> <span class="n">FS</span><span class="p">,</span> <span class="n">const</span> <span class="n">TargetOptions</span> <span class="o">&amp;</span><span class="n">Options</span><span class="p">,</span> <span class="n">Reloc</span><span class="p">::</span><span class="n">Model</span> <span class="n">RM</span><span class="p">,</span>
-                    <span class="n">CodeModel</span><span class="p">::</span><span class="n">Model</span> <span class="n">CM</span><span class="p">,</span> <span class="n">CodeGenOpt</span><span class="p">::</span><span class="n">Level</span> <span class="n">OL</span><span class="p">,</span> <span class="nb">bool</span> <span class="n">isLittle</span><span class="p">);</span>
+                    <span class="n">StringRef</span> <span class="n">FS</span><span class="p">,</span> <span class="n">const</span> <span class="n">TargetOptions</span> <span class="o">&amp;</span><span class="n">Options</span><span class="p">,</span>
+                    <span class="n">Optional</span><span class="o">&lt;</span><span class="n">Reloc</span><span class="p">::</span><span class="n">Model</span><span class="o">&gt;</span> <span class="n">RM</span><span class="p">,</span> <span class="n">CodeModel</span><span class="p">::</span><span class="n">Model</span> <span class="n">CM</span><span class="p">,</span>
+                    <span class="n">CodeGenOpt</span><span class="p">::</span><span class="n">Level</span> <span class="n">OL</span><span class="p">,</span> <span class="nb">bool</span> <span class="n">isLittle</span><span class="p">);</span>
   <span class="o">~</span><span class="n">Cpu0TargetMachine</span><span class="p">()</span> <span class="n">override</span><span class="p">;</span>
 
   <span class="n">const</span> <span class="n">Cpu0Subtarget</span> <span class="o">*</span><span class="n">getSubtargetImpl</span><span class="p">()</span> <span class="n">const</span> <span class="p">{</span>
@@ -227,7 +229,7 @@ lines of code around in this chapter.</p>
 <span class="n">public</span><span class="p">:</span>
   <span class="n">Cpu0ebTargetMachine</span><span class="p">(</span><span class="n">const</span> <span class="n">Target</span> <span class="o">&amp;</span><span class="n">T</span><span class="p">,</span> <span class="n">const</span> <span class="n">Triple</span> <span class="o">&amp;</span><span class="n">TT</span><span class="p">,</span> <span class="n">StringRef</span> <span class="n">CPU</span><span class="p">,</span>
                       <span class="n">StringRef</span> <span class="n">FS</span><span class="p">,</span> <span class="n">const</span> <span class="n">TargetOptions</span> <span class="o">&amp;</span><span class="n">Options</span><span class="p">,</span>
-                      <span class="n">Reloc</span><span class="p">::</span><span class="n">Model</span> <span class="n">RM</span><span class="p">,</span> <span class="n">CodeModel</span><span class="p">::</span><span class="n">Model</span> <span class="n">CM</span><span class="p">,</span>
+                      <span class="n">Optional</span><span class="o">&lt;</span><span class="n">Reloc</span><span class="p">::</span><span class="n">Model</span><span class="o">&gt;</span> <span class="n">RM</span><span class="p">,</span> <span class="n">CodeModel</span><span class="p">::</span><span class="n">Model</span> <span class="n">CM</span><span class="p">,</span>
                       <span class="n">CodeGenOpt</span><span class="p">::</span><span class="n">Level</span> <span class="n">OL</span><span class="p">);</span>
 <span class="p">};</span>
 
@@ -238,7 +240,7 @@ lines of code around in this chapter.</p>
 <span class="n">public</span><span class="p">:</span>
   <span class="n">Cpu0elTargetMachine</span><span class="p">(</span><span class="n">const</span> <span class="n">Target</span> <span class="o">&amp;</span><span class="n">T</span><span class="p">,</span> <span class="n">const</span> <span class="n">Triple</span> <span class="o">&amp;</span><span class="n">TT</span><span class="p">,</span> <span class="n">StringRef</span> <span class="n">CPU</span><span class="p">,</span>
                       <span class="n">StringRef</span> <span class="n">FS</span><span class="p">,</span> <span class="n">const</span> <span class="n">TargetOptions</span> <span class="o">&amp;</span><span class="n">Options</span><span class="p">,</span>
-                      <span class="n">Reloc</span><span class="p">::</span><span class="n">Model</span> <span class="n">RM</span><span class="p">,</span> <span class="n">CodeModel</span><span class="p">::</span><span class="n">Model</span> <span class="n">CM</span><span class="p">,</span>
+                      <span class="n">Optional</span><span class="o">&lt;</span><span class="n">Reloc</span><span class="p">::</span><span class="n">Model</span><span class="o">&gt;</span> <span class="n">RM</span><span class="p">,</span> <span class="n">CodeModel</span><span class="p">::</span><span class="n">Model</span> <span class="n">CM</span><span class="p">,</span>
                       <span class="n">CodeGenOpt</span><span class="p">::</span><span class="n">Level</span> <span class="n">OL</span><span class="p">);</span>
 <span class="p">};</span>
 <span class="p">}</span> <span class="o">//</span> <span class="n">End</span> <span class="n">llvm</span> <span class="n">namespace</span>
@@ -268,6 +270,7 @@ lines of code around in this chapter.</p>
 #include &quot;Cpu0TargetObjectFile.h&quot;
 #include &quot;llvm/IR/LegacyPassManager.h&quot;
 #include &quot;llvm/CodeGen/Passes.h&quot;
+#include &quot;llvm/CodeGen/TargetPassConfig.h&quot;
 #include &quot;llvm/Support/TargetRegistry.h&quot;
 using namespace llvm;
 
@@ -307,6 +310,13 @@ static std::string computeDataLayout(const Triple &amp;TT, StringRef CPU,
   return Ret;
 }
 
+static Reloc::Model getEffectiveRelocModel(CodeModel::Model CM,
+                                           Optional&lt;Reloc::Model&gt; RM) {
+  if (!RM.hasValue() || CM == CodeModel::JITDefault)
+    return Reloc::Static;
+  return *RM;
+}
+
 // DataLayout --&gt; Big-endian, 32-bit pointer/ABI/alignment
 // The stack is always 8 byte aligned
 // On function prologue, the stack is created by decrementing
@@ -317,11 +327,13 @@ static std::string computeDataLayout(const Triple &amp;TT, StringRef CPU,
 Cpu0TargetMachine::Cpu0TargetMachine(const Target &amp;T, const Triple &amp;TT,
                                      StringRef CPU, StringRef FS,
                                      const TargetOptions &amp;Options,
-                                     Reloc::Model RM, CodeModel::Model CM,
-                                     CodeGenOpt::Level OL, bool isLittle)
+                                     Optional&lt;Reloc::Model&gt; RM,
+                                     CodeModel::Model CM, CodeGenOpt::Level OL,
+                                     bool isLittle)
   //- Default is big endian
     : LLVMTargetMachine(T, computeDataLayout(TT, CPU, Options, isLittle), TT,
-                        CPU, FS, Options, RM, CM, OL),
+                        CPU, FS, Options, getEffectiveRelocModel(CM, RM), CM,
+                        OL),
       isLittle(isLittle), TLOF(make_unique&lt;Cpu0TargetObjectFile&gt;()),
       ABI(Cpu0ABIInfo::computeTargetABI()),
       DefaultSubtarget(TT, CPU, FS, isLittle, *this) {
@@ -337,7 +349,8 @@ void Cpu0ebTargetMachine::anchor() { }
 Cpu0ebTargetMachine::Cpu0ebTargetMachine(const Target &amp;T, const Triple &amp;TT,
                                          StringRef CPU, StringRef FS,
                                          const TargetOptions &amp;Options,
-                                         Reloc::Model RM, CodeModel::Model CM,
+                                         Optional&lt;Reloc::Model&gt; RM,
+                                         CodeModel::Model CM,
                                          CodeGenOpt::Level OL)
     : Cpu0TargetMachine(T, TT, CPU, FS, Options, RM, CM, OL, false) {}
 
@@ -346,7 +359,8 @@ void Cpu0elTargetMachine::anchor() { }
 Cpu0elTargetMachine::Cpu0elTargetMachine(const Target &amp;T, const Triple &amp;TT,
                                          StringRef CPU, StringRef FS,
                                          const TargetOptions &amp;Options,
-                                         Reloc::Model RM, CodeModel::Model CM,
+                                         Optional&lt;Reloc::Model&gt; RM,
+                                         CodeModel::Model CM,
                                          CodeGenOpt::Level OL)
     : Cpu0TargetMachine(T, TT, CPU, FS, Options, RM, CM, OL, true) {}
 
@@ -822,7 +836,7 @@ bool Cpu0FrameLowering::hasFP(const MachineFunction &amp;MF) const {
   <span class="n">virtual</span> <span class="n">const</span> <span class="n">Cpu0RegisterInfo</span> <span class="o">&amp;</span><span class="n">getRegisterInfo</span><span class="p">()</span> <span class="n">const</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
 
   <span class="o">///</span> <span class="n">Return</span> <span class="n">the</span> <span class="n">number</span> <span class="n">of</span> <span class="nb">bytes</span> <span class="n">of</span> <span class="n">code</span> <span class="n">the</span> <span class="n">specified</span> <span class="n">instruction</span> <span class="n">may</span> <span class="n">be</span><span class="o">.</span>
-  <span class="n">unsigned</span> <span class="n">GetInstSizeInBytes</span><span class="p">(</span><span class="n">const</span> <span class="n">MachineInstr</span> <span class="o">*</span><span class="n">MI</span><span class="p">)</span> <span class="n">const</span><span class="p">;</span>
+  <span class="n">unsigned</span> <span class="n">GetInstSizeInBytes</span><span class="p">(</span><span class="n">const</span> <span class="n">MachineInstr</span> <span class="o">&amp;</span><span class="n">MI</span><span class="p">)</span> <span class="n">const</span><span class="p">;</span>
 
   
 
@@ -873,6 +887,16 @@ bool Cpu0FrameLowering::hasFP(const MachineFunction &amp;MF) const {
 
 <span class="n">const</span> <span class="n">Cpu0InstrInfo</span> <span class="o">*</span><span class="n">Cpu0InstrInfo</span><span class="p">::</span><span class="n">create</span><span class="p">(</span><span class="n">Cpu0Subtarget</span> <span class="o">&amp;</span><span class="n">STI</span><span class="p">)</span> <span class="p">{</span>
   <span class="k">return</span> <span class="n">llvm</span><span class="p">::</span><span class="n">createCpu0SEInstrInfo</span><span class="p">(</span><span class="n">STI</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="o">//</span><span class="nd">@GetInstSizeInBytes</span> <span class="p">{</span>
+<span class="o">///</span> <span class="n">Return</span> <span class="n">the</span> <span class="n">number</span> <span class="n">of</span> <span class="nb">bytes</span> <span class="n">of</span> <span class="n">code</span> <span class="n">the</span> <span class="n">specified</span> <span class="n">instruction</span> <span class="n">may</span> <span class="n">be</span><span class="o">.</span>
+<span class="n">unsigned</span> <span class="n">Cpu0InstrInfo</span><span class="p">::</span><span class="n">GetInstSizeInBytes</span><span class="p">(</span><span class="n">const</span> <span class="n">MachineInstr</span> <span class="o">&amp;</span><span class="n">MI</span><span class="p">)</span> <span class="n">const</span> <span class="p">{</span>
+<span class="o">//</span><span class="nd">@GetInstSizeInBytes</span> <span class="o">-</span> <span class="n">body</span>
+  <span class="n">switch</span> <span class="p">(</span><span class="n">MI</span><span class="o">.</span><span class="n">getOpcode</span><span class="p">())</span> <span class="p">{</span>
+  <span class="n">default</span><span class="p">:</span>
+    <span class="k">return</span> <span class="n">MI</span><span class="o">.</span><span class="n">getDesc</span><span class="p">()</span><span class="o">.</span><span class="n">getSize</span><span class="p">();</span>
+  <span class="p">}</span>
 <span class="p">}</span>
 
 </pre></div>
@@ -1037,12 +1061,6 @@ bool Cpu0FrameLowering::hasFP(const MachineFunction &amp;MF) const {
 
   <span class="n">private</span><span class="p">:</span>
 
-<span class="c1">#if 0</span>
-    <span class="o">//</span> <span class="n">Create</span> <span class="n">a</span> <span class="n">TargetConstantPool</span> <span class="n">node</span><span class="o">.</span>
-    <span class="n">SDValue</span> <span class="n">getTargetNode</span><span class="p">(</span><span class="n">ConstantPoolSDNode</span> <span class="o">*</span><span class="n">N</span><span class="p">,</span> <span class="n">EVT</span> <span class="n">Ty</span><span class="p">,</span> <span class="n">SelectionDAG</span> <span class="o">&amp;</span><span class="n">DAG</span><span class="p">,</span>
-                          <span class="n">unsigned</span> <span class="n">Flag</span><span class="p">)</span> <span class="n">const</span><span class="p">;</span>
-<span class="c1">#endif</span>
-
     <span class="o">//</span> <span class="n">Lower</span> <span class="n">Operand</span> <span class="n">specifics</span>
     <span class="n">SDValue</span> <span class="n">lowerGlobalAddress</span><span class="p">(</span><span class="n">SDValue</span> <span class="n">Op</span><span class="p">,</span> <span class="n">SelectionDAG</span> <span class="o">&amp;</span><span class="n">DAG</span><span class="p">)</span> <span class="n">const</span><span class="p">;</span>
 
@@ -1051,14 +1069,14 @@ bool Cpu0FrameLowering::hasFP(const MachineFunction &amp;MF) const {
       <span class="n">LowerFormalArguments</span><span class="p">(</span><span class="n">SDValue</span> <span class="n">Chain</span><span class="p">,</span>
                            <span class="n">CallingConv</span><span class="p">::</span><span class="n">ID</span> <span class="n">CallConv</span><span class="p">,</span> <span class="nb">bool</span> <span class="n">IsVarArg</span><span class="p">,</span>
                            <span class="n">const</span> <span class="n">SmallVectorImpl</span><span class="o">&lt;</span><span class="n">ISD</span><span class="p">::</span><span class="n">InputArg</span><span class="o">&gt;</span> <span class="o">&amp;</span><span class="n">Ins</span><span class="p">,</span>
-                           <span class="n">SDLoc</span> <span class="n">dl</span><span class="p">,</span> <span class="n">SelectionDAG</span> <span class="o">&amp;</span><span class="n">DAG</span><span class="p">,</span>
+                           <span class="n">const</span> <span class="n">SDLoc</span> <span class="o">&amp;</span><span class="n">dl</span><span class="p">,</span> <span class="n">SelectionDAG</span> <span class="o">&amp;</span><span class="n">DAG</span><span class="p">,</span>
                            <span class="n">SmallVectorImpl</span><span class="o">&lt;</span><span class="n">SDValue</span><span class="o">&gt;</span> <span class="o">&amp;</span><span class="n">InVals</span><span class="p">)</span> <span class="n">const</span> <span class="n">override</span><span class="p">;</span>
 
     <span class="n">SDValue</span> <span class="n">LowerReturn</span><span class="p">(</span><span class="n">SDValue</span> <span class="n">Chain</span><span class="p">,</span>
                         <span class="n">CallingConv</span><span class="p">::</span><span class="n">ID</span> <span class="n">CallConv</span><span class="p">,</span> <span class="nb">bool</span> <span class="n">IsVarArg</span><span class="p">,</span>
                         <span class="n">const</span> <span class="n">SmallVectorImpl</span><span class="o">&lt;</span><span class="n">ISD</span><span class="p">::</span><span class="n">OutputArg</span><span class="o">&gt;</span> <span class="o">&amp;</span><span class="n">Outs</span><span class="p">,</span>
                         <span class="n">const</span> <span class="n">SmallVectorImpl</span><span class="o">&lt;</span><span class="n">SDValue</span><span class="o">&gt;</span> <span class="o">&amp;</span><span class="n">OutVals</span><span class="p">,</span>
-                        <span class="n">SDLoc</span> <span class="n">dl</span><span class="p">,</span> <span class="n">SelectionDAG</span> <span class="o">&amp;</span><span class="n">DAG</span><span class="p">)</span> <span class="n">const</span> <span class="n">override</span><span class="p">;</span>
+                        <span class="n">const</span> <span class="n">SDLoc</span> <span class="o">&amp;</span><span class="n">dl</span><span class="p">,</span> <span class="n">SelectionDAG</span> <span class="o">&amp;</span><span class="n">DAG</span><span class="p">)</span> <span class="n">const</span> <span class="n">override</span><span class="p">;</span>
 
   <span class="p">};</span>
   <span class="n">const</span> <span class="n">Cpu0TargetLowering</span> <span class="o">*</span>
@@ -1160,8 +1178,8 @@ bool Cpu0FrameLowering::hasFP(const MachineFunction &amp;MF) const {
 <span class="n">Cpu0TargetLowering</span><span class="p">::</span><span class="n">LowerFormalArguments</span><span class="p">(</span><span class="n">SDValue</span> <span class="n">Chain</span><span class="p">,</span>
                                          <span class="n">CallingConv</span><span class="p">::</span><span class="n">ID</span> <span class="n">CallConv</span><span class="p">,</span>
                                          <span class="nb">bool</span> <span class="n">IsVarArg</span><span class="p">,</span>
-                                      <span class="n">const</span> <span class="n">SmallVectorImpl</span><span class="o">&lt;</span><span class="n">ISD</span><span class="p">::</span><span class="n">InputArg</span><span class="o">&gt;</span> <span class="o">&amp;</span><span class="n">Ins</span><span class="p">,</span>
-                                         <span class="n">SDLoc</span> <span class="n">DL</span><span class="p">,</span> <span class="n">SelectionDAG</span> <span class="o">&amp;</span><span class="n">DAG</span><span class="p">,</span>
+                                         <span class="n">const</span> <span class="n">SmallVectorImpl</span><span class="o">&lt;</span><span class="n">ISD</span><span class="p">::</span><span class="n">InputArg</span><span class="o">&gt;</span> <span class="o">&amp;</span><span class="n">Ins</span><span class="p">,</span>
+                                         <span class="n">const</span> <span class="n">SDLoc</span> <span class="o">&amp;</span><span class="n">DL</span><span class="p">,</span> <span class="n">SelectionDAG</span> <span class="o">&amp;</span><span class="n">DAG</span><span class="p">,</span>
                                          <span class="n">SmallVectorImpl</span><span class="o">&lt;</span><span class="n">SDValue</span><span class="o">&gt;</span> <span class="o">&amp;</span><span class="n">InVals</span><span class="p">)</span>
                                           <span class="n">const</span> <span class="p">{</span>
 
@@ -1178,7 +1196,7 @@ bool Cpu0FrameLowering::hasFP(const MachineFunction &amp;MF) const {
                                 <span class="n">CallingConv</span><span class="p">::</span><span class="n">ID</span> <span class="n">CallConv</span><span class="p">,</span> <span class="nb">bool</span> <span class="n">IsVarArg</span><span class="p">,</span>
                                 <span class="n">const</span> <span class="n">SmallVectorImpl</span><span class="o">&lt;</span><span class="n">ISD</span><span class="p">::</span><span class="n">OutputArg</span><span class="o">&gt;</span> <span class="o">&amp;</span><span class="n">Outs</span><span class="p">,</span>
                                 <span class="n">const</span> <span class="n">SmallVectorImpl</span><span class="o">&lt;</span><span class="n">SDValue</span><span class="o">&gt;</span> <span class="o">&amp;</span><span class="n">OutVals</span><span class="p">,</span>
-                                <span class="n">SDLoc</span> <span class="n">DL</span><span class="p">,</span> <span class="n">SelectionDAG</span> <span class="o">&amp;</span><span class="n">DAG</span><span class="p">)</span> <span class="n">const</span> <span class="p">{</span>
+                                <span class="n">const</span> <span class="n">SDLoc</span> <span class="o">&amp;</span><span class="n">DL</span><span class="p">,</span> <span class="n">SelectionDAG</span> <span class="o">&amp;</span><span class="n">DAG</span><span class="p">)</span> <span class="n">const</span> <span class="p">{</span>
   <span class="k">return</span> <span class="n">DAG</span><span class="o">.</span><span class="n">getNode</span><span class="p">(</span><span class="n">Cpu0ISD</span><span class="p">::</span><span class="n">Ret</span><span class="p">,</span> <span class="n">DL</span><span class="p">,</span> <span class="n">MVT</span><span class="p">::</span><span class="n">Other</span><span class="p">,</span>
                      <span class="n">Chain</span><span class="p">,</span> <span class="n">DAG</span><span class="o">.</span><span class="n">getRegister</span><span class="p">(</span><span class="n">Cpu0</span><span class="p">::</span><span class="n">LR</span><span class="p">,</span> <span class="n">MVT</span><span class="p">::</span><span class="n">i32</span><span class="p">));</span>
 <span class="p">}</span>
@@ -1302,38 +1320,15 @@ bool Cpu0FrameLowering::hasFP(const MachineFunction &amp;MF) const {
 
 <span class="c1">#include &quot;Cpu0Config.h&quot;</span>
 
-<span class="c1">#include &quot;llvm/ADT/StringMap.h&quot;</span>
 <span class="c1">#include &quot;llvm/CodeGen/MachineFrameInfo.h&quot;</span>
 <span class="c1">#include &quot;llvm/CodeGen/MachineFunction.h&quot;</span>
 <span class="c1">#include &quot;llvm/CodeGen/MachineMemOperand.h&quot;</span>
 <span class="c1">#include &quot;llvm/CodeGen/PseudoSourceValue.h&quot;</span>
-<span class="c1">#include &quot;llvm/IR/GlobalValue.h&quot;</span>
-<span class="c1">#include &quot;llvm/IR/ValueMap.h&quot;</span>
 <span class="c1">#include &quot;llvm/Target/TargetFrameLowering.h&quot;</span>
 <span class="c1">#include &quot;llvm/Target/TargetMachine.h&quot;</span>
 <span class="c1">#include &lt;map&gt;</span>
-<span class="c1">#include &lt;string&gt;</span>
-<span class="c1">#include &lt;utility&gt;</span>
 
 <span class="n">namespace</span> <span class="n">llvm</span> <span class="p">{</span>
-
-<span class="o">///</span> \<span class="n">brief</span> <span class="n">A</span> <span class="k">class</span> <span class="nc">derived</span> <span class="kn">from</span> <span class="nn">PseudoSourceValue</span> <span class="n">that</span> <span class="n">represents</span> <span class="n">a</span> <span class="n">GOT</span> <span class="n">entry</span>
-<span class="o">///</span> <span class="n">resolved</span> <span class="n">by</span> <span class="n">lazy</span><span class="o">-</span><span class="n">binding</span><span class="o">.</span>
-<span class="k">class</span> <span class="nc">Cpu0CallEntry</span> <span class="p">:</span> <span class="n">public</span> <span class="n">PseudoSourceValue</span> <span class="p">{</span>
-<span class="n">public</span><span class="p">:</span>
-  <span class="n">explicit</span> <span class="n">Cpu0CallEntry</span><span class="p">(</span><span class="n">StringRef</span> <span class="n">N</span><span class="p">);</span>
-  <span class="n">explicit</span> <span class="n">Cpu0CallEntry</span><span class="p">(</span><span class="n">const</span> <span class="n">GlobalValue</span> <span class="o">*</span><span class="n">V</span><span class="p">);</span>
-  <span class="nb">bool</span> <span class="n">isConstant</span><span class="p">(</span><span class="n">const</span> <span class="n">MachineFrameInfo</span> <span class="o">*</span><span class="p">)</span> <span class="n">const</span> <span class="n">override</span><span class="p">;</span>
-  <span class="nb">bool</span> <span class="n">isAliased</span><span class="p">(</span><span class="n">const</span> <span class="n">MachineFrameInfo</span> <span class="o">*</span><span class="p">)</span> <span class="n">const</span> <span class="n">override</span><span class="p">;</span>
-  <span class="nb">bool</span> <span class="n">mayAlias</span><span class="p">(</span><span class="n">const</span> <span class="n">MachineFrameInfo</span> <span class="o">*</span><span class="p">)</span> <span class="n">const</span> <span class="n">override</span><span class="p">;</span>
-
-<span class="n">private</span><span class="p">:</span>
-  <span class="n">void</span> <span class="n">printCustom</span><span class="p">(</span><span class="n">raw_ostream</span> <span class="o">&amp;</span><span class="n">O</span><span class="p">)</span> <span class="n">const</span> <span class="n">override</span><span class="p">;</span>
-<span class="c1">#ifndef NDEBUG</span>
-  <span class="n">std</span><span class="p">::</span><span class="n">string</span> <span class="n">Name</span><span class="p">;</span>
-  <span class="n">const</span> <span class="n">GlobalValue</span> <span class="o">*</span><span class="n">Val</span><span class="p">;</span>
-<span class="c1">#endif</span>
-<span class="p">};</span>
 
 <span class="o">//</span><span class="nd">@1</span> <span class="p">{</span>
 <span class="o">///</span> <span class="n">Cpu0FunctionInfo</span> <span class="o">-</span> <span class="n">This</span> <span class="k">class</span> <span class="nc">is</span> <span class="n">derived</span> <span class="kn">from</span> <span class="nn">MachineFunction</span> <span class="n">private</span>
@@ -1360,11 +1355,6 @@ bool Cpu0FrameLowering::hasFP(const MachineFunction &amp;MF) const {
   <span class="nb">int</span> <span class="n">VarArgsFrameIndex</span><span class="p">;</span>
 
   <span class="n">unsigned</span> <span class="n">MaxCallFrameSize</span><span class="p">;</span>
-
-  <span class="o">///</span> <span class="n">Cpu0CallEntry</span> <span class="n">maps</span><span class="o">.</span>
-  <span class="n">StringMap</span><span class="o">&lt;</span><span class="n">std</span><span class="p">::</span><span class="n">unique_ptr</span><span class="o">&lt;</span><span class="n">const</span> <span class="n">Cpu0CallEntry</span><span class="o">&gt;&gt;</span> <span class="n">ExternalCallEntries</span><span class="p">;</span>
-  <span class="n">ValueMap</span><span class="o">&lt;</span><span class="n">const</span> <span class="n">GlobalValue</span> <span class="o">*</span><span class="p">,</span> <span class="n">std</span><span class="p">::</span><span class="n">unique_ptr</span><span class="o">&lt;</span><span class="n">const</span> <span class="n">Cpu0CallEntry</span><span class="o">&gt;&gt;</span>
-      <span class="n">GlobalCallEntries</span><span class="p">;</span>
 <span class="p">};</span>
 <span class="o">//</span><span class="nd">@1</span> <span class="p">}</span>
 
@@ -1395,42 +1385,6 @@ bool Cpu0FrameLowering::hasFP(const MachineFunction &amp;MF) const {
 <span class="n">using</span> <span class="n">namespace</span> <span class="n">llvm</span><span class="p">;</span>
 
 <span class="nb">bool</span> <span class="n">FixGlobalBaseReg</span><span class="p">;</span>
-
-<span class="o">//</span> <span class="k">class</span> <span class="nc">Cpu0CallEntry</span><span class="o">.</span>
-<span class="n">Cpu0CallEntry</span><span class="p">::</span><span class="n">Cpu0CallEntry</span><span class="p">(</span><span class="n">StringRef</span> <span class="n">N</span><span class="p">)</span> <span class="p">{</span>
-<span class="c1">#ifndef NDEBUG</span>
-  <span class="n">Name</span> <span class="o">=</span> <span class="n">N</span><span class="p">;</span>
-  <span class="n">Val</span> <span class="o">=</span> <span class="n">nullptr</span><span class="p">;</span>
-<span class="c1">#endif</span>
-<span class="p">}</span>
-
-<span class="n">Cpu0CallEntry</span><span class="p">::</span><span class="n">Cpu0CallEntry</span><span class="p">(</span><span class="n">const</span> <span class="n">GlobalValue</span> <span class="o">*</span><span class="n">V</span><span class="p">)</span> <span class="p">{</span>
-<span class="c1">#ifndef NDEBUG</span>
-  <span class="n">Val</span> <span class="o">=</span> <span class="n">V</span><span class="p">;</span>
-<span class="c1">#endif</span>
-<span class="p">}</span>
-
-<span class="nb">bool</span> <span class="n">Cpu0CallEntry</span><span class="p">::</span><span class="n">isConstant</span><span class="p">(</span><span class="n">const</span> <span class="n">MachineFrameInfo</span> <span class="o">*</span><span class="p">)</span> <span class="n">const</span> <span class="p">{</span>
-  <span class="k">return</span> <span class="n">false</span><span class="p">;</span>
-<span class="p">}</span>
-
-<span class="nb">bool</span> <span class="n">Cpu0CallEntry</span><span class="p">::</span><span class="n">isAliased</span><span class="p">(</span><span class="n">const</span> <span class="n">MachineFrameInfo</span> <span class="o">*</span><span class="p">)</span> <span class="n">const</span> <span class="p">{</span>
-  <span class="k">return</span> <span class="n">false</span><span class="p">;</span>
-<span class="p">}</span>
-
-<span class="nb">bool</span> <span class="n">Cpu0CallEntry</span><span class="p">::</span><span class="n">mayAlias</span><span class="p">(</span><span class="n">const</span> <span class="n">MachineFrameInfo</span> <span class="o">*</span><span class="p">)</span> <span class="n">const</span> <span class="p">{</span>
-  <span class="k">return</span> <span class="n">false</span><span class="p">;</span>
-<span class="p">}</span>
-
-<span class="n">void</span> <span class="n">Cpu0CallEntry</span><span class="p">::</span><span class="n">printCustom</span><span class="p">(</span><span class="n">raw_ostream</span> <span class="o">&amp;</span><span class="n">O</span><span class="p">)</span> <span class="n">const</span> <span class="p">{</span>
-  <span class="n">O</span> <span class="o">&lt;&lt;</span> <span class="s2">&quot;Cpu0CallEntry: &quot;</span><span class="p">;</span>
-<span class="c1">#ifndef NDEBUG</span>
-  <span class="k">if</span> <span class="p">(</span><span class="n">Val</span><span class="p">)</span>
-    <span class="n">O</span> <span class="o">&lt;&lt;</span> <span class="n">Val</span><span class="o">-&gt;</span><span class="n">getName</span><span class="p">();</span>
-  <span class="k">else</span>
-    <span class="n">O</span> <span class="o">&lt;&lt;</span> <span class="n">Name</span><span class="p">;</span>
-<span class="c1">#endif</span>
-<span class="p">}</span>
 
 <span class="n">Cpu0FunctionInfo</span><span class="p">::</span><span class="o">~</span><span class="n">Cpu0FunctionInfo</span><span class="p">()</span> <span class="p">{}</span>
 
@@ -1616,9 +1570,9 @@ bool Cpu0FrameLowering::hasFP(const MachineFunction &amp;MF) const {
 <span class="c1">#include &quot;Cpu0FrameLowering.h&quot;</span>
 <span class="c1">#include &quot;Cpu0ISelLowering.h&quot;</span>
 <span class="c1">#include &quot;Cpu0InstrInfo.h&quot;</span>
+<span class="c1">#include &quot;llvm/CodeGen/SelectionDAGTargetInfo.h&quot;</span>
 <span class="c1">#include &quot;llvm/IR/DataLayout.h&quot;</span>
 <span class="c1">#include &quot;llvm/MC/MCInstrItineraries.h&quot;</span>
-<span class="c1">#include &quot;llvm/Target/TargetSelectionDAGInfo.h&quot;</span>
 <span class="c1">#include &quot;llvm/Target/TargetSubtargetInfo.h&quot;</span>
 <span class="c1">#include &lt;string&gt;</span>
 
@@ -1821,13 +1775,14 @@ bool Cpu0FrameLowering::hasFP(const MachineFunction &amp;MF) const {
 
   Triple TargetTriple;
 
-  const TargetSelectionDAGInfo TSInfo;
+  const SelectionDAGTargetInfo TSInfo;
 
   std::unique_ptr&lt;const Cpu0InstrInfo&gt; InstrInfo;
   std::unique_ptr&lt;const Cpu0FrameLowering&gt; FrameLowering;
   std::unique_ptr&lt;const Cpu0TargetLowering&gt; TLInfo;
 
 public:
+  bool isPositionIndependent() const;
   const Cpu0ABIInfo &amp;getABI() const;
 
   /// This constructor initializes the data members to match that
@@ -1866,7 +1821,7 @@ public:
   <span class="n">Cpu0Subtarget</span> <span class="o">&amp;</span><span class="n">initializeSubtargetDependencies</span><span class="p">(</span><span class="n">StringRef</span> <span class="n">CPU</span><span class="p">,</span> <span class="n">StringRef</span> <span class="n">FS</span><span class="p">,</span>
                                                  <span class="n">const</span> <span class="n">TargetMachine</span> <span class="o">&amp;</span><span class="n">TM</span><span class="p">);</span>
 
-  <span class="n">const</span> <span class="n">TargetSelectionDAGInfo</span> <span class="o">*</span><span class="n">getSelectionDAGInfo</span><span class="p">()</span> <span class="n">const</span> <span class="n">override</span> <span class="p">{</span>
+  <span class="n">const</span> <span class="n">SelectionDAGTargetInfo</span> <span class="o">*</span><span class="n">getSelectionDAGInfo</span><span class="p">()</span> <span class="n">const</span> <span class="n">override</span> <span class="p">{</span>
     <span class="k">return</span> <span class="o">&amp;</span><span class="n">TSInfo</span><span class="p">;</span>
   <span class="p">}</span>
   <span class="n">const</span> <span class="n">Cpu0InstrInfo</span> <span class="o">*</span><span class="n">getInstrInfo</span><span class="p">()</span> <span class="n">const</span> <span class="n">override</span> <span class="p">{</span> <span class="k">return</span> <span class="n">InstrInfo</span><span class="o">.</span><span class="n">get</span><span class="p">();</span> <span class="p">}</span>
@@ -1926,16 +1881,6 @@ public:
 
 <span class="n">extern</span> <span class="nb">bool</span> <span class="n">FixGlobalBaseReg</span><span class="p">;</span>
 
-<span class="o">///</span> <span class="n">Select</span> <span class="n">the</span> <span class="n">Cpu0</span> <span class="n">CPU</span> <span class="k">for</span> <span class="n">the</span> <span class="n">given</span> <span class="n">triple</span> <span class="ow">and</span> <span class="n">cpu</span> <span class="n">name</span><span class="o">.</span>
-<span class="o">///</span> <span class="n">FIXME</span><span class="p">:</span> <span class="n">Merge</span> <span class="k">with</span> <span class="n">the</span> <span class="n">copy</span> <span class="ow">in</span> <span class="n">Cpu0MCTargetDesc</span><span class="o">.</span><span class="n">cpp</span>
-<span class="n">static</span> <span class="n">StringRef</span> <span class="n">selectCpu0CPU</span><span class="p">(</span><span class="n">Triple</span> <span class="n">TT</span><span class="p">,</span> <span class="n">StringRef</span> <span class="n">CPU</span><span class="p">)</span> <span class="p">{</span>
-  <span class="k">if</span> <span class="p">(</span><span class="n">CPU</span><span class="o">.</span><span class="n">empty</span><span class="p">()</span> <span class="o">||</span> <span class="n">CPU</span> <span class="o">==</span> <span class="s2">&quot;generic&quot;</span><span class="p">)</span> <span class="p">{</span>
-    <span class="k">if</span> <span class="p">(</span><span class="n">TT</span><span class="o">.</span><span class="n">getArch</span><span class="p">()</span> <span class="o">==</span> <span class="n">Triple</span><span class="p">::</span><span class="n">cpu0</span> <span class="o">||</span> <span class="n">TT</span><span class="o">.</span><span class="n">getArch</span><span class="p">()</span> <span class="o">==</span> <span class="n">Triple</span><span class="p">::</span><span class="n">cpu0el</span><span class="p">)</span>
-      <span class="n">CPU</span> <span class="o">=</span> <span class="s2">&quot;cpu032II&quot;</span><span class="p">;</span>
-  <span class="p">}</span>
-  <span class="k">return</span> <span class="n">CPU</span><span class="p">;</span>
-<span class="p">}</span>
-
 <span class="n">void</span> <span class="n">Cpu0Subtarget</span><span class="p">::</span><span class="n">anchor</span><span class="p">()</span> <span class="p">{</span> <span class="p">}</span>
 
 <span class="o">//</span><span class="nd">@1</span> <span class="p">{</span>
@@ -1953,17 +1898,34 @@ public:
 
 <span class="p">}</span>
 
+<span class="nb">bool</span> <span class="n">Cpu0Subtarget</span><span class="p">::</span><span class="n">isPositionIndependent</span><span class="p">()</span> <span class="n">const</span> <span class="p">{</span>
+  <span class="k">return</span> <span class="n">TM</span><span class="o">.</span><span class="n">isPositionIndependent</span><span class="p">();</span>
+<span class="p">}</span>
+
 <span class="n">Cpu0Subtarget</span> <span class="o">&amp;</span>
 <span class="n">Cpu0Subtarget</span><span class="p">::</span><span class="n">initializeSubtargetDependencies</span><span class="p">(</span><span class="n">StringRef</span> <span class="n">CPU</span><span class="p">,</span> <span class="n">StringRef</span> <span class="n">FS</span><span class="p">,</span>
                                                <span class="n">const</span> <span class="n">TargetMachine</span> <span class="o">&amp;</span><span class="n">TM</span><span class="p">)</span> <span class="p">{</span>
-  <span class="n">std</span><span class="p">::</span><span class="n">string</span> <span class="n">CPUName</span> <span class="o">=</span> <span class="n">selectCpu0CPU</span><span class="p">(</span><span class="n">TargetTriple</span><span class="p">,</span> <span class="n">CPU</span><span class="p">);</span>
-
-  <span class="k">if</span> <span class="p">(</span><span class="n">CPUName</span> <span class="o">==</span> <span class="s2">&quot;help&quot;</span><span class="p">)</span>
-    <span class="n">CPUName</span> <span class="o">=</span> <span class="s2">&quot;cpu032II&quot;</span><span class="p">;</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">TargetTriple</span><span class="o">.</span><span class="n">getArch</span><span class="p">()</span> <span class="o">==</span> <span class="n">Triple</span><span class="p">::</span><span class="n">cpu0</span> <span class="o">||</span> <span class="n">TargetTriple</span><span class="o">.</span><span class="n">getArch</span><span class="p">()</span> <span class="o">==</span> <span class="n">Triple</span><span class="p">::</span><span class="n">cpu0el</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">CPU</span><span class="o">.</span><span class="n">empty</span><span class="p">()</span> <span class="o">||</span> <span class="n">CPU</span> <span class="o">==</span> <span class="s2">&quot;generic&quot;</span><span class="p">)</span> <span class="p">{</span>
+      <span class="n">CPU</span> <span class="o">=</span> <span class="s2">&quot;cpu032II&quot;</span><span class="p">;</span>
+    <span class="p">}</span>
+    <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="n">CPU</span> <span class="o">==</span> <span class="s2">&quot;help&quot;</span><span class="p">)</span> <span class="p">{</span>
+      <span class="n">CPU</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="p">;</span>
+      <span class="k">return</span> <span class="o">*</span><span class="n">this</span><span class="p">;</span>
+    <span class="p">}</span>
+    <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="n">CPU</span> <span class="o">!=</span> <span class="s2">&quot;cpu032I&quot;</span> <span class="o">&amp;&amp;</span> <span class="n">CPU</span> <span class="o">!=</span> <span class="s2">&quot;cpu032II&quot;</span><span class="p">)</span> <span class="p">{</span>
+      <span class="n">CPU</span> <span class="o">=</span> <span class="s2">&quot;cpu032II&quot;</span><span class="p">;</span>
+    <span class="p">}</span>
+  <span class="p">}</span>
+  <span class="k">else</span> <span class="p">{</span>
+    <span class="n">errs</span><span class="p">()</span> <span class="o">&lt;&lt;</span> <span class="s2">&quot;!!!Error, TargetTriple.getArch() = &quot;</span> <span class="o">&lt;&lt;</span> <span class="n">TargetTriple</span><span class="o">.</span><span class="n">getArch</span><span class="p">()</span>
+           <span class="o">&lt;&lt;</span>  <span class="s2">&quot;CPU = &quot;</span> <span class="o">&lt;&lt;</span> <span class="n">CPU</span> <span class="o">&lt;&lt;</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">;</span>
+    <span class="n">exit</span><span class="p">(</span><span class="mi">0</span><span class="p">);</span>
+  <span class="p">}</span>
   
-  <span class="k">if</span> <span class="p">(</span><span class="n">CPUName</span> <span class="o">==</span> <span class="s2">&quot;cpu032I&quot;</span><span class="p">)</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">CPU</span> <span class="o">==</span> <span class="s2">&quot;cpu032I&quot;</span><span class="p">)</span>
     <span class="n">Cpu0ArchVersion</span> <span class="o">=</span> <span class="n">Cpu032I</span><span class="p">;</span>
-  <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="n">CPUName</span> <span class="o">==</span> <span class="s2">&quot;cpu032II&quot;</span><span class="p">)</span>
+  <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="n">CPU</span> <span class="o">==</span> <span class="s2">&quot;cpu032II&quot;</span><span class="p">)</span>
     <span class="n">Cpu0ArchVersion</span> <span class="o">=</span> <span class="n">Cpu032II</span><span class="p">;</span>
 
   <span class="k">if</span> <span class="p">(</span><span class="n">isCpu032I</span><span class="p">())</span> <span class="p">{</span>
@@ -1979,9 +1941,9 @@ public:
   <span class="p">}</span>
 
   <span class="o">//</span> <span class="n">Parse</span> <span class="n">features</span> <span class="n">string</span><span class="o">.</span>
-  <span class="n">ParseSubtargetFeatures</span><span class="p">(</span><span class="n">CPUName</span><span class="p">,</span> <span class="n">FS</span><span class="p">);</span>
+  <span class="n">ParseSubtargetFeatures</span><span class="p">(</span><span class="n">CPU</span><span class="p">,</span> <span class="n">FS</span><span class="p">);</span>
   <span class="o">//</span> <span class="n">Initialize</span> <span class="n">scheduling</span> <span class="n">itinerary</span> <span class="k">for</span> <span class="n">the</span> <span class="n">specified</span> <span class="n">CPU</span><span class="o">.</span>
-  <span class="n">InstrItins</span> <span class="o">=</span> <span class="n">getInstrItineraryForCPU</span><span class="p">(</span><span class="n">CPUName</span><span class="p">);</span>
+  <span class="n">InstrItins</span> <span class="o">=</span> <span class="n">getInstrItineraryForCPU</span><span class="p">(</span><span class="n">CPU</span><span class="p">);</span>
 
   <span class="k">return</span> <span class="o">*</span><span class="n">this</span><span class="p">;</span>
 <span class="p">}</span>
@@ -2260,28 +2222,28 @@ getFrameRegister(const MachineFunction &amp;MF) const {
 </div>
 <p>Chapter3_1 add most Cpu0 backend classes. The code of Chapter3_1 can be
 summaried as <a class="reference internal" href="#backendstructure-f1"><span class="std std-numref">Fig. 13</span></a>.
-Class Cpu0Subtarget supply the interface getInstrInfo(), getFrameLowering(),
+Class Cpu0Subtarget provides the interfaces getInstrInfo(), getFrameLowering(),
 ..., to get other Cpu0 classes.
 Most classes (like Cpu0InstrInfo, Cpu0RegisterInfo, ...) have Subtarget
 reference member to allowing them access other classes through the Cpu0Subtarget
 interface.
-Classes can access Subtarget class through Cpu0TargetMachine (usually use TM as
+If the backend module hasn&#8217;t the Subtarget reference, these classes still can
+access Subtarget class through Cpu0TargetMachine (usually use TM as
 symbol) by static_cast&lt;Cpu0TargetMachine &amp;&gt;(TM).getSubtargetImpl().
 Once getting Subtarget class, the backend code can access other classes through
 it.
-For those classes name of Cpu0SExx, they mean the standard 32 bits class.
-This arrangement follows llvm 3.5 Mips backend style. In Mips backend, it uses
-Mips16, MipsSE and Mips64 files/classes name to define classes functions for 16,
+For those name of Cpu0SExx classes, they mean the standard 32 bits class.
+This arrangement follows llvm 3.5 Mips backend style. Mips backend uses
+Mips16, MipsSE and Mips64 files/classes name to define classes for 16,
 32 and 64 bits architecture, respectively.
 Since Cpu0Subtarget creates Cpu0InstrInfo, Cpu0RegisterInfo, ..., at constuctor
 function, it can provide the class reference through the interfaces shown in
 <a class="reference internal" href="#backendstructure-f1"><span class="std std-numref">Fig. 13</span></a>.</p>
 <p>Below <a class="reference internal" href="#backendstructure-f2"><span class="std std-numref">Fig. 14</span></a> shows Cpu0 TableGen inheritance
 relationship.
-Last chapter mentioned llvm TableGen (llvm-tblgen) is used in code generation
-process.
-Backend class can choose the TableGen generated classes and inherited from it.
-There are more TableGen generated classes, and they all exist in
+Last chapter mentioned that backend class can include the TableGen generated
+classes and inherited from it.
+All the TableGen generated classes of Cpu0 backend are in
 cmake_debug_build/lib/Target/Cpu0/*.inc. Through C++ inheritance mechanism,
 TableGen provides backend programmers a fexible way to use its generated
 code. Programmers have chance to override this function if they need to.</p>
@@ -2290,16 +2252,16 @@ code. Programmers have chance to override this function if they need to.</p>
 <p class="caption"><span class="caption-number">Fig. 14 </span><span class="caption-text">Cpu0 classes inherited from TableGen generated files</span></p>
 </div>
 <p>Since llvm has deep inheritance tree, they are not digged here.
-Benefit from the inheritance tree structure, there are not too much code need
+Benefit from the inheritance tree structure, not much code needed
 to be implemented in classes of instruction, frame/stack and select DAG, since
-many code are implemented by their parent class.
+much code are implemented by their parent class.
 The llvm-tblgen generate Cpu0GenInstrInfo.inc based on information from
 Cpu0InstrInfo.td.
 Cpu0InstrInfo.h extract those code it needs from Cpu0GenInstrInfo.inc by define
 “#define GET_INSTRINFO_HEADER”.
 With TabelGen, the code size in backend is reduced again through the pattern
-match theory of compiler developemnt. This is explained in sections
-of DAG and Instruction Selection in last chapter.
+match theory of compiler developemnt. This is explained in both sections
+of &#8220;DAG&#8221; and &#8220;Instruction Selection&#8221; last chapter.
 Following is the code fragment from Cpu0GenInstrInfo.inc.
 Code between &#8220;#if def  GET_INSTRINFO_HEADER&#8221; and
 &#8220;#endif // GET_INSTRINFO_HEADER”&#8221; will be extracted to Cpu0InstrInfo.h.</p>
@@ -2315,7 +2277,7 @@ Code between &#8220;#if def  GET_INSTRINFO_HEADER&#8221; and
 <span class="cp">#endif </span><span class="c1">// GET_INSTRINFO_HEADER</span>
 </pre></div>
 </div>
-<p>Reference web site here <a class="footnote-reference" href="#targetmachine" id="id1">[1]</a> and here <a class="footnote-reference" href="#datalayout" id="id2">[2]</a>.</p>
+<p>Reference web sites are here <a class="footnote-reference" href="#targetmachine" id="id1">[1]</a> <a class="footnote-reference" href="#datalayout" id="id2">[2]</a>.</p>
 <p>Chapter3_1/CMakeLists.txt is modified with these new added *.cpp as follows,</p>
 <p class="rubric">lbdex/chapters/Chapter3_1/CMakeLists.txt</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">tablegen</span><span class="p">(</span><span class="n">LLVM</span> <span class="n">Cpu0GenDAGISel</span><span class="o">.</span><span class="n">inc</span> <span class="o">-</span><span class="n">gen</span><span class="o">-</span><span class="n">dag</span><span class="o">-</span><span class="n">isel</span><span class="p">)</span>
@@ -2347,7 +2309,7 @@ We will add it in next section.</p>
 cpu032II, repectively.
 Beyond that, it defines two more features, FeatureCmp and FeatureSlt.
 In order to demostrate the &#8220;instruction set designing choice&#8221; to readers, this
-book create two CPU.
+book creates two CPU.
 Readers will realize why Mips CPU uses instruction SLT instead of
 CMP when they go to later Chapter &#8220;Control flow statement&#8221;.
 With the added code of supporting cpu032I and cpu32II in Cpu0.td and
@@ -2395,9 +2357,10 @@ display messages as follows,</p>
 </pre></div>
 </div>
 <p>When user input <code class="docutils literal"><span class="pre">-mcpu=cpu032I</span></code>, the variable IsCpu032I from Cpu0InstrInfo.td
-will be true since the function isCpu032I() defined in Cpu0Subtarget.h will be
-true by checking variable CPU in constructor function (the variable CPU is
-&#8220;cpu032I&#8221; when user input -mcpu=cpu032I).
+will be true since the function isCpu032I() defined in Cpu0Subtarget.h is
+true (set Cpu0ArchVersion to cpu032I in initializeSubtargetDependencies() called
+in constructor function, the variable CPU in constructor function is &#8220;cpu032I&#8221;
+when user input -mcpu=cpu032I).
 Please notice variable Cpu0ArchVersion must be initialized in
 Cpu0Subtarget.cpp, otherwise variable Cpu0ArchVersion can be any value and
 functions isCpu032I() and isCpu032II() which support <code class="docutils literal"><span class="pre">llc</span> <span class="pre">-mcpu=cpu032I</span></code> and
@@ -2427,8 +2390,8 @@ class shift_rotate_reg&lt;bits&lt;8&gt; op, bits&lt;4&gt; isRotate, string instr
 <div class="highlight-c++"><div class="highlight"><pre><span></span><span class="cp">#define CH       CH4_1</span>
 </pre></div>
 </div>
-<p>On the contrary, it can be disabled by define it to less than CH4_1, such as
-CH3_5, as follows,</p>
+<p>On the contrary, it can be disabled by define it to less than CH4_1, for
+instance CH3_5, as follows,</p>
 <p class="rubric">~/llvm/test/src/lib/Target/Cpu0SetChapter.h</p>
 <div class="highlight-c++"><div class="highlight"><pre><span></span><span class="cp">#define CH       CH3_5</span>
 </pre></div>
@@ -2561,43 +2524,6 @@ void Cpu0InstPrinter::printInst(const MCInst *MI, raw_ostream &amp;O,
   printAnnotation(O, Annot);
 }
 
-//@printExpr {
-static void printExpr(const MCExpr *Expr, const MCAsmInfo *MAI,
-                      raw_ostream &amp;OS) {
-//@printExpr body {
-  int Offset = 0;
-  const MCSymbolRefExpr *SRE;
-
-  if (const MCBinaryExpr *BE = dyn_cast&lt;MCBinaryExpr&gt;(Expr)) {
-    SRE = dyn_cast&lt;MCSymbolRefExpr&gt;(BE-&gt;getLHS());
-    const MCConstantExpr *CE = dyn_cast&lt;MCConstantExpr&gt;(BE-&gt;getRHS());
-    assert(SRE &amp;&amp; CE &amp;&amp; &quot;Binary expression must be sym+const.&quot;);
-    Offset = CE-&gt;getValue();
-  } else
-    SRE = cast&lt;MCSymbolRefExpr&gt;(Expr);
-
-  MCSymbolRefExpr::VariantKind Kind = SRE-&gt;getKind();
-
-  switch (Kind) {
-  default:                                 llvm_unreachable(&quot;Invalid kind!&quot;);
-  case MCSymbolRefExpr::VK_None:           break;
-  }
-
-  SRE-&gt;getSymbol().print(OS, MAI);
-
-  if (Offset) {
-    if (Offset &gt; 0)
-      OS &lt;&lt; &#39;+&#39;;
-    OS &lt;&lt; Offset;
-  }
-
-  if ((Kind == MCSymbolRefExpr::VK_Cpu0_GPOFF_HI) ||
-      (Kind == MCSymbolRefExpr::VK_Cpu0_GPOFF_LO))
-    OS &lt;&lt; &quot;)))&quot;;
-  else if (Kind != MCSymbolRefExpr::VK_None)
-    OS &lt;&lt; &#39;)&#39;;
-}
-
 void Cpu0InstPrinter::printOperand(const MCInst *MI, unsigned OpNo,
                                    raw_ostream &amp;O) {
   const MCOperand &amp;Op = MI-&gt;getOperand(OpNo);
@@ -2612,7 +2538,7 @@ void Cpu0InstPrinter::printOperand(const MCInst *MI, unsigned OpNo,
   }
 
   assert(Op.isExpr() &amp;&amp; &quot;unknown operand kind in printOperand&quot;);
-  printExpr(Op.getExpr(), &amp;MAI, O);
+  Op.getExpr()-&gt;print(O, &amp;MAI, true);
 }
 
 void Cpu0InstPrinter::printUnsignedImm(const MCInst *MI, int opNum,
@@ -2693,8 +2619,9 @@ To let these two functions work in our code, the only thing needed is adding a
 class Cpu0InstPrinter and include them as did in Chapter3_2.</p>
 <p>File Chapter3_2/Cpu0/InstPrinter/Cpu0InstPrinter.cpp include Cpu0GenAsmWrite.inc
 and call the auto-generated functions from TableGen.</p>
-<p>Function Cpu0InstPrinter::printMemOperand() defined in Chapter3_2/InstPrinter/
-Cpu0InstPrinter.cpp as above. It will be triggered since Cpu0InstrInfo.td
+<p>Function Cpu0InstPrinter::printMemOperand() defined in
+Chapter3_2/InstPrinter/Cpu0InstPrinter.cpp as above.
+It will be triggered since Cpu0InstrInfo.td
 defined <strong>&#8216;let PrintMethod = &#8220;printMemOperand&#8221;;&#8217;</strong> as follows,</p>
 <p class="rubric">lbdex/chapters/Chapter2/Cpu0InstrInfo.td</p>
 <div class="code c++ highlight-default"><div class="highlight"><pre><span></span>// Address operand
@@ -2724,7 +2651,7 @@ defm ST     : StoreM32&lt;0x02, &quot;st&quot;,  store_a&gt;;
 </pre></div>
 </div>
 <p>Cpu0InstPrinter::printMemOperand() will print backend operands for &#8220;local
-variable access&#8221;, which like the following,</p>
+variable access&#8221;, which is like the following,</p>
 <div class="highlight-console"><div class="highlight"><pre><span></span><span class="go">ld    $2, 16($fp)</span>
 <span class="go">st    $2, 8($fp)</span>
 </pre></div>
@@ -2913,14 +2840,6 @@ sub-directory MCTargetDesc as follows,</p>
     <span class="n">MO_ABS_HI</span><span class="p">,</span>
     <span class="n">MO_ABS_LO</span><span class="p">,</span>
 
-    <span class="n">MO_GOT_DISP</span><span class="p">,</span>
-    <span class="n">MO_GOT_PAGE</span><span class="p">,</span>
-    <span class="n">MO_GOT_OFST</span><span class="p">,</span>
-
-    <span class="o">//</span> <span class="n">N32</span><span class="o">/</span><span class="mi">64</span> <span class="n">Flags</span><span class="o">.</span>
-    <span class="n">MO_GPOFF_HI</span><span class="p">,</span>
-    <span class="n">MO_GPOFF_LO</span><span class="p">,</span>
-
     <span class="o">///</span> <span class="n">MO_GOT_HI16</span><span class="o">/</span><span class="n">LO16</span> <span class="o">-</span> <span class="n">Relocations</span> <span class="n">used</span> <span class="k">for</span> <span class="n">large</span> <span class="n">GOTs</span><span class="o">.</span>
     <span class="n">MO_GOT_HI16</span><span class="p">,</span>
     <span class="n">MO_GOT_LO16</span>
@@ -3044,7 +2963,7 @@ Cpu0MCAsmInfo::Cpu0MCAsmInfo(const Triple &amp;TheTriple) {
 </pre></div>
 </div>
 <p>Finally, add code in Cpu0MCTargetDesc.cpp to register Cpu0InstPrinter as
-below. By the way, it registers other classes (register, instruction and
+below. It also registers other classes (register, instruction and
 subtarget) which defined in Chapter3_1 at this point.</p>
 <p class="rubric">lbdex/chapters/Chapter3_2/MCTargetDesc/Cpu0MCTargetDesc.h</p>
 <div class="highlight-c++"><div class="highlight"><pre><span></span><span class="k">namespace</span> <span class="n">llvm</span> <span class="p">{</span>
@@ -3123,18 +3042,6 @@ static MCAsmInfo *createCpu0MCAsmInfo(const MCRegisterInfo &amp;MRI,
   return MAI;
 }
 
-static MCCodeGenInfo *createCpu0MCCodeGenInfo(const Triple &amp;TT, Reloc::Model RM,
-                                              CodeModel::Model CM,
-                                              CodeGenOpt::Level OL) {
-  MCCodeGenInfo *X = new MCCodeGenInfo();
-  if (CM == CodeModel::JITDefault)
-    RM = Reloc::Static;
-  else if (RM == Reloc::Default)
-    RM = Reloc::PIC_;
-  X-&gt;initMCCodeGenInfo(RM, CM, OL); // defined in lib/MC/MCCodeGenInfo.cpp
-  return X;
-}
-
 static MCInstPrinter *createCpu0MCInstPrinter(const Triple &amp;T,
                                               unsigned SyntaxVariant,
                                               const MCAsmInfo &amp;MAI,
@@ -3143,15 +3050,23 @@ static MCInstPrinter *createCpu0MCInstPrinter(const Triple &amp;T,
   return new Cpu0InstPrinter(MAI, MII, MRI);
 }
 
+namespace {
+
+class Cpu0MCInstrAnalysis : public MCInstrAnalysis {
+public:
+  Cpu0MCInstrAnalysis(const MCInstrInfo *Info) : MCInstrAnalysis(Info) {}
+};
+}
+
+static MCInstrAnalysis *createCpu0MCInstrAnalysis(const MCInstrInfo *Info) {
+  return new Cpu0MCInstrAnalysis(Info);
+}
+
 //@2 {
 extern &quot;C&quot; void LLVMInitializeCpu0TargetMC() {
   for (Target *T : {&amp;TheCpu0Target, &amp;TheCpu0elTarget}) {
     // Register the MC asm info.
     RegisterMCAsmInfoFn X(*T, createCpu0MCAsmInfo);
-
-    // Register the MC codegen info.
-    TargetRegistry::RegisterMCCodeGenInfo(*T,
-	                                      createCpu0MCCodeGenInfo);
 
     // Register the MC instruction info.
     TargetRegistry::RegisterMCInstrInfo(*T, createCpu0MCInstrInfo);
@@ -3162,6 +3077,8 @@ extern &quot;C&quot; void LLVMInitializeCpu0TargetMC() {
     // Register the MC subtarget info.
     TargetRegistry::RegisterMCSubtargetInfo(*T,
 	                                        createCpu0MCSubtargetInfo);
+    // Register the MC instruction analyzer.
+    TargetRegistry::RegisterMCInstrAnalysis(*T, createCpu0MCInstrAnalysis);
     // Register the MCInstPrinter.
     TargetRegistry::RegisterMCInstPrinter(*T,
 	                                      createCpu0MCInstPrinter);
@@ -3204,7 +3121,7 @@ extern &quot;C&quot; void LLVMInitializeCpu0TargetMC() {
 target TheCpu0Target and TheCpu0elTarget.
 TheCpu0Target is for big endian and TheCpu0elTarget is for little endian.
 Cpu0MCAsmInfo is derived from MCAsmInfo which is an llvm built-in class.
-Most code is implemented in it&#8217;s parent, back end reuses those code by
+Most code is implemented in it&#8217;s parent, backend reuses those code by
 inheritance.</p>
 <p class="rubric">Register function of MC codegen info</p>
 <div class="highlight-c++"><div class="highlight"><pre><span></span><span class="c1">// Register the MC codegen info.</span>
@@ -3224,10 +3141,10 @@ inheritance.</p>
     <span class="p">}</span>
 </pre></div>
 </div>
-<p>Above instancing MCCodeGenInfo, and initialize it by
-pass RM=Roloc::PIC when user compiling with position-independent code mode
+<p>Above instancing MCCodeGenInfo, and initialize it by passing RM=Reloc::PIC
+or RM=Reloc::Static when user compiling with position-independent code mode
 through command <code class="docutils literal"><span class="pre">llc</span> <span class="pre">-relocation-model=pic</span></code> or <code class="docutils literal"><span class="pre">llc</span></code> (default relocation
-mode is pic).
+mode is static).
 Recall there are two addressing mode in system program book, one is PIC
 mode, the other is absolute addressing mode.
 MC stands for Machine Code.</p>
@@ -3302,9 +3219,9 @@ function for instructions.</p>
 </pre></div>
 </div>
 <p>Above is similar to &#8220;Register function of MC instruction info&#8221;, but it
-initialize the register information specified in Cpu0RegisterInfo.td.
-They share some values from instruction/register td description.
-No need to specify them again in Initilize routine if they are consistant with
+initializes the register information specified in Cpu0RegisterInfo.td.
+They share some values from instruction/register td description, so
+no need to specify them again in Initialize routine if they are consistant with
 td description files.</p>
 <p class="rubric">Register function of SubtargetInfo</p>
 <div class="highlight-c++"><div class="highlight"><pre><span></span><span class="c1">// Register the MC subtarget info.</span>
@@ -3481,7 +3398,7 @@ void Cpu0AsmPrinter::EmitInstruction(const MachineInstr *MI) {
 
   //@print out instruction:
   //  Print out both ordinary instruction and boudle instruction
-  MachineBasicBlock::const_instr_iterator I = MI;
+  MachineBasicBlock::const_instr_iterator I = MI-&gt;getIterator();
   MachineBasicBlock::const_instr_iterator E = MI-&gt;getParent()-&gt;instr_end();
 
   do {
@@ -3490,7 +3407,7 @@ void Cpu0AsmPrinter::EmitInstruction(const MachineInstr *MI) {
       llvm_unreachable(&quot;Pseudo opcode found in EmitInstruction()&quot;);
 
     MCInst TmpInst0;
-    MCInstLowering.Lower(I, TmpInst0);
+    MCInstLowering.Lower(&amp;*I, TmpInst0);
     OutStreamer-&gt;EmitInstruction(TmpInst0, getSubtargetInfo());
   } while ((++I != E) &amp;&amp; I-&gt;isInsideBundle()); // Delay slot check
 }
@@ -3683,9 +3600,9 @@ extern &quot;C&quot; void LLVMInitializeCpu0AsmPrinter() {
 </div>
 <p>When instruction is ready to print, function Cpu0AsmPrinter::EmitInstruction()
 will be triggered first. And then it will call OutStreamer.EmitInstruction() to
-print OP code and register according the information from Cpu0GenInstrInfo.inc
-and Cpu0GenRegisterInfo.inc both registered at dynamic register function,
-LLVMInitializeCpu0TargetMC().
+print OP code and register name according the information from
+Cpu0GenInstrInfo.inc and Cpu0GenRegisterInfo.inc both registered at dynamic
+register function, LLVMInitializeCpu0TargetMC().
 Notice, file Cpu0InstPrinter.cpp only print operand while the OP code
 information come from Cpu0InstrInfo.td.</p>
 <p>Add the following code to Cpu0ISelLowering.cpp.</p>
@@ -3798,7 +3715,7 @@ Now, let&#8217;s check what IR DAG nodes the file ch3.bc has. List ch3.ll as fol
 </div>
 <p>As above, ch3.ll uses the IR DAG node <strong>store</strong>, <strong>ret</strong>.
 So, the definitions in Cpu0InstrInfo.td as below is enough.
-The ADDiu used for stack adjustment which will needed in later section
+The ADDiu used for stack adjustment which will be needed in later section
 &#8220;Add Prologue/Epilogue functions&#8221; of this chapter.
 IR DAG is defined in file  include/llvm/Target/TargetSelectionDAG.td.</p>
 <p class="rubric">lbdex/chapters/Chapter2/Cpu0InstrInfo.td</p>
@@ -3856,7 +3773,7 @@ selection stage.</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">//</span> <span class="n">Install</span> <span class="n">an</span> <span class="n">instruction</span> <span class="n">selector</span> <span class="k">pass</span> <span class="n">using</span>
 <span class="o">//</span> <span class="n">the</span> <span class="n">ISelDag</span> <span class="n">to</span> <span class="n">gen</span> <span class="n">Cpu0</span> <span class="n">code</span><span class="o">.</span>
 <span class="nb">bool</span> <span class="n">Cpu0PassConfig</span><span class="p">::</span><span class="n">addInstSelector</span><span class="p">()</span> <span class="p">{</span>
-  <span class="n">addPass</span><span class="p">(</span><span class="n">createCpu0SEISelDag</span><span class="p">(</span><span class="n">getCpu0TargetMachine</span><span class="p">()));</span>
+  <span class="n">addPass</span><span class="p">(</span><span class="n">createCpu0SEISelDag</span><span class="p">(</span><span class="n">getCpu0TargetMachine</span><span class="p">(),</span> <span class="n">getOptLevel</span><span class="p">()));</span>
   <span class="k">return</span> <span class="n">false</span><span class="p">;</span>
 <span class="p">}</span>
 </pre></div>
@@ -3899,8 +3816,8 @@ selection stage.</p>
 
 <span class="k">class</span> <span class="nc">Cpu0DAGToDAGISel</span> <span class="p">:</span> <span class="n">public</span> <span class="n">SelectionDAGISel</span> <span class="p">{</span>
 <span class="n">public</span><span class="p">:</span>
-  <span class="n">explicit</span> <span class="n">Cpu0DAGToDAGISel</span><span class="p">(</span><span class="n">Cpu0TargetMachine</span> <span class="o">&amp;</span><span class="n">TM</span><span class="p">)</span>
-      <span class="p">:</span> <span class="n">SelectionDAGISel</span><span class="p">(</span><span class="n">TM</span><span class="p">),</span> <span class="n">Subtarget</span><span class="p">(</span><span class="n">nullptr</span><span class="p">)</span> <span class="p">{}</span>
+  <span class="n">explicit</span> <span class="n">Cpu0DAGToDAGISel</span><span class="p">(</span><span class="n">Cpu0TargetMachine</span> <span class="o">&amp;</span><span class="n">TM</span><span class="p">,</span> <span class="n">CodeGenOpt</span><span class="p">::</span><span class="n">Level</span> <span class="n">OL</span><span class="p">)</span>
+      <span class="p">:</span> <span class="n">SelectionDAGISel</span><span class="p">(</span><span class="n">TM</span><span class="p">,</span> <span class="n">OL</span><span class="p">),</span> <span class="n">Subtarget</span><span class="p">(</span><span class="n">nullptr</span><span class="p">)</span> <span class="p">{}</span>
 
   <span class="o">//</span> <span class="n">Pass</span> <span class="n">Name</span>
   <span class="n">const</span> <span class="n">char</span> <span class="o">*</span><span class="n">getPassName</span><span class="p">()</span> <span class="n">const</span> <span class="n">override</span> <span class="p">{</span>
@@ -3925,9 +3842,9 @@ selection stage.</p>
     <span class="k">return</span> <span class="n">static_cast</span><span class="o">&lt;</span><span class="n">const</span> <span class="n">Cpu0TargetMachine</span> <span class="o">&amp;&gt;</span><span class="p">(</span><span class="n">TM</span><span class="p">);</span>
   <span class="p">}</span>
 
-  <span class="n">SDNode</span> <span class="o">*</span><span class="n">Select</span><span class="p">(</span><span class="n">SDNode</span> <span class="o">*</span><span class="n">N</span><span class="p">)</span> <span class="n">override</span><span class="p">;</span>
+  <span class="n">void</span> <span class="n">Select</span><span class="p">(</span><span class="n">SDNode</span> <span class="o">*</span><span class="n">N</span><span class="p">)</span> <span class="n">override</span><span class="p">;</span>
 
-  <span class="n">virtual</span> <span class="n">std</span><span class="p">::</span><span class="n">pair</span><span class="o">&lt;</span><span class="nb">bool</span><span class="p">,</span> <span class="n">SDNode</span><span class="o">*&gt;</span> <span class="n">selectNode</span><span class="p">(</span><span class="n">SDNode</span> <span class="o">*</span><span class="n">Node</span><span class="p">)</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+  <span class="n">virtual</span> <span class="nb">bool</span> <span class="n">trySelect</span><span class="p">(</span><span class="n">SDNode</span> <span class="o">*</span><span class="n">Node</span><span class="p">)</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
 
   <span class="o">//</span> <span class="n">Complex</span> <span class="n">Pattern</span><span class="o">.</span>
   <span class="nb">bool</span> <span class="n">SelectAddr</span><span class="p">(</span><span class="n">SDNode</span> <span class="o">*</span><span class="n">Parent</span><span class="p">,</span> <span class="n">SDValue</span> <span class="n">N</span><span class="p">,</span> <span class="n">SDValue</span> <span class="o">&amp;</span><span class="n">Base</span><span class="p">,</span> <span class="n">SDValue</span> <span class="o">&amp;</span><span class="n">Offset</span><span class="p">);</span>
@@ -4041,7 +3958,7 @@ SelectAddr(SDNode *Parent, SDValue Addr, SDValue &amp;Base, SDValue &amp;Offset)
 //@Select {
 /// Select instructions not customized! Used for
 /// expanded, promoted and normal instructions
-SDNode* Cpu0DAGToDAGISel::Select(SDNode *Node) {
+void Cpu0DAGToDAGISel::Select(SDNode *Node) {
 //@Select }
   unsigned Opcode = Node-&gt;getOpcode();
 
@@ -4052,40 +3969,20 @@ SDNode* Cpu0DAGToDAGISel::Select(SDNode *Node) {
   if (Node-&gt;isMachineOpcode()) {
     DEBUG(errs() &lt;&lt; &quot;== &quot;; Node-&gt;dump(CurDAG); errs() &lt;&lt; &quot;\n&quot;);
     Node-&gt;setNodeId(-1);
-    return nullptr;
+    return;
   }
 
   // See if subclasses can handle this node.
-  std::pair&lt;bool, SDNode*&gt; Ret = selectNode(Node);
-
-  if (Ret.first)
-    return Ret.second;
+  if (trySelect(Node))
+    return;
 
   switch(Opcode) {
   default: break;
 
-#if 0
-//#ifndef NDEBUG
-  case ISD::LOAD:
-  case ISD::STORE:
-    assert((Subtarget-&gt;systemSupportsUnalignedAccess() ||
-            cast&lt;MemSDNode&gt;(Node)-&gt;getMemoryVT().getSizeInBits() / 8 &lt;=
-            cast&lt;MemSDNode&gt;(Node)-&gt;getAlignment()) &amp;&amp;
-           &quot;Unexpected unaligned loads/stores.&quot;);
-    break;
-#endif
   }
 
   // Select the default instruction
-  SDNode *ResNode = SelectCode(Node);
-
-  DEBUG(errs() &lt;&lt; &quot;=&gt; &quot;);
-  if (ResNode == nullptr || ResNode == Node)
-    DEBUG(Node-&gt;dump(CurDAG));
-  else
-    DEBUG(ResNode-&gt;dump(CurDAG));
-  DEBUG(errs() &lt;&lt; &quot;\n&quot;);
-  return ResNode;
+  SelectCode(Node);
 }
 
 </pre></div>
@@ -4116,13 +4013,14 @@ SDNode* Cpu0DAGToDAGISel::Select(SDNode *Node) {
 <span class="k">class</span> <span class="nc">Cpu0SEDAGToDAGISel</span> <span class="p">:</span> <span class="n">public</span> <span class="n">Cpu0DAGToDAGISel</span> <span class="p">{</span>
 
 <span class="n">public</span><span class="p">:</span>
-  <span class="n">explicit</span> <span class="n">Cpu0SEDAGToDAGISel</span><span class="p">(</span><span class="n">Cpu0TargetMachine</span> <span class="o">&amp;</span><span class="n">TM</span><span class="p">)</span> <span class="p">:</span> <span class="n">Cpu0DAGToDAGISel</span><span class="p">(</span><span class="n">TM</span><span class="p">)</span> <span class="p">{}</span>
+  <span class="n">explicit</span> <span class="n">Cpu0SEDAGToDAGISel</span><span class="p">(</span><span class="n">Cpu0TargetMachine</span> <span class="o">&amp;</span><span class="n">TM</span><span class="p">,</span> <span class="n">CodeGenOpt</span><span class="p">::</span><span class="n">Level</span> <span class="n">OL</span><span class="p">)</span>
+      <span class="p">:</span> <span class="n">Cpu0DAGToDAGISel</span><span class="p">(</span><span class="n">TM</span><span class="p">,</span> <span class="n">OL</span><span class="p">)</span> <span class="p">{}</span>
 
 <span class="n">private</span><span class="p">:</span>
 
   <span class="nb">bool</span> <span class="n">runOnMachineFunction</span><span class="p">(</span><span class="n">MachineFunction</span> <span class="o">&amp;</span><span class="n">MF</span><span class="p">)</span> <span class="n">override</span><span class="p">;</span>
 
-  <span class="n">std</span><span class="p">::</span><span class="n">pair</span><span class="o">&lt;</span><span class="nb">bool</span><span class="p">,</span> <span class="n">SDNode</span><span class="o">*&gt;</span> <span class="n">selectNode</span><span class="p">(</span><span class="n">SDNode</span> <span class="o">*</span><span class="n">Node</span><span class="p">)</span> <span class="n">override</span><span class="p">;</span>
+  <span class="nb">bool</span> <span class="n">trySelect</span><span class="p">(</span><span class="n">SDNode</span> <span class="o">*</span><span class="n">Node</span><span class="p">)</span> <span class="n">override</span><span class="p">;</span>
 
   <span class="n">void</span> <span class="n">processFunctionAfterISel</span><span class="p">(</span><span class="n">MachineFunction</span> <span class="o">&amp;</span><span class="n">MF</span><span class="p">)</span> <span class="n">override</span><span class="p">;</span>
 
@@ -4132,7 +4030,8 @@ SDNode* Cpu0DAGToDAGISel::Select(SDNode *Node) {
 
 <span class="p">};</span>
 
-<span class="n">FunctionPass</span> <span class="o">*</span><span class="n">createCpu0SEISelDag</span><span class="p">(</span><span class="n">Cpu0TargetMachine</span> <span class="o">&amp;</span><span class="n">TM</span><span class="p">);</span>
+<span class="n">FunctionPass</span> <span class="o">*</span><span class="n">createCpu0SEISelDag</span><span class="p">(</span><span class="n">Cpu0TargetMachine</span> <span class="o">&amp;</span><span class="n">TM</span><span class="p">,</span>
+                                  <span class="n">CodeGenOpt</span><span class="p">::</span><span class="n">Level</span> <span class="n">OptLevel</span><span class="p">);</span>
 
 <span class="p">}</span>
 
@@ -4188,7 +4087,7 @@ SDNode* Cpu0DAGToDAGISel::Select(SDNode *Node) {
 <span class="p">}</span>
 
 <span class="o">//</span><span class="nd">@selectNode</span>
-<span class="n">std</span><span class="p">::</span><span class="n">pair</span><span class="o">&lt;</span><span class="nb">bool</span><span class="p">,</span> <span class="n">SDNode</span><span class="o">*&gt;</span> <span class="n">Cpu0SEDAGToDAGISel</span><span class="p">::</span><span class="n">selectNode</span><span class="p">(</span><span class="n">SDNode</span> <span class="o">*</span><span class="n">Node</span><span class="p">)</span> <span class="p">{</span>
+<span class="nb">bool</span> <span class="n">Cpu0SEDAGToDAGISel</span><span class="p">::</span><span class="n">trySelect</span><span class="p">(</span><span class="n">SDNode</span> <span class="o">*</span><span class="n">Node</span><span class="p">)</span> <span class="p">{</span>
   <span class="n">unsigned</span> <span class="n">Opcode</span> <span class="o">=</span> <span class="n">Node</span><span class="o">-&gt;</span><span class="n">getOpcode</span><span class="p">();</span>
   <span class="n">SDLoc</span> <span class="n">DL</span><span class="p">(</span><span class="n">Node</span><span class="p">);</span>
 
@@ -4196,7 +4095,6 @@ SDNode* Cpu0DAGToDAGISel::Select(SDNode *Node) {
   <span class="o">//</span> <span class="n">Instruction</span> <span class="n">Selection</span> <span class="ow">not</span> <span class="n">handled</span> <span class="n">by</span> <span class="n">the</span> <span class="n">auto</span><span class="o">-</span><span class="n">generated</span>
   <span class="o">//</span> <span class="n">tablegen</span> <span class="n">selection</span> <span class="n">should</span> <span class="n">be</span> <span class="n">handled</span> <span class="n">here</span><span class="o">.</span>
   <span class="o">///</span>
-  <span class="n">SDNode</span> <span class="o">*</span><span class="n">Result</span><span class="p">;</span>
 
   <span class="o">///</span>
   <span class="o">//</span> <span class="n">Instruction</span> <span class="n">Selection</span> <span class="ow">not</span> <span class="n">handled</span> <span class="n">by</span> <span class="n">the</span> <span class="n">auto</span><span class="o">-</span><span class="n">generated</span>
@@ -4210,11 +4108,12 @@ SDNode* Cpu0DAGToDAGISel::Select(SDNode *Node) {
 
   <span class="p">}</span>
 
-  <span class="k">return</span> <span class="n">std</span><span class="p">::</span><span class="n">make_pair</span><span class="p">(</span><span class="n">false</span><span class="p">,</span> <span class="n">nullptr</span><span class="p">);</span>
+  <span class="k">return</span> <span class="n">false</span><span class="p">;</span>
 <span class="p">}</span>
 
-<span class="n">FunctionPass</span> <span class="o">*</span><span class="n">llvm</span><span class="p">::</span><span class="n">createCpu0SEISelDag</span><span class="p">(</span><span class="n">Cpu0TargetMachine</span> <span class="o">&amp;</span><span class="n">TM</span><span class="p">)</span> <span class="p">{</span>
-  <span class="k">return</span> <span class="n">new</span> <span class="n">Cpu0SEDAGToDAGISel</span><span class="p">(</span><span class="n">TM</span><span class="p">);</span>
+<span class="n">FunctionPass</span> <span class="o">*</span><span class="n">llvm</span><span class="p">::</span><span class="n">createCpu0SEISelDag</span><span class="p">(</span><span class="n">Cpu0TargetMachine</span> <span class="o">&amp;</span><span class="n">TM</span><span class="p">,</span>
+                                        <span class="n">CodeGenOpt</span><span class="p">::</span><span class="n">Level</span> <span class="n">OptLevel</span><span class="p">)</span> <span class="p">{</span>
+  <span class="k">return</span> <span class="n">new</span> <span class="n">Cpu0SEDAGToDAGISel</span><span class="p">(</span><span class="n">TM</span><span class="p">,</span> <span class="n">OptLevel</span><span class="p">);</span>
 <span class="p">}</span>
 
 </pre></div>
@@ -4222,7 +4121,7 @@ SDNode* Cpu0DAGToDAGISel::Select(SDNode *Node) {
 <p>Function Cpu0DAGToDAGISel::Select() of Cpu0ISelDAGToDAG.cpp is for the
 selection of &#8220;OP code DAG node&#8221; while Cpu0DAGToDAGISel::SelectAddr() is for the
 selection of &#8220;DATA DAG node with <strong>addr</strong> type&#8221; which defined in
-Chapter2/Cpu0InstrInfo.td. This method name corresponding to
+Chapter2/Cpu0InstrInfo.td. This method&#8217;s name corresponding to
 Chapter2/Cpu0InstrInfo.td as follows,</p>
 <p class="rubric">lbdex/chapters/Chapter2/Cpu0InstrInfo.td</p>
 <div class="highlight-c++"><div class="highlight"><pre><span></span><span class="n">def</span> <span class="nl">addr</span> <span class="p">:</span> <span class="n">ComplexPattern</span><span class="o">&lt;</span><span class="n">iPTR</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="s">&quot;SelectAddr&quot;</span><span class="p">,</span> <span class="p">[</span><span class="n">frameindex</span><span class="p">],</span> <span class="p">[</span><span class="n">SDNPWantParent</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
@@ -4254,40 +4153,6 @@ Chapter2/Cpu0InstrInfo.td as follows,</p>
 <p class="rubric">src/include/llvm/CodeGen/ValueTypes.td</p>
 <div class="highlight-c++"><div class="highlight"><pre><span></span><span class="c1">// Pseudo valuetype mapped to the current pointer size.</span>
 <span class="n">def</span> <span class="nl">iPTR</span>   <span class="p">:</span> <span class="n">ValueType</span><span class="o">&lt;</span><span class="mi">0</span>  <span class="p">,</span> <span class="mi">255</span><span class="o">&gt;</span><span class="p">;</span>
-</pre></div>
-</div>
-<p>Chapter3_3 adding the following code in Cpu0InstInfo.cpp to enable debug
-information which called by llvm at proper time.</p>
-<p class="rubric">lbdex/chapters/Chapter3_3/Cpu0InstrInfo.h</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span>  <span class="n">virtual</span> <span class="n">MachineInstr</span><span class="o">*</span> <span class="n">emitFrameIndexDebugValue</span><span class="p">(</span><span class="n">MachineFunction</span> <span class="o">&amp;</span><span class="n">MF</span><span class="p">,</span>
-                                                 <span class="nb">int</span> <span class="n">FrameIx</span><span class="p">,</span> <span class="n">uint64_t</span> <span class="n">Offset</span><span class="p">,</span>
-                                                 <span class="n">const</span> <span class="n">MDNode</span> <span class="o">*</span><span class="n">MDPtr</span><span class="p">,</span>
-                                                 <span class="n">DebugLoc</span> <span class="n">DL</span><span class="p">)</span> <span class="n">const</span><span class="p">;</span>
-</pre></div>
-</div>
-<p class="rubric">lbdex/chapters/Chapter3_3/Cpu0InstrInfo.cpp</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">MachineInstr</span><span class="o">*</span>
-<span class="n">Cpu0InstrInfo</span><span class="p">::</span><span class="n">emitFrameIndexDebugValue</span><span class="p">(</span><span class="n">MachineFunction</span> <span class="o">&amp;</span><span class="n">MF</span><span class="p">,</span> <span class="nb">int</span> <span class="n">FrameIx</span><span class="p">,</span>
-                                        <span class="n">uint64_t</span> <span class="n">Offset</span><span class="p">,</span> <span class="n">const</span> <span class="n">MDNode</span> <span class="o">*</span><span class="n">MDPtr</span><span class="p">,</span>
-                                        <span class="n">DebugLoc</span> <span class="n">DL</span><span class="p">)</span> <span class="n">const</span> <span class="p">{</span>
-  <span class="n">MachineInstrBuilder</span> <span class="n">MIB</span> <span class="o">=</span> <span class="n">BuildMI</span><span class="p">(</span><span class="n">MF</span><span class="p">,</span> <span class="n">DL</span><span class="p">,</span> <span class="n">get</span><span class="p">(</span><span class="n">Cpu0</span><span class="p">::</span><span class="n">DBG_VALUE</span><span class="p">))</span>
-    <span class="o">.</span><span class="n">addFrameIndex</span><span class="p">(</span><span class="n">FrameIx</span><span class="p">)</span><span class="o">.</span><span class="n">addImm</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">addImm</span><span class="p">(</span><span class="n">Offset</span><span class="p">)</span><span class="o">.</span><span class="n">addMetadata</span><span class="p">(</span><span class="n">MDPtr</span><span class="p">);</span>
-  <span class="k">return</span> <span class="o">&amp;*</span><span class="n">MIB</span><span class="p">;</span>
-<span class="p">}</span>
-
-<span class="o">//</span><span class="nd">@GetInstSizeInBytes</span> <span class="p">{</span>
-<span class="o">///</span> <span class="n">Return</span> <span class="n">the</span> <span class="n">number</span> <span class="n">of</span> <span class="nb">bytes</span> <span class="n">of</span> <span class="n">code</span> <span class="n">the</span> <span class="n">specified</span> <span class="n">instruction</span> <span class="n">may</span> <span class="n">be</span><span class="o">.</span>
-<span class="n">unsigned</span> <span class="n">Cpu0InstrInfo</span><span class="p">::</span><span class="n">GetInstSizeInBytes</span><span class="p">(</span><span class="n">const</span> <span class="n">MachineInstr</span> <span class="o">*</span><span class="n">MI</span><span class="p">)</span> <span class="n">const</span> <span class="p">{</span>
-<span class="o">//</span><span class="nd">@GetInstSizeInBytes</span> <span class="o">-</span> <span class="n">body</span>
-  <span class="n">switch</span> <span class="p">(</span><span class="n">MI</span><span class="o">-&gt;</span><span class="n">getOpcode</span><span class="p">())</span> <span class="p">{</span>
-  <span class="n">default</span><span class="p">:</span>
-    <span class="k">return</span> <span class="n">MI</span><span class="o">-&gt;</span><span class="n">getDesc</span><span class="p">()</span><span class="o">.</span><span class="n">getSize</span><span class="p">();</span>
-<span class="c1">#if CH &gt;= CH11_2</span>
-  <span class="n">case</span>  <span class="n">TargetOpcode</span><span class="p">::</span><span class="n">INLINEASM</span><span class="p">:</span> <span class="p">{</span>       <span class="o">//</span> <span class="n">Inline</span> <span class="n">Asm</span><span class="p">:</span> <span class="n">Variable</span> <span class="n">size</span><span class="o">.</span>
-    <span class="n">const</span> <span class="n">MachineFunction</span> <span class="o">*</span><span class="n">MF</span> <span class="o">=</span> <span class="n">MI</span><span class="o">-&gt;</span><span class="n">getParent</span><span class="p">()</span><span class="o">-&gt;</span><span class="n">getParent</span><span class="p">();</span>
-    <span class="n">const</span> <span class="n">char</span> <span class="o">*</span><span class="n">AsmStr</span> <span class="o">=</span> <span class="n">MI</span><span class="o">-&gt;</span><span class="n">getOperand</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">getSymbolName</span><span class="p">();</span>
-    <span class="k">return</span> <span class="n">getInlineAsmLength</span><span class="p">(</span><span class="n">AsmStr</span><span class="p">,</span> <span class="o">*</span><span class="n">MF</span><span class="o">-&gt;</span><span class="n">getTarget</span><span class="p">()</span><span class="o">.</span><span class="n">getMCAsmInfo</span><span class="p">());</span>
-  <span class="p">}</span>
 </pre></div>
 </div>
 <p>Build Chapter3_3 and run with it, finding the error message of Chapter3_2 is
@@ -4369,13 +4234,14 @@ code added in Chapter3_1/Cpu0ISelLowering.cpp.</p>
 </div>
 <p>As you can see, Mips return to the caller by using &#8220;jr $ra&#8221; where
 $ra is a specific register which keeps the caller&#8217;s next instruction address.
-And it save the return value in register $2.
+And it saves the return value in register $2.
 If we only create DAGs directly, then will having the following two problems.</p>
 <ol class="arabic simple">
 <li>LLVM can allocate any register for return value, for instance $3, rather
 than keeps it in $2.</li>
-<li>LLVM will allocate a register randomly to &#8220;jr&#8221; since jr needs one operand.</li>
 </ol>
+<p>2. LLVM will allocate a register randomly to &#8220;jr&#8221; since jr needs one operand.
+For instance, it generate &#8220;jr $8&#8221; rather than &#8220;jr $ra&#8221;.</p>
 <p>If Backend uses the &#8220;jal sub-routine&#8221; and &#8220;jr&#8221;, and put the return address in
 the specific register $ra, then no the second problem. But in Mips, it allows
 programmer uses &#8220;jal $rx, sub-routine&#8221; and &#8220;jr $rx&#8221; whereas $rx is not $ra.
@@ -4539,7 +4405,7 @@ spill $ra register. This will save a lot of time if it is in a hot function.</p>
                                 <span class="n">CallingConv</span><span class="p">::</span><span class="n">ID</span> <span class="n">CallConv</span><span class="p">,</span> <span class="nb">bool</span> <span class="n">IsVarArg</span><span class="p">,</span>
                                 <span class="n">const</span> <span class="n">SmallVectorImpl</span><span class="o">&lt;</span><span class="n">ISD</span><span class="p">::</span><span class="n">OutputArg</span><span class="o">&gt;</span> <span class="o">&amp;</span><span class="n">Outs</span><span class="p">,</span>
                                 <span class="n">const</span> <span class="n">SmallVectorImpl</span><span class="o">&lt;</span><span class="n">SDValue</span><span class="o">&gt;</span> <span class="o">&amp;</span><span class="n">OutVals</span><span class="p">,</span>
-                                <span class="n">SDLoc</span> <span class="n">DL</span><span class="p">,</span> <span class="n">SelectionDAG</span> <span class="o">&amp;</span><span class="n">DAG</span><span class="p">)</span> <span class="n">const</span> <span class="p">{</span>
+                                <span class="n">const</span> <span class="n">SDLoc</span> <span class="o">&amp;</span><span class="n">DL</span><span class="p">,</span> <span class="n">SelectionDAG</span> <span class="o">&amp;</span><span class="n">DAG</span><span class="p">)</span> <span class="n">const</span> <span class="p">{</span>
 </pre></div>
 </div>
 <div class="highlight-default"><div class="highlight"><pre><span></span>  // CCValAssign - represent the assignment of
@@ -4708,7 +4574,7 @@ spill $ra register. This will save a lot of time if it is in a hot function.</p>
 </div>
 <p class="rubric">lbdex/chapters/Chapter3_4/Cpu0SEInstrInfo.h</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">//</span><span class="nd">@expandPostRAPseudo</span>
-  <span class="nb">bool</span> <span class="n">expandPostRAPseudo</span><span class="p">(</span><span class="n">MachineBasicBlock</span><span class="p">::</span><span class="n">iterator</span> <span class="n">MI</span><span class="p">)</span> <span class="n">const</span> <span class="n">override</span><span class="p">;</span>
+  <span class="nb">bool</span> <span class="n">expandPostRAPseudo</span><span class="p">(</span><span class="n">MachineInstr</span> <span class="o">&amp;</span><span class="n">MI</span><span class="p">)</span> <span class="n">const</span> <span class="n">override</span><span class="p">;</span>
 </pre></div>
 </div>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">private</span><span class="p">:</span>
@@ -4718,11 +4584,11 @@ spill $ra register. This will save a lot of time if it is in a hot function.</p>
 <p class="rubric">lbdex/chapters/Chapter3_4/Cpu0SEInstrInfo.cpp</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">//</span><span class="nd">@expandPostRAPseudo</span>
 <span class="o">///</span> <span class="n">Expand</span> <span class="n">Pseudo</span> <span class="n">instructions</span> <span class="n">into</span> <span class="n">real</span> <span class="n">backend</span> <span class="n">instructions</span>
-<span class="nb">bool</span> <span class="n">Cpu0SEInstrInfo</span><span class="p">::</span><span class="n">expandPostRAPseudo</span><span class="p">(</span><span class="n">MachineBasicBlock</span><span class="p">::</span><span class="n">iterator</span> <span class="n">MI</span><span class="p">)</span> <span class="n">const</span> <span class="p">{</span>
+<span class="nb">bool</span> <span class="n">Cpu0SEInstrInfo</span><span class="p">::</span><span class="n">expandPostRAPseudo</span><span class="p">(</span><span class="n">MachineInstr</span> <span class="o">&amp;</span><span class="n">MI</span><span class="p">)</span> <span class="n">const</span> <span class="p">{</span>
 <span class="o">//</span><span class="nd">@expandPostRAPseudo</span><span class="o">-</span><span class="n">body</span>
-  <span class="n">MachineBasicBlock</span> <span class="o">&amp;</span><span class="n">MBB</span> <span class="o">=</span> <span class="o">*</span><span class="n">MI</span><span class="o">-&gt;</span><span class="n">getParent</span><span class="p">();</span>
+  <span class="n">MachineBasicBlock</span> <span class="o">&amp;</span><span class="n">MBB</span> <span class="o">=</span> <span class="o">*</span><span class="n">MI</span><span class="o">.</span><span class="n">getParent</span><span class="p">();</span>
 
-  <span class="n">switch</span><span class="p">(</span><span class="n">MI</span><span class="o">-&gt;</span><span class="n">getDesc</span><span class="p">()</span><span class="o">.</span><span class="n">getOpcode</span><span class="p">())</span> <span class="p">{</span>
+  <span class="n">switch</span> <span class="p">(</span><span class="n">MI</span><span class="o">.</span><span class="n">getDesc</span><span class="p">()</span><span class="o">.</span><span class="n">getOpcode</span><span class="p">())</span> <span class="p">{</span>
   <span class="n">default</span><span class="p">:</span>
     <span class="k">return</span> <span class="n">false</span><span class="p">;</span>
   <span class="n">case</span> <span class="n">Cpu0</span><span class="p">::</span><span class="n">RetLR</span><span class="p">:</span>
@@ -4743,7 +4609,7 @@ spill $ra register. This will save a lot of time if it is in a hot function.</p>
 <span class="p">}</span>
 </pre></div>
 </div>
-<p>To handle IR ret, these code in Cpu0InstrInfo.td do things as below.</p>
+<p>In order to handle IR ret, these code in Cpu0InstrInfo.td do things as below.</p>
 <ol class="arabic simple">
 <li>Declare a pseudo node Cpu0::RetLR to takes care the IR Cpu0ISD::Ret by the
 following code,</li>
@@ -5275,7 +5141,7 @@ After that, it calls emitPrologue().</p>
   <span class="o">///</span> <span class="n">non</span><span class="o">-</span><span class="n">NULL</span> <span class="n">parameter</span><span class="p">,</span> <span class="n">the</span> <span class="n">last</span> <span class="n">instruction</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">emitted</span><span class="p">,</span> <span class="n">but</span> <span class="n">instead</span>
   <span class="o">///</span> <span class="n">its</span> <span class="n">immediate</span> <span class="n">operand</span> <span class="ow">is</span> <span class="n">returned</span> <span class="ow">in</span> <span class="n">NewImm</span><span class="o">.</span>
   <span class="n">unsigned</span> <span class="n">loadImmediate</span><span class="p">(</span><span class="n">int64_t</span> <span class="n">Imm</span><span class="p">,</span> <span class="n">MachineBasicBlock</span> <span class="o">&amp;</span><span class="n">MBB</span><span class="p">,</span>
-                         <span class="n">MachineBasicBlock</span><span class="p">::</span><span class="n">iterator</span> <span class="n">II</span><span class="p">,</span> <span class="n">DebugLoc</span> <span class="n">DL</span><span class="p">,</span>
+                         <span class="n">MachineBasicBlock</span><span class="p">::</span><span class="n">iterator</span> <span class="n">II</span><span class="p">,</span> <span class="n">const</span> <span class="n">DebugLoc</span> <span class="o">&amp;</span><span class="n">DL</span><span class="p">,</span>
                          <span class="n">unsigned</span> <span class="o">*</span><span class="n">NewImm</span><span class="p">)</span> <span class="n">const</span><span class="p">;</span>
 </pre></div>
 </div>
@@ -5288,8 +5154,10 @@ void Cpu0SEInstrInfo::adjustStackPtr(unsigned SP, int64_t Amount,
   unsigned ADDu = Cpu0::ADDu;
   unsigned ADDiu = Cpu0::ADDiu;
 
-  if (isInt&lt;16&gt;(Amount))// addiu sp, sp, amount
+  if (isInt&lt;16&gt;(Amount)) {
+    // addiu sp, sp, amount
     BuildMI(MBB, I, DL, get(ADDiu), SP).addReg(SP).addImm(Amount);
+  }
   else { // Expand immediate that doesn&#39;t fit in 16-bit.
     unsigned Reg = loadImmediate(Amount, MBB, I, DL, nullptr);
     BuildMI(MBB, I, DL, get(ADDu), SP).addReg(SP).addReg(Reg, RegState::Kill);
@@ -5300,7 +5168,8 @@ void Cpu0SEInstrInfo::adjustStackPtr(unsigned SP, int64_t Amount,
 /// result of adding register REG and immediate IMM.
 unsigned
 Cpu0SEInstrInfo::loadImmediate(int64_t Imm, MachineBasicBlock &amp;MBB,
-                               MachineBasicBlock::iterator II, DebugLoc DL,
+                               MachineBasicBlock::iterator II,
+                               const DebugLoc &amp;DL,
                                unsigned *NewImm) const {
   Cpu0AnalyzeImmediate AnalyzeImm;
   unsigned Size = 32;
@@ -5787,7 +5656,6 @@ class shift_rotate_imm&lt;bits&lt;8&gt; op, bits&lt;4&gt; isRotate, string instr
      !strconcat(instr_asm, &quot;\t$ra, $rb, $shamt&quot;),
      [(set GPROut:$ra, (OpNode RC:$rb, PF:$shamt))], IIAlu&gt; {
   let rc = 0;
-  let shamt = shamt;
 }
 
 // 32-bit shift instructions.
@@ -5947,8 +5815,8 @@ instructions after replace addiu and shl with lui instruction&#8221; at next,</p
 </tr>
 </tbody>
 </table>
-<p>Since the Cpu0 stack is 8 bytes alignment, the 0x7ff9 to 0x7fff is impossible
-existing.</p>
+<p>Since the Cpu0 stack is 8 bytes alignment, addresses from 0x7ff9 to 0x7fff are
+impossible existing.</p>
 <p>Assume sp = 0xa0008000 and stack size = 0x90008000, then (0xa0008000 -
 0x90008000) =&gt; 0x10000000. Verify with the Cpu0 Prologue instructions as
 follows,</p>
@@ -6104,12 +5972,13 @@ follows,</p>
 <div class="section" id="data-operands-dags">
 <h2><a class="toc-backref" href="#id21">Data operands DAGs</a><a class="headerlink" href="#data-operands-dags" title="Permalink to this headline">¶</a></h2>
 <p>From above or compiler book, you can see all the OP code are the internal nodes
-in DAGs graph, and operands are the leaf of DAGs.
+in DAGs graph, and operands are the leaves of DAGs.
 To develop your backend, you can copy the
 related data operands DAGs node from other backend since the IR data nodes are
 take cared by all the backend.
 About the data DAGs nodes, you can understand some of them through the
-Cpu0InstrInfo.td and find it by grep -R &#8220;&lt;datadag&gt;&#8221;  `find src/include/llvm`
+Cpu0InstrInfo.td and find them by command,
+grep -R &#8220;&lt;datadag&gt;&#8221;  `find src/include/llvm`,
 with spending a little more time to think or guess about it.
 Some data DAGs we know more, some we know a little and some remains unknown but
 it&#8217;s OK for us.
@@ -6338,17 +6207,17 @@ PatLeaf immZExt16, immLow16Zero and ImmLeaf immZExt5 are similar to immSExt16.</
 </tbody>
 </table>
 <p>We add a pass in Instruction Section stage in section &#8220;Add Cpu0DAGToDAGISel
-class&#8221;. You can embed your code into other pass like that. Please check
+class&#8221;. You can embed your code into other passes like that. Please check
 CodeGen/Passes.h for the information. Remember the pass is called according
 the function unit as the <code class="docutils literal"><span class="pre">llc</span> <span class="pre">-debug-pass=Structure</span></code> indicated.</p>
-<p>We have finished a simple compiler for cpu0 which only support <strong>ld</strong>,
+<p>We have finished a simple compiler for cpu0 which only supports <strong>ld</strong>,
 <strong>st</strong>, <strong>addiu</strong>, <strong>ori</strong>, <strong>lui</strong>, <strong>addu</strong>, <strong>shl</strong> and <strong>ret</strong> 8
 instructions.</p>
 <p>We are satisfied with this result.
-But you may think “After so many codes we program, and just get these 8
+But you may think “After so much code we program, and just get these 8
 instructions!”.
-The point is we have created a frame work for cpu0 target machine (please
-look back the llvm back end structure class inheritance tree early in this
+The point is we have created a frame work for Cpu0 target machine (please
+look back the llvm backend structure class inheritance tree early in this
 chapter).
 Until now, we have over 3000 lines of source code with comments which include
 files *.cpp, *.h, *.td, CMakeLists.txt and LLVMBuild.txt.
@@ -6356,10 +6225,10 @@ It can be counted by command <code class="docutils literal"><span class="pre">wc
 *.h, *.td, *.txt.
 LLVM front end tutorial have 700 lines of source code without comments in total.
 Don&#8217;t feel down with this result.
-In reality, writing a back end is warm up slowly but run fastly.
+In reality, writing a backend is warm up slowly but run fastly.
 Clang has over 500,000 lines of source code with comments in clang/lib
 directory which include C++ and Obj C support.
-Mips back end of llvm 3.1 has only 15,000 lines with comments.
+Mips backend of llvm 3.1 has only 15,000 lines with comments.
 Even the complicate X86 CPU which CISC outside and RISC inside (micro
 instruction), has only 45,000 lines in llvm 3.1 with comments.
 In next chapter, we will show you that add a new instruction support is as easy

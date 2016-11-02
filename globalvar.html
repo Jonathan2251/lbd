@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '3.7.2',
+        VERSION:     '3.9.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -602,7 +602,7 @@ bool Cpu0TargetObjectFile::
 IsGlobalInSmallSection(const GlobalValue *GV, const TargetMachine &amp;TM,
                        SectionKind Kind) const {
   return (IsGlobalInSmallSectionImpl(GV, TM) &amp;&amp;
-          (Kind.isDataRel() || Kind.isBSS() || Kind.isCommon()));
+          (Kind.isData() || Kind.isBSS() || Kind.isCommon()));
 }
 
 /// Return true if this global address should be placed into small data/bss
@@ -623,8 +623,9 @@ IsGlobalInSmallSectionImpl(const GlobalValue *GV,
   if (!GVA)
     return false;
 
-  Type *Ty = GV-&gt;getType()-&gt;getElementType();
-  return IsInSmallSection(TM.getDataLayout()-&gt;getTypeAllocSize(Ty));
+  Type *Ty = GV-&gt;getValueType();
+  return IsInSmallSection(
+      GV-&gt;getParent()-&gt;getDataLayout().getTypeAllocSize(Ty));
 }
 
 
@@ -638,7 +639,7 @@ Cpu0TargetObjectFile::SelectSectionForGlobal(const GlobalValue *GV,
   // Handle Small Section classification here.
   if (Kind.isBSS() &amp;&amp; IsGlobalInSmallSection(GV, TM, Kind))
     return SmallBSSSection;
-  if (Kind.isDataNoRel() &amp;&amp; IsGlobalInSmallSection(GV, TM, Kind))
+  if (Kind.isData() &amp;&amp; IsGlobalInSmallSection(GV, TM, Kind))
     return SmallDataSection;
 
   // Otherwise, we work the same as ELF.
@@ -669,9 +670,9 @@ Cpu0TargetObjectFile::SelectSectionForGlobal(const GlobalValue *GV,
       unsigned GOTFlag = Cpu0II::MO_GOT;
       SDValue GOT = DAG.getNode(Cpu0ISD::Wrapper, DL, Ty, getGlobalReg(DAG, Ty),
                                 getTargetNode(N, Ty, DAG, GOTFlag));
-      SDValue Load = DAG.getLoad(Ty, DL, DAG.getEntryNode(), GOT,
-                                 MachinePointerInfo::getGOT(), false, false,
-                                 false, 0);
+      SDValue Load =
+          DAG.getLoad(Ty, DL, DAG.getEntryNode(), GOT,
+                      MachinePointerInfo::getGOT(DAG.getMachineFunction()));
       unsigned LoFlag = Cpu0II::MO_ABS_LO;
       SDValue Lo = DAG.getNode(Cpu0ISD::Lo, DL, Ty,
                                getTargetNode(N, Ty, DAG, LoFlag));
@@ -690,7 +691,7 @@ Cpu0TargetObjectFile::SelectSectionForGlobal(const GlobalValue *GV,
       SDLoc DL(N);
       SDValue Tgt = DAG.getNode(Cpu0ISD::Wrapper, DL, Ty, getGlobalReg(DAG, Ty),
                                 getTargetNode(N, Ty, DAG, Flag));
-      return DAG.getLoad(Ty, DL, Chain, Tgt, PtrInfo, false, false, false, 0);
+      return DAG.getLoad(Ty, DL, Chain, Tgt, PtrInfo);
     }
     //@getAddrGlobal }
 
@@ -710,8 +711,7 @@ Cpu0TargetObjectFile::SelectSectionForGlobal(const GlobalValue *GV,
       Hi = DAG.getNode(ISD::ADD, DL, Ty, Hi, getGlobalReg(DAG, Ty));
       SDValue Wrapper = DAG.getNode(Cpu0ISD::Wrapper, DL, Ty, Hi,
                                     getTargetNode(N, Ty, DAG, LoFlag));
-      return DAG.getLoad(Ty, DL, Chain, Wrapper, PtrInfo, false, false, false,
-                         0);
+      return DAG.getLoad(Ty, DL, Chain, Wrapper, PtrInfo);
     }
     //@getAddrGlobalLargeGOT }
 
@@ -792,7 +792,7 @@ Cpu0TargetObjectFile::SelectSectionForGlobal(const GlobalValue *GV,
   const GlobalValue *GV = N-&gt;getGlobal();
   //@lga 1 }
 
-  if (getTargetMachine().getRelocationModel() != Reloc::PIC_) {
+  if (!isPositionIndependent()) {
     //@ %gp_rel relocation
     if (TLOF-&gt;IsGlobalInSmallSection(GV, getTargetMachine())) {
       SDValue GA = DAG.getTargetGlobalAddress(GV, DL, MVT::i32, 0,
@@ -812,11 +812,13 @@ Cpu0TargetObjectFile::SelectSectionForGlobal(const GlobalValue *GV,
 
   //@large section
   if (!TLOF-&gt;IsGlobalInSmallSection(GV, getTargetMachine()))
-    return getAddrGlobalLargeGOT(N, Ty, DAG, Cpu0II::MO_GOT_HI16,
-                                 Cpu0II::MO_GOT_LO16, DAG.getEntryNode(), 
-                                 MachinePointerInfo::getGOT());
-  return getAddrGlobal(N, Ty, DAG, Cpu0II::MO_GOT16, DAG.getEntryNode(), 
-                       MachinePointerInfo::getGOT());
+    return getAddrGlobalLargeGOT(
+        N, Ty, DAG, Cpu0II::MO_GOT_HI16, Cpu0II::MO_GOT_LO16, 
+        DAG.getEntryNode(), 
+        MachinePointerInfo::getGOT(DAG.getMachineFunction()));
+  return getAddrGlobal(
+      N, Ty, DAG, Cpu0II::MO_GOT, DAG.getEntryNode(), 
+      MachinePointerInfo::getGOT(DAG.getMachineFunction()));
 }
 </pre></div>
 </div>
@@ -873,12 +875,13 @@ of DAG Node is ISD::GlobalAddress or not, furthmore.</p>
 </div>
 <div class="highlight-default"><div class="highlight"><pre><span></span>/// Select instructions not customized! Used for
 /// expanded, promoted and normal instructions
-SDNode* Cpu0DAGToDAGISel::Select(SDNode *Node) {
+void Cpu0DAGToDAGISel::Select(SDNode *Node) {
 </pre></div>
 </div>
 <div class="highlight-default"><div class="highlight"><pre><span></span>  <span class="o">//</span> <span class="n">Get</span> <span class="n">target</span> <span class="n">GOT</span> <span class="n">address</span><span class="o">.</span>
   <span class="n">case</span> <span class="n">ISD</span><span class="p">::</span><span class="n">GLOBAL_OFFSET_TABLE</span><span class="p">:</span>
-    <span class="k">return</span> <span class="n">getGlobalBaseReg</span><span class="p">();</span>
+    <span class="n">ReplaceNode</span><span class="p">(</span><span class="n">Node</span><span class="p">,</span> <span class="n">getGlobalBaseReg</span><span class="p">());</span>
+    <span class="k">return</span><span class="p">;</span>
 </pre></div>
 </div>
 <div class="highlight-c++"><div class="highlight"><pre><span></span>  <span class="p">...</span>
@@ -1147,29 +1150,29 @@ Option cpu0-use-small-section=true will generate the following instructions.</p>
 (add register %GP Cpu0ISD::GPRel&lt;gI offset&gt;) in
 stage &#8220;Legalized selection DAG&#8221; as below.</p>
 <p class="rubric">lbdex/chapters/Chapter6_1/Cpu0ISelLowering.cpp</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">SDValue</span> <span class="n">Cpu0TargetLowering</span><span class="p">::</span><span class="n">lowerGlobalAddress</span><span class="p">(</span><span class="n">SDValue</span> <span class="n">Op</span><span class="p">,</span>
-                                               <span class="n">SelectionDAG</span> <span class="o">&amp;</span><span class="n">DAG</span><span class="p">)</span> <span class="n">const</span> <span class="p">{</span>
-  <span class="o">//</span><span class="nd">@lowerGlobalAddress</span> <span class="p">}</span>
-  <span class="n">SDLoc</span> <span class="n">DL</span><span class="p">(</span><span class="n">Op</span><span class="p">);</span>
-  <span class="n">const</span> <span class="n">Cpu0TargetObjectFile</span> <span class="o">*</span><span class="n">TLOF</span> <span class="o">=</span>
-        <span class="n">static_cast</span><span class="o">&lt;</span><span class="n">const</span> <span class="n">Cpu0TargetObjectFile</span> <span class="o">*&gt;</span><span class="p">(</span>
-            <span class="n">getTargetMachine</span><span class="p">()</span><span class="o">.</span><span class="n">getObjFileLowering</span><span class="p">());</span>
-  <span class="o">//</span><span class="nd">@lga</span> <span class="mi">1</span> <span class="p">{</span>
-  <span class="n">EVT</span> <span class="n">Ty</span> <span class="o">=</span> <span class="n">Op</span><span class="o">.</span><span class="n">getValueType</span><span class="p">();</span>
-  <span class="n">GlobalAddressSDNode</span> <span class="o">*</span><span class="n">N</span> <span class="o">=</span> <span class="n">cast</span><span class="o">&lt;</span><span class="n">GlobalAddressSDNode</span><span class="o">&gt;</span><span class="p">(</span><span class="n">Op</span><span class="p">);</span>
-  <span class="n">const</span> <span class="n">GlobalValue</span> <span class="o">*</span><span class="n">GV</span> <span class="o">=</span> <span class="n">N</span><span class="o">-&gt;</span><span class="n">getGlobal</span><span class="p">();</span>
-  <span class="o">//</span><span class="nd">@lga</span> <span class="mi">1</span> <span class="p">}</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span>SDValue Cpu0TargetLowering::lowerGlobalAddress(SDValue Op,
+                                               SelectionDAG &amp;DAG) const {
+  //@lowerGlobalAddress }
+  SDLoc DL(Op);
+  const Cpu0TargetObjectFile *TLOF =
+        static_cast&lt;const Cpu0TargetObjectFile *&gt;(
+            getTargetMachine().getObjFileLowering());
+  //@lga 1 {
+  EVT Ty = Op.getValueType();
+  GlobalAddressSDNode *N = cast&lt;GlobalAddressSDNode&gt;(Op);
+  const GlobalValue *GV = N-&gt;getGlobal();
+  //@lga 1 }
 
-  <span class="k">if</span> <span class="p">(</span><span class="n">getTargetMachine</span><span class="p">()</span><span class="o">.</span><span class="n">getRelocationModel</span><span class="p">()</span> <span class="o">!=</span> <span class="n">Reloc</span><span class="p">::</span><span class="n">PIC_</span><span class="p">)</span> <span class="p">{</span>
-    <span class="o">//@</span> <span class="o">%</span><span class="n">gp_rel</span> <span class="n">relocation</span>
-    <span class="k">if</span> <span class="p">(</span><span class="n">TLOF</span><span class="o">-&gt;</span><span class="n">IsGlobalInSmallSection</span><span class="p">(</span><span class="n">GV</span><span class="p">,</span> <span class="n">getTargetMachine</span><span class="p">()))</span> <span class="p">{</span>
-      <span class="n">SDValue</span> <span class="n">GA</span> <span class="o">=</span> <span class="n">DAG</span><span class="o">.</span><span class="n">getTargetGlobalAddress</span><span class="p">(</span><span class="n">GV</span><span class="p">,</span> <span class="n">DL</span><span class="p">,</span> <span class="n">MVT</span><span class="p">::</span><span class="n">i32</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span>
-                                              <span class="n">Cpu0II</span><span class="p">::</span><span class="n">MO_GPREL</span><span class="p">);</span>
-      <span class="n">SDValue</span> <span class="n">GPRelNode</span> <span class="o">=</span> <span class="n">DAG</span><span class="o">.</span><span class="n">getNode</span><span class="p">(</span><span class="n">Cpu0ISD</span><span class="p">::</span><span class="n">GPRel</span><span class="p">,</span> <span class="n">DL</span><span class="p">,</span>
-                                      <span class="n">DAG</span><span class="o">.</span><span class="n">getVTList</span><span class="p">(</span><span class="n">MVT</span><span class="p">::</span><span class="n">i32</span><span class="p">),</span> <span class="n">GA</span><span class="p">);</span>
-      <span class="n">SDValue</span> <span class="n">GPReg</span> <span class="o">=</span> <span class="n">DAG</span><span class="o">.</span><span class="n">getRegister</span><span class="p">(</span><span class="n">Cpu0</span><span class="p">::</span><span class="n">GP</span><span class="p">,</span> <span class="n">MVT</span><span class="p">::</span><span class="n">i32</span><span class="p">);</span>
-      <span class="k">return</span> <span class="n">DAG</span><span class="o">.</span><span class="n">getNode</span><span class="p">(</span><span class="n">ISD</span><span class="p">::</span><span class="n">ADD</span><span class="p">,</span> <span class="n">DL</span><span class="p">,</span> <span class="n">MVT</span><span class="p">::</span><span class="n">i32</span><span class="p">,</span> <span class="n">GPReg</span><span class="p">,</span> <span class="n">GPRelNode</span><span class="p">);</span>
-    <span class="p">}</span>
+  if (!isPositionIndependent()) {
+    //@ %gp_rel relocation
+    if (TLOF-&gt;IsGlobalInSmallSection(GV, getTargetMachine())) {
+      SDValue GA = DAG.getTargetGlobalAddress(GV, DL, MVT::i32, 0,
+                                              Cpu0II::MO_GPREL);
+      SDValue GPRelNode = DAG.getNode(Cpu0ISD::GPRel, DL,
+                                      DAG.getVTList(MVT::i32), GA);
+      SDValue GPReg = DAG.getRegister(Cpu0::GP, MVT::i32);
+      return DAG.getNode(ISD::ADD, DL, MVT::i32, GPReg, GPRelNode);
+    }
 
 </pre></div>
 </div>
@@ -1258,7 +1261,7 @@ variables. The following code tells llvm never allocate $gp for variables.</p>
   Cpu0ReserveGP = ReserveGPOpt;
   Cpu0NoCpload = NoCploadOpt;
 #ifdef ENABLE_GPRESTORE
-  if (TM.getRelocationModel() == Reloc::Static == Reloc::Static &amp;&amp; !UseSmallSection &amp;&amp; !Cpu0ReserveGP)
+  if (!TM.isPositionIndependent() &amp;&amp; !UseSmallSection &amp;&amp; !Cpu0ReserveGP)
     FixGlobalBaseReg = false;
   else
 #endif
@@ -1436,11 +1439,11 @@ displayed in comments of Cpu0MCInstLower.cpp.</p>
   <span class="n">MCOperand</span> <span class="n">T9Reg</span> <span class="o">=</span> <span class="n">MCOperand</span><span class="p">::</span><span class="n">createReg</span><span class="p">(</span><span class="n">Cpu0</span><span class="p">::</span><span class="n">T9</span><span class="p">);</span>
   <span class="n">StringRef</span> <span class="n">SymName</span><span class="p">(</span><span class="s2">&quot;_gp_disp&quot;</span><span class="p">);</span>
   <span class="n">const</span> <span class="n">MCSymbol</span> <span class="o">*</span><span class="n">Sym</span> <span class="o">=</span> <span class="n">Ctx</span><span class="o">-&gt;</span><span class="n">getOrCreateSymbol</span><span class="p">(</span><span class="n">SymName</span><span class="p">);</span>
-  <span class="n">const</span> <span class="n">MCSymbolRefExpr</span> <span class="o">*</span><span class="n">MCSym</span><span class="p">;</span>
+  <span class="n">const</span> <span class="n">Cpu0MCExpr</span> <span class="o">*</span><span class="n">MCSym</span><span class="p">;</span>
 
-  <span class="n">MCSym</span> <span class="o">=</span> <span class="n">MCSymbolRefExpr</span><span class="p">::</span><span class="n">create</span><span class="p">(</span><span class="n">Sym</span><span class="p">,</span> <span class="n">MCSymbolRefExpr</span><span class="p">::</span><span class="n">VK_Cpu0_ABS_HI</span><span class="p">,</span> <span class="o">*</span><span class="n">Ctx</span><span class="p">);</span>
+  <span class="n">MCSym</span> <span class="o">=</span> <span class="n">Cpu0MCExpr</span><span class="p">::</span><span class="n">create</span><span class="p">(</span><span class="n">Sym</span><span class="p">,</span> <span class="n">Cpu0MCExpr</span><span class="p">::</span><span class="n">CEK_ABS_HI</span><span class="p">,</span> <span class="o">*</span><span class="n">Ctx</span><span class="p">);</span>
   <span class="n">MCOperand</span> <span class="n">SymHi</span> <span class="o">=</span> <span class="n">MCOperand</span><span class="p">::</span><span class="n">createExpr</span><span class="p">(</span><span class="n">MCSym</span><span class="p">);</span>
-  <span class="n">MCSym</span> <span class="o">=</span> <span class="n">MCSymbolRefExpr</span><span class="p">::</span><span class="n">create</span><span class="p">(</span><span class="n">Sym</span><span class="p">,</span> <span class="n">MCSymbolRefExpr</span><span class="p">::</span><span class="n">VK_Cpu0_ABS_LO</span><span class="p">,</span> <span class="o">*</span><span class="n">Ctx</span><span class="p">);</span>
+  <span class="n">MCSym</span> <span class="o">=</span> <span class="n">Cpu0MCExpr</span><span class="p">::</span><span class="n">create</span><span class="p">(</span><span class="n">Sym</span><span class="p">,</span> <span class="n">Cpu0MCExpr</span><span class="p">::</span><span class="n">CEK_ABS_LO</span><span class="p">,</span> <span class="o">*</span><span class="n">Ctx</span><span class="p">);</span>
   <span class="n">MCOperand</span> <span class="n">SymLo</span> <span class="o">=</span> <span class="n">MCOperand</span><span class="p">::</span><span class="n">createExpr</span><span class="p">(</span><span class="n">MCSym</span><span class="p">);</span>
 
   <span class="n">MCInsts</span><span class="o">.</span><span class="n">resize</span><span class="p">(</span><span class="mi">3</span><span class="p">);</span>
@@ -1516,7 +1519,7 @@ in stage &#8220;Legalized selection DAG&#8221; as below.</p>
       SDLoc DL(N);
       SDValue Tgt = DAG.getNode(Cpu0ISD::Wrapper, DL, Ty, getGlobalReg(DAG, Ty),
                                 getTargetNode(N, Ty, DAG, Flag));
-      return DAG.getLoad(Ty, DL, Chain, Tgt, PtrInfo, false, false, false, 0);
+      return DAG.getLoad(Ty, DL, Chain, Tgt, PtrInfo);
     }
 </pre></div>
 </div>
@@ -1651,8 +1654,7 @@ in stage &#8220;Legalized selection DAG&#8221; as below.</p>
       Hi = DAG.getNode(ISD::ADD, DL, Ty, Hi, getGlobalReg(DAG, Ty));
       SDValue Wrapper = DAG.getNode(Cpu0ISD::Wrapper, DL, Ty, Hi,
                                     getTargetNode(N, Ty, DAG, LoFlag));
-      return DAG.getLoad(Ty, DL, Chain, Wrapper, PtrInfo, false, false, false,
-                         0);
+      return DAG.getLoad(Ty, DL, Chain, Wrapper, PtrInfo);
     }
 </pre></div>
 </div>
@@ -1667,11 +1669,13 @@ in stage &#8220;Legalized selection DAG&#8221; as below.</p>
 </pre></div>
 </div>
 <div class="highlight-default"><div class="highlight"><pre><span></span>  if (!TLOF-&gt;IsGlobalInSmallSection(GV, getTargetMachine()))
-    return getAddrGlobalLargeGOT(N, Ty, DAG, Cpu0II::MO_GOT_HI16,
-                                 Cpu0II::MO_GOT_LO16, DAG.getEntryNode(), 
-                                 MachinePointerInfo::getGOT());
-  return getAddrGlobal(N, Ty, DAG, Cpu0II::MO_GOT16, DAG.getEntryNode(), 
-                       MachinePointerInfo::getGOT());
+    return getAddrGlobalLargeGOT(
+        N, Ty, DAG, Cpu0II::MO_GOT_HI16, Cpu0II::MO_GOT_LO16, 
+        DAG.getEntryNode(), 
+        MachinePointerInfo::getGOT(DAG.getMachineFunction()));
+  return getAddrGlobal(
+      N, Ty, DAG, Cpu0II::MO_GOT, DAG.getEntryNode(), 
+      MachinePointerInfo::getGOT(DAG.getMachineFunction()));
 }
 </pre></div>
 </div>
@@ -1768,54 +1772,71 @@ def : WrapperPat&lt;tglobaladdr, ORi, GPROut&gt;;
 <div class="section" id="global-variable-print-support">
 <h2><a class="toc-backref" href="#id19">Global variable print support</a><a class="headerlink" href="#global-variable-print-support" title="Permalink to this headline">¶</a></h2>
 <p>Above code is for global address DAG translation.
-Next, add the following code to Cpu0MCInstLower.cpp, Cpu0InstPrinter.cpp and
+Next, add the following code to Cpu0MCInstLower.cpp and
 Cpu0ISelLowering.cpp for global variable printing operand function.</p>
 <p class="rubric">lbdex/chapters/Chapter6_1/Cpu0MCInstLower.cpp</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span>MCOperand Cpu0MCInstLower::LowerSymbolOperand(const MachineOperand &amp;MO,
-                                              MachineOperandType MOTy,
-                                              unsigned Offset) const {
-  MCSymbolRefExpr::VariantKind Kind;
-  const MCSymbol *Symbol;
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">MCOperand</span> <span class="n">Cpu0MCInstLower</span><span class="p">::</span><span class="n">LowerSymbolOperand</span><span class="p">(</span><span class="n">const</span> <span class="n">MachineOperand</span> <span class="o">&amp;</span><span class="n">MO</span><span class="p">,</span>
+                                              <span class="n">MachineOperandType</span> <span class="n">MOTy</span><span class="p">,</span>
+                                              <span class="n">unsigned</span> <span class="n">Offset</span><span class="p">)</span> <span class="n">const</span> <span class="p">{</span>
+  <span class="n">MCSymbolRefExpr</span><span class="p">::</span><span class="n">VariantKind</span> <span class="n">Kind</span> <span class="o">=</span> <span class="n">MCSymbolRefExpr</span><span class="p">::</span><span class="n">VK_None</span><span class="p">;</span>
+  <span class="n">Cpu0MCExpr</span><span class="p">::</span><span class="n">Cpu0ExprKind</span> <span class="n">TargetKind</span> <span class="o">=</span> <span class="n">Cpu0MCExpr</span><span class="p">::</span><span class="n">CEK_None</span><span class="p">;</span>
+  <span class="n">const</span> <span class="n">MCSymbol</span> <span class="o">*</span><span class="n">Symbol</span><span class="p">;</span>
 
-  switch(MO.getTargetFlags()) {
-  default:                   llvm_unreachable(&quot;Invalid target flag!&quot;);
-  case Cpu0II::MO_NO_FLAG:   Kind = MCSymbolRefExpr::VK_None; break;
+  <span class="n">switch</span><span class="p">(</span><span class="n">MO</span><span class="o">.</span><span class="n">getTargetFlags</span><span class="p">())</span> <span class="p">{</span>
+  <span class="n">default</span><span class="p">:</span>                   <span class="n">llvm_unreachable</span><span class="p">(</span><span class="s2">&quot;Invalid target flag!&quot;</span><span class="p">);</span>
+  <span class="n">case</span> <span class="n">Cpu0II</span><span class="p">::</span><span class="n">MO_NO_FLAG</span><span class="p">:</span>
+    <span class="k">break</span><span class="p">;</span>
 
-// Cpu0_GPREL is for llc -march=cpu0 -relocation-model=static -cpu0-islinux-
-//  format=false (global var in .sdata).
-  case Cpu0II::MO_GPREL:     Kind = MCSymbolRefExpr::VK_Cpu0_GPREL; break;
+<span class="o">//</span> <span class="n">Cpu0_GPREL</span> <span class="ow">is</span> <span class="k">for</span> <span class="n">llc</span> <span class="o">-</span><span class="n">march</span><span class="o">=</span><span class="n">cpu0</span> <span class="o">-</span><span class="n">relocation</span><span class="o">-</span><span class="n">model</span><span class="o">=</span><span class="n">static</span> <span class="o">-</span><span class="n">cpu0</span><span class="o">-</span><span class="n">islinux</span><span class="o">-</span>
+<span class="o">//</span>  <span class="nb">format</span><span class="o">=</span><span class="n">false</span> <span class="p">(</span><span class="k">global</span> <span class="n">var</span> <span class="ow">in</span> <span class="o">.</span><span class="n">sdata</span><span class="p">)</span><span class="o">.</span>
+  <span class="n">case</span> <span class="n">Cpu0II</span><span class="p">::</span><span class="n">MO_GPREL</span><span class="p">:</span>
+    <span class="n">TargetKind</span> <span class="o">=</span> <span class="n">Cpu0MCExpr</span><span class="p">::</span><span class="n">CEK_GPREL</span><span class="p">;</span>
+    <span class="k">break</span><span class="p">;</span>
 
-  case Cpu0II::MO_GOT16:     Kind = MCSymbolRefExpr::VK_Cpu0_GOT16; break;
-  case Cpu0II::MO_GOT:       Kind = MCSymbolRefExpr::VK_Cpu0_GOT; break;
-// ABS_HI and ABS_LO is for llc -march=cpu0 -relocation-model=static (global 
-//  var in .data).
-  case Cpu0II::MO_ABS_HI:    Kind = MCSymbolRefExpr::VK_Cpu0_ABS_HI; break;
-  case Cpu0II::MO_ABS_LO:    Kind = MCSymbolRefExpr::VK_Cpu0_ABS_LO; break;
-  case Cpu0II::MO_GOT_HI16:  Kind = MCSymbolRefExpr::VK_Cpu0_GOT_HI16; break;
-  case Cpu0II::MO_GOT_LO16:  Kind = MCSymbolRefExpr::VK_Cpu0_GOT_LO16; break;
-  }
+  <span class="n">case</span> <span class="n">Cpu0II</span><span class="p">::</span><span class="n">MO_GOT</span><span class="p">:</span>
+    <span class="n">TargetKind</span> <span class="o">=</span> <span class="n">Cpu0MCExpr</span><span class="p">::</span><span class="n">CEK_GOT</span><span class="p">;</span>
+    <span class="k">break</span><span class="p">;</span>
+<span class="o">//</span> <span class="n">ABS_HI</span> <span class="ow">and</span> <span class="n">ABS_LO</span> <span class="ow">is</span> <span class="k">for</span> <span class="n">llc</span> <span class="o">-</span><span class="n">march</span><span class="o">=</span><span class="n">cpu0</span> <span class="o">-</span><span class="n">relocation</span><span class="o">-</span><span class="n">model</span><span class="o">=</span><span class="n">static</span> <span class="p">(</span><span class="k">global</span> 
+<span class="o">//</span>  <span class="n">var</span> <span class="ow">in</span> <span class="o">.</span><span class="n">data</span><span class="p">)</span><span class="o">.</span>
+  <span class="n">case</span> <span class="n">Cpu0II</span><span class="p">::</span><span class="n">MO_ABS_HI</span><span class="p">:</span>
+    <span class="n">TargetKind</span> <span class="o">=</span> <span class="n">Cpu0MCExpr</span><span class="p">::</span><span class="n">CEK_ABS_HI</span><span class="p">;</span>
+    <span class="k">break</span><span class="p">;</span>
+  <span class="n">case</span> <span class="n">Cpu0II</span><span class="p">::</span><span class="n">MO_ABS_LO</span><span class="p">:</span>
+    <span class="n">TargetKind</span> <span class="o">=</span> <span class="n">Cpu0MCExpr</span><span class="p">::</span><span class="n">CEK_ABS_LO</span><span class="p">;</span>
+    <span class="k">break</span><span class="p">;</span>
+  <span class="n">case</span> <span class="n">Cpu0II</span><span class="p">::</span><span class="n">MO_GOT_HI16</span><span class="p">:</span>
+    <span class="n">TargetKind</span> <span class="o">=</span> <span class="n">Cpu0MCExpr</span><span class="p">::</span><span class="n">CEK_GOT_HI16</span><span class="p">;</span>
+    <span class="k">break</span><span class="p">;</span>
+  <span class="n">case</span> <span class="n">Cpu0II</span><span class="p">::</span><span class="n">MO_GOT_LO16</span><span class="p">:</span>
+    <span class="n">TargetKind</span> <span class="o">=</span> <span class="n">Cpu0MCExpr</span><span class="p">::</span><span class="n">CEK_GOT_LO16</span><span class="p">;</span>
+    <span class="k">break</span><span class="p">;</span>
+  <span class="p">}</span>
 
-  switch (MOTy) {
-  case MachineOperand::MO_GlobalAddress:
-    Symbol = AsmPrinter.getSymbol(MO.getGlobal());
-    break;
+  <span class="n">switch</span> <span class="p">(</span><span class="n">MOTy</span><span class="p">)</span> <span class="p">{</span>
+  <span class="n">case</span> <span class="n">MachineOperand</span><span class="p">::</span><span class="n">MO_GlobalAddress</span><span class="p">:</span>
+    <span class="n">Symbol</span> <span class="o">=</span> <span class="n">AsmPrinter</span><span class="o">.</span><span class="n">getSymbol</span><span class="p">(</span><span class="n">MO</span><span class="o">.</span><span class="n">getGlobal</span><span class="p">());</span>
+    <span class="n">Offset</span> <span class="o">+=</span> <span class="n">MO</span><span class="o">.</span><span class="n">getOffset</span><span class="p">();</span>
+    <span class="k">break</span><span class="p">;</span>
 
-  default:
-    llvm_unreachable(&quot;&lt;unknown operand type&gt;&quot;);
-  }
+  <span class="n">default</span><span class="p">:</span>
+    <span class="n">llvm_unreachable</span><span class="p">(</span><span class="s2">&quot;&lt;unknown operand type&gt;&quot;</span><span class="p">);</span>
+  <span class="p">}</span>
 
-  const MCSymbolRefExpr *MCSym = MCSymbolRefExpr::create(Symbol, Kind, *Ctx);
+  <span class="n">const</span> <span class="n">MCExpr</span> <span class="o">*</span><span class="n">Expr</span> <span class="o">=</span> <span class="n">MCSymbolRefExpr</span><span class="p">::</span><span class="n">create</span><span class="p">(</span><span class="n">Symbol</span><span class="p">,</span> <span class="n">Kind</span><span class="p">,</span> <span class="o">*</span><span class="n">Ctx</span><span class="p">);</span>
 
-  if (!Offset)
-    return MCOperand::createExpr(MCSym);
+  <span class="k">if</span> <span class="p">(</span><span class="n">Offset</span><span class="p">)</span> <span class="p">{</span>
+    <span class="o">//</span> <span class="n">Assume</span> <span class="n">offset</span> <span class="ow">is</span> <span class="n">never</span> <span class="n">negative</span><span class="o">.</span>
+    <span class="k">assert</span><span class="p">(</span><span class="n">Offset</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">);</span>
+    <span class="n">Expr</span> <span class="o">=</span> <span class="n">MCBinaryExpr</span><span class="p">::</span><span class="n">createAdd</span><span class="p">(</span><span class="n">Expr</span><span class="p">,</span> <span class="n">MCConstantExpr</span><span class="p">::</span><span class="n">create</span><span class="p">(</span><span class="n">Offset</span><span class="p">,</span> <span class="o">*</span><span class="n">Ctx</span><span class="p">),</span>
+                                   <span class="o">*</span><span class="n">Ctx</span><span class="p">);</span>
+  <span class="p">}</span>
 
-  // Assume offset is never negative.
-  assert(Offset &gt; 0);
+  <span class="k">if</span> <span class="p">(</span><span class="n">TargetKind</span> <span class="o">!=</span> <span class="n">Cpu0MCExpr</span><span class="p">::</span><span class="n">CEK_None</span><span class="p">)</span>
+    <span class="n">Expr</span> <span class="o">=</span> <span class="n">Cpu0MCExpr</span><span class="p">::</span><span class="n">create</span><span class="p">(</span><span class="n">TargetKind</span><span class="p">,</span> <span class="n">Expr</span><span class="p">,</span> <span class="o">*</span><span class="n">Ctx</span><span class="p">);</span>
 
-  const MCConstantExpr *OffsetExpr =  MCConstantExpr::create(Offset, *Ctx);
-  const MCBinaryExpr *AddExpr = MCBinaryExpr::createAdd(MCSym, OffsetExpr, *Ctx);
-  return MCOperand::createExpr(AddExpr);
-}
+  <span class="k">return</span> <span class="n">MCOperand</span><span class="p">::</span><span class="n">createExpr</span><span class="p">(</span><span class="n">Expr</span><span class="p">);</span>
+
+<span class="p">}</span>
 </pre></div>
 </div>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">MCOperand</span> <span class="n">Cpu0MCInstLower</span><span class="p">::</span><span class="n">LowerOperand</span><span class="p">(</span><span class="n">const</span> <span class="n">MachineOperand</span><span class="o">&amp;</span> <span class="n">MO</span><span class="p">,</span>
@@ -1836,27 +1857,8 @@ Cpu0ISelLowering.cpp for global variable printing operand function.</p>
 <span class="p">}</span>
 </pre></div>
 </div>
-<p class="rubric">lbdex/chapters/Chapter6_1/InstPrinter/Cpu0InstPrinter.cpp</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">static</span> <span class="n">void</span> <span class="n">printExpr</span><span class="p">(</span><span class="n">const</span> <span class="n">MCExpr</span> <span class="o">*</span><span class="n">Expr</span><span class="p">,</span> <span class="n">const</span> <span class="n">MCAsmInfo</span> <span class="o">*</span><span class="n">MAI</span><span class="p">,</span>
-                      <span class="n">raw_ostream</span> <span class="o">&amp;</span><span class="n">OS</span><span class="p">)</span> <span class="p">{</span>
-</pre></div>
-</div>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">//</span> <span class="n">Cpu0_GPREL</span> <span class="ow">is</span> <span class="k">for</span> <span class="n">llc</span> <span class="o">-</span><span class="n">march</span><span class="o">=</span><span class="n">cpu0</span> <span class="o">-</span><span class="n">relocation</span><span class="o">-</span><span class="n">model</span><span class="o">=</span><span class="n">static</span>
-  <span class="n">case</span> <span class="n">MCSymbolRefExpr</span><span class="p">::</span><span class="n">VK_Cpu0_GPREL</span><span class="p">:</span>     <span class="n">OS</span> <span class="o">&lt;&lt;</span> <span class="s2">&quot;</span><span class="si">%g</span><span class="s2">p_rel(&quot;</span><span class="p">;</span> <span class="k">break</span><span class="p">;</span>
-</pre></div>
-</div>
-<div class="highlight-default"><div class="highlight"><pre><span></span>  <span class="n">case</span> <span class="n">MCSymbolRefExpr</span><span class="p">::</span><span class="n">VK_Cpu0_GOT16</span><span class="p">:</span>     <span class="n">OS</span> <span class="o">&lt;&lt;</span> <span class="s2">&quot;</span><span class="si">%g</span><span class="s2">ot(&quot;</span><span class="p">;</span>    <span class="k">break</span><span class="p">;</span>
-  <span class="n">case</span> <span class="n">MCSymbolRefExpr</span><span class="p">::</span><span class="n">VK_Cpu0_GOT</span><span class="p">:</span>       <span class="n">OS</span> <span class="o">&lt;&lt;</span> <span class="s2">&quot;</span><span class="si">%g</span><span class="s2">ot(&quot;</span><span class="p">;</span>    <span class="k">break</span><span class="p">;</span>
-  <span class="n">case</span> <span class="n">MCSymbolRefExpr</span><span class="p">::</span><span class="n">VK_Cpu0_ABS_HI</span><span class="p">:</span>    <span class="n">OS</span> <span class="o">&lt;&lt;</span> <span class="s2">&quot;</span><span class="si">%hi</span><span class="s2">(&quot;</span><span class="p">;</span>     <span class="k">break</span><span class="p">;</span>
-  <span class="n">case</span> <span class="n">MCSymbolRefExpr</span><span class="p">::</span><span class="n">VK_Cpu0_ABS_LO</span><span class="p">:</span>    <span class="n">OS</span> <span class="o">&lt;&lt;</span> <span class="s2">&quot;</span><span class="si">%lo</span><span class="s2">(&quot;</span><span class="p">;</span>     <span class="k">break</span><span class="p">;</span>
-</pre></div>
-</div>
-<div class="highlight-c++"><div class="highlight"><pre><span></span>    <span class="p">...</span>
-  <span class="p">}</span>
-  <span class="p">...</span>
-<span class="p">}</span>
-</pre></div>
-</div>
+<p>The Cpu0MCExpr::printImpl() of Cpu0InstPrinter.cpp in last chapter is
+for global variable printing operand function too.</p>
 <p>The following function is for <code class="docutils literal"><span class="pre">llc</span> <span class="pre">-debug</span></code> this chapter DAG node name printing.
 It is added at Chapter3_1 already.</p>
 <p class="rubric">lbdex/chapters/Chapter3_1/Cpu0ISelLowering.cpp</p>

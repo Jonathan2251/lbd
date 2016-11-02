@@ -7,21 +7,22 @@ Backend structure
    :local:
    :depth: 4
 
-This chapter introduces the back end class inheritance tree and class members 
+This chapter introduces the backend class inheritance tree and class members 
 first. 
-Next, following the back end structure, adding individual class implementation 
+Next, following the backend structure, adding individual classes implementation 
 in each section. 
-At the end of this chapter, we will have a back end to compile llvm 
-intermediate code into cpu0 assembly code.
+At the end of this chapter, we will have a backend to compile llvm 
+intermediate code into Cpu0 assembly code.
 
-Many code are added in this chapter. They almost are common in every back end 
-except the back end name (cpu0 or mips ...). Actually, we copy almost all the 
-code from mips and replace the name with cpu0. In addition to knowing the DAGs 
+Many lines of code are added in this chapter. 
+They almost are common in every backend except the backend name (Cpu0 or 
+Mips ...). Actually, we copy almost all the 
+code from Mips and replace the name with Cpu0. In addition to knowing the DAGs 
 pattern match in theoretic compiler and realistic llvm code generation phase, 
 please focus on the classes relationship in this backend structure. 
 Once knowing the structure, you can 
 create your backend structure as quickly as we did, even though there are 5000 
-lines of code around in this chapter.
+lines of code around added in this chapter.
 
 TargetMachine structure
 -----------------------
@@ -175,18 +176,19 @@ TargetMachine structure
 
 Chapter3_1 add most Cpu0 backend classes. The code of Chapter3_1 can be 
 summaried as :numref:`backendstructure-f1`. 
-Class Cpu0Subtarget supply the interface getInstrInfo(), getFrameLowering(), 
+Class Cpu0Subtarget provides the interfaces getInstrInfo(), getFrameLowering(), 
 ..., to get other Cpu0 classes.
 Most classes (like Cpu0InstrInfo, Cpu0RegisterInfo, ...) have Subtarget 
 reference member to allowing them access other classes through the Cpu0Subtarget
 interface.
-Classes can access Subtarget class through Cpu0TargetMachine (usually use TM as 
+If the backend module hasn't the Subtarget reference, these classes still can 
+access Subtarget class through Cpu0TargetMachine (usually use TM as 
 symbol) by static_cast<Cpu0TargetMachine &>(TM).getSubtargetImpl().
 Once getting Subtarget class, the backend code can access other classes through 
 it.
-For those classes name of Cpu0SExx, they mean the standard 32 bits class.
-This arrangement follows llvm 3.5 Mips backend style. In Mips backend, it uses
-Mips16, MipsSE and Mips64 files/classes name to define classes functions for 16,
+For those name of Cpu0SExx classes, they mean the standard 32 bits class.
+This arrangement follows llvm 3.5 Mips backend style. Mips backend uses
+Mips16, MipsSE and Mips64 files/classes name to define classes for 16,
 32 and 64 bits architecture, respectively.
 Since Cpu0Subtarget creates Cpu0InstrInfo, Cpu0RegisterInfo, ..., at constuctor
 function, it can provide the class reference through the interfaces shown in 
@@ -194,10 +196,9 @@ function, it can provide the class reference through the interfaces shown in
 
 Below :numref:`backendstructure-f2` shows Cpu0 TableGen inheritance 
 relationship. 
-Last chapter mentioned llvm TableGen (llvm-tblgen) is used in code generation 
-process.
-Backend class can choose the TableGen generated classes and inherited from it.
-There are more TableGen generated classes, and they all exist in 
+Last chapter mentioned that backend class can include the TableGen generated 
+classes and inherited from it.
+All the TableGen generated classes of Cpu0 backend are in 
 cmake_debug_build/lib/Target/Cpu0/\*.inc. Through C++ inheritance mechanism,
 TableGen provides backend programmers a fexible way to use its generated
 code. Programmers have chance to override this function if they need to. 
@@ -209,16 +210,16 @@ code. Programmers have chance to override this function if they need to.
   Cpu0 classes inherited from TableGen generated files
 
 Since llvm has deep inheritance tree, they are not digged here.
-Benefit from the inheritance tree structure, there are not too much code need 
+Benefit from the inheritance tree structure, not much code needed 
 to be implemented in classes of instruction, frame/stack and select DAG, since 
-many code are implemented by their parent class. 
+much code are implemented by their parent class. 
 The llvm-tblgen generate Cpu0GenInstrInfo.inc based on information from 
 Cpu0InstrInfo.td. 
 Cpu0InstrInfo.h extract those code it needs from Cpu0GenInstrInfo.inc by define 
 “#define GET_INSTRINFO_HEADER”. 
 With TabelGen, the code size in backend is reduced again through the pattern 
-match theory of compiler developemnt. This is explained in sections 
-of DAG and Instruction Selection in last chapter.
+match theory of compiler developemnt. This is explained in both sections 
+of "DAG" and "Instruction Selection" last chapter.
 Following is the code fragment from Cpu0GenInstrInfo.inc. 
 Code between "#if def  GET_INSTRINFO_HEADER" and 
 "#endif // GET_INSTRINFO_HEADER”" will be extracted to Cpu0InstrInfo.h.
@@ -236,7 +237,7 @@ Code between "#if def  GET_INSTRINFO_HEADER" and
   } // End llvm namespace 
   #endif // GET_INSTRINFO_HEADER 
 
-Reference web site here [#targetmachine]_ and here [#datalayout]_. 
+Reference web sites are here [#targetmachine]_ [#datalayout]_. 
 
 Chapter3_1/CMakeLists.txt is modified with these new added \*.cpp as follows,
 
@@ -275,7 +276,7 @@ Chapter3_1 create FeatureCpu032I and FeatureCpu032II for CPU cpu032I and
 cpu032II, repectively.
 Beyond that, it defines two more features, FeatureCmp and FeatureSlt. 
 In order to demostrate the "instruction set designing choice" to readers, this 
-book create two CPU. 
+book creates two CPU. 
 Readers will realize why Mips CPU uses instruction SLT instead of
 CMP when they go to later Chapter "Control flow statement".
 With the added code of supporting cpu032I and cpu32II in Cpu0.td and 
@@ -325,9 +326,10 @@ display messages as follows,
   ...
 
 When user input ``-mcpu=cpu032I``, the variable IsCpu032I from Cpu0InstrInfo.td 
-will be true since the function isCpu032I() defined in Cpu0Subtarget.h will be 
-true by checking variable CPU in constructor function (the variable CPU is 
-"cpu032I" when user input -mcpu=cpu032I).
+will be true since the function isCpu032I() defined in Cpu0Subtarget.h is 
+true (set Cpu0ArchVersion to cpu032I in initializeSubtargetDependencies() called 
+in constructor function, the variable CPU in constructor function is "cpu032I" 
+when user input -mcpu=cpu032I).
 Please notice variable Cpu0ArchVersion must be initialized in 
 Cpu0Subtarget.cpp, otherwise variable Cpu0ArchVersion can be any value and  
 functions isCpu032I() and isCpu032II() which support ``llc -mcpu=cpu032I`` and 
@@ -352,8 +354,8 @@ follows,
 
   #define CH       CH4_1
 
-On the contrary, it can be disabled by define it to less than CH4_1, such as 
-CH3_5, as follows,
+On the contrary, it can be disabled by define it to less than CH4_1, for 
+instance CH3_5, as follows,
 
 .. rubric:: ~/llvm/test/src/lib/Target/Cpu0SetChapter.h
 .. code-block:: c++
@@ -405,8 +407,9 @@ class Cpu0InstPrinter and include them as did in Chapter3_2.
 File Chapter3_2/Cpu0/InstPrinter/Cpu0InstPrinter.cpp include Cpu0GenAsmWrite.inc 
 and call the auto-generated functions from TableGen.
 
-Function Cpu0InstPrinter::printMemOperand() defined in Chapter3_2/InstPrinter/
-Cpu0InstPrinter.cpp as above. It will be triggered since Cpu0InstrInfo.td 
+Function Cpu0InstPrinter::printMemOperand() defined in 
+Chapter3_2/InstPrinter/Cpu0InstPrinter.cpp as above. 
+It will be triggered since Cpu0InstrInfo.td 
 defined **'let PrintMethod = \"printMemOperand\";'** as follows,
 
 .. rubric:: lbdex/chapters/Chapter2/Cpu0InstrInfo.td
@@ -439,7 +442,7 @@ defined **'let PrintMethod = \"printMemOperand\";'** as follows,
 
 
 Cpu0InstPrinter::printMemOperand() will print backend operands for "local 
-variable access", which like the following,
+variable access", which is like the following,
 
 .. code-block:: console
 
@@ -469,7 +472,7 @@ sub-directory MCTargetDesc as follows,
 
 
 Finally, add code in Cpu0MCTargetDesc.cpp to register Cpu0InstPrinter as 
-below. By the way, it registers other classes (register, instruction and 
+below. It also registers other classes (register, instruction and 
 subtarget) which defined in Chapter3_1 at this point.
 
 .. rubric:: lbdex/chapters/Chapter3_2/MCTargetDesc/Cpu0MCTargetDesc.h
@@ -533,7 +536,7 @@ Above registering the object of class Cpu0MCAsmInfo for
 target TheCpu0Target and TheCpu0elTarget. 
 TheCpu0Target is for big endian and TheCpu0elTarget is for little endian. 
 Cpu0MCAsmInfo is derived from MCAsmInfo which is an llvm built-in class. 
-Most code is implemented in it's parent, back end reuses those code by 
+Most code is implemented in it's parent, backend reuses those code by 
 inheritance.
 
 .. rubric:: Register function of MC codegen info
@@ -555,10 +558,10 @@ inheritance.
         return X;
       }
 
-Above instancing MCCodeGenInfo, and initialize it by 
-pass RM=Roloc::PIC when user compiling with position-independent code mode 
+Above instancing MCCodeGenInfo, and initialize it by passing RM=Reloc::PIC 
+or RM=Reloc::Static when user compiling with position-independent code mode 
 through command ``llc -relocation-model=pic`` or ``llc`` (default relocation 
-mode is pic).
+mode is static).
 Recall there are two addressing mode in system program book, one is PIC 
 mode, the other is absolute addressing mode. 
 MC stands for Machine Code.
@@ -639,9 +642,9 @@ function for instructions.
          }
   
 Above is similar to "Register function of MC instruction info", but it 
-initialize the register information specified in Cpu0RegisterInfo.td. 
-They share some values from instruction/register td description.
-No need to specify them again in Initilize routine if they are consistant with 
+initializes the register information specified in Cpu0RegisterInfo.td. 
+They share some values from instruction/register td description, so
+no need to specify them again in Initialize routine if they are consistant with 
 td description files.
 
 .. rubric:: Register function of SubtargetInfo
@@ -687,9 +690,9 @@ Now, it's time to work with AsmPrinter as follows,
 
 When instruction is ready to print, function Cpu0AsmPrinter::EmitInstruction() 
 will be triggered first. And then it will call OutStreamer.EmitInstruction() to 
-print OP code and register according the information from Cpu0GenInstrInfo.inc 
-and Cpu0GenRegisterInfo.inc both registered at dynamic register function,
-LLVMInitializeCpu0TargetMC().
+print OP code and register name according the information from 
+Cpu0GenInstrInfo.inc and Cpu0GenRegisterInfo.inc both registered at dynamic 
+register function, LLVMInitializeCpu0TargetMC().
 Notice, file Cpu0InstPrinter.cpp only print operand while the OP code 
 information come from Cpu0InstrInfo.td.
 
@@ -817,7 +820,7 @@ Now, let's check what IR DAG nodes the file ch3.bc has. List ch3.ll as follows,
 
 As above, ch3.ll uses the IR DAG node **store**, **ret**. 
 So, the definitions in Cpu0InstrInfo.td as below is enough. 
-The ADDiu used for stack adjustment which will needed in later section 
+The ADDiu used for stack adjustment which will be needed in later section 
 "Add Prologue/Epilogue functions" of this chapter.
 IR DAG is defined in file  include/llvm/Target/TargetSelectionDAG.td.
 
@@ -903,7 +906,7 @@ selection stage.
 Function Cpu0DAGToDAGISel::Select() of Cpu0ISelDAGToDAG.cpp is for the 
 selection of "OP code DAG node" while Cpu0DAGToDAGISel::SelectAddr() is for the
 selection of "DATA DAG node with **addr** type" which defined in 
-Chapter2/Cpu0InstrInfo.td. This method name corresponding to 
+Chapter2/Cpu0InstrInfo.td. This method's name corresponding to 
 Chapter2/Cpu0InstrInfo.td as follows,
 
 .. rubric:: lbdex/chapters/Chapter2/Cpu0InstrInfo.td
@@ -942,20 +945,6 @@ The iPTR, ComplexPattern, frameindex and SDNPWantParent defined as follows,
 
   // Pseudo valuetype mapped to the current pointer size.
   def iPTR   : ValueType<0  , 255>;
-
-
-Chapter3_3 adding the following code in Cpu0InstInfo.cpp to enable debug 
-information which called by llvm at proper time.
-
-.. rubric:: lbdex/chapters/Chapter3_3/Cpu0InstrInfo.h
-.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.h
-    :start-after: #if CH >= CH3_3
-    :end-before: #endif
-
-.. rubric:: lbdex/chapters/Chapter3_3/Cpu0InstrInfo.cpp
-.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.cpp
-    :start-after: #if CH >= CH3_3
-    :end-before: #endif
 
 
 Build Chapter3_3 and run with it, finding the error message of Chapter3_2 is 
@@ -1031,13 +1020,14 @@ The following code is the result of running Mips backend with ch3.cpp.
 
 As you can see, Mips return to the caller by using "jr $ra" where
 \$ra is a specific register which keeps the caller's next instruction address. 
-And it save the return value in register \$2.
+And it saves the return value in register \$2.
 If we only create DAGs directly, then will having the following two problems.
 
 1. LLVM can allocate any register for return value, for instance \$3, rather 
    than keeps it in \$2.
 
 2. LLVM will allocate a register randomly to "jr" since jr needs one operand.
+For instance, it generate "jr \$8" rather than "jr \$ra".
 
 If Backend uses the "jal sub-routine" and "jr", and put the return address in
 the specific register \$ra, then no the second problem. But in Mips, it allows
@@ -1200,7 +1190,7 @@ The following code handle the return register \$lr.
     :start-after: #if CH >= CH3_4 //2
     :end-before: #endif //#if CH >= CH3_4 //2
     
-To handle IR ret, these code in Cpu0InstrInfo.td do things as below.
+In order to handle IR ret, these code in Cpu0InstrInfo.td do things as below.
 
 1. Declare a pseudo node Cpu0::RetLR to takes care the IR Cpu0ISD::Ret by the 
    following code,
@@ -1768,8 +1758,8 @@ instructions after replace addiu and shl with lui instruction" at next,
                                           - addu $sp, $sp, $1;                - addu $sp, $sp, $1;
   ====================  ================  ==================================  ==================================
 
-Since the Cpu0 stack is 8 bytes alignment, the 0x7ff9 to 0x7fff is impossible 
-existing.
+Since the Cpu0 stack is 8 bytes alignment, addresses from 0x7ff9 to 0x7fff are 
+impossible existing.
 
 Assume sp = 0xa0008000 and stack size = 0x90008000, then (0xa0008000 - 
 0x90008000) => 0x10000000. Verify with the Cpu0 Prologue instructions as 
@@ -1874,12 +1864,13 @@ Data operands DAGs
 ---------------------
 
 From above or compiler book, you can see all the OP code are the internal nodes 
-in DAGs graph, and operands are the leaf of DAGs. 
+in DAGs graph, and operands are the leaves of DAGs. 
 To develop your backend, you can copy the 
 related data operands DAGs node from other backend since the IR data nodes are 
 take cared by all the backend. 
 About the data DAGs nodes, you can understand some of them through the 
-Cpu0InstrInfo.td and find it by grep -R "<datadag>"  \`find src/include/llvm\` 
+Cpu0InstrInfo.td and find them by command, 
+grep -R "<datadag>"  \`find src/include/llvm\`,
 with spending a little more time to think or guess about it. 
 Some data DAGs we know more, some we know a little and some remains unknown but 
 it's OK for us. 
@@ -2014,19 +2005,19 @@ Summary the functions for llvm backend stages as the following table.
   ===================================================  ===========================================
 
 We add a pass in Instruction Section stage in section "Add Cpu0DAGToDAGISel 
-class". You can embed your code into other pass like that. Please check 
+class". You can embed your code into other passes like that. Please check 
 CodeGen/Passes.h for the information. Remember the pass is called according 
 the function unit as the ``llc -debug-pass=Structure`` indicated.
 
-We have finished a simple compiler for cpu0 which only support **ld**, 
+We have finished a simple compiler for cpu0 which only supports **ld**, 
 **st**, **addiu**, **ori**, **lui**, **addu**, **shl** and **ret** 8 
 instructions.
 
 We are satisfied with this result. 
-But you may think “After so many codes we program, and just get these 8 
+But you may think “After so much code we program, and just get these 8 
 instructions!”. 
-The point is we have created a frame work for cpu0 target machine (please 
-look back the llvm back end structure class inheritance tree early in this 
+The point is we have created a frame work for Cpu0 target machine (please 
+look back the llvm backend structure class inheritance tree early in this 
 chapter). 
 Until now, we have over 3000 lines of source code with comments which include 
 files \*.cpp, \*.h, \*.td, CMakeLists.txt and LLVMBuild.txt. 
@@ -2034,10 +2025,10 @@ It can be counted by command ``wc `find dir -name *.cpp``` for files \*.cpp,
 \*.h, \*.td, \*.txt. 
 LLVM front end tutorial have 700 lines of source code without comments in total. 
 Don't feel down with this result. 
-In reality, writing a back end is warm up slowly but run fastly. 
+In reality, writing a backend is warm up slowly but run fastly. 
 Clang has over 500,000 lines of source code with comments in clang/lib 
 directory which include C++ and Obj C support. 
-Mips back end of llvm 3.1 has only 15,000 lines with comments. 
+Mips backend of llvm 3.1 has only 15,000 lines with comments. 
 Even the complicate X86 CPU which CISC outside and RISC inside (micro 
 instruction), has only 45,000 lines in llvm 3.1 with comments. 
 In next chapter, we will show you that add a new instruction support is as easy 

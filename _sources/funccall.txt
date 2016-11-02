@@ -9,7 +9,7 @@ Function call
 
 The subroutine/function call of backend translation is supported in this 
 chapter. 
-A lot of code is needed to support function call. They are added according llvm 
+A lot of code are needed to support function call. They are added according llvm 
 supplied interface to explain easily. 
 This chapter starts from introducing the Mips stack frame structure since we 
 borrow many parts of ABI from it. 
@@ -53,7 +53,7 @@ See comments **"//"**.
 .. literalinclude:: ../lbdex/input/ch9_1.cpp
     :start-after: /// start
 
-.. code-block:: bash
+.. code-block:: console
 
   118-165-78-230:input Jonathan$ clang -target mips-unknown-linux-gnu -c 
   ch9_1.cpp -emit-llvm -o ch9_1.bc
@@ -189,7 +189,7 @@ arguments passing mechanism with stack frame.
 Before doing it, let's run the old version of code Chapter8_2/ with ch9_1.cpp 
 and see what happens.
 
-.. code-block:: bash
+.. code-block:: console
 
   118-165-79-31:input Jonathan$ /Users/Jonathan/llvm/test/
   cmake_debug_build/Debug/bin/llc -march=cpu0 -relocation-model=pic -filetype=asm 
@@ -359,7 +359,7 @@ The root node at bottom is created by
 .. literalinclude:: ../lbdex/input/ch9_incoming.cpp
     :start-after: /// start
     
-.. code-block:: bash
+.. code-block:: console
   
   JonathantekiiMac:input Jonathan$ clang -O3 -target mips-unknown-linux-gnu -c 
   ch9_incoming.cpp -emit-llvm -o ch9_incoming.bc
@@ -459,28 +459,6 @@ instructions **swi** (Software Interrupt), **jsub** and **jalr** (function call)
     :end-before: #endif
 .. literalinclude:: ../lbdex/Cpu0/Cpu0MCInstLower.cpp
     :start-after: //@1
-    :end-before: #endif
-
-.. code-block:: c++
-
-    ...
-    }
-    ...
-  }
-
-.. rubric:: lbdex/chapters/Chapter9_1/InstPrinter/Cpu0InstPrinter.cpp
-.. literalinclude:: ../lbdex/Cpu0/InstPrinter/Cpu0InstPrinter.cpp
-    :start-after: //@printExpr {
-    :end-before: //@printExpr body {
-
-.. code-block:: c++
-
-  . ...
-    switch (Kind) {
-    ...
-
-.. literalinclude:: ../lbdex/Cpu0/InstPrinter/Cpu0InstPrinter.cpp
-    :start-after: #if CH >= CH9_1
     :end-before: #endif
 
 .. code-block:: c++
@@ -709,7 +687,7 @@ which generated from TablGen as follows,
 After above changes, you can run Chapter9_1/ with ch9_1.cpp and see what happens 
 in the following,
 
-.. code-block:: bash
+.. code-block:: console
 
   118-165-79-83:input Jonathan$ /Users/Jonathan/llvm/test/
   cmake_debug_build/Debug/bin/llc -march=cpu0 -relocation-model=pic -filetype=asm 
@@ -889,7 +867,7 @@ The DAGs diagram can be gotten by llc option as follows,
 .. literalinclude:: ../lbdex/input/ch9_outgoing.cpp
     :start-after: /// start
     
-.. code-block:: bash
+.. code-block:: console
   
   JonathantekiiMac:input Jonathan$ clang -O3 -target mips-unknown-linux-gnu -c 
   ch9_outgoing.cpp -emit-llvm -o ch9_outgoing.bc
@@ -935,7 +913,7 @@ convention which passes all arguements at registers while option
 ``llc -cpu0-s32-calls=false`` uses O32 pass first two arguments at 
 registers and other arguments at stack. The result as follows,
 
-.. code-block:: bash
+.. code-block:: console
 
   118-165-78-230:input Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
   Debug/bin/llc -march=cpu0 -mcpu=cpu032I -cpu0-s32-calls=true 
@@ -1097,7 +1075,7 @@ optimization.
 .. literalinclude:: ../lbdex/input/ch9_1_2.cpp
     :start-after: /// start
 
-.. code-block:: bash
+.. code-block:: console
 
   JonathantekiiMac:input Jonathan$ llvm-dis ch9_1_2.bc -o -
   ; ModuleID = 'ch9_1_2.bc'
@@ -1177,7 +1155,7 @@ The "call memcpy" for short string is optimized by llvm before "DAG->DAG Pattern
 Instruction Selection" stage and translates it into "store with contant" as
 follows,
 
-.. code-block:: bash
+.. code-block:: console
 
   JonathantekiiMac:input Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build
   /Debug/bin/llc -march=cpu0 -mcpu=cpu032II -cpu0-s32-calls=true 
@@ -1270,7 +1248,7 @@ example.
 .. literalinclude:: ../lbdex/input/ch9_1_struct.cpp
     :start-after: /// start
 
-.. code-block:: bash
+.. code-block:: console
 
   JonathantekiiMac:input Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
   Debug/bin/llc -march=cpu0 -mcpu=cpu032I -relocation-model=pic -filetype=asm 
@@ -1367,7 +1345,7 @@ If you mark the "if hasStructRetAttr()" part from both of above functions,
 the output cpu0 code for ch9_1_struct.cpp will use $3 instead of $2 as return 
 register as follows,
 
-.. code-block:: bash
+.. code-block:: console
 
 	  .text
 	  .section .mdebug.abiS32
@@ -2139,7 +2117,7 @@ corresponding machine code before the first time of PIC function call.
 .. rubric:: lbdex/chapters/Chapter9_3/Cpu0RegisterInfo.cpp
 .. literalinclude:: ../lbdex/Cpu0/Cpu0RegisterInfo.cpp
     :start-after: //@eliminateFrameIndex {
-    :end-before: #if CH >= CH3_4
+    :end-before: #if CH >= CH3_5
 .. literalinclude:: ../lbdex/Cpu0/Cpu0RegisterInfo.cpp
     :start-after: #if CH >= CH9_3 //1
     :end-before: #endif //#if CH >= CH9_3 //1
@@ -2580,12 +2558,17 @@ Chapter9_3 supports dynamic stack allocation with the following code added.
 .. literalinclude:: ../lbdex/Cpu0/Cpu0RegisterInfo.cpp
     :start-after: #if CH >= CH9_3 //2
     :end-before: #endif
+
+.. code-block:: c++
+
+  }
+
 .. literalinclude:: ../lbdex/Cpu0/Cpu0RegisterInfo.cpp
     :start-after: //@eliminateFrameIndex {
-    :end-before: #if CH >= CH3_4
+    :end-before: #if CH >= CH3_5
 .. literalinclude:: ../lbdex/Cpu0/Cpu0RegisterInfo.cpp
     :start-after: #ifdef ENABLE_GPRESTORE //2
-    :end-before: #endif
+    :end-before: else
 	
 .. code-block:: c++
 
@@ -2750,7 +2733,7 @@ is the speed for local variable access. Since the RISC CPU use immediate offset
 for load and store as below, using fp and sp for access both areas of
 local variables have better performance compare to use the sp only.
 
-.. code-block:: bash
+.. code-block:: console
 
   	ld	$2, 64($fp)
   	st	$3, 4($sp)
@@ -2791,7 +2774,7 @@ support which can be tested now as follows.
 .. literalinclude:: ../lbdex/input/ch9_3_longlongshift.cpp
     :start-after: /// start
 
-.. code-block:: bash
+.. code-block:: console
 
   114-37-150-209:input Jonathan$ clang -O0 -target mips-unknown-linux-gnu 
   -c ch9_3_longlongshift.cpp -emit-llvm -o ch9_3_longlongshift.bc
@@ -2951,7 +2934,7 @@ replace them.
 .. literalinclude:: ../lbdex/input/ch9_3_stacksave.cpp
     :start-after: /// start
 
-.. code-block:: bash
+.. code-block:: console
   
   JonathantekiiMac:input Jonathan$ clang -target mips-unknown-linux-gnu -c 
   ch9_3_stacksave.cpp -emit-llvm -o ch9_3_stacksave.bc
@@ -3037,7 +3020,7 @@ Run with the following input to get the following result.
 .. literalinclude:: ../lbdex/input/ch9_3_frame_return_addr.cpp
     :start-after: /// start
 
-.. code-block:: bash
+.. code-block:: console
   
   JonathantekiiMac:input Jonathan$ ~/llvm/test/cmake_debug_build/Debug/bin/
   llvm-dis ch9_3_frame_return_addr.bc -o -
@@ -3247,7 +3230,7 @@ as below.
 .. literalinclude:: ../lbdex/input/ch9_3_detect_exception.cpp
     :start-after: /// start
 
-.. code-block:: bash
+.. code-block:: console
   
   114-37-150-48:input Jonathan$ clang -target mips-unknown-linux-gnu -c 
   ch9_3_detect_exception.cpp -emit-llvm -o ch9_3_detect_exception.bc
@@ -3509,7 +3492,7 @@ Cpu0 supports llvm instrinsics bswap intrinsic [#bswapintrnsic]_.
     :start-after: /// start
 
 
-.. code-block:: bash
+.. code-block:: console
   
   114-37-150-48:input Jonathan$ clang -target mips-unknown-linux-gnu -c 
   ch9_3_bswap.cpp -emit-llvm -o ch9_3_bswap.bc

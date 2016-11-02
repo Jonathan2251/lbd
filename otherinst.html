@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '3.7.2',
+        VERSION:     '3.9.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -72,13 +72,13 @@
 The <a class="reference external" href="http://jonathan2251.github.io/lbd/otherinst.html#display-llvm-ir-nodes-with-graphviz">section Display llvm IR nodes with Graphviz</a>
 will show you the steps of DAG optimization and their corresponding <code class="docutils literal"><span class="pre">llc</span></code>
 display options.
-These DAGs translation in some steps of optimization can be displayed by the
-graphic tool of Graphviz which supply useful information with graphic view.
+These DAGs translation existed in some steps of optimization can be displayed by
+the graphic tool of Graphviz which supply useful information in graphic view.
 Logic instructions support will come after arithmetic section.
 In spite of that llvm backend handle the IR only, we get the IR from the
 corresponding C operators with designed C example code.
-Through compiling with C code, readers can know exactly what C statements are
-handled by each chapter&#8217;s appending code.
+Through compiling with C code, readers can know exactly what kind of C
+statements are handled by each chapter&#8217;s appending code.
 Instead of focusing on classes relationship in this backend structure of last
 chapter, readers should focus on the mapping of C operators and llvm IR and
 how to define the mapping relationship of IR and instructions in td.
@@ -381,14 +381,15 @@ SDValue Cpu0TargetLowering::PerformDAGCombine(SDNode *N, DAGCombinerInfo &amp;DC
 </pre></div>
 </div>
 <p class="rubric">lbdex/chapters/Chapter4_1/Cpu0SEISelDAGToDAG.h</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span>  <span class="n">std</span><span class="p">::</span><span class="n">pair</span><span class="o">&lt;</span><span class="n">SDNode</span><span class="o">*</span><span class="p">,</span> <span class="n">SDNode</span><span class="o">*&gt;</span> <span class="n">SelectMULT</span><span class="p">(</span><span class="n">SDNode</span> <span class="o">*</span><span class="n">N</span><span class="p">,</span> <span class="n">unsigned</span> <span class="n">Opc</span><span class="p">,</span> <span class="n">SDLoc</span> <span class="n">DL</span><span class="p">,</span>
-                                         <span class="n">EVT</span> <span class="n">Ty</span><span class="p">,</span> <span class="nb">bool</span> <span class="n">HasLo</span><span class="p">,</span> <span class="nb">bool</span> <span class="n">HasHi</span><span class="p">);</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span>  <span class="n">std</span><span class="p">::</span><span class="n">pair</span><span class="o">&lt;</span><span class="n">SDNode</span> <span class="o">*</span><span class="p">,</span> <span class="n">SDNode</span> <span class="o">*&gt;</span> <span class="n">selectMULT</span><span class="p">(</span><span class="n">SDNode</span> <span class="o">*</span><span class="n">N</span><span class="p">,</span> <span class="n">unsigned</span> <span class="n">Opc</span><span class="p">,</span>
+                                           <span class="n">const</span> <span class="n">SDLoc</span> <span class="o">&amp;</span><span class="n">DL</span><span class="p">,</span> <span class="n">EVT</span> <span class="n">Ty</span><span class="p">,</span> <span class="nb">bool</span> <span class="n">HasLo</span><span class="p">,</span>
+                                           <span class="nb">bool</span> <span class="n">HasHi</span><span class="p">);</span>
 </pre></div>
 </div>
 <p class="rubric">lbdex/chapters/Chapter4_1/Cpu0SEISelDAGToDAG.cpp</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">///</span> <span class="n">Select</span> <span class="n">multiply</span> <span class="n">instructions</span><span class="o">.</span>
-<span class="n">std</span><span class="p">::</span><span class="n">pair</span><span class="o">&lt;</span><span class="n">SDNode</span><span class="o">*</span><span class="p">,</span> <span class="n">SDNode</span><span class="o">*&gt;</span>
-<span class="n">Cpu0SEDAGToDAGISel</span><span class="p">::</span><span class="n">SelectMULT</span><span class="p">(</span><span class="n">SDNode</span> <span class="o">*</span><span class="n">N</span><span class="p">,</span> <span class="n">unsigned</span> <span class="n">Opc</span><span class="p">,</span> <span class="n">SDLoc</span> <span class="n">DL</span><span class="p">,</span> <span class="n">EVT</span> <span class="n">Ty</span><span class="p">,</span>
+<span class="n">std</span><span class="p">::</span><span class="n">pair</span><span class="o">&lt;</span><span class="n">SDNode</span> <span class="o">*</span><span class="p">,</span> <span class="n">SDNode</span> <span class="o">*&gt;</span>
+<span class="n">Cpu0SEDAGToDAGISel</span><span class="p">::</span><span class="n">selectMULT</span><span class="p">(</span><span class="n">SDNode</span> <span class="o">*</span><span class="n">N</span><span class="p">,</span> <span class="n">unsigned</span> <span class="n">Opc</span><span class="p">,</span> <span class="n">const</span> <span class="n">SDLoc</span> <span class="o">&amp;</span><span class="n">DL</span><span class="p">,</span> <span class="n">EVT</span> <span class="n">Ty</span><span class="p">,</span>
                              <span class="nb">bool</span> <span class="n">HasLo</span><span class="p">,</span> <span class="nb">bool</span> <span class="n">HasHi</span><span class="p">)</span> <span class="p">{</span>
   <span class="n">SDNode</span> <span class="o">*</span><span class="n">Lo</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="o">*</span><span class="n">Hi</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
   <span class="n">SDNode</span> <span class="o">*</span><span class="n">Mul</span> <span class="o">=</span> <span class="n">CurDAG</span><span class="o">-&gt;</span><span class="n">getMachineNode</span><span class="p">(</span><span class="n">Opc</span><span class="p">,</span> <span class="n">DL</span><span class="p">,</span> <span class="n">MVT</span><span class="p">::</span><span class="n">Glue</span><span class="p">,</span> <span class="n">N</span><span class="o">-&gt;</span><span class="n">getOperand</span><span class="p">(</span><span class="mi">0</span><span class="p">),</span>
@@ -408,7 +409,7 @@ SDValue Cpu0TargetLowering::PerformDAGCombine(SDNode *N, DAGCombinerInfo &amp;DC
 <span class="p">}</span>
 </pre></div>
 </div>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">std</span><span class="p">::</span><span class="n">pair</span><span class="o">&lt;</span><span class="nb">bool</span><span class="p">,</span> <span class="n">SDNode</span><span class="o">*&gt;</span> <span class="n">Cpu0SEDAGToDAGISel</span><span class="p">::</span><span class="n">selectNode</span><span class="p">(</span><span class="n">SDNode</span> <span class="o">*</span><span class="n">Node</span><span class="p">)</span> <span class="p">{</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="nb">bool</span> <span class="n">Cpu0SEDAGToDAGISel</span><span class="p">::</span><span class="n">trySelect</span><span class="p">(</span><span class="n">SDNode</span> <span class="o">*</span><span class="n">Node</span><span class="p">)</span> <span class="p">{</span>
   <span class="n">unsigned</span> <span class="n">Opcode</span> <span class="o">=</span> <span class="n">Node</span><span class="o">-&gt;</span><span class="n">getOpcode</span><span class="p">();</span>
   <span class="n">SDLoc</span> <span class="n">DL</span><span class="p">(</span><span class="n">Node</span><span class="p">);</span>
 
@@ -416,7 +417,6 @@ SDValue Cpu0TargetLowering::PerformDAGCombine(SDNode *N, DAGCombinerInfo &amp;DC
   <span class="o">//</span> <span class="n">Instruction</span> <span class="n">Selection</span> <span class="ow">not</span> <span class="n">handled</span> <span class="n">by</span> <span class="n">the</span> <span class="n">auto</span><span class="o">-</span><span class="n">generated</span>
   <span class="o">//</span> <span class="n">tablegen</span> <span class="n">selection</span> <span class="n">should</span> <span class="n">be</span> <span class="n">handled</span> <span class="n">here</span><span class="o">.</span>
   <span class="o">///</span>
-  <span class="n">SDNode</span> <span class="o">*</span><span class="n">Result</span><span class="p">;</span>
 
   <span class="o">///</span>
   <span class="o">//</span> <span class="n">Instruction</span> <span class="n">Selection</span> <span class="ow">not</span> <span class="n">handled</span> <span class="n">by</span> <span class="n">the</span> <span class="n">auto</span><span class="o">-</span><span class="n">generated</span>
@@ -433,8 +433,9 @@ SDValue Cpu0TargetLowering::PerformDAGCombine(SDNode *N, DAGCombinerInfo &amp;DC
 <div class="highlight-default"><div class="highlight"><pre><span></span>  case ISD::MULHS:
   case ISD::MULHU: {
     MultOpc = (Opcode == ISD::MULHU ? Cpu0::MULTu : Cpu0::MULT);
-    Result = SelectMULT(Node, MultOpc, DL, NodeTy, false, true).second;
-    return std::make_pair(true, Result);
+    auto LoHi = selectMULT(Node, MultOpc, DL, NodeTy, false, true);
+    ReplaceNode(Node, LoHi.second);
+    return true;
   }
 
   case ISD::Constant: {
@@ -443,6 +444,8 @@ SDValue Cpu0TargetLowering::PerformDAGCombine(SDNode *N, DAGCombinerInfo &amp;DC
 
     if (Size == 32)
       break;
+
+    return true;
   }
 </pre></div>
 </div>
@@ -452,17 +455,16 @@ SDValue Cpu0TargetLowering::PerformDAGCombine(SDNode *N, DAGCombinerInfo &amp;DC
 </pre></div>
 </div>
 <p class="rubric">lbdex/chapters/Chapter4_1/Cpu0SEInstrInfo.h</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span>  <span class="n">void</span> <span class="n">copyPhysReg</span><span class="p">(</span><span class="n">MachineBasicBlock</span> <span class="o">&amp;</span><span class="n">MBB</span><span class="p">,</span>
-                   <span class="n">MachineBasicBlock</span><span class="p">::</span><span class="n">iterator</span> <span class="n">MI</span><span class="p">,</span> <span class="n">DebugLoc</span> <span class="n">DL</span><span class="p">,</span>
-                   <span class="n">unsigned</span> <span class="n">DestReg</span><span class="p">,</span> <span class="n">unsigned</span> <span class="n">SrcReg</span><span class="p">,</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span>  <span class="n">void</span> <span class="n">copyPhysReg</span><span class="p">(</span><span class="n">MachineBasicBlock</span> <span class="o">&amp;</span><span class="n">MBB</span><span class="p">,</span> <span class="n">MachineBasicBlock</span><span class="p">::</span><span class="n">iterator</span> <span class="n">MI</span><span class="p">,</span>
+                   <span class="n">const</span> <span class="n">DebugLoc</span> <span class="o">&amp;</span><span class="n">DL</span><span class="p">,</span> <span class="n">unsigned</span> <span class="n">DestReg</span><span class="p">,</span> <span class="n">unsigned</span> <span class="n">SrcReg</span><span class="p">,</span>
                    <span class="nb">bool</span> <span class="n">KillSrc</span><span class="p">)</span> <span class="n">const</span> <span class="n">override</span><span class="p">;</span>
 </pre></div>
 </div>
 <p class="rubric">lbdex/chapters/Chapter4_1/Cpu0SEInstrInfo.cpp</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">void</span> <span class="n">Cpu0SEInstrInfo</span><span class="p">::</span><span class="n">copyPhysReg</span><span class="p">(</span><span class="n">MachineBasicBlock</span> <span class="o">&amp;</span><span class="n">MBB</span><span class="p">,</span>
-                                  <span class="n">MachineBasicBlock</span><span class="p">::</span><span class="n">iterator</span> <span class="n">I</span><span class="p">,</span> <span class="n">DebugLoc</span> <span class="n">DL</span><span class="p">,</span>
-                                  <span class="n">unsigned</span> <span class="n">DestReg</span><span class="p">,</span> <span class="n">unsigned</span> <span class="n">SrcReg</span><span class="p">,</span>
-                                  <span class="nb">bool</span> <span class="n">KillSrc</span><span class="p">)</span> <span class="n">const</span> <span class="p">{</span>
+                                  <span class="n">MachineBasicBlock</span><span class="p">::</span><span class="n">iterator</span> <span class="n">I</span><span class="p">,</span>
+                                  <span class="n">const</span> <span class="n">DebugLoc</span> <span class="o">&amp;</span><span class="n">DL</span><span class="p">,</span> <span class="n">unsigned</span> <span class="n">DestReg</span><span class="p">,</span>
+                                  <span class="n">unsigned</span> <span class="n">SrcReg</span><span class="p">,</span> <span class="nb">bool</span> <span class="n">KillSrc</span><span class="p">)</span> <span class="n">const</span> <span class="p">{</span>
   <span class="n">unsigned</span> <span class="n">Opc</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">ZeroReg</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
 
   <span class="k">if</span> <span class="p">(</span><span class="n">Cpu0</span><span class="p">::</span><span class="n">CPURegsRegClass</span><span class="o">.</span><span class="n">contains</span><span class="p">(</span><span class="n">DestReg</span><span class="p">))</span> <span class="p">{</span> <span class="o">//</span> <span class="n">Copy</span> <span class="n">to</span> <span class="n">CPU</span> <span class="n">Reg</span><span class="o">.</span>
@@ -501,10 +503,12 @@ SDValue Cpu0TargetLowering::PerformDAGCombine(SDNode *N, DAGCombinerInfo &amp;DC
 operators <strong>+, -, *</strong>.
 SHL (defined before) and SHLV are for <strong>&lt;&lt;</strong>.
 SRA, SRAV, SHR and SHRV are for <strong>&gt;&gt;</strong>.</p>
-<p>In RISC CPU like Mips, the multiply/divide function unit and add/sub/logic unit
-are designed from two different hardware circuits, and more, their data path are
-separate. Cpu0 is same, so these two function units can be executed at same
-time (instruction level parallelism). Reference <a class="footnote-reference" href="#instrstage" id="id1">[1]</a> for instruction itineraries.</p>
+<p>In RISC CPU, such as Mips, the multiply/divide function unit and add/sub/logic
+unit are designed from two different hardware circuits, and more, their data
+path are separate.
+Cpu0 is same, so these two function units can be executed at same time
+(instruction level parallelism).
+Reference <a class="footnote-reference" href="#instrstage" id="id1">[1]</a> for instruction itineraries.</p>
 <p>Chapter4_1/ can handle <strong>+, -, *, &lt;&lt;,</strong> and <strong>&gt;&gt;</strong> operators in C
 language.
 The corresponding llvm IR instructions are <strong>add, sub, mul, shl, ashr</strong>.

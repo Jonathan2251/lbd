@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '3.7.2',
+        VERSION:     '3.9.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -158,11 +158,6 @@ Chapter5_1.</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1">#include &quot;MCTargetDesc/Cpu0MCExpr.h&quot;</span>
 </pre></div>
 </div>
-<div class="highlight-default"><div class="highlight"><pre><span></span>  <span class="p">}</span> <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="n">const</span> <span class="n">Cpu0MCExpr</span> <span class="o">*</span><span class="n">ME</span> <span class="o">=</span> <span class="n">dyn_cast</span><span class="o">&lt;</span><span class="n">Cpu0MCExpr</span><span class="o">&gt;</span><span class="p">(</span><span class="n">Expr</span><span class="p">))</span> <span class="p">{</span>
-    <span class="n">ME</span><span class="o">-&gt;</span><span class="nb">print</span><span class="p">(</span><span class="n">OS</span><span class="p">,</span> <span class="n">MAI</span><span class="p">);</span>
-    <span class="k">return</span><span class="p">;</span>
-</pre></div>
-</div>
 <p class="rubric">lbdex/chapters/Chapter5_1/MCTargetDesc/CMakeLists.txt</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span>  <span class="n">Cpu0AsmBackend</span><span class="o">.</span><span class="n">cpp</span>
   <span class="n">Cpu0MCCodeEmitter</span><span class="o">.</span><span class="n">cpp</span>
@@ -248,7 +243,8 @@ Chapter5_1.</p>
   <span class="o">///</span> \<span class="n">param</span> <span class="n">Inst</span> <span class="o">-</span> <span class="n">The</span> <span class="n">instruction</span> <span class="n">to</span> <span class="n">relax</span><span class="p">,</span> <span class="n">which</span> <span class="n">may</span> <span class="n">be</span> <span class="n">the</span> <span class="n">same</span>
   <span class="o">///</span> <span class="k">as</span> <span class="n">the</span> <span class="n">output</span><span class="o">.</span>
   <span class="o">///</span> \<span class="n">param</span> <span class="p">[</span><span class="n">out</span><span class="p">]</span> <span class="n">Res</span> <span class="n">On</span> <span class="k">return</span><span class="p">,</span> <span class="n">the</span> <span class="n">relaxed</span> <span class="n">instruction</span><span class="o">.</span>
-  <span class="n">void</span> <span class="n">relaxInstruction</span><span class="p">(</span><span class="n">const</span> <span class="n">MCInst</span> <span class="o">&amp;</span><span class="n">Inst</span><span class="p">,</span> <span class="n">MCInst</span> <span class="o">&amp;</span><span class="n">Res</span><span class="p">)</span> <span class="n">const</span> <span class="n">override</span> <span class="p">{}</span>
+  <span class="n">void</span> <span class="n">relaxInstruction</span><span class="p">(</span><span class="n">const</span> <span class="n">MCInst</span> <span class="o">&amp;</span><span class="n">Inst</span><span class="p">,</span> <span class="n">const</span> <span class="n">MCSubtargetInfo</span> <span class="o">&amp;</span><span class="n">STI</span><span class="p">,</span>
+                        <span class="n">MCInst</span> <span class="o">&amp;</span><span class="n">Res</span><span class="p">)</span> <span class="n">const</span> <span class="n">override</span> <span class="p">{}</span>
 
   <span class="o">///</span> <span class="o">@</span><span class="p">}</span>
 
@@ -308,7 +304,7 @@ static unsigned adjustFixupValue(const MCFixup &amp;Fixup, uint64_t Value,
   case Cpu0::fixup_Cpu0_LO16:
     break;
   case Cpu0::fixup_Cpu0_HI16:
-  case Cpu0::fixup_Cpu0_GOT_Local:
+  case Cpu0::fixup_Cpu0_GOT:
     // Get the higher 16-bits. Also add 1 if bit 15 is 1.
     Value = ((Value + 0x8000) &gt;&gt; 16) &amp; 0xffff;
     break;
@@ -380,8 +376,7 @@ getFixupKindInfo(MCFixupKind Kind) const {
     { &quot;fixup_Cpu0_HI16&quot;,           0,     16,   0 },
     { &quot;fixup_Cpu0_LO16&quot;,           0,     16,   0 },
     { &quot;fixup_Cpu0_GPREL16&quot;,        0,     16,   0 },
-    { &quot;fixup_Cpu0_GOT_Global&quot;,     0,     16,   0 },
-    { &quot;fixup_Cpu0_GOT_Local&quot;,      0,     16,   0 },
+    { &quot;fixup_Cpu0_GOT&quot;,            0,     16,   0 },
     { &quot;fixup_Cpu0_GOT_HI16&quot;,       0,     16,   0 },
     { &quot;fixup_Cpu0_GOT_LO16&quot;,       0,     16,   0 }
   };
@@ -455,8 +450,8 @@ MCAsmBackend *llvm::createCpu0AsmBackendEB32(const Target &amp;T,
 
     <span class="o">~</span><span class="n">Cpu0ELFObjectWriter</span><span class="p">()</span> <span class="n">override</span><span class="p">;</span>
 
-    <span class="n">unsigned</span> <span class="n">GetRelocType</span><span class="p">(</span><span class="n">const</span> <span class="n">MCValue</span> <span class="o">&amp;</span><span class="n">Target</span><span class="p">,</span> <span class="n">const</span> <span class="n">MCFixup</span> <span class="o">&amp;</span><span class="n">Fixup</span><span class="p">,</span>
-                          <span class="nb">bool</span> <span class="n">IsPCRel</span><span class="p">)</span> <span class="n">const</span> <span class="n">override</span><span class="p">;</span>
+    <span class="n">unsigned</span> <span class="n">getRelocType</span><span class="p">(</span><span class="n">MCContext</span> <span class="o">&amp;</span><span class="n">Ctx</span><span class="p">,</span> <span class="n">const</span> <span class="n">MCValue</span> <span class="o">&amp;</span><span class="n">Target</span><span class="p">,</span>
+                        <span class="n">const</span> <span class="n">MCFixup</span> <span class="o">&amp;</span><span class="n">Fixup</span><span class="p">,</span> <span class="nb">bool</span> <span class="n">IsPCRel</span><span class="p">)</span> <span class="n">const</span> <span class="n">override</span><span class="p">;</span>
     <span class="nb">bool</span> <span class="n">needsRelocateWithSymbol</span><span class="p">(</span><span class="n">const</span> <span class="n">MCSymbol</span> <span class="o">&amp;</span><span class="n">Sym</span><span class="p">,</span>
                                  <span class="n">unsigned</span> <span class="n">Type</span><span class="p">)</span> <span class="n">const</span> <span class="n">override</span><span class="p">;</span>
   <span class="p">};</span>
@@ -469,7 +464,8 @@ MCAsmBackend *llvm::createCpu0AsmBackendEB32(const Target &amp;T,
 <span class="n">Cpu0ELFObjectWriter</span><span class="p">::</span><span class="o">~</span><span class="n">Cpu0ELFObjectWriter</span><span class="p">()</span> <span class="p">{}</span>
 
 <span class="o">//</span><span class="nd">@GetRelocType</span> <span class="p">{</span>
-<span class="n">unsigned</span> <span class="n">Cpu0ELFObjectWriter</span><span class="p">::</span><span class="n">GetRelocType</span><span class="p">(</span><span class="n">const</span> <span class="n">MCValue</span> <span class="o">&amp;</span><span class="n">Target</span><span class="p">,</span>
+<span class="n">unsigned</span> <span class="n">Cpu0ELFObjectWriter</span><span class="p">::</span><span class="n">getRelocType</span><span class="p">(</span><span class="n">MCContext</span> <span class="o">&amp;</span><span class="n">Ctx</span><span class="p">,</span>
+                                           <span class="n">const</span> <span class="n">MCValue</span> <span class="o">&amp;</span><span class="n">Target</span><span class="p">,</span>
                                            <span class="n">const</span> <span class="n">MCFixup</span> <span class="o">&amp;</span><span class="n">Fixup</span><span class="p">,</span>
                                            <span class="nb">bool</span> <span class="n">IsPCRel</span><span class="p">)</span> <span class="n">const</span> <span class="p">{</span>
   <span class="o">//</span> <span class="n">determine</span> <span class="n">the</span> <span class="nb">type</span> <span class="n">of</span> <span class="n">the</span> <span class="n">relocation</span>
@@ -488,8 +484,7 @@ MCAsmBackend *llvm::createCpu0AsmBackendEB32(const Target &amp;T,
   <span class="n">case</span> <span class="n">Cpu0</span><span class="p">::</span><span class="n">fixup_Cpu0_GPREL16</span><span class="p">:</span>
     <span class="n">Type</span> <span class="o">=</span> <span class="n">ELF</span><span class="p">::</span><span class="n">R_CPU0_GPREL16</span><span class="p">;</span>
     <span class="k">break</span><span class="p">;</span>
-  <span class="n">case</span> <span class="n">Cpu0</span><span class="p">::</span><span class="n">fixup_Cpu0_GOT_Global</span><span class="p">:</span>
-  <span class="n">case</span> <span class="n">Cpu0</span><span class="p">::</span><span class="n">fixup_Cpu0_GOT_Local</span><span class="p">:</span>
+  <span class="n">case</span> <span class="n">Cpu0</span><span class="p">::</span><span class="n">fixup_Cpu0_GOT</span><span class="p">:</span>
     <span class="n">Type</span> <span class="o">=</span> <span class="n">ELF</span><span class="p">::</span><span class="n">R_CPU0_GOT16</span><span class="p">;</span>
     <span class="k">break</span><span class="p">;</span>
   <span class="n">case</span> <span class="n">Cpu0</span><span class="p">::</span><span class="n">fixup_Cpu0_HI16</span><span class="p">:</span>
@@ -591,11 +586,8 @@ MCAsmBackend *llvm::createCpu0AsmBackendEB32(const Target &amp;T,
     <span class="o">//</span> <span class="mi">16</span> <span class="n">bit</span> <span class="n">fixup</span> <span class="k">for</span> <span class="n">GP</span> <span class="n">offest</span> <span class="n">resulting</span> <span class="ow">in</span> <span class="o">-</span> <span class="n">R_CPU0_GPREL16</span><span class="o">.</span>
     <span class="n">fixup_Cpu0_GPREL16</span><span class="p">,</span>
 
-    <span class="o">//</span> <span class="n">Global</span> <span class="n">symbol</span> <span class="n">fixup</span> <span class="n">resulting</span> <span class="ow">in</span> <span class="o">-</span> <span class="n">R_CPU0_GOT16</span><span class="o">.</span>
-    <span class="n">fixup_Cpu0_GOT_Global</span><span class="p">,</span>
-
-    <span class="o">//</span> <span class="n">Local</span> <span class="n">symbol</span> <span class="n">fixup</span> <span class="n">resulting</span> <span class="ow">in</span> <span class="o">-</span> <span class="n">R_CPU0_GOT16</span><span class="o">.</span>
-    <span class="n">fixup_Cpu0_GOT_Local</span><span class="p">,</span>
+    <span class="o">//</span> <span class="n">Symbol</span> <span class="n">fixup</span> <span class="n">resulting</span> <span class="ow">in</span> <span class="o">-</span> <span class="n">R_CPU0_GOT16</span><span class="o">.</span>
+    <span class="n">fixup_Cpu0_GOT</span><span class="p">,</span>
 
     
 
@@ -869,14 +861,8 @@ getExprOpValue(const MCExpr *Expr,SmallVectorImpl&lt;MCFixup&gt; &amp;Fixups,
     Cpu0::Fixups FixupKind = Cpu0::Fixups(0);
     switch (Cpu0Expr-&gt;getKind()) {
     default: llvm_unreachable(&quot;Unsupported fixup kind for target expression!&quot;);
-    case Cpu0MCExpr::VK_Cpu0_HI:
-      FixupKind = Cpu0::fixup_Cpu0_HI16;
-      break;
-    case Cpu0MCExpr::VK_Cpu0_LO:
-      FixupKind = Cpu0::fixup_Cpu0_LO16;
-      break;
-    }
-    Fixups.push_back(MCFixup::create(0, Cpu0Expr, MCFixupKind(FixupKind)));
+    } // switch
+    Fixups.push_back(MCFixup::create(0, Expr, MCFixupKind(FixupKind)));
     return 0;
   }
 
@@ -921,6 +907,250 @@ Cpu0MCCodeEmitter::getMemEncoding(const MCInst &amp;MI, unsigned OpNo,
 
 #include &quot;Cpu0GenMCCodeEmitter.inc&quot;
 
+</pre></div>
+</div>
+<p class="rubric">lbdex/chapters/Chapter5_1/MCTargetDesc/Cpu0MCExpr.h</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">//===--</span> <span class="n">Cpu0MCExpr</span><span class="o">.</span><span class="n">h</span> <span class="o">-</span> <span class="n">Cpu0</span> <span class="n">specific</span> <span class="n">MC</span> <span class="n">expression</span> <span class="n">classes</span> <span class="o">------*-</span> <span class="n">C</span><span class="o">++</span> <span class="o">-*-===//</span>
+<span class="o">//</span>
+<span class="o">//</span>                     <span class="n">The</span> <span class="n">LLVM</span> <span class="n">Compiler</span> <span class="n">Infrastructure</span>
+<span class="o">//</span>
+<span class="o">//</span> <span class="n">This</span> <span class="n">file</span> <span class="ow">is</span> <span class="n">distributed</span> <span class="n">under</span> <span class="n">the</span> <span class="n">University</span> <span class="n">of</span> <span class="n">Illinois</span> <span class="n">Open</span> <span class="n">Source</span>
+<span class="o">//</span> <span class="n">License</span><span class="o">.</span> <span class="n">See</span> <span class="n">LICENSE</span><span class="o">.</span><span class="n">TXT</span> <span class="k">for</span> <span class="n">details</span><span class="o">.</span>
+<span class="o">//</span>
+<span class="o">//===----------------------------------------------------------------------===//</span>
+
+<span class="c1">#ifndef LLVM_LIB_TARGET_CPU0_MCTARGETDESC_CPU0MCEXPR_H</span>
+<span class="c1">#define LLVM_LIB_TARGET_CPU0_MCTARGETDESC_CPU0MCEXPR_H</span>
+
+<span class="c1">#include &quot;Cpu0Config.h&quot;</span>
+<span class="c1">#if CH &gt;= CH5_1</span>
+
+<span class="c1">#include &quot;llvm/MC/MCAsmLayout.h&quot;</span>
+<span class="c1">#include &quot;llvm/MC/MCExpr.h&quot;</span>
+<span class="c1">#include &quot;llvm/MC/MCValue.h&quot;</span>
+
+<span class="n">namespace</span> <span class="n">llvm</span> <span class="p">{</span>
+
+<span class="k">class</span> <span class="nc">Cpu0MCExpr</span> <span class="p">:</span> <span class="n">public</span> <span class="n">MCTargetExpr</span> <span class="p">{</span>
+<span class="n">public</span><span class="p">:</span>
+  <span class="n">enum</span> <span class="n">Cpu0ExprKind</span> <span class="p">{</span>
+    <span class="n">CEK_None</span><span class="p">,</span>
+    <span class="n">CEK_ABS_HI</span><span class="p">,</span>
+    <span class="n">CEK_ABS_LO</span><span class="p">,</span>
+    <span class="n">CEK_CALL_HI16</span><span class="p">,</span>
+    <span class="n">CEK_CALL_LO16</span><span class="p">,</span>
+    <span class="n">CEK_DTP_HI</span><span class="p">,</span>
+    <span class="n">CEK_DTP_LO</span><span class="p">,</span>
+    <span class="n">CEK_GOT</span><span class="p">,</span>
+    <span class="n">CEK_GOTTPREL</span><span class="p">,</span>
+    <span class="n">CEK_GOT_CALL</span><span class="p">,</span>
+    <span class="n">CEK_GOT_DISP</span><span class="p">,</span>
+    <span class="n">CEK_GOT_HI16</span><span class="p">,</span>
+    <span class="n">CEK_GOT_LO16</span><span class="p">,</span>
+    <span class="n">CEK_GPREL</span><span class="p">,</span>
+    <span class="n">CEK_TLSGD</span><span class="p">,</span>
+    <span class="n">CEK_TLSLDM</span><span class="p">,</span>
+    <span class="n">CEK_TP_HI</span><span class="p">,</span>
+    <span class="n">CEK_TP_LO</span><span class="p">,</span>
+    <span class="n">CEK_Special</span><span class="p">,</span>
+  <span class="p">};</span>
+
+<span class="n">private</span><span class="p">:</span>
+  <span class="n">const</span> <span class="n">Cpu0ExprKind</span> <span class="n">Kind</span><span class="p">;</span>
+  <span class="n">const</span> <span class="n">MCExpr</span> <span class="o">*</span><span class="n">Expr</span><span class="p">;</span>
+
+  <span class="n">explicit</span> <span class="n">Cpu0MCExpr</span><span class="p">(</span><span class="n">Cpu0ExprKind</span> <span class="n">Kind</span><span class="p">,</span> <span class="n">const</span> <span class="n">MCExpr</span> <span class="o">*</span><span class="n">Expr</span><span class="p">)</span>
+    <span class="p">:</span> <span class="n">Kind</span><span class="p">(</span><span class="n">Kind</span><span class="p">),</span> <span class="n">Expr</span><span class="p">(</span><span class="n">Expr</span><span class="p">)</span> <span class="p">{}</span>
+
+<span class="n">public</span><span class="p">:</span>
+  <span class="n">static</span> <span class="n">const</span> <span class="n">Cpu0MCExpr</span> <span class="o">*</span><span class="n">create</span><span class="p">(</span><span class="n">Cpu0ExprKind</span> <span class="n">Kind</span><span class="p">,</span> <span class="n">const</span> <span class="n">MCExpr</span> <span class="o">*</span><span class="n">Expr</span><span class="p">,</span>
+                                  <span class="n">MCContext</span> <span class="o">&amp;</span><span class="n">Ctx</span><span class="p">);</span>
+  <span class="n">static</span> <span class="n">const</span> <span class="n">Cpu0MCExpr</span> <span class="o">*</span><span class="n">create</span><span class="p">(</span><span class="n">const</span> <span class="n">MCSymbol</span> <span class="o">*</span><span class="n">Symbol</span><span class="p">,</span> 
+                                  <span class="n">Cpu0MCExpr</span><span class="p">::</span><span class="n">Cpu0ExprKind</span> <span class="n">Kind</span><span class="p">,</span> <span class="n">MCContext</span> <span class="o">&amp;</span><span class="n">Ctx</span><span class="p">);</span>
+  <span class="n">static</span> <span class="n">const</span> <span class="n">Cpu0MCExpr</span> <span class="o">*</span><span class="n">createGpOff</span><span class="p">(</span><span class="n">Cpu0ExprKind</span> <span class="n">Kind</span><span class="p">,</span> <span class="n">const</span> <span class="n">MCExpr</span> <span class="o">*</span><span class="n">Expr</span><span class="p">,</span>
+                                       <span class="n">MCContext</span> <span class="o">&amp;</span><span class="n">Ctx</span><span class="p">);</span>
+
+  <span class="o">///</span> <span class="n">Get</span> <span class="n">the</span> <span class="n">kind</span> <span class="n">of</span> <span class="n">this</span> <span class="n">expression</span><span class="o">.</span>
+  <span class="n">Cpu0ExprKind</span> <span class="n">getKind</span><span class="p">()</span> <span class="n">const</span> <span class="p">{</span> <span class="k">return</span> <span class="n">Kind</span><span class="p">;</span> <span class="p">}</span>
+
+  <span class="o">///</span> <span class="n">Get</span> <span class="n">the</span> <span class="n">child</span> <span class="n">of</span> <span class="n">this</span> <span class="n">expression</span><span class="o">.</span>
+  <span class="n">const</span> <span class="n">MCExpr</span> <span class="o">*</span><span class="n">getSubExpr</span><span class="p">()</span> <span class="n">const</span> <span class="p">{</span> <span class="k">return</span> <span class="n">Expr</span><span class="p">;</span> <span class="p">}</span>
+
+  <span class="n">void</span> <span class="n">printImpl</span><span class="p">(</span><span class="n">raw_ostream</span> <span class="o">&amp;</span><span class="n">OS</span><span class="p">,</span> <span class="n">const</span> <span class="n">MCAsmInfo</span> <span class="o">*</span><span class="n">MAI</span><span class="p">)</span> <span class="n">const</span> <span class="n">override</span><span class="p">;</span>
+  <span class="nb">bool</span> <span class="n">evaluateAsRelocatableImpl</span><span class="p">(</span><span class="n">MCValue</span> <span class="o">&amp;</span><span class="n">Res</span><span class="p">,</span> <span class="n">const</span> <span class="n">MCAsmLayout</span> <span class="o">*</span><span class="n">Layout</span><span class="p">,</span>
+                                 <span class="n">const</span> <span class="n">MCFixup</span> <span class="o">*</span><span class="n">Fixup</span><span class="p">)</span> <span class="n">const</span> <span class="n">override</span><span class="p">;</span>
+  <span class="n">void</span> <span class="n">visitUsedExpr</span><span class="p">(</span><span class="n">MCStreamer</span> <span class="o">&amp;</span><span class="n">Streamer</span><span class="p">)</span> <span class="n">const</span> <span class="n">override</span><span class="p">;</span>
+  <span class="n">MCFragment</span> <span class="o">*</span><span class="n">findAssociatedFragment</span><span class="p">()</span> <span class="n">const</span> <span class="n">override</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="n">getSubExpr</span><span class="p">()</span><span class="o">-&gt;</span><span class="n">findAssociatedFragment</span><span class="p">();</span>
+  <span class="p">}</span>
+
+  <span class="n">void</span> <span class="n">fixELFSymbolsInTLSFixups</span><span class="p">(</span><span class="n">MCAssembler</span> <span class="o">&amp;</span><span class="n">Asm</span><span class="p">)</span> <span class="n">const</span> <span class="n">override</span><span class="p">;</span>
+
+  <span class="n">static</span> <span class="nb">bool</span> <span class="n">classof</span><span class="p">(</span><span class="n">const</span> <span class="n">MCExpr</span> <span class="o">*</span><span class="n">E</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="n">E</span><span class="o">-&gt;</span><span class="n">getKind</span><span class="p">()</span> <span class="o">==</span> <span class="n">MCExpr</span><span class="p">::</span><span class="n">Target</span><span class="p">;</span>
+  <span class="p">}</span>
+
+  <span class="nb">bool</span> <span class="n">isGpOff</span><span class="p">(</span><span class="n">Cpu0ExprKind</span> <span class="o">&amp;</span><span class="n">Kind</span><span class="p">)</span> <span class="n">const</span><span class="p">;</span>
+  <span class="nb">bool</span> <span class="n">isGpOff</span><span class="p">()</span> <span class="n">const</span> <span class="p">{</span>
+    <span class="n">Cpu0ExprKind</span> <span class="n">Kind</span><span class="p">;</span>
+    <span class="k">return</span> <span class="n">isGpOff</span><span class="p">(</span><span class="n">Kind</span><span class="p">);</span>
+  <span class="p">}</span>
+<span class="p">};</span>
+<span class="p">}</span> <span class="o">//</span> <span class="n">end</span> <span class="n">namespace</span> <span class="n">llvm</span>
+
+<span class="c1">#endif // #if CH &gt;= CH5_1</span>
+
+<span class="c1">#endif</span>
+</pre></div>
+</div>
+<p class="rubric">lbdex/chapters/Chapter5_1/MCTargetDesc/Cpu0MCExpr.cpp</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">//===--</span> <span class="n">Cpu0MCExpr</span><span class="o">.</span><span class="n">cpp</span> <span class="o">-</span> <span class="n">Cpu0</span> <span class="n">specific</span> <span class="n">MC</span> <span class="n">expression</span> <span class="n">classes</span> <span class="o">--------------===//</span>
+<span class="o">//</span>
+<span class="o">//</span>                     <span class="n">The</span> <span class="n">LLVM</span> <span class="n">Compiler</span> <span class="n">Infrastructure</span>
+<span class="o">//</span>
+<span class="o">//</span> <span class="n">This</span> <span class="n">file</span> <span class="ow">is</span> <span class="n">distributed</span> <span class="n">under</span> <span class="n">the</span> <span class="n">University</span> <span class="n">of</span> <span class="n">Illinois</span> <span class="n">Open</span> <span class="n">Source</span>
+<span class="o">//</span> <span class="n">License</span><span class="o">.</span> <span class="n">See</span> <span class="n">LICENSE</span><span class="o">.</span><span class="n">TXT</span> <span class="k">for</span> <span class="n">details</span><span class="o">.</span>
+<span class="o">//</span>
+<span class="o">//===----------------------------------------------------------------------===//</span>
+
+<span class="c1">#include &quot;Cpu0.h&quot;</span>
+
+<span class="c1">#if CH &gt;= CH5_1</span>
+
+<span class="c1">#include &quot;Cpu0MCExpr.h&quot;</span>
+<span class="c1">#include &quot;llvm/MC/MCAsmInfo.h&quot;</span>
+<span class="c1">#include &quot;llvm/MC/MCAssembler.h&quot;</span>
+<span class="c1">#include &quot;llvm/MC/MCContext.h&quot;</span>
+<span class="c1">#include &quot;llvm/MC/MCObjectStreamer.h&quot;</span>
+<span class="c1">#include &quot;llvm/MC/MCSymbolELF.h&quot;</span>
+<span class="c1">#include &quot;llvm/Support/ELF.h&quot;</span>
+
+<span class="n">using</span> <span class="n">namespace</span> <span class="n">llvm</span><span class="p">;</span>
+
+<span class="c1">#define DEBUG_TYPE &quot;cpu0mcexpr&quot;</span>
+
+<span class="n">const</span> <span class="n">Cpu0MCExpr</span> <span class="o">*</span><span class="n">Cpu0MCExpr</span><span class="p">::</span><span class="n">create</span><span class="p">(</span><span class="n">Cpu0MCExpr</span><span class="p">::</span><span class="n">Cpu0ExprKind</span> <span class="n">Kind</span><span class="p">,</span>
+                                     <span class="n">const</span> <span class="n">MCExpr</span> <span class="o">*</span><span class="n">Expr</span><span class="p">,</span> <span class="n">MCContext</span> <span class="o">&amp;</span><span class="n">Ctx</span><span class="p">)</span> <span class="p">{</span>
+  <span class="k">return</span> <span class="n">new</span> <span class="p">(</span><span class="n">Ctx</span><span class="p">)</span> <span class="n">Cpu0MCExpr</span><span class="p">(</span><span class="n">Kind</span><span class="p">,</span> <span class="n">Expr</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="n">const</span> <span class="n">Cpu0MCExpr</span> <span class="o">*</span><span class="n">Cpu0MCExpr</span><span class="p">::</span><span class="n">create</span><span class="p">(</span><span class="n">const</span> <span class="n">MCSymbol</span> <span class="o">*</span><span class="n">Symbol</span><span class="p">,</span> <span class="n">Cpu0MCExpr</span><span class="p">::</span><span class="n">Cpu0ExprKind</span> <span class="n">Kind</span><span class="p">,</span>
+                         <span class="n">MCContext</span> <span class="o">&amp;</span><span class="n">Ctx</span><span class="p">)</span> <span class="p">{</span>
+  <span class="n">const</span> <span class="n">MCSymbolRefExpr</span> <span class="o">*</span><span class="n">MCSym</span> <span class="o">=</span>
+      <span class="n">MCSymbolRefExpr</span><span class="p">::</span><span class="n">create</span><span class="p">(</span><span class="n">Symbol</span><span class="p">,</span> <span class="n">MCSymbolRefExpr</span><span class="p">::</span><span class="n">VK_None</span><span class="p">,</span> <span class="n">Ctx</span><span class="p">);</span>
+  <span class="k">return</span> <span class="n">new</span> <span class="p">(</span><span class="n">Ctx</span><span class="p">)</span> <span class="n">Cpu0MCExpr</span><span class="p">(</span><span class="n">Kind</span><span class="p">,</span> <span class="n">MCSym</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="n">const</span> <span class="n">Cpu0MCExpr</span> <span class="o">*</span><span class="n">Cpu0MCExpr</span><span class="p">::</span><span class="n">createGpOff</span><span class="p">(</span><span class="n">Cpu0MCExpr</span><span class="p">::</span><span class="n">Cpu0ExprKind</span> <span class="n">Kind</span><span class="p">,</span>
+                                          <span class="n">const</span> <span class="n">MCExpr</span> <span class="o">*</span><span class="n">Expr</span><span class="p">,</span> <span class="n">MCContext</span> <span class="o">&amp;</span><span class="n">Ctx</span><span class="p">)</span> <span class="p">{</span>
+  <span class="k">return</span> <span class="n">create</span><span class="p">(</span><span class="n">Kind</span><span class="p">,</span> <span class="n">create</span><span class="p">(</span><span class="n">CEK_None</span><span class="p">,</span> <span class="n">create</span><span class="p">(</span><span class="n">CEK_GPREL</span><span class="p">,</span> <span class="n">Expr</span><span class="p">,</span> <span class="n">Ctx</span><span class="p">),</span> <span class="n">Ctx</span><span class="p">),</span> <span class="n">Ctx</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="n">void</span> <span class="n">Cpu0MCExpr</span><span class="p">::</span><span class="n">printImpl</span><span class="p">(</span><span class="n">raw_ostream</span> <span class="o">&amp;</span><span class="n">OS</span><span class="p">,</span> <span class="n">const</span> <span class="n">MCAsmInfo</span> <span class="o">*</span><span class="n">MAI</span><span class="p">)</span> <span class="n">const</span> <span class="p">{</span>
+  <span class="n">int64_t</span> <span class="n">AbsVal</span><span class="p">;</span>
+
+  <span class="n">switch</span> <span class="p">(</span><span class="n">Kind</span><span class="p">)</span> <span class="p">{</span>
+  <span class="n">case</span> <span class="n">CEK_None</span><span class="p">:</span>
+  <span class="n">case</span> <span class="n">CEK_Special</span><span class="p">:</span>
+    <span class="n">llvm_unreachable</span><span class="p">(</span><span class="s2">&quot;CEK_None and CEK_Special are invalid&quot;</span><span class="p">);</span>
+    <span class="k">break</span><span class="p">;</span>
+  <span class="n">case</span> <span class="n">CEK_CALL_HI16</span><span class="p">:</span>
+    <span class="n">OS</span> <span class="o">&lt;&lt;</span> <span class="s2">&quot;</span><span class="si">%c</span><span class="s2">all_hi&quot;</span><span class="p">;</span>
+    <span class="k">break</span><span class="p">;</span>
+  <span class="n">case</span> <span class="n">CEK_CALL_LO16</span><span class="p">:</span>
+    <span class="n">OS</span> <span class="o">&lt;&lt;</span> <span class="s2">&quot;</span><span class="si">%c</span><span class="s2">all_lo&quot;</span><span class="p">;</span>
+    <span class="k">break</span><span class="p">;</span>
+  <span class="n">case</span> <span class="n">CEK_DTP_HI</span><span class="p">:</span>
+    <span class="n">OS</span> <span class="o">&lt;&lt;</span> <span class="s2">&quot;</span><span class="si">%d</span><span class="s2">tp_hi&quot;</span><span class="p">;</span>
+    <span class="k">break</span><span class="p">;</span>
+  <span class="n">case</span> <span class="n">CEK_DTP_LO</span><span class="p">:</span>
+    <span class="n">OS</span> <span class="o">&lt;&lt;</span> <span class="s2">&quot;</span><span class="si">%d</span><span class="s2">tp_lo&quot;</span><span class="p">;</span>
+    <span class="k">break</span><span class="p">;</span>
+  <span class="n">case</span> <span class="n">CEK_GOT</span><span class="p">:</span>
+    <span class="n">OS</span> <span class="o">&lt;&lt;</span> <span class="s2">&quot;</span><span class="si">%g</span><span class="s2">ot&quot;</span><span class="p">;</span>
+    <span class="k">break</span><span class="p">;</span>
+  <span class="n">case</span> <span class="n">CEK_GOTTPREL</span><span class="p">:</span>
+    <span class="n">OS</span> <span class="o">&lt;&lt;</span> <span class="s2">&quot;</span><span class="si">%g</span><span class="s2">ottprel&quot;</span><span class="p">;</span>
+    <span class="k">break</span><span class="p">;</span>
+  <span class="n">case</span> <span class="n">CEK_GOT_CALL</span><span class="p">:</span>
+    <span class="n">OS</span> <span class="o">&lt;&lt;</span> <span class="s2">&quot;</span><span class="si">%c</span><span class="s2">all16&quot;</span><span class="p">;</span>
+    <span class="k">break</span><span class="p">;</span>
+  <span class="n">case</span> <span class="n">CEK_GOT_DISP</span><span class="p">:</span>
+    <span class="n">OS</span> <span class="o">&lt;&lt;</span> <span class="s2">&quot;</span><span class="si">%g</span><span class="s2">ot_disp&quot;</span><span class="p">;</span>
+    <span class="k">break</span><span class="p">;</span>
+  <span class="n">case</span> <span class="n">CEK_GOT_HI16</span><span class="p">:</span>
+    <span class="n">OS</span> <span class="o">&lt;&lt;</span> <span class="s2">&quot;</span><span class="si">%g</span><span class="s2">ot_hi&quot;</span><span class="p">;</span>
+    <span class="k">break</span><span class="p">;</span>
+  <span class="n">case</span> <span class="n">CEK_GOT_LO16</span><span class="p">:</span>
+    <span class="n">OS</span> <span class="o">&lt;&lt;</span> <span class="s2">&quot;</span><span class="si">%g</span><span class="s2">ot_lo&quot;</span><span class="p">;</span>
+    <span class="k">break</span><span class="p">;</span>
+  <span class="n">case</span> <span class="n">CEK_GPREL</span><span class="p">:</span>
+    <span class="n">OS</span> <span class="o">&lt;&lt;</span> <span class="s2">&quot;</span><span class="si">%g</span><span class="s2">p_rel&quot;</span><span class="p">;</span>
+    <span class="k">break</span><span class="p">;</span>
+  <span class="n">case</span> <span class="n">CEK_ABS_HI</span><span class="p">:</span>
+    <span class="n">OS</span> <span class="o">&lt;&lt;</span> <span class="s2">&quot;</span><span class="si">%hi</span><span class="s2">&quot;</span><span class="p">;</span>
+    <span class="k">break</span><span class="p">;</span>
+  <span class="n">case</span> <span class="n">CEK_ABS_LO</span><span class="p">:</span>
+    <span class="n">OS</span> <span class="o">&lt;&lt;</span> <span class="s2">&quot;</span><span class="si">%lo</span><span class="s2">&quot;</span><span class="p">;</span>
+    <span class="k">break</span><span class="p">;</span>
+  <span class="n">case</span> <span class="n">CEK_TLSGD</span><span class="p">:</span>
+    <span class="n">OS</span> <span class="o">&lt;&lt;</span> <span class="s2">&quot;%tlsgd&quot;</span><span class="p">;</span>
+    <span class="k">break</span><span class="p">;</span>
+  <span class="n">case</span> <span class="n">CEK_TLSLDM</span><span class="p">:</span>
+    <span class="n">OS</span> <span class="o">&lt;&lt;</span> <span class="s2">&quot;%tlsldm&quot;</span><span class="p">;</span>
+    <span class="k">break</span><span class="p">;</span>
+  <span class="n">case</span> <span class="n">CEK_TP_HI</span><span class="p">:</span>
+    <span class="n">OS</span> <span class="o">&lt;&lt;</span> <span class="s2">&quot;%tp_hi&quot;</span><span class="p">;</span>
+    <span class="k">break</span><span class="p">;</span>
+  <span class="n">case</span> <span class="n">CEK_TP_LO</span><span class="p">:</span>
+    <span class="n">OS</span> <span class="o">&lt;&lt;</span> <span class="s2">&quot;%tp_lo&quot;</span><span class="p">;</span>
+    <span class="k">break</span><span class="p">;</span>
+  <span class="p">}</span>
+
+  <span class="n">OS</span> <span class="o">&lt;&lt;</span> <span class="s1">&#39;(&#39;</span><span class="p">;</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">Expr</span><span class="o">-&gt;</span><span class="n">evaluateAsAbsolute</span><span class="p">(</span><span class="n">AbsVal</span><span class="p">))</span>
+    <span class="n">OS</span> <span class="o">&lt;&lt;</span> <span class="n">AbsVal</span><span class="p">;</span>
+  <span class="k">else</span>
+    <span class="n">Expr</span><span class="o">-&gt;</span><span class="nb">print</span><span class="p">(</span><span class="n">OS</span><span class="p">,</span> <span class="n">MAI</span><span class="p">,</span> <span class="n">true</span><span class="p">);</span>
+  <span class="n">OS</span> <span class="o">&lt;&lt;</span> <span class="s1">&#39;)&#39;</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="nb">bool</span>
+<span class="n">Cpu0MCExpr</span><span class="p">::</span><span class="n">evaluateAsRelocatableImpl</span><span class="p">(</span><span class="n">MCValue</span> <span class="o">&amp;</span><span class="n">Res</span><span class="p">,</span>
+                                      <span class="n">const</span> <span class="n">MCAsmLayout</span> <span class="o">*</span><span class="n">Layout</span><span class="p">,</span>
+                                      <span class="n">const</span> <span class="n">MCFixup</span> <span class="o">*</span><span class="n">Fixup</span><span class="p">)</span> <span class="n">const</span> <span class="p">{</span>
+  <span class="k">return</span> <span class="n">getSubExpr</span><span class="p">()</span><span class="o">-&gt;</span><span class="n">evaluateAsRelocatable</span><span class="p">(</span><span class="n">Res</span><span class="p">,</span> <span class="n">Layout</span><span class="p">,</span> <span class="n">Fixup</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="n">void</span> <span class="n">Cpu0MCExpr</span><span class="p">::</span><span class="n">visitUsedExpr</span><span class="p">(</span><span class="n">MCStreamer</span> <span class="o">&amp;</span><span class="n">Streamer</span><span class="p">)</span> <span class="n">const</span> <span class="p">{</span>
+  <span class="n">Streamer</span><span class="o">.</span><span class="n">visitUsedExpr</span><span class="p">(</span><span class="o">*</span><span class="n">getSubExpr</span><span class="p">());</span>
+<span class="p">}</span>
+
+<span class="n">void</span> <span class="n">Cpu0MCExpr</span><span class="p">::</span><span class="n">fixELFSymbolsInTLSFixups</span><span class="p">(</span><span class="n">MCAssembler</span> <span class="o">&amp;</span><span class="n">Asm</span><span class="p">)</span> <span class="n">const</span> <span class="p">{</span>
+  <span class="n">switch</span> <span class="p">(</span><span class="n">getKind</span><span class="p">())</span> <span class="p">{</span>
+  <span class="n">case</span> <span class="n">CEK_None</span><span class="p">:</span>
+  <span class="n">case</span> <span class="n">CEK_Special</span><span class="p">:</span>
+    <span class="n">llvm_unreachable</span><span class="p">(</span><span class="s2">&quot;CEK_None and CEK_Special are invalid&quot;</span><span class="p">);</span>
+    <span class="k">break</span><span class="p">;</span>
+  <span class="n">case</span> <span class="n">CEK_CALL_HI16</span><span class="p">:</span>
+  <span class="n">case</span> <span class="n">CEK_CALL_LO16</span><span class="p">:</span>
+    <span class="k">break</span><span class="p">;</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="nb">bool</span> <span class="n">Cpu0MCExpr</span><span class="p">::</span><span class="n">isGpOff</span><span class="p">(</span><span class="n">Cpu0ExprKind</span> <span class="o">&amp;</span><span class="n">Kind</span><span class="p">)</span> <span class="n">const</span> <span class="p">{</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">const</span> <span class="n">Cpu0MCExpr</span> <span class="o">*</span><span class="n">S1</span> <span class="o">=</span> <span class="n">dyn_cast</span><span class="o">&lt;</span><span class="n">const</span> <span class="n">Cpu0MCExpr</span><span class="o">&gt;</span><span class="p">(</span><span class="n">getSubExpr</span><span class="p">()))</span> <span class="p">{</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">const</span> <span class="n">Cpu0MCExpr</span> <span class="o">*</span><span class="n">S2</span> <span class="o">=</span> <span class="n">dyn_cast</span><span class="o">&lt;</span><span class="n">const</span> <span class="n">Cpu0MCExpr</span><span class="o">&gt;</span><span class="p">(</span><span class="n">S1</span><span class="o">-&gt;</span><span class="n">getSubExpr</span><span class="p">()))</span> <span class="p">{</span>
+      <span class="k">if</span> <span class="p">(</span><span class="n">S1</span><span class="o">-&gt;</span><span class="n">getKind</span><span class="p">()</span> <span class="o">==</span> <span class="n">CEK_None</span> <span class="o">&amp;&amp;</span> <span class="n">S2</span><span class="o">-&gt;</span><span class="n">getKind</span><span class="p">()</span> <span class="o">==</span> <span class="n">CEK_GPREL</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">Kind</span> <span class="o">=</span> <span class="n">getKind</span><span class="p">();</span>
+        <span class="k">return</span> <span class="n">true</span><span class="p">;</span>
+      <span class="p">}</span>
+    <span class="p">}</span>
+  <span class="p">}</span>
+  <span class="k">return</span> <span class="n">false</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="c1">#endif</span>
 </pre></div>
 </div>
 <p class="rubric">lbdex/chapters/Chapter5_1/MCTargetDesc/Cpu0MCTargetDesc.h</p>
@@ -982,6 +1212,10 @@ Cpu0MCCodeEmitter::getMemEncoding(const MCInst &amp;MI, unsigned OpNo,
 </pre></div>
 </div>
 <div class="highlight-c++"><div class="highlight"><pre><span></span><span class="p">}</span>
+</pre></div>
+</div>
+<p class="rubric">lbdex/chapters/Chapter5_1/Cpu0MCInstLower.h</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1">#include &quot;MCTargetDesc/Cpu0MCExpr.h&quot;</span>
 </pre></div>
 </div>
 <p>The applyFixup() of Cpu0AsmBackend.cpp will fix up the <strong>jeq</strong>, <strong>jub</strong>, ...

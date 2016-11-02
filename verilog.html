@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '3.7.2',
+        VERSION:     '3.9.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -65,34 +65,28 @@ dumped to hex file via <code class="docutils literal"><span class="pre">llvm-obj
 </div>
 <p>This chapter will implement Cpu0 instructions by Verilog language as the red
 part of <a class="reference internal" href="#runbackend-f1"><span class="std std-numref">Fig. 33</span></a>.
-With this Verilog machine, we can write a C++ main
-function as well as the assembly boot code, and translate this
-main()+bootcode() into obj file.
-Combined with llvm-objdump support in chapter ELF,
-this main()+bootcode() elf can be translated into hex file format which
-include the disassemble code as comment.
-Furthermore, we can run this hex program on the Cpu0 Verilog machine on PC and
-see the Cpu0 instructions execution result.</p>
+With this Verilog machine, we can run this hex program on the Cpu0 Verilog
+machine on PC and see the Cpu0 instructions execution result.</p>
 <div class="section" id="create-verilog-simulator-of-cpu0">
 <h2><a class="toc-backref" href="#id9">Create verilog simulator of Cpu0</a><a class="headerlink" href="#create-verilog-simulator-of-cpu0" title="Permalink to this headline">¶</a></h2>
 <p>Verilog language is an IEEE standard in IC design. There are a lot of books and
-documents for this language. Free documents existed in Web sites <a class="footnote-reference" href="#free-doc1" id="id1">[1]</a>
+documents for this language. Free documents exist in Web sites <a class="footnote-reference" href="#free-doc1" id="id1">[1]</a>
 <a class="footnote-reference" href="#free-doc2" id="id2">[2]</a> <a class="footnote-reference" href="#free-doc3" id="id3">[3]</a> <a class="footnote-reference" href="#free-doc4" id="id4">[4]</a> <a class="footnote-reference" href="#free-doc5" id="id5">[5]</a>.
 Verilog also called as Verilog HDL but not VHDL.
 VHDL is the same purpose language which compete against Verilog.
 About VHDL reference here <a class="footnote-reference" href="#vhdl" id="id6">[6]</a>.
-Example code lbdex/verilog/cpu0.v is the Cpu0 design in Verilog.
+Example code, lbdex/verilog/cpu0.v, is the Cpu0 design in Verilog.
 In Appendix A, we have downloaded and installed Icarus Verilog tool both on
-iMac and Linux. The cpu0.v and cpu0Is.v are simple design
+iMac and Linux. The cpu0.v is a simple design
 with only few hundreds lines of code totally.
-Although it has not the pipeline features, we can assume the
-Cpu0 backend code can run on the pipeline machine with NOP instruction fill in
-branch delay slot because the pipeline version uses the same machine
-instructions. Verilog is a C like language in syntex and
+This implementation hasn&#8217;t the pipeline features, but through implement
+the delay slot simulation (SIMULATE_DELAY_SLOT part of code), the exact pipeline
+machine cycles can be calculated.</p>
+<p>Verilog is a C like language in syntex and
 this book is a compiler book, so we list the cpu0.v as well as the building
-command directly as below.
-We expect readers can understand the Verilog code just with a little patience
-and no further explanation needed.
+command without explanation as below.
+We expect readers can understand the Verilog code just with a little patience in
+reading it.
 There are two type of I/O according computer architecture.
 One is memory mapped I/O, the other is instruction I/O.
 Cpu0 uses memory mapped I/O where memory address 0x80000 as the output port.
@@ -105,7 +99,8 @@ When meet the instruction <strong>&#8220;st $ra, cx($rb)&#8221;</strong>, where 
 </pre></div>
 </div>
 <p class="rubric">lbdex/verilog/cpu0.v</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span>`define MEMSIZE   &#39;h80000
+<div class="highlight-default"><div class="highlight"><pre><span></span>`define SIMULATE_DELAY_SLOT
+`define MEMSIZE   &#39;h80000
 `define MEMEMPTY   8&#39;hFF
 `define NULL       8&#39;h00
 `define IOADDR    &#39;h80000  // IO mapping address
@@ -576,31 +571,12 @@ module memory0(input clock, reset, en, rw, input [1:0] m_size,
                output cfg);
   reg [31:0] mconfig [0:0];
   reg [7:0] m [0:`MEMSIZE-1];
-`ifdef DLINKER
-  reg [7:0] flash [0:`MEMSIZE-1];
-  reg [7:0] dsym [0:192-1];
-  reg [7:0] dstr [0:96-1];
-  reg [7:0] so_func_offset[0:384-1];
-  reg [7:0] globalAddr [0:3];
-  reg [31:0] pltAddr [0:0];
-  reg [31:0] gp;
-  reg [31:0] gpPlt;
-  reg [31:0] fabus;
-  integer j;
-  integer k;
-  integer l;
-  reg [31:0] j32;
-  integer numDynEntry;
-`endif
   reg [31:0] data;
 
   integer i;
 
   `define LE  mconfig[0][0:0]   // Endian bit, Big Endian:0, Little Endian:1
 
-`ifdef DLINKER
-`include &quot;dynlinker.v&quot;
-`endif
   initial begin
   // erase memory
     for (i=0; i &lt; `MEMSIZE; i=i+1) begin
@@ -617,10 +593,6 @@ module memory0(input clock, reset, en, rw, input [1:0] m_size,
         $display(&quot;%8x: %8x&quot;, i, {m[i], m[i+1], m[i+2], m[i+3]});
       end
     `endif
-`ifdef DLINKER
-  loadToFlash();
-  createDynInfo();
-`endif
   end
 
   always @(clock or abus or en or rw or dbus_in) 
@@ -663,9 +635,6 @@ module memory0(input clock, reset, en, rw, input [1:0] m_size,
         end
       end else
         data = 32&#39;hZZZZZZZZ;
-      `ifdef DLINKER
-      `include &quot;flashio.v&quot;
-      `endif
     end else 
       data = 32&#39;hZZZZZZZZ;
   end
@@ -706,17 +675,11 @@ endmodule
 all:
 	iverilog ${TRACE} -o cpu0Is cpu0.v 
 	iverilog ${TRACE} -D CPU0II -o cpu0IIs cpu0.v 
-	iverilog ${TRACE} -D DLINKER -o cpu0Id cpu0.v 
-	iverilog ${TRACE} -D DLINKER -D CPU0II -o cpu0IId cpu0.v 
-	iverilog ${TRACE} -D SIMULATE_DELAY_SLOT -o cpu0Isp cpu0.v 
-	iverilog ${TRACE} -D SIMULATE_DELAY_SLOT -D CPU0II -o cpu0IIsp cpu0.v 
-	iverilog ${TRACE} -D SIMULATE_DELAY_SLOT -D DLINKER -o cpu0Idp cpu0.v 
-	iverilog ${TRACE} -D SIMULATE_DELAY_SLOT -D DLINKER -D CPU0II -o cpu0IIdp cpu0.v
 
 .PHONY: clean
 clean:
-	rm -rf dlconfig cpu0.hex cpu0Is cpu0IIs cpu0Id cpu0IId cpu0Isp cpu0IIsp 
-	rm -f cpu0Idp cpu0IIdp *~ cpu0.config
+	rm -rf cpu0.hex cpu0Is cpu0IIs 
+	rm -f *~ cpu0.config
 
 </pre></div>
 </div>
@@ -737,20 +700,20 @@ the information when it is up according the following code,</p>
 <span class="go">.m_size(m_size), .abus(mar), .dbus_in(mdr), .dbus_out(dbus), .cfg(cfg));</span>
 </pre></div>
 </div>
-<p>Instead of set endian tranfer in memory module, the endian transfer can be set
-in CPU module and memory moudle always return with big endian.
+<p>Instead of setting endian tranfer in memory module, the endian transfer can
+also be set in CPU module, and memory moudle always return with big endian.
 I am not an professional engineer in FPGA/CPU hardware design.
 But according book &#8220;Computer
 Architecture: A Quantitative Approach&#8221;, some operations may have no tolerance
 in time of execution stage. Any endian swap will make the clock cycle time
 longer and affect the CPU performance. So, I set the endian transfer in memory
-module in Verilog. In system with bus, it will be set in bus system I think.</p>
+module. In system with bus, it will be set in bus system I think.</p>
 </div>
 <div class="section" id="verify-backend">
 <h2><a class="toc-backref" href="#id10">Verify backend</a><a class="headerlink" href="#verify-backend" title="Permalink to this headline">¶</a></h2>
 <p>Now let&#8217;s compile ch_run_backend.cpp as below. Since code size grows up from
-low to high address and stack grows up from high to low address. We set $sp
-at 0x6ffc because assuming cpu0.v uses 0x7000 bytes of memory.</p>
+low to high address and stack grows up from high to low address. $sp is set
+at 0x7fffc because assuming cpu0.v uses 0x80000 bytes of memory.</p>
 <p class="rubric">lbdex/input/start.h</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1">#define SET_SW \</span>
 <span class="n">asm</span><span class="p">(</span><span class="s2">&quot;andi $sw, $zero, 0&quot;</span><span class="p">);</span> \
@@ -789,7 +752,8 @@ at 0x6ffc because assuming cpu0.v uses 0x7000 bytes of memory.</p>
   <span class="n">asm</span><span class="p">(</span><span class="s2">&quot;addiu $gp, $ZERO, 0&quot;</span><span class="p">);</span>
   <span class="n">asm</span><span class="p">(</span><span class="s2">&quot;addiu $lr, $ZERO, -1&quot;</span><span class="p">);</span>
   
-  <span class="n">asm</span><span class="p">(</span><span class="s2">&quot;addiu $sp, $zero, 0x6ffc&quot;</span><span class="p">);</span>
+  <span class="n">asm</span><span class="p">(</span><span class="s2">&quot;lui $sp, 0x7&quot;</span><span class="p">);</span>
+  <span class="n">asm</span><span class="p">(</span><span class="s2">&quot;addiu $sp, $sp, 0xfffc&quot;</span><span class="p">);</span>
   <span class="n">asm</span><span class="p">(</span><span class="s2">&quot;mfc0 $3, $pc&quot;</span><span class="p">);</span>
   <span class="n">asm</span><span class="p">(</span><span class="s2">&quot;addiu $3, $3, 0x8&quot;</span><span class="p">);</span> <span class="o">//</span> <span class="n">Assume</span> <span class="n">main</span><span class="p">()</span> <span class="n">entry</span> <span class="n">point</span> <span class="ow">is</span> <span class="n">at</span> <span class="n">the</span> <span class="nb">next</span> <span class="nb">next</span> 
                              <span class="o">//</span> <span class="n">instruction</span><span class="o">.</span>
@@ -1125,16 +1089,16 @@ fi
 cat ../verilog/cpu0.config
 </pre></div>
 </div>
-<p>To run program without linker implementation at this point, the boot.cpp is
-arranaged at the beginning of code and the main() of ch_run_backend.cpp is
-immediately after.
+<p>To run program without linker implementation at this point, the boot.cpp must be
+set at the beginning of code, and the main() of ch_run_backend.cpp is
+immediately after it.
 Let&#8217;s run Chapter11_2/ with <code class="docutils literal"><span class="pre">llvm-objdump</span> <span class="pre">-d</span></code> for input file
 ch_run_backend.cpp to generate the hex file via build-run_bacekend.sh, then
-feed it to cpu0Is Verilog simulator to get the output result as below.
+feed hex file to cpu0Is Verilog simulator to get the output result as below.
 Remind ch_run_backend.cpp have to be compiled with option
-<code class="docutils literal"><span class="pre">clang</span> <span class="pre">-target</span> <span class="pre">mips-unknown-linux-gnu</span></code> since the example code ch9_3.cpp which
-uses the vararg needs to be compiled with this option. Other example codes have
-no differences between this option and default option.</p>
+<code class="docutils literal"><span class="pre">clang</span> <span class="pre">-target</span> <span class="pre">mips-unknown-linux-gnu</span></code> since the example code
+ch9_3_vararg.cpp which uses the vararg needs to be compiled with this option.
+Other example codes have no differences between this option and default option.</p>
 <div class="highlight-console"><div class="highlight"><pre><span></span><span class="gp">JonathantekiiMac:input Jonathan$</span> <span class="nb">pwd</span>
 <span class="go">/Users/Jonathan/llvm/test/lbdex/input</span>
 <span class="gp">JonathantekiiMac:input Jonathan$</span> bash build-run_backend.sh cpu032I be
@@ -1142,7 +1106,7 @@ no differences between this option and default option.</p>
 <span class="gp">JonathantekiiMac:input Jonathan$</span> <span class="nb">pwd</span>
 <span class="go">/Users/Jonathan/llvm/test/lbdex/verilog</span>
 <span class="gp">JonathantekiiMac:verilog Jonathan$</span> make
-<span class="gp">JonathantekiiMac:verilog Jonathan$</span> ./cpu0Isp
+<span class="gp">JonathantekiiMac:verilog Jonathan$</span> ./cpu0Is
 <span class="go">WARNING: cpu0Is.v:386: $readmemh(cpu0.hex): Not enough words in the file for the</span>
 <span class="go">taskInterrupt(001)</span>
 <span class="go">74</span>
@@ -1173,30 +1137,26 @@ no differences between this option and default option.</p>
 <span class="go">0</span>
 <span class="go">31</span>
 <span class="go">49</span>
-<span class="go">total cpu cycles = 51230</span>
+<span class="go">total cpu cycles = 50645</span>
 <span class="go">RET to PC &lt; 0, finished!</span>
 
 <span class="gp">JonathantekiiMac:input Jonathan$</span> bash build-run_backend.sh cpu032II be
 <span class="gp">JonathantekiiMac:input Jonathan$</span> <span class="nb">cd</span> ../verilog
-<span class="gp">JonathantekiiMac:verilog Jonathan$</span> ./cpu0IIsp
+<span class="gp">JonathantekiiMac:verilog Jonathan$</span> ./cpu0IIs
 <span class="go">...</span>
-<span class="go">total cpu cycles = 48920</span>
+<span class="go">total cpu cycles = 48335</span>
 <span class="go">RET to PC &lt; 0, finished!</span>
 </pre></div>
 </div>
-<p>The &#8220;total cpu cycles&#8221; can be calculated in this verilog simualtor, and the
+<p>The &#8220;total cpu cycles&#8221; is calculated in this verilog simualtor so that the
 backend compiler and CPU performance can be reviewed.
-Only the CPU cycles are counted, it not include I/O cycles since I/O
+Only the CPU cycles are counted in this implemenation since I/O
 cycles time is unknown.
-As explained in chapter &#8220;Control flow statements&#8221;, cpu032II uses slt and beq
+As explained in chapter &#8220;Control flow statements&#8221;, cpu032II which uses
+instructions slt and beq
 has better performance than cmp and jeq in cpu032I.
-The cycle counting on cpu0IIsp is accurate include delay slot while cpu0IIs has
-no delay slot support.
-Although cpu0IIs has no delay slot support, it can run program
-correctly since Cpu0 backend compiler always fill delay slot with &#8220;nop&#8221;.
-Instructions &#8220;jmp&#8221; has no delay slot so it is better in dynamic linker
-implementation. Instruction &#8220;bal&#8221; has no delay slot because we want
-Cpu0LongBranch.cpp generated code can run both correctly in cpu0IIsp and cpu0IIs.</p>
+Instructions &#8220;jmp&#8221; has no delay slot so it is better used in dynamic linker
+implementation.</p>
 <p>You can trace the memory binary code and destination
 register changed at every instruction execution by unmark TRACE in Makefile as
 below,</p>
@@ -1228,22 +1188,20 @@ The first column is the nano seconds of timing. The second
 is instruction address. The third is instruction content.
 Now, most example codes depicted in the previous chapters are verified by
 print the variable with print_integer().</p>
-<p>This chapter shows Verilog PC output by displaying the integer value located at
-I/O memory mapped address directly.
-Since the cpu0.v machine is created by Verilog language, suppose it can run on
+<p>Since the cpu0.v machine is created by Verilog language, suppose it can run on
 real FPGA device.
 The real output hardware
 interface/port is hardware output device dependent, such as RS232, speaker,
 LED, .... You should implement the I/O interface/port when you want to program
 FPGA and wire I/O device to the I/O port.
-Through running the compiled code on Verilog simulator, beside of verifying the
-correction of our program, the exact cycles is being understood too.
+Through running the compiled code on Verilog simulator, Cpu0 backend compiled
+result and CPU cycles are verified and calculated.
 Though the Verilog simulator is slow for running the whole system program and
 not include the cycles counting in cache and I/O, it is a simple and easy way
 to verify your idea about CPU design at begging stage with small program pattern.
 The overall system simulator is complex to create. Even wiki web site here
 <a class="footnote-reference" href="#wiki-sim" id="id7">[7]</a> include tools for creating the simulator, it needs a lot of effort.</p>
-<p>To generate cpu032II as well as little endian code, you can run with the
+<p>To generate cpu032I as well as little endian code, you can run with the
 following command. File build-run_backend.sh write the endian information to
 ../verilog/cpu0.config as below.</p>
 <div class="highlight-console"><div class="highlight"><pre><span></span><span class="gp">JonathantekiiMac:input Jonathan$</span> bash build-run_backend.sh cpu032I le
@@ -1268,19 +1226,15 @@ following command. File build-run_backend.sh write the endian information to
 <div class="highlight-default"><div class="highlight"><pre><span></span>
 <span class="c1">#include &quot;print.cpp&quot;</span>
 
-<span class="c1">#include &quot;ch8_2_longbranch.cpp&quot;</span>
-<span class="c1">#include &quot;ch9_4.cpp&quot;</span>
+<span class="c1">#include &quot;ch9_3_alloc.cpp&quot;</span>
 
 <span class="nb">int</span> <span class="n">test_nolld2</span><span class="p">()</span>
 <span class="p">{</span>
   <span class="nb">bool</span> <span class="k">pass</span> <span class="o">=</span> <span class="n">true</span><span class="p">;</span>
   <span class="nb">int</span> <span class="n">a</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
 
-  <span class="n">a</span> <span class="o">=</span> <span class="n">test_longbranch</span><span class="p">();</span>
-  <span class="n">print_integer</span><span class="p">(</span><span class="n">a</span><span class="p">);</span>	<span class="o">//</span> <span class="n">a</span> <span class="o">=</span> <span class="mi">1</span>
-  <span class="k">if</span> <span class="p">(</span><span class="n">a</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">)</span> <span class="k">pass</span> <span class="o">=</span> <span class="n">false</span><span class="p">;</span>
-  <span class="n">a</span> <span class="o">=</span> <span class="n">test_alloc</span><span class="p">();</span>  <span class="o">//</span> <span class="mi">31</span>
-  <span class="n">print_integer</span><span class="p">(</span><span class="n">a</span><span class="p">);</span>  <span class="o">//</span> <span class="n">a</span> <span class="o">=</span> <span class="mi">1</span>
+  <span class="n">a</span> <span class="o">=</span> <span class="n">test_alloc</span><span class="p">();</span>
+  <span class="n">print_integer</span><span class="p">(</span><span class="n">a</span><span class="p">);</span>  <span class="o">//</span> <span class="n">a</span> <span class="o">=</span> <span class="mi">31</span>
   <span class="k">if</span> <span class="p">(</span><span class="n">a</span> <span class="o">!=</span> <span class="mi">31</span><span class="p">)</span> <span class="k">pass</span> <span class="o">=</span> <span class="n">false</span><span class="p">;</span>
   <span class="k">return</span> <span class="k">pass</span><span class="p">;</span>
 <span class="p">}</span>
@@ -1349,7 +1303,7 @@ cat ../verilog/cpu0.config
 <div class="section" id="other-llvm-based-tools-for-cpu0-processor">
 <h2><a class="toc-backref" href="#id11">Other llvm based tools for Cpu0 processor</a><a class="headerlink" href="#other-llvm-based-tools-for-cpu0-processor" title="Permalink to this headline">¶</a></h2>
 <p>You can find the Cpu0 ELF linker implementation based on lld which is the
-llvm official linker project, as well as elf2hex which extended from llvm-objdump
+llvm official linker project, as well as elf2hex which modified from llvm-objdump
 driver at web: <a class="reference external" href="http://jonathan2251.github.io/lbt/index.html">http://jonathan2251.github.io/lbt/index.html</a>.</p>
 <table class="docutils footnote" frame="void" id="free-doc1" rules="none">
 <colgroup><col class="label" /><col /></colgroup>

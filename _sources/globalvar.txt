@@ -1249,7 +1249,7 @@ Global variable print support
 -------------------------------
 
 Above code is for global address DAG translation. 
-Next, add the following code to Cpu0MCInstLower.cpp, Cpu0InstPrinter.cpp and 
+Next, add the following code to Cpu0MCInstLower.cpp and 
 Cpu0ISelLowering.cpp for global variable printing operand function.
 
 .. rubric:: lbdex/chapters/Chapter6_1/Cpu0MCInstLower.cpp
@@ -1269,24 +1269,9 @@ Cpu0ISelLowering.cpp for global variable printing operand function.
     }
   ...
   }
-    
-.. rubric:: lbdex/chapters/Chapter6_1/InstPrinter/Cpu0InstPrinter.cpp
-.. literalinclude:: ../lbdex/Cpu0/InstPrinter/Cpu0InstPrinter.cpp
-    :start-after: //@printExpr {
-    :end-before: //@printExpr body {
-.. literalinclude:: ../lbdex/Cpu0/InstPrinter/Cpu0InstPrinter.cpp
-    :start-after: #if CH >= CH6_1 //VK_Cpu0_GPREL
-    :end-before: #endif
-.. literalinclude:: ../lbdex/Cpu0/InstPrinter/Cpu0InstPrinter.cpp
-    :start-after: #if CH >= CH6_1 //VK_Cpu0_GOT16
-    :end-before: #endif
 
-.. code-block:: c++
-
-      ...
-    }
-    ...
-  }
+The Cpu0MCExpr::printImpl() of Cpu0InstPrinter.cpp in last chapter is
+for global variable printing operand function too.
 
 The following function is for ``llc -debug`` this chapter DAG node name printing.
 It is added at Chapter3_1 already.
