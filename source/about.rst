@@ -58,6 +58,8 @@ Revision history
 ----------------
 
 Version 3.9.1, Not release yet.
+  Change ch7_1_vector.cpp and modify section float and double of Chapter Other 
+  data type.
 
 Version 3.9.0, Released November 22, 2016
   Porting to llvm 3.9.

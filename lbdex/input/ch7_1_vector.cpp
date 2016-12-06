@@ -17,6 +17,7 @@ int test_cmplt_short() {
   return (int)(c0[0]+c0[1]+c0[2]+c0[3]); // 2
 }
 
+#ifdef TEST_CMPLT_LONG
 int test_cmplt_long() {
   volatile vector8long a0 = {2, 2, 2, 2, 1, 1, 1, 1};
   volatile vector8long b0 = {1, 1, 1, 1, 2, 2, 2, 2};
@@ -25,3 +26,4 @@ int test_cmplt_long() {
   
   return (c0[0]+c0[1]+c0[2]+c0[3]+c0[4]+c0[5]+c0[6]+c0[7]); //4
 }
+#endif

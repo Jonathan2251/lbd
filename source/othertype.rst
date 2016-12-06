@@ -565,6 +565,17 @@ They call library function to finish float operations. Mips sperarate float
 operations with a sperarate co-processor for those needing "float intended" 
 application.
 
+In order to support float point library (part of compiler-rt) 
+[#lbt-compiler-rt]_, the following code are added to support instructions clz 
+and clo.
+
+.. rubric:: lbdex/chapters/Chapter7_1/Cpu0InstrInfo.td
+.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td
+    :start-after: //#if CH >= CH7_1 4
+    :end-before: //#endif
+.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td
+    :start-after: //#if CH >= CH7_1 6
+    :end-before: //@def LEA_ADDiu {
 
 Array and struct support
 -------------------------
@@ -884,7 +895,7 @@ either.
 .. code-block:: console
 
   118-165-79-206:input Jonathan$ clang -target mips-unknown-linux-gnu -c 
-  ch7_1_localpointer_vector.cpp -emit-llvm -o ch7_1_vector.bc
+  ch7_1_vector.cpp -emit-llvm -o ch7_1_vector.bc
   118-165-79-206:input Jonathan$ ~/llvm/test/cmake_debug_build/Debug/bin/
   llvm-dis ch7_1_vector.bc -o -  
   ...
@@ -916,47 +927,97 @@ either.
     %15 = add nsw i32 %12, %14
     ret i32 %15
   }
-  
-  ; Function Attrs: nounwind
-  define i32 @_Z15test_cmplt_longv() #0 {
-    %a0 = alloca <8 x i32>, align 32
-    %b0 = alloca <8 x i32>, align 32
-    %c0 = alloca <8 x i32>, align 32
-    store volatile <8 x i32> <i32 2, i32 2, i32 2, i32 2, i32 1, i32 1, i32 1, 
-    i32 1>, <8 x i32>* %a0, align 32
-    store volatile <8 x i32> <i32 1, i32 1, i32 1, i32 1, i32 2, i32 2, i32 2, 
-    i32 2>, <8 x i32>* %b0, align 32
-    %1 = load volatile <8 x i32>, <8 x i32>* %a0, align 32
-    %2 = load volatile <8 x i32>, <8 x i32>* %b0, align 32
-    %3 = icmp slt <8 x i32> %1, %2
-    %4 = sext <8 x i1> %3 to <8 x i32>
-    store volatile <8 x i32> %4, <8 x i32>* %c0, align 32
-    %5 = load volatile <8 x i32>, <8 x i32>* %c0, align 32
-    %6 = extractelement <8 x i32> %5, i32 0
-    %7 = load volatile <8 x i32>, <8 x i32>* %c0, align 32
-    %8 = extractelement <8 x i32> %7, i32 1
-    %9 = add nsw i32 %6, %8
-    %10 = load volatile <8 x i32>, <8 x i32>* %c0, align 32
-    %11 = extractelement <8 x i32> %10, i32 2
-    %12 = add nsw i32 %9, %11
-    %13 = load volatile <8 x i32>, <8 x i32>* %c0, align 32
-    %14 = extractelement <8 x i32> %13, i32 3
-    %15 = add nsw i32 %12, %14
-    %16 = load volatile <8 x i32>, <8 x i32>* %c0, align 32
-    %17 = extractelement <8 x i32> %16, i32 4
-    %18 = add nsw i32 %15, %17
-    %19 = load volatile <8 x i32>, <8 x i32>* %c0, align 32
-    %20 = extractelement <8 x i32> %19, i32 5
-    %21 = add nsw i32 %18, %20
-    %22 = load volatile <8 x i32>, <8 x i32>* %c0, align 32
-    %23 = extractelement <8 x i32> %22, i32 6
-    %24 = add nsw i32 %21, %23
-    %25 = load volatile <8 x i32>, <8 x i32>* %c0, align 32
-    %26 = extractelement <8 x i32> %25, i32 7
-    %27 = add nsw i32 %24, %26
-    ret i32 %27
-  }
 
+.. code-block:: console
+
+  118-165-79-206:input Jonathan$ ~/llvm/test/cmake_debug_build/Debug/bin/llc 
+    -march=cpu0 -mcpu=cpu032II -relocation-model=pic -filetype=asm ch7_1_vector.bc 
+    -o -
+    .text
+    .section .mdebug.abiO32
+    .previous
+    .file "ch7_1_vector.bc"
+    .globl  _Z16test_cmplt_shortv
+    .p2align  2
+    .type _Z16test_cmplt_shortv,@function
+    .ent  _Z16test_cmplt_shortv   # @_Z16test_cmplt_shortv
+  _Z16test_cmplt_shortv:
+    .frame  $fp,48,$lr
+    .mask   0x00000000,0
+    .set  noreorder
+    .set  nomacro
+  # BB#0:
+    addiu $sp, $sp, -48
+    addiu $2, $zero, 3
+    st  $2, 44($sp)
+    addiu $2, $zero, 1
+    st  $2, 36($sp)
+    addiu $2, $zero, 0
+    st  $2, 32($sp)
+    addiu $2, $zero, 2
+    st  $2, 40($sp)
+    st  $2, 28($sp)
+    st  $2, 24($sp)
+    st  $2, 20($sp)
+    st  $2, 16($sp)
+    ld  $2, 32($sp)
+    ld  $3, 44($sp)
+    ld  $4, 40($sp)
+    ld  $5, 36($sp)
+    ld  $t9, 20($sp)
+    slt $5, $5, $t9
+    ld  $t9, 24($sp)
+    slt $4, $4, $t9
+    ld  $t9, 28($sp)
+    slt $3, $3, $t9
+    shl $3, $3, 31
+    sra $3, $3, 31
+    ld  $t9, 16($sp)
+    st  $3, 12($sp)
+    shl $3, $4, 31
+    sra $3, $3, 31
+    st  $3, 8($sp)
+    shl $3, $5, 31
+    sra $3, $3, 31
+    st  $3, 4($sp)
+    slt $2, $2, $t9
+    shl $2, $2, 31
+    sra $2, $2, 31
+    st  $2, 0($sp)
+    ld  $2, 12($sp)
+    ld  $2, 8($sp)
+    ld  $2, 4($sp)
+    ld  $2, 0($sp)
+    ld  $3, 4($sp)
+    addu  $2, $2, $3
+    ld  $3, 12($sp)
+    ld  $3, 8($sp)
+    ld  $3, 0($sp)
+    ld  $3, 8($sp)
+    addu  $2, $2, $3
+    ld  $3, 12($sp)
+    ld  $3, 4($sp)
+    ld  $3, 0($sp)
+    ld  $3, 12($sp)
+    addu  $2, $2, $3
+    ld  $3, 8($sp)
+    ld  $3, 4($sp)
+    ld  $3, 0($sp)
+    addiu $sp, $sp, 48
+    ret $lr
+    .set  macro
+    .set  reorder
+    .end  _Z16test_cmplt_shortv
+  $func_end0:
+    .size _Z16test_cmplt_shortv, ($func_end0)-_Z16test_cmplt_shortv
+  
+  
+    .ident  "Apple LLVM version 7.0.0 (clang-700.1.76)"
+    .section  ".note.GNU-stack","",@progbits
+
+  
+Since test_longlong_shift2() of ch7_1_vector.cpp needs implementation 
+storeRegToStack() of Cpu0SEInstInfo.cpp, at this point it cannot be verified.
 
 .. rubric:: lbdex/chapters/Chapter7_1/Cpu0ISelLowering.h
 .. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.h
@@ -970,5 +1031,7 @@ either.
 
 
 .. [#] http://llvm.org/docs/LangRef.html#getelementptr-instruction
+
+.. [#lbt-compiler-rt] http://jonathan2251.github.io/lbt/lib.html#compiler-rt
 
 .. [#vector] http://llvm.org/docs/LangRef.html#vector-type

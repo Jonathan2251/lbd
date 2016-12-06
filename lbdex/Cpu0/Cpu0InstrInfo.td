@@ -698,6 +698,7 @@ class CountLeading1<bits<8> op, string instr_asm, RegisterClass RC>:
   let rc = 0;
   let shamt = 0;
 }
+//#endif
 
 //#if CH >= CH12_1 8
 // Atomic instructions with 2 source operands (ATOMIC_SWAP & ATOMIC_LOAD_*).
@@ -711,6 +712,7 @@ class AtomicCmpSwap<PatFrag Op, RegisterClass DRC> :
            [(set DRC:$dst, (Op iPTR:$ptr, DRC:$cmp, DRC:$swap))]>;
 //#endif
 
+//#if CH >= CH7_1 4.5
 //@EffectiveAddress
 class EffectiveAddress<string instr_asm, RegisterClass RC, Operand Mem> :
   FMem<0x09, (outs RC:$ra), (ins Mem:$addr),
