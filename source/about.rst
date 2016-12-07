@@ -58,8 +58,8 @@ Revision history
 ----------------
 
 Version 3.9.1, Not release yet.
-  Change ch7_1_vector.cpp and modify section float and double of Chapter Other 
-  data type.
+  Modify section float and double of Chapter Other data type.
+  Move storeRegToStack() and loadRegFromStack() from Chapter9_1 to Chapter3_5.
 
 Version 3.9.0, Released November 22, 2016
   Porting to llvm 3.9.

@@ -73,7 +73,7 @@ void Cpu0SEInstrInfo::copyPhysReg(MachineBasicBlock &MBB,
 }
 #endif
 
-#if CH >= CH9_1 //1
+#if CH >= CH3_5 //1
 void Cpu0SEInstrInfo::
 storeRegToStack(MachineBasicBlock &MBB, MachineBasicBlock::iterator I,
                 unsigned SrcReg, bool isKill, int FI,
@@ -104,7 +104,7 @@ loadRegFromStack(MachineBasicBlock &MBB, MachineBasicBlock::iterator I,
   BuildMI(MBB, I, DL, get(Opc), DestReg).addFrameIndex(FI).addImm(Offset)
     .addMemOperand(MMO);
 }
-#endif //#if CH >= CH9_1 //1
+#endif //#if CH >= CH3_5 //1
 
 #if CH >= CH3_4 //1
 //@expandPostRAPseudo

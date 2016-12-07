@@ -582,36 +582,6 @@ instructions **swi** (Software Interrupt), **jsub** and **jalr** (function call)
     :start-after: #if CH >= CH9_1 //1
     :end-before: #endif
 
-.. rubric:: lbdex/chapters/Chapter9_1/Cpu0InstrInfo.h
-.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.h
-    :start-after: #if CH >= CH9_1 //2
-    :end-before: #endif
-.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.h
-    :start-after: #if CH >= CH9_1 //4
-    :end-before: #endif
-
-.. rubric:: lbdex/chapters/Chapter9_1/Cpu0InstrInfo.cpp
-.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.cpp
-    :start-after: #if CH >= CH9_1 //1
-    :end-before: #endif
-    
-.. rubric:: lbdex/chapters/Chapter9_1/Cpu0SEInstrInfo.h
-.. literalinclude:: ../lbdex/Cpu0/Cpu0SEInstrInfo.h
-    :start-after: #if CH >= CH9_1 //1
-    :end-before: #endif //#if CH >= CH9_1 //1
-
-.. rubric:: lbdex/chapters/Chapter9_1/Cpu0SEInstrInfo.cpp
-.. literalinclude:: ../lbdex/Cpu0/Cpu0SEInstrInfo.cpp
-    :start-after: #if CH >= CH9_1 //1
-    :end-before: #endif //#if CH >= CH9_1 //1
-
-Functions storeRegToStack() Cpu0SEInstrInfo.cpp, 
-storeRegToStackSlot() of Cpu0InstrInfo.cpp are
-handling the registers spilling during register allocation process.
-Since each local variable connecting to a frame index,  ".addFrameIndex(FI).
-addImm(Offset).addMemOperand(MMO); where Offset is 0" in storeRegToStack().
-The loadRegFromStackSlot() and loadRegFromStack() will be used in future and
-we add them at this point in advance.
 
 Both JSUB and JALR defined in Cpu0InstrInfo.td as above use Cpu0JmpLink
 node. They are distinguishable since JSUB use "imm" operand while
@@ -3124,7 +3094,7 @@ if _Z3fnv changes $lr value without following ABI then it will get the wrong $lr
 to $2. The following code kills $lr register and make the reference to $lr by
 loading from stack slot rather than uses register directly. 
 
-.. rubric:: lbdex/chapters/Chapter9_3/Cpu0SEFrameLowering.cpp
+.. rubric:: lbdex/chapters/Chapter9_1/Cpu0SEFrameLowering.cpp
 .. code-block:: c++
   
   bool Cpu0SEFrameLowering::

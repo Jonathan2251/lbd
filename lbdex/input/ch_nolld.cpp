@@ -1,6 +1,5 @@
 
 /// start
-#define TEST_CMPLT_LONG
 #define TEST_ROXV
 #define RUN_ON_VERILOG
 

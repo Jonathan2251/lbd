@@ -41,7 +41,7 @@ const Cpu0InstrInfo *Cpu0InstrInfo::create(Cpu0Subtarget &STI) {
   return llvm::createCpu0SEInstrInfo(STI);
 }
 
-#if CH >= CH9_1 //1
+#if CH >= CH3_5 //1
 MachineMemOperand *
 Cpu0InstrInfo::GetMemOperand(MachineBasicBlock &MBB, int FI,
                              MachineMemOperand::Flags Flags) const {

@@ -1651,8 +1651,40 @@ It translates frame index to correct offset of stack pointer by
 
 The determineCalleeSaves() of Cpu0SEFrameLowering.cpp as above determine the
 spill registers. Once the spill registers are determined, the function 
-eliminateFrameIndex() will save/restore registers to/from stack slots.
+eliminateFrameIndex() will save/restore registers to/from stack slots via the 
+following code.
 
+.. rubric:: lbdex/chapters/Chapter3_5/Cpu0InstrInfo.h
+.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.h
+    :start-after: #if CH >= CH3_5 //2
+    :end-before: #endif
+.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.h
+    :start-after: #if CH >= CH3_5 //4
+    :end-before: #endif
+
+.. rubric:: lbdex/chapters/Chapter3_5/Cpu0InstrInfo.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.cpp
+    :start-after: #if CH >= CH3_5 //1
+    :end-before: #endif
+    
+.. rubric:: lbdex/chapters/Chapter3_5/Cpu0SEInstrInfo.h
+.. literalinclude:: ../lbdex/Cpu0/Cpu0SEInstrInfo.h
+    :start-after: #if CH >= CH3_5 //1
+    :end-before: #endif //#if CH >= CH3_5 //1
+
+.. rubric:: lbdex/chapters/Chapter3_5/Cpu0SEInstrInfo.cpp
+.. literalinclude:: ../lbdex/Cpu0/Cpu0SEInstrInfo.cpp
+    :start-after: #if CH >= CH3_5 //1
+    :end-before: #endif //#if CH >= CH3_5 //1
+
+Functions storeRegToStack() Cpu0SEInstrInfo.cpp, 
+storeRegToStackSlot() of Cpu0InstrInfo.cpp are
+handling the registers spilling during register allocation process.
+Since each local variable connecting to a frame index, code ".addFrameIndex(FI).
+addImm(Offset).addMemOperand(MMO);" in storeRegToStack() where Offset is 0 is 
+added for each virtual register.
+The loadRegFromStackSlot() and loadRegFromStack() will be used when it needs 
+spill.
 
 Large stack
 +++++++++++
