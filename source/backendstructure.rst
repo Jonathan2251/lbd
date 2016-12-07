@@ -1677,16 +1677,16 @@ following code.
     :start-after: #if CH >= CH3_5 //1
     :end-before: #endif //#if CH >= CH3_5 //1
 
-Functions storeRegToStack() Cpu0SEInstrInfo.cpp, 
-storeRegToStackSlot() of Cpu0InstrInfo.cpp are
-handling the registers spilling during register allocation process.
+Functions storeRegToStack() Cpu0SEInstrInfo.cpp and storeRegToStackSlot() of 
+Cpu0InstrInfo.cpp handle the registers spilling during register allocation 
+process.
 Since each local variable connecting to a frame index, code ".addFrameIndex(FI).
 addImm(Offset).addMemOperand(MMO);" in storeRegToStack() where Offset is 0 is 
 added for each virtual register.
 The loadRegFromStackSlot() and loadRegFromStack() will be used when it needs 
-spill.
+reload from stack slot.
 
-So, if adding V0 to Cpu0CallingConv.td as the following and without 
+If adding V0 to Cpu0CallingConv.td as the following and without 
 both storeRegToStack() and storeRegToStackSlot() in Cpu0SEInstrInfo.cpp, 
 Cpu0SEInstrInfo.h and Cpu0InstrInfo.h it will get the belowing error.
 
