@@ -1686,6 +1686,31 @@ added for each virtual register.
 The loadRegFromStackSlot() and loadRegFromStack() will be used when it needs 
 spill.
 
+So, if adding V0 to Cpu0CallingConv.td as the following and without 
+both storeRegToStack() and storeRegToStackSlot() in Cpu0SEInstrInfo.cpp, 
+Cpu0SEInstrInfo.h and Cpu0InstrInfo.h it will get the belowing error.
+
+.. rubric:: lbdex/Cpu0/Cpu0CallingConv.td
+.. code-block:: c++
+
+    def CSR_O32 : CalleeSavedRegs<(add LR, FP, V0,
+                                     (sequence "S%u", 1, 0))>;
+
+.. code-block:: console
+  
+  114-43-191-19:input Jonathan$ ~/llvm/test/cmake_debug_build/Debug/bin/llc 
+  -march=cpu0 -relocation-model=pic -filetype=asm ch3.bc -o -
+    .text
+    .section .mdebug.abiO32
+    .previous
+    .file "ch3.bc"
+  Target didn't implement TargetInstrInfo::storeRegToStackSlot!
+  ...
+  Stack dump:
+  ...
+  Abort trap: 6
+
+
 Large stack
 +++++++++++
 
