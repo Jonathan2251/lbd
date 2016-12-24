@@ -139,7 +139,7 @@ at 0x7fffc because assuming cpu0.v uses 0x80000 bytes of memory.
 .. literalinclude:: ../lbdex/input/build-run_backend.sh
 
 To run program without linker implementation at this point, the boot.cpp must be 
-set at the beginning of code, and the main() of ch_run_backend.cpp is 
+set at the beginning of code, and the main() of ch_run_backend.cpp comes 
 immediately after it.
 Let's run Chapter11_2/ with ``llvm-objdump -d`` for input file 
 ch_run_backend.cpp to generate the hex file via build-run_bacekend.sh, then 
@@ -239,7 +239,7 @@ below,
   RET to PC < 0, finished!
 
 
-As above result, cpu0.v dumps the memory first after reads input file cpu0.hex. 
+As above result, cpu0.v dumps the memory first after reading input file cpu0.hex. 
 Next, it runs instructions from address 0 and print each destination 
 register value in the fourth column. 
 The first column is the nano seconds of timing. The second 
@@ -248,16 +248,20 @@ Now, most example codes depicted in the previous chapters are verified by
 print the variable with print_integer().
 
 Since the cpu0.v machine is created by Verilog language, suppose it can run on
-real FPGA device. 
+real FPGA device (but I never do it). 
 The real output hardware 
 interface/port is hardware output device dependent, such as RS232, speaker, 
 LED, .... You should implement the I/O interface/port when you want to program 
 FPGA and wire I/O device to the I/O port. 
 Through running the compiled code on Verilog simulator, Cpu0 backend compiled 
 result and CPU cycles are verified and calculated.
-Though the Verilog simulator is slow for running the whole system program and
+Currently, this Cpu0 Verilog program is not a pipeline architecture, but 
+according the instruction set it can be implemented as a pipeline model.
+The cycle time of Cpu0 pipeline model is more than 1/5 of "total cpu cycles" 
+displayed as above since there are dependences exist between instructions.
+Though the Verilog simulator is slow in running the whole system program and
 not include the cycles counting in cache and I/O, it is a simple and easy way
-to verify your idea about CPU design at begging stage with small program pattern.
+to verify your idea about CPU design at early stage with small program pattern.
 The overall system simulator is complex to create. Even wiki web site here 
 [#wiki-sim]_ include tools for creating the simulator, it needs a lot of effort.
 
