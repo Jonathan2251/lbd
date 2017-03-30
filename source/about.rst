@@ -565,10 +565,10 @@ Outline of Chapters
 -------------------
 
 .. _about-f1: 
-.. figure:: ../Fig/about/1.png
+.. figure:: ../Fig/about/mywork_1.png
   :width: 899 px
   :height: 261 px
-  :scale: 70 %
+  :scale: 100 %
   :align: center
 
   Code generation and execution flow
