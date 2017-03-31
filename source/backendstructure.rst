@@ -212,14 +212,14 @@ code. Programmers have chance to override this function if they need to.
 Since llvm has deep inheritance tree, they are not digged here.
 Benefit from the inheritance tree structure, not much code needed 
 to be implemented in classes of instruction, frame/stack and select DAG, since 
-much code are implemented by their parent class. 
+much code are implemented by their parent classes. 
 The llvm-tblgen generate Cpu0GenInstrInfo.inc based on information from 
 Cpu0InstrInfo.td. 
 Cpu0InstrInfo.h extract those code it needs from Cpu0GenInstrInfo.inc by define 
 “#define GET_INSTRINFO_HEADER”. 
 With TabelGen, the code size in backend is reduced again through the pattern 
 match theory of compiler developemnt. This is explained in both sections 
-of "DAG" and "Instruction Selection" last chapter.
+of "DAG" and "Instruction Selection" in last chapter.
 Following is the code fragment from Cpu0GenInstrInfo.inc. 
 Code between "#if def  GET_INSTRINFO_HEADER" and 
 "#endif // GET_INSTRINFO_HEADER”" will be extracted to Cpu0InstrInfo.h.
@@ -251,7 +251,7 @@ Chapter3_1/CMakeLists.txt is modified with these new added \*.cpp as follows,
 
 
 Please take a look for Chapter3_1 code. 
-After that, building Chapter3_1 by **"#define CH  CH2"** in Cpu0Config.h as 
+After that, building Chapter3_1 by **"#define CH  CH3_1"** in Cpu0Config.h as 
 follows, and do building with Xcode on iMac or make on linux again.
 
 .. rubric:: ~/llvm/test/src/lib/Target/Cpu0SetChapter.h
@@ -278,7 +278,7 @@ Beyond that, it defines two more features, FeatureCmp and FeatureSlt.
 In order to demostrate the "instruction set designing choice" to readers, this 
 book creates two CPU. 
 Readers will realize why Mips CPU uses instruction SLT instead of
-CMP when they go to later Chapter "Control flow statement".
+CMP after they have read later Chapter "Control flow statement".
 With the added code of supporting cpu032I and cpu32II in Cpu0.td and 
 Cpu0InstrInfo.td of Chapter3_1, the command ``llc -march=cpu0 -mcpu=help`` can 
 display messages as follows,
@@ -420,9 +420,6 @@ defined **'let PrintMethod = \"printMemOperand\";'** as follows,
     let PrintMethod = "printMemOperand";
     let MIOperandInfo = (ops CPURegs, simm16);
     let EncoderMethod = "getMemEncoding";
-  //#if CH >= CH11_1
-    let ParserMatchClass = Cpu0MemAsmOperand;
-  //#endif
   }
   ...
   // 32-bit load.
@@ -562,8 +559,8 @@ Above instancing MCCodeGenInfo, and initialize it by passing RM=Reloc::PIC
 or RM=Reloc::Static when user compiling with position-independent code mode 
 through command ``llc -relocation-model=pic`` or ``llc`` (default relocation 
 mode is static).
-Recall there are two addressing mode in system program book, one is PIC 
-mode, the other is absolute addressing mode. 
+Recall there are two addressing mode for global variable in system program book, 
+one is PIC mode, the other is absolute addressing mode. 
 MC stands for Machine Code.
 
 .. rubric:: Register function of MC instruction info
