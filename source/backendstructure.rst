@@ -536,36 +536,11 @@ Cpu0MCAsmInfo is derived from MCAsmInfo which is an llvm built-in class.
 Most code is implemented in it's parent, backend reuses those code by 
 inheritance.
 
-.. rubric:: Register function of MC codegen info
-.. code-block:: c++
-
-  // Register the MC codegen info.
-  TargetRegistry::RegisterMCCodeGenInfo(*T,
-	                                      createCpu0MCCodeGenInfo);
-
-
-      static MCCodeGenInfo *createCpu0MCCodeGenInfo(
-                                            StringRef TT, Reloc::Model RM,
-                                                    CodeModel::Model CM,
-                                                    CodeGenOpt::Level OL) {
-        MCCodeGenInfo *X = new MCCodeGenInfo();
-        ...
-       // defined in lib/MC/MCCodeGenInfo.cpp
-        X->InitMCCodeGenInfo(RM, CM, OL); 
-        return X;
-      }
-
-Above instancing MCCodeGenInfo, and initialize it by passing RM=Reloc::PIC 
-or RM=Reloc::Static when user compiling with position-independent code mode 
-through command ``llc -relocation-model=pic`` or ``llc`` (default relocation 
-mode is static).
-Recall there are two addressing mode for global variable in system program book, 
-one is PIC mode, the other is absolute addressing mode. 
-MC stands for Machine Code.
 
 .. rubric:: Register function of MC instruction info
 .. code-block:: c++
 
+  // Cpu0MCTargetDesc.cpp
   // Register the MC instruction info.
   TargetRegistry::RegisterMCInstrInfo(*T, createCpu0MCInstrInfo);
   
@@ -593,6 +568,7 @@ will add the information from Cpu0InstrInfo.td we specified.
 .. rubric:: Register function of MCInstPrinter
 .. code-block:: c++
 
+  // Cpu0MCTargetDesc.cpp
   // Register the MC instruction info.
   TargetRegistry::RegisterMCInstrInfo(*T, createCpu0MCInstrInfo);
 
@@ -620,6 +596,7 @@ function for instructions.
 .. rubric:: Register function of RegisterInfo
 .. code-block:: c++
 
+  // Cpu0MCTargetDesc.cpp
   // Register the MC register info.
   TargetRegistry::RegisterMCRegInfo(*T, createCpu0MCRegisterInfo);
 
