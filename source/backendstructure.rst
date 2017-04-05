@@ -507,145 +507,37 @@ subtarget) which defined in Chapter3_1 at this point.
     :end-before: #endif
 
 
-To make the registration clearly, summary as follows,
+To make the registration clearly, summary as the following diagram, :numref:`backendstructure-f3`.
 
-.. rubric:: Register function of MC asm info
-.. code-block:: c++
+.. _backendstructure-f3: 
+.. figure:: ../Fig/backendstructure/dyn_reg.png
+  :align: center
 
-  for (Target *T : {&TheCpu0Target, &TheCpu0elTarget}) {
-    // Register the MC asm info.
-    RegisterMCAsmInfoFn X(*T, createCpu0MCAsmInfo);
+  Tblgen generate files for Cpu0 backend
 
 
-      static MCAsmInfo *createCpu0MCAsmInfo(const 
-      MCRegisterInfo &MRI, StringRef TT) {
-        MCAsmInfo *MAI = new Cpu0MCAsmInfo(TT);
-
-        unsigned SP = MRI.getDwarfRegNum(Cpu0::SP, true);
-        MCCFIInstruction Inst = MCCFIInstruction::
-      createDefCfa(0, SP, 0);
-        MAI->addInitialFrameState(Inst);
-
-        return MAI;
-      }
-
-Above registering the object of class Cpu0MCAsmInfo for 
+Above createCpu0MCAsmInfo() registering the object of class Cpu0MCAsmInfo for 
 target TheCpu0Target and TheCpu0elTarget. 
 TheCpu0Target is for big endian and TheCpu0elTarget is for little endian. 
 Cpu0MCAsmInfo is derived from MCAsmInfo which is an llvm built-in class. 
 Most code is implemented in it's parent, backend reuses those code by 
 inheritance.
 
-
-.. rubric:: Register function of MC instruction info
-.. code-block:: c++
-
-  // Cpu0MCTargetDesc.cpp
-  // Register the MC instruction info.
-  TargetRegistry::RegisterMCInstrInfo(*T, createCpu0MCInstrInfo);
-  
-
-     static MCInstrInfo *createCpu0MCInstrInfo() {
-     MCInstrInfo *X = new MCInstrInfo();
-     // defined in Cpu0GenInstrInfo.inc
-  |--- InitCpu0MCInstrInfo(X);
-  |    return X;
-  |  }
-  |      // Cpu0GenInstrInfo.inc
-  |      extern const MCInstrDesc Cpu0Insts[] = {
-  |      // Info generated from Cpu0InstrInfo.td
-  |      }
-  |--->  static inline void InitCpu0MCInstrInfo(
-                               MCInstrInfo *II) {
-           II->InitMCInstrInfo(Cpu0Insts, ...);
-         }
-  
-Above instancing MCInstrInfo object X, and initialize it 
+Above createCpu0MCInstrInfo() instancing MCInstrInfo object X, and initialize it 
 by InitCpu0MCInstrInfo(X). 
 Since InitCpu0MCInstrInfo(X) is defined in Cpu0GenInstrInfo.inc, this function 
 will add the information from Cpu0InstrInfo.td we specified. 
 
-.. rubric:: Register function of MCInstPrinter
-.. code-block:: c++
-
-  // Cpu0MCTargetDesc.cpp
-  // Register the MC instruction info.
-  TargetRegistry::RegisterMCInstrInfo(*T, createCpu0MCInstrInfo);
-
-
-      static MCInstPrinter *createCpu0MCInstPrinter(
-                                                   const Target &T,
-                                                    unsigned SyntaxVariant,
-                                                    const MCAsmInfo &MAI,
-                                                    const MCInstrInfo &MII,
-                                                    const MCRegisterInfo &MRI,
-                                                    const MCSubtargetInfo &STI)
-      {
-    |--- return new Cpu0InstPrinter(MAI, MII, MRI);
-    |  }
-    |
-    |      // Cpu0InstPrinter.h      
-    |--->  Cpu0InstPrinter(const MCAsmInfo &MAI, 
-                           const MCInstrInfo &MII,
-                            const MCRegisterInfo &MRI)
-              : MCInstPrinter(MAI, MII, MRI) {}
-
-Above instancing Cpu0InstPrinter to take care printing 
+Above createCpu0MCInstPrinter() instancing Cpu0InstPrinter to take care printing 
 function for instructions. 
 
-.. rubric:: Register function of RegisterInfo
-.. code-block:: c++
-
-  // Cpu0MCTargetDesc.cpp
-  // Register the MC register info.
-  TargetRegistry::RegisterMCRegInfo(*T, createCpu0MCRegisterInfo);
-
-
-     static MCRegisterInfo *createCpu0MCRegisterInfo(
-     StringRef TT) {
-     MCRegisterInfo *X = new MCRegisterInfo();
-     // defined in Cpu0GenRegisterInfo.inc
-  |--- InitCpu0MCRegisterInfo(X, Cpu0::LR);
-  |    return X;
-  |  }
-  |
-  |      // Cpu0GenRegisterInfo.inc
-  |--->  static inline void InitCpu0MCRegisterInfo(
-         MCRegisterInfo *RI, ...) {
-           RI->InitMCRegisterInfo(Cpu0RegDesc, ...)
-         }
-  
-Above is similar to "Register function of MC instruction info", but it 
+Above createCpu0MCRegisterInfo() is similar to "Register function of MC instruction info", but it 
 initializes the register information specified in Cpu0RegisterInfo.td. 
 They share some values from instruction/register td description, so
 no need to specify them again in Initialize routine if they are consistant with 
 td description files.
 
-.. rubric:: Register function of SubtargetInfo
-.. code-block:: c++
-
-  // Register the MC subtarget info.
-  TargetRegistry::RegisterMCSubtargetInfo(*T,
-                                       createCpu0MCSubtargetInfo);
-
-
-     static MCSubtargetInfo *createCpu0MCSubtargetInfo(
-                StringRef TT, StringRef CPU,  StringRef FS) {
-       ...
-       MCSubtargetInfo *X = new MCSubtargetInfo();
-       // defined in Cpu0GenSubtargetInfo.inc
-  |--- InitCpu0MCSubtargetInfo(X, TT, CPU, ArchFS);
-  |    return X;
-  |  }
-  |      // Cpu0GenSubtargetInfo.inc
-  |--->  static inline void InitCpu0MCSubtargetInfo(
-         MCSubtargetInfo *II, StringRef TT, 
-         StringRef CPU, StringRef FS) {
-           II->InitMCSubtargetInfo(TT, CPU, FS, 
-                Cpu0FeatureKV, ...);
-         }
-
-Above instancing MCSubtargetInfo object and initialize with 
+Above createCpu0MCSubtargetInfo() instancing MCSubtargetInfo object and initialize with 
 Cpu0.td information. 
 
 
