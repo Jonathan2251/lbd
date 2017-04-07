@@ -1646,8 +1646,6 @@ Cpu0TargetLowering::LowerFormalArguments(SDValue Chain,
                  ArgLocs, *DAG.getContext());
   Cpu0CC Cpu0CCInfo(CallConv, ABI.IsO32(), 
                     CCInfo);
-  Cpu0FI->setFormalArgInfo(CCInfo.getNextStackOffset(),
-                           Cpu0CCInfo.hasByValArg());
 #endif
 
 #if CH >= CH9_1 //6
@@ -1656,7 +1654,13 @@ Cpu0TargetLowering::LowerFormalArguments(SDValue Chain,
   bool UseSoftFloat = Subtarget.abiUsesSoftFloat();
 
   Cpu0CCInfo.analyzeFormalArguments(Ins, UseSoftFloat, FuncArg);
+#endif // #if CH >= CH9_1 //6
+#if CH >= CH3_4
+  Cpu0FI->setFormalArgInfo(CCInfo.getNextStackOffset(),
+                           Cpu0CCInfo.hasByValArg());
+#endif
 
+#if CH >= CH9_1 //6.3
   // Used with vargs to acumulate store chains.
   std::vector<SDValue> OutChains;
 
@@ -1667,8 +1671,10 @@ Cpu0TargetLowering::LowerFormalArguments(SDValue Chain,
   for (unsigned i = 0, e = ArgLocs.size(); i != e; ++i) {
   //@2 }
     CCValAssign &VA = ArgLocs[i];
-    std::advance(FuncArg, Ins[i].OrigArgIndex - CurArgIdx);
-    CurArgIdx = Ins[i].OrigArgIndex;
+    if (Ins[i].isOrigArg()) {
+      std::advance(FuncArg, Ins[i].getOrigArgIndex() - CurArgIdx);
+      CurArgIdx = Ins[i].getOrigArgIndex();
+    }
     EVT ValVT = VA.getValVT();
     ISD::ArgFlagsTy Flags = Ins[i].Flags;
     bool IsRegLoc = VA.isRegLoc();
@@ -2219,7 +2225,10 @@ analyzeFormalArguments(const SmallVectorImpl<ISD::InputArg> &Args,
   for (unsigned I = 0; I != NumArgs; ++I) {
     MVT ArgVT = Args[I].VT;
     ISD::ArgFlagsTy ArgFlags = Args[I].Flags;
-    std::advance(FuncArg, Args[I].OrigArgIndex - CurArgIdx);
+    if (Args[I].isOrigArg()) {
+      std::advance(FuncArg, Args[I].getOrigArgIndex() - CurArgIdx);
+      CurArgIdx = Args[I].getOrigArgIndex();
+    }
     CurArgIdx = Args[I].OrigArgIndex;
 
     if (ArgFlags.isByVal()) {

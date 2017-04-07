@@ -58,6 +58,8 @@ Revision history
 ----------------
 
 Version 3.9.1, Not release yet.
+  Fix tailcall bug.
+  Fix return-vector.ll run slowly problem, bug from Cpu0ISelLowering.cpp.
   Add figure "Tblgen generate files for Cpu0 backend".
   Modify section float and double of Chapter Other data type.
   Move storeRegToStack() and loadRegFromStack() from Chapter9_1 to Chapter3_5.

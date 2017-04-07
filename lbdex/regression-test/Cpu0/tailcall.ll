@@ -146,9 +146,7 @@ declare i32 @callee10(i32, i32, i32, i32, i32, i32, i32, i32, i32)
 define i32 @caller10(i32 %a0, i32 %a1, i32 %a2, i32 %a3, i32 %a4, i32 %a5, i32 %a6, i32 %a7, i32 %a8) nounwind {
 entry:
 ; PIC32: .ent caller10
-; PIC32: jalr
 ; STATIC32: .ent caller10
-; STATIC32: jsub
 
   %call = tail call i32 @callee10(i32 %a8, i32 %a0, i32 %a1, i32 %a2, i32 %a3, i32 %a4, i32 %a5, i32 %a6, i32 %a7) nounwind
   ret i32 %call
@@ -174,9 +172,9 @@ declare void @llvm.memcpy.p0i8.p0i8.i32(i8* nocapture, i8* nocapture, i32, i32, 
 define i32 @caller12(%struct.S* nocapture byval %a0) nounwind {
 entry:
 ; PIC32: .ent caller12
-; PIC32-NOT: jalr
+; PIC32: jalr
 ; STATIC32: .ent caller12
-; STATIC32-NOT: jsub
+; STATIC32: jsub
 
   %0 = bitcast %struct.S* %a0 to i8*
   tail call void @llvm.memcpy.p0i8.p0i8.i32(i8* bitcast (%struct.S* @gs1 to i8*), i8* %0, i32 8, i32 4, i1 false)
