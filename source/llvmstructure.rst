@@ -894,21 +894,25 @@ next two sections for DAG and Instruction Selection.
 .. code-block:: console
 
   // In this stage, reorder the instructions sequence for optimization in
-  //  instructions cycle or in register pressure.
+  //  instructions cycle or in register pressure. Here are the initial
+  //  instructions that will be worked on in this example.
       st i32 %a, i16* %b,  i16 5 // st %a to *(%b+5)
       st %b, i32* %c, i16 0
       %d = ld i32* %c
   
-  // Transfer above instructions order as follows. In RISC CPU of Mips, the ld 
-  //  %c uses the result of the previous instruction st %c. So it must waits 1
-  //  cycle. Meaning the ld cannot follow st immediately.
+  // Here are the same instructions above, but reordered for quicker execution.
+  //  The MIPS architecute pipeline introduces a delay of one cycle before the
+  //  result of st can be used by an ld instruction. The following reorder moves
+  //  st %b after st %c so the required CPU cycle between st %qc and ld %c can
+  //  be used to execute st %b.
   =>  st %b, i32* %c, i16 0
       st i32 %a, i16* %b,  i16 5
       %d = ld i32* %c, i16 0
-  // If without reorder instructions, a instruction nop which do nothing must be
-  //  filled, contribute one instruction cycle more than optimization. (Actually,
-  //  Mips is scheduled with hardware dynamically and will insert nop between st
-  //  and ld instructions if compiler didn't insert nop.)
+
+  // If the instructions are not reordered, a nop instruction (No Operation) is
+  //  required between the above st and ld. (If the nop instruction is not put
+  //  between the st and ld by the compiler, the MIPS hardware will automatically
+  //  insert the nop at runtime.)
       st i32 %a, i16* %b,  i16 5
       st %b, i32* %c, i16 0
       nop
@@ -917,14 +921,14 @@ next two sections for DAG and Instruction Selection.
   // Minimum register pressure
   //  Suppose %c is alive after the instructions basic block (meaning %c will be
   //  used after the basic block), %a and %b are not alive after that.
-  // The following no-reorder-version need 3 registers at least
+  // The following no-reorder-version needs at least 3 registers
       %a = add i32 1, i32 0
       %b = add i32 2, i32 0
       st %a,  i32* %c, 1
       st %b,  i32* %c, 2
   
-  // The reorder version needs 2 registers only (by allocate %a and %b in the same
-  //  register)
+  // The reorder version only needs 2 registers (by allocating %a and %b in the
+  //  same cpu register)
   => %a = add i32 1, i32 0
       st %a,  i32* %c, 1
       %b = add i32 2, i32 0
@@ -1335,7 +1339,7 @@ Caller and callee saved registers
 .. literalinclude:: ../lbdex/input/ch9_caller_callee_save_registers.cpp
     :start-after: /// start
     
-Run Mips backend with above input will get the following result.
+Running the Mips backend with the above input will get the following result.
 
 .. code-block:: console
 
@@ -1412,43 +1416,41 @@ the function has called another function.
 Live in and live out register
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-As the example of last sub-section. The $ra is "live in" register since the 
-return address is decided by caller. The $2 is "live out" register since the 
-return value of the function is saved in this register, and caller can get the 
-result by read it directly as the comment in above example. 
-Through mark "live in" and "live out" registers, backend provides 
-llvm middle layer information to remove useless instructions in variables 
-access. 
-Of course, llvm applies the DAG analysis mentioned in the previous sub-section 
-to finish it. 
-Since C supports seperate compilation for different functions, the "live in" 
-and "out" information from backend provides the optimization opportunity to 
-llvm. 
-LLVM provides function addLiveIn() to mark "live in" register but no function 
-addLiveOut() provided. 
-For the "live out" register, Mips backend marks it by 
-DAG=DAG.getCopyToReg(..., $2, ...) and return DAG instead, since all local 
-varaiables are not exist after function exit.
+Consider the prior example.
+
+- $ra is a "live in" register since the return address is decided by caller.
+- $2 is a "live out" register because this register stores the function's return value (the caller can get the result by reading it directly).
+
+In LLVM, registers are marked "live in" or "live out" by the backend
+the provide the llvm middle layer the information it needs to remove
+useless instructions in variables access.  LLVM then applies the DAG
+analysis mentioned in the previous sub-section to finish it.  Since C
+supports seperate compilation for different functions, the "live in"
+and "live out" information from the backend provides an optimization
+opportunity to llvm.
+
+LLVM provides function addLiveIn() to mark "live in" register, but no
+addLiveOut() function is provided.  Instead, the MIPS backend marks "live out"
+registers with DAG=DAG.getCopyToReg(..., $2, ...) (which copies the DAG) since
+no local varaiables exist after a function exits.
 
 
 Create Cpu0 backend
 --------------------
 
-From now on, the Cpu0 backend will be created from scratch step by step.
-To make readers easily understanding the backend structure, Cpu0 
-example code can be generated with chapter by chapter through command here 
-[#chapters-ex]_.
-Cpu0 example code, lbdex, can be found at near left bottom of this web site. Or 
-here http://jonathan2251.github.io/lbd/lbdex.tar.gz.
+The rest of this book will detail each step required to create a Cpu0 backend from scratch.
+Generating the Cpu0 example code for each chapter is detailed here [#chapters-ex]_.
+Lbdex, the Cpu0 example code, can be found near the bottom-left of this web site, or at
+http://jonathan2251.github.io/lbd/lbdex.tar.gz.
 
 
 Cpu0 backend machine ID and relocation records
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-To create a new backend, there are some files in <<llvm root dir>> need to be 
-modified. The added information include both the ID and name of machine, and 
-relocation records. Chapter "ELF Support" include the relocation records 
-introduction. The following files are modified to add Cpu0 backend as follows,
+To create a new backend, there are some files in <<llvm root dir>> that need to be
+modified. The added information includes both the ID and name of machine, and the
+machine's relocation records. The chapter "ELF Support" include the relocation records
+introduction. The following files are modified to add the Cpu0 backend:
 
 .. rubric:: lbdex/src/modify/src/config-ix.cmake
 .. code:: cmake
@@ -2031,7 +2033,7 @@ Sub-directories src is for source code and cmake_debug_build is for debug
 build directory.
 
 Beside directory src/lib/Target/Cpu0, there are a couple of files modified to 
-support cpu0 new Target, which includes both the ID and name of machine and 
+support cpu0 new Target, which includes both the ID and name of the machine and 
 relocation records listed in the early sub-section.
 You can update your llvm working copy and find the modified files by 
 commands, cp -rf lbdex/src/modify/src/* <yourllvm/workingcopy/sourcedir>/.
