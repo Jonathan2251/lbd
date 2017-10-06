@@ -14,7 +14,9 @@
 
 // We have banks of 16 registers each.
 class Cpu0Reg<bits<16> Enc, string n> : Register<n> {
+  // For tablegen(... -gen-emitter)  in CMakeLists.txt
   let HWEncoding = Enc;
+  
   let Namespace = "Cpu0";
 }
 
