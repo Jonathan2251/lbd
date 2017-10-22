@@ -143,11 +143,8 @@ namespace {
 class Cpu0Operand : public MCParsedAsmOperand {
 
   enum KindTy {
-    k_CondCode,
-    k_CoprocNum,
     k_Immediate,
     k_Memory,
-    k_PostIndexRegister,
     k_Register,
     k_Token
   } Kind;
@@ -210,17 +207,17 @@ public:
     addExpr(Inst,Expr);
   }
 
-  bool isReg() const { return Kind == k_Register; }
-  bool isImm() const { return Kind == k_Immediate; }
-  bool isToken() const { return Kind == k_Token; }
-  bool isMem() const { return Kind == k_Memory; }
+  bool isReg() const override { return Kind == k_Register; }
+  bool isImm() const override { return Kind == k_Immediate; }
+  bool isToken() const override { return Kind == k_Token; }
+  bool isMem() const override { return Kind == k_Memory; }
 
   StringRef getToken() const {
     assert(Kind == k_Token && "Invalid access!");
     return StringRef(Tok.Data, Tok.Length);
   }
 
-  unsigned getReg() const {
+  unsigned getReg() const override {
     assert((Kind == k_Register) && "Invalid access!");
     return Reg.RegNum;
   }
@@ -278,14 +275,42 @@ public:
   }
 
   /// getStartLoc - Get the location of the first token of this operand.
-  SMLoc getStartLoc() const { return StartLoc; }
+  SMLoc getStartLoc() const override { return StartLoc; }
   /// getEndLoc - Get the location of the last token of this operand.
-  SMLoc getEndLoc() const { return EndLoc; }
+  SMLoc getEndLoc() const override { return EndLoc; }
 
-  virtual void print(raw_ostream &OS) const {
-    llvm_unreachable("unimplemented!");
+  void print(raw_ostream &OS) const override {
+    switch (Kind) {
+    case k_Immediate:
+      OS << "Imm<";
+      OS << *Imm.Val;
+      OS << ">";
+      break;
+    case k_Memory:
+      OS << "Mem<";
+      OS << Mem.Base;
+      OS << ", ";
+      OS << *Mem.Off;
+      OS << ">";
+      break;
+    case k_Register:
+      OS << "Register<" << Reg.RegNum << ">";
+      break;
+    case k_Token:
+      OS << Tok.Data;
+      break;
+    }
   }
 };
+}
+
+void printCpu0Operands(OperandVector &Operands) {
+  for (size_t i = 0; i < Operands.size(); i++) {
+    Cpu0Operand* op = static_cast<Cpu0Operand*>(&*Operands[i]);
+    assert(op != nullptr);
+    DEBUG(dbgs() << "<" << *op << ">");
+  }
+  DEBUG(dbgs() << "\n");
 }
 
 //@1 {
@@ -442,6 +467,7 @@ bool Cpu0AsmParser::MatchAndEmitInstruction(SMLoc IDLoc, unsigned &Opcode,
                                             MCStreamer &Out,
                                             uint64_t &ErrorInfo,
                                             bool MatchingInlineAsm) {
+  printCpu0Operands(Operands);
   MCInst Inst;
   unsigned MatchResult = MatchInstructionImpl(Operands, Inst, ErrorInfo,
                                               MatchingInlineAsm);
