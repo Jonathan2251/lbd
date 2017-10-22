@@ -5,7 +5,7 @@
 asm("ld	$2, 8($sp)");
 asm("st	$0, 4($sp)");
 asm("addiu $3,	$ZERO, 0");
-asm("add $3, $1, $2");
+asm("add $v1, $at, $v0");
 asm("sub $3, $2, $3");
 asm("mul $2, $1, $3");
 asm("div $3, $2");
