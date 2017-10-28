@@ -59,7 +59,38 @@ Run Chapter10_1/ with ch11_1.cpp will get the following error message.
 Since we havn't implemented Cpu0 assembler, it has the error message as above. 
 The Cpu0 can translate LLVM IR into assembly and obj directly, but it cannot 
 translate hand-code assembly instructions into obj. 
+
 Directory AsmParser handle the assembly to obj translation.
+The assembling Data Flow Diagram (DFD) as follows,
+
+.. _asm-f1: 
+.. figure:: ../Fig/asm/asmDfd.png
+  :width: 1094 px
+  :height: 132 px
+  :scale: 100 %
+  :align: center
+
+  LLVM assembling Data Flow Chart (DFD)
+  
+
+.. _asm-f2: 
+.. figure:: ../Fig/asm/asmDfdEx.png
+  :width: 1465 px
+  :height: 220 px
+  :scale: 70 %
+  :align: center
+
+  LLVM assembling Data Flow Chart (DFD) with a given example
+  
+Given an example assembly instruction "add $v1, $v0, $at", llvm AsmParser
+kernel call backend ParseInstruction() of Cpu0AsmParser.cpp when it 
+parses and recognises the first token at the beginning of line is identifier. 
+ParseInstruction() parses one assembly instruction and creates Operands and 
+return to llvm AsmParser. Then AsmParser calls backend MatchAndEmitInstruction() 
+to set Opcode and Operands to MCInst, then encoder can encode binary instruction
+from MCInst with the information come from Cpu0InstrInfo.td which includes binary
+value for instruction Opcode ID and Operand IDs.
+ 
 The Chapter11_1/ include AsmParser implementation as follows,
 
 .. rubric:: lbdex/chapters/Chapter11_1/AsmParser/Cpu0AsmParser.cpp
