@@ -266,8 +266,8 @@ encodeInstruction(), explaining in comments which begin with ///.
 
 .. _asm-f3: 
 .. figure:: ../Fig/asm/asmDfdEx2.png
-  :width: 1602 px
-  :height: 208 px
+  :width: 1480 px
+  :height: 264 px
   :scale: 100 %
   :align: center
 
@@ -282,6 +282,12 @@ encodeInstruction(), explaining in comments which begin with ///.
   :align: center
 
   Data Flow Chart (DFD) in and between MatchAndEmitInstruction() and encodeInstruction()
+
+
+MatchTable0 include all the possibile combinations of opcode and operands type.
+Even the assembly instruction of user input may pass Cpu0AsmParser in syntax 
+check, the MatchAndEmitInstruction() still can be fail. For example, instruction 
+"asm("move $3, $2);" can pass but "asm("move $3, $2, $1");" will fail. 
   
 
 Code list and some detail functions explanation
