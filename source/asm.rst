@@ -157,13 +157,14 @@ encodeInstruction(), explaining in comments which begin with ///.
     ...
   };
   
-  /// When kind = Convert__Reg1_0__Reg1_1__Reg1_2, ConversionTable[Kind] = CVT_95_Reg
-  /// for Operands[1], Operands[3], Operands[5] do the following:
-  /// static_cast<Cpu0Operand&>(*Operands[OpIdx]).addRegOperands(Inst, 1);
-  /// Since p = 0, 2, 4 and OpIdx = 1, 2, 3 for OpIdx=*(p+1),
-  /// now, Operands[1] = V1, Operands[2] = AT, Operands[3] = V0 for 
-  /// e.g. ADD , V1, AT, V0
-  /// and Inst.Opcode = ADD, Inst.Operand[0] = V1, Inst.Operand[1] = AT, Inst.Operand[2] = V0
+  /// When kind = Convert__Reg1_0__Reg1_1__Reg1_2, ConversionTable[Kind] is equal to CVT_95_Reg
+  /// For Operands[1], Operands[2], Operands[3] do the following:
+  ///   static_cast<Cpu0Operand&>(*Operands[OpIdx]).addRegOperands(Inst, 1);
+  /// Since p = 0, 2, 4, then OpIdx = 1, 2, 3 when OpIdx=*(p+1).
+  /// Since, Operands[1] = V1, Operands[2] = AT, Operands[3] = V0, 
+  ///   for "ADD , V1, AT, V0" which created by ParseInstruction().
+  /// Inst.Opcode = ADD, Inst.Operand[0] = V1, Inst.Operand[1] = AT, 
+  ///   Inst.Operand[2] = V0.
   void Cpu0AsmParser::
   convertToMCInst(unsigned Kind, MCInst &Inst, unsigned Opcode,
                   const OperandVector &Operands) {
@@ -185,12 +186,23 @@ encodeInstruction(), explaining in comments which begin with ///.
 
 .. rubric:: lbdex/chapters/Chapter11_1/AsmParser/Cpu0AsmParser.cpp
 .. code-block:: c++
-  
+
+  /// For "ADD , V1, AT, V0", ParseInstruction() set Operands[1].Reg.RegNum = V1, 
+  ///   Operands[2].Reg.RegNum = AT, ..., by Cpu0Operand::CreateReg(RegNo, S,
+  ///   Parser.getTok().getLoc()) in calling ParseOperand().
+  /// So, after (*Operands[1..3]).addRegOperands(Inst, 1), 
+  ///   Inst.Opcode = ADD, Inst.Operand[0] = V1, Inst.Operand[1] = AT, 
+  ///   Inst.Operand[2] = V0.
   class Cpu0Operand : public MCParsedAsmOperand {
     ...
     void addRegOperands(MCInst &Inst, unsigned N) const {
       assert(N == 1 && "Invalid number of operands!");
       Inst.addOperand(MCOperand::createReg(getReg()));
+    }
+    ...    
+    unsigned getReg() const override {
+      assert((Kind == k_Register) && "Invalid access!");
+      return Reg.RegNum;
     }
     ...
   }
@@ -216,7 +228,7 @@ encodeInstruction(), explaining in comments which begin with ///.
       const MCSubtargetInfo &STI) const {
     static const uint64_t InstBits[] = {
       ...
-      UINT64_C(318767104),	// ADD  //* 318767104=0x13000000
+      UINT64_C(318767104),	// ADD  /// 318767104=0x13000000
       ...
     };
     ...
