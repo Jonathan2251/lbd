@@ -60,6 +60,9 @@ Since we havn't implemented Cpu0 assembler, it has the error message as above.
 The Cpu0 can translate LLVM IR into assembly and obj directly, but it cannot 
 translate hand-code assembly instructions into obj. 
 
+Code structure explanation
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 Directory AsmParser handle the assembly to obj translation.
 The assembling Data Flow Diagram (DFD) as follows,
 
@@ -82,14 +85,176 @@ The assembling Data Flow Diagram (DFD) as follows,
 
   LLVM assembling Data Flow Chart (DFD) with a given example
   
-Given an example assembly instruction "add $v1, $v0, $at", llvm AsmParser
+Given an example of assembly instruction "add $v1, $v0, $at", llvm AsmParser
 kernel call backend ParseInstruction() of Cpu0AsmParser.cpp when it 
-parses and recognises the first token at the beginning of line is identifier. 
-ParseInstruction() parses one assembly instruction and creates Operands and 
+parses and recognises that the first token at the beginning of line is identifier. 
+ParseInstruction() parses one assembly instruction, creates Operands and 
 return to llvm AsmParser. Then AsmParser calls backend MatchAndEmitInstruction() 
 to set Opcode and Operands to MCInst, then encoder can encode binary instruction
 from MCInst with the information come from Cpu0InstrInfo.td which includes binary
-value for instruction Opcode ID and Operand IDs.
+value for Opcode ID and Operand IDs of the instruction.
+
+List the key functions and data structure of MatchAndEmitInstruction() and 
+encodeInstruction(), explaining in comments which begin with ///.
+
+.. rubric:: llvm/cmake_debug_build/lib/Target/Cpu0/Cpu0GenAsmMatcher.inc
+.. code-block:: c++
+  
+  enum InstructionConversionKind {
+    Convert__Reg1_0__Reg1_1__Reg1_2,
+    Convert__Reg1_0__Reg1_1__Imm1_2,
+    ...
+    CVT_NUM_SIGNATURES
+  };
+  
+  } // end anonymous namespace
+  
+    struct MatchEntry {
+      uint16_t Mnemonic;
+      uint16_t Opcode;
+      uint8_t ConvertFn;
+      uint32_t RequiredFeatures;
+      uint8_t Classes[3];
+      StringRef getMnemonic() const {
+        return StringRef(MnemonicTable + Mnemonic + 1,
+                         MnemonicTable[Mnemonic]);
+      }
+    };
+    
+  static const MatchEntry MatchTable0[] = {
+    { 0 /* add */, Cpu0::ADD, Convert__Reg1_0__Reg1_1__Reg1_2, 0, { MCK_CPURegs, MCK_CPURegs, MCK_CPURegs }, },
+    { 4 /* addiu */, Cpu0::ADDiu, Convert__Reg1_0__Reg1_1__Imm1_2, 0, { MCK_CPURegs, MCK_CPURegs, MCK_Imm }, },
+    ...
+  };
+  
+  unsigned Cpu0AsmParser::
+  MatchInstructionImpl(const OperandVector &Operands,
+                       MCInst &Inst, uint64_t &ErrorInfo,
+                       bool matchingInlineAsm, unsigned VariantID) {
+  
+    for (const MatchEntry *it = MnemonicRange.first, *ie = MnemonicRange.second;
+         it != ie; ++it) {
+      ...
+      // We have selected a definite instruction, convert the parsed
+      // operands into the appropriate MCInst.
+      
+      /// For instance ADD , V1, AT, V0
+      /// MnemonicRange.first = &MatchTable0[0]
+      /// MnemonicRange.second = &MatchTable0[1]
+      /// it.ConvertFn = Convert__Reg1_0__Reg1_1__Reg1_2
+  
+      convertToMCInst(it->ConvertFn, Inst, it->Opcode, Operands);
+      ...
+    }
+    ...
+  }
+  
+  static const uint8_t ConversionTable[CVT_NUM_SIGNATURES][9] = {
+    // Convert__Reg1_0__Reg1_1__Reg1_2
+    { CVT_95_Reg, 1, CVT_95_Reg, 2, CVT_95_Reg, 3, CVT_Done },
+    // Convert__Reg1_0__Reg1_1__Imm1_2
+    { CVT_95_Reg, 1, CVT_95_Reg, 2, CVT_95_addImmOperands, 3, CVT_Done },
+    ...
+  };
+  
+  /// When kind = Convert__Reg1_0__Reg1_1__Reg1_2, ConversionTable[Kind] = CVT_95_Reg
+  /// for Operands[1], Operands[3], Operands[5] do the following:
+  /// static_cast<Cpu0Operand&>(*Operands[OpIdx]).addRegOperands(Inst, 1);
+  /// Since p = 0, 2, 4 and OpIdx = 1, 2, 3 for OpIdx=*(p+1),
+  /// now, Operands[1] = V1, Operands[2] = AT, Operands[3] = V0 for 
+  /// e.g. ADD , V1, AT, V0
+  /// and Inst.Opcode = ADD, Inst.Operand[0] = V1, Inst.Operand[1] = AT, Inst.Operand[2] = V0
+  void Cpu0AsmParser::
+  convertToMCInst(unsigned Kind, MCInst &Inst, unsigned Opcode,
+                  const OperandVector &Operands) {
+    assert(Kind < CVT_NUM_SIGNATURES && "Invalid signature!");
+    const uint8_t *Converter = ConversionTable[Kind];
+    unsigned OpIdx;
+    Inst.setOpcode(Opcode);
+    for (const uint8_t *p = Converter; *p; p+= 2) {
+      OpIdx = *(p + 1);
+      switch (*p) {
+      default: llvm_unreachable("invalid conversion entry!");
+      case CVT_Reg:
+        static_cast<Cpu0Operand&>(*Operands[OpIdx]).addRegOperands(Inst, 1);
+        break;
+      ...
+      }
+    }
+  }
+
+.. rubric:: lbdex/chapters/Chapter11_1/AsmParser/Cpu0AsmParser.cpp
+.. code-block:: c++
+  
+  class Cpu0Operand : public MCParsedAsmOperand {
+    ...
+    void addRegOperands(MCInst &Inst, unsigned N) const {
+      assert(N == 1 && "Invalid number of operands!");
+      Inst.addOperand(MCOperand::createReg(getReg()));
+    }
+    ...
+  }
+
+.. rubric:: lbdex/chapters/Chapter11_1/MCTargetDesc/Cpu0MCCodeEmitter.cpp
+.. code-block:: c++
+  
+  void Cpu0MCCodeEmitter::
+  encodeInstruction(const MCInst &MI, raw_ostream &OS,
+                    SmallVectorImpl<MCFixup> &Fixups,
+                    const MCSubtargetInfo &STI) const
+  {
+    uint32_t Binary = getBinaryCodeForInstr(MI, Fixups, STI);
+    ...
+    EmitInstruction(Binary, Size, OS);
+  }
+
+.. rubric:: llvm/cmake_debug_build/lib/Target/Cpu0/Cpu0GenMCCodeEmitter.inc
+.. code-block:: c++
+  
+  uint64_t Cpu0MCCodeEmitter::getBinaryCodeForInstr(const MCInst &MI,
+      SmallVectorImpl<MCFixup> &Fixups,
+      const MCSubtargetInfo &STI) const {
+    static const uint64_t InstBits[] = {
+      ...
+      UINT64_C(318767104),	// ADD  //* 318767104=0x13000000
+      ...
+    };
+    ...
+    
+    const unsigned opcode = MI.getOpcode();
+    ...
+    switch (opcode) {
+      case Cpu0::ADD:
+      ...
+        // op: ra
+        op = getMachineOpValue(MI, MI.getOperand(0), Fixups, STI);
+        Value |= (op & UINT64_C(15)) << 20;
+        // op: rb
+        op = getMachineOpValue(MI, MI.getOperand(1), Fixups, STI);
+        Value |= (op & UINT64_C(15)) << 16;
+        // op: rc
+        op = getMachineOpValue(MI, MI.getOperand(2), Fixups, STI);
+        Value |= (op & UINT64_C(15)) << 12;
+        break;
+      }
+      ...
+    }
+    return Value;
+  }
+
+
+.. _asm-f3: 
+.. figure:: ../Fig/asm/asmDfdEx2.png
+  :width: 1281 px
+  :height: 188 px
+  :scale: 70 %
+  :align: center
+
+  Data Flow Chart (DFD) in and between MatchAndEmitInstruction() and encodeInstruction()
+  
+
+Code list and some detail functions explanation
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  
 The Chapter11_1/ include AsmParser implementation as follows,
 
