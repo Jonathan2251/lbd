@@ -80,7 +80,7 @@ The assembling Data Flow Diagram (DFD) as follows,
 .. figure:: ../Fig/asm/asmDfdEx.png
   :width: 1465 px
   :height: 220 px
-  :scale: 70 %
+  :scale: 100 %
   :align: center
 
   LLVM assembling Data Flow Chart (DFD) with a given example
@@ -131,7 +131,16 @@ encodeInstruction(), explaining in comments which begin with ///.
   MatchInstructionImpl(const OperandVector &Operands,
                        MCInst &Inst, uint64_t &ErrorInfo,
                        bool matchingInlineAsm, unsigned VariantID) {
-  
+    ...
+    // Find the appropriate table for this asm variant.
+    const MatchEntry *Start, *End;
+    switch (VariantID) {
+    default: llvm_unreachable("invalid variant!");
+    case 0: Start = std::begin(MatchTable0); End = std::end(MatchTable0); break;
+    }
+    // Search the table.
+    auto MnemonicRange = std::equal_range(Start, End, Mnemonic, LessOpcode());
+    ...
     for (const MatchEntry *it = MnemonicRange.first, *ie = MnemonicRange.second;
          it != ie; ++it) {
       ...
@@ -257,9 +266,19 @@ encodeInstruction(), explaining in comments which begin with ///.
 
 .. _asm-f3: 
 .. figure:: ../Fig/asm/asmDfdEx2.png
+  :width: 1602 px
+  :height: 208 px
+  :scale: 100 %
+  :align: center
+
+  Data Flow Chart (DFD) in MatchAndEmitInstruction()
+  
+
+.. _asm-f4: 
+.. figure:: ../Fig/asm/asmDfdEx3.png
   :width: 1281 px
   :height: 188 px
-  :scale: 70 %
+  :scale: 100 %
   :align: center
 
   Data Flow Chart (DFD) in and between MatchAndEmitInstruction() and encodeInstruction()
