@@ -67,23 +67,12 @@ Directory AsmParser handle the assembly to obj translation.
 The assembling Data Flow Diagram (DFD) as follows,
 
 .. _asm-f1: 
-.. figure:: ../Fig/asm/asmDfd.png
-  :width: 1094 px
-  :height: 132 px
-  :scale: 100 %
-  :align: center
+.. graphviz:: ../Fig/asm/asmDfd.gv
 
-  LLVM assembling Data Flow Chart (DFD)
-  
 
 .. _asm-f2: 
-.. figure:: ../Fig/asm/asmDfdEx.png
-  :width: 1465 px
-  :height: 220 px
-  :scale: 100 %
-  :align: center
+.. graphviz:: ../Fig/asm/asmDfdEx.gv
 
-  LLVM assembling Data Flow Chart (DFD) with a given example
   
 Given an example of assembly instruction "add $v1, $v0, $at", llvm AsmParser
 kernel call backend ParseInstruction() of Cpu0AsmParser.cpp when it 
@@ -265,23 +254,11 @@ encodeInstruction(), explaining in comments which begin with ///.
 
 
 .. _asm-f3: 
-.. figure:: ../Fig/asm/asmDfdEx2.png
-  :width: 1480 px
-  :height: 264 px
-  :scale: 100 %
-  :align: center
-
-  Data Flow Chart (DFD) in MatchAndEmitInstruction()
+.. graphviz:: ../Fig/asm/asmDfdEx2.gv
   
 
 .. _asm-f4: 
-.. figure:: ../Fig/asm/asmDfdEx3.png
-  :width: 1281 px
-  :height: 188 px
-  :scale: 100 %
-  :align: center
-
-  Data Flow Chart (DFD) in and between MatchAndEmitInstruction() and encodeInstruction()
+.. graphviz:: ../Fig/asm/asmDfdEx3.gv
 
 
 MatchTable0 include all the possibile combinations of opcode and operands type.
