@@ -182,6 +182,38 @@ Chapter5_1.
     :start-after: #if CH >= CH5_1
     :end-before: #endif
 
+.. _genobj-f11: 
+.. graphviz:: ../Fig/genobj/callFunctions.gv
+
+The ELF encoder calling functions shown as the figure above. 
+AsmPrinter::OutStreamer is set to MCObjectStreamer when by llc driver when user
+input ``llc -filetype=obj``.
+
+.. _genobj-f12: 
+.. graphviz:: ../Fig/genobj/instEncodeDfd.gv
+
+The instruction operands information for encoder is got as the figure above. 
+Steps as follows,
+
+  1. Function encodeInstruction() pass MI.Opcode to getBinaryCodeForInstr().
+  
+  2 and 3. getBinaryCodeForInstr() get register number by calling getMachineOpValue().
+  
+  4. getBinaryCodeForInstr() return the MI with all number of registers to encodeInstruction().
+  
+The MI.Opcode is set in Instruction Selection Stage.
+The table gen function getBinaryCodeForInstr() get all the operands information 
+from the td files set by programmer as the following figure. 
+
+.. _genobj-f13: 
+.. graphviz:: ../Fig/genobj/getBinaryCodeForInstr.gv
+
+For instance, Cpu0 backend will generate "addu $v0, $at, $v1" for the IR 
+"%0 = add %1, %2" once llvm allocate registers $v0, $at and $v1 for Operands
+%0, %1 and %2 individually. The MCOperand structure for MI.Operands[] include
+reguster number set in the pass of llvm allocate registers which can be got in
+getMachineOpValue().
+
 The applyFixup() of Cpu0AsmBackend.cpp will fix up the **jeq**, **jub**, ... 
 instructions of "address control flow statements" or "function call statements" 
 used in later chapters.

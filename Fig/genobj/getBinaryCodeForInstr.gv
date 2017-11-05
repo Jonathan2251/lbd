@@ -1,0 +1,71 @@
+digraph G {
+  rankdir=LR;
+  // graphviz uses &nn; to display control character, &#38; ascii 0x38 is '&', 0x60 is '<', 0x62 is '>'
+  // when use port="f1", the shape cannot set to "Mrecord"
+  getBinaryCodeForInstr [ penwidth = 1, fontname = "Courier New", shape = "rectangle", label =<<table border="0" cellborder="0" cellpadding="3" bgcolor="white">
+    <tr><td bgcolor="grey" align="center" colspan="2"><font color="white">Cpu0GenMCCodeEmitter.inc</font></td></tr>
+    <tr><td align="left" bgcolor="yellow" port="r0">uint64_t Cpu0MCCodeEmitter::getBinaryCodeForInstr(const MCInst &#38;MI, {</td></tr>
+    <tr><td align="left">  ...</td></tr>
+    <tr><td align="left">  static const uint64_t InstBits[] = {</td></tr>
+    <tr><td align="left">  ...</td></tr>
+    <tr><td align="left">  UINT64_C(318767104),	// ADD  /// 318767104=0x13000000</td></tr>
+    <tr><td align="left">  ...</td></tr>
+    <tr><td align="left">  }</td></tr>
+    <tr><td align="left">  const unsigned opcode = MI.getOpcode();</td></tr>
+    <tr><td align="left">  uint64_t Value = InstBits[opcode];</td></tr>
+    <tr><td align="left">  ...</td></tr>
+    <tr><td align="left">  switch (opcode) {</td></tr>
+    <tr><td align="left">  ...</td></tr>
+    <tr><td align="left">  case Cpu0::ADD:</td></tr>
+    <tr><td align="left">  ...</td></tr>
+    <tr><td align="left">    // op: ra</td></tr>
+    <tr><td align="left" port="f1">    op = getMachineOpValue(MI, MI.getOperand(0), Fixups, STI);</td></tr>
+    <tr><td align="left">    Value |= (op &#38; UINT64_C(15)) &#60;&#60; 20;</td></tr>
+    <tr><td align="left">    // op: rb</td></tr>
+    <tr><td align="left" port="f2">    op = getMachineOpValue(MI, MI.getOperand(1), Fixups, STI);</td></tr>
+    <tr><td align="left">    Value |= (op &#38; UINT64_C(15)) &#60;&#60; 16;</td></tr>
+    <tr><td align="left">    // op: rc</td></tr>
+    <tr><td align="left" port="f3">    op = getMachineOpValue(MI, MI.getOperand(2), Fixups, STI);</td></tr>
+    <tr><td align="left">    Value |= (op &#38; UINT64_C(15)) &#60;&#60; 12;</td></tr>
+    <tr><td align="left">    break;</td></tr>
+    <tr><td align="left">  }</td></tr>
+    <tr><td align="left">  ...</td></tr>
+    <tr><td align="left">  return Value;</td></tr>
+    <tr><td align="left">}</td></tr>
+    </table>> ];
+  
+  subgraph cluster1 {
+    rankdir=LR;
+      
+    RegTd [ penwidth = 1, fontname = "Courier New", shape = "rectangle", label =<<table border="0" cellborder="0" cellpadding="3" bgcolor="white">
+      <tr><td bgcolor="grey" align="center" colspan="2"><font color="white">Cpu0RegisterInfo.td</font></td></tr>
+      <tr><td align="left" port="f1">def AT   : Cpu0GPRReg&#60;1,  "1"&#62;,    DwarfRegNum&#60;[1]&#62;;</td></tr>
+      <tr><td align="left" port="f2">def V0   : Cpu0GPRReg&#60;2,  "2"&#62;,    DwarfRegNum&#60;[2]&#62;;</td></tr>
+      <tr><td align="left" port="f3">def V2   : Cpu0GPRReg&#60;3,  "3"&#62;,    DwarfRegNum&#60;[3]&#62;;</td></tr>
+      </table>> ];
+  
+    RegInc [ penwidth = 1, fontname = "Courier New", shape = "rectangle", label =<<table border="0" cellborder="0" cellpadding="3" bgcolor="white">
+      <tr><td bgcolor="grey" align="center" colspan="2"><font color="white">Cpu0GenRegisterInfo.inc</font></td></tr>
+      <tr><td align="left">const MCPhysReg CPURegs[] = {</td></tr>
+      <tr><td align="left" port="f1">  Cpu0::AT, Cpu0::V0, Cpu0::V2, ...</td></tr>
+      <tr><td align="left">}</td></tr>
+      </table>> ];
+    
+    InstrTd [ penwidth = 1, fontname = "Courier New", shape = "rectangle", label =<<table border="0" cellborder="0" cellpadding="3" bgcolor="white">
+      <tr><td bgcolor="grey" align="center" colspan="2"><font color="white">Cpu0InstrInfo.td</font></td></tr>
+      <tr><td align="left">class ArithLogicR&#60;bits&#60;8&#62; op, ...</td></tr>
+      <tr><td align="left" port="f1">  let Inst{23-20} = ra;</td></tr>
+      <tr><td align="left" port="f2">  let Inst{19-16} = rb;</td></tr>
+      <tr><td align="left" port="f3">  let Inst{15-12} = rc;</td></tr>
+      <tr><td align="left">  ...</td></tr>
+      </table>> ];
+  }
+  
+  
+  InstrTd:f1:e -> getBinaryCodeForInstr:f1:n;
+  InstrTd:f2:e -> getBinaryCodeForInstr:f2:n;
+  InstrTd:f3:e -> getBinaryCodeForInstr:f3:n;
+          
+  label = "Instruction encode, for instance:  addu $v0, $at, $v1\n  v0:MI.getOperand(0), at:MI.getOperand(1), v1:MI.getOperand(2)";
+}
+  

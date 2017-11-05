@@ -7,20 +7,16 @@ Verify backend on Verilog simulator
    :local:
    :depth: 4
 
-Until now, we have an llvm backend to compile C or assembly as the blue part of 
-:numref:`runbackend-f1`. If without global variable, the elf obj can be 
+Until now, we have an llvm backend to compile C or assembly as the white part of 
+the following figure. If without global variable, the elf obj can be 
 dumped to hex file via ``llvm-objdump -d`` which finished in Chapter ELF Support.
 
 .. _runbackend-f1: 
-.. figure:: ../Fig/verilog/1.png
-  :scale: 50 %
-  :align: center
-
-  Cpu0 backend without linker
+.. graphviz:: ../Fig/verilog/verilog.gv
 
 
-This chapter will implement Cpu0 instructions by Verilog language as the red 
-part of :numref:`runbackend-f1`.
+This chapter will implement Cpu0 instructions by Verilog language as the gray 
+part of above figure.
 With this Verilog machine, we can run this hex program on the Cpu0 Verilog 
 machine on PC and see the Cpu0 instructions execution result.
 
