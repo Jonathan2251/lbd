@@ -197,7 +197,9 @@ Steps as follows,
 
   1. Function encodeInstruction() pass MI.Opcode to getBinaryCodeForInstr().
   
-  2 and 3. getBinaryCodeForInstr() get register number by calling getMachineOpValue().
+  2. getBinaryCodeForInstr() pass MI.Operand[n] to getMachineOpValue() and then,
+  
+  3. get register number by calling getMachineOpValue().
   
   4. getBinaryCodeForInstr() return the MI with all number of registers to encodeInstruction().
   
