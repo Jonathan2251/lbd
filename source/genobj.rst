@@ -250,6 +250,21 @@ Operand.
 
 The other functions in Cpu0MCCodeEmitter.cpp are called by these two functions.
 
+After encoder, the following code will write the encode instructions to buffer.
+
+.. rubric:: src/lib/MC/MCELFStreamer.cpp
+.. code-block:: c++
+  
+  void MCELFStreamer::EmitInstToData(const MCInst &Inst,
+                                     const MCSubtargetInfo &STI) {
+    ...
+    DF->setHasInstructions(true);
+    DF->getContents().append(Code.begin(), Code.end());
+    ...
+  }
+
+Then, ELFObjectWriter::writeObject() will write the buffer to elf file.
+
 
 Backend Target Registration Structure
 --------------------------------------
