@@ -213,9 +213,101 @@ from the td files set by programmer as the following figure.
 For instance, Cpu0 backend will generate "addu $v0, $at, $v1" for the IR 
 "%0 = add %1, %2" once llvm allocate registers $v0, $at and $v1 for Operands
 %0, %1 and %2 individually. The MCOperand structure for MI.Operands[] include
-reguster number set in the pass of llvm allocate registers which can be got in
+register number set in the pass of llvm allocate registers which can be got in
 getMachineOpValue().
 
+The getEncodingValue(Reg) in getMachineOpValue() as the following will get the
+RegNo of encode from Register name such as AT, V0, or V1, ... by using table gen
+information from Cpu0RegisterInfo.td as the following. My comment is after "///".
+
+.. rubric:: include//llvm/MC/MCRegisterInfo.h
+.. code-block:: c++
+
+  void InitMCRegisterInfo(...,
+                          const uint16_t *RET) {
+    ...
+    RegEncodingTable = RET;
+  }
+  
+  unsigned Cpu0MCCodeEmitter::
+  getMachineOpValue(const MCInst &MI, const MCOperand &MO,
+                    SmallVectorImpl<MCFixup> &Fixups,
+                    const MCSubtargetInfo &STI) const {
+    if (MO.isReg()) {
+      unsigned Reg = MO.getReg();
+      unsigned RegNo = Ctx.getRegisterInfo()->getEncodingValue(Reg);
+      return RegNo;
+    ...
+  }
+
+.. rubric:: include/llvm/MC/MCRegisterInfo.h
+.. code-block:: c++
+
+  void InitMCRegisterInfo(...,
+                          const uint16_t *RET) {
+    ...
+    RegEncodingTable = RET;
+  }
+
+   /// \brief Returns the encoding for RegNo
+  uint16_t getEncodingValue(unsigned RegNo) const {
+    assert(RegNo < NumRegs &&
+           "Attempting to get encoding for invalid register number!");
+    return RegEncodingTable[RegNo];
+  }
+
+.. rubric:: lbdex/chapters/Chapter5_1/Cpu0RegisterInfo.td
+.. code-block:: c++
+  
+  let Namespace = "Cpu0" in {
+    ...
+    def AT   : Cpu0GPRReg<1,  "1">,    DwarfRegNum<[1]>;
+    def V0   : Cpu0GPRReg<2,  "2">,    DwarfRegNum<[2]>;
+    def V1   : Cpu0GPRReg<3,  "3">,    DwarfRegNum<[3]>;
+    ...
+  }
+
+.. rubric:: cmake_debug_build/lib/Target/Cpu0/Cpu0GenRegisterInfo.inc
+.. code-block:: c++
+  
+  namespace Cpu0 {
+  enum {
+    NoRegister,
+    AT = 1,
+    ...
+    V0 = 19,
+    V1 = 20,
+    NUM_TARGET_REGS       // 21
+  };
+  } // end namespace Cpu0
+  
+  extern const uint16_t Cpu0RegEncodingTable[] = {
+    0,
+    1,     /// 1, AT
+    1,
+    12,
+    11,
+    0,
+    0,
+    14,
+    0,
+    13,
+    15,
+    0,
+    4,
+    5,
+    9,
+    10,
+    7,
+    8,
+    6,
+    2,    /// 19, V0
+    3,    /// 20, V1
+  };
+  
+  static inline void InitCpu0MCRegisterInfo(MCRegisterInfo *RI, ...) {
+    RI->InitMCRegisterInfo(..., Cpu0RegEncodingTable);
+  
 The applyFixup() of Cpu0AsmBackend.cpp will fix up the **jeq**, **jub**, ... 
 instructions of "address control flow statements" or "function call statements" 
 used in later chapters.
