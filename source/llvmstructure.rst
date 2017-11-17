@@ -834,6 +834,35 @@ are all caps) like this:
   def GR32 : RegisterClass<[i32], 32,
     [EAX, ECX, EDX, ESI, EDI, EBX, EBP, ESP,
      R8D, R9D, R10D, R11D, R14D, R15D, R12D, R13D]> { ... }
+     
+The language used in .td files are Target(Hardware) Description Language that
+let llvm backend compiler engineers to define the transformation for llvm IR
+and the machine instructions of their CPUs. In frontend, compiler development
+tools provide the "Parser Generator" for compiler development; in backend,
+they provide the "Machine Code Generator" for development, as the following
+figures.
+
+.. graphviz:: ../Fig/llvmstructure/frontendTblGen.gv
+
+.. graphviz:: ../Fig/llvmstructure/llvmTblGen.gv
+
+
+Since the c++'s grammar is more context-sensitive than context-free, llvm 
+frontend project clang uses handcode parser without BNF generator tools.
+In backend development, the IR to machine instructions transformation can
+get great benefits from TableGen tools. Though c++ compiler cannot get
+benefit from BNF generator tools, many computer languages and script languages
+are more context-free and can get benefit from the tools.
+
+The following come from wiki:
+
+Java syntax has a context-free grammar that can be parsed by a simple LALR 
+parser. Parsing C++ is more complicated [#java-cpp]_.
+
+The gnu g++ compiler abandoned BNF tools since version 3.x. 
+I think another reason beyond that c++ has more context-sensitive grammar is
+handcode parser can provide better error diagnosis than BNF tool since
+BNF tool always select the rules from BNF grammar if match.
 
 
 LLVM Code Generation Sequence
@@ -2250,6 +2279,8 @@ the Target Registration.
 
 .. [#jr-note] Both JR and RET has same opcode (actually they are the same instruction for Cpu0 hardware). When user writes "jr $t9" meaning it jumps to address of register $t9; when user writes "jr $lr" meaning it jump back to the caller function (since $lr is the return address). For user read ability, Cpu0 prints "ret $lr" instead of "jr $lr".
 
+.. [#java-cpp] https://en.wikipedia.org/wiki/Comparison_of_Java_and_C%2B%2B
+
 .. [#aosa-book] Chris Lattner, **LLVM**. Published in The Architecture of Open Source Applications. http://www.aosabook.org/en/llvm.html
 
 .. [#chapters-ex] http://jonathan2251.github.io/lbd/doc.html#generate-cpu0-document
@@ -2279,4 +2310,3 @@ the Target Registration.
 .. [#tblgen-langintro] http://llvm.org/docs/TableGen/LangIntro.html
 
 .. [#tblgen-langref] http://llvm.org/docs/TableGen/LangRef.html
-
