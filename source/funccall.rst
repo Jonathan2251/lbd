@@ -350,9 +350,8 @@ GetMemOperand(..., FI, ...) return the Memory location of the frame index
 variable, which is the offset.
 
 For input ch9_incoming.cpp as below, LowerFormalArguments() will generate the 
-red circled parts of DAG nodes as :numref:`funccall-f-incoming-arg1` and 
-:numref:`funccall-f-incoming-arg2` for ``llc -cpu0-s32-calls=true`` and 
-``llc -cpu0-s32-calls=false``, respectively.
+red circled parts of DAG nodes shown as the next two figures for 
+``llc -cpu0-s32-calls=true`` and ``llc -cpu0-s32-calls=false``, respectively.
 The root node at bottom is created by
 
 .. rubric:: lbdex/input/ch9_incoming.cpp
@@ -373,22 +372,10 @@ The root node at bottom is created by
   }
 
 .. _funccall-f-incoming-arg1:
-.. figure:: ../Fig/funccall/incoming-arg-S32.png
-    :height: 1148 px
-    :width: 999 px
-    :scale: 70 %
-    :align: center
-
-    Incoming arguments DAG created for ch9_incoming.cpp with -cpu0-s32-calls=true
+.. graphviz:: ../Fig/funccall/incoming-arg-S32.gv
 
 .. _funccall-f-incoming-arg2:
-.. figure:: ../Fig/funccall/incoming-arg-O32.png
-    :height: 1148 px
-    :width: 871 px
-    :scale: 70 %
-    :align: center
-
-    Incoming arguments DAG created for ch9_incoming.cpp with -cpu0-s32-calls=false
+.. graphviz:: ../Fig/funccall/incoming-arg-O32.gv
 
 
 In addition to Calling Convention and LowerFormalArguments(), Chapter9_1/ adds
@@ -816,9 +803,9 @@ Read Lowercall() with Graphivz's help
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The whole DAGs created for outgoing arguments as 
-:numref:`funccall-f-outgoing-arg` for ch9_outgoing.cpp with cpu032I.
-LowerCall() will generate the DAG nodes as 
-:numref:`funccall-f-outgoing-arg-lowercal` 
+"Figure Outgoing arguments DAG (A)..." below for ch9_outgoing.cpp with cpu032I.
+LowerCall() (excluding calling LowerCallResult()) will generate the DAG nodes as 
+"Figure Outgoing arguments DAG (B)..." below
 for ch9_outgoing.cpp with cpu032I. The corresponding code of DAGs Store and 
 TargetGlobalAddress are listed in the figure, user can match the other DAGs
 to function LowerCall() easily.
@@ -860,22 +847,10 @@ The DAGs diagram can be gotten by llc option as follows,
   Running 'Graphviz' program...
 
 .. _funccall-f-outgoing-arg:
-.. figure:: ../Fig/funccall/outgoing-arg-S32.png
-    :height: 1745 px
-    :width: 1703 px
-    :scale: 70 %
-    :align: center
-
-    Outgoing arguments DAG created for ch9_outgoing.cpp with -cpu0-s32-calls=true
-
+.. graphviz:: ../Fig/funccall/outgoing-arg-S32.gv
+  
 .. _funccall-f-outgoing-arg-lowercal:
-.. figure:: ../Fig/funccall/outgoing-arg-LowerCall.png
-    :height: 756 px
-    :width: 945 px
-    :scale: 100 %
-    :align: center
-
-    Outgoing arguments DAG created by LowerCall() for ch9_outgoing.cpp with -cpu0-s32-calls=true
+.. graphviz:: ../Fig/funccall/outgoing-arg-LowerCall.gv
 
 
 Mentioned in last section, option ``llc -cpu0-s32-calls=true`` uses S32 calling 
@@ -1587,18 +1562,11 @@ false for this function as follows,
 
 Since tailcall optimization will translate jmp instruction directly instead of
 jsub. The callseq_start, callseq_end, and the DAG nodes created in 
-LowerCallResult() and LowerReturn() are needless. It creates DAGs as 
-:numref:`funccall-f-outgoing-arg-tailcall` for ch9_2_tailcall.cpp as 
-follows,
+LowerCallResult() and LowerReturn() are needless. It creates DAGs for
+ch9_2_tailcall.cpp as the following figure,
 
 .. _funccall-f-outgoing-arg-tailcall:
-.. figure:: ../Fig/funccall/outgoing-arg-tailcall.png
-    :height: 475 px
-    :width: 1019 px
-    :scale: 100 %
-    :align: center
-
-    Outgoing arguments DAGs created for ch9_2_tailcall.cpp
+.. graphviz:: ../Fig/funccall/outgoing-arg-tailcall.gv
 
 Finally, listing the DAGs translation of tail call as the following table.
 
