@@ -1276,12 +1276,14 @@ DAG nodes **load** and **store**. Notice that the $rb in
  
 .. _llvmstructure-f13: 
 .. figure:: ../Fig/llvmstructure/13.png
-  :width: 804 px
-  :height: 588 px
-  :scale: 70 %
+  :width: 643 px
+  :height: 421 px
+  :scale: 80 %
   :align: center
 
   Pattern match for ADDiu instruction and IR node add
+
+.. graphviz:: ../Fig/llvmstructure/DAG.gv
 
 From DAG instruction selection we mentioned, the leaf node must be a Data Node.
 ADDiu is format L type which the last operand must fits in 16 bits range.

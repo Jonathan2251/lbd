@@ -1,0 +1,45 @@
+digraph "DAG" {
+  rankdir="TB";      
+  label = "Figure: Pattern match for ADDiu instruction and IR node add in detail";
+  td [ penwidth = 1, fontname = "Courier New", shape = "rectangle", label =<<table border="0" cellborder="0" cellpadding="3" bgcolor="white">
+    <tr><td bgcolor="grey" align="center" colspan="2"><font color="white">Cpu0InstrInfo.td</font></td></tr>
+    <tr><td align="left" port="f0">def immSExt16  : PatLeaf&#60;(imm), [{ return isInt&#60;16&#62;(N-&#60;getSExtValue()); }]&#62;;</td></tr>
+    <tr><td align="left">class ArithLogicI&#60;bits&#60;8&#62; op, string instr_asm, SDNode OpNode</td></tr>
+    <tr><td align="left" port="f1">                  Operand Od, PatLeaf imm_type, RegisterClass RC&#62; </td></tr>
+    <tr><td align="left" port="f2"> FL&#60;0op, (outs RC:$ra), (ins RC:$rb, Od:$imm16),</td></tr>
+    <tr><td align="left" port="f3">  !strconcat(instr_asm, "\t$ra, $rb, $imm16"),</td></tr>
+    <tr><td align="left" port="f4"> [(set RC:$ra, (OpNode RC:$rb, imm_type:$imm16))], IIAlu&#62; {</td></tr>
+    <tr><td align="left" port="f5"> let isReMaterializable = 1;</td></tr>
+    <tr><td align="left">}</td></tr>
+    <tr><td align="left" port="f6">def ADDiu   : ArithLogicI&#60;0x09, "addiu", add, simm16, immSExt16, CPURegs&#62;; </td></tr>
+    </table>> ];
+  a [shape=Mrecord,label="<aa>def ADDiu   : ArithLogicI\<|<a0>0x09, |<a1>\"addiu\", |<a2>add, |<a3>simm16, |<a4>immSExt16, |<a5>CPURegs\>;"];
+  p [shape=Mrecord,label="<p8>RC:|<p9>$ra|<p0>OpNode|<p1>RC:|<p2>$rb|<p3>imm_type:|<p4>$imm16"];
+  q [shape=Mrecord,label="<q8>CPURegs:|<q9>$ra|<q0>add|<q1>CPURegs:|<q2>$rb|<q3>immSExt16:|<q4>$imm16"];
+  asm [shape=Mrecord,label="<asm0>\!strconcat\(|<asm1>instr_asm, \"\\t|<asm2>$ra, |<asm3>$rb, |<asm4>$imm16\)"];
+  mi [shape=Mrecord,label="<mi0>addiu|<mi1>$r2|<mi2>$r1|<mi3>5"];
+  
+  td -> a;
+  td:f0:e -> q:q3 [label="%0 = add %a, 5 -- (5 is true for immSExt16, \nso pattern match for ADDiu succeed"];
+  a:a2 -> p:p0;
+  a:a5 -> p:p1;
+  a:a5 -> p:p8;
+  a:a4 -> p:p3;
+  td:f4:w -> p:w;
+  td:f3:w -> asm:w;
+  p:p0 -> q:q0;
+  p:p1 -> q:q1;
+  p:p8 -> q:q8;
+  p:p3 -> q:q3;
+  p:e -> q:e [label="expand pattern match rule"];
+  q:q0 -> asm:asm0;
+  q:q9 -> asm:asm1;
+  q:q2 -> asm:asm2;
+  q:q4 -> asm:asm4;
+  q:e -> asm:e [label="expand machine asm instruction"];
+  asm:asm1 -> mi:mi0 [label="addiu"];
+  asm:asm2 -> mi:mi1 [label="$r2"];
+  asm:asm3 -> mi:mi2 [label="$r1"];
+  asm:asm4 -> mi:mi3 [label="5"];
+  asm:e -> mi:e[label="When llvm assign $r2 as destination register, $r1 as source 0 register"];
+}
