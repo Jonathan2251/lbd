@@ -9,8 +9,8 @@ Function call
 
 The subroutine/function call of backend translation is supported in this 
 chapter. 
-A lot of code are needed to support function call. They are added according llvm 
-supplied interface to explain easily. 
+A lot of code are needed to support function call in this chapter. 
+They are added according llvm supplied interface to explain easily. 
 This chapter starts from introducing the Mips stack frame structure since we 
 borrow many parts of ABI from it. 
 Although each CPU has it's own ABI, most of ABI for RISC CPUs are similar. 
@@ -160,7 +160,7 @@ See comments **"//"**.
 
 From the mips assembly code generated as above, we see that it saves the first 4 
 arguments to $a0..$a3 and last 2 arguments to 16($sp) and 20($sp). 
-:numref:`funccall-f2` is the arguments location for example code 
+:numref:`funccall-f2` is the location of arguments for example code 
 ch9_1.cpp. 
 It loads argument 5 from 48($sp) in sum_i() since the argument 5 is saved to 
 16($sp) in main(). 
@@ -207,7 +207,7 @@ and see what happens.
   '@_Z5sum_iiiiiii'
   Illegal instruction: 4
 
-Since Chapter8_2/ define the LowerFormalArguments() with empty, we get the error 
+Since Chapter8_2/ define the LowerFormalArguments() with empty body, we get the error 
 messages as above. 
 Before defining LowerFormalArguments(), we have to choose how to pass arguments 
 in function call.
@@ -314,11 +314,11 @@ It gets incoming arguments information by CCInfo(CallConv,..., ArgLocs, ...)
 before entering **“for loop”**. In ch9_1.cpp, there are 6 arguments in sum_i(...) 
 function call. 
 So ArgLocs.size() is 6, each argument information is in ArgLocs[i]. 
-When VA.isRegLoc() is true, meaning the arguement pass in register. On the 
+When VA.isRegLoc() is true, meaning the arguement passes in register. On the 
 contrary, when VA.isMemLoc() is true, meaning the arguement pass in memory 
 stack.
-When passing in registers, it marks the registers "live in" and copy directly 
-from the registers.
+When passing in register, it marks the register "live in" and copy directly 
+from the register.
 When passing in memory stack, it creates stack offset for this frame index 
 object and load node with the created stack offset, and then puts the load node 
 into vector InVals. 
@@ -330,7 +330,7 @@ passes all arguments in stack frame.
 Before taking care the arguments as above, it calls analyzeFormalArguments().
 In analyzeFormalArguments() it calls fixedArgFn() which return the function 
 pointer of CC_Cpu0O32() or CC_Cpu0S32(). 
-ArgFlags.isByVal() will be true if it meets "struct pointer byval" keyword,
+ArgFlags.isByVal() will be true when it meets "struct pointer byval" keyword,
 such as "%struct.S* byval" in tailcall.ll.
 When ``llc -cpu0-s32-calls=false`` the stack offset begin from 8 (in case the 
 arguement registers need spill out) while ``llc -cpu0-s32-calls=true`` stack 
@@ -340,7 +340,7 @@ For instance of example code ch9_1.cpp with ``llc -cpu0-s32-calls=true`` (using
 memory stack only to pass arguments), LowerFormalArguments() 
 will be called twice. First time is for sum_i() which will create 6 "load DAGs" 
 for 6 incoming arguments passing into this function. 
-Second time is for main() which won't create any "load DAG" for no incoming 
+Second time is for main() which won't create any "load DAG" since no incoming 
 argument passing into main(). 
 In addition to LowerFormalArguments() which creates the "load DAG", we need 
 loadRegFromStackSlot() (defined in the early chapter) to issue the machine 
@@ -350,7 +350,7 @@ GetMemOperand(..., FI, ...) return the Memory location of the frame index
 variable, which is the offset.
 
 For input ch9_incoming.cpp as below, LowerFormalArguments() will generate the 
-red circled parts of DAG nodes shown as the next two figures for 
+red box parts of DAG nodes shown as the next two figures for 
 ``llc -cpu0-s32-calls=true`` and ``llc -cpu0-s32-calls=false``, respectively.
 The root node at bottom is created by
 
@@ -587,7 +587,7 @@ implicitly used by llvm belongs to "texternalsym" (for instance the function
 "memcpy" belongs to "texternalsym"). The "memcpy" will be generated when 
 defining a long string. The ch9_1_2.cpp is an example for generating "memcpy"
 function call. It will be shown in next section with Chapter9_2 example code.
-The Cpu0GenDAGISel.inc contains pattern matched information of JSUB and JALR 
+Cpu0GenDAGISel.inc contains pattern matched information of JSUB and JALR 
 which generated from TablGen as follows,
 
 .. code-block:: c++
@@ -670,8 +670,8 @@ Store outgoing arguments to stack frame
 ----------------------------------------
 
 :numref:`funccall-f2` depicts two steps to take care arguments passing. 
-One is store outgoing arguments in caller function, the other is load 
-incoming arguments in callee function. 
+One is store outgoing arguments into caller function, the other is load 
+incoming arguments into callee function. 
 We defined LowerFormalArguments() for **“load incoming arguments”** in callee 
 function last section. 
 Now, we will finish **“store outgoing arguments”** in caller function. 
@@ -741,13 +741,13 @@ LowerCall() is responsible in doing this. The implementation as follows,
 
 Just like load incoming arguments from stack frame, we call 
 CCInfo(CallConv,..., ArgLocs, ...) to get outgoing arguments information before 
-enter **“for loop”*. 
+entering **“for loop”*. 
 They're almost same in **“for loop”** with LowerFormalArguments(), except 
 LowerCall() creates "store DAG vector" instead of "load DAG vector". 
 After the **“for loop”**, it create **“ld $t9, %call16(_Z5sum_iiiiiii)($gp)”** 
 and jalr $t9 for calling subroutine (the $6 is $t9) in PIC mode.
 
-Like load incoming arguments, we need to implement storeRegToStackSlot() at
+Like loading incoming arguments, we need to implement storeRegToStackSlot() at
 early chapter.
 
 
@@ -774,7 +774,7 @@ as follows.
 
 With below definition, eliminateCallFramePseudoInstr() will be called when 
 llvm meets pseudo instructions ADJCALLSTACKDOWN and ADJCALLSTACKUP. 
-It just discard these 2 pseudo instructions, and llvm will add offset to
+It justs discard these 2 pseudo instructions, and llvm will add offset to
 stack. 
 
 .. rubric:: lbdex/chapters/Chapter9_2/Cpu0InstrInfo.cpp
@@ -810,7 +810,7 @@ for ch9_outgoing.cpp with cpu032I. The corresponding code of DAGs Store and
 TargetGlobalAddress are listed in the figure, user can match the other DAGs
 to function LowerCall() easily.
 Through Graphivz tool with llc option -view-dag-combine1-dags, you can design
-a small input C or llvm IR source code and check the DAGs to understand the 
+a small input C or llvm IR source code and then check the DAGs to understand the 
 code in LowerCall() and LowerFormalArguments().
 At the sub-sections "variable arguments" and "dynamic stack allocation 
 support" in the later section of this chapter, you can design
@@ -818,7 +818,7 @@ the input example with this features and check the DAGs with these two functions
 again to make sure you know the code in these two function. About Graphivz,
 please refer to section "Display llvm IR nodes with Graphviz" of chapter 4, 
 Arithmetic and logic instructions.
-The DAGs diagram can be gotten by llc option as follows, 
+The DAGs diagram can be got by llc option as follows, 
 
 .. rubric:: lbdex/input/ch9_outgoing.cpp
 .. literalinclude:: ../lbdex/input/ch9_outgoing.cpp
@@ -1175,7 +1175,7 @@ structure type in function call.
   }
 
 
-In addition to above code, we had defined the calling convention in early 
+In addition to above code, we defined the calling convention in early 
 chapter as follows,
 
 .. rubric:: lbdex/chapters/Chapter3_4/Cpu0CallingConv.td
@@ -1183,9 +1183,9 @@ chapter as follows,
     :start-after: //#if CH >= CH3_4 1
     :end-before: //#endif
 
-It meaning for the return value, we keep it in registers V0, V1, A0, A1 if the return 
-value didn't over 4 registers size; If it over 4 registers size, cpu0 will save 
-them with pointer.
+It meaning for the return value, we keep it in registers V0, V1, A0, A1 if the size of 
+return value doesn't over 4 registers; If it overs 4 registers, cpu0 will save 
+them in memory with a pointer of memory in register.
 For explanation, let's run Chapter9_2/ with ch9_1_struct.cpp and explain with this 
 example.
 
@@ -1283,11 +1283,11 @@ example.
     ...
 
 
-The ch9_1_constructor.cpp include C++ class "Date" implementation. 
-It can be translated into cpu0 backend too since the front end (clang in this 
+The ch9_1_constructor.cpp includes C++ class "Date" implementation. 
+It can be translated into cpu0 backend too since the frontend (clang in this 
 example) translate them into C language form.
 If you mark the "if hasStructRetAttr()" part from both of above functions, 
-the output cpu0 code for ch9_1_struct.cpp will use $3 instead of $2 as return 
+the output of cpu0 code for ch9_1_struct.cpp will use $3 instead of $2 as return 
 register as follows,
 
 .. code-block:: console
@@ -1327,7 +1327,7 @@ register as follows,
 	  nop
     ...
 
-Mips ABI ask return struct varaible address at $2.
+Mips ABI asks "return struct varaible address" to be set at $2.
 
 byval struct type
 ~~~~~~~~~~~~~~~~~~~
@@ -1397,8 +1397,8 @@ type in caller function as follows,
     ret i32 %call
   }
 
-In LowerFormalArguments(), Flags.isByVal() will be true if it meet **byval** 
-for in callee function as follows,
+In LowerFormalArguments(), Flags.isByVal() will be true when it meets **byval** 
+in callee function as follows,
 
 .. rubric:: lbdex/input/tailcall.ll
 .. code-block:: llvm
@@ -1529,12 +1529,13 @@ Run Chapter9_2/ with ch9_2_tailcall.cpp will get the following result.
    1 cpu0-lower        - Number of tail calls
    ...
 
-The tail call optimization is applied in cpu032II only for this example (it uses
-"jmp _Z9factoriali" instead of "jsub _Z9factoriali").
-Tail call share caller's and callee's stack but cpu032I (pass all arguments in
-stack) not satisify the following statement, NextStackOffset <= 
+The tail call optimization shares caller's and callee's stack and it is applied 
+in cpu032II only for this example (it uses "jmp _Z9factoriali" instead of 
+"jsub _Z9factoriali").
+Then cpu032I (pass all arguments in
+stack) doesn't satisfy the statement, NextStackOffset <= 
 FI.getIncomingArgSize() in isEligibleForTailCallOptimization(), and return 
-false for this function as follows,
+false for the function as follows,
 
 .. rubric:: lbdex/chapters/Chapter9_2/Cpu0SEISelLowering.cpp
 .. literalinclude:: ../lbdex/Cpu0/Cpu0SEISelLowering.cpp
@@ -1619,7 +1620,7 @@ in Cpu0GenMCPseudoLowering.inc.
 Recursion optimization
 ~~~~~~~~~~~~~~~~~~~~~~
 
-As last section, cpu032I cannot do tail call optimization in 
+As last section, cpu032I cannot does tail call optimization in 
 ch9_2_tailcall.cpp since the limitation of arguments size is not satisfied. 
 If runnig with ``clang -O3`` option, it can get the same or better performance 
 than tail call as follows,
@@ -1760,8 +1761,8 @@ than tail call as follows,
 	  .size	_Z13test_tailcalli, ($tmp1)-_Z13test_tailcalli
 
 
-According above llvm IR, ``clang -O3`` option remove recursion to loop by 
-inline the callee recursion function. This is a front end optimization through
+According above llvm IR, ``clang -O3`` option replace recursion with loop by 
+inline the callee recursion function. This is a frontend optimization through
 cross over function analysis.
 
 Cpu0 doesn't support fastcc [#callconv]_ but it can pass the fastcc keyword of 
@@ -1773,8 +1774,8 @@ ABI specification.
 Other features supporting
 -------------------------
 
-This section supports features of $gp register caller saved register in PIC 
-addressing mode, variable number of arguments and dynamic stack allocation.
+This section supports features for "$gp register caller saved register in PIC 
+addressing mode", "variable number of arguments" and "dynamic stack allocation".
 
 Run Chapter9_2/ with ch9_3_vararg.cpp to get the following error,
 
@@ -1831,10 +1832,10 @@ The $gp register caller saved register in PIC addressing mode
 
 According the original cpu0 web site information, it only supports **“jsub”** 
 of 24-bit address range access. 
-We add **“jalr”** to cpu0 and expand it to 32 bit address. We did this change for 
-two reasons. One is cpu0 can be expanded to 32 bit address space by only adding 
-this instruction. 
-The other is cpu0 as well as this book are designed for tutorial. 
+We add **“jalr”** to cpu0 and expand it to 32 bit address. We do this change for 
+two reasons. One is that cpu0 can be expanded to 32 bit address space by only 
+adding this instruction, and the other is cpu0 and this book are designed for 
+tutorial. 
 We reserve **“jalr”** as PIC mode for dynamic linking function to demonstrates: 
 
 1. How caller handles the caller saved register $gp in calling the function.
@@ -1851,13 +1852,14 @@ In chapter "Global variable", we mentioned two link
 type, the static link and dynamic link. 
 The option -relocation-model=static is for static link function while option 
 -relocation-model=pic is for dynamic link function.
-One example of dynamic link function is used in share library. 
-Share library include a lots of dynamic link functions usually can be loaded 
+One instance of dynamic link function is used is for calling functions of share 
+library. 
+Share library includes a lots of dynamic link functions usually can be loaded 
 at run time. 
 Since share library can be loaded in different memory address, the global 
-variable address which it access cannot be decided at link time. 
-Even so, we still can caculate the distance between the global variable address 
-and the start address of shared library function when it be loaded.
+variable address be accessed cannot be decided at link time. 
+Whatever, he distance between the global variable address and the start address 
+of shared library function can be calculated when it has been loaded.
 
 Let's run Chapter9_3/ with ch9_gprestore.cpp to get the following result. 
 We putting the comments in the result for explanation.
@@ -1908,27 +1910,26 @@ As above code comment, **“.cprestore 8”** is a pseudo instruction for saving
 **$gp** to **8($sp)** while Instruction **“ld $gp, 8($sp)”** restore 
 the $gp, refer to Table 8-1 of "MIPSpro TM Assembly Language Programmer’s 
 Guide" [#mipsasm]_. 
-In other word, $gp is a caller saved register, so main() need to save/restore 
+In other words, $gp is a caller saved register, so main() need to save/restore 
 $gp before/after call the shared library _Z5sum_ii() function. 
 In llvm Mips 3.5, it removed the .cprestore in mode PIC which meaning $gp
 is not a caller saved register in PIC anymore. 
 However, it is still existed in Cpu0 and this feature can be removed by not 
 defining it in Cpu0Config.h.
-The #ifdef ENABLE_GPRESTORE part of code in Cpu0 can be removed but it come with
-the cost of reserve $gp register as a specific register and cannot be allocated
+The #ifdef ENABLE_GPRESTORE part of code in Cpu0 can be removed but it comes with
+the cost of reserving $gp register as a specific register and cannot be allocated
 for the program variable in PIC mode. As explained in early chapter Gloabal 
 variable, the PIC is not critial function and the performance advantage can be 
-ignored in dynamic link, so we keep this feature in Cpu0 and provide readers 
-this feature. 
-Even with this point, I really prefer to reserve $gp as a specific register in
-PIC. It will save a lot of trouble in programming.
-When reserve $gp, .cprestore can be disabled by option "-cpu0-reserve-gp". 
-The .cpload is needed even reserve $gp. Consider prgrammer implement a boot code
-function with C and assembly mixed, programmer can set $gp value through .cpload
-issue.
+ignored in dynamic link, so we keep this feature in Cpu0. 
+Reserving $gp as a specific register in
+PIC will save a lot of code in programming.
+When reserving $gp, .cprestore can be disabled by option "-cpu0-reserve-gp". 
+The .cpload is needed even reserving $gp (considering that programmers 
+implement a boot code function with C and assembly mixed, programmer can set 
+$gp value through .cpload be issued.
 
-If enable "-cpu0-no-cpload", and undefine ENABLE_GPRESTORE or enable 
-"-cpu0-reserve-gp", .cpload and $gp save/restore won't be issue as follow,
+If enabling "-cpu0-no-cpload", and undefining ENABLE_GPRESTORE or enable 
+"-cpu0-reserve-gp", .cpload and $gp save/restore won't be issued as follow,
 
 .. code-block:: console
 
@@ -1973,8 +1974,8 @@ If enable "-cpu0-no-cpload", and undefine ENABLE_GPRESTORE or enable
 LLVM Mips 3.1 issues the .cpload and .cprestore and Cpu0 borrows it from that 
 version. But now, llvm Mips replace .cpload with real instructions and remove 
 .cprestore. It treats $gp as reserved register in PIC mode. Since the Mips
-assembly document I reference say $gp is caller save register, Cpu0 stay and
-follow this document at this point and supply reserve $gp register as option.
+assembly document which I reference say $gp is "caller save register", Cpu0 follows 
+this document at this point and provides reserving $gp register as option.
 
 .. code-block:: console
 
@@ -2019,7 +2020,7 @@ follow this document at this point and supply reserve $gp register as option.
     jr  $ra
     addiu $sp, $sp, 32
 
-The following code added in Chapter9_3/ to issue **“.cprestore”** or the 
+The following code added in Chapter9_3/ issues **“.cprestore”** or the 
 corresponding machine code before the first time of PIC function call.
 
 .. rubric:: lbdex/chapters/Chapter9_3/Cpu0ISelLowering.cpp
@@ -2102,7 +2103,7 @@ corresponding machine code before the first time of PIC function call.
 
 
 The added code of Cpu0AsmPrinter.cpp as above will call the LowerCPRESTORE() when 
-user run with ``llc -filetype=obj``. 
+user run program with ``llc -filetype=obj``. 
 The added code of Cpu0MCInstLower.cpp as above takes care the .cprestore machine 
 instructions.
 
@@ -2144,8 +2145,8 @@ Run ``llc -static`` will call jsub instruction instead of jalr as follows,
     jsub  _Z5sum_iiiiiii
   ...
 
-Run with ``llc -filetype=obj``, you can find the Cx of **“jsub Cx”** is 0 since 
-the Cx is calculated by linker as below. 
+Run ch9_1.bc with ``llc -filetype=obj``, you will find the Cx of **“jsub Cx”** 
+is 0 since the Cx is calculated by linker as below. 
 Mips has the same 0 in it's jal instruction. 
 
 .. code-block:: console
@@ -2155,7 +2156,7 @@ Mips has the same 0 in it's jal instruction.
 
 
 The following code will emit "ld $gp, ($gp save slot on stack)" after jalr by 
-create file Cpu0EmitGPRestore.cpp which run as a function pass.
+creating file Cpu0EmitGPRestore.cpp which run as a function pass.
 
 .. rubric:: lbdex/chapters/Chapter9_3/CMakeLists.txt
 .. literalinclude:: ../lbdex/Cpu0/CMakeLists.txt
@@ -2315,13 +2316,13 @@ Run Chapter9_3/ with ch9_3_vararg.cpp as well as clang option,
 
 
 The analysis of output ch9_3_vararg.cpu0.s as above in comment. 
-As above code, in # BB#0, we get the first argument **“amount”** from 
+As above code in # BB#0, we get the first argument **“amount”** from 
 **“ld $2, 24($fp)”** since the stack size of the callee function 
-**“_Z5sum_iiz()”** is 24. And then set argument pointer, arg_ptr, to 0($fp), 
+**“_Z5sum_iiz()”** is 24. And then setting argument pointer, arg_ptr, to 0($fp), 
 &arg[1]. 
-Next, check i < amount in block $BB0_1. If  i < amount, than enter into $BB0_2. 
-In $BB0_2, it do sum += \*arg_ptr as well as arg_ptr+=4.
-In # BB#3, do i+=1.
+Next, checking i < amount in block $BB0_1. If i < amount, than entering into $BB0_2. 
+In $BB0_2, it does sum += \*arg_ptr and arg_ptr+=4.
+In # BB#3, it does i+=1.
 
 To support variable number of arguments, the following code needed to 
 add in Chapter9_3/. 
@@ -2438,7 +2439,7 @@ Verilog simulator" through the CPU0 Verilog language machine.
 Dynamic stack allocation support
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Even though C language very rare to use dynamic stack allocation, there are
+Even though C language is very rare using dynamic stack allocation, there are
 languages use it frequently. The following C example code uses it.
 
 Chapter9_3 supports dynamic stack allocation with the following code added.
@@ -2618,16 +2619,16 @@ Run Chapter9_3 with ch9_3_alloc.cpp will get the following correct result.
 
 As you can see, the dynamic stack allocation needs frame pointer register **fp**
 support. As above assembly, the sp is adjusted to (sp - 48) when it 
-entered the function as usual by instruction **addiu $sp, $sp, -48**. 
-Next, the fp is set to sp where is the position just above alloca() spaces area 
+enter the function as usual by instruction **addiu $sp, $sp, -48**. 
+Next, the fp is set to sp where the position is just above alloca() spaces area 
 as :numref:`funccall-f4` when meets instruction **move $fp, $sp**. 
 After that, the sp is changed to the area just below of alloca().
-Remind, the alloca() area which the b point to, 
+Remind, the alloca() area where the b point to, 
 **"*b = (int*)__builtin_alloca(sizeof(int) * 2 * x6)"**, is 
-allocated at run time since the spaces is variable size which depend on x1 
+allocated at run time since the size of the space which depends on x1 
 variable and cannot be calculated at link time. 
 
-:numref:`funccall-f5` depicted how the stack pointer changes back to the 
+:numref:`funccall-f5` depict how the stack pointer changes back to the 
 caller stack bottom. As above, the **fp** is set to the address just above of 
 alloca(). 
 The first step is changing the sp to fp by instruction **move $sp, $fp**.
@@ -2662,14 +2663,14 @@ Next, sp is changed back to caller stack bottom by instruction
     fp and sp access areas
 
 Using fp to keep the old stack pointer value is not the only solution. 
-Actually, we can keep the alloca() spaces size on a specific memory address 
-and the sp can back to the the old sp by add the alloca() spaces size. 
+Actually, we can keep the size of alloca() spaces on a specific memory address 
+and the sp can be set back to the the old sp by adding the size of alloca() spaces. 
 Most ABI like Mips
 and ARM access the above area of alloca() by fp and the below area of alloca()
 by sp, as :numref:`funccall-f6` depicted. The reason for this definition 
 is the speed for local variable access. Since the RISC CPU use immediate offset
 for load and store as below, using fp and sp for access both areas of
-local variables have better performance compare to use the sp only.
+local variables have better performance comparing to use the sp only.
 
 .. code-block:: console
 
@@ -2677,12 +2678,12 @@ local variables have better performance compare to use the sp only.
   	st	$3, 4($sp)
   	
 Cpu0 uses fp and sp to access the above and below areas of alloca() too. 
-As ch9_3_alloc.cpu0.s, it accesses local variable (above of alloca()) by fp 
+As ch9_3_alloc.cpu0.s, it accesses local variables (above of alloca()) by fp 
 offset and outgoing arguments (below of alloca()) by sp offset.
 
 And more, the "move $sp, $fp" is the alias instruction of "addu $fp, $sp, $zero".
-The machine code is the latter, and the former is only for easy understand by
-user only. This alias come from added code in Chapter3_2 and Chapter3_5 as 
+The machine code is the latter one, and the former is only for easy understanding by
+user. This alias comes from code added in Chapter3_2 and Chapter3_5 as 
 follows,
 
 
@@ -2705,8 +2706,8 @@ which corresponding "(int*)__builtin_alloca(sizeof(int) * 1 * x1);" of C.
 It will generate asm "addiu	$sp, $sp, -24" for ch9_3_alloc.cpp by calling 
 "adjustStackPtr()" in eliminateCallFramePseudoInstr() of Cpu0FrameLowering.cpp.
 
-File ch9_3_longlongshift.cpp which is for type "long long shift operations" 
-support which can be tested now as follows. 
+File ch9_3_longlongshift.cpp is for type "long long shift operations" 
+which can be tested now as follows. 
 
 .. rubric:: lbdex/input/ch9_3_longlongshift.cpp
 .. literalinclude:: ../lbdex/input/ch9_3_longlongshift.cpp
@@ -2908,8 +2909,8 @@ replace them.
 Function related Intrinsics support
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-I think these llvm instinsic IRs are for exception handling implementation
-[#excepthandle]_ [#returnaddr]. With these IRs, programmer can recording the
+I think these llvm instinsic IRs are for the implementation of exception handle
+[#excepthandle]_ [#returnaddr]. With these IRs, programmer can record the
 frame address and return address to be used in implementing program of 
 exception handler by C++ as the example below. In order to support these llvm
 intrinsic IRs, the following code added to Cpu0 backend.
@@ -3056,10 +3057,11 @@ Run with the following input to get the following result.
   	.cfi_endproc
 
 
-The asm "ld	$2, 12($fp)" in function _Z22display_returnaddress1v reload $lr 
-to $2 after "jsub _Z3fnv". Cpu0 doesn't produce "addiu $2, $zero, $lr" because
-if _Z3fnv changes $lr value without following ABI then it will get the wrong $lr
-to $2. The following code kills $lr register and make the reference to $lr by
+The asm "ld	$2, 12($fp)" in function _Z22display_returnaddress1v reloads $lr 
+to $2 after "jsub _Z3fnv". The reason that Cpu0 doesn't produce 
+"addiu $2, $zero, $lr" is if a bug program in _Z3fnv changes $lr value without 
+following ABI then it will get the wrong $lr to $2. 
+The following code kills $lr register and make the reference to $lr by
 loading from stack slot rather than uses register directly. 
 
 .. rubric:: lbdex/chapters/Chapter9_1/Cpu0SEFrameLowering.cpp
@@ -3380,11 +3382,11 @@ issued" like function exception_handler().
 
 This example code of exception handler implementation can get frame, return and
 call exception handler by call __builtin_xxx in clang in C language, without 
-introduces any assembly instruction. 
-And this example can be verified in the Chapter "Cpu0 ELF linker" of my the other 
+introducing any assembly instruction. 
+And this example can be verified in the Chapter "Cpu0 ELF linker" of the other 
 book "llvm tool chain for Cpu0" [#cpu0lld]_.
-Through checking global variable, exceptionOccur, is true or false, whether the 
-control flow to exception_handler() or not can be identified.
+Through examining global variable, exceptionOccur, is true or false, program 
+will set the control flow to exception_handler() or not to correctly.
 
 
 eh.dwarf intrinsic
@@ -3456,17 +3458,17 @@ Cpu0 supports llvm instrinsics bswap intrinsic [#bswapintrnsic]_.
 Summary
 -------
  
-Now, Cpu0 backend code now can take care both the integer function call and 
-control statement just like the llvm front end tutorial example code. 
+Now, Cpu0 backend code can take care both the integer function call and 
+control statement just like the example code of llvm frontend tutorial does. 
 It can translate some of the C++ OOP language into Cpu0 instructions also 
 without much effort in backend,
-because the most complex things in language, such as C++ syntex, is handled by 
-front end. 
+because the most complex things in language, such as C++ syntax, is handled by 
+frontend. 
 LLVM is a real structure following the compiler theory, any backend of LLVM can 
 get benefit from this structure.
 The best part of 3 tiers compiler structure is that backend will grow up 
-automatically in languages support when the front end supporting languages more 
-and more if the frontend has not added any new IR for a new language.
+automatically in languages support as the frontend supporting languages more 
+and more when the frontend doesn't add any new IR for a new language.
 
 
 .. [#computer_arch_interface] Computer Organization and Design: The Hardware/Software Interface 1st edition (The Morgan Kaufmann Series in Computer Architecture and Design)
