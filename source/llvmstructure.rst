@@ -1156,6 +1156,119 @@ version [#dragonbooks-10.2.3]_.
       st %a,  i32* %c, 0
 
 
+DSA form
+~~~~~~~~
+
+.. code-block:: console
+
+    for (int i = 0; i < 1000; i++) {
+      b[i] = f(g(a[i]));
+    }
+    
+For the source program as above, the following are the SSA form in source code
+level and llvm IR level respectively.
+
+.. code-block:: c++
+
+    for (int i = 0; i < 1000; i++) {
+      t = g(a[i]);
+      b[i] = f(t);
+    }
+    
+.. code-block:: llvm
+
+      %pi = alloca i32
+      store i32 0, i32* %pi
+      %i = load i32, i32* %pi
+      %cmp = icmp slt i32 %i, 1000
+      br i1 %cmp, label %true, label %end
+    true:
+      %a_idx = add i32 %i, i32 %a_addr
+      %val0 = load i32, i32* %a_idx
+      %t = call i64 %g(i32 %val0)
+      %val1 = call i64 %f(i32 %t)
+      %b_idx = add i32 %i, i32 %b_addr
+      store i32 %val1, i32* %b_idx
+    end:
+
+    
+The following is the DSA (Dynamic Single Assignment) form.
+
+.. code-block:: c++
+
+    for (int i = 0; i < 1000; i++) {
+      t[i] = g(a[i]);
+      b[i] = f(t[i]);
+    }
+    
+.. code-block:: llvm
+
+      %pi = alloca i32
+      store i32 0, i32* %pi
+      %i = load i32, i32* %pi
+      %cmp = icmp slt i32 %i, 1000
+      br i1 %cmp, label %true, label %end
+    true:
+      %a_idx = add i32 %i, i32 %a_addr
+      %val0 = load i32, i32* %a_idx
+      %t_idx = add i32 %i, i32 %t_addr
+      %temp = call i64 %g(i32 %val0)
+      store i32 %temp, i32* %t_idx
+      %val1 = call i64 %f(i32 %temp)
+      %b_idx = add i32 %i, i32 %b_addr
+      store i32 %val1, i32* %b_idx
+    end:
+    
+In some internet video applications and muti-core (SMP) platforms, split g() and f()
+to two different loop have better perfomance. DSA can split as the following while
+SSA cannot.
+
+
+.. code-block:: c++
+
+    for (int i = 0; i < 1000; i++) {
+      t[i] = g(a[i]);
+    }
+    
+    for (int i = 0; i < 1000; i++) {
+      b[i] = f(t[i]);
+    }
+    
+.. code-block:: llvm
+
+      %pi = alloca i32
+      store i32 0, i32* %pi
+      %i = load i32, i32* %pi
+      %cmp = icmp slt i32 %i, 1000
+      br i1 %cmp, label %true, label %end
+    true:
+      %a_idx = add i32 %i, i32 %a_addr
+      %val0 = load i32, i32* %a_idx
+      %t_idx = add i32 %i, i32 %t_addr
+      %temp = call i32 %g(i32 %val0)
+      store i32 %temp, i32* %t_idx
+    end:
+
+      %pi = alloca i32
+      store i32 0, i32* %pi
+      %i = load i32, i32* %pi
+      %cmp = icmp slt i32 %i, 1000
+      br i1 %cmp, label %true, label %end
+    true:
+      %t_idx = add i32 %i, i32 %t_addr
+      %temp = load i32, i32* %t_idx
+      %val1 = call i32 %f(i32 %temp)
+      %b_idx = add i32 %i, i32 %b_addr
+      store i32 %val1, i32* %b_idx
+    end:
+
+Now, the data dependences only exist in t[i] between "t[i] = g(a[i])" and
+"b[i] = f(t[i])" for each i = (0..999). The program can be run on many different
+order, and it provides many parallel processing opportunities for multi-core 
+(SMP) and heterogeneous processors. For instance, g(x) is run on GPU and f(x)
+is run on CPU.
+
+
 DAG (Directed Acyclic Graph)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 

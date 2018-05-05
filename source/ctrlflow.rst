@@ -7,7 +7,7 @@ Control flow statements
    :local:
    :depth: 4
 
-This chapter illustrates the corresponding IR for control flow statements, like 
+This chapter illustrates the corresponding IR for control flow statements, such as 
 **“if else”**, **“while”** and **“for”** loop statements in C, and how to 
 translate these control flow statements of llvm IR into Cpu0 instructions in 
 section I. In section "Cpu0 backend Optimization: Remove useless JMP", 
@@ -35,7 +35,7 @@ Run ch8_1_1.cpp with clang will get result as follows,
     %cmp = icmp eq i32 %0, 0
     br i1 %cmp, label %if.then, label %if.end
 
-  if.then:                                          ; preds = %entry
+  ; <label>:3:                                      ; preds = %0
     %1 = load i32* %a, align 4
     %inc = add i32 %1, 1
     store i32 %inc, i32* %a, align 4
@@ -48,17 +48,21 @@ Less Than, **“sle”** stands for Set Less or Equal.
 Run version Chapter8_1/ with ``llc  -view-isel-dags`` or ``-debug`` option, you 
 can see the **if** statement is translated into 
 (br (brcond (%1, setcc(%2, Constant<c>, setne)), BasicBlock_02), BasicBlock_01).
-Ignore %1, we get the form (br (brcond (setcc(%2, Constant<c>, setne)), 
+Ignore %1, then we will get the form (br (brcond (setcc(%2, Constant<c>, setne)), 
 BasicBlock_02), BasicBlock_01). 
 For explanation, listing the IR DAG as follows,
 
 .. code-block:: console
-
-    %cond=setcc(%2, Constant<c>, setne)
-    brcond %cond, BasicBlock_02
-    br BasicBlock_01
+  
+  Optimized legalized selection DAG: BB#0 '_Z11test_ifctrlv:entry'
+    SelectionDAG has 12 nodes:
+      ...
+      t5: i32,ch = load<Volatile LD4[%a]> t4, FrameIndex:i32<0>, undef:i32
+          t16: i32 = setcc t5, Constant:i32<0>, setne:ch
+        t11: ch = brcond t5:1, t16, BasicBlock:ch<if.end 0x10305a338>
+      t13: ch = br t11, BasicBlock:ch<if.then 0x10305a288>
     
-We want to translate them into Cpu0 instructions DAG as follows,
+We want to translate them into Cpu0 instruction DAGs as follows,
 
 .. code-block:: console
 
@@ -82,9 +86,8 @@ jmp BasicBlock_01 by the following pattern definition,
 
 The pattern [(br bb:$imm24)] in class UncondBranch is translated into jmp 
 machine instruction.
-The pair of **cmp** and **jne** Cpu0 instructions translation is more 
-complicated than all of the simple one-to-one IR to machine instruction 
-translation that we have experienced until now. 
+The translation for the pair Cpu0 instructions, **cmp** and **jne**, is not 
+happened before this chapter. 
 To solve this chained IR to machine instructions translation, we define the 
 following pattern,
 
@@ -104,7 +107,7 @@ following pattern,
   ...
   }
 
-Since the BrcondPats pattern as above uses RC (Register Class) as operand, the 
+Since the aboved BrcondPats pattern uses RC (Register Class) as operand, the 
 following ADDiu pattern defined in Chapter2 will generate instruction 
 **addiu** before the instruction **cmp** for the first IR, 
 **setcc(%2, Constant<c>, setne)**, as above.
@@ -116,12 +119,12 @@ following ADDiu pattern defined in Chapter2 will generate instruction
 
 The definition of BrcondPats supports setne, seteq, setlt, ..., register operand
 compare and setult, setugt, ..., for unsigned int type. In addition to seteq 
-and setne, we define setueq and setune, by reference Mips code even though 
-we didn't find how to generate setune IR from C language. 
+and setne, we define setueq and setune by refering Mips code, even though 
+we don't find how to generate setune IR from C language. 
 We have tried to define unsigned int type, but clang still generates setne 
 instead of setune. 
-Pattern search order come along with the order of their appearing in context. 
-The last pattern (brcond RC:$cond, bb:$dst) meaning branch to $dst 
+The order of Pattern Search is from the order of their appearing in context. 
+The last pattern (brcond RC:$cond, bb:$dst) means branch to $dst 
 if $cond != 0. So we set the corresponding translation to 
 (JNEOp (CMPOp RC:$cond, ZEROReg), bb:$dst).
 

@@ -63,6 +63,7 @@ Version 3.9.1, Not release yet.
   Add figure "Tblgen generate files for Cpu0 backend".
   Modify section float and double of Chapter Other data type.
   Move storeRegToStack() and loadRegFromStack() from Chapter9_1 to Chapter3_5.
+  Section DSA of chapter Cpu0 architecture and LLVM structure.
 
 Version 3.9.0, Released November 22, 2016
   Porting to llvm 3.9.
