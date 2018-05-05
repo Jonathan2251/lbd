@@ -1219,9 +1219,15 @@ The following is the DSA (Dynamic Single Assignment) form.
       store i32 %val1, i32* %b_idx
     end:
     
-In some internet video applications and muti-core (SMP) platforms, split g() and f()
-to two different loop have better perfomance. DSA can split as the following while
-SSA cannot.
+In some internet video applications and muti-core (SMP) platforms, splitting g() 
+and f() to two different loop have better perfomance. DSA can split as the 
+following while SSA cannot. Of course, it's possible to do extra analysis on
+%temp of SSA and reverse it into %t_idx and %t_addr as the following DSA. But in 
+compiler discussion, the translation is from high to low level of machine code.
+Besides, as you see, the llvm ir lose the for loop information already though
+it can be reconstructed by extra analysis. So, in this book and almost every
+paper in compiler discuss with this high-to-low premise, otherwise it's talking
+about reverse engineering in assembler or compiler.
 
 
 .. code-block:: c++
@@ -1262,7 +1268,7 @@ SSA cannot.
       store i32 %val1, i32* %b_idx
     end:
 
-Now, the data dependences only exist in t[i] between "t[i] = g(a[i])" and
+Now, the data dependences only exist on t[i] between "t[i] = g(a[i])" and
 "b[i] = f(t[i])" for each i = (0..999). The program can be run on many different
 order, and it provides many parallel processing opportunities for multi-core 
 (SMP) and heterogeneous processors. For instance, g(x) is run on GPU and f(x)
