@@ -18,9 +18,6 @@ Chen Chung-Shu
 	
 	http://jonathan2251.github.io/web/index.html
 
-Anoushe Jamshidi
-	ajamshidi@gmail.com
-
 
 Contributors
 ------------
