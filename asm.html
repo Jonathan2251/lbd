@@ -51,8 +51,12 @@
 <span id="sec-asm"></span><h1>Assembler<a class="headerlink" href="#assembler" title="Permalink to this headline">¶</a></h1>
 <div class="contents local topic" id="contents">
 <ul class="simple">
-<li><a class="reference internal" href="#asmparser-support" id="id8">AsmParser support</a></li>
-<li><a class="reference internal" href="#inline-assembly" id="id9">Inline assembly</a></li>
+<li><a class="reference internal" href="#asmparser-support" id="id8">AsmParser support</a><ul>
+<li><a class="reference internal" href="#code-structure-explanation" id="id9">Code structure explanation</a></li>
+<li><a class="reference internal" href="#code-list-and-some-detail-functions-explanation" id="id10">Code list and some detail functions explanation</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#inline-assembly" id="id11">Inline assembly</a></li>
 </ul>
 </div>
 <p>This chapter include the assembly programming support in Cpu0 backend.</p>
@@ -85,7 +89,7 @@ explanation. Please refer here <a class="footnote-reference" href="#id4" id="id1
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">asm</span><span class="p">(</span><span class="s2">&quot;ld	$2, 8($sp)&quot;</span><span class="p">);</span>
 <span class="n">asm</span><span class="p">(</span><span class="s2">&quot;st	$0, 4($sp)&quot;</span><span class="p">);</span>
 <span class="n">asm</span><span class="p">(</span><span class="s2">&quot;addiu $3,	$ZERO, 0&quot;</span><span class="p">);</span>
-<span class="n">asm</span><span class="p">(</span><span class="s2">&quot;add $3, $1, $2&quot;</span><span class="p">);</span>
+<span class="n">asm</span><span class="p">(</span><span class="s2">&quot;add $v1, $at, $v0&quot;</span><span class="p">);</span>
 <span class="n">asm</span><span class="p">(</span><span class="s2">&quot;sub $3, $2, $3&quot;</span><span class="p">);</span>
 <span class="n">asm</span><span class="p">(</span><span class="s2">&quot;mul $2, $1, $3&quot;</span><span class="p">);</span>
 <span class="n">asm</span><span class="p">(</span><span class="s2">&quot;div $3, $2&quot;</span><span class="p">);</span>
@@ -131,9 +135,269 @@ explanation. Please refer here <a class="footnote-reference" href="#id4" id="id1
 </div>
 <p>Since we havn&#8217;t implemented Cpu0 assembler, it has the error message as above.
 The Cpu0 can translate LLVM IR into assembly and obj directly, but it cannot
-translate hand-code assembly instructions into obj.
-Directory AsmParser handle the assembly to obj translation.
-The Chapter11_1/ include AsmParser implementation as follows,</p>
+translate hand-code assembly instructions into obj.</p>
+<div class="section" id="code-structure-explanation">
+<h3><a class="toc-backref" href="#id9">Code structure explanation</a><a class="headerlink" href="#code-structure-explanation" title="Permalink to this headline">¶</a></h3>
+<p>Directory AsmParser handle the assembly to obj translation.
+The assembling Data Flow Diagram (DFD) as follows,</p>
+<img src="_images/graphviz-1d0a34298fb7ae67060c716a179f424b0c19a671.png" alt="// Free usage license, author: Chung-Shu Chen 陳鍾樞
+// dot -tPng asmDfd.gv -oasmDfd.png
+
+digraph G {
+  rankdir=LR;
+  subgraph cluster_0 {
+    style=filled;
+    label = &quot;Assemble flow&quot;;
+    node [style=filled,color=white]; user, asmParser, encoder, elfobj;
+    user -&gt; asmParser [ label = &quot;cpu0 assembly&quot; ];
+    asmParser -&gt; encoder [ label = &quot;opcode ID &amp; operand IDs&quot; ];
+    encoder -&gt; elfobj [ label = &quot;binary&quot; ];
+    color=lightgrey
+  }
+}" />
+<img src="_images/graphviz-627e0f1de95186db65ebf9cfdd634a08f0497202.png" alt="// Free usage license, author: Chung-Shu Chen 陳鍾樞
+// dot -Tpng asmDfdEx.gv -oasmDfdEx.png
+
+digraph G {
+  rankdir=LR;
+  subgraph cluster_2 {
+    style=filled;
+    label = &quot;Assemble flow, for instance: add $v1, $v0, $at&quot;;
+    subgraph clusterA {
+      label = &quot;asmParser&quot;;
+      node [style=filled,color=white]; ParseInstruction [label=&quot;ParseInstruction()&quot;];
+      node [style=filled,color=white]; MatchAndEmitInstruction [label=&quot;MatchAndEmitInstruction()&quot;];
+      ParseInstruction -&gt; MatchAndEmitInstruction [ label = &quot;Operands:\n (Cpu0::ADD, Cpu0::V1,\n Cpu0::AT, Cpu0::V0)&quot; ];
+    }
+    subgraph clusterB {
+      label = &quot;encoder: Cpu0MCCodeEmitter.cpp&quot;;
+      node [style=filled,color=white]; encodeInstruction [label=&quot;encodeInstruction()&quot;];
+    }
+    MatchAndEmitInstruction -&gt; encodeInstruction [ label = &quot;Inst.Opcode=\nCpu0::ADD,\nInst.Operand[0] = V1,\nInst.Operand[1] = AT,\nInst.Operand[2] = V0&quot; ];
+    color=lightgrey
+  }
+}" />
+<p>Given an example of assembly instruction &#8220;add $v1, $v0, $at&#8221;, llvm AsmParser
+kernel call backend ParseInstruction() of Cpu0AsmParser.cpp when it
+parses and recognises that the first token at the beginning of line is identifier.
+ParseInstruction() parses one assembly instruction, creates Operands and
+return to llvm AsmParser. Then AsmParser calls backend MatchAndEmitInstruction()
+to set Opcode and Operands to MCInst, then encoder can encode binary instruction
+from MCInst with the information come from Cpu0InstrInfo.td which includes binary
+value for Opcode ID and Operand IDs of the instruction.</p>
+<p>List the key functions and data structure of MatchAndEmitInstruction() and
+encodeInstruction(), explaining in comments which begin with ///.</p>
+<p class="rubric">llvm/cmake_debug_build/lib/Target/Cpu0/Cpu0GenAsmMatcher.inc</p>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="k">enum</span> <span class="n">InstructionConversionKind</span> <span class="p">{</span>
+  <span class="n">Convert__Reg1_0__Reg1_1__Reg1_2</span><span class="p">,</span>
+  <span class="n">Convert__Reg1_0__Reg1_1__Imm1_2</span><span class="p">,</span>
+  <span class="p">...</span>
+  <span class="n">CVT_NUM_SIGNATURES</span>
+<span class="p">};</span>
+
+<span class="p">}</span> <span class="c1">// end anonymous namespace</span>
+
+  <span class="k">struct</span> <span class="n">MatchEntry</span> <span class="p">{</span>
+    <span class="kt">uint16_t</span> <span class="n">Mnemonic</span><span class="p">;</span>
+    <span class="kt">uint16_t</span> <span class="n">Opcode</span><span class="p">;</span>
+    <span class="kt">uint8_t</span> <span class="n">ConvertFn</span><span class="p">;</span>
+    <span class="kt">uint32_t</span> <span class="n">RequiredFeatures</span><span class="p">;</span>
+    <span class="kt">uint8_t</span> <span class="n">Classes</span><span class="p">[</span><span class="mi">3</span><span class="p">];</span>
+    <span class="n">StringRef</span> <span class="nf">getMnemonic</span><span class="p">()</span> <span class="k">const</span> <span class="p">{</span>
+      <span class="k">return</span> <span class="n">StringRef</span><span class="p">(</span><span class="n">MnemonicTable</span> <span class="o">+</span> <span class="n">Mnemonic</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span>
+                       <span class="n">MnemonicTable</span><span class="p">[</span><span class="n">Mnemonic</span><span class="p">]);</span>
+    <span class="p">}</span>
+  <span class="p">};</span>
+
+<span class="k">static</span> <span class="k">const</span> <span class="n">MatchEntry</span> <span class="n">MatchTable0</span><span class="p">[]</span> <span class="o">=</span> <span class="p">{</span>
+  <span class="p">{</span> <span class="mi">0</span> <span class="cm">/* add */</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">ADD</span><span class="p">,</span> <span class="n">Convert__Reg1_0__Reg1_1__Reg1_2</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="p">{</span> <span class="n">MCK_CPURegs</span><span class="p">,</span> <span class="n">MCK_CPURegs</span><span class="p">,</span> <span class="n">MCK_CPURegs</span> <span class="p">},</span> <span class="p">},</span>
+  <span class="p">{</span> <span class="mi">4</span> <span class="cm">/* addiu */</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">ADDiu</span><span class="p">,</span> <span class="n">Convert__Reg1_0__Reg1_1__Imm1_2</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="p">{</span> <span class="n">MCK_CPURegs</span><span class="p">,</span> <span class="n">MCK_CPURegs</span><span class="p">,</span> <span class="n">MCK_Imm</span> <span class="p">},</span> <span class="p">},</span>
+  <span class="p">...</span>
+<span class="p">};</span>
+
+<span class="kt">unsigned</span> <span class="n">Cpu0AsmParser</span><span class="o">::</span>
+<span class="n">MatchInstructionImpl</span><span class="p">(</span><span class="k">const</span> <span class="n">OperandVector</span> <span class="o">&amp;</span><span class="n">Operands</span><span class="p">,</span>
+                     <span class="n">MCInst</span> <span class="o">&amp;</span><span class="n">Inst</span><span class="p">,</span> <span class="kt">uint64_t</span> <span class="o">&amp;</span><span class="n">ErrorInfo</span><span class="p">,</span>
+                     <span class="kt">bool</span> <span class="n">matchingInlineAsm</span><span class="p">,</span> <span class="kt">unsigned</span> <span class="n">VariantID</span><span class="p">)</span> <span class="p">{</span>
+  <span class="p">...</span>
+  <span class="c1">// Find the appropriate table for this asm variant.</span>
+  <span class="k">const</span> <span class="n">MatchEntry</span> <span class="o">*</span><span class="n">Start</span><span class="p">,</span> <span class="o">*</span><span class="n">End</span><span class="p">;</span>
+  <span class="k">switch</span> <span class="p">(</span><span class="n">VariantID</span><span class="p">)</span> <span class="p">{</span>
+  <span class="k">default</span><span class="o">:</span> <span class="n">llvm_unreachable</span><span class="p">(</span><span class="s">&quot;invalid variant!&quot;</span><span class="p">);</span>
+  <span class="k">case</span> <span class="mi">0</span><span class="o">:</span> <span class="n">Start</span> <span class="o">=</span> <span class="n">std</span><span class="o">::</span><span class="n">begin</span><span class="p">(</span><span class="n">MatchTable0</span><span class="p">);</span> <span class="n">End</span> <span class="o">=</span> <span class="n">std</span><span class="o">::</span><span class="n">end</span><span class="p">(</span><span class="n">MatchTable0</span><span class="p">);</span> <span class="k">break</span><span class="p">;</span>
+  <span class="p">}</span>
+  <span class="c1">// Search the table.</span>
+  <span class="k">auto</span> <span class="n">MnemonicRange</span> <span class="o">=</span> <span class="n">std</span><span class="o">::</span><span class="n">equal_range</span><span class="p">(</span><span class="n">Start</span><span class="p">,</span> <span class="n">End</span><span class="p">,</span> <span class="n">Mnemonic</span><span class="p">,</span> <span class="n">LessOpcode</span><span class="p">());</span>
+  <span class="p">...</span>
+  <span class="k">for</span> <span class="p">(</span><span class="k">const</span> <span class="n">MatchEntry</span> <span class="o">*</span><span class="n">it</span> <span class="o">=</span> <span class="n">MnemonicRange</span><span class="p">.</span><span class="n">first</span><span class="p">,</span> <span class="o">*</span><span class="n">ie</span> <span class="o">=</span> <span class="n">MnemonicRange</span><span class="p">.</span><span class="n">second</span><span class="p">;</span>
+       <span class="n">it</span> <span class="o">!=</span> <span class="n">ie</span><span class="p">;</span> <span class="o">++</span><span class="n">it</span><span class="p">)</span> <span class="p">{</span>
+    <span class="p">...</span>
+    <span class="c1">// We have selected a definite instruction, convert the parsed</span>
+    <span class="c1">// operands into the appropriate MCInst.</span>
+
+    <span class="c1">/// For instance ADD , V1, AT, V0</span>
+    <span class="c1">/// MnemonicRange.first = &amp;MatchTable0[0]</span>
+    <span class="c1">/// MnemonicRange.second = &amp;MatchTable0[1]</span>
+    <span class="c1">/// it.ConvertFn = Convert__Reg1_0__Reg1_1__Reg1_2</span>
+
+    <span class="n">convertToMCInst</span><span class="p">(</span><span class="n">it</span><span class="o">-&gt;</span><span class="n">ConvertFn</span><span class="p">,</span> <span class="n">Inst</span><span class="p">,</span> <span class="n">it</span><span class="o">-&gt;</span><span class="n">Opcode</span><span class="p">,</span> <span class="n">Operands</span><span class="p">);</span>
+    <span class="p">...</span>
+  <span class="p">}</span>
+  <span class="p">...</span>
+<span class="p">}</span>
+
+<span class="k">static</span> <span class="k">const</span> <span class="kt">uint8_t</span> <span class="n">ConversionTable</span><span class="p">[</span><span class="n">CVT_NUM_SIGNATURES</span><span class="p">][</span><span class="mi">9</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+  <span class="c1">// Convert__Reg1_0__Reg1_1__Reg1_2</span>
+  <span class="p">{</span> <span class="n">CVT_95_Reg</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">CVT_95_Reg</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">CVT_95_Reg</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="n">CVT_Done</span> <span class="p">},</span>
+  <span class="c1">// Convert__Reg1_0__Reg1_1__Imm1_2</span>
+  <span class="p">{</span> <span class="n">CVT_95_Reg</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">CVT_95_Reg</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">CVT_95_addImmOperands</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="n">CVT_Done</span> <span class="p">},</span>
+  <span class="p">...</span>
+<span class="p">};</span>
+
+<span class="c1">/// When kind = Convert__Reg1_0__Reg1_1__Reg1_2, ConversionTable[Kind] is equal to CVT_95_Reg</span>
+<span class="c1">/// For Operands[1], Operands[2], Operands[3] do the following:</span>
+<span class="c1">///   static_cast&lt;Cpu0Operand&amp;&gt;(*Operands[OpIdx]).addRegOperands(Inst, 1);</span>
+<span class="c1">/// Since p = 0, 2, 4, then OpIdx = 1, 2, 3 when OpIdx=*(p+1).</span>
+<span class="c1">/// Since, Operands[1] = V1, Operands[2] = AT, Operands[3] = V0,</span>
+<span class="c1">///   for &quot;ADD , V1, AT, V0&quot; which created by ParseInstruction().</span>
+<span class="c1">/// Inst.Opcode = ADD, Inst.Operand[0] = V1, Inst.Operand[1] = AT,</span>
+<span class="c1">///   Inst.Operand[2] = V0.</span>
+<span class="kt">void</span> <span class="n">Cpu0AsmParser</span><span class="o">::</span>
+<span class="n">convertToMCInst</span><span class="p">(</span><span class="kt">unsigned</span> <span class="n">Kind</span><span class="p">,</span> <span class="n">MCInst</span> <span class="o">&amp;</span><span class="n">Inst</span><span class="p">,</span> <span class="kt">unsigned</span> <span class="n">Opcode</span><span class="p">,</span>
+                <span class="k">const</span> <span class="n">OperandVector</span> <span class="o">&amp;</span><span class="n">Operands</span><span class="p">)</span> <span class="p">{</span>
+  <span class="n">assert</span><span class="p">(</span><span class="n">Kind</span> <span class="o">&lt;</span> <span class="n">CVT_NUM_SIGNATURES</span> <span class="o">&amp;&amp;</span> <span class="s">&quot;Invalid signature!&quot;</span><span class="p">);</span>
+  <span class="k">const</span> <span class="kt">uint8_t</span> <span class="o">*</span><span class="n">Converter</span> <span class="o">=</span> <span class="n">ConversionTable</span><span class="p">[</span><span class="n">Kind</span><span class="p">];</span>
+  <span class="kt">unsigned</span> <span class="n">OpIdx</span><span class="p">;</span>
+  <span class="n">Inst</span><span class="p">.</span><span class="n">setOpcode</span><span class="p">(</span><span class="n">Opcode</span><span class="p">);</span>
+  <span class="k">for</span> <span class="p">(</span><span class="k">const</span> <span class="kt">uint8_t</span> <span class="o">*</span><span class="n">p</span> <span class="o">=</span> <span class="n">Converter</span><span class="p">;</span> <span class="o">*</span><span class="n">p</span><span class="p">;</span> <span class="n">p</span><span class="o">+=</span> <span class="mi">2</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">OpIdx</span> <span class="o">=</span> <span class="o">*</span><span class="p">(</span><span class="n">p</span> <span class="o">+</span> <span class="mi">1</span><span class="p">);</span>
+    <span class="k">switch</span> <span class="p">(</span><span class="o">*</span><span class="n">p</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">default</span><span class="o">:</span> <span class="n">llvm_unreachable</span><span class="p">(</span><span class="s">&quot;invalid conversion entry!&quot;</span><span class="p">);</span>
+    <span class="k">case</span> <span class="nl">CVT_Reg</span><span class="p">:</span>
+      <span class="k">static_cast</span><span class="o">&lt;</span><span class="n">Cpu0Operand</span><span class="o">&amp;&gt;</span><span class="p">(</span><span class="o">*</span><span class="n">Operands</span><span class="p">[</span><span class="n">OpIdx</span><span class="p">]).</span><span class="n">addRegOperands</span><span class="p">(</span><span class="n">Inst</span><span class="p">,</span> <span class="mi">1</span><span class="p">);</span>
+      <span class="k">break</span><span class="p">;</span>
+    <span class="p">...</span>
+    <span class="p">}</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p class="rubric">lbdex/chapters/Chapter11_1/AsmParser/Cpu0AsmParser.cpp</p>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="c1">/// For &quot;ADD , V1, AT, V0&quot;, ParseInstruction() set Operands[1].Reg.RegNum = V1,</span>
+<span class="c1">///   Operands[2].Reg.RegNum = AT, ..., by Cpu0Operand::CreateReg(RegNo, S,</span>
+<span class="c1">///   Parser.getTok().getLoc()) in calling ParseOperand().</span>
+<span class="c1">/// So, after (*Operands[1..3]).addRegOperands(Inst, 1),</span>
+<span class="c1">///   Inst.Opcode = ADD, Inst.Operand[0] = V1, Inst.Operand[1] = AT,</span>
+<span class="c1">///   Inst.Operand[2] = V0.</span>
+<span class="k">class</span> <span class="nc">Cpu0Operand</span> <span class="o">:</span> <span class="k">public</span> <span class="n">MCParsedAsmOperand</span> <span class="p">{</span>
+  <span class="p">...</span>
+  <span class="kt">void</span> <span class="n">addRegOperands</span><span class="p">(</span><span class="n">MCInst</span> <span class="o">&amp;</span><span class="n">Inst</span><span class="p">,</span> <span class="kt">unsigned</span> <span class="n">N</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
+    <span class="n">assert</span><span class="p">(</span><span class="n">N</span> <span class="o">==</span> <span class="mi">1</span> <span class="o">&amp;&amp;</span> <span class="s">&quot;Invalid number of operands!&quot;</span><span class="p">);</span>
+    <span class="n">Inst</span><span class="p">.</span><span class="n">addOperand</span><span class="p">(</span><span class="n">MCOperand</span><span class="o">::</span><span class="n">createReg</span><span class="p">(</span><span class="n">getReg</span><span class="p">()));</span>
+  <span class="p">}</span>
+  <span class="p">...</span>
+  <span class="kt">unsigned</span> <span class="n">getReg</span><span class="p">()</span> <span class="k">const</span> <span class="k">override</span> <span class="p">{</span>
+    <span class="n">assert</span><span class="p">((</span><span class="n">Kind</span> <span class="o">==</span> <span class="n">k_Register</span><span class="p">)</span> <span class="o">&amp;&amp;</span> <span class="s">&quot;Invalid access!&quot;</span><span class="p">);</span>
+    <span class="k">return</span> <span class="n">Reg</span><span class="p">.</span><span class="n">RegNum</span><span class="p">;</span>
+  <span class="p">}</span>
+  <span class="p">...</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p class="rubric">lbdex/chapters/Chapter11_1/MCTargetDesc/Cpu0MCCodeEmitter.cpp</p>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="kt">void</span> <span class="n">Cpu0MCCodeEmitter</span><span class="o">::</span>
+<span class="n">encodeInstruction</span><span class="p">(</span><span class="k">const</span> <span class="n">MCInst</span> <span class="o">&amp;</span><span class="n">MI</span><span class="p">,</span> <span class="n">raw_ostream</span> <span class="o">&amp;</span><span class="n">OS</span><span class="p">,</span>
+                  <span class="n">SmallVectorImpl</span><span class="o">&lt;</span><span class="n">MCFixup</span><span class="o">&gt;</span> <span class="o">&amp;</span><span class="n">Fixups</span><span class="p">,</span>
+                  <span class="k">const</span> <span class="n">MCSubtargetInfo</span> <span class="o">&amp;</span><span class="n">STI</span><span class="p">)</span> <span class="k">const</span>
+<span class="p">{</span>
+  <span class="kt">uint32_t</span> <span class="n">Binary</span> <span class="o">=</span> <span class="n">getBinaryCodeForInstr</span><span class="p">(</span><span class="n">MI</span><span class="p">,</span> <span class="n">Fixups</span><span class="p">,</span> <span class="n">STI</span><span class="p">);</span>
+  <span class="p">...</span>
+  <span class="n">EmitInstruction</span><span class="p">(</span><span class="n">Binary</span><span class="p">,</span> <span class="n">Size</span><span class="p">,</span> <span class="n">OS</span><span class="p">);</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p class="rubric">llvm/cmake_debug_build/lib/Target/Cpu0/Cpu0GenMCCodeEmitter.inc</p>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="kt">uint64_t</span> <span class="n">Cpu0MCCodeEmitter</span><span class="o">::</span><span class="n">getBinaryCodeForInstr</span><span class="p">(</span><span class="k">const</span> <span class="n">MCInst</span> <span class="o">&amp;</span><span class="n">MI</span><span class="p">,</span>
+    <span class="n">SmallVectorImpl</span><span class="o">&lt;</span><span class="n">MCFixup</span><span class="o">&gt;</span> <span class="o">&amp;</span><span class="n">Fixups</span><span class="p">,</span>
+    <span class="k">const</span> <span class="n">MCSubtargetInfo</span> <span class="o">&amp;</span><span class="n">STI</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
+  <span class="k">static</span> <span class="k">const</span> <span class="kt">uint64_t</span> <span class="n">InstBits</span><span class="p">[]</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="p">...</span>
+    <span class="n">UINT64_C</span><span class="p">(</span><span class="mi">318767104</span><span class="p">),</span>      <span class="c1">// ADD  /// 318767104=0x13000000</span>
+    <span class="p">...</span>
+  <span class="p">};</span>
+  <span class="p">...</span>
+
+  <span class="k">const</span> <span class="kt">unsigned</span> <span class="n">opcode</span> <span class="o">=</span> <span class="n">MI</span><span class="p">.</span><span class="n">getOpcode</span><span class="p">();</span>
+  <span class="p">...</span>
+  <span class="k">switch</span> <span class="p">(</span><span class="n">opcode</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">case</span> <span class="n">Cpu0</span><span class="o">::</span><span class="nl">ADD</span><span class="p">:</span>
+    <span class="p">...</span>
+      <span class="c1">// op: ra</span>
+      <span class="n">op</span> <span class="o">=</span> <span class="n">getMachineOpValue</span><span class="p">(</span><span class="n">MI</span><span class="p">,</span> <span class="n">MI</span><span class="p">.</span><span class="n">getOperand</span><span class="p">(</span><span class="mi">0</span><span class="p">),</span> <span class="n">Fixups</span><span class="p">,</span> <span class="n">STI</span><span class="p">);</span>
+      <span class="n">Value</span> <span class="o">|=</span> <span class="p">(</span><span class="n">op</span> <span class="o">&amp;</span> <span class="n">UINT64_C</span><span class="p">(</span><span class="mi">15</span><span class="p">))</span> <span class="o">&lt;&lt;</span> <span class="mi">20</span><span class="p">;</span>
+      <span class="c1">// op: rb</span>
+      <span class="n">op</span> <span class="o">=</span> <span class="n">getMachineOpValue</span><span class="p">(</span><span class="n">MI</span><span class="p">,</span> <span class="n">MI</span><span class="p">.</span><span class="n">getOperand</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span> <span class="n">Fixups</span><span class="p">,</span> <span class="n">STI</span><span class="p">);</span>
+      <span class="n">Value</span> <span class="o">|=</span> <span class="p">(</span><span class="n">op</span> <span class="o">&amp;</span> <span class="n">UINT64_C</span><span class="p">(</span><span class="mi">15</span><span class="p">))</span> <span class="o">&lt;&lt;</span> <span class="mi">16</span><span class="p">;</span>
+      <span class="c1">// op: rc</span>
+      <span class="n">op</span> <span class="o">=</span> <span class="n">getMachineOpValue</span><span class="p">(</span><span class="n">MI</span><span class="p">,</span> <span class="n">MI</span><span class="p">.</span><span class="n">getOperand</span><span class="p">(</span><span class="mi">2</span><span class="p">),</span> <span class="n">Fixups</span><span class="p">,</span> <span class="n">STI</span><span class="p">);</span>
+      <span class="n">Value</span> <span class="o">|=</span> <span class="p">(</span><span class="n">op</span> <span class="o">&amp;</span> <span class="n">UINT64_C</span><span class="p">(</span><span class="mi">15</span><span class="p">))</span> <span class="o">&lt;&lt;</span> <span class="mi">12</span><span class="p">;</span>
+      <span class="k">break</span><span class="p">;</span>
+    <span class="p">}</span>
+    <span class="p">...</span>
+  <span class="p">}</span>
+  <span class="k">return</span> <span class="n">Value</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<img src="_images/graphviz-17478bba1662002107038a97260e30c2dc71d73e.png" alt="// Free usage license, author: Chung-Shu Chen 陳鍾樞
+// dot -Tpng asmDfdEx2.gv -oasmDfdEx2.png
+
+digraph G {
+  rankdir=LR;
+  subgraph cluster_2 {
+    style=filled;
+    label = &quot;Data flow in MatchAndEmitInstruction(), for instance: add $v1, $v0, $at&quot;;
+    subgraph clusterA {
+      label = &quot;MatchAndEmitInstruction()&quot;;
+      node [style=filled,color=white]; MatchTable0 [label=&quot;Start = std::\nbegin(MatchTable0);\nEnd = std::end\n(MatchTable0);&quot;];
+      node [style=filled,color=white]; equal_range [label=&quot;std::equal_range(Start, End, \nMnemonic, LessOpcode());&quot;];
+      node [style=filled,color=white]; convertToMCInst [label=&quot;convertToMCInst\n(Kind, ...)&quot;];
+      MatchTable0 -&gt; equal_range [ label = &quot;Start,\nEnd&quot; ];
+      equal_range -&gt; convertToMCInst [ label = &quot;Kind=\nConvert__Reg1_0__\nReg1_1__Reg1_2&quot; ];
+    }
+    color=lightgrey
+  }
+}" />
+<img src="_images/graphviz-0c5249292d4694b71b908db68677ac72c0c4a5c8.png" alt="// Free usage license, author: Chung-Shu Chen 陳鍾樞
+// dot -Tpng asmDfdEx3.gv -oasmDfdEx3.png
+
+digraph G {
+  rankdir=LR;
+  subgraph cluster_2 {
+    style=filled;
+    label = &quot;Data flow in and between MatchAndEmitInstruction() and encodeInstruction(), for instance: add $v1, $v0, $at&quot;;
+    subgraph clusterA {
+      label = &quot;MatchAndEmitInstruction()&quot;;
+      node [style=filled,color=white]; convertToMCInst [label=&quot;convertToMCInst()&quot;];
+    }
+    subgraph clusterB {
+      label = &quot;encodeInstruction()&quot;;
+      node [style=filled,color=white]; getBinaryCodeForInstr [label=&quot;getBinaryCodeForInstr()&quot;];
+      node [style=filled,color=white]; EmitInstruction [label=&quot;EmitInstruction()&quot;];
+      getBinaryCodeForInstr -&gt; EmitInstruction [ label = &quot;Binary&quot; ];
+    }
+    convertToMCInst -&gt; getBinaryCodeForInstr [ label = &quot;Inst.Opcode = ADD,\nInst.Operand[0] = V1,\nInst.Operand[1] = AT,\nInst.Operand[2] = V0&quot; ];
+    color=lightgrey
+  }
+}" />
+<p>MatchTable0 include all the possibile combinations of opcode and operands type.
+Even the assembly instruction of user input may pass Cpu0AsmParser in syntax
+check, the MatchAndEmitInstruction() still can be fail. For example, instruction
+&#8220;asm(&#8220;move $3, $2);&#8221; can pass but &#8220;asm(&#8220;move $3, $2, $1&#8221;);&#8221; will fail.</p>
+</div>
+<div class="section" id="code-list-and-some-detail-functions-explanation">
+<h3><a class="toc-backref" href="#id10">Code list and some detail functions explanation</a><a class="headerlink" href="#code-list-and-some-detail-functions-explanation" title="Permalink to this headline">¶</a></h3>
+<p>The Chapter11_1/ include AsmParser implementation as follows,</p>
 <p class="rubric">lbdex/chapters/Chapter11_1/AsmParser/Cpu0AsmParser.cpp</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span>//===-- Cpu0AsmParser.cpp - Parse Cpu0 assembly to MCInst instructions ----===//
 //
@@ -280,11 +544,8 @@ namespace {
 class Cpu0Operand : public MCParsedAsmOperand {
 
   enum KindTy {
-    k_CondCode,
-    k_CoprocNum,
     k_Immediate,
     k_Memory,
-    k_PostIndexRegister,
     k_Register,
     k_Token
   } Kind;
@@ -347,17 +608,17 @@ public:
     addExpr(Inst,Expr);
   }
 
-  bool isReg() const { return Kind == k_Register; }
-  bool isImm() const { return Kind == k_Immediate; }
-  bool isToken() const { return Kind == k_Token; }
-  bool isMem() const { return Kind == k_Memory; }
+  bool isReg() const override { return Kind == k_Register; }
+  bool isImm() const override { return Kind == k_Immediate; }
+  bool isToken() const override { return Kind == k_Token; }
+  bool isMem() const override { return Kind == k_Memory; }
 
   StringRef getToken() const {
     assert(Kind == k_Token &amp;&amp; &quot;Invalid access!&quot;);
     return StringRef(Tok.Data, Tok.Length);
   }
 
-  unsigned getReg() const {
+  unsigned getReg() const override {
     assert((Kind == k_Register) &amp;&amp; &quot;Invalid access!&quot;);
     return Reg.RegNum;
   }
@@ -415,14 +676,42 @@ public:
   }
 
   /// getStartLoc - Get the location of the first token of this operand.
-  SMLoc getStartLoc() const { return StartLoc; }
+  SMLoc getStartLoc() const override { return StartLoc; }
   /// getEndLoc - Get the location of the last token of this operand.
-  SMLoc getEndLoc() const { return EndLoc; }
+  SMLoc getEndLoc() const override { return EndLoc; }
 
-  virtual void print(raw_ostream &amp;OS) const {
-    llvm_unreachable(&quot;unimplemented!&quot;);
+  void print(raw_ostream &amp;OS) const override {
+    switch (Kind) {
+    case k_Immediate:
+      OS &lt;&lt; &quot;Imm&lt;&quot;;
+      OS &lt;&lt; *Imm.Val;
+      OS &lt;&lt; &quot;&gt;&quot;;
+      break;
+    case k_Memory:
+      OS &lt;&lt; &quot;Mem&lt;&quot;;
+      OS &lt;&lt; Mem.Base;
+      OS &lt;&lt; &quot;, &quot;;
+      OS &lt;&lt; *Mem.Off;
+      OS &lt;&lt; &quot;&gt;&quot;;
+      break;
+    case k_Register:
+      OS &lt;&lt; &quot;Register&lt;&quot; &lt;&lt; Reg.RegNum &lt;&lt; &quot;&gt;&quot;;
+      break;
+    case k_Token:
+      OS &lt;&lt; Tok.Data;
+      break;
+    }
   }
 };
+}
+
+void printCpu0Operands(OperandVector &amp;Operands) {
+  for (size_t i = 0; i &lt; Operands.size(); i++) {
+    Cpu0Operand* op = static_cast&lt;Cpu0Operand*&gt;(&amp;*Operands[i]);
+    assert(op != nullptr);
+    DEBUG(dbgs() &lt;&lt; &quot;&lt;&quot; &lt;&lt; *op &lt;&lt; &quot;&gt;&quot;);
+  }
+  DEBUG(dbgs() &lt;&lt; &quot;\n&quot;);
 }
 
 //@1 {
@@ -579,6 +868,7 @@ bool Cpu0AsmParser::MatchAndEmitInstruction(SMLoc IDLoc, unsigned &amp;Opcode,
                                             MCStreamer &amp;Out,
                                             uint64_t &amp;ErrorInfo,
                                             bool MatchingInlineAsm) {
+  printCpu0Operands(Operands);
   MCInst Inst;
   unsigned MatchResult = MatchInstructionImpl(Operands, Inst, ErrorInfo,
                                               MatchingInlineAsm);
@@ -1443,6 +1733,7 @@ LoadImm32Reg, are handled by Cpu0AsmParser.cpp as follows,</p>
                                             <span class="n">MCStreamer</span> <span class="o">&amp;</span><span class="n">Out</span><span class="p">,</span>
                                             <span class="n">uint64_t</span> <span class="o">&amp;</span><span class="n">ErrorInfo</span><span class="p">,</span>
                                             <span class="nb">bool</span> <span class="n">MatchingInlineAsm</span><span class="p">)</span> <span class="p">{</span>
+  <span class="n">printCpu0Operands</span><span class="p">(</span><span class="n">Operands</span><span class="p">);</span>
   <span class="n">MCInst</span> <span class="n">Inst</span><span class="p">;</span>
   <span class="n">unsigned</span> <span class="n">MatchResult</span> <span class="o">=</span> <span class="n">MatchInstructionImpl</span><span class="p">(</span><span class="n">Operands</span><span class="p">,</span> <span class="n">Inst</span><span class="p">,</span> <span class="n">ErrorInfo</span><span class="p">,</span>
                                               <span class="n">MatchingInlineAsm</span><span class="p">);</span>
@@ -1591,8 +1882,9 @@ of Cpu0AsmParser as follows,</p>
 <li>expandInstruction() -&gt; expandLoadImm(), expandLoadAddressImm(), expandLoadAddressReg() -&gt; EmitInstruction() of Cpu0AsmPrint.cpp</li>
 </ul>
 </div>
+</div>
 <div class="section" id="inline-assembly">
-<h2><a class="toc-backref" href="#id9">Inline assembly</a><a class="headerlink" href="#inline-assembly" title="Permalink to this headline">¶</a></h2>
+<h2><a class="toc-backref" href="#id11">Inline assembly</a><a class="headerlink" href="#inline-assembly" title="Permalink to this headline">¶</a></h2>
 <p>Run Chapter11_1 with ch11_2 will get the following error.</p>
 <p class="rubric">lbdex/input/ch11_2.cpp</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">extern</span> <span class="s2">&quot;C&quot;</span> <span class="nb">int</span> <span class="n">printf</span><span class="p">(</span><span class="n">const</span> <span class="n">char</span> <span class="o">*</span><span class="nb">format</span><span class="p">,</span> <span class="o">...</span><span class="p">);</span>

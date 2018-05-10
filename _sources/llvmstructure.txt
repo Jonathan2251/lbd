@@ -834,6 +834,35 @@ are all caps) like this:
   def GR32 : RegisterClass<[i32], 32,
     [EAX, ECX, EDX, ESI, EDI, EBX, EBP, ESP,
      R8D, R9D, R10D, R11D, R14D, R15D, R12D, R13D]> { ... }
+     
+The language used in .td files are Target(Hardware) Description Language that
+let llvm backend compiler engineers to define the transformation for llvm IR
+and the machine instructions of their CPUs. In frontend, compiler development
+tools provide the "Parser Generator" for compiler development; in backend,
+they provide the "Machine Code Generator" for development, as the following
+figures.
+
+.. graphviz:: ../Fig/llvmstructure/frontendTblGen.gv
+
+.. graphviz:: ../Fig/llvmstructure/llvmTblGen.gv
+
+
+Since the c++'s grammar is more context-sensitive than context-free, llvm 
+frontend project clang uses handcode parser without BNF generator tools.
+In backend development, the IR to machine instructions transformation can
+get great benefits from TableGen tools. Though c++ compiler cannot get
+benefit from BNF generator tools, many computer languages and script languages
+are more context-free and can get benefit from the tools.
+
+The following come from wiki:
+
+Java syntax has a context-free grammar that can be parsed by a simple LALR 
+parser. Parsing C++ is more complicated [#java-cpp]_.
+
+The gnu g++ compiler abandoned BNF tools since version 3.x. 
+I think another reason beyond that c++ has more context-sensitive grammar is
+handcode parser can provide better error diagnosis than BNF tool since
+BNF tool always select the rules from BNF grammar if match.
 
 
 LLVM Code Generation Sequence
@@ -1127,6 +1156,125 @@ version [#dragonbooks-10.2.3]_.
       st %a,  i32* %c, 0
 
 
+DSA form
+~~~~~~~~
+
+.. code-block:: console
+
+    for (int i = 0; i < 1000; i++) {
+      b[i] = f(g(a[i]));
+    }
+    
+For the source program as above, the following are the SSA form in source code
+level and llvm IR level respectively.
+
+.. code-block:: c++
+
+    for (int i = 0; i < 1000; i++) {
+      t = g(a[i]);
+      b[i] = f(t);
+    }
+    
+.. code-block:: llvm
+
+      %pi = alloca i32
+      store i32 0, i32* %pi
+      %i = load i32, i32* %pi
+      %cmp = icmp slt i32 %i, 1000
+      br i1 %cmp, label %true, label %end
+    true:
+      %a_idx = add i32 %i, i32 %a_addr
+      %val0 = load i32, i32* %a_idx
+      %t = call i64 %g(i32 %val0)
+      %val1 = call i64 %f(i32 %t)
+      %b_idx = add i32 %i, i32 %b_addr
+      store i32 %val1, i32* %b_idx
+    end:
+
+    
+The following is the DSA (Dynamic Single Assignment) form.
+
+.. code-block:: c++
+
+    for (int i = 0; i < 1000; i++) {
+      t[i] = g(a[i]);
+      b[i] = f(t[i]);
+    }
+    
+.. code-block:: llvm
+
+      %pi = alloca i32
+      store i32 0, i32* %pi
+      %i = load i32, i32* %pi
+      %cmp = icmp slt i32 %i, 1000
+      br i1 %cmp, label %true, label %end
+    true:
+      %a_idx = add i32 %i, i32 %a_addr
+      %val0 = load i32, i32* %a_idx
+      %t_idx = add i32 %i, i32 %t_addr
+      %temp = call i64 %g(i32 %val0)
+      store i32 %temp, i32* %t_idx
+      %val1 = call i64 %f(i32 %temp)
+      %b_idx = add i32 %i, i32 %b_addr
+      store i32 %val1, i32* %b_idx
+    end:
+    
+In some internet video applications and muti-core (SMP) platforms, splitting g() 
+and f() to two different loop have better perfomance. DSA can split as the 
+following while SSA cannot. Of course, it's possible to do extra analysis on
+%temp of SSA and reverse it into %t_idx and %t_addr as the following DSA. But in 
+compiler discussion, the translation is from high to low level of machine code.
+Besides, as you see, the llvm ir lose the for loop information already though
+it can be reconstructed by extra analysis. So, in this book and almost every
+paper in compiler discuss with this high-to-low premise, otherwise it's talking
+about reverse engineering in assembler or compiler.
+
+
+.. code-block:: c++
+
+    for (int i = 0; i < 1000; i++) {
+      t[i] = g(a[i]);
+    }
+    
+    for (int i = 0; i < 1000; i++) {
+      b[i] = f(t[i]);
+    }
+    
+.. code-block:: llvm
+
+      %pi = alloca i32
+      store i32 0, i32* %pi
+      %i = load i32, i32* %pi
+      %cmp = icmp slt i32 %i, 1000
+      br i1 %cmp, label %true, label %end
+    true:
+      %a_idx = add i32 %i, i32 %a_addr
+      %val0 = load i32, i32* %a_idx
+      %t_idx = add i32 %i, i32 %t_addr
+      %temp = call i32 %g(i32 %val0)
+      store i32 %temp, i32* %t_idx
+    end:
+
+      %pi = alloca i32
+      store i32 0, i32* %pi
+      %i = load i32, i32* %pi
+      %cmp = icmp slt i32 %i, 1000
+      br i1 %cmp, label %true, label %end
+    true:
+      %t_idx = add i32 %i, i32 %t_addr
+      %temp = load i32, i32* %t_idx
+      %val1 = call i32 %f(i32 %temp)
+      %b_idx = add i32 %i, i32 %b_addr
+      store i32 %val1, i32* %b_idx
+    end:
+
+Now, the data dependences only exist on t[i] between "t[i] = g(a[i])" and
+"b[i] = f(t[i])" for each i = (0..999). The program can be run on many different
+order, and it provides many parallel processing opportunities for multi-core 
+(SMP) and heterogeneous processors. For instance, g(x) is run on GPU and f(x)
+is run on CPU.
+
+
 DAG (Directed Acyclic Graph)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -1247,12 +1395,14 @@ DAG nodes **load** and **store**. Notice that the $rb in
  
 .. _llvmstructure-f13: 
 .. figure:: ../Fig/llvmstructure/13.png
-  :width: 804 px
-  :height: 588 px
-  :scale: 70 %
+  :width: 643 px
+  :height: 421 px
+  :scale: 80 %
   :align: center
 
   Pattern match for ADDiu instruction and IR node add
+
+.. graphviz:: ../Fig/llvmstructure/DAG.gv
 
 From DAG instruction selection we mentioned, the leaf node must be a Data Node.
 ADDiu is format L type which the last operand must fits in 16 bits range.
@@ -2250,6 +2400,8 @@ the Target Registration.
 
 .. [#jr-note] Both JR and RET has same opcode (actually they are the same instruction for Cpu0 hardware). When user writes "jr $t9" meaning it jumps to address of register $t9; when user writes "jr $lr" meaning it jump back to the caller function (since $lr is the return address). For user read ability, Cpu0 prints "ret $lr" instead of "jr $lr".
 
+.. [#java-cpp] https://en.wikipedia.org/wiki/Comparison_of_Java_and_C%2B%2B
+
 .. [#aosa-book] Chris Lattner, **LLVM**. Published in The Architecture of Open Source Applications. http://www.aosabook.org/en/llvm.html
 
 .. [#chapters-ex] http://jonathan2251.github.io/lbd/doc.html#generate-cpu0-document
@@ -2279,4 +2431,3 @@ the Target Registration.
 .. [#tblgen-langintro] http://llvm.org/docs/TableGen/LangIntro.html
 
 .. [#tblgen-langref] http://llvm.org/docs/TableGen/LangRef.html
-

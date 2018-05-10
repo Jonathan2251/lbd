@@ -51,45 +51,45 @@
 <span id="sec-funccall"></span><h1>Function call<a class="headerlink" href="#function-call" title="Permalink to this headline">¶</a></h1>
 <div class="contents local topic" id="contents">
 <ul class="simple">
-<li><a class="reference internal" href="#mips-stack-frame" id="id27">Mips stack frame</a></li>
-<li><a class="reference internal" href="#load-incoming-arguments-from-stack-frame" id="id28">Load incoming arguments from stack frame</a></li>
-<li><a class="reference internal" href="#store-outgoing-arguments-to-stack-frame" id="id29">Store outgoing arguments to stack frame</a><ul>
-<li><a class="reference internal" href="#pseudo-hook-instruction-adjcallstackdown-and-adjcallstackup" id="id30">Pseudo hook instruction ADJCALLSTACKDOWN and ADJCALLSTACKUP</a></li>
-<li><a class="reference internal" href="#read-lowercall-with-graphivz-s-help" id="id31">Read Lowercall() with Graphivz&#8217;s help</a></li>
-<li><a class="reference internal" href="#long-and-short-string-initialization" id="id32">Long and short string initialization</a></li>
+<li><a class="reference internal" href="#mips-stack-frame" id="id22">Mips stack frame</a></li>
+<li><a class="reference internal" href="#load-incoming-arguments-from-stack-frame" id="id23">Load incoming arguments from stack frame</a></li>
+<li><a class="reference internal" href="#store-outgoing-arguments-to-stack-frame" id="id24">Store outgoing arguments to stack frame</a><ul>
+<li><a class="reference internal" href="#pseudo-hook-instruction-adjcallstackdown-and-adjcallstackup" id="id25">Pseudo hook instruction ADJCALLSTACKDOWN and ADJCALLSTACKUP</a></li>
+<li><a class="reference internal" href="#read-lowercall-with-graphivz-s-help" id="id26">Read Lowercall() with Graphivz&#8217;s help</a></li>
+<li><a class="reference internal" href="#long-and-short-string-initialization" id="id27">Long and short string initialization</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#structure-type-support" id="id33">Structure type support</a><ul>
-<li><a class="reference internal" href="#ordinary-struct-type" id="id34">Ordinary struct type</a></li>
-<li><a class="reference internal" href="#byval-struct-type" id="id35">byval struct type</a></li>
+<li><a class="reference internal" href="#structure-type-support" id="id28">Structure type support</a><ul>
+<li><a class="reference internal" href="#ordinary-struct-type" id="id29">Ordinary struct type</a></li>
+<li><a class="reference internal" href="#byval-struct-type" id="id30">byval struct type</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#function-call-optiomization" id="id36">Function call optiomization</a><ul>
-<li><a class="reference internal" href="#tail-call-optimization" id="id37">Tail call optimization</a></li>
-<li><a class="reference internal" href="#recursion-optimization" id="id38">Recursion optimization</a></li>
+<li><a class="reference internal" href="#function-call-optiomization" id="id31">Function call optiomization</a><ul>
+<li><a class="reference internal" href="#tail-call-optimization" id="id32">Tail call optimization</a></li>
+<li><a class="reference internal" href="#recursion-optimization" id="id33">Recursion optimization</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#other-features-supporting" id="id39">Other features supporting</a><ul>
-<li><a class="reference internal" href="#the-gp-register-caller-saved-register-in-pic-addressing-mode" id="id40">The $gp register caller saved register in PIC addressing mode</a></li>
-<li><a class="reference internal" href="#variable-number-of-arguments" id="id41">Variable number of arguments</a></li>
-<li><a class="reference internal" href="#dynamic-stack-allocation-support" id="id42">Dynamic stack allocation support</a></li>
-<li><a class="reference internal" href="#variable-sized-array-support" id="id43">Variable sized array support</a></li>
-<li><a class="reference internal" href="#function-related-intrinsics-support" id="id44">Function related Intrinsics support</a><ul>
-<li><a class="reference internal" href="#frameaddress-and-returnaddress-intrinsics" id="id45">frameaddress and returnaddress intrinsics</a></li>
-<li><a class="reference internal" href="#eh-return-intrinsic" id="id46">eh.return intrinsic</a></li>
-<li><a class="reference internal" href="#eh-dwarf-intrinsic" id="id47">eh.dwarf intrinsic</a></li>
-<li><a class="reference internal" href="#bswap-intrinsic" id="id48">bswap intrinsic</a></li>
+<li><a class="reference internal" href="#other-features-supporting" id="id34">Other features supporting</a><ul>
+<li><a class="reference internal" href="#the-gp-register-caller-saved-register-in-pic-addressing-mode" id="id35">The $gp register caller saved register in PIC addressing mode</a></li>
+<li><a class="reference internal" href="#variable-number-of-arguments" id="id36">Variable number of arguments</a></li>
+<li><a class="reference internal" href="#dynamic-stack-allocation-support" id="id37">Dynamic stack allocation support</a></li>
+<li><a class="reference internal" href="#variable-sized-array-support" id="id38">Variable sized array support</a></li>
+<li><a class="reference internal" href="#function-related-intrinsics-support" id="id39">Function related Intrinsics support</a><ul>
+<li><a class="reference internal" href="#frameaddress-and-returnaddress-intrinsics" id="id40">frameaddress and returnaddress intrinsics</a></li>
+<li><a class="reference internal" href="#eh-return-intrinsic" id="id41">eh.return intrinsic</a></li>
+<li><a class="reference internal" href="#eh-dwarf-intrinsic" id="id42">eh.dwarf intrinsic</a></li>
+<li><a class="reference internal" href="#bswap-intrinsic" id="id43">bswap intrinsic</a></li>
 </ul>
 </li>
 </ul>
 </li>
-<li><a class="reference internal" href="#summary" id="id49">Summary</a></li>
+<li><a class="reference internal" href="#summary" id="id44">Summary</a></li>
 </ul>
 </div>
 <p>The subroutine/function call of backend translation is supported in this
 chapter.
-A lot of code are needed to support function call. They are added according llvm
-supplied interface to explain easily.
+A lot of code are needed to support function call in this chapter.
+They are added according llvm supplied interface to explain easily.
 This chapter starts from introducing the Mips stack frame structure since we
 borrow many parts of ABI from it.
 Although each CPU has it&#8217;s own ABI, most of ABI for RISC CPUs are similar.
@@ -103,7 +103,7 @@ Convention” of book “Computer Organization and Design, 1st Edition”
 “Run Time Memory” of compiler book, or “Function Call Sequence”  and
 “Stack Frame” of Mips ABI <a class="footnote-reference" href="#abi" id="id2">[3]</a>.</p>
 <div class="section" id="mips-stack-frame">
-<h2><a class="toc-backref" href="#id27">Mips stack frame</a><a class="headerlink" href="#mips-stack-frame" title="Permalink to this headline">¶</a></h2>
+<h2><a class="toc-backref" href="#id22">Mips stack frame</a><a class="headerlink" href="#mips-stack-frame" title="Permalink to this headline">¶</a></h2>
 <p>The first thing for designing the Cpu0 function call is deciding how to pass
 arguments in function call. There are two options.
 One is passing arguments all in stack.
@@ -111,10 +111,10 @@ The other is passing arguments in the registers which are reserved for function
 arguments, and put the other arguments in stack if it over the number of
 registers reserved for function call. For example, Mips pass the first 4
 arguments in register $a0, $a1, $a2, $a3, and the other arguments in stack
-if it over 4 arguments. <a class="reference internal" href="#funccall-f1"><span class="std std-numref">Fig. 22</span></a> is the Mips stack frame.</p>
+if it over 4 arguments. <a class="reference internal" href="#funccall-f1"><span class="std std-numref">Fig. 23</span></a> is the Mips stack frame.</p>
 <div class="figure align-center" id="id15">
-<span id="funccall-f1"></span><a class="reference internal image-reference" href="_images/14.png"><img alt="_images/14.png" src="_images/14.png" style="width: 344.0px; height: 265.5px;" /></a>
-<p class="caption"><span class="caption-number">Fig. 22 </span><span class="caption-text">Mips stack frame</span></p>
+<span id="funccall-f1"></span><a class="reference internal image-reference" href="_images/13.png"><img alt="_images/13.png" src="_images/13.png" style="width: 344.0px; height: 265.5px;" /></a>
+<p class="caption"><span class="caption-number">Fig. 23 </span><span class="caption-text">Mips stack frame</span></p>
 </div>
 <p>Run <code class="docutils literal"><span class="pre">llc</span> <span class="pre">-march=mips</span></code> for ch9_1.bc, you will get the following result.
 See comments <strong>&#8220;//&#8221;</strong>.</p>
@@ -241,7 +241,7 @@ See comments <strong>&#8220;//&#8221;</strong>.</p>
 </div>
 <p>From the mips assembly code generated as above, we see that it saves the first 4
 arguments to $a0..$a3 and last 2 arguments to 16($sp) and 20($sp).
-<a class="reference internal" href="#funccall-f2"><span class="std std-numref">Fig. 23</span></a> is the arguments location for example code
+<a class="reference internal" href="#funccall-f2"><span class="std std-numref">Fig. 24</span></a> is the location of arguments for example code
 ch9_1.cpp.
 It loads argument 5 from 48($sp) in sum_i() since the argument 5 is saved to
 16($sp) in main().
@@ -249,14 +249,14 @@ The stack size of sum_i() is 32, so 16+32($sp) is the location of incoming
 argument 5.</p>
 <div class="figure align-center" id="id16">
 <span id="funccall-f2"></span><a class="reference internal image-reference" href="_images/21.png"><img alt="_images/21.png" src="_images/21.png" style="width: 370.0px; height: 288.5px;" /></a>
-<p class="caption"><span class="caption-number">Fig. 23 </span><span class="caption-text">Mips arguments location in stack frame</span></p>
+<p class="caption"><span class="caption-number">Fig. 24 </span><span class="caption-text">Mips arguments location in stack frame</span></p>
 </div>
 <p>The 007-2418-003.pdf in here <a class="footnote-reference" href="#mipsasm" id="id3">[2]</a> is the Mips assembly language manual.
 Here <a class="footnote-reference" href="#abi" id="id4">[3]</a> is Mips Application Binary Interface which include the
-<a class="reference internal" href="#funccall-f1"><span class="std std-numref">Fig. 22</span></a>.</p>
+<a class="reference internal" href="#funccall-f1"><span class="std std-numref">Fig. 23</span></a>.</p>
 </div>
 <div class="section" id="load-incoming-arguments-from-stack-frame">
-<h2><a class="toc-backref" href="#id28">Load incoming arguments from stack frame</a><a class="headerlink" href="#load-incoming-arguments-from-stack-frame" title="Permalink to this headline">¶</a></h2>
+<h2><a class="toc-backref" href="#id23">Load incoming arguments from stack frame</a><a class="headerlink" href="#load-incoming-arguments-from-stack-frame" title="Permalink to this headline">¶</a></h2>
 <p>From last section, in order to support function call, we need implementing the
 arguments passing mechanism with stack frame.
 Before doing it, let&#8217;s run the old version of code Chapter8_2/ with ch9_1.cpp
@@ -278,7 +278,7 @@ and see what happens.</p>
 <span class="go">Illegal instruction: 4</span>
 </pre></div>
 </div>
-<p>Since Chapter8_2/ define the LowerFormalArguments() with empty, we get the error
+<p>Since Chapter8_2/ define the LowerFormalArguments() with empty body, we get the error
 messages as above.
 Before defining LowerFormalArguments(), we have to choose how to pass arguments
 in function call.
@@ -518,14 +518,14 @@ Cpu0TargetLowering::LowerFormalArguments(SDValue Chain,
                  ArgLocs, *DAG.getContext());
   Cpu0CC Cpu0CCInfo(CallConv, ABI.IsO32(), 
                     CCInfo);
-  Cpu0FI-&gt;setFormalArgInfo(CCInfo.getNextStackOffset(),
-                           Cpu0CCInfo.hasByValArg());
 
   Function::const_arg_iterator FuncArg =
     DAG.getMachineFunction().getFunction()-&gt;arg_begin();
   bool UseSoftFloat = Subtarget.abiUsesSoftFloat();
 
   Cpu0CCInfo.analyzeFormalArguments(Ins, UseSoftFloat, FuncArg);
+  Cpu0FI-&gt;setFormalArgInfo(CCInfo.getNextStackOffset(),
+                           Cpu0CCInfo.hasByValArg());
 
   // Used with vargs to acumulate store chains.
   std::vector&lt;SDValue&gt; OutChains;
@@ -537,8 +537,10 @@ Cpu0TargetLowering::LowerFormalArguments(SDValue Chain,
   for (unsigned i = 0, e = ArgLocs.size(); i != e; ++i) {
   //@2 }
     CCValAssign &amp;VA = ArgLocs[i];
-    std::advance(FuncArg, Ins[i].OrigArgIndex - CurArgIdx);
-    CurArgIdx = Ins[i].OrigArgIndex;
+    if (Ins[i].isOrigArg()) {
+      std::advance(FuncArg, Ins[i].getOrigArgIndex() - CurArgIdx);
+      CurArgIdx = Ins[i].getOrigArgIndex();
+    }
     EVT ValVT = VA.getValVT();
     ISD::ArgFlagsTy Flags = Ins[i].Flags;
     bool IsRegLoc = VA.isRegLoc();
@@ -648,7 +650,10 @@ analyzeFormalArguments(const SmallVectorImpl&lt;ISD::InputArg&gt; &amp;Args,
   for (unsigned I = 0; I != NumArgs; ++I) {
     MVT ArgVT = Args[I].VT;
     ISD::ArgFlagsTy ArgFlags = Args[I].Flags;
-    std::advance(FuncArg, Args[I].OrigArgIndex - CurArgIdx);
+    if (Args[I].isOrigArg()) {
+      std::advance(FuncArg, Args[I].getOrigArgIndex() - CurArgIdx);
+      CurArgIdx = Args[I].getOrigArgIndex();
+    }
     CurArgIdx = Args[I].OrigArgIndex;
 
     if (ArgFlags.isByVal()) {
@@ -745,11 +750,11 @@ It gets incoming arguments information by CCInfo(CallConv,..., ArgLocs, ...)
 before entering <strong>“for loop”</strong>. In ch9_1.cpp, there are 6 arguments in sum_i(...)
 function call.
 So ArgLocs.size() is 6, each argument information is in ArgLocs[i].
-When VA.isRegLoc() is true, meaning the arguement pass in register. On the
+When VA.isRegLoc() is true, meaning the arguement passes in register. On the
 contrary, when VA.isMemLoc() is true, meaning the arguement pass in memory
 stack.
-When passing in registers, it marks the registers &#8220;live in&#8221; and copy directly
-from the registers.
+When passing in register, it marks the register &#8220;live in&#8221; and copy directly
+from the register.
 When passing in memory stack, it creates stack offset for this frame index
 object and load node with the created stack offset, and then puts the load node
 into vector InVals.</p>
@@ -759,7 +764,7 @@ passes all arguments in stack frame.</p>
 <p>Before taking care the arguments as above, it calls analyzeFormalArguments().
 In analyzeFormalArguments() it calls fixedArgFn() which return the function
 pointer of CC_Cpu0O32() or CC_Cpu0S32().
-ArgFlags.isByVal() will be true if it meets &#8220;struct pointer byval&#8221; keyword,
+ArgFlags.isByVal() will be true when it meets &#8220;struct pointer byval&#8221; keyword,
 such as &#8220;%struct.S* byval&#8221; in tailcall.ll.
 When <code class="docutils literal"><span class="pre">llc</span> <span class="pre">-cpu0-s32-calls=false</span></code> the stack offset begin from 8 (in case the
 arguement registers need spill out) while <code class="docutils literal"><span class="pre">llc</span> <span class="pre">-cpu0-s32-calls=true</span></code> stack
@@ -768,7 +773,7 @@ offset begin from 0.</p>
 memory stack only to pass arguments), LowerFormalArguments()
 will be called twice. First time is for sum_i() which will create 6 &#8220;load DAGs&#8221;
 for 6 incoming arguments passing into this function.
-Second time is for main() which won&#8217;t create any &#8220;load DAG&#8221; for no incoming
+Second time is for main() which won&#8217;t create any &#8220;load DAG&#8221; since no incoming
 argument passing into main().
 In addition to LowerFormalArguments() which creates the &#8220;load DAG&#8221;, we need
 loadRegFromStackSlot() (defined in the early chapter) to issue the machine
@@ -777,9 +782,8 @@ instruction
 GetMemOperand(..., FI, ...) return the Memory location of the frame index
 variable, which is the offset.</p>
 <p>For input ch9_incoming.cpp as below, LowerFormalArguments() will generate the
-red circled parts of DAG nodes as <a class="reference internal" href="#funccall-f-incoming-arg1"><span class="std std-numref">Fig. 24</span></a> and
-<a class="reference internal" href="#funccall-f-incoming-arg2"><span class="std std-numref">Fig. 25</span></a> for <code class="docutils literal"><span class="pre">llc</span> <span class="pre">-cpu0-s32-calls=true</span></code> and
-<code class="docutils literal"><span class="pre">llc</span> <span class="pre">-cpu0-s32-calls=false</span></code>, respectively.
+red box parts of DAG nodes shown as the next two figures for
+<code class="docutils literal"><span class="pre">llc</span> <span class="pre">-cpu0-s32-calls=true</span></code> and <code class="docutils literal"><span class="pre">llc</span> <span class="pre">-cpu0-s32-calls=false</span></code>, respectively.
 The root node at bottom is created by</p>
 <p class="rubric">lbdex/input/ch9_incoming.cpp</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="nb">int</span> <span class="n">sum_i</span><span class="p">(</span><span class="nb">int</span> <span class="n">x1</span><span class="p">,</span> <span class="nb">int</span> <span class="n">x2</span><span class="p">,</span> <span class="nb">int</span> <span class="n">x3</span><span class="p">)</span>
@@ -802,14 +806,107 @@ The root node at bottom is created by</p>
 <span class="go">}</span>
 </pre></div>
 </div>
-<div class="figure align-center" id="id17">
-<span id="funccall-f-incoming-arg1"></span><a class="reference internal image-reference" href="_images/incoming-arg-S32.png"><img alt="_images/incoming-arg-S32.png" src="_images/incoming-arg-S32.png" style="width: 699.3px; height: 803.6px;" /></a>
-<p class="caption"><span class="caption-number">Fig. 24 </span><span class="caption-text">Incoming arguments DAG created for ch9_incoming.cpp with -cpu0-s32-calls=true</span></p>
-</div>
-<div class="figure align-center" id="id18">
-<span id="funccall-f-incoming-arg2"></span><a class="reference internal image-reference" href="_images/incoming-arg-O32.png"><img alt="_images/incoming-arg-O32.png" src="_images/incoming-arg-O32.png" style="width: 609.7px; height: 803.6px;" /></a>
-<p class="caption"><span class="caption-number">Fig. 25 </span><span class="caption-text">Incoming arguments DAG created for ch9_incoming.cpp with -cpu0-s32-calls=false</span></p>
-</div>
+<img src="_images/graphviz-a2c0091df95214306672a11eee96a25a3525d7d2.png" alt="digraph &quot;dag-combine1 input for _Z5sum_iiii:&quot; {
+	rankdir=&quot;BT&quot;;
+	label=&quot;Incoming arguments DAG created for ch9_incoming.cpp with -cpu0-s32-calls=true&quot;;
+
+  subgraph cluster_0 {
+    fontcolor=red;
+    fontsize=24;
+    label = &quot;LowerFormalArguments&quot;;
+	Node0x102f0dbe0 [shape=record,shape=Mrecord,label=&quot;{EntryToken|t0|{&lt;d0&gt;ch}}&quot;];
+	Node0x10304e800 [shape=record,shape=Mrecord,label=&quot;{FrameIndex\&lt;-1\&gt;|t1|{&lt;d0&gt;i32}}&quot;];
+	Node0x10304e870 [shape=record,shape=Mrecord,label=&quot;{undef|t2|{&lt;d0&gt;i32}}&quot;];
+	Node0x10304e8e0 [shape=record,shape=Mrecord,label=&quot;{{&lt;s0&gt;0|&lt;s1&gt;1|&lt;s2&gt;2}|load\&lt;LD4[FixedStack-1]\&gt;|t3|{&lt;d0&gt;i32|&lt;d1&gt;ch}}&quot;];
+	Node0x10304e8e0:s0 -&gt; Node0x102f0dbe0:d0[color=blue,style=dashed];
+	Node0x10304e8e0:s1 -&gt; Node0x10304e800:d0;
+	Node0x10304e8e0:s2 -&gt; Node0x10304e870:d0;
+	Node0x10304e950 [shape=record,shape=Mrecord,label=&quot;{FrameIndex\&lt;-2\&gt;|t4|{&lt;d0&gt;i32}}&quot;];
+	Node0x10304e9c0 [shape=record,shape=Mrecord,label=&quot;{{&lt;s0&gt;0|&lt;s1&gt;1|&lt;s2&gt;2}|load\&lt;LD4[FixedStack-2]\&gt;|t5|{&lt;d0&gt;i32|&lt;d1&gt;ch}}&quot;];
+	Node0x10304e9c0:s0 -&gt; Node0x102f0dbe0:d0[color=blue,style=dashed];
+	Node0x10304e9c0:s1 -&gt; Node0x10304e950:d0;
+	Node0x10304e9c0:s2 -&gt; Node0x10304e870:d0;
+	Node0x10304ea30 [shape=record,shape=Mrecord,label=&quot;{FrameIndex\&lt;-3\&gt;|t6|{&lt;d0&gt;i32}}&quot;];
+	Node0x10304eaa0 [shape=record,shape=Mrecord,label=&quot;{{&lt;s0&gt;0|&lt;s1&gt;1|&lt;s2&gt;2}|load\&lt;LD4[FixedStack-3]\&gt;|t7|{&lt;d0&gt;i32|&lt;d1&gt;ch}}&quot;];
+	Node0x10304eaa0:s0 -&gt; Node0x102f0dbe0:d0[color=blue,style=dashed];
+	Node0x10304eaa0:s1 -&gt; Node0x10304ea30:d0;
+	Node0x10304eaa0:s2 -&gt; Node0x10304e870:d0;
+	Node0x10304eb10 [shape=record,shape=Mrecord,label=&quot;{{&lt;s0&gt;0|&lt;s1&gt;1|&lt;s2&gt;2|&lt;s3&gt;3}|TokenFactor|t8|{&lt;d0&gt;ch}}&quot;];
+	Node0x10304eb10:s0 -&gt; Node0x10304e8e0:d1[color=blue,style=dashed];
+	Node0x10304eb10:s1 -&gt; Node0x10304e9c0:d1[color=blue,style=dashed];
+	Node0x10304eb10:s2 -&gt; Node0x10304eaa0:d1[color=blue,style=dashed];
+	Node0x10304eb10:s3 -&gt; Node0x102f0dbe0:d0[color=blue,style=dashed];
+	Node0x10304eb80 [shape=record,shape=Mrecord,label=&quot;{{&lt;s0&gt;0|&lt;s1&gt;1}|add|t9|{&lt;d0&gt;i32}}&quot;];
+	Node0x10304eb80:s0 -&gt; Node0x10304e9c0:d0;
+	Node0x10304eb80:s1 -&gt; Node0x10304e8e0:d0;
+	Node0x10304ebf0 [shape=record,shape=Mrecord,label=&quot;{{&lt;s0&gt;0|&lt;s1&gt;1}|add|t10|{&lt;d0&gt;i32}}&quot;];
+	Node0x10304ebf0:s0 -&gt; Node0x10304eb80:d0;
+	Node0x10304ebf0:s1 -&gt; Node0x10304eaa0:d0;
+	Node0x10304ec60 [shape=record,shape=Mrecord,label=&quot;{Register %V0|t11|{&lt;d0&gt;i32}}&quot;];
+  }
+  subgraph cluster_1 {
+    fontcolor=red;
+    fontsize=24;
+    label = &quot;LowerReturn&quot;;
+	Node0x10304ecd0 [shape=record,shape=Mrecord,label=&quot;{{&lt;s0&gt;0|&lt;s1&gt;1|&lt;s2&gt;2}|CopyToReg|t12|{&lt;d0&gt;ch|&lt;d1&gt;glue}}&quot;];
+	Node0x10304ecd0:s0 -&gt; Node0x10304eb10:d0[color=blue,style=dashed];
+	Node0x10304ecd0:s1 -&gt; Node0x10304ec60:d0;
+	Node0x10304ecd0:s2 -&gt; Node0x10304ebf0:d0;
+	Node0x10304ed40 [shape=record,shape=Mrecord,label=&quot;{{&lt;s0&gt;0|&lt;s1&gt;1|&lt;s2&gt;2}|Cpu0ISD::Ret|t13|{&lt;d0&gt;ch}}&quot;];
+	Node0x10304ed40:s0 -&gt; Node0x10304ecd0:d0[color=blue,style=dashed];
+	Node0x10304ed40:s1 -&gt; Node0x10304ec60:d0;
+	Node0x10304ed40:s2 -&gt; Node0x10304ecd0:d1[color=red,style=bold];
+  }
+	Node0x0[ plaintext=circle, label =&quot;GraphRoot&quot;];
+	Node0x0 -&gt; Node0x10304ed40:d0[color=blue,style=dashed];
+}" />
+<img src="_images/graphviz-fcad19b86b2989d5003a167de8394ec809e8b13c.png" alt="digraph &quot;dag-combine1 input for _Z5sum_iiii:&quot; {
+	rankdir=&quot;BT&quot;;
+	label=&quot;Figure: Incoming arguments DAG created for ch9_incoming.cpp with -cpu0-s32-calls=false&quot;;
+
+  subgraph cluster_0 {
+    fontcolor=red;
+    fontsize=24;
+    label = &quot;LowerFormalArguments&quot;;
+	Node0x102f0e0f0 [shape=record,shape=Mrecord,label=&quot;{EntryToken|t0|{&lt;d0&gt;ch}}&quot;];
+	Node0x10305c200 [shape=record,shape=Mrecord,label=&quot;{Register %vreg0|t1|{&lt;d0&gt;i32}}&quot;];
+	Node0x10305c270 [shape=record,shape=Mrecord,label=&quot;{{&lt;s0&gt;0|&lt;s1&gt;1}|CopyFromReg|t2|{&lt;d0&gt;i32|&lt;d1&gt;ch}}&quot;];
+	Node0x10305c270:s0 -&gt; Node0x102f0e0f0:d0[color=blue,style=dashed];
+	Node0x10305c270:s1 -&gt; Node0x10305c200:d0;
+	Node0x10305c2e0 [shape=record,shape=Mrecord,label=&quot;{Register %vreg1|t3|{&lt;d0&gt;i32}}&quot;];
+	Node0x10305c350 [shape=record,shape=Mrecord,label=&quot;{{&lt;s0&gt;0|&lt;s1&gt;1}|CopyFromReg|t4|{&lt;d0&gt;i32|&lt;d1&gt;ch}}&quot;];
+	Node0x10305c350:s0 -&gt; Node0x102f0e0f0:d0[color=blue,style=dashed];
+	Node0x10305c350:s1 -&gt; Node0x10305c2e0:d0;
+	Node0x10305c3c0 [shape=record,shape=Mrecord,label=&quot;{FrameIndex\&lt;-1\&gt;|t5|{&lt;d0&gt;i32}}&quot;];
+	Node0x10305c430 [shape=record,shape=Mrecord,label=&quot;{undef|t6|{&lt;d0&gt;i32}}&quot;];
+	Node0x10305c4a0 [shape=record,shape=Mrecord,label=&quot;{{&lt;s0&gt;0|&lt;s1&gt;1|&lt;s2&gt;2}|load\&lt;LD4[FixedStack-1]\&gt;|t7|{&lt;d0&gt;i32|&lt;d1&gt;ch}}&quot;];
+	Node0x10305c4a0:s0 -&gt; Node0x102f0e0f0:d0[color=blue,style=dashed];
+	Node0x10305c4a0:s1 -&gt; Node0x10305c3c0:d0;
+	Node0x10305c4a0:s2 -&gt; Node0x10305c430:d0;
+	Node0x10305c510 [shape=record,shape=Mrecord,label=&quot;{{&lt;s0&gt;0|&lt;s1&gt;1}|add|t8|{&lt;d0&gt;i32}}&quot;];
+	Node0x10305c510:s0 -&gt; Node0x10305c350:d0;
+	Node0x10305c510:s1 -&gt; Node0x10305c270:d0;
+	Node0x10305c580 [shape=record,shape=Mrecord,label=&quot;{{&lt;s0&gt;0|&lt;s1&gt;1}|add|t9|{&lt;d0&gt;i32}}&quot;];
+	Node0x10305c580:s0 -&gt; Node0x10305c510:d0;
+	Node0x10305c580:s1 -&gt; Node0x10305c4a0:d0;
+	Node0x10305c5f0 [shape=record,shape=Mrecord,label=&quot;{Register %V0|t10|{&lt;d0&gt;i32}}&quot;];
+  }
+  subgraph cluster_1 {
+    fontcolor=red;
+    fontsize=24;
+    label = &quot;LowerReturn&quot;;
+	Node0x10305c660 [shape=record,shape=Mrecord,label=&quot;{{&lt;s0&gt;0|&lt;s1&gt;1|&lt;s2&gt;2}|CopyToReg|t11|{&lt;d0&gt;ch|&lt;d1&gt;glue}}&quot;];
+	Node0x10305c660:s0 -&gt; Node0x10305c4a0:d1[color=blue,style=dashed];
+	Node0x10305c660:s1 -&gt; Node0x10305c5f0:d0;
+	Node0x10305c660:s2 -&gt; Node0x10305c580:d0;
+	Node0x10305c6d0 [shape=record,shape=Mrecord,label=&quot;{{&lt;s0&gt;0|&lt;s1&gt;1|&lt;s2&gt;2}|Cpu0ISD::Ret|t12|{&lt;d0&gt;ch}}&quot;];
+	Node0x10305c6d0:s0 -&gt; Node0x10305c660:d0[color=blue,style=dashed];
+	Node0x10305c6d0:s1 -&gt; Node0x10305c5f0:d0;
+	Node0x10305c6d0:s2 -&gt; Node0x10305c660:d1[color=red,style=bold];
+  }
+	Node0x0[ plaintext=circle, label =&quot;GraphRoot&quot;];
+	Node0x0 -&gt; Node0x10305c6d0:d0[color=blue,style=dashed];
+}" />
 <p>In addition to Calling Convention and LowerFormalArguments(), Chapter9_1/ adds
 the following code for the instruction selection and printing of Cpu0
 instructions <strong>swi</strong> (Software Interrupt), <strong>jsub</strong> and <strong>jalr</strong> (function call).</p>
@@ -1120,112 +1217,6 @@ spillCalleeSavedRegisters(MachineBasicBlock &amp;MBB,
 }
 </pre></div>
 </div>
-<p class="rubric">lbdex/chapters/Chapter9_1/Cpu0InstrInfo.h</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span>  <span class="n">void</span> <span class="n">storeRegToStackSlot</span><span class="p">(</span><span class="n">MachineBasicBlock</span> <span class="o">&amp;</span><span class="n">MBB</span><span class="p">,</span>
-                           <span class="n">MachineBasicBlock</span><span class="p">::</span><span class="n">iterator</span> <span class="n">MBBI</span><span class="p">,</span>
-                           <span class="n">unsigned</span> <span class="n">SrcReg</span><span class="p">,</span> <span class="nb">bool</span> <span class="n">isKill</span><span class="p">,</span> <span class="nb">int</span> <span class="n">FrameIndex</span><span class="p">,</span>
-                           <span class="n">const</span> <span class="n">TargetRegisterClass</span> <span class="o">*</span><span class="n">RC</span><span class="p">,</span>
-                           <span class="n">const</span> <span class="n">TargetRegisterInfo</span> <span class="o">*</span><span class="n">TRI</span><span class="p">)</span> <span class="n">const</span> <span class="n">override</span> <span class="p">{</span>
-    <span class="n">storeRegToStack</span><span class="p">(</span><span class="n">MBB</span><span class="p">,</span> <span class="n">MBBI</span><span class="p">,</span> <span class="n">SrcReg</span><span class="p">,</span> <span class="n">isKill</span><span class="p">,</span> <span class="n">FrameIndex</span><span class="p">,</span> <span class="n">RC</span><span class="p">,</span> <span class="n">TRI</span><span class="p">,</span> <span class="mi">0</span><span class="p">);</span>
-  <span class="p">}</span>
-
-  <span class="n">void</span> <span class="n">loadRegFromStackSlot</span><span class="p">(</span><span class="n">MachineBasicBlock</span> <span class="o">&amp;</span><span class="n">MBB</span><span class="p">,</span>
-                            <span class="n">MachineBasicBlock</span><span class="p">::</span><span class="n">iterator</span> <span class="n">MBBI</span><span class="p">,</span>
-                            <span class="n">unsigned</span> <span class="n">DestReg</span><span class="p">,</span> <span class="nb">int</span> <span class="n">FrameIndex</span><span class="p">,</span>
-                            <span class="n">const</span> <span class="n">TargetRegisterClass</span> <span class="o">*</span><span class="n">RC</span><span class="p">,</span>
-                            <span class="n">const</span> <span class="n">TargetRegisterInfo</span> <span class="o">*</span><span class="n">TRI</span><span class="p">)</span> <span class="n">const</span> <span class="n">override</span> <span class="p">{</span>
-    <span class="n">loadRegFromStack</span><span class="p">(</span><span class="n">MBB</span><span class="p">,</span> <span class="n">MBBI</span><span class="p">,</span> <span class="n">DestReg</span><span class="p">,</span> <span class="n">FrameIndex</span><span class="p">,</span> <span class="n">RC</span><span class="p">,</span> <span class="n">TRI</span><span class="p">,</span> <span class="mi">0</span><span class="p">);</span>
-  <span class="p">}</span>
-
-  <span class="n">virtual</span> <span class="n">void</span> <span class="n">storeRegToStack</span><span class="p">(</span><span class="n">MachineBasicBlock</span> <span class="o">&amp;</span><span class="n">MBB</span><span class="p">,</span>
-                               <span class="n">MachineBasicBlock</span><span class="p">::</span><span class="n">iterator</span> <span class="n">MI</span><span class="p">,</span>
-                               <span class="n">unsigned</span> <span class="n">SrcReg</span><span class="p">,</span> <span class="nb">bool</span> <span class="n">isKill</span><span class="p">,</span> <span class="nb">int</span> <span class="n">FrameIndex</span><span class="p">,</span>
-                               <span class="n">const</span> <span class="n">TargetRegisterClass</span> <span class="o">*</span><span class="n">RC</span><span class="p">,</span>
-                               <span class="n">const</span> <span class="n">TargetRegisterInfo</span> <span class="o">*</span><span class="n">TRI</span><span class="p">,</span>
-                               <span class="n">int64_t</span> <span class="n">Offset</span><span class="p">)</span> <span class="n">const</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
-
-  <span class="n">virtual</span> <span class="n">void</span> <span class="n">loadRegFromStack</span><span class="p">(</span><span class="n">MachineBasicBlock</span> <span class="o">&amp;</span><span class="n">MBB</span><span class="p">,</span>
-                                <span class="n">MachineBasicBlock</span><span class="p">::</span><span class="n">iterator</span> <span class="n">MI</span><span class="p">,</span>
-                                <span class="n">unsigned</span> <span class="n">DestReg</span><span class="p">,</span> <span class="nb">int</span> <span class="n">FrameIndex</span><span class="p">,</span>
-                                <span class="n">const</span> <span class="n">TargetRegisterClass</span> <span class="o">*</span><span class="n">RC</span><span class="p">,</span>
-                                <span class="n">const</span> <span class="n">TargetRegisterInfo</span> <span class="o">*</span><span class="n">TRI</span><span class="p">,</span>
-                                <span class="n">int64_t</span> <span class="n">Offset</span><span class="p">)</span> <span class="n">const</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
-</pre></div>
-</div>
-<div class="highlight-default"><div class="highlight"><pre><span></span>  <span class="n">MachineMemOperand</span> <span class="o">*</span><span class="n">GetMemOperand</span><span class="p">(</span><span class="n">MachineBasicBlock</span> <span class="o">&amp;</span><span class="n">MBB</span><span class="p">,</span> <span class="nb">int</span> <span class="n">FI</span><span class="p">,</span>
-                                   <span class="n">MachineMemOperand</span><span class="p">::</span><span class="n">Flags</span> <span class="n">Flags</span><span class="p">)</span> <span class="n">const</span><span class="p">;</span>
-</pre></div>
-</div>
-<p class="rubric">lbdex/chapters/Chapter9_1/Cpu0InstrInfo.cpp</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">MachineMemOperand</span> <span class="o">*</span>
-<span class="n">Cpu0InstrInfo</span><span class="p">::</span><span class="n">GetMemOperand</span><span class="p">(</span><span class="n">MachineBasicBlock</span> <span class="o">&amp;</span><span class="n">MBB</span><span class="p">,</span> <span class="nb">int</span> <span class="n">FI</span><span class="p">,</span>
-                             <span class="n">MachineMemOperand</span><span class="p">::</span><span class="n">Flags</span> <span class="n">Flags</span><span class="p">)</span> <span class="n">const</span> <span class="p">{</span>
-
-  <span class="n">MachineFunction</span> <span class="o">&amp;</span><span class="n">MF</span> <span class="o">=</span> <span class="o">*</span><span class="n">MBB</span><span class="o">.</span><span class="n">getParent</span><span class="p">();</span>
-  <span class="n">MachineFrameInfo</span> <span class="o">&amp;</span><span class="n">MFI</span> <span class="o">=</span> <span class="o">*</span><span class="n">MF</span><span class="o">.</span><span class="n">getFrameInfo</span><span class="p">();</span>
-  <span class="n">unsigned</span> <span class="n">Align</span> <span class="o">=</span> <span class="n">MFI</span><span class="o">.</span><span class="n">getObjectAlignment</span><span class="p">(</span><span class="n">FI</span><span class="p">);</span>
-
-  <span class="k">return</span> <span class="n">MF</span><span class="o">.</span><span class="n">getMachineMemOperand</span><span class="p">(</span><span class="n">MachinePointerInfo</span><span class="p">::</span><span class="n">getFixedStack</span><span class="p">(</span><span class="n">MF</span><span class="p">,</span> <span class="n">FI</span><span class="p">),</span>
-                                 <span class="n">Flags</span><span class="p">,</span> <span class="n">MFI</span><span class="o">.</span><span class="n">getObjectSize</span><span class="p">(</span><span class="n">FI</span><span class="p">),</span> <span class="n">Align</span><span class="p">);</span>
-<span class="p">}</span>
-</pre></div>
-</div>
-<p class="rubric">lbdex/chapters/Chapter9_1/Cpu0SEInstrInfo.h</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span>  <span class="n">void</span> <span class="n">storeRegToStack</span><span class="p">(</span><span class="n">MachineBasicBlock</span> <span class="o">&amp;</span><span class="n">MBB</span><span class="p">,</span>
-                       <span class="n">MachineBasicBlock</span><span class="p">::</span><span class="n">iterator</span> <span class="n">MI</span><span class="p">,</span>
-                       <span class="n">unsigned</span> <span class="n">SrcReg</span><span class="p">,</span> <span class="nb">bool</span> <span class="n">isKill</span><span class="p">,</span> <span class="nb">int</span> <span class="n">FrameIndex</span><span class="p">,</span>
-                       <span class="n">const</span> <span class="n">TargetRegisterClass</span> <span class="o">*</span><span class="n">RC</span><span class="p">,</span>
-                       <span class="n">const</span> <span class="n">TargetRegisterInfo</span> <span class="o">*</span><span class="n">TRI</span><span class="p">,</span>
-                       <span class="n">int64_t</span> <span class="n">Offset</span><span class="p">)</span> <span class="n">const</span> <span class="n">override</span><span class="p">;</span>
-
-  <span class="n">void</span> <span class="n">loadRegFromStack</span><span class="p">(</span><span class="n">MachineBasicBlock</span> <span class="o">&amp;</span><span class="n">MBB</span><span class="p">,</span>
-                        <span class="n">MachineBasicBlock</span><span class="p">::</span><span class="n">iterator</span> <span class="n">MI</span><span class="p">,</span>
-                        <span class="n">unsigned</span> <span class="n">DestReg</span><span class="p">,</span> <span class="nb">int</span> <span class="n">FrameIndex</span><span class="p">,</span>
-                        <span class="n">const</span> <span class="n">TargetRegisterClass</span> <span class="o">*</span><span class="n">RC</span><span class="p">,</span>
-                        <span class="n">const</span> <span class="n">TargetRegisterInfo</span> <span class="o">*</span><span class="n">TRI</span><span class="p">,</span>
-                        <span class="n">int64_t</span> <span class="n">Offset</span><span class="p">)</span> <span class="n">const</span> <span class="n">override</span><span class="p">;</span>
-</pre></div>
-</div>
-<p class="rubric">lbdex/chapters/Chapter9_1/Cpu0SEInstrInfo.cpp</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">void</span> <span class="n">Cpu0SEInstrInfo</span><span class="p">::</span>
-<span class="n">storeRegToStack</span><span class="p">(</span><span class="n">MachineBasicBlock</span> <span class="o">&amp;</span><span class="n">MBB</span><span class="p">,</span> <span class="n">MachineBasicBlock</span><span class="p">::</span><span class="n">iterator</span> <span class="n">I</span><span class="p">,</span>
-                <span class="n">unsigned</span> <span class="n">SrcReg</span><span class="p">,</span> <span class="nb">bool</span> <span class="n">isKill</span><span class="p">,</span> <span class="nb">int</span> <span class="n">FI</span><span class="p">,</span>
-                <span class="n">const</span> <span class="n">TargetRegisterClass</span> <span class="o">*</span><span class="n">RC</span><span class="p">,</span> <span class="n">const</span> <span class="n">TargetRegisterInfo</span> <span class="o">*</span><span class="n">TRI</span><span class="p">,</span>
-                <span class="n">int64_t</span> <span class="n">Offset</span><span class="p">)</span> <span class="n">const</span> <span class="p">{</span>
-  <span class="n">DebugLoc</span> <span class="n">DL</span><span class="p">;</span>
-  <span class="n">MachineMemOperand</span> <span class="o">*</span><span class="n">MMO</span> <span class="o">=</span> <span class="n">GetMemOperand</span><span class="p">(</span><span class="n">MBB</span><span class="p">,</span> <span class="n">FI</span><span class="p">,</span> <span class="n">MachineMemOperand</span><span class="p">::</span><span class="n">MOStore</span><span class="p">);</span>
-
-  <span class="n">unsigned</span> <span class="n">Opc</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
-
-  <span class="n">Opc</span> <span class="o">=</span> <span class="n">Cpu0</span><span class="p">::</span><span class="n">ST</span><span class="p">;</span>
-  <span class="k">assert</span><span class="p">(</span><span class="n">Opc</span> <span class="o">&amp;&amp;</span> <span class="s2">&quot;Register class not handled!&quot;</span><span class="p">);</span>
-  <span class="n">BuildMI</span><span class="p">(</span><span class="n">MBB</span><span class="p">,</span> <span class="n">I</span><span class="p">,</span> <span class="n">DL</span><span class="p">,</span> <span class="n">get</span><span class="p">(</span><span class="n">Opc</span><span class="p">))</span><span class="o">.</span><span class="n">addReg</span><span class="p">(</span><span class="n">SrcReg</span><span class="p">,</span> <span class="n">getKillRegState</span><span class="p">(</span><span class="n">isKill</span><span class="p">))</span>
-    <span class="o">.</span><span class="n">addFrameIndex</span><span class="p">(</span><span class="n">FI</span><span class="p">)</span><span class="o">.</span><span class="n">addImm</span><span class="p">(</span><span class="n">Offset</span><span class="p">)</span><span class="o">.</span><span class="n">addMemOperand</span><span class="p">(</span><span class="n">MMO</span><span class="p">);</span>
-<span class="p">}</span>
-
-<span class="n">void</span> <span class="n">Cpu0SEInstrInfo</span><span class="p">::</span>
-<span class="n">loadRegFromStack</span><span class="p">(</span><span class="n">MachineBasicBlock</span> <span class="o">&amp;</span><span class="n">MBB</span><span class="p">,</span> <span class="n">MachineBasicBlock</span><span class="p">::</span><span class="n">iterator</span> <span class="n">I</span><span class="p">,</span>
-                 <span class="n">unsigned</span> <span class="n">DestReg</span><span class="p">,</span> <span class="nb">int</span> <span class="n">FI</span><span class="p">,</span> <span class="n">const</span> <span class="n">TargetRegisterClass</span> <span class="o">*</span><span class="n">RC</span><span class="p">,</span>
-                 <span class="n">const</span> <span class="n">TargetRegisterInfo</span> <span class="o">*</span><span class="n">TRI</span><span class="p">,</span> <span class="n">int64_t</span> <span class="n">Offset</span><span class="p">)</span> <span class="n">const</span> <span class="p">{</span>
-  <span class="n">DebugLoc</span> <span class="n">DL</span><span class="p">;</span>
-  <span class="k">if</span> <span class="p">(</span><span class="n">I</span> <span class="o">!=</span> <span class="n">MBB</span><span class="o">.</span><span class="n">end</span><span class="p">())</span> <span class="n">DL</span> <span class="o">=</span> <span class="n">I</span><span class="o">-&gt;</span><span class="n">getDebugLoc</span><span class="p">();</span>
-  <span class="n">MachineMemOperand</span> <span class="o">*</span><span class="n">MMO</span> <span class="o">=</span> <span class="n">GetMemOperand</span><span class="p">(</span><span class="n">MBB</span><span class="p">,</span> <span class="n">FI</span><span class="p">,</span> <span class="n">MachineMemOperand</span><span class="p">::</span><span class="n">MOLoad</span><span class="p">);</span>
-  <span class="n">unsigned</span> <span class="n">Opc</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
-
-  <span class="n">Opc</span> <span class="o">=</span> <span class="n">Cpu0</span><span class="p">::</span><span class="n">LD</span><span class="p">;</span>
-  <span class="k">assert</span><span class="p">(</span><span class="n">Opc</span> <span class="o">&amp;&amp;</span> <span class="s2">&quot;Register class not handled!&quot;</span><span class="p">);</span>
-  <span class="n">BuildMI</span><span class="p">(</span><span class="n">MBB</span><span class="p">,</span> <span class="n">I</span><span class="p">,</span> <span class="n">DL</span><span class="p">,</span> <span class="n">get</span><span class="p">(</span><span class="n">Opc</span><span class="p">),</span> <span class="n">DestReg</span><span class="p">)</span><span class="o">.</span><span class="n">addFrameIndex</span><span class="p">(</span><span class="n">FI</span><span class="p">)</span><span class="o">.</span><span class="n">addImm</span><span class="p">(</span><span class="n">Offset</span><span class="p">)</span>
-    <span class="o">.</span><span class="n">addMemOperand</span><span class="p">(</span><span class="n">MMO</span><span class="p">);</span>
-<span class="p">}</span>
-</pre></div>
-</div>
-<p>Functions storeRegToStack() Cpu0SEInstrInfo.cpp,
-storeRegToStackSlot() of Cpu0InstrInfo.cpp are
-handling the registers spilling during register allocation process.
-Since each local variable connecting to a frame index,  &#8221;.addFrameIndex(FI).
-addImm(Offset).addMemOperand(MMO); where Offset is 0&#8221; in storeRegToStack().
-The loadRegFromStackSlot() and loadRegFromStack() will be used in future and
-we add them at this point in advance.</p>
 <p>Both JSUB and JALR defined in Cpu0InstrInfo.td as above use Cpu0JmpLink
 node. They are distinguishable since JSUB use &#8220;imm&#8221; operand while
 JALR uses register operand.</p>
@@ -1246,7 +1237,7 @@ implicitly used by llvm belongs to &#8220;texternalsym&#8221; (for instance the 
 &#8220;memcpy&#8221; belongs to &#8220;texternalsym&#8221;). The &#8220;memcpy&#8221; will be generated when
 defining a long string. The ch9_1_2.cpp is an example for generating &#8220;memcpy&#8221;
 function call. It will be shown in next section with Chapter9_2 example code.
-The Cpu0GenDAGISel.inc contains pattern matched information of JSUB and JALR
+Cpu0GenDAGISel.inc contains pattern matched information of JSUB and JALR
 which generated from TablGen as follows,</p>
 <div class="highlight-c++"><div class="highlight"><pre><span></span>          <span class="cm">/*SwitchOpcode*/</span> <span class="mi">74</span><span class="p">,</span>  <span class="n">TARGET_VAL</span><span class="p">(</span><span class="n">Cpu0ISD</span><span class="o">::</span><span class="n">JmpLink</span><span class="p">),</span><span class="c1">// -&gt;734</span>
 <span class="cm">/*660*/</span>     <span class="n">OPC_RecordNode</span><span class="p">,</span>   <span class="c1">// #0 = &#39;Cpu0JmpLink&#39; chained node</span>
@@ -1320,10 +1311,10 @@ in the following,</p>
 the correct number of values!</p>
 </div>
 <div class="section" id="store-outgoing-arguments-to-stack-frame">
-<h2><a class="toc-backref" href="#id29">Store outgoing arguments to stack frame</a><a class="headerlink" href="#store-outgoing-arguments-to-stack-frame" title="Permalink to this headline">¶</a></h2>
-<p><a class="reference internal" href="#funccall-f2"><span class="std std-numref">Fig. 23</span></a> depicts two steps to take care arguments passing.
-One is store outgoing arguments in caller function, the other is load
-incoming arguments in callee function.
+<h2><a class="toc-backref" href="#id24">Store outgoing arguments to stack frame</a><a class="headerlink" href="#store-outgoing-arguments-to-stack-frame" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference internal" href="#funccall-f2"><span class="std std-numref">Fig. 24</span></a> depicts two steps to take care arguments passing.
+One is store outgoing arguments into caller function, the other is load
+incoming arguments into callee function.
 We defined LowerFormalArguments() for <strong>“load incoming arguments”</strong> in callee
 function last section.
 Now, we will finish <strong>“store outgoing arguments”</strong> in caller function.
@@ -1777,15 +1768,15 @@ analyzeCallOperands(const SmallVectorImpl&lt;ISD::OutputArg&gt; &amp;Args,
 </div>
 <p>Just like load incoming arguments from stack frame, we call
 CCInfo(CallConv,..., ArgLocs, ...) to get outgoing arguments information before
-enter <strong>“for loop”*.
+entering <strong>“for loop”*.
 They&#8217;re almost same in **“for loop”</strong> with LowerFormalArguments(), except
 LowerCall() creates &#8220;store DAG vector&#8221; instead of &#8220;load DAG vector&#8221;.
 After the <strong>“for loop”</strong>, it create <strong>“ld $t9, %call16(_Z5sum_iiiiiii)($gp)”</strong>
 and jalr $t9 for calling subroutine (the $6 is $t9) in PIC mode.</p>
-<p>Like load incoming arguments, we need to implement storeRegToStackSlot() at
+<p>Like loading incoming arguments, we need to implement storeRegToStackSlot() at
 early chapter.</p>
 <div class="section" id="pseudo-hook-instruction-adjcallstackdown-and-adjcallstackup">
-<h3><a class="toc-backref" href="#id30">Pseudo hook instruction ADJCALLSTACKDOWN and ADJCALLSTACKUP</a><a class="headerlink" href="#pseudo-hook-instruction-adjcallstackdown-and-adjcallstackup" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id25">Pseudo hook instruction ADJCALLSTACKDOWN and ADJCALLSTACKUP</a><a class="headerlink" href="#pseudo-hook-instruction-adjcallstackdown-and-adjcallstackup" title="Permalink to this headline">¶</a></h3>
 <p>DAG.getCALLSEQ_START() and DAG.getCALLSEQ_END() are set before and after the
 <strong>“for loop”</strong>, respectively, they insert
 CALLSEQ_START, CALLSEQ_END, and translate them into pseudo machine instructions
@@ -1831,7 +1822,7 @@ def CPRESTORE : Cpu0Pseudo&lt;(outs), (ins i32imm:$loc, CPURegs:$gp),
 </div>
 <p>With below definition, eliminateCallFramePseudoInstr() will be called when
 llvm meets pseudo instructions ADJCALLSTACKDOWN and ADJCALLSTACKUP.
-It just discard these 2 pseudo instructions, and llvm will add offset to
+It justs discard these 2 pseudo instructions, and llvm will add offset to
 stack.</p>
 <p class="rubric">lbdex/chapters/Chapter9_2/Cpu0InstrInfo.cpp</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">Cpu0InstrInfo</span><span class="p">::</span><span class="n">Cpu0InstrInfo</span><span class="p">(</span><span class="n">const</span> <span class="n">Cpu0Subtarget</span> <span class="o">&amp;</span><span class="n">STI</span><span class="p">)</span>
@@ -1862,16 +1853,16 @@ stack.</p>
 </div>
 </div>
 <div class="section" id="read-lowercall-with-graphivz-s-help">
-<h3><a class="toc-backref" href="#id31">Read Lowercall() with Graphivz&#8217;s help</a><a class="headerlink" href="#read-lowercall-with-graphivz-s-help" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id26">Read Lowercall() with Graphivz&#8217;s help</a><a class="headerlink" href="#read-lowercall-with-graphivz-s-help" title="Permalink to this headline">¶</a></h3>
 <p>The whole DAGs created for outgoing arguments as
-<a class="reference internal" href="#funccall-f-outgoing-arg"><span class="std std-numref">Fig. 26</span></a> for ch9_outgoing.cpp with cpu032I.
-LowerCall() will generate the DAG nodes as
-<a class="reference internal" href="#funccall-f-outgoing-arg-lowercal"><span class="std std-numref">Fig. 27</span></a>
+&#8220;Figure Outgoing arguments DAG (A)...&#8221; below for ch9_outgoing.cpp with cpu032I.
+LowerCall() (excluding calling LowerCallResult()) will generate the DAG nodes as
+&#8220;Figure Outgoing arguments DAG (B)...&#8221; below
 for ch9_outgoing.cpp with cpu032I. The corresponding code of DAGs Store and
 TargetGlobalAddress are listed in the figure, user can match the other DAGs
 to function LowerCall() easily.
 Through Graphivz tool with llc option -view-dag-combine1-dags, you can design
-a small input C or llvm IR source code and check the DAGs to understand the
+a small input C or llvm IR source code and then check the DAGs to understand the
 code in LowerCall() and LowerFormalArguments().
 At the sub-sections &#8220;variable arguments&#8221; and &#8220;dynamic stack allocation
 support&#8221; in the later section of this chapter, you can design
@@ -1879,7 +1870,7 @@ the input example with this features and check the DAGs with these two functions
 again to make sure you know the code in these two function. About Graphivz,
 please refer to section &#8220;Display llvm IR nodes with Graphviz&#8221; of chapter 4,
 Arithmetic and logic instructions.
-The DAGs diagram can be gotten by llc option as follows,</p>
+The DAGs diagram can be got by llc option as follows,</p>
 <p class="rubric">lbdex/input/ch9_outgoing.cpp</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">extern</span> <span class="nb">int</span> <span class="n">sum_i</span><span class="p">(</span><span class="nb">int</span> <span class="n">x1</span><span class="p">);</span>
 
@@ -1909,14 +1900,124 @@ The DAGs diagram can be gotten by llc option as follows,</p>
 <span class="go">Running &#39;Graphviz&#39; program...</span>
 </pre></div>
 </div>
-<div class="figure align-center" id="id19">
-<span id="funccall-f-outgoing-arg"></span><a class="reference internal image-reference" href="_images/outgoing-arg-S32.png"><img alt="_images/outgoing-arg-S32.png" src="_images/outgoing-arg-S32.png" style="width: 1192.1px; height: 1221.5px;" /></a>
-<p class="caption"><span class="caption-number">Fig. 26 </span><span class="caption-text">Outgoing arguments DAG created for ch9_outgoing.cpp with -cpu0-s32-calls=true</span></p>
-</div>
-<div class="figure align-center" id="id20">
-<span id="funccall-f-outgoing-arg-lowercal"></span><a class="reference internal image-reference" href="_images/outgoing-arg-LowerCall.png"><img alt="_images/outgoing-arg-LowerCall.png" src="_images/outgoing-arg-LowerCall.png" style="width: 945.0px; height: 756.0px;" /></a>
-<p class="caption"><span class="caption-number">Fig. 27 </span><span class="caption-text">Outgoing arguments DAG created by LowerCall() for ch9_outgoing.cpp with -cpu0-s32-calls=true</span></p>
-</div>
+<img src="_images/graphviz-7b0edf25ec54f08813b295ab8247a52506e27c24.png" alt="digraph &quot;dag-combine1 input for _Z10call_sum_iv:&quot; {
+	rankdir=&quot;BT&quot;;
+	label=&quot;Figure Outgoing arguments DAG (A) created for ch9_outgoing.cpp with -cpu0-s32-calls=true&quot;;
+
+  subgraph cluster_0 {
+    fontcolor=red;
+    fontsize=24;
+    label = &quot;LowerCall&quot;;
+	Node0x102f0d060 [shape=record,shape=Mrecord,label=&quot;{EntryToken|t0|{&lt;d0&gt;ch}}&quot;];
+	Node0x10304f200 [shape=record,shape=Mrecord,label=&quot;{GlobalAddress\&lt;i32 (i32)* &#64;_Z5sum_ii\&gt; 0|t1|{&lt;d0&gt;i32}}&quot;];
+	Node0x10304f270 [shape=record,shape=Mrecord,label=&quot;{Constant\&lt;1\&gt;|t2|{&lt;d0&gt;i32}}&quot;];
+	Node0x10304f2e0 [shape=record,shape=Mrecord,label=&quot;{TargetConstant\&lt;8\&gt;|t3|{&lt;d0&gt;i32}}&quot;];
+	Node0x10304f350 [shape=record,shape=Mrecord,label=&quot;{{&lt;s0&gt;0|&lt;s1&gt;1}|callseq_start|t4|{&lt;d0&gt;ch|&lt;d1&gt;glue}}&quot;];
+	Node0x10304f350:s0 -&gt; Node0x102f0d060:d0[color=blue,style=dashed];
+	Node0x10304f350:s1 -&gt; Node0x10304f2e0:d0;
+	Node0x10304f3c0 [shape=record,shape=Mrecord,label=&quot;{Register %SP|t5|{&lt;d0&gt;i32}}&quot;];
+	Node0x10304f430 [shape=record,shape=Mrecord,label=&quot;{{&lt;s0&gt;0|&lt;s1&gt;1}|CopyFromReg|t6|{&lt;d0&gt;i32|&lt;d1&gt;ch}}&quot;];
+	Node0x10304f430:s0 -&gt; Node0x10304f350:d0[color=blue,style=dashed];
+	Node0x10304f430:s1 -&gt; Node0x10304f3c0:d0;
+	Node0x10304f4a0 [shape=record,shape=Mrecord,label=&quot;{Constant\&lt;0\&gt;|t7|{&lt;d0&gt;i32}}&quot;];
+	Node0x10304f510 [shape=record,shape=Mrecord,label=&quot;{undef|t8|{&lt;d0&gt;i32}}&quot;];
+	Node0x10304f580 [shape=record,shape=Mrecord,label=&quot;{{&lt;s0&gt;0|&lt;s1&gt;1|&lt;s2&gt;2|&lt;s3&gt;3}|store\&lt;ST4[\&lt;unknown\&gt;]\&gt;|t9|{&lt;d0&gt;ch}}&quot;];
+	Node0x10304f580:s0 -&gt; Node0x10304f350:d0[color=blue,style=dashed];
+	Node0x10304f580:s1 -&gt; Node0x10304f270:d0;
+	Node0x10304f580:s2 -&gt; Node0x10304f430:d0;
+	Node0x10304f580:s3 -&gt; Node0x10304f510:d0;
+	Node0x10304f5f0 [shape=record,shape=Mrecord,label=&quot;{TargetGlobalAddress\&lt;i32 (i32)* &#64;_Z5sum_ii\&gt; 0|t10|{&lt;d0&gt;i32}}&quot;];
+	Node0x10304f660 [shape=record,shape=Mrecord,label=&quot;{RegisterMask|t11|{&lt;d0&gt;Untyped}}&quot;];
+	Node0x10304f6d0 [shape=record,shape=Mrecord,label=&quot;{{&lt;s0&gt;0|&lt;s1&gt;1|&lt;s2&gt;2}|Cpu0ISD::JmpLink|t12|{&lt;d0&gt;ch|&lt;d1&gt;glue}}&quot;];
+	Node0x10304f6d0:s0 -&gt; Node0x10304f580:d0[color=blue,style=dashed];
+	Node0x10304f6d0:s1 -&gt; Node0x10304f5f0:d0;
+	Node0x10304f6d0:s2 -&gt; Node0x10304f660:d0;
+	Node0x10304f740 [shape=record,shape=Mrecord,label=&quot;{TargetConstant\&lt;0\&gt;|t13|{&lt;d0&gt;i32}}&quot;];
+	Node0x10304f7b0 [shape=record,shape=Mrecord,label=&quot;{{&lt;s0&gt;0|&lt;s1&gt;1|&lt;s2&gt;2|&lt;s3&gt;3}|callseq_end|t14|{&lt;d0&gt;ch|&lt;d1&gt;glue}}&quot;];
+	Node0x10304f7b0:s0 -&gt; Node0x10304f6d0:d0[color=blue,style=dashed];
+	Node0x10304f7b0:s1 -&gt; Node0x10304f2e0:d0;
+	Node0x10304f7b0:s2 -&gt; Node0x10304f740:d0;
+	Node0x10304f7b0:s3 -&gt; Node0x10304f6d0:d1[color=red,style=bold];
+  }
+  subgraph cluster_1 {
+    fontcolor=red;
+    fontsize=24;
+    label = &quot;LowerCallResult&quot;;
+	Node0x10304f820 [shape=record,shape=Mrecord,label=&quot;{Register %V0|t15|{&lt;d0&gt;i32}}&quot;];
+	Node0x10304f890 [shape=record,shape=Mrecord,label=&quot;{{&lt;s0&gt;0|&lt;s1&gt;1|&lt;s2&gt;2}|CopyFromReg|t16|{&lt;d0&gt;i32|&lt;d1&gt;ch|&lt;d2&gt;glue}}&quot;];
+  }
+  subgraph cluster_2 {
+    fontcolor=red;
+    fontsize=24;
+    label = &quot;LowerReturn&quot;;
+	Node0x10304f900 [shape=record,shape=Mrecord,label=&quot;{{&lt;s0&gt;0|&lt;s1&gt;1|&lt;s2&gt;2}|CopyToReg|t17|{&lt;d0&gt;ch|&lt;d1&gt;glue}}&quot;];
+	Node0x10304f970 [shape=record,shape=Mrecord,label=&quot;{{&lt;s0&gt;0|&lt;s1&gt;1|&lt;s2&gt;2}|Cpu0ISD::Ret|t18|{&lt;d0&gt;ch}}&quot;];
+  }
+	Node0x10304f890:s0 -&gt; Node0x10304f7b0:d0[color=blue,style=dashed];
+	Node0x10304f890:s1 -&gt; Node0x10304f820:d0;
+	Node0x10304f890:s2 -&gt; Node0x10304f7b0:d1[color=red,style=bold];
+	
+	Node0x10304f900:s0 -&gt; Node0x10304f890:d1[color=blue,style=dashed];
+	Node0x10304f900:s1 -&gt; Node0x10304f820:d0;
+	Node0x10304f900:s2 -&gt; Node0x10304f890:d0;
+	Node0x10304f970:s0 -&gt; Node0x10304f900:d0[color=blue,style=dashed];
+	Node0x10304f970:s1 -&gt; Node0x10304f820:d0;
+	Node0x10304f970:s2 -&gt; Node0x10304f900:d1[color=red,style=bold];
+	
+	Node0x0[ plaintext=circle, label =&quot;GraphRoot&quot;];
+	Node0x0 -&gt; Node0x10304f970:d0[color=blue,style=dashed];
+}" />
+<img src="_images/graphviz-872d9406c8f7076da808aa8cff561ce22047180c.png" alt="digraph &quot;isel input for _Z10call_sum_iv:&quot; {
+	rankdir=&quot;BT&quot;;
+	label=&quot;Figure Outgoing arguments DAG (B) created by LowerCall() for ch9_outgoing.cpp with -cpu0-s32-calls=true&quot;;
+	Node0x102f0d060 [shape=record,shape=Mrecord,label=&quot;{EntryToken|t0|{&lt;d0&gt;ch}}&quot;];
+	Node0x10304f270 [shape=record,shape=Mrecord,label=&quot;{Constant\&lt;1\&gt;|t2|{&lt;d0&gt;i32}}&quot;];
+	Node0x10304f2e0 [shape=record,shape=Mrecord,label=&quot;{TargetConstant\&lt;8\&gt;|t3|{&lt;d0&gt;i32}}&quot;];
+	Node0x10304f350 [shape=record,shape=Mrecord,label=&quot;{{&lt;s0&gt;0|&lt;s1&gt;1}|callseq_start|t4|{&lt;d0&gt;ch|&lt;d1&gt;glue}}&quot;];
+	Node0x10304f350:s0 -&gt; Node0x102f0d060:d0[color=blue,style=dashed];
+	Node0x10304f350:s1 -&gt; Node0x10304f2e0:d0;
+	Node0x10304f3c0 [shape=record,shape=Mrecord,label=&quot;{Register %SP|t5|{&lt;d0&gt;i32}}&quot;];
+	Node0x10304f430 [shape=record,shape=Mrecord,label=&quot;{{&lt;s0&gt;0|&lt;s1&gt;1}|CopyFromReg|t6|{&lt;d0&gt;i32|&lt;d1&gt;ch}}&quot;];
+	Node0x10304f430:s0 -&gt; Node0x10304f350:d0[color=blue,style=dashed];
+	Node0x10304f430:s1 -&gt; Node0x10304f3c0:d0;
+	Node0x10304f510 [shape=record,shape=Mrecord,label=&quot;{undef|t8|{&lt;d0&gt;i32}}&quot;];
+	Node0x10304f580 [shape=record,shape=Mrecord,label=&quot;{{&lt;s0&gt;0|&lt;s1&gt;1|&lt;s2&gt;2|&lt;s3&gt;3}|store\&lt;ST4[\&lt;unknown\&gt;]\&gt;|t9|{&lt;d0&gt;ch}}&quot;];
+	Node0x10304f580:s0 -&gt; Node0x10304f350:d0[color=blue,style=dashed];
+	Node0x10304f580:s1 -&gt; Node0x10304f270:d0;
+	Node0x10304f580:s2 -&gt; Node0x10304f430:d0;
+	Node0x10304f580:s3 -&gt; Node0x10304f510:d0;
+	Node0x10304f5f0 [shape=record,shape=Mrecord,label=&quot;{TargetGlobalAddress\&lt;i32 (i32)* &#64;_Z5sum_ii\&gt; 0|t10|{&lt;d0&gt;i32}}&quot;];
+	Node0x10304f660 [shape=record,shape=Mrecord,label=&quot;{RegisterMask|t11|{&lt;d0&gt;Untyped}}&quot;];
+	Node0x10304f6d0 [shape=record,shape=Mrecord,label=&quot;{{&lt;s0&gt;0|&lt;s1&gt;1|&lt;s2&gt;2}|Cpu0ISD::JmpLink|t12|{&lt;d0&gt;ch|&lt;d1&gt;glue}}&quot;];
+	Node0x10304f6d0:s0 -&gt; Node0x10304f580:d0[color=blue,style=dashed];
+	Node0x10304f6d0:s1 -&gt; Node0x10304f5f0:d0;
+	Node0x10304f6d0:s2 -&gt; Node0x10304f660:d0;
+	Node0x10304f740 [shape=record,shape=Mrecord,label=&quot;{TargetConstant\&lt;0\&gt;|t13|{&lt;d0&gt;i32}}&quot;];
+	Node0x10304f7b0 [shape=record,shape=Mrecord,label=&quot;{{&lt;s0&gt;0|&lt;s1&gt;1|&lt;s2&gt;2|&lt;s3&gt;3}|callseq_end|t14|{&lt;d0&gt;ch|&lt;d1&gt;glue}}&quot;];
+	Node0x10304f7b0:s0 -&gt; Node0x10304f6d0:d0[color=blue,style=dashed];
+	Node0x10304f7b0:s1 -&gt; Node0x10304f2e0:d0;
+	Node0x10304f7b0:s2 -&gt; Node0x10304f740:d0;
+	Node0x10304f7b0:s3 -&gt; Node0x10304f6d0:d1[color=red,style=bold];
+	
+    NodeComment1 [ penwidth = 1, fontname = &quot;Courier New&quot;, shape = &quot;note&quot;, label =&lt;&lt;table border=&quot;0&quot; cellborder=&quot;0&quot; cellpadding=&quot;3&quot; bgcolor=&quot;gray&quot;&gt;
+      &lt;tr&gt;&lt;td align=&quot;left&quot;&gt;// Transform all store nodes into one single node because all store&lt;/td&gt;&lt;/tr&gt;
+      &lt;tr&gt;&lt;td align=&quot;left&quot; port=&quot;f1&quot;&gt;// nodes are independent of each other.&lt;/td&gt;&lt;/tr&gt;
+      &lt;tr&gt;&lt;td align=&quot;left&quot; port=&quot;f2&quot;&gt;if (!MemOpChains.empty())&lt;/td&gt;&lt;/tr&gt;
+      &lt;tr&gt;&lt;td align=&quot;left&quot; port=&quot;f3&quot;&gt;  Chain = DAG.getNode(ISD::TokenFactor, DL, MVT::Other, MemOpChains);&lt;/td&gt;&lt;/tr&gt;
+      &lt;tr&gt;&lt;td align=&quot;left&quot;&gt;  ...&lt;/td&gt;&lt;/tr&gt;
+      &lt;/table&gt;&gt; ];
+      
+    NodeComment2 [ penwidth = 1, fontname = &quot;Courier New&quot;, shape = &quot;note&quot;, label =&lt;&lt;table border=&quot;0&quot; cellborder=&quot;0&quot; cellpadding=&quot;3&quot; bgcolor=&quot;gray&quot;&gt;
+      &lt;tr&gt;&lt;td align=&quot;left&quot;&gt;if (!IsPIC) // static&lt;/td&gt;&lt;/tr&gt;
+      &lt;tr&gt;&lt;td align=&quot;left&quot; port=&quot;f1&quot;&gt;  Callee = DAG.getTargetExternalSymbol(Sym,&lt;/td&gt;&lt;/tr&gt;
+      &lt;tr&gt;&lt;td align=&quot;left&quot; port=&quot;f2&quot;&gt;                                       getPointerTy(DAG.getDataLayout()),&lt;/td&gt;&lt;/tr&gt;
+      &lt;tr&gt;&lt;td align=&quot;left&quot; port=&quot;f3&quot;&gt;                                       Cpu0II::MO_NO_FLAG);&lt;/td&gt;&lt;/tr&gt;
+      &lt;tr&gt;&lt;td align=&quot;left&quot;&gt;  ...&lt;/td&gt;&lt;/tr&gt;
+      &lt;/table&gt;&gt; ];
+      
+    Node0x10304f580 -&gt; NodeComment1[color=black,style=dashed];
+    NodeComment2:n -&gt; Node0x10304f6d0:e[color=black,style=dashed];
+}" />
 <p>Mentioned in last section, option <code class="docutils literal"><span class="pre">llc</span> <span class="pre">-cpu0-s32-calls=true</span></code> uses S32 calling
 convention which passes all arguements at registers while option
 <code class="docutils literal"><span class="pre">llc</span> <span class="pre">-cpu0-s32-calls=false</span></code> uses O32 pass first two arguments at
@@ -2070,7 +2171,7 @@ registers and other arguments at stack. The result as follows,</p>
 </div>
 </div>
 <div class="section" id="long-and-short-string-initialization">
-<h3><a class="toc-backref" href="#id32">Long and short string initialization</a><a class="headerlink" href="#long-and-short-string-initialization" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id27">Long and short string initialization</a><a class="headerlink" href="#long-and-short-string-initialization" title="Permalink to this headline">¶</a></h3>
 <p>The last section mentioned the &#8220;JSUB texternalsym&#8221; pattern. Run Chapter9_2 with
 ch9_1_2.cpp to get the result as below. For long string, llvm call memcpy() to
 initialize string (char str[81] = &#8220;Hello world&#8221; in this case). For short string,
@@ -2192,8 +2293,8 @@ follows,</p>
 <p>The incoming arguments is the formal arguments defined in compiler and program
 language books. The outgoing arguments is the actual arguments.
 Summary as Table: Callee incoming arguments and caller outgoing arguments.</p>
-<table border="1" class="docutils" id="id21">
-<caption><span class="caption-number">Table 29 </span><span class="caption-text">Callee incoming arguments and caller outgoing arguments</span><a class="headerlink" href="#id21" title="Permalink to this table">¶</a></caption>
+<table border="1" class="docutils" id="id17">
+<caption><span class="caption-number">Table 29 </span><span class="caption-text">Callee incoming arguments and caller outgoing arguments</span><a class="headerlink" href="#id17" title="Permalink to this table">¶</a></caption>
 <colgroup>
 <col width="22%" />
 <col width="39%" />
@@ -2219,9 +2320,9 @@ Summary as Table: Callee incoming arguments and caller outgoing arguments.</p>
 </div>
 </div>
 <div class="section" id="structure-type-support">
-<h2><a class="toc-backref" href="#id33">Structure type support</a><a class="headerlink" href="#structure-type-support" title="Permalink to this headline">¶</a></h2>
+<h2><a class="toc-backref" href="#id28">Structure type support</a><a class="headerlink" href="#structure-type-support" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="ordinary-struct-type">
-<h3><a class="toc-backref" href="#id34">Ordinary struct type</a><a class="headerlink" href="#ordinary-struct-type" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id29">Ordinary struct type</a><a class="headerlink" href="#ordinary-struct-type" title="Permalink to this headline">¶</a></h3>
 <p>The following code in Chapter9_1/ and Chapter3_4/ support the ordinary
 structure type in function call.</p>
 <p class="rubric">lbdex/chapters/Chapter9_1/Cpu0ISelLowering.cpp</p>
@@ -2289,7 +2390,7 @@ structure type in function call.</p>
 <div class="highlight-c++"><div class="highlight"><pre><span></span><span class="p">}</span>
 </pre></div>
 </div>
-<p>In addition to above code, we had defined the calling convention in early
+<p>In addition to above code, we defined the calling convention in early
 chapter as follows,</p>
 <p class="rubric">lbdex/chapters/Chapter3_4/Cpu0CallingConv.td</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">RetCC_Cpu0EABI</span> <span class="p">:</span> <span class="n">CallingConv</span><span class="o">&lt;</span><span class="p">[</span>
@@ -2298,9 +2399,9 @@ chapter as follows,</p>
 <span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
 </pre></div>
 </div>
-<p>It meaning for the return value, we keep it in registers V0, V1, A0, A1 if the return
-value didn&#8217;t over 4 registers size; If it over 4 registers size, cpu0 will save
-them with pointer.
+<p>It meaning for the return value, we keep it in registers V0, V1, A0, A1 if the size of
+return value doesn&#8217;t over 4 registers; If it overs 4 registers, cpu0 will save
+them in memory with a pointer of memory in register.
 For explanation, let&#8217;s run Chapter9_2/ with ch9_1_struct.cpp and explain with this
 example.</p>
 <p class="rubric">lbdex/input/ch9_1_struct.cpp</p>
@@ -2490,11 +2591,11 @@ int test_func_arg_struct()
 <span class="go">  ...</span>
 </pre></div>
 </div>
-<p>The ch9_1_constructor.cpp include C++ class &#8220;Date&#8221; implementation.
-It can be translated into cpu0 backend too since the front end (clang in this
+<p>The ch9_1_constructor.cpp includes C++ class &#8220;Date&#8221; implementation.
+It can be translated into cpu0 backend too since the frontend (clang in this
 example) translate them into C language form.
 If you mark the &#8220;if hasStructRetAttr()&#8221; part from both of above functions,
-the output cpu0 code for ch9_1_struct.cpp will use $3 instead of $2 as return
+the output of cpu0 code for ch9_1_struct.cpp will use $3 instead of $2 as return
 register as follows,</p>
 <div class="highlight-console"><div class="highlight"><pre><span></span><span class="go">        .text</span>
 <span class="go">        .section .mdebug.abiS32</span>
@@ -2532,10 +2633,10 @@ register as follows,</p>
 <span class="go">  ...</span>
 </pre></div>
 </div>
-<p>Mips ABI ask return struct varaible address at $2.</p>
+<p>Mips ABI asks &#8220;return struct varaible address&#8221; to be set at $2.</p>
 </div>
 <div class="section" id="byval-struct-type">
-<h3><a class="toc-backref" href="#id35">byval struct type</a><a class="headerlink" href="#byval-struct-type" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id30">byval struct type</a><a class="headerlink" href="#byval-struct-type" title="Permalink to this headline">¶</a></h3>
 <p>The following code in Chapter9_1/ and Chapter9_2/ support the byval structure
 type in function call.</p>
 <p class="rubric">lbdex/chapters/Chapter9_1/Cpu0ISelLowering.cpp</p>
@@ -2778,8 +2879,8 @@ type in caller function as follows,</p>
 <span class="p">}</span>
 </pre></div>
 </div>
-<p>In LowerFormalArguments(), Flags.isByVal() will be true if it meet <strong>byval</strong>
-for in callee function as follows,</p>
+<p>In LowerFormalArguments(), Flags.isByVal() will be true when it meets <strong>byval</strong>
+in callee function as follows,</p>
 <p class="rubric">lbdex/input/tailcall.ll</p>
 <div class="highlight-llvm"><div class="highlight"><pre><span></span><span class="k">define</span> <span class="k">i32</span> <span class="vg">@caller12</span><span class="p">(</span><span class="nv">%struct.S</span><span class="p">*</span> <span class="k">nocapture</span> <span class="k">byval</span> <span class="nv">%a0</span><span class="p">)</span> <span class="k">nounwind</span> <span class="p">{</span>
 <span class="nl">entry:</span>
@@ -2792,9 +2893,9 @@ C language.</p>
 </div>
 </div>
 <div class="section" id="function-call-optiomization">
-<h2><a class="toc-backref" href="#id36">Function call optiomization</a><a class="headerlink" href="#function-call-optiomization" title="Permalink to this headline">¶</a></h2>
+<h2><a class="toc-backref" href="#id31">Function call optiomization</a><a class="headerlink" href="#function-call-optiomization" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="tail-call-optimization">
-<h3><a class="toc-backref" href="#id37">Tail call optimization</a><a class="headerlink" href="#tail-call-optimization" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id32">Tail call optimization</a><a class="headerlink" href="#tail-call-optimization" title="Permalink to this headline">¶</a></h3>
 <p>Tail call optimization is used in some situation of function call. For some
 situation, the caller and callee stack can share the same memory stack.
 When this situation applied in recursive function call, it often asymptotically
@@ -2915,12 +3016,13 @@ to make tail call optimization.</p>
 <span class="go"> ...</span>
 </pre></div>
 </div>
-<p>The tail call optimization is applied in cpu032II only for this example (it uses
-&#8220;jmp _Z9factoriali&#8221; instead of &#8220;jsub _Z9factoriali&#8221;).
-Tail call share caller&#8217;s and callee&#8217;s stack but cpu032I (pass all arguments in
-stack) not satisify the following statement, NextStackOffset &lt;=
+<p>The tail call optimization shares caller&#8217;s and callee&#8217;s stack and it is applied
+in cpu032II only for this example (it uses &#8220;jmp _Z9factoriali&#8221; instead of
+&#8220;jsub _Z9factoriali&#8221;).
+Then cpu032I (pass all arguments in
+stack) doesn&#8217;t satisfy the statement, NextStackOffset &lt;=
 FI.getIncomingArgSize() in isEligibleForTailCallOptimization(), and return
-false for this function as follows,</p>
+false for the function as follows,</p>
 <p class="rubric">lbdex/chapters/Chapter9_2/Cpu0SEISelLowering.cpp</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span>bool Cpu0SETargetLowering::
 isEligibleForTailCallOptimization(const Cpu0CC &amp;Cpu0CCInfo,
@@ -2975,16 +3077,36 @@ isEligibleForTailCallOptimization(const Cpu0CC &amp;Cpu0CCInfo,
 </div>
 <p>Since tailcall optimization will translate jmp instruction directly instead of
 jsub. The callseq_start, callseq_end, and the DAG nodes created in
-LowerCallResult() and LowerReturn() are needless. It creates DAGs as
-<a class="reference internal" href="#funccall-f-outgoing-arg-tailcall"><span class="std std-numref">Fig. 28</span></a> for ch9_2_tailcall.cpp as
-follows,</p>
-<div class="figure align-center" id="id22">
-<span id="funccall-f-outgoing-arg-tailcall"></span><a class="reference internal image-reference" href="_images/outgoing-arg-tailcall.png"><img alt="_images/outgoing-arg-tailcall.png" src="_images/outgoing-arg-tailcall.png" style="width: 1019.0px; height: 475.0px;" /></a>
-<p class="caption"><span class="caption-number">Fig. 28 </span><span class="caption-text">Outgoing arguments DAGs created for ch9_2_tailcall.cpp</span></p>
-</div>
+LowerCallResult() and LowerReturn() are needless. It creates DAGs for
+ch9_2_tailcall.cpp as the following figure,</p>
+<img src="_images/graphviz-884adc625838a4d6778fccde9b873cbbed007c4b.png" alt="digraph &quot;isel input for _Z13test_tailcalli:&quot; {
+	rankdir=&quot;BT&quot;;
+	label=&quot;Figure: Outgoing arguments DAGs created for ch9_2_tailcall.cpp&quot;;
+
+	Node0x103a04f20 [shape=record,shape=Mrecord,label=&quot;{EntryToken|t0|{&lt;d0&gt;ch}}&quot;];
+	Node0x10404ef70 [shape=record,shape=Mrecord,label=&quot;{Register %vreg0|t1|{&lt;d0&gt;i32}}&quot;];
+	Node0x10404ebf0 [shape=record,shape=Mrecord,label=&quot;{TargetGlobalAddress\&lt;i32 (i32)* &#64;_Z9factoriali\&gt; 0|t7|{&lt;d0&gt;i32}}&quot;];
+	Node0x10404ea30 [shape=record,shape=Mrecord,label=&quot;{Register %A0|t8|{&lt;d0&gt;i32}}&quot;];
+	Node0x10404ec60 [shape=record,shape=Mrecord,label=&quot;{RegisterMask|t10|{&lt;d0&gt;Untyped}}&quot;];
+	Node0x10404f050 [shape=record,shape=Mrecord,label=&quot;{{&lt;s0&gt;0|&lt;s1&gt;1}|CopyFromReg|t2|{&lt;d0&gt;i32|&lt;d1&gt;ch}}&quot;];
+	Node0x10404f050:s0 -&gt; Node0x103a04f20:d0[color=blue,style=dashed];
+	Node0x10404f050:s1 -&gt; Node0x10404ef70:d0;
+	Node0x10404eb10 [shape=record,shape=Mrecord,label=&quot;{{&lt;s0&gt;0|&lt;s1&gt;1|&lt;s2&gt;2}|CopyToReg|t9|{&lt;d0&gt;ch|&lt;d1&gt;glue}}&quot;];
+	Node0x10404eb10:s0 -&gt; Node0x103a04f20:d0[color=blue,style=dashed];
+	Node0x10404eb10:s1 -&gt; Node0x10404ea30:d0;
+	Node0x10404eb10:s2 -&gt; Node0x10404f050:d0;
+	Node0x10404e9c0 [shape=record,shape=Mrecord,label=&quot;{{&lt;s0&gt;0|&lt;s1&gt;1|&lt;s2&gt;2|&lt;s3&gt;3|&lt;s4&gt;4}|Cpu0ISD::TailCall|t11|{&lt;d0&gt;ch}}&quot;];
+	Node0x10404e9c0:s0 -&gt; Node0x103a04f20:d0[color=blue,style=dashed];
+	Node0x10404e9c0:s1 -&gt; Node0x10404ebf0:d0;
+	Node0x10404e9c0:s2 -&gt; Node0x10404ea30:d0;
+	Node0x10404e9c0:s3 -&gt; Node0x10404ec60:d0;
+	Node0x10404e9c0:s4 -&gt; Node0x10404eb10:d1[color=red,style=bold];
+	Node0x0[ plaintext=circle, label =&quot;GraphRoot&quot;];
+	Node0x0 -&gt; Node0x10404e9c0:d0[color=blue,style=dashed];
+}" />
 <p>Finally, listing the DAGs translation of tail call as the following table.</p>
-<table border="1" class="docutils" id="id23">
-<caption><span class="caption-number">Table 30 </span><span class="caption-text">the DAGs translation of tail call</span><a class="headerlink" href="#id23" title="Permalink to this table">¶</a></caption>
+<table border="1" class="docutils" id="id18">
+<caption><span class="caption-number">Table 30 </span><span class="caption-text">the DAGs translation of tail call</span><a class="headerlink" href="#id18" title="Permalink to this table">¶</a></caption>
 <colgroup>
 <col width="49%" />
 <col width="29%" />
@@ -3088,8 +3210,8 @@ void Cpu0AsmPrinter::EmitInstruction(const MachineInstr *MI) {
 in Cpu0GenMCPseudoLowering.inc.</p>
 </div>
 <div class="section" id="recursion-optimization">
-<h3><a class="toc-backref" href="#id38">Recursion optimization</a><a class="headerlink" href="#recursion-optimization" title="Permalink to this headline">¶</a></h3>
-<p>As last section, cpu032I cannot do tail call optimization in
+<h3><a class="toc-backref" href="#id33">Recursion optimization</a><a class="headerlink" href="#recursion-optimization" title="Permalink to this headline">¶</a></h3>
+<p>As last section, cpu032I cannot does tail call optimization in
 ch9_2_tailcall.cpp since the limitation of arguments size is not satisfied.
 If runnig with <code class="docutils literal"><span class="pre">clang</span> <span class="pre">-O3</span></code> option, it can get the same or better performance
 than tail call as follows,</p>
@@ -3227,8 +3349,8 @@ than tail call as follows,</p>
 <span class="go">        .size _Z13test_tailcalli, ($tmp1)-_Z13test_tailcalli</span>
 </pre></div>
 </div>
-<p>According above llvm IR, <code class="docutils literal"><span class="pre">clang</span> <span class="pre">-O3</span></code> option remove recursion to loop by
-inline the callee recursion function. This is a front end optimization through
+<p>According above llvm IR, <code class="docutils literal"><span class="pre">clang</span> <span class="pre">-O3</span></code> option replace recursion with loop by
+inline the callee recursion function. This is a frontend optimization through
 cross over function analysis.</p>
 <p>Cpu0 doesn&#8217;t support fastcc <a class="footnote-reference" href="#callconv" id="id8">[7]</a> but it can pass the fastcc keyword of
 IR.
@@ -3237,9 +3359,9 @@ ABI specification.</p>
 </div>
 </div>
 <div class="section" id="other-features-supporting">
-<h2><a class="toc-backref" href="#id39">Other features supporting</a><a class="headerlink" href="#other-features-supporting" title="Permalink to this headline">¶</a></h2>
-<p>This section supports features of $gp register caller saved register in PIC
-addressing mode, variable number of arguments and dynamic stack allocation.</p>
+<h2><a class="toc-backref" href="#id34">Other features supporting</a><a class="headerlink" href="#other-features-supporting" title="Permalink to this headline">¶</a></h2>
+<p>This section supports features for &#8220;$gp register caller saved register in PIC
+addressing mode&#8221;, &#8220;variable number of arguments&#8221; and &#8220;dynamic stack allocation&#8221;.</p>
 <p>Run Chapter9_2/ with ch9_3_vararg.cpp to get the following error,</p>
 <p class="rubric">lbdex/input/ch9_3_vararg.cpp</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1">#include &lt;stdarg.h&gt;</span>
@@ -3341,13 +3463,13 @@ addressing mode, variable number of arguments and dynamic stack allocation.</p>
 </pre></div>
 </div>
 <div class="section" id="the-gp-register-caller-saved-register-in-pic-addressing-mode">
-<h3><a class="toc-backref" href="#id40">The $gp register caller saved register in PIC addressing mode</a><a class="headerlink" href="#the-gp-register-caller-saved-register-in-pic-addressing-mode" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id35">The $gp register caller saved register in PIC addressing mode</a><a class="headerlink" href="#the-gp-register-caller-saved-register-in-pic-addressing-mode" title="Permalink to this headline">¶</a></h3>
 <p>According the original cpu0 web site information, it only supports <strong>“jsub”</strong>
 of 24-bit address range access.
-We add <strong>“jalr”</strong> to cpu0 and expand it to 32 bit address. We did this change for
-two reasons. One is cpu0 can be expanded to 32 bit address space by only adding
-this instruction.
-The other is cpu0 as well as this book are designed for tutorial.
+We add <strong>“jalr”</strong> to cpu0 and expand it to 32 bit address. We do this change for
+two reasons. One is that cpu0 can be expanded to 32 bit address space by only
+adding this instruction, and the other is cpu0 and this book are designed for
+tutorial.
 We reserve <strong>“jalr”</strong> as PIC mode for dynamic linking function to demonstrates:</p>
 <ol class="arabic simple">
 <li>How caller handles the caller saved register $gp in calling the function.</li>
@@ -3362,13 +3484,14 @@ cpu0 official design as a compiler book.</li>
 type, the static link and dynamic link.
 The option -relocation-model=static is for static link function while option
 -relocation-model=pic is for dynamic link function.
-One example of dynamic link function is used in share library.
-Share library include a lots of dynamic link functions usually can be loaded
+One instance of dynamic link function is used is for calling functions of share
+library.
+Share library includes a lots of dynamic link functions usually can be loaded
 at run time.
 Since share library can be loaded in different memory address, the global
-variable address which it access cannot be decided at link time.
-Even so, we still can caculate the distance between the global variable address
-and the start address of shared library function when it be loaded.</p>
+variable address be accessed cannot be decided at link time.
+Whatever, he distance between the global variable address and the start address
+of shared library function can be calculated when it has been loaded.</p>
 <p>Let&#8217;s run Chapter9_3/ with ch9_gprestore.cpp to get the following result.
 We putting the comments in the result for explanation.</p>
 <p class="rubric">lbdex/input/ch9_gprestore.cpp</p>
@@ -3421,26 +3544,25 @@ We putting the comments in the result for explanation.</p>
 <strong>$gp</strong> to <strong>8($sp)</strong> while Instruction <strong>“ld $gp, 8($sp)”</strong> restore
 the $gp, refer to Table 8-1 of &#8220;MIPSpro TM Assembly Language Programmer’s
 Guide&#8221; <a class="footnote-reference" href="#mipsasm" id="id9">[2]</a>.
-In other word, $gp is a caller saved register, so main() need to save/restore
+In other words, $gp is a caller saved register, so main() need to save/restore
 $gp before/after call the shared library _Z5sum_ii() function.
 In llvm Mips 3.5, it removed the .cprestore in mode PIC which meaning $gp
 is not a caller saved register in PIC anymore.
 However, it is still existed in Cpu0 and this feature can be removed by not
 defining it in Cpu0Config.h.
-The #ifdef ENABLE_GPRESTORE part of code in Cpu0 can be removed but it come with
-the cost of reserve $gp register as a specific register and cannot be allocated
+The #ifdef ENABLE_GPRESTORE part of code in Cpu0 can be removed but it comes with
+the cost of reserving $gp register as a specific register and cannot be allocated
 for the program variable in PIC mode. As explained in early chapter Gloabal
 variable, the PIC is not critial function and the performance advantage can be
-ignored in dynamic link, so we keep this feature in Cpu0 and provide readers
-this feature.
-Even with this point, I really prefer to reserve $gp as a specific register in
-PIC. It will save a lot of trouble in programming.
-When reserve $gp, .cprestore can be disabled by option &#8220;-cpu0-reserve-gp&#8221;.
-The .cpload is needed even reserve $gp. Consider prgrammer implement a boot code
-function with C and assembly mixed, programmer can set $gp value through .cpload
-issue.</p>
-<p>If enable &#8220;-cpu0-no-cpload&#8221;, and undefine ENABLE_GPRESTORE or enable
-&#8220;-cpu0-reserve-gp&#8221;, .cpload and $gp save/restore won&#8217;t be issue as follow,</p>
+ignored in dynamic link, so we keep this feature in Cpu0.
+Reserving $gp as a specific register in
+PIC will save a lot of code in programming.
+When reserving $gp, .cprestore can be disabled by option &#8220;-cpu0-reserve-gp&#8221;.
+The .cpload is needed even reserving $gp (considering that programmers
+implement a boot code function with C and assembly mixed, programmer can set
+$gp value through .cpload be issued.</p>
+<p>If enabling &#8220;-cpu0-no-cpload&#8221;, and undefining ENABLE_GPRESTORE or enable
+&#8220;-cpu0-reserve-gp&#8221;, .cpload and $gp save/restore won&#8217;t be issued as follow,</p>
 <div class="highlight-console"><div class="highlight"><pre><span></span><span class="gp">118-165-78-230:input Jonathan$</span> /Users/Jonathan/llvm/test/cmake_debug_build/
 <span class="go">Debug/bin/llc -march=cpu0 -mcpu=cpu032II-cpu0-s32-calls=true</span>
 <span class="go">-relocation-model=pic -filetype=asm ch9_gprestore.bc -cpu0-no-cpload</span>
@@ -3482,8 +3604,8 @@ issue.</p>
 <p>LLVM Mips 3.1 issues the .cpload and .cprestore and Cpu0 borrows it from that
 version. But now, llvm Mips replace .cpload with real instructions and remove
 .cprestore. It treats $gp as reserved register in PIC mode. Since the Mips
-assembly document I reference say $gp is caller save register, Cpu0 stay and
-follow this document at this point and supply reserve $gp register as option.</p>
+assembly document which I reference say $gp is &#8220;caller save register&#8221;, Cpu0 follows
+this document at this point and provides reserving $gp register as option.</p>
 <div class="highlight-console"><div class="highlight"><pre><span></span><span class="gp">118-165-78-230:input Jonathan$</span> /Users/Jonathan/llvm/test/cmake_debug_build/
 <span class="go">Debug/bin/llc -march=mips -relocation-model=pic -filetype=asm ch9_gprestore.bc</span>
 <span class="go">-o -</span>
@@ -3526,7 +3648,7 @@ follow this document at this point and supply reserve $gp register as option.</p
 <span class="go">  addiu $sp, $sp, 32</span>
 </pre></div>
 </div>
-<p>The following code added in Chapter9_3/ to issue <strong>“.cprestore”</strong> or the
+<p>The following code added in Chapter9_3/ issues <strong>“.cprestore”</strong> or the
 corresponding machine code before the first time of PIC function call.</p>
 <p class="rubric">lbdex/chapters/Chapter9_3/Cpu0ISelLowering.cpp</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">///</span> <span class="n">LowerCall</span> <span class="o">-</span> <span class="n">functions</span> <span class="n">arguments</span> <span class="n">are</span> <span class="n">copied</span> <span class="kn">from</span> <span class="nn">virtual</span> <span class="n">regs</span> <span class="n">to</span>
@@ -3713,7 +3835,7 @@ void Cpu0MCInstLower::LowerCPRESTORE(int64_t Offset,
 </pre></div>
 </div>
 <p>The added code of Cpu0AsmPrinter.cpp as above will call the LowerCPRESTORE() when
-user run with <code class="docutils literal"><span class="pre">llc</span> <span class="pre">-filetype=obj</span></code>.
+user run program with <code class="docutils literal"><span class="pre">llc</span> <span class="pre">-filetype=obj</span></code>.
 The added code of Cpu0MCInstLower.cpp as above takes care the .cprestore machine
 instructions.</p>
 <div class="highlight-console"><div class="highlight"><pre><span></span><span class="gp">118-165-76-131:input Jonathan$</span> /Users/Jonathan/llvm/test/
@@ -3751,15 +3873,15 @@ instructions.</p>
 <span class="go">...</span>
 </pre></div>
 </div>
-<p>Run with <code class="docutils literal"><span class="pre">llc</span> <span class="pre">-filetype=obj</span></code>, you can find the Cx of <strong>“jsub Cx”</strong> is 0 since
-the Cx is calculated by linker as below.
+<p>Run ch9_1.bc with <code class="docutils literal"><span class="pre">llc</span> <span class="pre">-filetype=obj</span></code>, you will find the Cx of <strong>“jsub Cx”</strong>
+is 0 since the Cx is calculated by linker as below.
 Mips has the same 0 in it&#8217;s jal instruction.</p>
 <div class="highlight-console"><div class="highlight"><pre><span></span><span class="go">// jsub _Z5sum_iiiiiii translate into 2B 00 00 00</span>
 <span class="go">00F0: 2B 00 00 00 01 2D 00 34 00 ED 00 3C 09 DD 00 40</span>
 </pre></div>
 </div>
 <p>The following code will emit &#8220;ld $gp, ($gp save slot on stack)&#8221; after jalr by
-create file Cpu0EmitGPRestore.cpp which run as a function pass.</p>
+creating file Cpu0EmitGPRestore.cpp which run as a function pass.</p>
 <p class="rubric">lbdex/chapters/Chapter9_3/CMakeLists.txt</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span>  <span class="n">Cpu0EmitGPRestore</span><span class="o">.</span><span class="n">cpp</span>
 </pre></div>
@@ -3902,7 +4024,7 @@ FunctionPass *llvm::createCpu0EmitGPRestorePass(Cpu0TargetMachine &amp;tm) {
 </div>
 </div>
 <div class="section" id="variable-number-of-arguments">
-<h3><a class="toc-backref" href="#id41">Variable number of arguments</a><a class="headerlink" href="#variable-number-of-arguments" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id36">Variable number of arguments</a><a class="headerlink" href="#variable-number-of-arguments" title="Permalink to this headline">¶</a></h3>
 <p>Until now, we support fixed number of arguments in formal function definition
 (Incoming Arguments).
 This subsection supports variable number of arguments since C language supports
@@ -4028,13 +4150,13 @@ this feature.</p>
 </pre></div>
 </div>
 <p>The analysis of output ch9_3_vararg.cpu0.s as above in comment.
-As above code, in # BB#0, we get the first argument <strong>“amount”</strong> from
+As above code in # BB#0, we get the first argument <strong>“amount”</strong> from
 <strong>“ld $2, 24($fp)”</strong> since the stack size of the callee function
-<strong>“_Z5sum_iiz()”</strong> is 24. And then set argument pointer, arg_ptr, to 0($fp),
+<strong>“_Z5sum_iiz()”</strong> is 24. And then setting argument pointer, arg_ptr, to 0($fp),
 &amp;arg[1].
-Next, check i &lt; amount in block $BB0_1. If  i &lt; amount, than enter into $BB0_2.
-In $BB0_2, it do sum += *arg_ptr as well as arg_ptr+=4.
-In # BB#3, do i+=1.</p>
+Next, checking i &lt; amount in block $BB0_1. If i &lt; amount, than entering into $BB0_2.
+In $BB0_2, it does sum += *arg_ptr and arg_ptr+=4.
+In # BB#3, it does i+=1.</p>
 <p>To support variable number of arguments, the following code needed to
 add in Chapter9_3/.
 The ch9_3_template.cpp is C++ template example code, it can be translated into cpu0
@@ -4263,8 +4385,8 @@ We will verify the correction of the code in chapter &#8220;Verify backend on
 Verilog simulator&#8221; through the CPU0 Verilog language machine.</p>
 </div>
 <div class="section" id="dynamic-stack-allocation-support">
-<h3><a class="toc-backref" href="#id42">Dynamic stack allocation support</a><a class="headerlink" href="#dynamic-stack-allocation-support" title="Permalink to this headline">¶</a></h3>
-<p>Even though C language very rare to use dynamic stack allocation, there are
+<h3><a class="toc-backref" href="#id37">Dynamic stack allocation support</a><a class="headerlink" href="#dynamic-stack-allocation-support" title="Permalink to this headline">¶</a></h3>
+<p>Even though C language is very rare using dynamic stack allocation, there are
 languages use it frequently. The following C example code uses it.</p>
 <p>Chapter9_3 supports dynamic stack allocation with the following code added.</p>
 <p class="rubric">lbdex/chapters/Chapter9_2/Cpu0FrameLowering.cpp</p>
@@ -4504,51 +4626,51 @@ eliminateCallFramePseudoInstr(MachineFunction &amp;MF, MachineBasicBlock &amp;MB
 </div>
 <p>As you can see, the dynamic stack allocation needs frame pointer register <strong>fp</strong>
 support. As above assembly, the sp is adjusted to (sp - 48) when it
-entered the function as usual by instruction <strong>addiu $sp, $sp, -48</strong>.
-Next, the fp is set to sp where is the position just above alloca() spaces area
-as <a class="reference internal" href="#funccall-f4"><span class="std std-numref">Fig. 29</span></a> when meets instruction <strong>move $fp, $sp</strong>.
+enter the function as usual by instruction <strong>addiu $sp, $sp, -48</strong>.
+Next, the fp is set to sp where the position is just above alloca() spaces area
+as <a class="reference internal" href="#funccall-f4"><span class="std std-numref">Fig. 25</span></a> when meets instruction <strong>move $fp, $sp</strong>.
 After that, the sp is changed to the area just below of alloca().
-Remind, the alloca() area which the b point to,
+Remind, the alloca() area where the b point to,
 <strong>&#8220;*b = (int*)__builtin_alloca(sizeof(int) * 2 * x6)&#8221;</strong>, is
-allocated at run time since the spaces is variable size which depend on x1
+allocated at run time since the size of the space which depends on x1
 variable and cannot be calculated at link time.</p>
-<p><a class="reference internal" href="#funccall-f5"><span class="std std-numref">Fig. 30</span></a> depicted how the stack pointer changes back to the
+<p><a class="reference internal" href="#funccall-f5"><span class="std std-numref">Fig. 26</span></a> depict how the stack pointer changes back to the
 caller stack bottom. As above, the <strong>fp</strong> is set to the address just above of
 alloca().
 The first step is changing the sp to fp by instruction <strong>move $sp, $fp</strong>.
 Next, sp is changed back to caller stack bottom by instruction
 <strong>addiu $sp, $sp, 40</strong>.</p>
-<div class="figure align-center" id="id24">
+<div class="figure align-center" id="id19">
 <span id="funccall-f4"></span><a class="reference internal image-reference" href="_images/4.png"><img alt="_images/4.png" src="_images/4.png" style="width: 267.5px; height: 139.5px;" /></a>
-<p class="caption"><span class="caption-number">Fig. 29 </span><span class="caption-text">Frame pointer changes when enter function</span></p>
+<p class="caption"><span class="caption-number">Fig. 25 </span><span class="caption-text">Frame pointer changes when enter function</span></p>
 </div>
-<div class="figure align-center" id="id25">
+<div class="figure align-center" id="id20">
 <span id="funccall-f5"></span><a class="reference internal image-reference" href="_images/5.png"><img alt="_images/5.png" src="_images/5.png" style="width: 264.0px; height: 132.0px;" /></a>
-<p class="caption"><span class="caption-number">Fig. 30 </span><span class="caption-text">Stack pointer changes when exit function</span></p>
+<p class="caption"><span class="caption-number">Fig. 26 </span><span class="caption-text">Stack pointer changes when exit function</span></p>
 </div>
-<div class="figure align-center" id="id26">
+<div class="figure align-center" id="id21">
 <span id="funccall-f6"></span><a class="reference internal image-reference" href="_images/6.png"><img alt="_images/6.png" src="_images/6.png" style="width: 269.5px; height: 197.0px;" /></a>
-<p class="caption"><span class="caption-number">Fig. 31 </span><span class="caption-text">fp and sp access areas</span></p>
+<p class="caption"><span class="caption-number">Fig. 27 </span><span class="caption-text">fp and sp access areas</span></p>
 </div>
 <p>Using fp to keep the old stack pointer value is not the only solution.
-Actually, we can keep the alloca() spaces size on a specific memory address
-and the sp can back to the the old sp by add the alloca() spaces size.
+Actually, we can keep the size of alloca() spaces on a specific memory address
+and the sp can be set back to the the old sp by adding the size of alloca() spaces.
 Most ABI like Mips
 and ARM access the above area of alloca() by fp and the below area of alloca()
-by sp, as <a class="reference internal" href="#funccall-f6"><span class="std std-numref">Fig. 31</span></a> depicted. The reason for this definition
+by sp, as <a class="reference internal" href="#funccall-f6"><span class="std std-numref">Fig. 27</span></a> depicted. The reason for this definition
 is the speed for local variable access. Since the RISC CPU use immediate offset
 for load and store as below, using fp and sp for access both areas of
-local variables have better performance compare to use the sp only.</p>
+local variables have better performance comparing to use the sp only.</p>
 <div class="highlight-console"><div class="highlight"><pre><span></span><span class="go">ld      $2, 64($fp)</span>
 <span class="go">st      $3, 4($sp)</span>
 </pre></div>
 </div>
 <p>Cpu0 uses fp and sp to access the above and below areas of alloca() too.
-As ch9_3_alloc.cpu0.s, it accesses local variable (above of alloca()) by fp
+As ch9_3_alloc.cpu0.s, it accesses local variables (above of alloca()) by fp
 offset and outgoing arguments (below of alloca()) by sp offset.</p>
 <p>And more, the &#8220;move $sp, $fp&#8221; is the alias instruction of &#8220;addu $fp, $sp, $zero&#8221;.
-The machine code is the latter, and the former is only for easy understand by
-user only. This alias come from added code in Chapter3_2 and Chapter3_5 as
+The machine code is the latter one, and the former is only for easy understanding by
+user. This alias comes from code added in Chapter3_2 and Chapter3_5 as
 follows,</p>
 <p class="rubric">lbdex/chapters/Chapter3_2/InstPrinter/Cpu0InstPrinter.cpp</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span>void Cpu0InstPrinter::printInst(const MCInst *MI, raw_ostream &amp;O,
@@ -4576,8 +4698,8 @@ Cpu0SEFrameLowering.cpp is true when it meets &#8220;%9 = alloca i8, i32 %8&#822
 which corresponding &#8220;(int*)__builtin_alloca(sizeof(int) * 1 * x1);&#8221; of C.
 It will generate asm &#8220;addiu     $sp, $sp, -24&#8221; for ch9_3_alloc.cpp by calling
 &#8220;adjustStackPtr()&#8221; in eliminateCallFramePseudoInstr() of Cpu0FrameLowering.cpp.</p>
-<p>File ch9_3_longlongshift.cpp which is for type &#8220;long long shift operations&#8221;
-support which can be tested now as follows.</p>
+<p>File ch9_3_longlongshift.cpp is for type &#8220;long long shift operations&#8221;
+which can be tested now as follows.</p>
 <p class="rubric">lbdex/input/ch9_3_longlongshift.cpp</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1">#include &quot;debug.h&quot;</span>
 
@@ -4741,7 +4863,7 @@ support which can be tested now as follows.</p>
 </div>
 </div>
 <div class="section" id="variable-sized-array-support">
-<h3><a class="toc-backref" href="#id43">Variable sized array support</a><a class="headerlink" href="#variable-sized-array-support" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id38">Variable sized array support</a><a class="headerlink" href="#variable-sized-array-support" title="Permalink to this headline">¶</a></h3>
 <p>LLVM supports variable sized arrays in C99 <a class="footnote-reference" href="#stacksave" id="id11">[9]</a>. The following code
 added for this support. Set them to expand, meaning llvm uses other DAGs
 replace them.</p>
@@ -4809,9 +4931,9 @@ replace them.</p>
 </div>
 </div>
 <div class="section" id="function-related-intrinsics-support">
-<h3><a class="toc-backref" href="#id44">Function related Intrinsics support</a><a class="headerlink" href="#function-related-intrinsics-support" title="Permalink to this headline">¶</a></h3>
-<p>I think these llvm instinsic IRs are for exception handling implementation
-<a class="footnote-reference" href="#excepthandle" id="id12">[10]</a> [#returnaddr]. With these IRs, programmer can recording the
+<h3><a class="toc-backref" href="#id39">Function related Intrinsics support</a><a class="headerlink" href="#function-related-intrinsics-support" title="Permalink to this headline">¶</a></h3>
+<p>I think these llvm instinsic IRs are for the implementation of exception handle
+<a class="footnote-reference" href="#excepthandle" id="id12">[10]</a> [#returnaddr]. With these IRs, programmer can record the
 frame address and return address to be used in implementing program of
 exception handler by C++ as the example below. In order to support these llvm
 intrinsic IRs, the following code added to Cpu0 backend.</p>
@@ -4930,7 +5052,7 @@ intrinsic IRs, the following code added to Cpu0 backend.</p>
 </pre></div>
 </div>
 <div class="section" id="frameaddress-and-returnaddress-intrinsics">
-<h4><a class="toc-backref" href="#id45">frameaddress and returnaddress intrinsics</a><a class="headerlink" href="#frameaddress-and-returnaddress-intrinsics" title="Permalink to this headline">¶</a></h4>
+<h4><a class="toc-backref" href="#id40">frameaddress and returnaddress intrinsics</a><a class="headerlink" href="#frameaddress-and-returnaddress-intrinsics" title="Permalink to this headline">¶</a></h4>
 <p>Run with the following input to get the following result.</p>
 <p class="rubric">lbdex/input/ch9_3_frame_return_addr.cpp</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="nb">int</span> <span class="n">display_frameaddress</span><span class="p">()</span> <span class="p">{</span>
@@ -5042,12 +5164,13 @@ intrinsic IRs, the following code added to Cpu0 backend.</p>
 <span class="go">      .cfi_endproc</span>
 </pre></div>
 </div>
-<p>The asm &#8220;ld     $2, 12($fp)&#8221; in function _Z22display_returnaddress1v reload $lr
-to $2 after &#8220;jsub _Z3fnv&#8221;. Cpu0 doesn&#8217;t produce &#8220;addiu $2, $zero, $lr&#8221; because
-if _Z3fnv changes $lr value without following ABI then it will get the wrong $lr
-to $2. The following code kills $lr register and make the reference to $lr by
+<p>The asm &#8220;ld     $2, 12($fp)&#8221; in function _Z22display_returnaddress1v reloads $lr
+to $2 after &#8220;jsub _Z3fnv&#8221;. The reason that Cpu0 doesn&#8217;t produce
+&#8220;addiu $2, $zero, $lr&#8221; is if a bug program in _Z3fnv changes $lr value without
+following ABI then it will get the wrong $lr to $2.
+The following code kills $lr register and make the reference to $lr by
 loading from stack slot rather than uses register directly.</p>
-<p class="rubric">lbdex/chapters/Chapter9_3/Cpu0SEFrameLowering.cpp</p>
+<p class="rubric">lbdex/chapters/Chapter9_1/Cpu0SEFrameLowering.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span></span><span class="kt">bool</span> <span class="n">Cpu0SEFrameLowering</span><span class="o">::</span>
 <span class="n">spillCalleeSavedRegisters</span><span class="p">(</span><span class="n">MachineBasicBlock</span> <span class="o">&amp;</span><span class="n">MBB</span><span class="p">,</span>
                           <span class="n">MachineBasicBlock</span><span class="o">::</span><span class="n">iterator</span> <span class="n">MI</span><span class="p">,</span>
@@ -5078,7 +5201,7 @@ loading from stack slot rather than uses register directly.</p>
 </div>
 </div>
 <div class="section" id="eh-return-intrinsic">
-<h4><a class="toc-backref" href="#id46">eh.return intrinsic</a><a class="headerlink" href="#eh-return-intrinsic" title="Permalink to this headline">¶</a></h4>
+<h4><a class="toc-backref" href="#id41">eh.return intrinsic</a><a class="headerlink" href="#eh-return-intrinsic" title="Permalink to this headline">¶</a></h4>
 <p>Beside lowerRETURNADDR() in Cpu0ISelLowering, the following code is for
 eh.return supporting only, and it can run with input ch9_3_detect_exception.cpp
 as below.</p>
@@ -5461,14 +5584,14 @@ let Uses = [V0, V1], isTerminator = 1, isReturn = 1, isBarrier = 1 in {
 issued&#8221; like function exception_handler().</p>
 <p>This example code of exception handler implementation can get frame, return and
 call exception handler by call __builtin_xxx in clang in C language, without
-introduces any assembly instruction.
-And this example can be verified in the Chapter &#8220;Cpu0 ELF linker&#8221; of my the other
+introducing any assembly instruction.
+And this example can be verified in the Chapter &#8220;Cpu0 ELF linker&#8221; of the other
 book &#8220;llvm tool chain for Cpu0&#8221; <a class="footnote-reference" href="#cpu0lld" id="id13">[12]</a>.
-Through checking global variable, exceptionOccur, is true or false, whether the
-control flow to exception_handler() or not can be identified.</p>
+Through examining global variable, exceptionOccur, is true or false, program
+will set the control flow to exception_handler() or not to correctly.</p>
 </div>
 <div class="section" id="eh-dwarf-intrinsic">
-<h4><a class="toc-backref" href="#id47">eh.dwarf intrinsic</a><a class="headerlink" href="#eh-dwarf-intrinsic" title="Permalink to this headline">¶</a></h4>
+<h4><a class="toc-backref" href="#id42">eh.dwarf intrinsic</a><a class="headerlink" href="#eh-dwarf-intrinsic" title="Permalink to this headline">¶</a></h4>
 <p>Beside lowerADD() in Cpu0ISelLowering, the following code is for the eh.dwarf
 supporting only, and it can run with input eh-dwarf-cfa.ll as below.</p>
 <p class="rubric">lbdex/chapters/Chapter9_3/Cpu0SEFrameLowering.cpp</p>
@@ -5538,7 +5661,7 @@ entry:
 </div>
 </div>
 <div class="section" id="bswap-intrinsic">
-<h4><a class="toc-backref" href="#id48">bswap intrinsic</a><a class="headerlink" href="#bswap-intrinsic" title="Permalink to this headline">¶</a></h4>
+<h4><a class="toc-backref" href="#id43">bswap intrinsic</a><a class="headerlink" href="#bswap-intrinsic" title="Permalink to this headline">¶</a></h4>
 <p>Cpu0 supports llvm instrinsics bswap intrinsic <a class="footnote-reference" href="#bswapintrnsic" id="id14">[13]</a>.</p>
 <p class="rubric">lbdex/chapters/Chapter12_1/Cpu0ISelLowering.cpp</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">Cpu0TargetLowering</span><span class="p">::</span><span class="n">Cpu0TargetLowering</span><span class="p">(</span><span class="n">const</span> <span class="n">Cpu0TargetMachine</span> <span class="o">&amp;</span><span class="n">TM</span><span class="p">,</span>
@@ -5609,18 +5732,18 @@ entry:
 </div>
 </div>
 <div class="section" id="summary">
-<h2><a class="toc-backref" href="#id49">Summary</a><a class="headerlink" href="#summary" title="Permalink to this headline">¶</a></h2>
-<p>Now, Cpu0 backend code now can take care both the integer function call and
-control statement just like the llvm front end tutorial example code.
+<h2><a class="toc-backref" href="#id44">Summary</a><a class="headerlink" href="#summary" title="Permalink to this headline">¶</a></h2>
+<p>Now, Cpu0 backend code can take care both the integer function call and
+control statement just like the example code of llvm frontend tutorial does.
 It can translate some of the C++ OOP language into Cpu0 instructions also
 without much effort in backend,
-because the most complex things in language, such as C++ syntex, is handled by
-front end.
+because the most complex things in language, such as C++ syntax, is handled by
+frontend.
 LLVM is a real structure following the compiler theory, any backend of LLVM can
 get benefit from this structure.
 The best part of 3 tiers compiler structure is that backend will grow up
-automatically in languages support when the front end supporting languages more
-and more if the frontend has not added any new IR for a new language.</p>
+automatically in languages support as the frontend supporting languages more
+and more when the frontend doesn&#8217;t add any new IR for a new language.</p>
 <table class="docutils footnote" frame="void" id="computer-arch-interface" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">

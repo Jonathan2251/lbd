@@ -1218,6 +1218,203 @@ Cpu0MCCodeEmitter::getMemEncoding(const MCInst &amp;MI, unsigned OpNo,
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1">#include &quot;MCTargetDesc/Cpu0MCExpr.h&quot;</span>
 </pre></div>
 </div>
+<img src="_images/graphviz-bbe4dd9844b590928b4f79fc7a763fa5f18b41b2.png" alt="digraph G {
+  rankdir=TB;
+  &quot;Cpu0AsmPrinter::EmitInstruction()&quot; -&gt; &quot;MCObjectStreamer::EmitInstruction()&quot; [label=&quot;AsmPrinter::OutStreamer is MCObjectStreamer if llc -filetype=obj\nAsmPrinter::OutStreamer is MCAsmStreamer if llc -filetype=asm&quot;];
+  &quot;MCObjectStreamer::EmitInstruction()&quot; -&gt; &quot;MCELFStreamer::EmitInstToData()&quot; -&gt; &quot;encodeInstruction()&quot; -&gt; &quot;Cpu0MCCodeEmitter::getBinaryCodeForInstr()&quot;;
+  &quot;Cpu0MCCodeEmitter::getBinaryCodeForInstr()&quot; -&gt; &quot;getBranch16TargetOpValue()&quot;;
+  &quot;Cpu0MCCodeEmitter::getBinaryCodeForInstr()&quot; -&gt; &quot;getMachineOpValue()&quot;;
+  subgraph cluster0 {
+    label = &quot;Cpu0MCCodeEmitter.cpp&quot;;
+    &quot;encodeInstruction()&quot;;
+    &quot;getBranch16TargetOpValue()&quot;;
+    &quot;getMachineOpValue()&quot;;
+    &quot;getExprOpValue()&quot;;
+    &quot;getMachineOpValue()&quot; -&gt; &quot;getExprOpValue()&quot;;
+  }
+  label = &quot;Figure: Calling Functions of elf encoder&quot;;
+}" />
+<p>The ELF encoder calling functions shown as the figure above.
+AsmPrinter::OutStreamer is set to MCObjectStreamer when by llc driver when user
+input <code class="docutils literal"><span class="pre">llc</span> <span class="pre">-filetype=obj</span></code>.</p>
+<img src="_images/graphviz-06e065449fc09ffb3d014317ffa29115bc646715.png" alt="digraph G {
+  rankdir=TB;
+  subgraph cluster0 {
+    label = &quot;Cpu0MCCodeEmitter.cpp&quot;;
+    &quot;encodeInstruction()&quot;;
+    &quot;getMachineOpValue()&quot;;
+  }
+  subgraph cluster1 {
+    label = &quot;Cpu0MCCodeEmitter.inc&quot;;
+    &quot;getBinaryCodeForInstr()&quot;
+  }
+  
+  &quot;encodeInstruction()&quot; -&gt; &quot;getBinaryCodeForInstr()&quot; [label=&quot;1. MI.Opcode&quot;];
+  
+  &quot;getBinaryCodeForInstr()&quot; -&gt; &quot;encodeInstruction()&quot;  [label=&quot;4. full MI with operands (register number, immediate value, ...)&quot;];
+  &quot;getBinaryCodeForInstr()&quot; -&gt; &quot;getMachineOpValue()&quot; [label=&quot;2. MI.Operand[n]&quot;];
+  
+  &quot;getMachineOpValue()&quot; -&gt; &quot;getBinaryCodeForInstr()&quot;  [label=&quot;3. RegNum&quot;];
+  
+  label = &quot;Figure: DFD flow for instruction encode&quot;;
+}" />
+<p>The instruction operands information for encoder is got as the figure above.
+Steps as follows,</p>
+<blockquote>
+<div><ol class="arabic simple">
+<li>Function encodeInstruction() pass MI.Opcode to getBinaryCodeForInstr().</li>
+<li>getBinaryCodeForInstr() pass MI.Operand[n] to getMachineOpValue() and then,</li>
+<li>get register number by calling getMachineOpValue().</li>
+<li>getBinaryCodeForInstr() return the MI with all number of registers to encodeInstruction().</li>
+</ol>
+</div></blockquote>
+<p>The MI.Opcode is set in Instruction Selection Stage.
+The table gen function getBinaryCodeForInstr() get all the operands information
+from the td files set by programmer as the following figure.</p>
+<img src="_images/graphviz-6cf85466a6fba60c6805c280f3a74fe0733df500.png" alt="digraph G {
+  rankdir=LR;
+  // graphviz uses &amp;nn; to display control character, &amp;#38; ascii 0x38 is '&amp;', 0x60 is '&lt;', 0x62 is '&gt;'
+  // when use port=&quot;f1&quot;, the shape cannot set to &quot;Mrecord&quot;
+  getBinaryCodeForInstr [ penwidth = 1, fontname = &quot;Courier New&quot;, shape = &quot;rectangle&quot;, label =&lt;&lt;table border=&quot;0&quot; cellborder=&quot;0&quot; cellpadding=&quot;3&quot; bgcolor=&quot;white&quot;&gt;
+    &lt;tr&gt;&lt;td bgcolor=&quot;grey&quot; align=&quot;center&quot; colspan=&quot;2&quot;&gt;&lt;font color=&quot;white&quot;&gt;Cpu0GenMCCodeEmitter.inc&lt;/font&gt;&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td align=&quot;left&quot; bgcolor=&quot;yellow&quot; port=&quot;r0&quot;&gt;uint64_t Cpu0MCCodeEmitter::getBinaryCodeForInstr(const MCInst &amp;#38;MI, {&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td align=&quot;left&quot;&gt;  ...&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td align=&quot;left&quot;&gt;  static const uint64_t InstBits[] = {&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td align=&quot;left&quot;&gt;  ...&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td align=&quot;left&quot;&gt;  UINT64_C(318767104),	// ADD  /// 318767104=0x13000000&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td align=&quot;left&quot;&gt;  ...&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td align=&quot;left&quot;&gt;  }&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td align=&quot;left&quot;&gt;  const unsigned opcode = MI.getOpcode();&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td align=&quot;left&quot;&gt;  uint64_t Value = InstBits[opcode];&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td align=&quot;left&quot;&gt;  ...&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td align=&quot;left&quot;&gt;  switch (opcode) {&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td align=&quot;left&quot;&gt;  ...&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td align=&quot;left&quot;&gt;  case Cpu0::ADD:&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td align=&quot;left&quot;&gt;  ...&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td align=&quot;left&quot;&gt;    // op: ra&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td align=&quot;left&quot; port=&quot;f1&quot;&gt;    op = getMachineOpValue(MI, MI.getOperand(0), Fixups, STI);&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td align=&quot;left&quot;&gt;    Value |= (op &amp;#38; UINT64_C(15)) &amp;#60;&amp;#60; 20;&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td align=&quot;left&quot;&gt;    // op: rb&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td align=&quot;left&quot; port=&quot;f2&quot;&gt;    op = getMachineOpValue(MI, MI.getOperand(1), Fixups, STI);&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td align=&quot;left&quot;&gt;    Value |= (op &amp;#38; UINT64_C(15)) &amp;#60;&amp;#60; 16;&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td align=&quot;left&quot;&gt;    // op: rc&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td align=&quot;left&quot; port=&quot;f3&quot;&gt;    op = getMachineOpValue(MI, MI.getOperand(2), Fixups, STI);&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td align=&quot;left&quot;&gt;    Value |= (op &amp;#38; UINT64_C(15)) &amp;#60;&amp;#60; 12;&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td align=&quot;left&quot;&gt;    break;&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td align=&quot;left&quot;&gt;  }&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td align=&quot;left&quot;&gt;  ...&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td align=&quot;left&quot;&gt;  return Value;&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td align=&quot;left&quot;&gt;}&lt;/td&gt;&lt;/tr&gt;
+    &lt;/table&gt;&gt; ];
+    
+  InstrTd [ penwidth = 1, fontname = &quot;Courier New&quot;, shape = &quot;rectangle&quot;, label =&lt;&lt;table border=&quot;0&quot; cellborder=&quot;0&quot; cellpadding=&quot;3&quot; bgcolor=&quot;white&quot;&gt;
+    &lt;tr&gt;&lt;td bgcolor=&quot;grey&quot; align=&quot;center&quot; colspan=&quot;2&quot;&gt;&lt;font color=&quot;white&quot;&gt;Cpu0InstrInfo.td&lt;/font&gt;&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td align=&quot;left&quot;&gt;class ArithLogicR&amp;#60;bits&amp;#60;8&amp;#62; op, ...&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td align=&quot;left&quot; port=&quot;f1&quot;&gt;  let Inst{23-20} = ra;&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td align=&quot;left&quot; port=&quot;f2&quot;&gt;  let Inst{19-16} = rb;&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td align=&quot;left&quot; port=&quot;f3&quot;&gt;  let Inst{15-12} = rc;&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td align=&quot;left&quot;&gt;  ...&lt;/td&gt;&lt;/tr&gt;
+    &lt;/table&gt;&gt; ];
+  
+  
+  InstrTd:f1:e -&gt; getBinaryCodeForInstr:f1:n;
+  InstrTd:f2:e -&gt; getBinaryCodeForInstr:f2:n;
+  InstrTd:f3:e -&gt; getBinaryCodeForInstr:f3:n;
+          
+  label = &quot;Instruction encode, for instance:  addu $v0, $at, $v1\n  v0:MI.getOperand(0), at:MI.getOperand(1), v1:MI.getOperand(2)&quot;;
+}" />
+<p>For instance, Cpu0 backend will generate &#8220;addu $v0, $at, $v1&#8221; for the IR
+&#8220;%0 = add %1, %2&#8221; once llvm allocate registers $v0, $at and $v1 for Operands
+%0, %1 and %2 individually. The MCOperand structure for MI.Operands[] include
+register number set in the pass of llvm allocate registers which can be got in
+getMachineOpValue().</p>
+<p>The getEncodingValue(Reg) in getMachineOpValue() as the following will get the
+RegNo of encode from Register name such as AT, V0, or V1, ... by using table gen
+information from Cpu0RegisterInfo.td as the following. My comment is after &#8220;///&#8221;.</p>
+<p class="rubric">include//llvm/MC/MCRegisterInfo.h</p>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="kt">void</span> <span class="nf">InitMCRegisterInfo</span><span class="p">(...,</span>
+                        <span class="k">const</span> <span class="kt">uint16_t</span> <span class="o">*</span><span class="n">RET</span><span class="p">)</span> <span class="p">{</span>
+  <span class="p">...</span>
+  <span class="n">RegEncodingTable</span> <span class="o">=</span> <span class="n">RET</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="kt">unsigned</span> <span class="n">Cpu0MCCodeEmitter</span><span class="o">::</span>
+<span class="n">getMachineOpValue</span><span class="p">(</span><span class="k">const</span> <span class="n">MCInst</span> <span class="o">&amp;</span><span class="n">MI</span><span class="p">,</span> <span class="k">const</span> <span class="n">MCOperand</span> <span class="o">&amp;</span><span class="n">MO</span><span class="p">,</span>
+                  <span class="n">SmallVectorImpl</span><span class="o">&lt;</span><span class="n">MCFixup</span><span class="o">&gt;</span> <span class="o">&amp;</span><span class="n">Fixups</span><span class="p">,</span>
+                  <span class="k">const</span> <span class="n">MCSubtargetInfo</span> <span class="o">&amp;</span><span class="n">STI</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">MO</span><span class="p">.</span><span class="n">isReg</span><span class="p">())</span> <span class="p">{</span>
+    <span class="kt">unsigned</span> <span class="n">Reg</span> <span class="o">=</span> <span class="n">MO</span><span class="p">.</span><span class="n">getReg</span><span class="p">();</span>
+    <span class="kt">unsigned</span> <span class="n">RegNo</span> <span class="o">=</span> <span class="n">Ctx</span><span class="p">.</span><span class="n">getRegisterInfo</span><span class="p">()</span><span class="o">-&gt;</span><span class="n">getEncodingValue</span><span class="p">(</span><span class="n">Reg</span><span class="p">);</span>
+    <span class="k">return</span> <span class="n">RegNo</span><span class="p">;</span>
+  <span class="p">...</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p class="rubric">include/llvm/MC/MCRegisterInfo.h</p>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="kt">void</span> <span class="nf">InitMCRegisterInfo</span><span class="p">(...,</span>
+                        <span class="k">const</span> <span class="kt">uint16_t</span> <span class="o">*</span><span class="n">RET</span><span class="p">)</span> <span class="p">{</span>
+  <span class="p">...</span>
+  <span class="n">RegEncodingTable</span> <span class="o">=</span> <span class="n">RET</span><span class="p">;</span>
+<span class="p">}</span>
+
+ <span class="c1">/// \brief Returns the encoding for RegNo</span>
+<span class="kt">uint16_t</span> <span class="nf">getEncodingValue</span><span class="p">(</span><span class="kt">unsigned</span> <span class="n">RegNo</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
+  <span class="n">assert</span><span class="p">(</span><span class="n">RegNo</span> <span class="o">&lt;</span> <span class="n">NumRegs</span> <span class="o">&amp;&amp;</span>
+         <span class="s">&quot;Attempting to get encoding for invalid register number!&quot;</span><span class="p">);</span>
+  <span class="k">return</span> <span class="n">RegEncodingTable</span><span class="p">[</span><span class="n">RegNo</span><span class="p">];</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p class="rubric">lbdex/chapters/Chapter5_1/Cpu0RegisterInfo.td</p>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="n">let</span> <span class="n">Namespace</span> <span class="o">=</span> <span class="s">&quot;Cpu0&quot;</span> <span class="n">in</span> <span class="p">{</span>
+  <span class="p">...</span>
+  <span class="n">def</span> <span class="nl">AT</span>   <span class="p">:</span> <span class="n">Cpu0GPRReg</span><span class="o">&lt;</span><span class="mi">1</span><span class="p">,</span>  <span class="s">&quot;1&quot;</span><span class="o">&gt;</span><span class="p">,</span>    <span class="n">DwarfRegNum</span><span class="o">&lt;</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
+  <span class="n">def</span> <span class="nl">V0</span>   <span class="p">:</span> <span class="n">Cpu0GPRReg</span><span class="o">&lt;</span><span class="mi">2</span><span class="p">,</span>  <span class="s">&quot;2&quot;</span><span class="o">&gt;</span><span class="p">,</span>    <span class="n">DwarfRegNum</span><span class="o">&lt;</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
+  <span class="n">def</span> <span class="nl">V1</span>   <span class="p">:</span> <span class="n">Cpu0GPRReg</span><span class="o">&lt;</span><span class="mi">3</span><span class="p">,</span>  <span class="s">&quot;3&quot;</span><span class="o">&gt;</span><span class="p">,</span>    <span class="n">DwarfRegNum</span><span class="o">&lt;</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
+  <span class="p">...</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p class="rubric">cmake_debug_build/lib/Target/Cpu0/Cpu0GenRegisterInfo.inc</p>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="k">namespace</span> <span class="n">Cpu0</span> <span class="p">{</span>
+<span class="k">enum</span> <span class="p">{</span>
+  <span class="n">NoRegister</span><span class="p">,</span>
+  <span class="n">AT</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+  <span class="p">...</span>
+  <span class="n">V0</span> <span class="o">=</span> <span class="mi">19</span><span class="p">,</span>
+  <span class="n">V1</span> <span class="o">=</span> <span class="mi">20</span><span class="p">,</span>
+  <span class="n">NUM_TARGET_REGS</span>       <span class="c1">// 21</span>
+<span class="p">};</span>
+<span class="p">}</span> <span class="c1">// end namespace Cpu0</span>
+
+<span class="k">extern</span> <span class="k">const</span> <span class="kt">uint16_t</span> <span class="n">Cpu0RegEncodingTable</span><span class="p">[]</span> <span class="o">=</span> <span class="p">{</span>
+  <span class="mi">0</span><span class="p">,</span>
+  <span class="mi">1</span><span class="p">,</span>     <span class="c1">/// 1, AT</span>
+  <span class="mi">1</span><span class="p">,</span>
+  <span class="mi">12</span><span class="p">,</span>
+  <span class="mi">11</span><span class="p">,</span>
+  <span class="mi">0</span><span class="p">,</span>
+  <span class="mi">0</span><span class="p">,</span>
+  <span class="mi">14</span><span class="p">,</span>
+  <span class="mi">0</span><span class="p">,</span>
+  <span class="mi">13</span><span class="p">,</span>
+  <span class="mi">15</span><span class="p">,</span>
+  <span class="mi">0</span><span class="p">,</span>
+  <span class="mi">4</span><span class="p">,</span>
+  <span class="mi">5</span><span class="p">,</span>
+  <span class="mi">9</span><span class="p">,</span>
+  <span class="mi">10</span><span class="p">,</span>
+  <span class="mi">7</span><span class="p">,</span>
+  <span class="mi">8</span><span class="p">,</span>
+  <span class="mi">6</span><span class="p">,</span>
+  <span class="mi">2</span><span class="p">,</span>    <span class="c1">/// 19, V0</span>
+  <span class="mi">3</span><span class="p">,</span>    <span class="c1">/// 20, V1</span>
+<span class="p">};</span>
+
+<span class="k">static</span> <span class="kr">inline</span> <span class="kt">void</span> <span class="nf">InitCpu0MCRegisterInfo</span><span class="p">(</span><span class="n">MCRegisterInfo</span> <span class="o">*</span><span class="n">RI</span><span class="p">,</span> <span class="p">...)</span> <span class="p">{</span>
+  <span class="n">RI</span><span class="o">-&gt;</span><span class="n">InitMCRegisterInfo</span><span class="p">(...,</span> <span class="n">Cpu0RegEncodingTable</span><span class="p">);</span>
+</pre></div>
+</div>
 <p>The applyFixup() of Cpu0AsmBackend.cpp will fix up the <strong>jeq</strong>, <strong>jub</strong>, ...
 instructions of &#8220;address control flow statements&#8221; or &#8220;function call statements&#8221;
 used in later chapters.
@@ -1259,6 +1456,18 @@ making llvm call function getMemEncoding() when either <strong>ld</strong> or <s
 instruction is issued in elf obj since these two instructions use <strong>mem</strong>
 Operand.</p>
 <p>The other functions in Cpu0MCCodeEmitter.cpp are called by these two functions.</p>
+<p>After encoder, the following code will write the encode instructions to buffer.</p>
+<p class="rubric">src/lib/MC/MCELFStreamer.cpp</p>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="kt">void</span> <span class="n">MCELFStreamer</span><span class="o">::</span><span class="n">EmitInstToData</span><span class="p">(</span><span class="k">const</span> <span class="n">MCInst</span> <span class="o">&amp;</span><span class="n">Inst</span><span class="p">,</span>
+                                   <span class="k">const</span> <span class="n">MCSubtargetInfo</span> <span class="o">&amp;</span><span class="n">STI</span><span class="p">)</span> <span class="p">{</span>
+  <span class="p">...</span>
+  <span class="n">DF</span><span class="o">-&gt;</span><span class="n">setHasInstructions</span><span class="p">(</span><span class="nb">true</span><span class="p">);</span>
+  <span class="n">DF</span><span class="o">-&gt;</span><span class="n">getContents</span><span class="p">().</span><span class="n">append</span><span class="p">(</span><span class="n">Code</span><span class="p">.</span><span class="n">begin</span><span class="p">(),</span> <span class="n">Code</span><span class="p">.</span><span class="n">end</span><span class="p">());</span>
+  <span class="p">...</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>Then, ELFObjectWriter::writeObject() will write the buffer to elf file.</p>
 </div>
 <div class="section" id="backend-target-registration-structure">
 <h2><a class="toc-backref" href="#id6">Backend Target Registration Structure</a><a class="headerlink" href="#backend-target-registration-structure" title="Permalink to this headline">¶</a></h2>
@@ -1289,11 +1498,11 @@ List the register functions of ELF obj output as follows,</p>
 </pre></div>
 </div>
 <p>Above createELFStreamer takes care the elf obj streamer.
-<a class="reference internal" href="#genobj-f10"><span class="std std-numref">Fig. 20</span></a> as follow is MCELFStreamer inheritance tree.
+<a class="reference internal" href="#genobj-f10"><span class="std std-numref">Fig. 21</span></a> as follow is MCELFStreamer inheritance tree.
 You can find a lot of operations in that inheritance tree.</p>
 <div class="figure align-center" id="id3">
 <span id="genobj-f10"></span><a class="reference internal image-reference" href="_images/101.png"><img alt="_images/101.png" src="_images/101.png" style="width: 783.0px; height: 596.0px;" /></a>
-<p class="caption"><span class="caption-number">Fig. 20 </span><span class="caption-text">MCELFStreamer inherit tree</span></p>
+<p class="caption"><span class="caption-number">Fig. 21 </span><span class="caption-text">MCELFStreamer inherit tree</span></p>
 </div>
 <p class="rubric">Register function of asm target streamer</p>
 <div class="highlight-c++"><div class="highlight"><pre><span></span><span class="c1">// Register the asm target streamer.</span>

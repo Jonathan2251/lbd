@@ -60,7 +60,7 @@
 <li><a class="reference internal" href="#risc-cpu-knowledge" id="id19">RISC CPU knowledge</a></li>
 </ul>
 </div>
-<p>This chapter illustrates the corresponding IR for control flow statements, like
+<p>This chapter illustrates the corresponding IR for control flow statements, such as
 <strong>“if else”</strong>, <strong>“while”</strong> and <strong>“for”</strong> loop statements in C, and how to
 translate these control flow statements of llvm IR into Cpu0 instructions in
 section I. In section &#8220;Cpu0 backend Optimization: Remove useless JMP&#8221;,
@@ -91,7 +91,7 @@ select_cc, to support the backend optimiation in control flow statement.</p>
   <span class="nv">%cmp</span> <span class="p">=</span> <span class="k">icmp</span> <span class="k">eq</span> <span class="k">i32</span> <span class="nv nv-Anonymous">%0</span><span class="p">,</span> <span class="m">0</span>
   <span class="k">br</span> <span class="k">i1</span> <span class="nv">%cmp</span><span class="p">,</span> <span class="kt">label</span> <span class="nv">%if.then</span><span class="p">,</span> <span class="kt">label</span> <span class="nv">%if.end</span>
 
-<span class="nl">if.then:</span>                                          <span class="c">; preds = %entry</span>
+<span class="c">; &lt;label&gt;:3:                                      ; preds = %0</span>
   <span class="nv nv-Anonymous">%1</span> <span class="p">=</span> <span class="k">load</span> <span class="k">i32</span><span class="p">*</span> <span class="nv">%a</span><span class="p">,</span> <span class="k">align</span> <span class="m">4</span>
   <span class="nv">%inc</span> <span class="p">=</span> <span class="k">add</span> <span class="k">i32</span> <span class="nv nv-Anonymous">%1</span><span class="p">,</span> <span class="m">1</span>
   <span class="k">store</span> <span class="k">i32</span> <span class="nv">%inc</span><span class="p">,</span> <span class="k">i32</span><span class="p">*</span> <span class="nv">%a</span><span class="p">,</span> <span class="k">align</span> <span class="m">4</span>
@@ -104,15 +104,19 @@ Less Than, <strong>“sle”</strong> stands for Set Less or Equal.
 Run version Chapter8_1/ with <code class="docutils literal"><span class="pre">llc</span>&nbsp; <span class="pre">-view-isel-dags</span></code> or <code class="docutils literal"><span class="pre">-debug</span></code> option, you
 can see the <strong>if</strong> statement is translated into
 (br (brcond (%1, setcc(%2, Constant&lt;c&gt;, setne)), BasicBlock_02), BasicBlock_01).
-Ignore %1, we get the form (br (brcond (setcc(%2, Constant&lt;c&gt;, setne)),
+Ignore %1, then we will get the form (br (brcond (setcc(%2, Constant&lt;c&gt;, setne)),
 BasicBlock_02), BasicBlock_01).
 For explanation, listing the IR DAG as follows,</p>
-<div class="highlight-console"><div class="highlight"><pre><span></span><span class="gp">%</span><span class="nv">cond</span><span class="o">=</span>setcc<span class="o">(</span>%2, Constant&lt;c&gt;, setne<span class="o">)</span>
-<span class="go">brcond %cond, BasicBlock_02</span>
-<span class="go">br BasicBlock_01</span>
+<div class="highlight-console"><div class="highlight"><pre><span></span><span class="go">Optimized legalized selection DAG: BB#0 &#39;_Z11test_ifctrlv:entry&#39;</span>
+<span class="go">  SelectionDAG has 12 nodes:</span>
+<span class="go">    ...</span>
+<span class="go">    t5: i32,ch = load&lt;Volatile LD4[%a]&gt; t4, FrameIndex:i32&lt;0&gt;, undef:i32</span>
+<span class="go">        t16: i32 = setcc t5, Constant:i32&lt;0&gt;, setne:ch</span>
+<span class="go">      t11: ch = brcond t5:1, t16, BasicBlock:ch&lt;if.end 0x10305a338&gt;</span>
+<span class="go">    t13: ch = br t11, BasicBlock:ch&lt;if.then 0x10305a288&gt;</span>
 </pre></div>
 </div>
-<p>We want to translate them into Cpu0 instructions DAG as follows,</p>
+<p>We want to translate them into Cpu0 instruction DAGs as follows,</p>
 <div class="highlight-console"><div class="highlight"><pre><span></span><span class="go">addiu %3, ZERO, Constant&lt;c&gt;</span>
 <span class="go">cmp %2, %3</span>
 <span class="go">jne BasicBlock_02</span>
@@ -141,9 +145,8 @@ class UncondBranch&lt;bits&lt;8&gt; op, string instr_asm&gt;:
 </div>
 <p>The pattern [(br bb:$imm24)] in class UncondBranch is translated into jmp
 machine instruction.
-The pair of <strong>cmp</strong> and <strong>jne</strong> Cpu0 instructions translation is more
-complicated than all of the simple one-to-one IR to machine instruction
-translation that we have experienced until now.
+The translation for the pair Cpu0 instructions, <strong>cmp</strong> and <strong>jne</strong>, is not
+happened before this chapter.
 To solve this chained IR to machine instructions translation, we define the
 following pattern,</p>
 <p class="rubric">lbdex/chapters/Chapter8_1/Cpu0InstrInfo.td</p>
@@ -161,7 +164,7 @@ def : Pat&lt;(brcond RC:$cond, bb:$dst),
 }
 </pre></div>
 </div>
-<p>Since the BrcondPats pattern as above uses RC (Register Class) as operand, the
+<p>Since the aboved BrcondPats pattern uses RC (Register Class) as operand, the
 following ADDiu pattern defined in Chapter2 will generate instruction
 <strong>addiu</strong> before the instruction <strong>cmp</strong> for the first IR,
 <strong>setcc(%2, Constant&lt;c&gt;, setne)</strong>, as above.</p>
@@ -173,21 +176,21 @@ def : Pat&lt;(i32 immSExt16:$in),
 </div>
 <p>The definition of BrcondPats supports setne, seteq, setlt, ..., register operand
 compare and setult, setugt, ..., for unsigned int type. In addition to seteq
-and setne, we define setueq and setune, by reference Mips code even though
-we didn&#8217;t find how to generate setune IR from C language.
+and setne, we define setueq and setune by refering Mips code, even though
+we don&#8217;t find how to generate setune IR from C language.
 We have tried to define unsigned int type, but clang still generates setne
 instead of setune.
-Pattern search order come along with the order of their appearing in context.
-The last pattern (brcond RC:$cond, bb:$dst) meaning branch to $dst
+The order of Pattern Search is from the order of their appearing in context.
+The last pattern (brcond RC:$cond, bb:$dst) means branch to $dst
 if $cond != 0. So we set the corresponding translation to
 (JNEOp (CMPOp RC:$cond, ZEROReg), bb:$dst).</p>
 <p>The CMP instruction will set the result to register SW, and then JNE check the
-condition based on SW status as <a class="reference internal" href="#ctrlflow-f1"><span class="std std-numref">Fig. 21</span></a>.
+condition based on SW status as <a class="reference internal" href="#ctrlflow-f1"><span class="std std-numref">Fig. 22</span></a>.
 Since SW belongs to a different register class, it will be
 correct even an instruction is inserted between CMP and JNE as follows,</p>
 <div class="figure align-center" id="id10">
-<span id="ctrlflow-f1"></span><a class="reference internal image-reference" href="_images/12.png"><img alt="_images/12.png" src="_images/12.png" style="width: 223.0px; height: 232.5px;" /></a>
-<p class="caption"><span class="caption-number">Fig. 21 </span><span class="caption-text">JNE (CMP $r2, $r3),</span></p>
+<span id="ctrlflow-f1"></span><a class="reference internal image-reference" href="_images/11.png"><img alt="_images/11.png" src="_images/11.png" style="width: 223.0px; height: 232.5px;" /></a>
+<p class="caption"><span class="caption-number">Fig. 22 </span><span class="caption-text">JNE (CMP $r2, $r3),</span></p>
 </div>
 <div class="highlight-console"><div class="highlight"><pre><span></span><span class="go">cmp %2, %3</span>
 <span class="go">addiu $r1, $r2, 3   // $r1 register never be allocated to $SW because in</span>
