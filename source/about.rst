@@ -57,7 +57,9 @@ Ulrich Weigand <Ulrich.Weigand@de.ibm.com> in AsmParser question answer.
 Revision history
 ----------------
 
-Version 3.9.1, Not release yet.
+Version 3.9.2, Not release yet.
+
+Version 3.9.1, Released May 11, 2018
   Fix tailcall bug.
   Fix return-vector.ll run slowly problem, bug from Cpu0ISelLowering.cpp.
   Add figure "Tblgen generate files for Cpu0 backend".
