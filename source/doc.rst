@@ -204,11 +204,12 @@ Cpu0 Regression Test
 
 The last chapter can verify Cpu0 backend's generated code by Verilog simulator 
 for those code without global variable access.
-The chapter lld in web https://github.com/Jonathan2251/lbt.git will include
-llvm ELF linker implementation and can verify those test items which include 
+The chapter lld in web https://github.com/Jonathan2251/lbt.git includes
+llvm ELF linker implementation and is capable to verify those test items with 
 global variable access.
-Beside these, LLVM has its test cases (regression test) for each backend to 
-verify the code generation [#test]_. 
+However, LLVM has its test cases (regression test) for each backend to 
+verify your backend compiler [#test]_ without implementing any simulator or real
+hardware platform. 
 Cpu0 regression test items existed in lbdex.tar.gz example code. Untar it
 to lbdex/, and:
 
@@ -419,6 +420,25 @@ follows,
 
 These supported test cases are in lbdex/regression-test/Cpu0 which can be 
 gotten from ``tar -xf lbdex.tar.gz``.
+
+The regression test is very useful in two major reasons. First, it provides
+the llvm input, assembly output and the running command as well as options in
+the the sample input file, so all the first glimpse of documentation needed for
+end user and programmer are well written in the same test input file.
+Furthermore, it can be run to check to provide dynamic running document for 
+users. Second, once programmers change their backend compiler especially for 
+optimization, the regression test cases guard their backend has no side effect 
+or bugs for other parts of backend program. That is the name of "regression test"
+stands for. The following file include the assembly output pattern of two 
+subtargets for Cpu0 backend. Beside checking opcode, it is capable to check 
+register number. In this case, the destination register of "andi" must be the 
+first source register in the following instruction "xori" once it is specified
+to T1 at the corresponding registers of these two assembly output.
+
+.. rubric:: lbdex/regression-test/Cpu0/setule.ll
+.. literalinclude:: ../lbdex/regression-test/Cpu0/setule.ll
+
+
 
 
 .. [#sphinx-install] http://docs.geoserver.org/latest/en/docguide/install.html
