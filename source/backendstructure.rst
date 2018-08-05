@@ -1083,7 +1083,7 @@ as follows,
     .file "ch3.bc"
   ^C
   
-It hang on because Cpu0 backend has not handled stack slot for local variables.
+It hangs on because Cpu0 backend has not handled stack slot for local variables.
 Instruction "store i32 0, i32* %1" in above IR need Cpu0 allocate a stack slot 
 and save to the stack slot.
 However, the ch3.cpp can be run with option ``clang -O2`` as follows,
