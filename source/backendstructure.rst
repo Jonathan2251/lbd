@@ -1556,6 +1556,37 @@ The eliminateFrameIndex() of Cpu0RegisterInfo.cpp is called after stages
 "instruction selection" and "registers allocated". 
 It translates frame index to correct offset of stack pointer by
 "spOffset = MF.getFrameInfo()->getObjectOffset(FrameIndex);".
+For instance of ch3.cpp, displaying the offset calculating as follows,
+
+.. code:: c++
+  
+  Spilling live registers at end of block.
+  BB#0: derived from LLVM BB %0
+  	%V0<def> = ADDiu %ZERO, 0
+  	ST %V0, <fi#0>, 0; mem:ST4[%1]
+  	RetLR %V0<imp-use,kill>
+  alloc FI(0) at SP[-4]
+  
+  Function : main
+  <--------->
+  ST %V0, <fi#0>, 0; mem:ST4[%1]
+  FrameIndex : 0
+  spOffset   : -4
+  stackSize  : 8
+  Offset     : 4
+  <--------->
+    ...
+    .file "ch3.bc"
+    ...
+    .frame  $sp,8,$lr
+    ...
+  # BB#0:
+    addiu $sp, $sp, -8
+  $tmp1:
+    .cfi_def_cfa_offset 8
+    addiu $2, $zero, 0
+    st  $2, 4($sp)
+    ...
 
 
 .. rubric:: lbdex/chapters/Chapter3_5/Cpu0SEFrameLowering.cpp
