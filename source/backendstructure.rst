@@ -1988,6 +1988,45 @@ Summary the functions for llvm backend stages as the following table.
         ...
         Cpu0 Assembly Printer
 
+.. rubric:: lib/CodeGen/PrologEpilogInsert.cpp
+.. code-block:: c++
+  
+  bool PEI::runOnMachineFunction(MachineFunction &Fn) {
+    ...
+    FrameIndexVirtualScavenging = TRI->requiresFrameIndexScavenging(Fn);
+    ...
+    // Handle CSR spilling and restoring, for targets that need it.
+    SpillCalleeSavedRegisters(Fn, RS, MinCSFrameIndex, MaxCSFrameIndex,
+                              SaveBlocks, RestoreBlocks);
+    ...
+    // Calculate actual frame offsets for all abstract stack objects...
+    calculateFrameObjectOffsets(Fn);
+  
+    // Add prolog and epilog code to the function.  This function is required
+    // to align the stack frame as necessary for any stack variables or
+    // called functions.  Because of this, calculateCalleeSavedRegisters()
+    // must be called before this function in order to set the AdjustsStack
+    // and MaxCallFrameSize variables.
+    if (!F->hasFnAttribute(Attribute::Naked))
+      insertPrologEpilogCode(Fn);
+  
+    // Replace all MO_FrameIndex operands with physical register references
+    // and actual offsets.
+    //
+    replaceFrameIndices(Fn);
+  
+    // If register scavenging is needed, as we've enabled doing it as a 
+    // post-pass, scavenge the virtual registers that frame index elimination
+    // inserted.
+    if (TRI->requiresRegisterScavenging(Fn) && FrameIndexVirtualScavenging) {
+      ScavengeFrameVirtualRegs(Fn, RS);
+  
+      // Clear any vregs created by virtual scavenging.
+      Fn.getRegInfo().clearVirtRegs();
+    }
+    ...
+  }
+
 
 .. table:: Functions for llvm backend stages
 
@@ -1997,9 +2036,11 @@ Summary the functions for llvm backend stages as the following table.
   Before CPU0 DAG->DAG Pattern Instruction Selection   - Cpu0TargetLowering::LowerFormalArguments
                                                        - Cpu0TargetLowering::LowerReturn
   Instruction selection                                - Cpu0DAGToDAGISel::Select
-  Prologue/Epilogue Insertion & Frame Finalization     - Cpu0SEFrameLowering::emitPrologue
-                                                       - Cpu0SEFrameLowering::emitEpilogue
+  Prologue/Epilogue Insertion & Frame Finalization
     - Determine spill callee saved registers           - Cpu0SEFrameLowering::determineCalleeSaves
+    - Spill callee saved registers                     - Cpu0SEFrameLowering::spillCalleeSavedRegisters
+                                                       - Cpu0SEFrameLowering::emitPrologue
+                                                       - Cpu0SEFrameLowering::emitEpilogue
     - Handle stack slot for local variables            - Cpu0RegisterInfo::eliminateFrameIndex
   Post-RA pseudo instruction expansion pass            - Cpu0SEInstrInfo::expandPostRAPseudo
   Cpu0 Assembly Printer                                - Cpu0AsmPrinter.cpp, Cpu0MCInstLower.cpp
