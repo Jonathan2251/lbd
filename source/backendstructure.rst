@@ -2039,8 +2039,8 @@ Summary the functions for llvm backend stages as the following table.
   Prologue/Epilogue Insertion & Frame Finalization
     - Determine spill callee saved registers           - Cpu0SEFrameLowering::determineCalleeSaves
     - Spill callee saved registers                     - Cpu0SEFrameLowering::spillCalleeSavedRegisters
-                                                       - Cpu0SEFrameLowering::emitPrologue
-                                                       - Cpu0SEFrameLowering::emitEpilogue
+    - Prolog                                           - Cpu0SEFrameLowering::emitPrologue
+    - Epilog                                           - Cpu0SEFrameLowering::emitEpilogue
     - Handle stack slot for local variables            - Cpu0RegisterInfo::eliminateFrameIndex
   Post-RA pseudo instruction expansion pass            - Cpu0SEInstrInfo::expandPostRAPseudo
   Cpu0 Assembly Printer                                - Cpu0AsmPrinter.cpp, Cpu0MCInstLower.cpp
