@@ -1596,7 +1596,7 @@ For instance of ch3.cpp, displaying the offset calculating as follows,
 
 The determineCalleeSaves() of Cpu0SEFrameLowering.cpp as above determine the
 spill registers. Once the spill registers are determined, the function 
-eliminateFrameIndex() will save/restore registers to/from stack slots via the 
+SpillCalleeSavedRegisters() will save/restore registers to/from stack slots via the 
 following code.
 
 .. rubric:: lbdex/chapters/Chapter3_5/Cpu0InstrInfo.h
@@ -1654,6 +1654,180 @@ Cpu0SEInstrInfo.h and Cpu0InstrInfo.h it will get the belowing error.
   Stack dump:
   ...
   Abort trap: 6
+
+File PrologEpilogInserter.cpp includes the calling of backend functions 
+SpillCalleeSavedRegisters(), emitProlog(), emitEpilog() and eliminateFrameIndex()
+as follows,
+
+.. rubric:: lib/CodeGen/PrologEpilogInserter.cpp
+.. code-block:: c++
+  
+  class PEI : public MachineFunctionPass {
+  public:
+    static char ID;
+    explicit PEI(const TargetMachine *TM = nullptr) : MachineFunctionPass(ID) {
+      initializePEIPass(*PassRegistry::getPassRegistry());
+  
+      if (TM && (!TM->usesPhysRegsForPEI())) {
+        SpillCalleeSavedRegisters = [](MachineFunction &, RegScavenger *,
+                                       unsigned &, unsigned &, const MBBVector &,
+                                       const MBBVector &) {};
+        ScavengeFrameVirtualRegs = [](MachineFunction &, RegScavenger *) {};
+      } else {
+        SpillCalleeSavedRegisters = doSpillCalleeSavedRegs;
+        ScavengeFrameVirtualRegs = doScavengeFrameVirtualRegs;
+        UsesCalleeSaves = true;
+      }    
+    }
+    ...
+  }
+    
+  /// insertCSRSpillsAndRestores - Insert spill and restore code for
+  /// callee saved registers used in the function.
+  ///
+  static void insertCSRSpillsAndRestores(MachineFunction &Fn,
+                                         const MBBVector &SaveBlocks,
+                                         const MBBVector &RestoreBlocks) {
+    ...
+    // Spill using target interface.
+    for (MachineBasicBlock *SaveBlock : SaveBlocks) {
+      I = SaveBlock->begin();
+      if (!TFI->spillCalleeSavedRegisters(*SaveBlock, I, CSI, TRI)) {
+        for (unsigned i = 0, e = CSI.size(); i != e; ++i) {
+          // Insert the spill to the stack frame.
+          unsigned Reg = CSI[i].getReg();
+          const TargetRegisterClass *RC = TRI->getMinimalPhysRegClass(Reg);
+          TII.storeRegToStackSlot(*SaveBlock, I, Reg, true, CSI[i].getFrameIdx(),
+                                  RC, TRI);
+        }
+      }
+      // Update the live-in information of all the blocks up to the save point.
+      updateLiveness(Fn);
+    }
+  
+    // Restore using target interface.
+    for (MachineBasicBlock *MBB : RestoreBlocks) {
+      ...
+      // Restore all registers immediately before the return and any
+      // terminators that precede it.
+      if (!TFI->restoreCalleeSavedRegisters(*MBB, I, CSI, TRI)) {
+        for (unsigned i = 0, e = CSI.size(); i != e; ++i) {
+          unsigned Reg = CSI[i].getReg();
+          const TargetRegisterClass *RC = TRI->getMinimalPhysRegClass(Reg);
+          TII.loadRegFromStackSlot(*MBB, I, Reg, CSI[i].getFrameIdx(), RC, TRI);
+          ...
+        }
+      ...
+    }
+    ...
+  }
+  
+  static void doSpillCalleeSavedRegs(MachineFunction &Fn, RegScavenger *RS, 
+                                     unsigned &MinCSFrameIndex,
+                                     unsigned &MaxCSFrameIndex,
+                                     const MBBVector &SaveBlocks,
+                                     const MBBVector &RestoreBlocks) {
+    const Function *F = Fn.getFunction();
+    const TargetFrameLowering *TFI = Fn.getSubtarget().getFrameLowering();
+    MinCSFrameIndex = std::numeric_limits<unsigned>::max();
+    MaxCSFrameIndex = 0; 
+  
+    // Determine which of the registers in the callee save list should be saved.
+    BitVector SavedRegs;
+    TFI->determineCalleeSaves(Fn, SavedRegs, RS); 
+  
+    // Assign stack slots for any callee-saved registers that must be spilled.
+    assignCalleeSavedSpillSlots(Fn, SavedRegs, MinCSFrameIndex, MaxCSFrameIndex);
+  
+    // Add the code to save and restore the callee saved registers.
+    if (!F->hasFnAttribute(Attribute::Naked))
+      insertCSRSpillsAndRestores(Fn, SaveBlocks, RestoreBlocks);
+  }
+
+
+  void PEI::insertPrologEpilogCode(MachineFunction &Fn) {
+    const TargetFrameLowering &TFI = *Fn.getSubtarget().getFrameLowering();
+  
+    // Add prologue to the function...
+    for (MachineBasicBlock *SaveBlock : SaveBlocks)
+      TFI.emitPrologue(Fn, *SaveBlock);
+  
+    // Add epilogue to restore the callee-save registers in each exiting block.
+    for (MachineBasicBlock *RestoreBlock : RestoreBlocks)
+      TFI.emitEpilogue(Fn, *RestoreBlock);
+    ...
+  }
+  
+  void PEI::replaceFrameIndices(MachineBasicBlock *BB, MachineFunction &Fn, 
+                                int &SPAdj) {
+    ...
+      for (unsigned i = 0, e = MI.getNumOperands(); i != e; ++i) {
+        ...
+        // If this instruction has a FrameIndex operand, we need to
+        // use that target machine register info object to eliminate
+        // it.
+        TRI.eliminateFrameIndex(MI, SPAdj, i,
+                                FrameIndexVirtualScavenging ?  nullptr : RS);
+        ...
+      }
+    ...
+  }
+
+  /// replaceFrameIndices - Replace all MO_FrameIndex operands with physical
+  /// register references and actual offsets.
+  ///
+  void PEI::replaceFrameIndices(MachineFunction &Fn) {
+    ...
+    // Iterate over the reachable blocks in DFS order.
+    for (auto DFI = df_ext_begin(&Fn, Reachable), DFE = df_ext_end(&Fn, Reachable);
+         DFI != DFE; ++DFI) {
+      ...
+      replaceFrameIndices(BB, Fn, SPAdj);
+      ...
+    }
+  
+    // Handle the unreachable blocks.
+    for (auto &BB : Fn) {
+      ...
+      replaceFrameIndices(&BB, Fn, SPAdj);
+    }
+  }
+  
+  bool PEI::runOnMachineFunction(MachineFunction &Fn) {
+    ...
+    FrameIndexVirtualScavenging = TRI->requiresFrameIndexScavenging(Fn);
+    ...
+    // Handle CSR spilling and restoring, for targets that need it.
+    SpillCalleeSavedRegisters(Fn, RS, MinCSFrameIndex, MaxCSFrameIndex,
+                              SaveBlocks, RestoreBlocks);
+    ...
+    // Calculate actual frame offsets for all abstract stack objects...
+    calculateFrameObjectOffsets(Fn);
+  
+    // Add prolog and epilog code to the function.  This function is required
+    // to align the stack frame as necessary for any stack variables or
+    // called functions.  Because of this, calculateCalleeSavedRegisters()
+    // must be called before this function in order to set the AdjustsStack
+    // and MaxCallFrameSize variables.
+    if (!F->hasFnAttribute(Attribute::Naked))
+      insertPrologEpilogCode(Fn);
+  
+    // Replace all MO_FrameIndex operands with physical register references
+    // and actual offsets.
+    //
+    replaceFrameIndices(Fn);
+  
+    // If register scavenging is needed, as we've enabled doing it as a 
+    // post-pass, scavenge the virtual registers that frame index elimination
+    // inserted.
+    if (TRI->requiresRegisterScavenging(Fn) && FrameIndexVirtualScavenging) {
+      ScavengeFrameVirtualRegs(Fn, RS);
+  
+      // Clear any vregs created by virtual scavenging.
+      Fn.getRegInfo().clearVirtRegs();
+    }
+    ...
+  }
 
 
 Large stack
@@ -1987,45 +2161,6 @@ Summary the functions for llvm backend stages as the following table.
         Post-RA pseudo instruction expansion pass
         ...
         Cpu0 Assembly Printer
-
-.. rubric:: lib/CodeGen/PrologEpilogInsert.cpp
-.. code-block:: c++
-  
-  bool PEI::runOnMachineFunction(MachineFunction &Fn) {
-    ...
-    FrameIndexVirtualScavenging = TRI->requiresFrameIndexScavenging(Fn);
-    ...
-    // Handle CSR spilling and restoring, for targets that need it.
-    SpillCalleeSavedRegisters(Fn, RS, MinCSFrameIndex, MaxCSFrameIndex,
-                              SaveBlocks, RestoreBlocks);
-    ...
-    // Calculate actual frame offsets for all abstract stack objects...
-    calculateFrameObjectOffsets(Fn);
-  
-    // Add prolog and epilog code to the function.  This function is required
-    // to align the stack frame as necessary for any stack variables or
-    // called functions.  Because of this, calculateCalleeSavedRegisters()
-    // must be called before this function in order to set the AdjustsStack
-    // and MaxCallFrameSize variables.
-    if (!F->hasFnAttribute(Attribute::Naked))
-      insertPrologEpilogCode(Fn);
-  
-    // Replace all MO_FrameIndex operands with physical register references
-    // and actual offsets.
-    //
-    replaceFrameIndices(Fn);
-  
-    // If register scavenging is needed, as we've enabled doing it as a 
-    // post-pass, scavenge the virtual registers that frame index elimination
-    // inserted.
-    if (TRI->requiresRegisterScavenging(Fn) && FrameIndexVirtualScavenging) {
-      ScavengeFrameVirtualRegs(Fn, RS);
-  
-      // Clear any vregs created by virtual scavenging.
-      Fn.getRegInfo().clearVirtRegs();
-    }
-    ...
-  }
 
 
 .. table:: Functions for llvm backend stages
