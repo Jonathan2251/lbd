@@ -1655,8 +1655,21 @@ Cpu0SEInstrInfo.h and Cpu0InstrInfo.h it will get the belowing error.
   ...
   Abort trap: 6
 
+.. table:: Backend functions called in PrologEpilogInserter.cpp
+
+  ===================================================  ===========================================
+  Stage                                                Function   
+  ===================================================  ===========================================
+  Prologue/Epilogue Insertion & Frame Finalization
+    - Determine spill callee saved registers           - Cpu0SEFrameLowering::determineCalleeSaves
+    - Spill callee saved registers                     - Cpu0SEFrameLowering::spillCalleeSavedRegisters
+    - Prolog                                           - Cpu0SEFrameLowering::emitPrologue
+    - Epilog                                           - Cpu0SEFrameLowering::emitEpilogue
+    - Handle stack slot for local variables            - Cpu0RegisterInfo::eliminateFrameIndex
+  ===================================================  ===========================================
+
 File PrologEpilogInserter.cpp includes the calling of backend functions 
-SpillCalleeSavedRegisters(), emitProlog(), emitEpilog() and eliminateFrameIndex()
+spillCalleeSavedRegisters(), emitProlog(), emitEpilog() and eliminateFrameIndex()
 as follows,
 
 .. rubric:: lib/CodeGen/PrologEpilogInserter.cpp
@@ -1669,14 +1682,10 @@ as follows,
       initializePEIPass(*PassRegistry::getPassRegistry());
   
       if (TM && (!TM->usesPhysRegsForPEI())) {
-        SpillCalleeSavedRegisters = [](MachineFunction &, RegScavenger *,
-                                       unsigned &, unsigned &, const MBBVector &,
-                                       const MBBVector &) {};
-        ScavengeFrameVirtualRegs = [](MachineFunction &, RegScavenger *) {};
+        ...
       } else {
         SpillCalleeSavedRegisters = doSpillCalleeSavedRegs;
-        ScavengeFrameVirtualRegs = doScavengeFrameVirtualRegs;
-        UsesCalleeSaves = true;
+        ...
       }    
     }
     ...
@@ -1691,18 +1700,16 @@ as follows,
     ...
     // Spill using target interface.
     for (MachineBasicBlock *SaveBlock : SaveBlocks) {
-      I = SaveBlock->begin();
+      ...
       if (!TFI->spillCalleeSavedRegisters(*SaveBlock, I, CSI, TRI)) {
         for (unsigned i = 0, e = CSI.size(); i != e; ++i) {
           // Insert the spill to the stack frame.
-          unsigned Reg = CSI[i].getReg();
-          const TargetRegisterClass *RC = TRI->getMinimalPhysRegClass(Reg);
+          ...
           TII.storeRegToStackSlot(*SaveBlock, I, Reg, true, CSI[i].getFrameIdx(),
                                   RC, TRI);
         }
       }
-      // Update the live-in information of all the blocks up to the save point.
-      updateLiveness(Fn);
+      ...
     }
   
     // Restore using target interface.
@@ -1712,8 +1719,7 @@ as follows,
       // terminators that precede it.
       if (!TFI->restoreCalleeSavedRegisters(*MBB, I, CSI, TRI)) {
         for (unsigned i = 0, e = CSI.size(); i != e; ++i) {
-          unsigned Reg = CSI[i].getReg();
-          const TargetRegisterClass *RC = TRI->getMinimalPhysRegClass(Reg);
+          ...
           TII.loadRegFromStackSlot(*MBB, I, Reg, CSI[i].getFrameIdx(), RC, TRI);
           ...
         }
@@ -1793,6 +1799,7 @@ as follows,
   }
   
   bool PEI::runOnMachineFunction(MachineFunction &Fn) {
+    const TargetFrameLowering &TFI = *Fn.getSubtarget().getFrameLowering();
     ...
     FrameIndexVirtualScavenging = TRI->requiresFrameIndexScavenging(Fn);
     ...
