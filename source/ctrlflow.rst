@@ -1070,8 +1070,10 @@ optimization analysis through phi node.
 If so, the phi node version will bring better
 result because ``clang -O0`` version uses load and store with pointer %a.addr 
 which may cut the optimization opportunity.
-Compiler books discuss the Control Flow Graph (CFG) analysis through dominator 
-set calculation on phi node structure.
+Compiler books discuss the Control Flow Graph (CFG) analysis through dominance 
+frontiers calculation for setting phi node. Then compiler apply the global 
+optimization on CFG with phi node, and remove phi node by replacing with
+"load store" at the end.
 
 If you are interested in more details than the wiki web site, please refer book
 here [#phi-book]_ for phi node, or book here [#dominator-dragonbooks]_ for the 
