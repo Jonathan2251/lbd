@@ -945,112 +945,133 @@ The following input let you know the benefits of phi node as follows,
 .. literalinclude:: ../lbdex/input/ch8_2_phinode.cpp
     :start-after: /// start
 
+Compile it with debug build clang for O3 as follows,
+
 .. code-block:: console
   
-  114-43-212-251:input Jonathan$ clang -O3 -target mips-unknown-linux-gnu -c 
-  ch8_2_phinode.cpp -emit-llvm -o ch8_2_phinode.bc
+  114-43-212-251:input Jonathan$ ~/llvm/release/cmake_debug_build/Debug/bin/clang  
+  -O3 -target mips-unknown-linux-gnu -c ch8_2_phinode.cpp -emit-llvm -o 
+  ch8_2_phinode.bc
   114-43-212-251:input Jonathan$ ~/llvm/test/cmake_debug_build/Debug/bin/llvm-dis 
   ch8_2_phinode.bc -o -
   ...
-  define i32 @_Z12test_phinodeiii(i32 signext %a, i32 signext %b, i32 signext %c) #0 {
-    %1 = icmp eq i32 %a, 0
-    br i1 %1, label %9, label %2
+  define i32 @_Z12test_phinodeiii(i32 signext %a, i32 signext %b, i32 signext %c) local_unnamed_addr #0 {
+  entry:
+    %cmp = icmp eq i32 %a, 0
+    br i1 %cmp, label %if.end7, label %if.else
   
-  ; <label>:2                                       ; preds = %0
-    %3 = icmp eq i32 %b, 0
-    br i1 %3, label %6, label %4
+  if.else:                                          ; preds = %entry
+    %cmp1 = icmp eq i32 %b, 0
+    br i1 %cmp1, label %if.else3, label %if.then2
   
-  ; <label>:4                                       ; preds = %2
-    %5 = add nsw i32 %a, -1
-    br label %9
+  if.then2:                                         ; preds = %if.else
+    %dec = add nsw i32 %a, -1
+    br label %if.end7
   
-  ; <label>:6                                       ; preds = %2
-    %7 = icmp eq i32 %c, 0
-    %8 = add nsw i32 %a, 2
-    %.a = select i1 %7, i32 %8, i32 %a
-    br label %9
+  if.else3:                                         ; preds = %if.else
+    %cmp4 = icmp eq i32 %c, 0
+    %add = add nsw i32 %a, 2
+    %add.a = select i1 %cmp4, i32 %add, i32 %a
+    br label %if.end7
   
-  ; <label>:9                                       ; preds = %0, %6, %4
-    %.0 = phi i32 [ %5, %4 ], [ %.a, %6 ], [ 1, %0 ]
-    %10 = add nsw i32 %.0, %b
-    ret i32 %10
+  if.end7:                                          ; preds = %entry, %if.else3, %if.then2
+    %a.addr.0 = phi i32 [ %dec, %if.then2 ], [ %add.a, %if.else3 ], [ 1, %entry ]
+    %add8 = add nsw i32 %a.addr.0, %b
+    ret i32 %add8
   }
 
-  114-43-212-251:input Jonathan$ clang -O0 -target mips-unknown-linux-gnu -c 
-  ch8_2_phinode.cpp -emit-llvm -o ch8_2_phinode.bc
+Because SSA form, the llvm ir for destination variable `a` in different basic 
+block (if then, else) must use different name. But how does the source variable 
+`a` in "d = a + b;" be named? The basic block "a = a-1;" and "a = a+2;" have different
+names. The basic block "a = a-1;" uses %dec and the basic block "a = a+2;" uses "%add"
+as destination variable name in SSA llvm ir.
+In order to solve the source variable name from different basic blocks in SSA form,
+the phi structure is created as above. The compiler option O0 as the following
+doesn't apply phi node. Instead, it uses store to solve the source variable name
+from different basic block.
+  
+.. code-block:: console
+  
+  114-43-212-251:input Jonathan$ ~/llvm/release/cmake_debug_build/Debug/bin/clang 
+  -O0 -target mips-unknown-linux-gnu -c ch8_2_phinode.cpp -emit-llvm -o 
+  ch8_2_phinode.bc
   114-43-212-251:input Jonathan$ ~/llvm/test/cmake_debug_build/Debug/bin/llvm-dis 
   ch8_2_phinode.bc -o -
   ...
   define i32 @_Z12test_phinodeiii(i32 signext %a, i32 signext %b, i32 signext %c) #0 {
-    %1 = alloca i32, align 4
-    %2 = alloca i32, align 4
-    %3 = alloca i32, align 4
+  entry:
+    %a.addr = alloca i32, align 4
+    %b.addr = alloca i32, align 4
+    %c.addr = alloca i32, align 4
     %d = alloca i32, align 4
-    store i32 %a, i32* %1, align 4
-    store i32 %b, i32* %2, align 4
-    store i32 %c, i32* %3, align 4
+    store i32 %a, i32* %a.addr, align 4
+    store i32 %b, i32* %b.addr, align 4
+    store i32 %c, i32* %c.addr, align 4
     store i32 2, i32* %d, align 4
-    %4 = load i32, i32* %1, align 4
-    %5 = icmp eq i32 %4, 0
-    br i1 %5, label %6, label %9
+    %0 = load i32, i32* %a.addr, align 4
+    %cmp = icmp eq i32 %0, 0
+    br i1 %cmp, label %if.then, label %if.else
   
-  ; <label>:6                                       ; preds = %0
-    %7 = load i32, i32* %1, align 4
-    %8 = add nsw i32 %7, 1
-    store i32 %8, i32* %1, align 4
-    br label %23
+  if.then:                                          ; preds = %entry
+    %1 = load i32, i32* %a.addr, align 4
+    %inc = add nsw i32 %1, 1
+    store i32 %inc, i32* %a.addr, align 4
+    br label %if.end7
   
-  ; <label>:9                                       ; preds = %0
-    %10 = load i32, i32* %2, align 4
-    %11 = icmp ne i32 %10, 0
-    br i1 %11, label %12, label %15
+  if.else:                                          ; preds = %entry
+    %2 = load i32, i32* %b.addr, align 4
+    %cmp1 = icmp ne i32 %2, 0
+    br i1 %cmp1, label %if.then2, label %if.else3
   
-  ; <label>:12                                      ; preds = %9
-    %13 = load i32, i32* %1, align 4
-    %14 = add nsw i32 %13, -1
-    store i32 %14, i32* %1, align 4
-    br label %22
+  if.then2:                                         ; preds = %if.else
+    %3 = load i32, i32* %a.addr, align 4
+    %dec = add nsw i32 %3, -1
+    store i32 %dec, i32* %a.addr, align 4
+    br label %if.end6
   
-  ; <label>:15                                      ; preds = %9
-    %16 = load i32, i32* %3, align 4
-    %17 = icmp eq i32 %16, 0
-    br i1 %17, label %18, label %21
+  if.else3:                                         ; preds = %if.else
+    %4 = load i32, i32* %c.addr, align 4
+    %cmp4 = icmp eq i32 %4, 0
+    br i1 %cmp4, label %if.then5, label %if.end
   
-  ; <label>:18                                      ; preds = %15
-    %19 = load i32, i32* %1, align 4
-    %20 = add nsw i32 %19, 2
-    store i32 %20, i32* %1, align 4
-    br label %21
+  if.then5:                                         ; preds = %if.else3
+    %5 = load i32, i32* %a.addr, align 4
+    %add = add nsw i32 %5, 2
+    store i32 %add, i32* %a.addr, align 4
+    br label %if.end
   
-  ; <label>:21                                      ; preds = %18, %15
-    br label %22
+  if.end:                                           ; preds = %if.then5, %if.else3
+    br label %if.end6
   
-  ; <label>:22                                      ; preds = %21, %12
-    br label %23
+  if.end6:                                          ; preds = %if.end, %if.then2
+    br label %if.end7
   
-  ; <label>:23                                      ; preds = %22, %6
-    %24 = load i32, i32* %1, align 4
-    %25 = load i32, i32* %2, align 4
-    %26 = add nsw i32 %24, %25
-    store i32 %26, i32* %d, align 4
-    %27 = load i32, i32* %d, align 4
-    ret i32 %27
+  if.end7:                                          ; preds = %if.end6, %if.then
+    %6 = load i32, i32* %a.addr, align 4
+    %7 = load i32, i32* %b.addr, align 4
+    %add8 = add nsw i32 %6, %7
+    store i32 %add8, i32* %d, align 4
+    %8 = load i32, i32* %d, align 4
+    ret i32 %8
   }
+
   
-Compile with ``clang -O3`` will generate phi function. The phi function can
+Compile with ``clang -O3`` generate phi function. The phi function can
 assign virtual register value directly from multi basic blocks.
 Compile with ``clang -O0`` doesn't generate phi, it assigns virtual register
 value by loading stack slot where the stack slot is saved in each of multi 
 basic blocks before. 
-In this example the pointer of %1 point to the stack slot, and 
-"store i32 %8, i32* %1", " store i32 %14, i32* %1", "store i32 %20, i32* %1" 
-in label 6, 12 and 18, respectively. In other words, it needs 3 store 
-instructions. 
+In this example the pointer of %a.addr point to the stack slot, and 
+"store i32 %inc, i32* %a.addr, align 4", "store i32 %dec, i32* %a.addr, align 4", 
+"store i32 %add, i32* %a.addr, align 4" in label if.then:, if.then2: and 
+if.then5:, respectively. In other words, it needs 3 store instructions. 
 It's possible that compiler finds that the a == 0 is always true after 
 optimization analysis through phi node. 
 If so, the phi node version will bring better
-result because ``clang -O0`` version uses load and store with pointer %1 which
-may cut the optimization opportunity.
+result because ``clang -O0`` version uses load and store with pointer %a.addr 
+which may cut the optimization opportunity.
+Compiler books discuss the Control Flow Graph (CFG) analysis through dominator 
+set calculation on phi node structure.
 
 If you are interested in more details than the wiki web site, please refer book
 here [#phi-book]_ for phi node, or book here [#dominator-dragonbooks]_ for the 

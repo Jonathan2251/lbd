@@ -56,6 +56,7 @@ Revision history
 
 Version 3.9.2, Not release yet.
   Add reasons for regression test.
+  More phi node explanation.
 
 Version 3.9.1, Released May 11, 2018
   Fix tailcall bug.
