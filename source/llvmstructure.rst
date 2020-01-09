@@ -2095,7 +2095,8 @@ cmake/modules/TableGen.cmake as below,
   )
 
 Above "add_tablegen" in src/utils/TableGen/CMakeLists.txt makes the 
-"tablegen(" written in Cpu0 CMakeLists.txt an alias of llvm-tblgen.
+"tablegen(" written in Cpu0 CMakeLists.txt an alias of llvm-tblgen
+(${project} = LLVM and ${project}_TABLEGEN_EXE = llvm-tblgen).
 The "tablegen(", "add_public_tablegen_target(Cpu0CommonTableGen)" in 
 lbdex/chapters/Chapter2/CMakeLists.txt and the following code define a target 
 "Cpu0CommonTableGen" with it's output files "Cpu0Gen*.inc" as follows,
