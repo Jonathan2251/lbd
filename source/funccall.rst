@@ -3488,6 +3488,13 @@ The code as follows,
     :start-after: //#if CH >= CH9_3 //5
     :end-before: //#endif //#if CH >= CH9_3 //5
 
+When running llc with cpu0_gcd.ll, it gets the gcd machine instruction,
+meanwhile, when running cpu0_sqrt.ll, it gets the "call sqrt" function.
+In other words, when you define a not supported extended intrinsic function
+for a CPU. This CPU still can finish the intrinsic function by hand-written
+function code.
+
+
 Summary
 -------
  
