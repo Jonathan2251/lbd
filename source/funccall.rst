@@ -3455,6 +3455,39 @@ Cpu0 supports llvm instrinsics bswap intrinsic [#bswapintrnsic]_.
   ...
 
 
+Add specific backend intrinsic function
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+LLVM intrinsic functions is designed to extend llvm IRs for hardware
+acceleration in compiler design.
+Many cpu implement their intrinsic functions for their speedup hardware
+instructions.
+Some gpu apply llvm infrastructure as their backend compiler
+for their OpenGL/CL compiler use many llvm intrinsic functions.
+To demonstrate how to use backend proprietary intrinsic functions to support
+their specific instructions, Cpu0 add a intrinsic function @llvm.cpu0.gcd for
+its gcd(greatest common divider) instruction. This instruction is for explaining
+how to do it in llvm, so it is not added in Verilog Cpu0 implementation.
+The code as follows,
+
+.. rubric:: lbdex/src/modify/src/include/llvm/IR/Intrinsics.td
+.. code-block:: c++
+
+    ...
+    include "llvm/IR/IntrinsicsCpu0.td"
+    ...
+  
+.. rubric:: lbdex/src/modify/src/include/llvm/IR/IntrinsicsCpu0.td
+.. literalinclude:: ../lbdex/src/modify/src/include/llvm/IR/IntrinsicsCpu0.td
+
+.. rubric:: lbdex/chapters/Chapter9_3/Cpu0InstrInfo.td
+.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td
+    :start-after: //#if CH >= CH9_3 //1
+    :end-before: //#endif //#if CH >= CH9_3 //1
+.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td
+    :start-after: //#if CH >= CH9_3 //5
+    :end-before: //#endif //#if CH >= CH9_3 //5
+
 Summary
 -------
  

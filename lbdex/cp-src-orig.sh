@@ -9,6 +9,7 @@ mkdir ${GEN_DIR}/cmake
 mkdir ${GEN_DIR}/include
 mkdir ${GEN_DIR}/include/llvm
 mkdir ${GEN_DIR}/include/llvm/ADT
+mkdir ${GEN_DIR}/include/llvm/IR
 mkdir ${GEN_DIR}/include/llvm/MC
 mkdir ${GEN_DIR}/include/llvm/Object
 mkdir ${GEN_DIR}/include/llvm/Support
@@ -22,6 +23,7 @@ mkdir ${GEN_DIR}/lib/Target
 cp ${SRC_DIR}/CMakeLists.txt ${GEN_DIR}/CMakeLists.txt
 cp ${SRC_DIR}/cmake/config-ix.cmake ${GEN_DIR}/cmake/config-ix.cmake
 cp ${SRC_DIR}/include/llvm/ADT/Triple.h ${GEN_DIR}/include/llvm/ADT/Triple.h
+cp ${SRC_DIR}/include/llvm/IR/Intrinsics.td ${GEN_DIR}/include/llvm/IR/Intrinsics.td
 #cp ${SRC_DIR}/include/llvm/MC/MCExpr.h ${GEN_DIR}/include/llvm/MC/MCExpr.h
 cp ${SRC_DIR}/include/llvm/Object/ELFObjectFile.h ${GEN_DIR}/include/llvm/Object/ELFObjectFile.h
 cp ${SRC_DIR}/include/llvm/Support/ELF.h ${GEN_DIR}/include/llvm/Support/ELF.h

@@ -361,6 +361,18 @@ class ArithLogicR<bits<8> op, string instr_asm, SDNode OpNode,
 }
 //#endif
 
+//#if CH >= CH9_3 //1
+class IntrinArithLogicR<bits<8> op, string instr_asm, SDPatternOperator OpNode,
+                  InstrItinClass itin, RegisterClass RC, bit isComm = 0>:
+  FA<op, (outs GPROut:$ra), (ins RC:$rb, RC:$rc),
+     !strconcat(instr_asm, "\t$ra, $rb, $rc"),
+     [(set GPROut:$ra, (OpNode RC:$rb, RC:$rc))], itin> {
+  let shamt = 0;
+  let isCommutable = isComm;	// e.g. add rb rc =  add rc rb
+  let isReMaterializable = 1;
+}
+//#endif //#if CH >= CH9_3 //1
+
 //#if CH >= CH4_2 1
 let Predicates = [Ch4_2] in {
 class CmpInstr<bits<8> op, string instr_asm, 
@@ -1103,6 +1115,10 @@ def LEA_ADDiu : EffectiveAddress<"addiu\t$ra, $addr", CPURegs, mem_ea> {
 //@def LEA_ADDiu }
 }
 //#endif
+
+//#if CH >= CH9_3 //5
+def GCD : IntrinArithLogicR<0x60, "gcd", int_cpu0_gcd, IIAlu, CPURegs, 1>;
+//#endif //#if CH >= CH9_3 //5
 
 //#if CH >= CH3_5 13
 let Predicates = [Ch3_5] in {
