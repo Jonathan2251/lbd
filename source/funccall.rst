@@ -3489,9 +3489,10 @@ The code as follows,
     :end-before: //#endif //#if CH >= CH9_3 //5
 
 When running llc with cpu0_gcd.ll, it gets the gcd machine instruction,
-meanwhile, when running cpu0_sqrt.ll, it gets the "call sqrt" function.
-In other words, when you define a not supported extended intrinsic function
-for a CPU. This CPU still can finish the intrinsic function by hand-written
+meanwhile, when running cpu0_gcd_soft.ll, it gets the "call llvm.cpu0.gcd.soft"
+function.
+In other words, "@llvm.cpu0.gcd" is intrinsic function for "gcd" machine
+instruction; "@llvm.cpu0.gcd.soft" is intrinsic function for hand-written
 function code.
 
 
