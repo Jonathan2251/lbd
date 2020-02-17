@@ -3459,15 +3459,16 @@ Add specific backend intrinsic function
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 LLVM intrinsic functions is designed to extend llvm IRs for hardware
-acceleration in compiler design.
+acceleration in compiler design [#extendintrnsic]_.
 Many cpu implement their intrinsic functions for their speedup hardware
 instructions.
-Some gpu apply llvm infrastructure as their backend compiler
-for their OpenGL/CL compiler use many llvm intrinsic functions.
+Some gpu apply llvm infrastructure as their OpenGL/CL backend compiler using
+many llvm extended intrinsic functions.
 To demonstrate how to use backend proprietary intrinsic functions to support
-their specific instructions, Cpu0 add a intrinsic function @llvm.cpu0.gcd for
-its gcd(greatest common divider) instruction. This instruction is for explaining
-how to do it in llvm, so it is not added in Verilog Cpu0 implementation.
+their specific instructions to getting better performance in some domain
+language, Cpu0 add a intrinsic function @llvm.cpu0.gcd for its 
+gcd(greatest common divider) instruction. This instruction explaining
+how to do it in llvm only, it is not added in Verilog Cpu0 implementation.
 The code as follows,
 
 .. rubric:: lbdex/src/modify/src/include/llvm/IR/Intrinsics.td
@@ -3537,4 +3538,6 @@ and more when the frontend doesn't add any new IR for a new language.
 .. [#cpu0lld] http://jonathan2251.github.io/lbt/lld.html
 
 .. [#bswapintrnsic] http://llvm.org/docs/LangRef.html#llvm-bswap-intrinsics
+
+.. [#extendintrnsic] https://llvm.org/docs/ExtendingLLVM.html
 

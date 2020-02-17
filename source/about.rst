@@ -55,6 +55,7 @@ Revision history
 ----------------
 
 Version 3.9.2, Not release yet.
+  Add section "Add specific backend intrinsic function".
   Add reasons for regression test.
   More phi node explanation.
 
