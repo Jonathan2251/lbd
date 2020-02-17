@@ -1392,6 +1392,7 @@ file of ELF format which will be explained at later chapter).
 Similarly, the machine instruction DAG nodes LD and ST can be translated from IR 
 DAG nodes **load** and **store**. Notice that the $rb in 
 :numref:`llvmstructure-f13` is virtual register name (not machine register). 
+The detail for :numref:`llvmstructure-f13` depicted after it.
  
 .. _llvmstructure-f13: 
 .. figure:: ../Fig/llvmstructure/13.png
@@ -1402,8 +1403,10 @@ DAG nodes **load** and **store**. Notice that the $rb in
 
   Pattern match for ADDiu instruction and IR node add
 
+
 .. graphviz:: ../Fig/llvmstructure/DAG.gv
 
+  
 From DAG instruction selection we mentioned, the leaf node must be a Data Node.
 ADDiu is format L type which the last operand must fits in 16 bits range.
 So, Cpu0InstrInfo.td define a PatLeaf type of immSExt16 to let llvm system know
@@ -1499,12 +1502,12 @@ Run Mips backend with above input will get the following result.
   	.nan	legacy
   	.file	"ch9_caller_callee_save_registers.bc"
   	.text
-  	.globl	_Z6callerv
+  	.globl	_Z6calleev
   	.align	2
-  	.type	_Z6callerv,@function
+  	.type	_Z6calleev,@function
   	.set	nomicromips
   	.set	nomips16
-  	.ent	_Z6callerv
+  	.ent	_Z6calleev
   _Z6callerv:                             # @_Z6callerv
   	.cfi_startproc
   	.frame	$fp,32,$ra
@@ -1545,10 +1548,27 @@ Run Mips backend with above input will get the following result.
   	.set	at
   	.set	macro
   	.set	reorder
-  	.end	_Z6callerv
+  	.end	_Z6calleev
   $func_end0:
-  	.size	_Z6callerv, ($func_end0)-_Z6callerv
+  	.size	_Z6calleev, ($func_end0)-_Z6calleev
   	.cfi_endproc
+
+Caller and callee saved registers definition as follows,
+
+- If the caller wants to use caller-saved registers after callee function, it
+  must save caller-saved registers' content to memory for using and restore
+  these registers from memory after function call.
+  
+- If the callee wants to use callee-saved registers, it must save its content 
+  to memory before using them and restore these registers from memory before
+  return.
+
+As above definition, if a register is not a callee-saved-registers, then it
+must be caller-saved-registers because the callee doesn't retore it and the 
+value is changed after callee function.
+So, Mips only define the callee-saved registers in MipsCallingConv.td, and
+can be found in CSR_O32_SaveList of MipsGenRgisterInfo.inc for the default
+ABI.
 
 As above assembly output, Mips allocates t1 variable to register $1 and no need
 to spill $1 since $1 is caller saved register. 
@@ -1586,7 +1606,7 @@ Create Cpu0 backend
 
 From now on, the Cpu0 backend will be created from scratch step by step.
 To make readers easily understanding the backend structure, Cpu0 
-example code can be generated with chapter by chapter through command here 
+example code can be generated chapter by chapter through command here 
 [#chapters-ex]_.
 Cpu0 example code, lbdex, can be found at near left bottom of this web site. Or 
 here http://jonathan2251.github.io/lbd/lbdex.tar.gz.
@@ -1891,11 +1911,11 @@ definitions act as the specific instances of the class.
 If you look back at the Cpu0RegisterInfo.td file, you will see a class called 
 **Cpu0Reg** which is derived from the **Register** class provided 
 by LLVM.  **Cpu0Reg** inherits all the fields that exist 
-in the **Register** class. The "let HWEncoding = Enc" which meaning assign field 
+in the **Register** class. The "let HWEncoding = Enc" which means assign field 
 HWEncoding from parameter Enc. Since Cpu0 reserve 4 bits for 16 registers in 
 instruction format, the assigned value range is from 0 to 15. 
 Once assigning the 0 to 15 to HWEncoding, the backend register number will be 
-gotten from the function of llvm register class since TableGen will set this 
+got from the function of llvm register class since TableGen will set this 
 number automatically.
 
 The **def** keyword is used to create instances of class. 
@@ -2075,7 +2095,8 @@ cmake/modules/TableGen.cmake as below,
   )
 
 Above "add_tablegen" in src/utils/TableGen/CMakeLists.txt makes the 
-"tablegen(" written in Cpu0 CMakeLists.txt an alias of llvm-tblgen.
+"tablegen(" written in Cpu0 CMakeLists.txt an alias of llvm-tblgen
+(${project} = LLVM and ${project}_TABLEGEN_EXE = llvm-tblgen).
 The "tablegen(", "add_public_tablegen_target(Cpu0CommonTableGen)" in 
 lbdex/chapters/Chapter2/CMakeLists.txt and the following code define a target 
 "Cpu0CommonTableGen" with it's output files "Cpu0Gen*.inc" as follows,

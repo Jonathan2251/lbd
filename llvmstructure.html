@@ -1558,7 +1558,8 @@ assembly and binary automatically (the binary instruction can be issued in obj
 file of ELF format which will be explained at later chapter).
 Similarly, the machine instruction DAG nodes LD and ST can be translated from IR
 DAG nodes <strong>load</strong> and <strong>store</strong>. Notice that the $rb in
-<a class="reference internal" href="#llvmstructure-f13"><span class="std std-numref">Fig. 12</span></a> is virtual register name (not machine register).</p>
+<a class="reference internal" href="#llvmstructure-f13"><span class="std std-numref">Fig. 12</span></a> is virtual register name (not machine register).
+The detail for <a class="reference internal" href="#llvmstructure-f13"><span class="std std-numref">Fig. 12</span></a> depicted after it.</p>
 <div class="figure align-center" id="id51">
 <span id="llvmstructure-f13"></span><a class="reference internal image-reference" href="_images/132.png"><img alt="_images/132.png" src="_images/132.png" style="width: 514.4px; height: 336.8px;" /></a>
 <p class="caption"><span class="caption-number">Fig. 12 </span><span class="caption-text">Pattern match for ADDiu instruction and IR node add</span></p>
@@ -1673,7 +1674,7 @@ following machine code,</p>
 <p class="rubric">lbdex/input/ch9_caller_callee_save_registers.cpp</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">extern</span> <span class="nb">int</span> <span class="n">add1</span><span class="p">(</span><span class="nb">int</span> <span class="n">x</span><span class="p">);</span>
 
-<span class="nb">int</span> <span class="n">caller</span><span class="p">()</span>
+<span class="nb">int</span> <span class="n">callee</span><span class="p">()</span>
 <span class="p">{</span> 
   <span class="nb">int</span> <span class="n">t1</span> <span class="o">=</span> <span class="mi">3</span><span class="p">;</span>
   <span class="nb">int</span> <span class="n">result</span> <span class="o">=</span> <span class="n">add1</span><span class="p">(</span><span class="n">t1</span><span class="p">);</span>  
@@ -1694,12 +1695,12 @@ following machine code,</p>
 <span class="go">      .nan    legacy</span>
 <span class="go">      .file   &quot;ch9_caller_callee_save_registers.bc&quot;</span>
 <span class="go">      .text</span>
-<span class="go">      .globl  _Z6callerv</span>
+<span class="go">      .globl  _Z6calleev</span>
 <span class="go">      .align  2</span>
-<span class="go">      .type   _Z6callerv,@function</span>
+<span class="go">      .type   _Z6calleev,@function</span>
 <span class="go">      .set    nomicromips</span>
 <span class="go">      .set    nomips16</span>
-<span class="go">      .ent    _Z6callerv</span>
+<span class="go">      .ent    _Z6calleev</span>
 <span class="go">_Z6callerv:                             # @_Z6callerv</span>
 <span class="go">      .cfi_startproc</span>
 <span class="go">      .frame  $fp,32,$ra</span>
@@ -1740,12 +1741,27 @@ following machine code,</p>
 <span class="go">      .set    at</span>
 <span class="go">      .set    macro</span>
 <span class="go">      .set    reorder</span>
-<span class="go">      .end    _Z6callerv</span>
+<span class="go">      .end    _Z6calleev</span>
 <span class="gp">$</span>func_end0:
-<span class="go">      .size   _Z6callerv, ($func_end0)-_Z6callerv</span>
+<span class="go">      .size   _Z6calleev, ($func_end0)-_Z6calleev</span>
 <span class="go">      .cfi_endproc</span>
 </pre></div>
 </div>
+<p>Caller and callee saved registers definition as follows,</p>
+<ul class="simple">
+<li>If the caller wants to use caller-saved registers after callee function, it
+must save caller-saved registers&#8217; content to memory for using and restore
+these registers from memory after function call.</li>
+<li>If the callee wants to use callee-saved registers, it must save its content
+to memory before using them and restore these registers from memory before
+return.</li>
+</ul>
+<p>As above definition, if a register is not a callee-saved-registers, then it
+must be caller-saved-registers because the callee doesn&#8217;t retore it and the
+value is changed after callee function.
+So, Mips only define the callee-saved registers in MipsCallingConv.td, and
+can be found in CSR_O32_SaveList of MipsGenRgisterInfo.inc for the default
+ABI.</p>
 <p>As above assembly output, Mips allocates t1 variable to register $1 and no need
 to spill $1 since $1 is caller saved register.
 On the other hand, $ra is callee saved register, so it spills at beginning of
@@ -1779,7 +1795,7 @@ varaiables are not exist after function exit.</p>
 <h2><a class="toc-backref" href="#id71">Create Cpu0 backend</a><a class="headerlink" href="#create-cpu0-backend" title="Permalink to this headline">¶</a></h2>
 <p>From now on, the Cpu0 backend will be created from scratch step by step.
 To make readers easily understanding the backend structure, Cpu0
-example code can be generated with chapter by chapter through command here
+example code can be generated chapter by chapter through command here
 <a class="footnote-reference" href="#chapters-ex" id="id24">[11]</a>.
 Cpu0 example code, lbdex, can be found at near left bottom of this web site. Or
 here <a class="reference external" href="http://jonathan2251.github.io/lbd/lbdex.tar.gz">http://jonathan2251.github.io/lbd/lbdex.tar.gz</a>.</p>
@@ -2203,11 +2219,11 @@ definitions act as the specific instances of the class.
 If you look back at the Cpu0RegisterInfo.td file, you will see a class called
 <strong>Cpu0Reg</strong> which is derived from the <strong>Register</strong> class provided
 by LLVM.  <strong>Cpu0Reg</strong> inherits all the fields that exist
-in the <strong>Register</strong> class. The &#8220;let HWEncoding = Enc&#8221; which meaning assign field
+in the <strong>Register</strong> class. The &#8220;let HWEncoding = Enc&#8221; which means assign field
 HWEncoding from parameter Enc. Since Cpu0 reserve 4 bits for 16 registers in
 instruction format, the assigned value range is from 0 to 15.
 Once assigning the 0 to 15 to HWEncoding, the backend register number will be
-gotten from the function of llvm register class since TableGen will set this
+got from the function of llvm register class since TableGen will set this
 number automatically.</p>
 <p>The <strong>def</strong> keyword is used to create instances of class.
 In the following line, the ZERO register is defined as a member of the
@@ -2851,7 +2867,8 @@ endmacro()
 </pre></div>
 </div>
 <p>Above &#8220;add_tablegen&#8221; in src/utils/TableGen/CMakeLists.txt makes the
-&#8220;tablegen(&#8221; written in Cpu0 CMakeLists.txt an alias of llvm-tblgen.
+&#8220;tablegen(&#8221; written in Cpu0 CMakeLists.txt an alias of llvm-tblgen
+(${project} = LLVM and ${project}_TABLEGEN_EXE = llvm-tblgen).
 The &#8220;tablegen(&#8221;, &#8220;add_public_tablegen_target(Cpu0CommonTableGen)&#8221; in
 lbdex/chapters/Chapter2/CMakeLists.txt and the following code define a target
 &#8220;Cpu0CommonTableGen&#8221; with it&#8217;s output files &#8220;Cpu0Gen*.inc&#8221; as follows,</p>

@@ -1083,7 +1083,7 @@ as follows,
     .file "ch3.bc"
   ^C
   
-It hang on because Cpu0 backend has not handled stack slot for local variables.
+It hangs on because Cpu0 backend has not handled stack slot for local variables.
 Instruction "store i32 0, i32* %1" in above IR need Cpu0 allocate a stack slot 
 and save to the stack slot.
 However, the ch3.cpp can be run with option ``clang -O2`` as follows,
@@ -1556,6 +1556,37 @@ The eliminateFrameIndex() of Cpu0RegisterInfo.cpp is called after stages
 "instruction selection" and "registers allocated". 
 It translates frame index to correct offset of stack pointer by
 "spOffset = MF.getFrameInfo()->getObjectOffset(FrameIndex);".
+For instance of ch3.cpp, displaying the offset calculating as follows,
+
+.. code:: c++
+  
+  Spilling live registers at end of block.
+  BB#0: derived from LLVM BB %0
+  	%V0<def> = ADDiu %ZERO, 0
+  	ST %V0, <fi#0>, 0; mem:ST4[%1]
+  	RetLR %V0<imp-use,kill>
+  alloc FI(0) at SP[-4]
+  
+  Function : main
+  <--------->
+  ST %V0, <fi#0>, 0; mem:ST4[%1]
+  FrameIndex : 0
+  spOffset   : -4
+  stackSize  : 8
+  Offset     : 4
+  <--------->
+    ...
+    .file "ch3.bc"
+    ...
+    .frame  $sp,8,$lr
+    ...
+  # BB#0:
+    addiu $sp, $sp, -8
+  $tmp1:
+    .cfi_def_cfa_offset 8
+    addiu $2, $zero, 0
+    st  $2, 4($sp)
+    ...
 
 
 .. rubric:: lbdex/chapters/Chapter3_5/Cpu0SEFrameLowering.cpp
@@ -1565,7 +1596,7 @@ It translates frame index to correct offset of stack pointer by
 
 The determineCalleeSaves() of Cpu0SEFrameLowering.cpp as above determine the
 spill registers. Once the spill registers are determined, the function 
-eliminateFrameIndex() will save/restore registers to/from stack slots via the 
+SpillCalleeSavedRegisters() will save/restore registers to/from stack slots via the 
 following code.
 
 .. rubric:: lbdex/chapters/Chapter3_5/Cpu0InstrInfo.h
@@ -1623,6 +1654,186 @@ Cpu0SEInstrInfo.h and Cpu0InstrInfo.h it will get the belowing error.
   Stack dump:
   ...
   Abort trap: 6
+
+.. table:: Backend functions called in PrologEpilogInserter.cpp
+
+  ===================================================  ===========================================
+  Stage                                                Function   
+  ===================================================  ===========================================
+  Prologue/Epilogue Insertion & Frame Finalization
+    - Determine spill callee saved registers           - Cpu0SEFrameLowering::determineCalleeSaves
+    - Spill callee saved registers                     - Cpu0SEFrameLowering::spillCalleeSavedRegisters
+    - Prolog                                           - Cpu0SEFrameLowering::emitPrologue
+    - Epilog                                           - Cpu0SEFrameLowering::emitEpilogue
+    - Handle stack slot for local variables            - Cpu0RegisterInfo::eliminateFrameIndex
+  ===================================================  ===========================================
+
+File PrologEpilogInserter.cpp includes the calling of backend functions 
+spillCalleeSavedRegisters(), emitProlog(), emitEpilog() and eliminateFrameIndex()
+as follows,
+
+.. rubric:: lib/CodeGen/PrologEpilogInserter.cpp
+.. code-block:: c++
+  
+  class PEI : public MachineFunctionPass {
+  public:
+    static char ID;
+    explicit PEI(const TargetMachine *TM = nullptr) : MachineFunctionPass(ID) {
+      initializePEIPass(*PassRegistry::getPassRegistry());
+  
+      if (TM && (!TM->usesPhysRegsForPEI())) {
+        ...
+      } else {
+        SpillCalleeSavedRegisters = doSpillCalleeSavedRegs;
+        ...
+      }    
+    }
+    ...
+  }
+    
+  /// insertCSRSpillsAndRestores - Insert spill and restore code for
+  /// callee saved registers used in the function.
+  ///
+  static void insertCSRSpillsAndRestores(MachineFunction &Fn,
+                                         const MBBVector &SaveBlocks,
+                                         const MBBVector &RestoreBlocks) {
+    ...
+    // Spill using target interface.
+    for (MachineBasicBlock *SaveBlock : SaveBlocks) {
+      ...
+      if (!TFI->spillCalleeSavedRegisters(*SaveBlock, I, CSI, TRI)) {
+        for (unsigned i = 0, e = CSI.size(); i != e; ++i) {
+          // Insert the spill to the stack frame.
+          ...
+          TII.storeRegToStackSlot(*SaveBlock, I, Reg, true, CSI[i].getFrameIdx(),
+                                  RC, TRI);
+        }
+      }
+      ...
+    }
+  
+    // Restore using target interface.
+    for (MachineBasicBlock *MBB : RestoreBlocks) {
+      ...
+      // Restore all registers immediately before the return and any
+      // terminators that precede it.
+      if (!TFI->restoreCalleeSavedRegisters(*MBB, I, CSI, TRI)) {
+        for (unsigned i = 0, e = CSI.size(); i != e; ++i) {
+          ...
+          TII.loadRegFromStackSlot(*MBB, I, Reg, CSI[i].getFrameIdx(), RC, TRI);
+          ...
+        }
+      ...
+    }
+    ...
+  }
+  
+  static void doSpillCalleeSavedRegs(MachineFunction &Fn, RegScavenger *RS, 
+                                     unsigned &MinCSFrameIndex,
+                                     unsigned &MaxCSFrameIndex,
+                                     const MBBVector &SaveBlocks,
+                                     const MBBVector &RestoreBlocks) {
+    const Function *F = Fn.getFunction();
+    const TargetFrameLowering *TFI = Fn.getSubtarget().getFrameLowering();
+    MinCSFrameIndex = std::numeric_limits<unsigned>::max();
+    MaxCSFrameIndex = 0; 
+  
+    // Determine which of the registers in the callee save list should be saved.
+    BitVector SavedRegs;
+    TFI->determineCalleeSaves(Fn, SavedRegs, RS); 
+  
+    // Assign stack slots for any callee-saved registers that must be spilled.
+    assignCalleeSavedSpillSlots(Fn, SavedRegs, MinCSFrameIndex, MaxCSFrameIndex);
+  
+    // Add the code to save and restore the callee saved registers.
+    if (!F->hasFnAttribute(Attribute::Naked))
+      insertCSRSpillsAndRestores(Fn, SaveBlocks, RestoreBlocks);
+  }
+
+  void PEI::insertPrologEpilogCode(MachineFunction &Fn) {
+    const TargetFrameLowering &TFI = *Fn.getSubtarget().getFrameLowering();
+  
+    // Add prologue to the function...
+    for (MachineBasicBlock *SaveBlock : SaveBlocks)
+      TFI.emitPrologue(Fn, *SaveBlock);
+  
+    // Add epilogue to restore the callee-save registers in each exiting block.
+    for (MachineBasicBlock *RestoreBlock : RestoreBlocks)
+      TFI.emitEpilogue(Fn, *RestoreBlock);
+    ...
+  }
+  
+  void PEI::replaceFrameIndices(MachineBasicBlock *BB, MachineFunction &Fn, 
+                                int &SPAdj) {
+    ...
+      for (unsigned i = 0, e = MI.getNumOperands(); i != e; ++i) {
+        ...
+        // If this instruction has a FrameIndex operand, we need to
+        // use that target machine register info object to eliminate
+        // it.
+        TRI.eliminateFrameIndex(MI, SPAdj, i,
+                                FrameIndexVirtualScavenging ?  nullptr : RS);
+        ...
+      }
+    ...
+  }
+
+  /// replaceFrameIndices - Replace all MO_FrameIndex operands with physical
+  /// register references and actual offsets.
+  ///
+  void PEI::replaceFrameIndices(MachineFunction &Fn) {
+    ...
+    // Iterate over the reachable blocks in DFS order.
+    for (auto DFI = df_ext_begin(&Fn, Reachable), DFE = df_ext_end(&Fn, Reachable);
+         DFI != DFE; ++DFI) {
+      ...
+      replaceFrameIndices(BB, Fn, SPAdj);
+      ...
+    }
+  
+    // Handle the unreachable blocks.
+    for (auto &BB : Fn) {
+      ...
+      replaceFrameIndices(&BB, Fn, SPAdj);
+    }
+  }
+  
+  bool PEI::runOnMachineFunction(MachineFunction &Fn) {
+    const TargetFrameLowering &TFI = *Fn.getSubtarget().getFrameLowering();
+    ...
+    FrameIndexVirtualScavenging = TRI->requiresFrameIndexScavenging(Fn);
+    ...
+    // Handle CSR spilling and restoring, for targets that need it.
+    SpillCalleeSavedRegisters(Fn, RS, MinCSFrameIndex, MaxCSFrameIndex,
+                              SaveBlocks, RestoreBlocks);
+    ...
+    // Calculate actual frame offsets for all abstract stack objects...
+    calculateFrameObjectOffsets(Fn);
+  
+    // Add prolog and epilog code to the function.  This function is required
+    // to align the stack frame as necessary for any stack variables or
+    // called functions.  Because of this, calculateCalleeSavedRegisters()
+    // must be called before this function in order to set the AdjustsStack
+    // and MaxCallFrameSize variables.
+    if (!F->hasFnAttribute(Attribute::Naked))
+      insertPrologEpilogCode(Fn);
+  
+    // Replace all MO_FrameIndex operands with physical register references
+    // and actual offsets.
+    //
+    replaceFrameIndices(Fn);
+  
+    // If register scavenging is needed, as we've enabled doing it as a 
+    // post-pass, scavenge the virtual registers that frame index elimination
+    // inserted.
+    if (TRI->requiresRegisterScavenging(Fn) && FrameIndexVirtualScavenging) {
+      ScavengeFrameVirtualRegs(Fn, RS);
+  
+      // Clear any vregs created by virtual scavenging.
+      Fn.getRegInfo().clearVirtRegs();
+    }
+    ...
+  }
 
 
 Large stack
@@ -1966,9 +2177,11 @@ Summary the functions for llvm backend stages as the following table.
   Before CPU0 DAG->DAG Pattern Instruction Selection   - Cpu0TargetLowering::LowerFormalArguments
                                                        - Cpu0TargetLowering::LowerReturn
   Instruction selection                                - Cpu0DAGToDAGISel::Select
-  Prologue/Epilogue Insertion & Frame Finalization     - Cpu0SEFrameLowering::emitPrologue
-                                                       - Cpu0SEFrameLowering::emitEpilogue
+  Prologue/Epilogue Insertion & Frame Finalization
     - Determine spill callee saved registers           - Cpu0SEFrameLowering::determineCalleeSaves
+    - Spill callee saved registers                     - Cpu0SEFrameLowering::spillCalleeSavedRegisters
+    - Prolog                                           - Cpu0SEFrameLowering::emitPrologue
+    - Epilog                                           - Cpu0SEFrameLowering::emitEpilogue
     - Handle stack slot for local variables            - Cpu0RegisterInfo::eliminateFrameIndex
   Post-RA pseudo instruction expansion pass            - Cpu0SEInstrInfo::expandPostRAPseudo
   Cpu0 Assembly Printer                                - Cpu0AsmPrinter.cpp, Cpu0MCInstLower.cpp

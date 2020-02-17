@@ -3455,6 +3455,48 @@ Cpu0 supports llvm instrinsics bswap intrinsic [#bswapintrnsic]_.
   ...
 
 
+Add specific backend intrinsic function
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+LLVM intrinsic functions is designed to extend llvm IRs for hardware
+acceleration in compiler design [#extendintrnsic]_.
+Many cpu implement their intrinsic functions for their speedup hardware
+instructions.
+Some gpu apply llvm infrastructure as their OpenGL/CL backend compiler using
+many llvm extended intrinsic functions.
+To demonstrate how to use backend proprietary intrinsic functions to support
+their specific instructions to getting better performance in some domain
+language, Cpu0 add a intrinsic function @llvm.cpu0.gcd for its 
+gcd(greatest common divider) instruction. This instruction explaining
+how to do it in llvm only, it is not added in Verilog Cpu0 implementation.
+The code as follows,
+
+.. rubric:: lbdex/src/modify/src/include/llvm/IR/Intrinsics.td
+.. code-block:: c++
+
+    ...
+    include "llvm/IR/IntrinsicsCpu0.td"
+    ...
+  
+.. rubric:: lbdex/src/modify/src/include/llvm/IR/IntrinsicsCpu0.td
+.. literalinclude:: ../lbdex/src/modify/src/include/llvm/IR/IntrinsicsCpu0.td
+
+.. rubric:: lbdex/chapters/Chapter9_3/Cpu0InstrInfo.td
+.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td
+    :start-after: //#if CH >= CH9_3 //1
+    :end-before: //#endif //#if CH >= CH9_3 //1
+.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td
+    :start-after: //#if CH >= CH9_3 //5
+    :end-before: //#endif //#if CH >= CH9_3 //5
+
+When running llc with cpu0_gcd.ll, it gets the gcd machine instruction,
+meanwhile, when running cpu0_gcd_soft.ll, it gets the "call llvm.cpu0.gcd.soft"
+function.
+In other words, "@llvm.cpu0.gcd" is intrinsic function for "gcd" machine
+instruction; "@llvm.cpu0.gcd.soft" is intrinsic function for hand-written
+function code.
+
+
 Summary
 -------
  
@@ -3496,4 +3538,6 @@ and more when the frontend doesn't add any new IR for a new language.
 .. [#cpu0lld] http://jonathan2251.github.io/lbt/lld.html
 
 .. [#bswapintrnsic] http://llvm.org/docs/LangRef.html#llvm-bswap-intrinsics
+
+.. [#extendintrnsic] https://llvm.org/docs/ExtendingLLVM.html
 

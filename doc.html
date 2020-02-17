@@ -215,11 +215,12 @@ directory clang/test/CodeGen of clang source code release.</p>
 <h2><a class="toc-backref" href="#id16">Cpu0 Regression Test</a><a class="headerlink" href="#cpu0-regression-test" title="Permalink to this headline">¶</a></h2>
 <p>The last chapter can verify Cpu0 backend&#8217;s generated code by Verilog simulator
 for those code without global variable access.
-The chapter lld in web <a class="reference external" href="https://github.com/Jonathan2251/lbt.git">https://github.com/Jonathan2251/lbt.git</a> will include
-llvm ELF linker implementation and can verify those test items which include
+The chapter lld in web <a class="reference external" href="https://github.com/Jonathan2251/lbt.git">https://github.com/Jonathan2251/lbt.git</a> includes
+llvm ELF linker implementation and is capable to verify those test items with
 global variable access.
-Beside these, LLVM has its test cases (regression test) for each backend to
-verify the code generation <a class="footnote-reference" href="#test" id="id8">[8]</a>.
+However, LLVM has its test cases (regression test) for each backend to
+verify your backend compiler <a class="footnote-reference" href="#test" id="id8">[8]</a> without implementing any simulator or real
+hardware platform.
 Cpu0 regression test items existed in lbdex.tar.gz example code. Untar it
 to lbdex/, and:</p>
 <p>For both iMac and Linux, copy lbdex/regression-test/Cpu0 to
@@ -257,7 +258,7 @@ to lbdex/, and:</p>
 <p>Listing the chapters of this book and the related regression test items as
 follows,</p>
 <table border="1" class="docutils" id="id9">
-<caption><span class="caption-number">Table 35 </span><span class="caption-text">Chapters</span><a class="headerlink" href="#id9" title="Permalink to this table">¶</a></caption>
+<caption><span class="caption-number">Table 36 </span><span class="caption-text">Chapters</span><a class="headerlink" href="#id9" title="Permalink to this table">¶</a></caption>
 <colgroup>
 <col width="10%" />
 <col width="90%" />
@@ -305,7 +306,7 @@ follows,</p>
 </tbody>
 </table>
 <table border="1" class="docutils" id="id10">
-<caption><span class="caption-number">Table 36 </span><span class="caption-text">Regression test items for Cpu0</span><a class="headerlink" href="#id10" title="Permalink to this table">¶</a></caption>
+<caption><span class="caption-number">Table 37 </span><span class="caption-text">Regression test items for Cpu0</span><a class="headerlink" href="#id10" title="Permalink to this table">¶</a></caption>
 <colgroup>
 <col width="28%" />
 <col width="12%" />
@@ -1083,6 +1084,51 @@ follows,</p>
 </table>
 <p>These supported test cases are in lbdex/regression-test/Cpu0 which can be
 gotten from <code class="docutils literal"><span class="pre">tar</span> <span class="pre">-xf</span> <span class="pre">lbdex.tar.gz</span></code>.</p>
+<p>The regression test is very useful in two major reasons. First, it provides
+the llvm input, assembly output and the running command as well as options in
+the the sample input file, so all the first glimpse of documentation needed for
+end user and programmer are well written in the same test input file.
+Furthermore, it can be run to check to provide dynamic running document for
+users. Second, once programmers change their backend compiler especially for
+optimization, the regression test cases guard their backend has no side effect
+or bugs for other parts of backend program. That is the name of &#8220;regression test&#8221;
+stands for. The following file include the assembly output pattern of two
+subtargets for Cpu0 backend. Beside checking opcode, it is capable to check
+register number. In this case, the destination register of &#8220;andi&#8221; must be the
+first source register in the following instruction &#8220;xori&#8221; once it is specified
+to T1 at the corresponding registers of these two assembly output.</p>
+<p class="rubric">lbdex/regression-test/Cpu0/setule.ll</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>; RUN: llc  -march=cpu0 -mcpu=cpu032I  -relocation-model=pic -O3 %s -o - | FileCheck %s -check-prefix=cpu032I
+; RUN: llc  -march=cpu0 -mcpu=cpu032II  -relocation-model=pic -O3 %s -o - | FileCheck %s -check-prefix=cpu032II
+
+@j = global i32 5, align 4
+@k = global i32 10, align 4
+@l = global i32 20, align 4
+@m = global i32 10, align 4
+@r1 = common global i32 0, align 4
+@r2 = common global i32 0, align 4
+@r3 = common global i32 0, align 4
+
+define void @test() nounwind {
+entry:
+  %0 = load i32, i32* @j, align 4
+  %1 = load i32, i32* @k, align 4
+  %cmp = icmp ule i32 %0, %1
+  %conv = zext i1 %cmp to i32
+  store i32 %conv, i32* @r1, align 4
+; cpu032I:  cmp	$sw, ${{[0-9]+|t9}}, ${{[0-9]+|t9}}
+; cpu032I:  andi	$[[T1:[0-9]+|t9]], $sw, 1
+; cpu032I:  xori	${{[0-9]+|t9}}, $[[T1]], 1
+; cpu032II:  sltu	$[[T0:[0-9]+|t9]], ${{[0-9]+|t9}}, ${{[0-9]+|t9}}
+; cpu032II:  xori	${{[0-9]+|t9}}, $[[T0]], 1
+  %2 = load i32, i32* @m, align 4
+  %cmp1 = icmp ule i32 %2, %1
+  %conv2 = zext i1 %cmp1 to i32
+  store i32 %conv2, i32* @r2, align 4
+  ret void
+}
+</pre></div>
+</div>
 <table class="docutils footnote" frame="void" id="sphinx-install" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
