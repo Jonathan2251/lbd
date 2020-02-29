@@ -29,6 +29,12 @@ a 3D modeling can be created looks like the following Figure.
 
   Creating 3D model and texturing
   
+As above graph, setting the vertices along with skin form the polygon [#polygon]_ .
+After shading, the vertices and edge line are covered with color (or remove edges), 
+so the model looks much more smooth [#shading]_. Furthermore, after texturing 
+(texture mapping), the model looks more real [#texturemapping]_.
+ 
+  
 To get to know how animation for a 3D modeling, please look video here [#animation1]_.
 
 
@@ -92,10 +98,16 @@ the driver or hardware of gpu changes.
 
 
 
-.. [#animation1] https://www.youtube.com/watch?v=f3Cr8Yx3GGA
-
 .. [#Quantitative] Book Figure 4.13 of Computer Architecture: A Quantitative Approach 5th edition (The
        Morgan Kaufmann Series in Computer Architecture and Design)
+
+.. [#animation1] https://www.youtube.com/watch?v=f3Cr8Yx3GGA
+
+.. [#polygon] https://en.wikipedia.org/wiki/Polygon_(computer_graphics)
+
+.. [#shading] https://en.wikipedia.org/wiki/Shading
+
+.. [#texturemapping] https://en.wikipedia.org/wiki/Texture_mapping
 
 .. [#shadersex] https://learnopengl.com/Getting-started/Shaders
 
