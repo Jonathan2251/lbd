@@ -167,8 +167,9 @@ Fast texture sampling is one of the key requirements for good GPU performance [#
 So, the argument sampler in texture function as above is sampler_2d index. 
 In order to let the 'texture unit' binding by driver, frontend compiler must
 pass the name of 'texture unit' to backend, and backend must allocate the
-(index, memaddr) of 'texture unit' in the compiled binary file to let driver
-set them through api glGenTextures, glBindTexture and glTexImage2D before 
+(index, memaddr) of 'texture unit' in the compiled binary file.
+Driver will be triggered and set memaddr when user program call api 
+glGenTextures, glBindTexture and glTexImage2D before shader program
 executing on gpu [#tpu]_.
 So even llvm intrinsic extended function providing an easy way to do code 
 generation through llvm td (Target Description) file written. 
