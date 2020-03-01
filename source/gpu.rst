@@ -1,7 +1,7 @@
 .. _sec-gpu:
 
-GPU compiler
-============
+Appendix C: GPU compiler
+========================
 
 .. contents::
    :local:
@@ -13,8 +13,7 @@ The vector or multimedia instructions in CPU are small scaled of SIMD
 which need to color an millions pixel of image in few micro seconds.
 Since the 2D or 3D graphic processing providing large opportunity in parallel
 data processing, GPU hardware usually composed of hundreds of cores with thousands
-of functional units (a.k.a "thread block" [#Quantitative]_) in each core that is 
-small cores architecture in N-Vidia processors. 
+of functional units (a.k.a "thread block" [#Quantitative]_) in N-Vidia processors. 
 Or tens of cores with tens thousands that is big cores architecture.
 
 3D modeling
@@ -49,6 +48,10 @@ images on a computer [#3drendering_wiki]_. The steps as the following Figure [#r
 
   Diagram of the Rendering Pipeline. The blue boxes are programmable shader stages.
 
+
+For 2D animation, the model is created by 2D only (1 side only), so it only can be 
+viewed from the same side of model. If you want to display different side of model,
+multiple 2D model need to be created and switch these 2D models from time to time.
 
 GLSL (GL Shader Language)
 -------------------------
@@ -144,10 +147,31 @@ extended llvm intrinsic functions to finish it as follows,
   
   ...
      // gpu machine code
-      sample_inst $1, $2, $3 // $1: %sampler_2d, $2: %pos_2d, $3: %bias
+      sample2d_inst $1, $2, $3 // $1: %sampler_2d, $2: %pos_2d, $3: %bias
       
 About llvm intrinsic extended function, please refer this book here [#intrinsiccpu0]_.
 
+.. code-block:: c++
+
+  gvec4 texture(gsampler2D sampler, vec2 P, [float bias]);
+
+
+The texture object is not bound directly into the shader (where the actual 
+sampling takes place). Instead, it is bound to a 'texture unit' whose index 
+is passed to the shader. So the shader reaches the texture object by going 
+through the texture unit. There are usually multiple texture units available 
+and the exact number depends on the capability of your graphis card [#textureobject]_. 
+A texture unit, also called a texture mapping unit (TMU) or a texture processing 
+unit (TPU), is a hardware component in a GPU that does sampling.
+Fast texture sampling is one of the key requirements for good GPU performance [#tpu]_.
+So, the argument sampler in texture function as above is sampler_2d index. 
+In order to let the 'texture unit' binding by driver, frontend compiler must
+pass the name of 'texture unit' to backend, and backend must allocate the
+(name, index) of 'texture unit' in the compiled binary file to let driver
+set them before execute on gpu.
+So even llvm intrinsic extended function providing an easy way to do code 
+generation through llvm td (Target Description) file written. 
+GPU backend compiler is a little complex than CPU backend. 
     
 
 .. [#Quantitative] Book Figure 4.13 of Computer Architecture: A Quantitative Approach 5th edition (The
@@ -181,5 +205,6 @@ About llvm intrinsic extended function, please refer this book here [#intrinsicc
 
 .. [#intrinsiccpu0] http://jonathan2251.github.io/lbd/funccall.html#add-specific-backend-intrinsic-function
 
+.. [#textureobject] http://ogldev.atspace.co.uk/www/tutorial16/tutorial16.html
 
-
+.. [#tpu] http://math.hws.edu/graphicsbook/c6/s4.html
