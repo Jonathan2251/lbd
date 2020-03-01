@@ -37,6 +37,18 @@ so the model looks much more smooth [#shading]_. Furthermore, after texturing
   
 To get to know how animation for a 3D modeling, please look video here [#animation1]_.
 
+3D Rendering
+------------
+
+3D rendering is the 3D computer graphics process of converting 3D models into 2D 
+images on a computer [#3drendering_wiki]_. The steps as the following Figure [#rendering]_.
+
+.. _rendering_pipeline1: 
+.. figure:: ../Fig/gpu/rendering_pipeline.png
+  :align: center
+
+  Diagram of the Rendering Pipeline. The blue boxes are programmable shader stages.
+
 
 GLSL (GL Shader Language)
 -------------------------
@@ -80,14 +92,18 @@ An OpenGL program looks like the following,
   // init window, detect user input and do corresponding animation by calling opengl api
   }
 
-The last main() is programed by user clearly. Let's explain what the first two main()'s 
-work for. As you know, the OpenGL is a lots of api to let programmer display 
-the 3D object into 2D computer screen explained from book concept of computer graphic.
+The last main() is programed by user clearly. Let's explain what the first two 
+main()'s work for. 
+As you know, the OpenGL is a lots of api to let programmer display the 3D object 
+into 2D computer screen explained from book concept of computer graphic.
 3D graphic model can set light and object texture and calculate the postion of each vertex
 and color of each pixel, then display the color of each pixel in computer screen.
-But in order to let programmer add some special effect or decoration in coordinate of vertex or color
-of pixel, OpenGL provide these two functions to do it. Programmer can add their converting 
-functions and compiler translate them into GPU instructions running on GPU processor.
+But in order to let programmer add some special effect or decoration in 
+coordinate of vertex or color of pixel, OpenGL provide these two functions to 
+do it. Programmer can add their converting functions and compiler translate them 
+into GPU instructions running on GPU processor. With these two shaders, new 
+features have been added to allow for increased flexibility in the rendering 
+pipeline at the vertex and fragment level [#shaderswiki]_.
 Not like the shaders example here [#shadersex]_, some shaders converting function in vertex 
 or color(Fragment shade) are more complicated according the scenes of animation.
 Since the hardware of graphic card and software graphic driver can be changed, the compiler
@@ -101,14 +117,30 @@ the driver or hardware of gpu changes.
 .. [#Quantitative] Book Figure 4.13 of Computer Architecture: A Quantitative Approach 5th edition (The
        Morgan Kaufmann Series in Computer Architecture and Design)
 
-.. [#animation1] https://www.youtube.com/watch?v=f3Cr8Yx3GGA
 
 .. [#polygon] https://en.wikipedia.org/wiki/Polygon_(computer_graphics)
+
 
 .. [#shading] https://en.wikipedia.org/wiki/Shading
 
 .. [#texturemapping] https://en.wikipedia.org/wiki/Texture_mapping
 
+.. [#animation1] https://www.youtube.com/watch?v=f3Cr8Yx3GGA
+
+
+.. [#3drendering_wiki] https://en.wikipedia.org/wiki/3D_rendering
+
+.. [#rendering] https://www.khronos.org/opengl/wiki/Rendering_Pipeline_Overview
+
+
 .. [#shadersex] https://learnopengl.com/Getting-started/Shaders
 
+.. [#shaderswiki] https://en.m.wikipedia.org/wiki/OpenGL_Shading_Language
+
 .. [#onlinecompile] https://community.khronos.org/t/offline-glsl-compilation/61784
+
+
+
+
+
+
