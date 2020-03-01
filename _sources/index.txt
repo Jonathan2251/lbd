@@ -27,6 +27,7 @@ Table of Contents
    verilog
    install
    doc
+   gpu
    todo
    
 

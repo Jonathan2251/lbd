@@ -1,0 +1,317 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Appendix C: GPU compiler &mdash; Tutorial: Creating an LLVM Backend for the Cpu0 Architecture</title>
+    
+    <link rel="stylesheet" href="_static/haiku.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '3.9.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="author" title="About these documents" href="about.html" />
+    <link rel="top" title="Tutorial: Creating an LLVM Backend for the Cpu0 Architecture" href="index.html" />
+    <link rel="next" title="Todo List" href="todo.html" />
+    <link rel="prev" title="Appendix B: Cpu0 document and test" href="doc.html" /> 
+  </head>
+  <body role="document">
+      <div class="header" role="banner"><h1 class="heading"><a href="index.html">
+          <span>Tutorial: Creating an LLVM Backend for the Cpu0 Architecture</span></a></h1>
+        <h2 class="heading"><span>Appendix C: GPU compiler</span></h2>
+      </div>
+      <div class="topnav" role="navigation" aria-label="top navigation">
+      
+        <p>
+        «&#160;&#160;<a href="doc.html">Appendix B: Cpu0 document and test</a>
+        &#160;&#160;::&#160;&#160;
+        <a class="uplink" href="index.html">Contents</a>
+        &#160;&#160;::&#160;&#160;
+        <a href="todo.html">Todo List</a>&#160;&#160;»
+        </p>
+
+      </div>
+      <div class="content">
+        
+        
+  <div class="section" id="appendix-c-gpu-compiler">
+<span id="sec-gpu"></span><h1>Appendix C: GPU compiler<a class="headerlink" href="#appendix-c-gpu-compiler" title="Permalink to this headline">¶</a></h1>
+<div class="contents local topic" id="contents">
+<ul class="simple">
+<li><a class="reference internal" href="#d-modeling" id="id18">3D modeling</a></li>
+<li><a class="reference internal" href="#d-rendering" id="id19">3D Rendering</a></li>
+<li><a class="reference internal" href="#glsl-gl-shader-language" id="id20">GLSL (GL Shader Language)</a></li>
+<li><a class="reference internal" href="#shader-compiler" id="id21">Shader compiler</a></li>
+</ul>
+</div>
+<p>Basicly CPU compiler is SISD (Single Instruction Single Data Architecture).
+The vector or multimedia instructions in CPU are small scaled of SIMD
+(Single Instruction Multiple Data). GPU is a large scaled of SIMD processor
+which need to color an millions pixel of image in few micro seconds.
+Since the 2D or 3D graphic processing providing large opportunity in parallel
+data processing, GPU hardware usually composed of hundreds of cores with thousands
+of functional units (a.k.a &#8220;thread block&#8221; <a class="footnote-reference" href="#quantitative" id="id1">[1]</a>) in N-Vidia processors.
+Or tens of cores with tens thousands that is big cores architecture.</p>
+<div class="section" id="d-modeling">
+<h2><a class="toc-backref" href="#id18">3D modeling</a><a class="headerlink" href="#d-modeling" title="Permalink to this headline">¶</a></h2>
+<p>Through creating 3D model with Triangles or Quads, then set skin by texturing,
+a 3D modeling can be created looks like the following Figure.</p>
+<div class="figure align-center" id="id16">
+<span id="modeling1"></span><img alt="_images/modeling1.png" src="_images/modeling1.png" />
+<p class="caption"><span class="caption-number">Fig. 36 </span><span class="caption-text">Creating 3D model and texturing</span></p>
+</div>
+<p>As above graph, setting the vertices along with skin form the polygon <a class="footnote-reference" href="#polygon" id="id2">[2]</a> .
+After shading, the vertices and edge line are covered with color (or remove edges),
+so the model looks much more smooth <a class="footnote-reference" href="#shading" id="id3">[3]</a>. Furthermore, after texturing
+(texture mapping), the model looks more real <a class="footnote-reference" href="#texturemapping" id="id4">[4]</a>.</p>
+<p>To get to know how animation for a 3D modeling, please look video here <a class="footnote-reference" href="#animation1" id="id5">[5]</a>.</p>
+</div>
+<div class="section" id="d-rendering">
+<h2><a class="toc-backref" href="#id19">3D Rendering</a><a class="headerlink" href="#d-rendering" title="Permalink to this headline">¶</a></h2>
+<p>3D rendering is the 3D computer graphics process of converting 3D models into 2D
+images on a computer <a class="footnote-reference" href="#drendering-wiki" id="id6">[6]</a>. The steps as the following Figure <a class="footnote-reference" href="#rendering" id="id7">[7]</a>.</p>
+<div class="figure align-center" id="id17">
+<span id="rendering-pipeline1"></span><img alt="_images/rendering_pipeline.png" src="_images/rendering_pipeline.png" />
+<p class="caption"><span class="caption-number">Fig. 37 </span><span class="caption-text">Diagram of the Rendering Pipeline. The blue boxes are programmable shader stages.</span></p>
+</div>
+<p>For 2D animation, the model is created by 2D only (1 side only), so it only can be
+viewed from the same side of model. If you want to display different side of model,
+multiple 2D model need to be created and switch these 2D models from time to time.</p>
+</div>
+<div class="section" id="glsl-gl-shader-language">
+<h2><a class="toc-backref" href="#id20">GLSL (GL Shader Language)</a><a class="headerlink" href="#glsl-gl-shader-language" title="Permalink to this headline">¶</a></h2>
+<p>OpenGL is a standard for designing 2D/3D animation in computer graphic.
+To do animation well, OpenGL provide a lots of api(functions) call for
+graphic processing. The 3D model construction tools such as Maya, ...,
+can call this api to finish the 3D to 2D projecting function in computer.
+An OpenGL program looks like the following,</p>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="n">Vertex</span> <span class="n">shader</span>
+
+<span class="cp">#version 330 core</span>
+<span class="n">layout</span> <span class="p">(</span><span class="n">location</span> <span class="o">=</span> <span class="mi">0</span><span class="p">)</span> <span class="n">in</span> <span class="n">vec3</span> <span class="n">aPos</span><span class="p">;</span> <span class="c1">// the position variable has attribute position 0</span>
+
+<span class="n">out</span> <span class="n">vec4</span> <span class="n">vertexColor</span><span class="p">;</span> <span class="c1">// specify a color output to the fragment shader</span>
+
+<span class="kt">void</span> <span class="nf">main</span><span class="p">()</span>
+<span class="p">{</span>
+    <span class="n">gl_Position</span> <span class="o">=</span> <span class="n">vec4</span><span class="p">(</span><span class="n">aPos</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">);</span> <span class="c1">// see how we directly give a vec3 to vec4&#39;s constructor</span>
+    <span class="n">vertexColor</span> <span class="o">=</span> <span class="n">vec4</span><span class="p">(</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">);</span> <span class="c1">// set the output variable to a dark-red color</span>
+<span class="p">}</span>
+<span class="n">Fragment</span> <span class="n">shader</span>
+
+<span class="cp">#version 330 core</span>
+<span class="n">out</span> <span class="n">vec4</span> <span class="n">FragColor</span><span class="p">;</span>
+
+<span class="n">in</span> <span class="n">vec4</span> <span class="n">vertexColor</span><span class="p">;</span> <span class="c1">// the input variable from the vertex shader (same name and same type)</span>
+
+<span class="kt">void</span> <span class="nf">main</span><span class="p">()</span>
+<span class="p">{</span>
+    <span class="n">FragColor</span> <span class="o">=</span> <span class="n">computeColorOfThisPixel</span><span class="p">(...);</span>
+<span class="p">}</span>
+
+<span class="c1">// openGl user program</span>
+<span class="kt">int</span>
+<span class="nf">main</span><span class="p">(</span><span class="kt">int</span> <span class="n">argc</span><span class="p">,</span> <span class="kt">char</span> <span class="o">**</span><span class="n">argv</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="c1">// init window, detect user input and do corresponding animation by calling opengl api</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>The last main() is programed by user clearly. Let&#8217;s explain what the first two
+main()&#8217;s work for.
+As you know, the OpenGL is a lots of api to let programmer display the 3D object
+into 2D computer screen explained from book concept of computer graphic.
+3D graphic model can set light and object texture and calculate the postion of each vertex
+and color of each pixel, then display the color of each pixel in computer screen.
+But in order to let programmer add some special effect or decoration in
+coordinate of vertex or color of pixel, OpenGL provide these two functions to
+do it. Programmer can add their converting functions and compiler translate them
+into GPU instructions running on GPU processor. With these two shaders, new
+features have been added to allow for increased flexibility in the rendering
+pipeline at the vertex and fragment level <a class="footnote-reference" href="#shaderswiki" id="id8">[9]</a>.
+Not like the shaders example here <a class="footnote-reference" href="#shadersex" id="id9">[8]</a>, some shaders converting function in vertex
+or color(Fragment shade) are more complicated according the scenes of animation.
+Since the hardware of graphic card and software graphic driver can be changed, the compiler
+is run on-line which means compile the shaders program when it is be run at first time.
+The shaders program is C-like syntax and can be compiled in few mini-seconds <a class="footnote-reference" href="#onlinecompile" id="id10">[10]</a>.
+So, add up this on-line compile time in running OpenGL program is better to deal with
+the driver or hardware of gpu changes.</p>
+</div>
+<div class="section" id="shader-compiler">
+<h2><a class="toc-backref" href="#id21">Shader compiler</a><a class="headerlink" href="#shader-compiler" title="Permalink to this headline">¶</a></h2>
+<p>OpenGL standard is here <a class="footnote-reference" href="#openglspec" id="id11">[11]</a>. The OpenGL is for desktop computer or server
+while the OpenGL ES is for embedded system <a class="footnote-reference" href="#opengleswiki" id="id12">[12]</a>. Though shaders are only
+a small part of the whole OpenGL software/hardware system. It is still a big effort
+to finish the compiler implementation since there are lots of api need to implement.
+For example, the texture related api has close to one hundreds of api for code
+generation include the api name and different operands in the same api name.
+This implementation can done by generating llvm intrinsic function from shader&#8217;s api
+parser of frontend compiler, and designing llvm backend for those
+extended llvm intrinsic functions to finish it as follows,</p>
+<div class="highlight-c++"><div class="highlight"><pre><span></span>#version 320 es
+out vec4 FragColor;
+
+void main()
+{
+    FragColor = texture(sampler_2d, pos_2d, bias);
+}
+
+...
+define void @main() #0 {
+    ...
+    %1 = @llvm.gpu0.texture(%sampler_2d, %pos_2d, %bias);
+    ...
+}
+
+...
+   // gpu machine code
+    sample2d_inst $1, $2, $3 // $1: %sampler_2d, $2: %pos_2d, $3: %bias
+</pre></div>
+</div>
+<p>About llvm intrinsic extended function, please refer this book here <a class="footnote-reference" href="#intrinsiccpu0" id="id13">[13]</a>.</p>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="n">gvec4</span> <span class="nf">texture</span><span class="p">(</span><span class="n">gsampler2D</span> <span class="n">sampler</span><span class="p">,</span> <span class="n">vec2</span> <span class="n">P</span><span class="p">,</span> <span class="p">[</span><span class="kt">float</span> <span class="n">bias</span><span class="p">]);</span>
+</pre></div>
+</div>
+<p>The texture object is not bound directly into the shader (where the actual
+sampling takes place). Instead, it is bound to a &#8216;texture unit&#8217; whose index
+is passed to the shader. So the shader reaches the texture object by going
+through the texture unit. There are usually multiple texture units available
+and the exact number depends on the capability of your graphis card <a class="footnote-reference" href="#textureobject" id="id14">[14]</a>.
+A texture unit, also called a texture mapping unit (TMU) or a texture processing
+unit (TPU), is a hardware component in a GPU that does sampling.
+Fast texture sampling is one of the key requirements for good GPU performance <a class="footnote-reference" href="#tpu" id="id15">[15]</a>.
+So, the argument sampler in texture function as above is sampler_2d index.
+In order to let the &#8216;texture unit&#8217; binding by driver, frontend compiler must
+pass the name of &#8216;texture unit&#8217; to backend, and backend must allocate the
+(name, index) of &#8216;texture unit&#8217; in the compiled binary file to let driver
+set them before execute on gpu.
+So even llvm intrinsic extended function providing an easy way to do code
+generation through llvm td (Target Description) file written.
+GPU backend compiler is a little complex than CPU backend.</p>
+<table class="docutils footnote" frame="void" id="quantitative" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id1">[1]</a></td><td>Book Figure 4.13 of Computer Architecture: A Quantitative Approach 5th edition (The
+Morgan Kaufmann Series in Computer Architecture and Design)</td></tr>
+</tbody>
+</table>
+<table class="docutils footnote" frame="void" id="polygon" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id2">[2]</a></td><td><a class="reference external" href="https://en.wikipedia.org/wiki/Polygon_(computer_graphics">https://en.wikipedia.org/wiki/Polygon_(computer_graphics</a>)</td></tr>
+</tbody>
+</table>
+<table class="docutils footnote" frame="void" id="shading" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id3">[3]</a></td><td><a class="reference external" href="https://en.wikipedia.org/wiki/Shading">https://en.wikipedia.org/wiki/Shading</a></td></tr>
+</tbody>
+</table>
+<table class="docutils footnote" frame="void" id="texturemapping" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id4">[4]</a></td><td><a class="reference external" href="https://en.wikipedia.org/wiki/Texture_mapping">https://en.wikipedia.org/wiki/Texture_mapping</a></td></tr>
+</tbody>
+</table>
+<table class="docutils footnote" frame="void" id="animation1" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id5">[5]</a></td><td><a class="reference external" href="https://www.youtube.com/watch?v=f3Cr8Yx3GGA">https://www.youtube.com/watch?v=f3Cr8Yx3GGA</a></td></tr>
+</tbody>
+</table>
+<table class="docutils footnote" frame="void" id="drendering-wiki" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id6">[6]</a></td><td><a class="reference external" href="https://en.wikipedia.org/wiki/3D_rendering">https://en.wikipedia.org/wiki/3D_rendering</a></td></tr>
+</tbody>
+</table>
+<table class="docutils footnote" frame="void" id="rendering" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id7">[7]</a></td><td><a class="reference external" href="https://www.khronos.org/opengl/wiki/Rendering_Pipeline_Overview">https://www.khronos.org/opengl/wiki/Rendering_Pipeline_Overview</a></td></tr>
+</tbody>
+</table>
+<table class="docutils footnote" frame="void" id="shadersex" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id9">[8]</a></td><td><a class="reference external" href="https://learnopengl.com/Getting-started/Shaders">https://learnopengl.com/Getting-started/Shaders</a></td></tr>
+</tbody>
+</table>
+<table class="docutils footnote" frame="void" id="shaderswiki" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id8">[9]</a></td><td><a class="reference external" href="https://en.m.wikipedia.org/wiki/OpenGL_Shading_Language">https://en.m.wikipedia.org/wiki/OpenGL_Shading_Language</a></td></tr>
+</tbody>
+</table>
+<table class="docutils footnote" frame="void" id="onlinecompile" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id10">[10]</a></td><td><a class="reference external" href="https://community.khronos.org/t/offline-glsl-compilation/61784">https://community.khronos.org/t/offline-glsl-compilation/61784</a></td></tr>
+</tbody>
+</table>
+<table class="docutils footnote" frame="void" id="openglspec" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id11">[11]</a></td><td><a class="reference external" href="https://www.khronos.org/registry/OpenGL-Refpages/">https://www.khronos.org/registry/OpenGL-Refpages/</a></td></tr>
+</tbody>
+</table>
+<table class="docutils footnote" frame="void" id="opengleswiki" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id12">[12]</a></td><td><a class="reference external" href="https://en.wikipedia.org/wiki/OpenGL_ES">https://en.wikipedia.org/wiki/OpenGL_ES</a></td></tr>
+</tbody>
+</table>
+<table class="docutils footnote" frame="void" id="intrinsiccpu0" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id13">[13]</a></td><td><a class="reference external" href="http://jonathan2251.github.io/lbd/funccall.html#add-specific-backend-intrinsic-function">http://jonathan2251.github.io/lbd/funccall.html#add-specific-backend-intrinsic-function</a></td></tr>
+</tbody>
+</table>
+<table class="docutils footnote" frame="void" id="textureobject" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id14">[14]</a></td><td><a class="reference external" href="http://ogldev.atspace.co.uk/www/tutorial16/tutorial16.html">http://ogldev.atspace.co.uk/www/tutorial16/tutorial16.html</a></td></tr>
+</tbody>
+</table>
+<table class="docutils footnote" frame="void" id="tpu" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id15">[15]</a></td><td><a class="reference external" href="http://math.hws.edu/graphicsbook/c6/s4.html">http://math.hws.edu/graphicsbook/c6/s4.html</a></td></tr>
+</tbody>
+</table>
+</div>
+</div>
+
+
+      </div>
+      <div class="bottomnav" role="navigation" aria-label="bottom navigation">
+      
+        <p>
+        «&#160;&#160;<a href="doc.html">Appendix B: Cpu0 document and test</a>
+        &#160;&#160;::&#160;&#160;
+        <a class="uplink" href="index.html">Contents</a>
+        &#160;&#160;::&#160;&#160;
+        <a href="todo.html">Todo List</a>&#160;&#160;»
+        </p>
+
+      </div>
+
+    <div class="footer" role="contentinfo">
+        &copy; Copyright 2016, Chen Chung-Shu.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.4.
+    </div>
+  </body>
+</html>
