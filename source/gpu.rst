@@ -112,7 +112,43 @@ The shaders program is C-like syntax and can be compiled in few mini-seconds [#o
 So, add up this on-line compile time in running OpenGL program is better to deal with
 the driver or hardware of gpu changes. 
 
+Shader compiler
+---------------
 
+OpenGL standard is here [#openglspec]_. The OpenGL is for desktop computer or server
+while the OpenGL ES is for embedded system [#opengleswiki]_. Though shaders are only
+a small part of the whole OpenGL software/hardware system. It is still a big effort 
+to finish the compiler implementation since there are lots of api need to implement.
+For example, the texture related api has close to one hundreds of api for code
+generation include the api name and different operands in the same api name.
+This implementation can done by generating llvm intrinsic function from shader's api
+parser of frontend compiler, and designing llvm backend for those
+extended llvm intrinsic functions to finish it as follows,
+
+.. code-block:: c++
+  
+  #version 320 es
+  out vec4 FragColor;
+  
+  void main()
+  {
+      FragColor = texture(sampler_2d, pos_2d, bias);
+  }
+  
+  ...
+  define void @main() #0 {
+      ...
+      %1 = @llvm.gpu0.texture(%sampler_2d, %pos_2d, %bias);
+      ...
+  }
+  
+  ...
+     // gpu machine code
+      sample_inst $1, $2, $3 // $1: %sampler_2d, $2: %pos_2d, $3: %bias
+      
+About llvm intrinsic extended function, please refer this book here [#intrinsiccpu0]_.
+
+    
 
 .. [#Quantitative] Book Figure 4.13 of Computer Architecture: A Quantitative Approach 5th edition (The
        Morgan Kaufmann Series in Computer Architecture and Design)
@@ -139,8 +175,11 @@ the driver or hardware of gpu changes.
 
 .. [#onlinecompile] https://community.khronos.org/t/offline-glsl-compilation/61784
 
+.. [#openglspec] https://www.khronos.org/registry/OpenGL-Refpages/
 
+.. [#opengleswiki] https://en.wikipedia.org/wiki/OpenGL_ES
 
+.. [#intrinsiccpu0] http://jonathan2251.github.io/lbd/funccall.html#add-specific-backend-intrinsic-function
 
 
 
