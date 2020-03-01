@@ -50,7 +50,7 @@ images on a computer [#3drendering_wiki]_. The steps as the following Figure [#r
 
 
 For 2D animation, the model is created by 2D only (1 side only), so it only can be 
-viewed from the same side of model. If you want to display different side of model,
+viewed from the same face of model. If you want to display different side of model,
 multiple 2D model need to be created and switch these 2D models from time to time.
 
 GLSL (GL Shader Language)
@@ -167,8 +167,9 @@ Fast texture sampling is one of the key requirements for good GPU performance [#
 So, the argument sampler in texture function as above is sampler_2d index. 
 In order to let the 'texture unit' binding by driver, frontend compiler must
 pass the name of 'texture unit' to backend, and backend must allocate the
-(name, index) of 'texture unit' in the compiled binary file to let driver
-set them before execute on gpu.
+(index, memaddr) of 'texture unit' in the compiled binary file to let driver
+set them through api glGenTextures, glBindTexture and glTexImage2D before 
+executing on gpu [#tpu]_.
 So even llvm intrinsic extended function providing an easy way to do code 
 generation through llvm td (Target Description) file written. 
 GPU backend compiler is a little complex than CPU backend. 
