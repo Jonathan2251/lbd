@@ -121,12 +121,14 @@ Shader compiler
 OpenGL standard is here [#openglspec]_. The OpenGL is for desktop computer or server
 while the OpenGL ES is for embedded system [#opengleswiki]_. Though shaders are only
 a small part of the whole OpenGL software/hardware system. It is still a big effort 
-to finish the compiler implementation since there are lots of api need to implement.
-For example, the texture related api has close to one hundreds of api for code
-generation include the api name and different operands in the same api name.
-This implementation can done by generating llvm intrinsic function from shader's api
-parser of frontend compiler, and designing llvm backend for those
-extended llvm intrinsic functions to finish it as follows,
+to finish the compiler implementation since there are lots of api need to be 
+implemented.
+For example, the number of texture related api is close to one hundred for code
+generation since they include the api name and different operands in the same 
+api name.
+This implementation can be done by generating llvm extended intrinsic functions 
+from shader parser of frontend compiler, and llvm backend for those intrinsic 
+to finish it as follows,
 
 .. code-block:: c++
   
@@ -164,16 +166,20 @@ and the exact number depends on the capability of your graphis card [#textureobj
 A texture unit, also called a texture mapping unit (TMU) or a texture processing 
 unit (TPU), is a hardware component in a GPU that does sampling.
 Fast texture sampling is one of the key requirements for good GPU performance [#tpu]_.
-So, the argument sampler in texture function as above is sampler_2d index. 
+The argument sampler in texture function as above is sampler_2d index from
+'teuxture unit' for texture object [#textureobject]_. 
+Whenever you call a sampling function on a sampler uniform variable the 
+corresponding texture unit (and texture object) will be used [#textureobject]_.
+
 In order to let the 'texture unit' binding by driver, frontend compiler must
 pass the name of 'texture unit' to backend, and backend must allocate the
 (index, memaddr) of 'texture unit' in the compiled binary file.
 Driver will be triggered and set memaddr when user program call api 
 glGenTextures, glBindTexture and glTexImage2D before shader program
-executing on gpu [#tpu]_.
-So even llvm intrinsic extended function providing an easy way to do code 
+executing on gpu [#textureobject]_.
+Even llvm intrinsic extended function providing an easy way to do code 
 generation through llvm td (Target Description) file written. 
-GPU backend compiler is a little complex than CPU backend. 
+GPU backend compiler is still a little complex than CPU backend. 
     
 
 .. [#Quantitative] Book Figure 4.13 of Computer Architecture: A Quantitative Approach 5th edition (The
