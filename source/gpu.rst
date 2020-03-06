@@ -190,9 +190,10 @@ corresponding texture unit (and texture object) will be used [#textureobject]_.
 
 In order to let the 'texture unit' binding by driver, frontend compiler must
 pass the name of 'sampler uniform variable' to backend, and backend must 
-allocate the (index, memaddr) of 'sampler uniform variable' in the compiled 
+allocate the index/ID of 'sampler uniform variable' in the compiled 
 binary file.
-Driver will be triggered and set memaddr when user program call api 
+Driver will be triggered and get 'sample uniform variable' by index from the 
+array of 'sample uniform variable' when user program call api 
 glGenTextures, glBindTexture and glTexImage2D before shader program
 executing on gpu [#textureobject]_.
 Even llvm intrinsic extended function providing an easy way to do code 
