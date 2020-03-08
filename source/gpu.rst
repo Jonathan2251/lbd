@@ -31,13 +31,16 @@ as follows,
   :align: center
 
   Creating 3D model and texturing
-  
+
 After the next processing of shading, the vertices and edge line are covered 
 with color (or remove edges), the model looks much more smooth [#shading]_. 
 Furthermore, after texturing (texture mapping), the model looks real more 
 [#texturemapping]_.
  
 To get to know how animation for a 3D modeling, please look video here [#animation1]_.
+In this series of video, you find the 3D modeling tools creating Java instead of
+C/C++ code of calling OpenGL api and shaders. Because Java can call OpenGL api
+through a wrapper library #joglwiki]_.
 
 3D Rendering
 ------------
@@ -125,8 +128,8 @@ So, add up this few mini-seconds of on-line compile time in running OpenGL
 program is a good choice for dealing the cases of driver software or gpu 
 hardware changes. 
 
-Shader compiler
----------------
+OpenGL Shader compiler
+-----------------------
 
 OpenGL standard is here [#openglspec]_. The OpenGL is for desktop computer or server
 while the OpenGL ES is for embedded system [#opengleswiki]_. Though shaders are only
@@ -199,6 +202,49 @@ executing on gpu [#textureobject]_.
 Even llvm intrinsic extended function providing an easy way to do code 
 generation through llvm td (Target Description) file written, 
 GPU backend compiler is still a little complex than CPU backend. 
+
+
+General purpose GPU
+--------------------
+
+Since GLSL shaders provide a general way for writing C code in them, if applying
+a software frame work instead of OpenGL api, then the system can run some data
+parallel computation on GPU for speeding up and even get CPU and GPU executing 
+simultaneously. Or Any language that allows the code running on the CPU to poll 
+a GPU shader for return values, can create a GPGPU framework [#gpgpuwiki]_.
+
+The following is a CUDA example to run large data in array on GPU [#kudaex]_ as follows,
+
+.. code-block:: c++
+
+  __global__
+  void saxpy(int n, float a, float *x, float *y)
+  {
+    int i = blockIdx.x*blockDim.x + threadIdx.x;
+    if (i < n) y[i] = a*x[i] + y[i];
+  }
+  
+  int main(void)
+  {
+    ...
+    cudaMemcpy(d_x, x, N*sizeof(float), cudaMemcpyHostToDevice);
+    cudaMemcpy(d_y, y, N*sizeof(float), cudaMemcpyHostToDevice);
+    ...
+    cudaMemcpy(y, d_y, N*sizeof(float), cudaMemcpyDeviceToHost);
+    ...
+  }
+
+The main() run on CPU while the saxpy() run on GPU. Through 
+cudaMemcpyHostToDevice and cudaMemcpyDeviceToHost, CPU can pass data in x and y 
+array to GPU and get result from GPU to y array. 
+Both of these memory transfer trigger the DMA functions without CPU operation. 
+Arithmetic intensity is defined as the number of operations performed per word of 
+memory transferred. It is important for GPGPU applications to have high arithmetic 
+intensity else the memory access latency will limit computational speedup 
+[#gpgpuwiki]_. 
+
+
+https://en.wikipedia.org/wiki/General-purpose_computing_on_graphics_processing_units
     
 
 .. [#Quantitative] Book Figure 4.13 of Computer Architecture: A Quantitative Approach 5th edition (The
@@ -213,6 +259,8 @@ GPU backend compiler is still a little complex than CPU backend.
 .. [#texturemapping] https://en.wikipedia.org/wiki/Texture_mapping
 
 .. [#animation1] https://www.youtube.com/watch?v=f3Cr8Yx3GGA
+
+.. [#joglwiki] https://en.wikipedia.org/wiki/Java_OpenGL
 
 
 .. [#3drendering_wiki] https://en.wikipedia.org/wiki/3D_rendering
@@ -235,3 +283,8 @@ GPU backend compiler is still a little complex than CPU backend.
 .. [#textureobject] http://ogldev.atspace.co.uk/www/tutorial16/tutorial16.html
 
 .. [#tpu] http://math.hws.edu/graphicsbook/c6/s4.html
+
+
+.. [#gpgpuwiki] https://en.wikipedia.org/wiki/General-purpose_computing_on_graphics_processing_units
+
+ ..[#kudaex] https://devblogs.nvidia.com/easy-introduction-cuda-c-and-c/
