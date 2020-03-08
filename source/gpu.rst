@@ -238,7 +238,12 @@ as follows,
 The main() run on CPU while the saxpy() run on GPU. Through 
 cudaMemcpyHostToDevice and cudaMemcpyDeviceToHost, CPU can pass data in x and y 
 array to GPU and get result from GPU to y array. 
-Both of these memory transfer trigger the DMA functions without CPU operation. 
+Since both of these memory transfer trigger the DMA functions without CPU operation,
+it maybe speed up by running both CPU/GPU with their data in their own cache.
+When the GPU function is dense computation in array such as MPEG4 encoder or
+deep learning for tuning weights, it mays get much speed up. But when GPU function
+is matrix addition and CPU will idle for waiting GPU's result. It mays slow 
+down than do matrix addition by CPU only.
 Arithmetic intensity is defined as the number of operations performed per word of 
 memory transferred. It is important for GPGPU applications to have high arithmetic 
 intensity else the memory access latency will limit computational speedup 
