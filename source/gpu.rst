@@ -213,7 +213,8 @@ parallel computation on GPU for speeding up and even get CPU and GPU executing
 simultaneously. Or Any language that allows the code running on the CPU to poll 
 a GPU shader for return values, can create a GPGPU framework [#gpgpuwiki]_.
 
-The following is a CUDA example to run large data in array on GPU [#kudaex]_ as follows,
+The following is a CUDA example to run large data in array on GPU [#cudaex]_ 
+as follows,
 
 .. code-block:: c++
 
@@ -287,4 +288,4 @@ https://en.wikipedia.org/wiki/General-purpose_computing_on_graphics_processing_u
 
 .. [#gpgpuwiki] https://en.wikipedia.org/wiki/General-purpose_computing_on_graphics_processing_units
 
- ..[#kudaex] https://devblogs.nvidia.com/easy-introduction-cuda-c-and-c/
+.. [#cudaex] https://devblogs.nvidia.com/easy-introduction-cuda-c-and-c/
