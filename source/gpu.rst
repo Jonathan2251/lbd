@@ -33,14 +33,14 @@ as follows,
   Creating 3D model and texturing
 
 After the next processing of shading, the vertices and edge line are covered 
-with color (or remove edges), the model looks much more smooth [#shading]_. 
+with color (or remove edges), then model looks much more smooth [#shading]_. 
 Furthermore, after texturing (texture mapping), the model looks real more 
 [#texturemapping]_.
  
 To get to know how animation for a 3D modeling, please look video here [#animation1]_.
 In this series of video, you find the 3D modeling tools creating Java instead of
 C/C++ code of calling OpenGL api and shaders. Because Java can call OpenGL api
-through a wrapper library #joglwiki]_.
+through a wrapper library [#joglwiki]_.
 
 3D Rendering
 ------------
@@ -57,8 +57,8 @@ through a wrapper library #joglwiki]_.
 
 For 2D animation, the model is created by 2D only (1 face only), so it only can be 
 viewed from the same face of model. If you want to display different faces of model,
-multiple 2D models need to be created and switch these 2D models for face to face
-from time to time.
+multiple 2D models need to be created and switch these 2D models for face(flame) to 
+face(flame) from time to time [#2danimation].
 
 GLSL (GL Shader Language)
 -------------------------
@@ -137,7 +137,7 @@ a small part of the whole OpenGL software/hardware system. It is still a big eff
 to finish the compiler implementation since there are lots of api need to be 
 implemented.
 For example, the number of texture related api is close to one hundred for code
-generation since they include with different api name with different operands for 
+generation since they include different api names with different operands for 
 each api name.
 This implementation can be done by generating llvm extended intrinsic functions 
 from shader parser of frontend compiler, and llvm backend for those intrinsic 
@@ -275,6 +275,8 @@ https://en.wikipedia.org/wiki/General-purpose_computing_on_graphics_processing_u
 .. [#3drendering_wiki] https://en.wikipedia.org/wiki/3D_rendering
 
 .. [#rendering] https://www.khronos.org/opengl/wiki/Rendering_Pipeline_Overview
+
+.. [#2danimation] https://tw.video.search.yahoo.com/search/video?fr=yfp-search-sb&p=2d+animation#id=12&vid=46be09edf57b960ae79e9cd077eea1ea&action=view
 
 
 .. [#shadersex] https://learnopengl.com/Getting-started/Shaders
