@@ -202,6 +202,9 @@ executing on gpu [#textureobject]_.
 Even llvm intrinsic extended function providing an easy way to do code 
 generation through llvm td (Target Description) file written, 
 GPU backend compiler is still a little complex than CPU backend. 
+(When counting in frontend compier such as clang or other toolchain such
+as linker, JIT, gdb/lldb, of course, CPU compiler is much much complex than
+GPU compiler)
 
 
 General purpose GPU
