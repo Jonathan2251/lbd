@@ -58,7 +58,7 @@ through a wrapper library [#joglwiki]_.
 For 2D animation, the model is created by 2D only (1 face only), so it only can be 
 viewed from the same face of model. If you want to display different faces of model,
 multiple 2D models need to be created and switch these 2D models for face(flame) to 
-face(flame) from time to time [#2danimation].
+face(flame) from time to time [#2danimation]_.
 
 GLSL (GL Shader Language)
 -------------------------
