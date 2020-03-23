@@ -118,7 +118,7 @@ features have been added to allow for increased flexibility in the rendering
 pipeline at the vertex and fragment level [#shaderswiki]_.
 Unlike the shaders example here [#shadersex]_, some shaders converting function 
 in vertex or color(Fragment shade) are more complicated according the scenes of 
-animation.
+animation. Here is an example [#glsleffect]_.
 Since the hardware of graphic card and software graphic driver can be changed, 
 the compiler is run on-line which means compile the shaders program when it is 
 run at first time.
@@ -244,13 +244,22 @@ array to GPU and get result from GPU to y array.
 Since both of these memory transfer trigger the DMA functions without CPU operation,
 it maybe speed up by running both CPU/GPU with their data in their own cache.
 When the GPU function is dense computation in array such as MPEG4 encoder or
-deep learning for tuning weights, it mays get much speed up. But when GPU function
+deep learning for tuning weights, it mays get much speed up [#mpeg4speedup]_. 
+But when GPU function
 is matrix addition and CPU will idle for waiting GPU's result. It mays slow 
 down than do matrix addition by CPU only.
 Arithmetic intensity is defined as the number of operations performed per word of 
 memory transferred. It is important for GPGPU applications to have high arithmetic 
 intensity else the memory access latency will limit computational speedup 
 [#gpgpuwiki]_. 
+
+Wiki here [#gpuspeedup]_ includes speepup applications for gpu as follows:
+
+General Purpose Computing on GPU, has found its way into fields as diverse as 
+machine learning, oil exploration, scientific image processing, linear algebra,
+statistics, 3D reconstruction and even stock options pricing determination.
+And section "GPU accelerated video decoding and encoding" for video compressing
+more.
 
 
 https://en.wikipedia.org/wiki/General-purpose_computing_on_graphics_processing_units
@@ -260,7 +269,7 @@ https://en.wikipedia.org/wiki/General-purpose_computing_on_graphics_processing_u
        Morgan Kaufmann Series in Computer Architecture and Design)
 
 
-.. [#polygon] https://en.wikipedia.org/wiki/Polygon_(computer_graphics)
+.. [#polygon] https://www.quora.com/Which-one-is-better-for-3D-modeling-Quads-or-Tris
 
 
 .. [#shading] https://en.wikipedia.org/wiki/Shading
@@ -279,9 +288,11 @@ https://en.wikipedia.org/wiki/General-purpose_computing_on_graphics_processing_u
 .. [#2danimation] https://tw.video.search.yahoo.com/search/video?fr=yfp-search-sb&p=2d+animation#id=12&vid=46be09edf57b960ae79e9cd077eea1ea&action=view
 
 
+.. [#shaderswiki] https://en.m.wikipedia.org/wiki/OpenGL_Shading_Language
+
 .. [#shadersex] https://learnopengl.com/Getting-started/Shaders
 
-.. [#shaderswiki] https://en.m.wikipedia.org/wiki/OpenGL_Shading_Language
+.. [#glsleffect] https://www.youtube.com/watch?v=LyoSSoYyfVU at 5:25 from beginning: combine different textures.
 
 .. [#onlinecompile] https://community.khronos.org/t/offline-glsl-compilation/61784
 
@@ -296,6 +307,11 @@ https://en.wikipedia.org/wiki/General-purpose_computing_on_graphics_processing_u
 .. [#tpu] http://math.hws.edu/graphicsbook/c6/s4.html
 
 
+
 .. [#gpgpuwiki] https://en.wikipedia.org/wiki/General-purpose_computing_on_graphics_processing_units
 
 .. [#cudaex] https://devblogs.nvidia.com/easy-introduction-cuda-c-and-c/
+
+.. [#mpeg4speedup] https://www.manchestervideo.com/2016/06/11/speed-h-264-encoding-budget-gpu/
+
+.. [#gpuspeedup] https://en.wikipedia.org/wiki/Graphics_processing_unit
