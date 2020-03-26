@@ -34,6 +34,7 @@ as follows,
 
 After the next processing of shading, the vertices and edge line are covered 
 with color (or remove edges), then model looks much more smooth [#shading]_. 
+Gourand shading and Phong shading on openGL api are here [#smoothshadingex]_.
 Furthermore, after texturing (texture mapping), the model looks real more 
 [#texturemapping]_.
  
@@ -172,6 +173,13 @@ About llvm intrinsic extended function, please refer this book here [#intrinsicc
   gvec4 texture(gsampler2D sampler, vec2 P, [float bias]);
 
 
+.. _sampling: 
+.. figure:: ../Fig/gpu/sampling_diagram.png
+  :align: center
+
+  Relationships between the texturing concept [#textureobject]_.
+
+The figure of relationships between the texturing concept as above.
 The texture object is not bound directly into the shader (where the actual 
 sampling takes place). Instead, it is bound to a 'texture unit' whose index 
 is passed to the shader. So the shader reaches the texture object by going 
@@ -245,9 +253,8 @@ Since both of these memory transfer trigger the DMA functions without CPU operat
 it maybe speed up by running both CPU/GPU with their data in their own cache.
 When the GPU function is dense computation in array such as MPEG4 encoder or
 deep learning for tuning weights, it mays get much speed up [#mpeg4speedup]_. 
-But when GPU function
-is matrix addition and CPU will idle for waiting GPU's result. It mays slow 
-down than do matrix addition by CPU only.
+But when GPU function is matrix addition and CPU will idle for waiting 
+GPU's result. It mays slow down than do matrix addition by CPU only.
 Arithmetic intensity is defined as the number of operations performed per word of 
 memory transferred. It is important for GPGPU applications to have high arithmetic 
 intensity else the memory access latency will limit computational speedup 
@@ -262,6 +269,27 @@ And section "GPU accelerated video decoding and encoding" for video compressing
 more.
 
 
+Vulkan and spir-v
+-----------------
+
+Though OpenGL api existed in higher level with many advantages from sections
+above, sometimes it cannot compete in efficience with direct3D providing 
+lower levels api for operating memory by user program [#vulkanapiwiki]_. 
+Vulkan api is lower level C/C++ api to fill the gap allowing user program to 
+do these things in OpenGL to compete against Microsoft direct3D. 
+Here is an example [#vulkanex]_. Meanwhile glsl is C-like language. The vulkan 
+infrastructure provides tool to compile glsl into an Intermediate Representation 
+form (IR) called spir-v [#spirvtoolchain]_. 
+As a result, it saves part of compiling time from glsl to gpu instructions on-line 
+since spir-v is IR of level closing to llvm IR [#spirvwiki]_. 
+In addition, vulkan api reduces gpu drivers efforts in optimization and code 
+generation [#vulkanapiwiki]_. These standard provide user programmer option in 
+using vulkan/spir-v or openGL/glsl, and allow them to pre-compile glsl into spir-v
+to same part of on-line compiling time.
+
+With vulkan and spir-v standard, the gpu can be used in OpenCL for Parallel 
+Programming of Heterogeneous Systems [#opencl]_ [#computekernelwiki]_.
+
 https://en.wikipedia.org/wiki/General-purpose_computing_on_graphics_processing_units
     
 
@@ -273,6 +301,8 @@ https://en.wikipedia.org/wiki/General-purpose_computing_on_graphics_processing_u
 
 
 .. [#shading] https://en.wikipedia.org/wiki/Shading
+
+.. [#smoothshadingex] https://github.com/ruange/Gouraud-Shading-and-Phong-Shading
 
 .. [#texturemapping] https://en.wikipedia.org/wiki/Texture_mapping
 
@@ -315,3 +345,15 @@ https://en.wikipedia.org/wiki/General-purpose_computing_on_graphics_processing_u
 .. [#mpeg4speedup] https://www.manchestervideo.com/2016/06/11/speed-h-264-encoding-budget-gpu/
 
 .. [#gpuspeedup] https://en.wikipedia.org/wiki/Graphics_processing_unit
+
+.. [#vulkanapiwiki] Vulkan offers lower overhead, more direct control over the GPU, and lower CPU usage... By allowing shader pre-compilation, application initialization speed is improved... A Vulkan driver only needs to do GPU specific optimization and code generation, resulting in easier driver maintenance... https://en.wikipedia.org/wiki/Vulkan_(API)
+
+.. [#vulkanex] https://github.com/SaschaWillems/Vulkan/blob/master/examples/triangle/triangle.cpp
+
+.. [#spirvtoolchain] glslangValidator is the tool used to compile GLSL shaders into SPIR-V, Vulkan's shader format. https://vulkan.lunarg.com/doc/view/1.0.39.1/windows/spirv_toolchain.html
+
+.. [#spirvwiki] SPIR 2.0: LLVM IR version 3.4. SPIR-V 1.X: 100% Khronos defined Round-trip lossless conversion to llvm.  https://en.wikipedia.org/wiki/Standard_Portable_Intermediate_Representation
+
+.. [#opencl] https://www.khronos.org/opencl/
+
+.. [#computekernelwiki] https://en.wikipedia.org/wiki/Compute_kernel
