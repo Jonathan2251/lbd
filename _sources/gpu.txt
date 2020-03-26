@@ -34,7 +34,6 @@ as follows,
 
 After the next processing of shading, the vertices and edge line are covered 
 with color (or remove edges), then model looks much more smooth [#shading]_. 
-Gourand shading and Phong shading on openGL api are here [#smoothshadingex]_.
 Furthermore, after texturing (texture mapping), the model looks real more 
 [#texturemapping]_.
  
@@ -120,6 +119,9 @@ pipeline at the vertex and fragment level [#shaderswiki]_.
 Unlike the shaders example here [#shadersex]_, some shaders converting function 
 in vertex or color(Fragment shade) are more complicated according the scenes of 
 animation. Here is an example [#glsleffect]_.
+In wiki shading page [#shading]_, Gourand and Phong shading methods make the
+surface of object more smooth. Example code of Gourand and Phong shading on 
+openGL api are here [#smoothshadingex]_.
 Since the hardware of graphic card and software graphic driver can be changed, 
 the compiler is run on-line which means compile the shaders program when it is 
 run at first time.
@@ -302,8 +304,6 @@ https://en.wikipedia.org/wiki/General-purpose_computing_on_graphics_processing_u
 
 .. [#shading] https://en.wikipedia.org/wiki/Shading
 
-.. [#smoothshadingex] https://github.com/ruange/Gouraud-Shading-and-Phong-Shading
-
 .. [#texturemapping] https://en.wikipedia.org/wiki/Texture_mapping
 
 .. [#animation1] https://www.youtube.com/watch?v=f3Cr8Yx3GGA
@@ -323,6 +323,8 @@ https://en.wikipedia.org/wiki/General-purpose_computing_on_graphics_processing_u
 .. [#shadersex] https://learnopengl.com/Getting-started/Shaders
 
 .. [#glsleffect] https://www.youtube.com/watch?v=LyoSSoYyfVU at 5:25 from beginning: combine different textures.
+
+.. [#smoothshadingex] https://github.com/ruange/Gouraud-Shading-and-Phong-Shading
 
 .. [#onlinecompile] https://community.khronos.org/t/offline-glsl-compilation/61784
 
