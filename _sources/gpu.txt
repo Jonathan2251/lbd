@@ -23,7 +23,7 @@ cores architecture.
 ------------
 
 Through creating 3D model with Triangles or Quads along on skin, the 3D model
-is created with polygon [#polygon]_ formed by all the vertices as the first image 
+is created with polygon mesh [#polygon]_ formed by all the vertices as the first image 
 as follows,
 
 .. _modeling1: 
@@ -32,7 +32,7 @@ as follows,
 
   Creating 3D model and texturing
 
-After the next processing of shading, the vertices and edge line are covered 
+After the next smooth shading [#polygon]_, the vertices and edge line are covered 
 with color (or remove edges), then model looks much more smooth [#shading]_. 
 Furthermore, after texturing (texture mapping), the model looks real more 
 [#texturemapping]_.
@@ -125,11 +125,10 @@ openGL api are here [#smoothshadingex]_.
 Since the hardware of graphic card and software graphic driver can be changed, 
 the compiler is run on-line which means compile the shaders program when it is 
 run at first time.
-The shaders program is C-like syntax and can be compiled in few mini-seconds 
-[#onlinecompile]_. 
-So, add up this few mini-seconds of on-line compile time in running OpenGL 
+The shaders program is C-like syntax and can be compiled in few mini-seconds, 
+add up this few mini-seconds of on-line compile time in running OpenGL 
 program is a good choice for dealing the cases of driver software or gpu 
-hardware changes. 
+hardware changes [#onlinecompile]_. 
 
 OpenGL Shader compiler
 -----------------------
@@ -216,6 +215,7 @@ GPU backend compiler is still a little complex than CPU backend.
 as linker, JIT, gdb/lldb, of course, CPU compiler is much much complex than
 GPU compiler)
 
+Here is the software stack of 3D graphic system for OpenGL in linux [#mesawiki]_.
 
 General purpose GPU
 --------------------
@@ -338,6 +338,7 @@ https://en.wikipedia.org/wiki/General-purpose_computing_on_graphics_processing_u
 
 .. [#tpu] http://math.hws.edu/graphicsbook/c6/s4.html
 
+.. [#mesawiki] https://en.wikipedia.org/wiki/Mesa_(computer_graphics)
 
 
 .. [#gpgpuwiki] https://en.wikipedia.org/wiki/General-purpose_computing_on_graphics_processing_units
