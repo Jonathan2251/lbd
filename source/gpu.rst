@@ -23,7 +23,7 @@ cores architecture.
 ------------
 
 Through creating 3D model with Triangles or Quads along on skin, the 3D model
-is created with polygon mesh [#polygon]_ formed by all the vertices as the first image 
+is created with polygon mesh [#polygon]_ formed by all the vertices on the first image 
 as follows,
 
 .. _modeling1: 
@@ -39,7 +39,7 @@ Furthermore, after texturing (texture mapping), the model looks real more
  
 To get to know how animation for a 3D modeling, please look video here [#animation1]_.
 In this series of video, you find the 3D modeling tools creating Java instead of
-C/C++ code of calling OpenGL api and shaders. Because Java can call OpenGL api
+C/C++ code calling OpenGL api and shaders. It's because Java can call OpenGL api
 through a wrapper library [#joglwiki]_.
 
 3D Rendering
@@ -120,8 +120,8 @@ Unlike the shaders example here [#shadersex]_, some shaders converting function
 in vertex or color(Fragment shade) are more complicated according the scenes of 
 animation. Here is an example [#glsleffect]_.
 In wiki shading page [#shading]_, Gourand and Phong shading methods make the
-surface of object more smooth. Example code of Gourand and Phong shading on 
-openGL api are here [#smoothshadingex]_.
+surface of object more smooth are achieved by glsl. Example glsl code of Gourand 
+and Phong shading on openGL api are here [#smoothshadingex]_.
 Since the hardware of graphic card and software graphic driver can be changed, 
 the compiler is run on-line which means compile the shaders program when it is 
 run at first time.
@@ -142,8 +142,8 @@ For example, the number of texture related api is close to one hundred for code
 generation since they include different api names with different operands for 
 each api name.
 This implementation can be done by generating llvm extended intrinsic functions 
-from shader parser of frontend compiler, and llvm backend for those intrinsic 
-to finish it as follows,
+from shader parser of frontend compiler, and then llvm backend convert those intrinsic 
+to gpu instructions as follows,
 
 .. code-block:: console
 
@@ -256,7 +256,7 @@ it maybe speed up by running both CPU/GPU with their data in their own cache.
 When the GPU function is dense computation in array such as MPEG4 encoder or
 deep learning for tuning weights, it mays get much speed up [#mpeg4speedup]_. 
 But when GPU function is matrix addition and CPU will idle for waiting 
-GPU's result. It mays slow down than do matrix addition by CPU only.
+GPU's result. It mays slow down than doing matrix addition by CPU only.
 Arithmetic intensity is defined as the number of operations performed per word of 
 memory transferred. It is important for GPGPU applications to have high arithmetic 
 intensity else the memory access latency will limit computational speedup 
@@ -287,13 +287,11 @@ since spir-v is IR of level closing to llvm IR [#spirvwiki]_.
 In addition, vulkan api reduces gpu drivers efforts in optimization and code 
 generation [#vulkanapiwiki]_. These standard provide user programmer option in 
 using vulkan/spir-v or openGL/glsl, and allow them to pre-compile glsl into spir-v
-to same part of on-line compiling time.
+to saving part of on-line compiling time.
 
 With vulkan and spir-v standard, the gpu can be used in OpenCL for Parallel 
 Programming of Heterogeneous Systems [#opencl]_ [#computekernelwiki]_.
 
-https://en.wikipedia.org/wiki/General-purpose_computing_on_graphics_processing_units
-    
 
 .. [#Quantitative] Book Figure 4.13 of Computer Architecture: A Quantitative Approach 5th edition (The
        Morgan Kaufmann Series in Computer Architecture and Design)
