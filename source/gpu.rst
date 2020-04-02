@@ -123,7 +123,7 @@ in vertex or color(Fragment shade) are more complicated according the scenes of
 animation. Here is an example [#glsleffect]_.
 In wiki shading page [#shading]_, Gourand and Phong shading methods make the
 surface of object more smooth are achieved by glsl. Example glsl code of Gourand 
-and Phong shading on openGL api are here [#smoothshadingex]_.
+and Phong shading on OpenGL api are here [#smoothshadingex]_.
 Since the hardware of graphic card and software graphic driver can be changed, 
 the compiler is run on-line which means compile the shaders program when it is 
 run at first time.
@@ -195,17 +195,11 @@ through the texture unit. There are usually multiple texture units available
 and the exact number depends on the capability of your graphis card [#textureobject]_. 
 A texture unit, also called a texture mapping unit (TMU) or a texture processing 
 unit (TPU), is a hardware component in a GPU that does sampling.
-Fast texture sampling is one of the key requirements for good GPU performance [#tpu]_.
 The argument sampler in texture function as above is sampler_2d index from
 'teuxture unit' for texture object [#textureobject]_. 
 
-.. _sampling_binding: 
-.. figure:: ../Fig/gpu/sampling_diagram_binding.png
-  :align: center
-
-  Binding sampler variables [#tpu]_.
-
 'sampler uniform variable':
+
 There is a group of special uniform variables for that, according to the texture 
 target: 'sampler1D', 'sampler2D', 'sampler3D', 'samplerCube', etc. 
 You can create as many 'sampler uniform variables' as you want and assign the 
@@ -221,7 +215,13 @@ binary file [#metadata]_. After gpu driver executing glsl on-line compiling,
 driver read this index/ID metadata from compiled binary file and maintain a 
 table of {name, location(memory address)} for each 'sampler uniform variable'.
 
-As Figure: Binding sampler variables, the Java openGL wrapper api
+.. _sampling_binding: 
+.. figure:: ../Fig/gpu/sampling_diagram_binding.png
+  :align: center
+
+  Binding sampler variables [#tpu]_.
+
+As Figure: Binding sampler variables, the Java OpenGL wrapper api
 gl.bindTexture binding 'Texture Object' to 'Texture Unit'. 
 The gl.getUniformLocation and gl.uniform1i associate 'Texture Unit' to
 'sampler uniform variables'. 
@@ -256,15 +256,17 @@ Then, when executing the texture instructions from glsl binary file on gpu,
   sample2d_inst $1, $2, $3 // $1: %sampler_2d, $2: %uv_2d, $3: %bias
       
 the corresponding 'Texture Unit 1' on gpu will be executing through 
-binary metadata address of 'sampler uniform variable', x, for this example.
+binary metadata address of 'sampler uniform variable', x, in this example.
 
-Since 'Texture Unit' is limited hardware accelerator on gpu, openGL
+Since 'Texture Unit' is limited hardware accelerator on gpu, OpenGL
 providing api to user program for binding 'Texture Unit' to 'Sampler Variables'
 to doing load balance in using the 'Texture Unit'. With this mechanism, the 
-compiled glsl binary is allowing to do load balance through openGL api without
+compiled glsl binary is allowing to do load balance through OpenGL api without
 recompiling glsl. The glsl on-line compiling only be triggered at first time of
 running program. It is kept in cache and is executing directly after first 
 time of compiling.
+Fast texture sampling is one of the key requirements for good GPU performance 
+[#tpu]_.
 
 Even llvm intrinsic extended function providing an easy way to do code 
 generation through llvm td (Target Description) file written, 
@@ -344,7 +346,7 @@ As a result, it saves part of compiling time from glsl to gpu instructions on-li
 since spir-v is IR of level closing to llvm IR [#spirvwiki]_. 
 In addition, vulkan api reduces gpu drivers efforts in optimization and code 
 generation [#vulkanapiwiki]_. These standard provide user programmer option in 
-using vulkan/spir-v or openGL/glsl, and allow them to pre-compile glsl into spir-v
+using vulkan/spir-v or OpenGL/glsl, and allow them to pre-compile glsl into spir-v
 to saving part of on-line compiling time.
 
 With vulkan and spir-v standard, the gpu can be used in OpenCL for Parallel 
