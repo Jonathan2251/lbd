@@ -199,7 +199,7 @@ Fast texture sampling is one of the key requirements for good GPU performance [#
 The argument sampler in texture function as above is sampler_2d index from
 'teuxture unit' for texture object [#textureobject]_. 
 
-.. _sampling: 
+.. _sampling_binding: 
 .. figure:: ../Fig/gpu/sampling_diagram_binding.png
   :align: center
 
@@ -250,7 +250,7 @@ will binding location(memory address) of 'sampler uniform variable' x to
 
 Then, when executing the texture instructions from glsl binary file on gpu,
 
-.. code-block:: c++
+.. code-block:: console
 
   // gpu machine code
   sample2d_inst $1, $2, $3 // $1: %sampler_2d, $2: %uv_2d, $3: %bias
