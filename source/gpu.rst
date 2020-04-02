@@ -29,6 +29,7 @@ as follows,
 .. _modeling1: 
 .. figure:: ../Fig/gpu/modeling1.png
   :align: center
+  :scale: 80 %
 
   Creating 3D model and texturing
 
@@ -51,6 +52,7 @@ through a wrapper library [#joglwiki]_.
 .. _rendering_pipeline1: 
 .. figure:: ../Fig/gpu/rendering_pipeline.png
   :align: center
+  :scale: 80 %
 
   Diagram of the Rendering Pipeline. The blue boxes are programmable shader stages.
 
@@ -181,6 +183,7 @@ About llvm intrinsic extended function, please refer this book here [#intrinsicc
 .. _sampling: 
 .. figure:: ../Fig/gpu/sampling_diagram.png
   :align: center
+  :scale: 60 %
 
   Relationships between the texturing concept [#textureobject]_.
 
@@ -214,12 +217,55 @@ In order to let the 'texture unit' binding by driver, frontend compiler must
 pass the type of 'sampler uniform variable' (sampler1D, sampler2D, sampler3D 
 or samplerCube) [#samplervar]_ to backend, and backend must 
 allocate the index/ID of 'sampler uniform variable' in the compiled 
-binary file [#metadata]_.
+binary file [#metadata]_. After gpu driver executing glsl on-line compiling,
+driver read this index/ID metadata from compiled binary file and maintain a 
+table of {name, location(memory address)} for each 'sampler uniform variable'.
 
-Driver will be triggered and get 'sample uniform variable' by index from the 
-array of 'sample uniform variable' when user program call api 
-glGenTextures, glBindTexture and glTexImage2D before shader program
-executing on gpu [#textureobject]_.
+As Figure: Binding sampler variables, the Java openGL wrapper api
+gl.bindTexture binding 'Texture Object' to 'Texture Unit'. 
+The gl.getUniformLocation and gl.uniform1i associate 'Texture Unit' to
+'sampler uniform variables'. 
+
+The gl.uniform1i(xLoc, 1) where 1 is 
+'Texture Unit 1', 2 is 'Texture Unit 2', ..., etc [#tpu]_.
+
+Api,
+
+.. code-block:: c++
+
+  x_texture_location = gl.getUniformLocation(pro, "x");
+  
+will get the location from the table for 'sampler uniform variable' x that
+driver created.
+
+Api,
+
+.. code-block:: c++
+
+  gl.uniform1i( x_texture_location, 1 );
+  
+will binding location(memory address) of 'sampler uniform variable' x to 
+'Texture Unit 1' by writing 1 to the glsl binary metadata address of
+'sampler uniform variable' x.
+
+Then, when executing the texture instructions from glsl binary file on gpu,
+
+.. code-block:: c++
+
+  // gpu machine code
+  sample2d_inst $1, $2, $3 // $1: %sampler_2d, $2: %uv_2d, $3: %bias
+      
+the corresponding 'Texture Unit 1' on gpu will be executing through 
+binary metadata address of 'sampler uniform variable', x, for this example.
+
+Since 'Texture Unit' is limited hardware accelerator on gpu, openGL
+providing api to user program for binding 'Texture Unit' to 'Sampler Variables'
+to doing load balance in using the 'Texture Unit'. With this mechanism, the 
+compiled glsl binary is allowing to do load balance through openGL api without
+recompiling glsl. The glsl on-line compiling only be triggered at first time of
+running program. It is kept in cache and is executing directly after first 
+time of compiling.
+
 Even llvm intrinsic extended function providing an easy way to do code 
 generation through llvm td (Target Description) file written, 
 GPU backend compiler is still a little complex than CPU backend. 
