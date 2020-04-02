@@ -191,13 +191,14 @@ to gpu instructions as follows,</p>
 <span class="go">}</span>
 
 <span class="go">...</span>
-<span class="go">!1 = !{!&quot;sampler2D&quot;}</span>
+<span class="go">!1 = !{!&quot;sampler_2d&quot;}</span>
+<span class="go">!2 = !{i32 INT_SAMPLER_2D} : INT_SAMPLER_2D is integer value for sampler2D, for example: 0x0f02</span>
 <span class="go">; A named metadata.</span>
-<span class="go">!name = !{!1, ...}</span>
+<span class="go">!sampler_2d_var = !{!1, !2}</span>
 
 <span class="go">define void @main() #0 {</span>
 <span class="go">    ...</span>
-<span class="gp">    %</span><span class="nv">1</span> <span class="o">=</span> @llvm.gpu0.texture<span class="o">(</span>metadata !1, %1, %2, %3<span class="o">)</span><span class="p">;</span> // %1: %sampler_2d, %2: %uv_2d, %3: %bias
+<span class="gp">    %</span><span class="nv">1</span> <span class="o">=</span> @llvm.gpu0.texture<span class="o">(</span>metadata !sampler_2d_var, %1, %2, %3<span class="o">)</span><span class="p">;</span> // %1: %sampler_2d, %2: %uv_2d, %3: %bias
 <span class="go">    ...</span>
 <span class="go">}</span>
 
@@ -232,12 +233,12 @@ value of a texture unit to each one from the application.
 Whenever you call a sampling function on a &#8216;sampler uniform variable&#8217; the
 corresponding texture unit (and texture object) will be used <a class="footnote-reference" href="#textureobject" id="id23">[18]</a>.</p>
 <p>In order to let the &#8216;texture unit&#8217; binding by driver, frontend compiler must
-pass the type of &#8216;sampler uniform variable&#8217; (sampler1D, sampler2D, sampler3D
-or samplerCube) <a class="footnote-reference" href="#samplervar" id="id24">[21]</a> to backend, and backend must
-allocate the index/ID of &#8216;sampler uniform variable&#8217; in the compiled
+pass the metadata of &#8216;sampler uniform variable&#8217; (sampler_2d_var in this example)
+<a class="footnote-reference" href="#samplervar" id="id24">[21]</a> to backend, and backend must
+allocate the metadata of &#8216;sampler uniform variable&#8217; in the compiled
 binary file <a class="footnote-reference" href="#metadata" id="id25">[20]</a>. After gpu driver executing glsl on-line compiling,
-driver read this index/ID metadata from compiled binary file and maintain a
-table of {name, location(memory address)} for each &#8216;sampler uniform variable&#8217;.</p>
+driver read this metadata from compiled binary file and maintain a
+table of {name, SamplerType} for each &#8216;sampler uniform variable&#8217;.</p>
 <div class="figure align-center" id="id45">
 <span id="sampling-binding"></span><img alt="_images/sampling_diagram_binding.png" src="_images/sampling_diagram_binding.png" />
 <p class="caption"><span class="caption-number">Fig. 39 </span><span class="caption-text">Binding sampler variables <a class="footnote-reference" href="#tpu" id="id26">[19]</a>.</span></p>
@@ -253,21 +254,30 @@ The gl.getUniformLocation and gl.uniform1i associate &#8216;Texture Unit&#8217; 
 </pre></div>
 </div>
 <p>will get the location from the table for &#8216;sampler uniform variable&#8217; x that
-driver created.</p>
+driver created as follows,</p>
+<div class="highlight-console"><div class="highlight"><pre><span></span><span class="go">{&quot;x&quot;, INT_SAMPLER_2D, x_location} : INT_SAMPLER_2D is integer value for Sampler2D type</span>
+</pre></div>
+</div>
 <p>Api,</p>
 <div class="highlight-c++"><div class="highlight"><pre><span></span><span class="n">gl</span><span class="p">.</span><span class="n">uniform1i</span><span class="p">(</span> <span class="n">x_texture_location</span><span class="p">,</span> <span class="mi">1</span> <span class="p">);</span>
 </pre></div>
 </div>
 <p>will binding location(memory address) of &#8216;sampler uniform variable&#8217; x to
-&#8216;Texture Unit 1&#8217; by writing 1 to the glsl binary metadata address of
-&#8216;sampler uniform variable&#8217; x.</p>
+&#8216;Texture Unit 1&#8217; by writing 1 to the glsl binary metadata location of
+&#8216;sampler uniform variable&#8217; x as follows,</p>
+<div class="highlight-console"><div class="highlight"><pre><span></span><span class="go">{x_location, 1} : 1 is &#39;Texture Unit 1&#39;, x_location is the location(memory address) of &#39;sampler uniform variable&#39; x</span>
+</pre></div>
+</div>
+<p>This api will set the descriptor register of gpu with this {x_location, 1}
+information.</p>
 <p>Then, when executing the texture instructions from glsl binary file on gpu,</p>
 <div class="highlight-console"><div class="highlight"><pre><span></span><span class="go">// gpu machine code</span>
 <span class="go">sample2d_inst $1, $2, $3 // $1: %sampler_2d, $2: %uv_2d, $3: %bias</span>
 </pre></div>
 </div>
 <p>the corresponding &#8216;Texture Unit 1&#8217; on gpu will be executing through
-binary metadata address of &#8216;sampler uniform variable&#8217;, x, in this example.</p>
+descriptor register of gpu {x_location, 1} in this example.</p>
+<p>The scenario comes from part of my imagination.</p>
 <p>Since &#8216;Texture Unit&#8217; is limited hardware accelerator on gpu, OpenGL
 providing api to user program for binding &#8216;Texture Unit&#8217; to &#8216;Sampler Variables&#8217;
 to doing load balance in using the &#8216;Texture Unit&#8217;. With this mechanism, the
