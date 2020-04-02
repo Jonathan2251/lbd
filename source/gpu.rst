@@ -283,6 +283,13 @@ time of compiling.
 Fast texture sampling is one of the key requirements for good GPU performance 
 [#tpu]_.
 
+In addition to binding api for texture, OpenGL providing glTexParameteri api to
+do Texture Wrapping [#texturewrapper]_. 
+And as my experienced texture instruction of gpu including S# T# value in operands.
+Same with associating 'Sampler Variables' to 'Texture Unit', S# and T# value are
+location of memory associating to Texture Wrapping descriptor register.
+Allowing user program change Wrapping option without re-compiling glsl.
+
 Even llvm intrinsic extended function providing an easy way to do code 
 generation through llvm td (Target Description) file written, 
 GPU backend compiler is still a little complex than CPU backend. 
@@ -415,7 +422,9 @@ Programming of Heterogeneous Systems [#opencl]_ [#computekernelwiki]_.
 
 .. [#samplervar] The type of 'sampler uniform variable' called "sampler variables". http://math.hws.edu/graphicsbook/c6/s4.html
 
-.. [#descriptorreg] When performing a texture fetch, the addresses to read pixel data from are computed by reading the GPRs that hold the texture descriptor and the GPRs that hold the texture coordinates. It's mostly just general purpose memory fetching. https://www.gamedev.net/forums/topic/681503-texture-units/ And as my experienced gpu texture instruction providing operand V# S# (the numbers of Vertex and Fragment Shader descriptor registers) to selecting descriptor registers.
+.. [#descriptorreg] When performing a texture fetch, the addresses to read pixel data from are computed by reading the GPRs that hold the texture descriptor and the GPRs that hold the texture coordinates. It's mostly just general purpose memory fetching. https://www.gamedev.net/forums/topic/681503-texture-units/ 
+
+.. [#texturewrapper] https://learnopengl.com/Getting-started/Textures
 
 .. [#mesawiki] https://en.wikipedia.org/wiki/Mesa_(computer_graphics)
 
