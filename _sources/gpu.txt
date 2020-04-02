@@ -150,29 +150,29 @@ to gpu instructions as follows,
 .. code-block:: console
 
   #version 320 es
-  uniform sampler2D sampler_2d;
+  uniform sampler2D x;
   out vec4 FragColor;
   
   void main()
   {
-      FragColor = texture(sampler_2d, uv_2d, bias);
+      FragColor = texture(x, uv_2d, bias);
   }
   
   ...
   !1 = !{!"sampler_2d"}
-  !2 = !{i32 INT_SAMPLER_2D} : INT_SAMPLER_2D is integer value for sampler2D, for example: 0x0f02
+  !2 = !{i32 SAMPLER_2D} : SAMPLER_2D is integer value for sampler2D, for example: 0x0f02
   ; A named metadata.
-  !sampler_2d_var = !{!1, !2}
+  !x_meta = !{!1, !2}
 
   define void @main() #0 {
       ...
-      %1 = @llvm.gpu0.texture(metadata !sampler_2d_var, %1, %2, %3); // %1: %sampler_2d, %2: %uv_2d, %3: %bias
+      %1 = @llvm.gpu0.texture(metadata !x_meta, %1, %2, %3); // %1: %sampler_2d, %2: %uv_2d, %3: %bias
       ...
   }
   
   ...
      // gpu machine code
-      sample2d_inst $1, $2, $3 // $1: %sampler_2d, $2: %uv_2d, $3: %bias
+      sample2d_inst $1, $2, $3 // $1: %x, $2: %uv_2d, $3: %bias
       
 About llvm intrinsic extended function, please refer this book here [#intrinsiccpu0]_.
 
@@ -208,13 +208,6 @@ value of a texture unit to each one from the application.
 Whenever you call a sampling function on a 'sampler uniform variable' the 
 corresponding texture unit (and texture object) will be used [#textureobject]_.
 
-In order to let the 'texture unit' binding by driver, frontend compiler must
-pass the metadata of 'sampler uniform variable' (sampler_2d_var in this example) 
-[#samplervar]_ to backend, and backend must 
-allocate the metadata of 'sampler uniform variable' in the compiled 
-binary file [#metadata]_. After gpu driver executing glsl on-line compiling,
-driver read this metadata from compiled binary file and maintain a 
-table of {name, SamplerType} for each 'sampler uniform variable'.
 
 .. _sampling_binding: 
 .. figure:: ../Fig/gpu/sampling_diagram_binding.png
@@ -230,62 +223,83 @@ The gl.getUniformLocation and gl.uniform1i associate 'Texture Unit' to
 The gl.uniform1i(xLoc, 1) where 1 is 
 'Texture Unit 1', 2 is 'Texture Unit 2', ..., etc [#tpu]_.
 
-Api,
+The following figure depicts how driver read metadata from compiled glsl obj,
+OpenGL api associate 'Sample Variable' and gpu executing texture instruction.
+
+.. _driverSamplerTable: 
+.. figure:: ../Fig/gpu/driverSamplerTable.png
+  :align: center
+
+  Associating Sampler Variables and gpu executing texture instruction
+
+Explaining the detail steps for figure above as the following. Please
+skip the following if you understand from figure above.
+
+1. In order to let the 'texture unit' binding by driver, frontend compiler must
+pass the metadata of 'sampler uniform variable' (sampler_2d_var in this example) 
+[#samplervar]_ to backend, and backend must 
+allocate the metadata of 'sampler uniform variable' in the compiled 
+binary file [#metadata]_. 
+
+2. After gpu driver executing glsl on-line compiling,
+driver read this metadata from compiled binary file and maintain a 
+table of {name, SamplerType} for each 'sampler uniform variable'.
+
+3. Api,
 
 .. code-block:: c++
 
-  x_texture_location = gl.getUniformLocation(pro, "x");
+  xLoc = gl.getUniformLocation(prog, "x"); // prog: glsl program, xLoc
   
 will get the location from the table for 'sampler uniform variable' x that
 driver created as follows,
 
 .. code-block:: console
 
-  {"x", INT_SAMPLER_2D, x_location} : INT_SAMPLER_2D is integer value for Sampler2D type
+  {"x", SAMPLER_2D, xLoc} : SAMPLER_2D is integer value for Sampler2D type
 
 
-Api,
+4. Api,
 
 .. code-block:: c++
 
-  gl.uniform1i( x_texture_location, 1 );
+  gl.uniform1i( xLoc, 1 );
   
-will binding location(memory address) of 'sampler uniform variable' x to 
+will binding xLoc of 'sampler uniform variable' x to 
 'Texture Unit 1' by writing 1 to the glsl binary metadata location of
 'sampler uniform variable' x as follows,
 
 .. code-block:: console
 
-  {x_location, 1} : 1 is 'Texture Unit 1', x_location is the location(memory address) of 'sampler uniform variable' x
+  {xLoc, 1} : 1 is 'Texture Unit 1', xLoc is the location(memory address) of 'sampler uniform variable' x
   
-This api will set the descriptor register of gpu with this {x_location, 1} 
+This api will set the descriptor register of gpu with this {xLoc, 1} 
 information [#descriptorreg]_.
   
-Then, when executing the texture instructions from glsl binary file on gpu,
+5. When executing the texture instructions from glsl binary file on gpu,
 
 .. code-block:: console
 
   // gpu machine code
-  sample2d_inst $1, $2, $3 // $1: %sampler_2d, $2: %uv_2d, $3: %bias
+  sample2d_inst $1, $2, $3 // $1: %x, $2: %uv_2d, $3: %bias
       
 the corresponding 'Texture Unit 1' on gpu will be executing through 
 descriptor register of gpu {x_location, 1} in this example.
 
-The scenario comes from part of my imagination.
+The scenario above comes from part of my imagination.
 
 Since 'Texture Unit' is limited hardware accelerator on gpu, OpenGL
 providing api to user program for binding 'Texture Unit' to 'Sampler Variables'
-to doing load balance in using the 'Texture Unit'. With this mechanism, the 
-compiled glsl binary is allowing to do load balance through OpenGL api without
-recompiling glsl. The glsl on-line compiling only be triggered at first time of
-running program. It is kept in cache and is executing directly after first 
-time of compiling.
+to doing load balance in using the 'Texture Unit'. With this mechanism, programmer
+can do load balance through OpenGL api without recompiling glsl. 
+The glsl on-line compiling only be triggered at first time of running program. 
+It is kept in cache and is executing directly after first time of compiling.
 Fast texture sampling is one of the key requirements for good GPU performance 
 [#tpu]_.
 
 In addition to binding api for texture, OpenGL providing glTexParameteri api to
 do Texture Wrapping [#texturewrapper]_. 
-And as my experienced texture instruction of gpu including S# T# value in operands.
+And the texture instruction of some gpu including S# T# value in operands.
 Same with associating 'Sampler Variables' to 'Texture Unit', S# and T# value are
 location of memory associating to Texture Wrapping descriptor register.
 Allowing user program change Wrapping option without re-compiling glsl.
@@ -294,8 +308,8 @@ Even llvm intrinsic extended function providing an easy way to do code
 generation through llvm td (Target Description) file written, 
 GPU backend compiler is still a little complex than CPU backend. 
 (When counting in frontend compier such as clang or other toolchain such
-as linker, JIT, gdb/lldb, of course, CPU compiler is much much complex than
-GPU compiler)
+as linker and gdb/lldb, of course, CPU compiler is much much complex than
+GPU compiler.)
 
 Here is the software stack of 3D graphic system for OpenGL in linux [#mesawiki]_.
 
