@@ -157,9 +157,13 @@ to gpu instructions as follows,
   }
   
   ...
+  !1 = !{!"sampler2D"}
+  ; A named metadata.
+  !name = !{!1, ...}
+
   define void @main() #0 {
       ...
-      %1 = @llvm.gpu0.texture(%sampler_2d, %uv_2d, %bias);
+      %1 = @llvm.gpu0.texture(metadata !1, %1, %2, %3); // %1: %sampler_2d, %2: %uv_2d, %3: %bias
       ...
   }
   
@@ -192,6 +196,12 @@ Fast texture sampling is one of the key requirements for good GPU performance [#
 The argument sampler in texture function as above is sampler_2d index from
 'teuxture unit' for texture object [#textureobject]_. 
 
+.. _sampling: 
+.. figure:: ../Fig/gpu/sampling_diagram_binding.png
+  :align: center
+
+  Binding sampler variables [#tpu]_.
+
 'sampler uniform variable':
 There is a group of special uniform variables for that, according to the texture 
 target: 'sampler1D', 'sampler2D', 'sampler3D', 'samplerCube', etc. 
@@ -201,9 +211,11 @@ Whenever you call a sampling function on a 'sampler uniform variable' the
 corresponding texture unit (and texture object) will be used [#textureobject]_.
 
 In order to let the 'texture unit' binding by driver, frontend compiler must
-pass the name of 'sampler uniform variable' to backend, and backend must 
+pass the type of 'sampler uniform variable' (sampler1D, sampler2D, sampler3D 
+or samplerCube) [#samplervar]_ to backend, and backend must 
 allocate the index/ID of 'sampler uniform variable' in the compiled 
-binary file.
+binary file [#metadata]_.
+
 Driver will be triggered and get 'sample uniform variable' by index from the 
 array of 'sample uniform variable' when user program call api 
 glGenTextures, glBindTexture and glTexImage2D before shader program
@@ -335,6 +347,10 @@ Programming of Heterogeneous Systems [#opencl]_ [#computekernelwiki]_.
 .. [#textureobject] http://ogldev.atspace.co.uk/www/tutorial16/tutorial16.html
 
 .. [#tpu] http://math.hws.edu/graphicsbook/c6/s4.html
+
+.. [#metadata] This can be done by llvm metadata. http://llvm.org/docs/LangRef.html#namedmetadatastructure http://llvm.org/docs/LangRef.html#metadata
+
+.. [#samplervar] The type of 'sampler uniform variable' called "sampler variables". http://math.hws.edu/graphicsbook/c6/s4.html
 
 .. [#mesawiki] https://en.wikipedia.org/wiki/Mesa_(computer_graphics)
 
