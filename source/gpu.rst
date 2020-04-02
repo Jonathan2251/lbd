@@ -234,7 +234,7 @@ Api,
 
 .. code-block:: c++
 
-  x_texture_location = gl.getUniformLocation(pro, "x");
+  x_texture_location = gl.getUniformLocation(prog, "x"); // prog: glsl program
   
 will get the location from the table for 'sampler uniform variable' x that
 driver created as follows,
