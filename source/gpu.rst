@@ -259,7 +259,7 @@ will binding location(memory address) of 'sampler uniform variable' x to
   {x_location, 1} : 1 is 'Texture Unit 1', x_location is the location(memory address) of 'sampler uniform variable' x
   
 This api will set the descriptor register of gpu with this {x_location, 1} 
-information.
+information [#descriptorreg]_.
   
 Then, when executing the texture instructions from glsl binary file on gpu,
 
@@ -414,6 +414,8 @@ Programming of Heterogeneous Systems [#opencl]_ [#computekernelwiki]_.
 .. [#metadata] This can be done by llvm metadata. http://llvm.org/docs/LangRef.html#namedmetadatastructure http://llvm.org/docs/LangRef.html#metadata
 
 .. [#samplervar] The type of 'sampler uniform variable' called "sampler variables". http://math.hws.edu/graphicsbook/c6/s4.html
+
+.. [#descriptorreg] When performing a texture fetch, the addresses to read pixel data from are computed by reading the GPRs that hold the texture descriptor and the GPRs that hold the texture coordinates. It's mostly just general purpose memory fetching. https://www.gamedev.net/forums/topic/681503-texture-units/ And as my experienced gpu texture instruction providing operand V# S# (the numbers of Vertex and Fragment Shader descriptor registers) to selecting descriptor registers.
 
 .. [#mesawiki] https://en.wikipedia.org/wiki/Mesa_(computer_graphics)
 
