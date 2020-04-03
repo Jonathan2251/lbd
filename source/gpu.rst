@@ -188,7 +188,7 @@ About llvm intrinsic extended function, please refer this book here [#intrinsicc
 
   Relationships between the texturing concept [#textureobject]_.
 
-The figure of relationships between the texturing concept as above.
+The figure of 'Relationships between the texturing concept' as above.
 The texture object is not bound directly into the shader (where the actual 
 sampling takes place). Instead, it is bound to a 'texture unit' whose index 
 is passed to the shader. So the shader reaches the texture object by going 
@@ -232,8 +232,7 @@ OpenGL api associate 'Sample Variable' and gpu executing texture instruction.
 
   Associating Sampler Variables and gpu executing texture instruction
 
-Explaining the detail steps for figure above as the following. Please
-skip the following if you understand from figure above.
+Explaining the detail steps for figure above as the following.
 
 1. In order to let the 'texture unit' binding by driver, frontend compiler must
 pass the metadata of 'sampler uniform variable' (sampler_2d_var in this example) 
@@ -286,7 +285,9 @@ the corresponding 'Texture Unit 1' on gpu will be executing through descriptor
 register of gpu {xLoc, 1} in this example since memory address xSlot includes the
 value of xLoc. And 'Texture Unit 1' is triggered.
 
-The scenario above comes from part of my imagination.
+Though I was a gpu compiler developer, the scenario above comes from my inference.
+I did not know how user program, OpenGL api and gpu hardware working with
+texturing in details.
 
 Since 'Texture Unit' is limited hardware accelerator on gpu, OpenGL
 providing api to user program for binding 'Texture Unit' to 'Sampler Variables'
@@ -387,6 +388,9 @@ to saving part of on-line compiling time.
 
 With vulkan and spir-v standard, the gpu can be used in OpenCL for Parallel 
 Programming of Heterogeneous Systems [#opencl]_ [#computekernelwiki]_.
+
+Now, you find llvm IR expanding from cpu to gpu becoming influentially more and
+more. And actually, llvm IR expanding from version 3.1 to now as I feel.
 
 
 .. [#Quantitative] Book Figure 4.13 of Computer Architecture: A Quantitative Approach 5th edition (The
