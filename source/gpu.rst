@@ -252,11 +252,9 @@ table of {name, SamplerType} for each 'sampler uniform variable'.
   xLoc = gl.getUniformLocation(prog, "x"); // prog: glsl program, xLoc
   
 will get the location from the table for 'sampler uniform variable' x that
-driver created as follows,
+driver created and set the memory address xSlot to xLoc. 
 
-.. code-block:: console
-
-  {"x", SAMPLER_2D, xLoc} : SAMPLER_2D is integer value for Sampler2D type
+SAMPLER_2D: is integer value for Sampler2D type.
 
 
 4. Api,
@@ -281,10 +279,12 @@ information [#descriptorreg]_.
 .. code-block:: console
 
   // gpu machine code
+  load $1, &xSlot;
   sample2d_inst $1, $2, $3 // $1: %x, $2: %uv_2d, $3: %bias
       
-the corresponding 'Texture Unit 1' on gpu will be executing through 
-descriptor register of gpu {x_location, 1} in this example.
+the corresponding 'Texture Unit 1' on gpu will be executing through descriptor 
+register of gpu {xLoc, 1} in this example since memory address xSlot includes the
+value of xLoc. And 'Texture Unit 1' is triggered.
 
 The scenario above comes from part of my imagination.
 
