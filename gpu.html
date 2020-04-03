@@ -265,10 +265,8 @@ table of {name, SamplerType} for each &#8216;sampler uniform variable&#8217;.</p
 </pre></div>
 </div>
 <p>will get the location from the table for &#8216;sampler uniform variable&#8217; x that
-driver created as follows,</p>
-<div class="highlight-console"><div class="highlight"><pre><span></span><span class="go">{&quot;x&quot;, SAMPLER_2D, xLoc} : SAMPLER_2D is integer value for Sampler2D type</span>
-</pre></div>
-</div>
+driver created and set the memory address xSlot to xLoc.</p>
+<p>SAMPLER_2D: is integer value for Sampler2D type.</p>
 <ol class="arabic simple" start="4">
 <li>Api,</li>
 </ol>
@@ -287,11 +285,13 @@ information <a class="footnote-reference" href="#descriptorreg" id="id28">[22]</
 <li>When executing the texture instructions from glsl binary file on gpu,</li>
 </ol>
 <div class="highlight-console"><div class="highlight"><pre><span></span><span class="go">// gpu machine code</span>
+<span class="go">load $1, &amp;xSlot;</span>
 <span class="go">sample2d_inst $1, $2, $3 // $1: %x, $2: %uv_2d, $3: %bias</span>
 </pre></div>
 </div>
-<p>the corresponding &#8216;Texture Unit 1&#8217; on gpu will be executing through
-descriptor register of gpu {x_location, 1} in this example.</p>
+<p>the corresponding &#8216;Texture Unit 1&#8217; on gpu will be executing through descriptor
+register of gpu {xLoc, 1} in this example since memory address xSlot includes the
+value of xLoc. And &#8216;Texture Unit 1&#8217; is triggered.</p>
 <p>The scenario above comes from part of my imagination.</p>
 <p>Since &#8216;Texture Unit&#8217; is limited hardware accelerator on gpu, OpenGL
 providing api to user program for binding &#8216;Texture Unit&#8217; to &#8216;Sampler Variables&#8217;
