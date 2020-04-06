@@ -287,7 +287,21 @@ value of xLoc. And 'Texture Unit 1' is triggered.
 
 Though I was a gpu compiler developer, the scenario above comes from my inference.
 I did not know how user program, OpenGL api and gpu hardware working with
-texturing in details.
+texturing in details. For instance, Nvidia texture instruction as follow,
+
+.. code-block:: console
+
+  tex.3d.v4.s32.s32  {r1,r2,r3,r4}, [tex_a, {f1,f2,f3,f4}];
+
+Above 3d texture instruction load tex_a texture memory address for
+'sampler uniform variable' x at at coordinates (x,y,z)=(f1,f2,f3) into GPRs
+(r1,r2,r3,r4)=(R,G,B,A). The f4 is skipped for 3D texture.
+And fragment shader can calculate the color of this pixel with this color of
+texture value [#ptxtex]_. For instance, 1d texture instruction as follows,
+
+.. code-block:: console
+
+  tex.1d.v4.s32.f32  {r1,r2,r3,r4}, [tex_a, {f1}];
 
 Since 'Texture Unit' is limited hardware accelerator on gpu, OpenGL
 providing api to user program for binding 'Texture Unit' to 'Sampler Variables'
@@ -393,6 +407,16 @@ Now, you find llvm IR expanding from cpu to gpu becoming influentially more and
 more. And actually, llvm IR expanding from version 3.1 to now as I feel.
 
 
+Mesa3D
+-------
+
+The Mesa project began as an open-source implementation of the OpenGL 
+specification - a system for rendering interactive 3D graphics.
+Over the years the project has grown to implement more graphics APIs, including 
+OpenGL ES (versions 1, 2, 3), OpenCL, OpenMAX, VDPAU, VA API, XvMC and Vulkan. 
+Here is the website [#mesa]_.
+
+
 .. [#Quantitative] Book Figure 4.13 of Computer Architecture: A Quantitative Approach 5th edition (The
        Morgan Kaufmann Series in Computer Architecture and Design)
 
@@ -438,6 +462,8 @@ more. And actually, llvm IR expanding from version 3.1 to now as I feel.
 
 .. [#metadata] This can be done by llvm metadata. http://llvm.org/docs/LangRef.html#namedmetadatastructure http://llvm.org/docs/LangRef.html#metadata
 
+.. [#ptxtex] page 84: tex instruction, p24: texture memory https://www.nvidia.com/content/CUDA-ptx_isa_1.4.pdf
+
 .. [#samplervar] The type of 'sampler uniform variable' called "sampler variables". http://math.hws.edu/graphicsbook/c6/s4.html
 
 .. [#descriptorreg] When performing a texture fetch, the addresses to read pixel data from are computed by reading the GPRs that hold the texture descriptor and the GPRs that hold the texture coordinates. It's mostly just general purpose memory fetching. https://www.gamedev.net/forums/topic/681503-texture-units/ 
@@ -466,3 +492,5 @@ more. And actually, llvm IR expanding from version 3.1 to now as I feel.
 .. [#opencl] https://www.khronos.org/opencl/
 
 .. [#computekernelwiki] https://en.wikipedia.org/wiki/Compute_kernel
+
+.. [#mesa] https://www.mesa3d.org/
