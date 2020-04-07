@@ -47,7 +47,7 @@ using namespace llvm;
 //@1 {
 /// Select the Cpu0 Architecture Feature for the given triple and cpu name.
 /// The function will be called at command 'llvm-objdump -d' for Cpu0 elf input.
-static StringRef selectCpu0ArchFeature(const Triple &TT, StringRef CPU) {
+static std::string selectCpu0ArchFeature(const Triple &TT, StringRef CPU) {
   std::string Cpu0ArchFeature;
   if (CPU.empty() || CPU == "generic") {
     if (TT.getArch() == Triple::cpu0 || TT.getArch() == Triple::cpu0el) {
