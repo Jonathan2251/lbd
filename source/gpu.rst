@@ -14,10 +14,24 @@ scaled of SIMD processor needing to color millions of pixels of image in few
 micro seconds.
 Since the 2D or 3D graphic processing providing large opportunity in parallel
 data processing, GPU hardware usually composed of hundreds of cores with thousands
-of functional units in each core (a.k.a "thread block" [#Quantitative]_) in 
-N-Vidia processors. 
+of functional units in each core(grid) in N-Vidia processors.
 Or tens of cores with tens thousands of functional units in each core for big 
-cores architecture.
+cores architecture as the following figures.
+
+.. _grid: 
+.. figure:: ../Fig/gpu/grid.png
+  :align: center
+  :scale: 80 %
+
+  core(grid) in Nvidia gpu (figure from book [#Quantitative-grid]_)
+ 
+.. _gpu-mem: 
+.. figure:: ../Fig/gpu/memory.png
+  :align: center
+  :scale: 80 %
+
+  core(grid) in Nvidia gpu (figure from book [#Quantitative-gpu-mem]_)
+
 
 3D modeling
 ------------
@@ -327,6 +341,7 @@ as linker and gdb/lldb, of course, CPU compiler is much much complex than
 GPU compiler.)
 
 Here is the software stack of 3D graphic system for OpenGL in linux [#mesawiki]_.
+And mesa open source website is here [#mesa]_.
 
 General purpose GPU
 --------------------
@@ -407,17 +422,10 @@ Now, you find llvm IR expanding from cpu to gpu becoming influentially more and
 more. And actually, llvm IR expanding from version 3.1 to now as I feel.
 
 
-Mesa3D
--------
+.. [#Quantitative-grid] Book Figure 4.13 of Computer Architecture: A Quantitative Approach 5th edition (The
+       Morgan Kaufmann Series in Computer Architecture and Design)
 
-The Mesa project began as an open-source implementation of the OpenGL 
-specification - a system for rendering interactive 3D graphics.
-Over the years the project has grown to implement more graphics APIs, including 
-OpenGL ES (versions 1, 2, 3), OpenCL, OpenMAX, VDPAU, VA API, XvMC and Vulkan. 
-Here is the website [#mesa]_.
-
-
-.. [#Quantitative] Book Figure 4.13 of Computer Architecture: A Quantitative Approach 5th edition (The
+.. [#Quantitative-gpu-mem] Book Figure 4.17 of Computer Architecture: A Quantitative Approach 5th edition (The
        Morgan Kaufmann Series in Computer Architecture and Design)
 
 
@@ -472,6 +480,8 @@ Here is the website [#mesa]_.
 
 .. [#mesawiki] https://en.wikipedia.org/wiki/Mesa_(computer_graphics)
 
+.. [#mesa] https://www.mesa3d.org/
+
 
 .. [#gpgpuwiki] https://en.wikipedia.org/wiki/General-purpose_computing_on_graphics_processing_units
 
@@ -492,5 +502,3 @@ Here is the website [#mesa]_.
 .. [#opencl] https://www.khronos.org/opencl/
 
 .. [#computekernelwiki] https://en.wikipedia.org/wiki/Compute_kernel
-
-.. [#mesa] https://www.mesa3d.org/
