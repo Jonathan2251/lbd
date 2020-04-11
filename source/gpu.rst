@@ -16,22 +16,7 @@ Since the 2D or 3D graphic processing providing large opportunity in parallel
 data processing, GPU hardware usually composed of hundreds of cores with thousands
 of functional units in each core(grid) in N-Vidia processors.
 Or tens of cores with tens thousands of functional units in each core for big 
-cores architecture as the following figures.
-
-.. _grid: 
-.. figure:: ../Fig/gpu/grid.png
-  :align: center
-  :scale: 80 %
-
-  core(grid) in Nvidia gpu (figure from book [#Quantitative-grid]_)
- 
-.. _gpu-mem: 
-.. figure:: ../Fig/gpu/memory.png
-  :align: center
-  :scale: 80 %
-
-  core(grid) in Nvidia gpu (figure from book [#Quantitative-gpu-mem]_)
-
+cores architecture.
 
 3D modeling
 ------------
@@ -351,6 +336,21 @@ a software frame work instead of OpenGL api, then the system can run some data
 parallel computation on GPU for speeding up and even get CPU and GPU executing 
 simultaneously. Or Any language that allows the code running on the CPU to poll 
 a GPU shader for return values, can create a GPGPU framework [#gpgpuwiki]_.
+Nvidia gpu as the following figures.
+
+.. _grid: 
+.. figure:: ../Fig/gpu/grid.png
+  :align: center
+  :scale: 80 %
+
+  core(grid) in Nvidia gpu (figure from book [#Quantitative-grid]_)
+ 
+.. _gpu-mem: 
+.. figure:: ../Fig/gpu/memory.png
+  :align: center
+  :scale: 80 %
+
+  core(grid) in Nvidia gpu (figure from book [#Quantitative-gpu-mem]_)
 
 The following is a CUDA example to run large data in array on GPU [#cudaex]_ 
 as follows,
@@ -379,6 +379,15 @@ cudaMemcpyHostToDevice and cudaMemcpyDeviceToHost, CPU can pass data in x and y
 array to GPU and get result from GPU to y array. 
 Since both of these memory transfer trigger the DMA functions without CPU operation,
 it maybe speed up by running both CPU/GPU with their data in their own cache.
+After DMA memcpy from cpu's memory to gpu's, gpu operate the "y[i] = a*x[i] +y[i];"
+instruction with one Grid where blockIdx is index of ThreadBlock, threadIdx is
+index of SIMD Thread and blockDim is the number of total Thread Blocks in a Grid
+in :numref:`grid` above.
+Though gpu has smaller L1 cache than cpu for each core(usually mapping to Thread Block for each core?),
+the DMA memcpy map the data in cpu memory to gpu memory to each l1 cache of core.
+Or gpu provides operations scatter and gather to access DRAM data for stream 
+processing [#gpgpuwiki]_ [#shadingl1]_.
+
 When the GPU function is dense computation in array such as MPEG4 encoder or
 deep learning for tuning weights, it mays get much speed up [#mpeg4speedup]_. 
 But when GPU function is matrix addition and CPU will idle for waiting 
@@ -421,12 +430,6 @@ Programming of Heterogeneous Systems [#opencl]_ [#computekernelwiki]_.
 Now, you find llvm IR expanding from cpu to gpu becoming influentially more and
 more. And actually, llvm IR expanding from version 3.1 to now as I feel.
 
-
-.. [#Quantitative-grid] Book Figure 4.13 of Computer Architecture: A Quantitative Approach 5th edition (The
-       Morgan Kaufmann Series in Computer Architecture and Design)
-
-.. [#Quantitative-gpu-mem] Book Figure 4.17 of Computer Architecture: A Quantitative Approach 5th edition (The
-       Morgan Kaufmann Series in Computer Architecture and Design)
 
 
 .. [#polygon] https://www.quora.com/Which-one-is-better-for-3D-modeling-Quads-or-Tris
@@ -484,6 +487,14 @@ more. And actually, llvm IR expanding from version 3.1 to now as I feel.
 
 
 .. [#gpgpuwiki] https://en.wikipedia.org/wiki/General-purpose_computing_on_graphics_processing_units
+
+.. [#Quantitative-grid] Book Figure 4.13 of Computer Architecture: A Quantitative Approach 5th edition (The
+       Morgan Kaufmann Series in Computer Architecture and Design)
+
+.. [#Quantitative-gpu-mem] Book Figure 4.17 of Computer Architecture: A Quantitative Approach 5th edition (The
+       Morgan Kaufmann Series in Computer Architecture and Design)
+       
+.. [#shadingl1] The whole chip shares a single L2 cache, but the different units will have individual L1 caches. https://computergraphics.stackexchange.com/questions/355/how-does-texture-cache-work-considering-multiple-shader-units
 
 .. [#cudaex] https://devblogs.nvidia.com/easy-introduction-cuda-c-and-c/
 
