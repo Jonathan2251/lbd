@@ -42,6 +42,32 @@ In this series of video, you find the 3D modeling tools creating Java instead of
 C/C++ code calling OpenGL api and shaders. It's because Java can call OpenGL api
 through a wrapper library [#joglwiki]_.
 
+Every CAD software manufacturer such as AutoDesk and Blender has their own proprietary 
+format. To solve the problem of interoperability, neutral or open source formats were 
+invented as intermediate formats for converting between two proprietary formats. 
+Naturally, these formats have become hugely popular now.
+Two famous examples of neutral formats are STL (with a .STL extension) and COLLADA 
+(with a .DAE extension). Here is the list, where the 3D file formats are marked 
+with their type.
+
+- 3D file format 	Type
+
+- STL 	Neutral
+
+- OBJ 	ASCII variant is neutral, binary variant is proprietary
+
+- FBX 	Proprietary
+
+- COLLADA 	Neutral
+
+- 3DS 	Proprietary
+
+- IGES 	Neutral
+
+- STEP 	Neutral
+
+- VRML/X3D 	Neutral [#3dfmt]_
+
 3D Rendering
 ------------
 
@@ -442,6 +468,8 @@ more. And actually, llvm IR expanding from version 3.1 to now as I feel.
 .. [#animation1] https://www.youtube.com/watch?v=f3Cr8Yx3GGA
 
 .. [#joglwiki] https://en.wikipedia.org/wiki/Java_OpenGL
+
+.. [#3dfmt] https://all3dp.com/3d-file-format-3d-files-3d-printer-3d-cad-vrml-stl-obj/
 
 
 .. [#3drendering_wiki] https://en.wikipedia.org/wiki/3D_rendering
