@@ -181,6 +181,8 @@ Install binutils by command ``brew install binutils`` as follows,
 
 .. code-block:: console
 
+  // get brew by the following ruby command if you don't have installed brew
+  118-165-77-214:~ Jonathan$ ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)" < /dev/null 2> /dev/null
   118-165-77-214:~ Jonathan$ brew install binutils
   ==> Downloading http://ftpmirror.gnu.org/binutils/binutils-2.22.tar.gz
   ######################################################################## 100.0%

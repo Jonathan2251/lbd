@@ -14,8 +14,7 @@ scaled of SIMD processor needing to color millions of pixels of image in few
 micro seconds.
 Since the 2D or 3D graphic processing providing large opportunity in parallel
 data processing, GPU hardware usually composed of hundreds of cores with thousands
-of functional units in each core (a.k.a "thread block" [#Quantitative]_) in 
-N-Vidia processors. 
+of functional units in each core(grid) in N-Vidia processors.
 Or tens of cores with tens thousands of functional units in each core for big 
 cores architecture.
 
@@ -42,6 +41,32 @@ To get to know how animation for a 3D modeling, please look video here [#animati
 In this series of video, you find the 3D modeling tools creating Java instead of
 C/C++ code calling OpenGL api and shaders. It's because Java can call OpenGL api
 through a wrapper library [#joglwiki]_.
+
+Every CAD software manufacturer such as AutoDesk and Blender has their own proprietary 
+format. To solve the problem of interoperability, neutral or open source formats were 
+invented as intermediate formats for converting between two proprietary formats. 
+Naturally, these formats have become hugely popular now.
+Two famous examples of neutral formats are STL (with a .STL extension) and COLLADA 
+(with a .DAE extension). Here is the list, where the 3D file formats are marked 
+with their type.
+
+- 3D file format 	Type
+
+- STL 	Neutral
+
+- OBJ 	ASCII variant is neutral, binary variant is proprietary
+
+- FBX 	Proprietary
+
+- COLLADA 	Neutral
+
+- 3DS 	Proprietary
+
+- IGES 	Neutral
+
+- STEP 	Neutral
+
+- VRML/X3D 	Neutral [#3dfmt]_
 
 3D Rendering
 ------------
@@ -188,7 +213,7 @@ About llvm intrinsic extended function, please refer this book here [#intrinsicc
 
   Relationships between the texturing concept [#textureobject]_.
 
-The figure of relationships between the texturing concept as above.
+The figure of 'Relationships between the texturing concept' as above.
 The texture object is not bound directly into the shader (where the actual 
 sampling takes place). Instead, it is bound to a 'texture unit' whose index 
 is passed to the shader. So the shader reaches the texture object by going 
@@ -232,8 +257,7 @@ OpenGL api associate 'Sample Variable' and gpu executing texture instruction.
 
   Associating Sampler Variables and gpu executing texture instruction
 
-Explaining the detail steps for figure above as the following. Please
-skip the following if you understand from figure above.
+Explaining the detail steps for figure above as the following.
 
 1. In order to let the 'texture unit' binding by driver, frontend compiler must
 pass the metadata of 'sampler uniform variable' (sampler_2d_var in this example) 
@@ -286,7 +310,23 @@ the corresponding 'Texture Unit 1' on gpu will be executing through descriptor
 register of gpu {xLoc, 1} in this example since memory address xSlot includes the
 value of xLoc. And 'Texture Unit 1' is triggered.
 
-The scenario above comes from part of my imagination.
+Though I was a gpu compiler developer, the scenario above comes from my inference.
+I did not know how user program, OpenGL api and gpu hardware working with
+texturing in details. For instance, Nvidia texture instruction as follow,
+
+.. code-block:: console
+
+  tex.3d.v4.s32.s32  {r1,r2,r3,r4}, [tex_a, {f1,f2,f3,f4}];
+
+Above 3d texture instruction load tex_a texture memory address for
+'sampler uniform variable' x at at coordinates (x,y,z)=(f1,f2,f3) into GPRs
+(r1,r2,r3,r4)=(R,G,B,A). The f4 is skipped for 3D texture.
+And fragment shader can calculate the color of this pixel with this color of
+texture value [#ptxtex]_. For instance, 1d texture instruction as follows,
+
+.. code-block:: console
+
+  tex.1d.v4.s32.f32  {r1,r2,r3,r4}, [tex_a, {f1}];
 
 Since 'Texture Unit' is limited hardware accelerator on gpu, OpenGL
 providing api to user program for binding 'Texture Unit' to 'Sampler Variables'
@@ -312,6 +352,7 @@ as linker and gdb/lldb, of course, CPU compiler is much much complex than
 GPU compiler.)
 
 Here is the software stack of 3D graphic system for OpenGL in linux [#mesawiki]_.
+And mesa open source website is here [#mesa]_.
 
 General purpose GPU
 --------------------
@@ -321,6 +362,21 @@ a software frame work instead of OpenGL api, then the system can run some data
 parallel computation on GPU for speeding up and even get CPU and GPU executing 
 simultaneously. Or Any language that allows the code running on the CPU to poll 
 a GPU shader for return values, can create a GPGPU framework [#gpgpuwiki]_.
+Nvidia gpu as the following figures.
+
+.. _grid: 
+.. figure:: ../Fig/gpu/grid.png
+  :align: center
+  :scale: 80 %
+
+  core(grid) in Nvidia gpu (figure from book [#Quantitative-grid]_)
+ 
+.. _gpu-mem: 
+.. figure:: ../Fig/gpu/memory.png
+  :align: center
+  :scale: 80 %
+
+  core(grid) in Nvidia gpu (figure from book [#Quantitative-gpu-mem]_)
 
 The following is a CUDA example to run large data in array on GPU [#cudaex]_ 
 as follows,
@@ -344,11 +400,25 @@ as follows,
     ...
   }
 
+Grid is Vectorizable Loop [#Quantitative-gpu-griddef]_.
 The main() run on CPU while the saxpy() run on GPU. Through 
 cudaMemcpyHostToDevice and cudaMemcpyDeviceToHost, CPU can pass data in x and y 
 array to GPU and get result from GPU to y array. 
 Since both of these memory transfer trigger the DMA functions without CPU operation,
 it maybe speed up by running both CPU/GPU with their data in their own cache.
+After DMA memcpy from cpu's memory to gpu's, gpu operate the "y[i] = a*x[i] +y[i];"
+instruction with one Grid where blockIdx is index of ThreadBlock, threadIdx is
+index of SIMD Thread and blockDim is the number of total Thread Blocks in a Grid
+in :numref:`grid` above.
+In the pro-gramming example in :numref:`grid`, each multithreaded SIMD Processor is assigned
+512 elements of the vectors to work on. SIMD Processors are full processors with
+separate PCs and are programmed using threads [#Quantitative-gpu-threadblock]_.
+
+Though gpu has smaller L1 cache than cpu for each core (usually mapping to Thread Block for each core?),
+the DMA memcpy map the data in cpu memory to gpu memory to each l1 cache of core.
+Or gpu provides operations scatter and gather to access DRAM data for stream 
+processing [#Quantitative-gpu-sparse-matrix]_ [#gpgpuwiki]_ [#shadingl1]_.
+
 When the GPU function is dense computation in array such as MPEG4 encoder or
 deep learning for tuning weights, it mays get much speed up [#mpeg4speedup]_. 
 But when GPU function is matrix addition and CPU will idle for waiting 
@@ -388,9 +458,9 @@ to saving part of on-line compiling time.
 With vulkan and spir-v standard, the gpu can be used in OpenCL for Parallel 
 Programming of Heterogeneous Systems [#opencl]_ [#computekernelwiki]_.
 
+Now, you find llvm IR expanding from cpu to gpu becoming influentially more and
+more. And actually, llvm IR expanding from version 3.1 to now as I feel.
 
-.. [#Quantitative] Book Figure 4.13 of Computer Architecture: A Quantitative Approach 5th edition (The
-       Morgan Kaufmann Series in Computer Architecture and Design)
 
 
 .. [#polygon] https://www.quora.com/Which-one-is-better-for-3D-modeling-Quads-or-Tris
@@ -403,6 +473,8 @@ Programming of Heterogeneous Systems [#opencl]_ [#computekernelwiki]_.
 .. [#animation1] https://www.youtube.com/watch?v=f3Cr8Yx3GGA
 
 .. [#joglwiki] https://en.wikipedia.org/wiki/Java_OpenGL
+
+.. [#3dfmt] https://all3dp.com/3d-file-format-3d-files-3d-printer-3d-cad-vrml-stl-obj/
 
 
 .. [#3drendering_wiki] https://en.wikipedia.org/wiki/3D_rendering
@@ -434,6 +506,8 @@ Programming of Heterogeneous Systems [#opencl]_ [#computekernelwiki]_.
 
 .. [#metadata] This can be done by llvm metadata. http://llvm.org/docs/LangRef.html#namedmetadatastructure http://llvm.org/docs/LangRef.html#metadata
 
+.. [#ptxtex] page 84: tex instruction, p24: texture memory https://www.nvidia.com/content/CUDA-ptx_isa_1.4.pdf
+
 .. [#samplervar] The type of 'sampler uniform variable' called "sampler variables". http://math.hws.edu/graphicsbook/c6/s4.html
 
 .. [#descriptorreg] When performing a texture fetch, the addresses to read pixel data from are computed by reading the GPRs that hold the texture descriptor and the GPRs that hold the texture coordinates. It's mostly just general purpose memory fetching. https://www.gamedev.net/forums/topic/681503-texture-units/ 
@@ -442,8 +516,27 @@ Programming of Heterogeneous Systems [#opencl]_ [#computekernelwiki]_.
 
 .. [#mesawiki] https://en.wikipedia.org/wiki/Mesa_(computer_graphics)
 
+.. [#mesa] https://www.mesa3d.org/
+
 
 .. [#gpgpuwiki] https://en.wikipedia.org/wiki/General-purpose_computing_on_graphics_processing_units
+
+.. [#Quantitative-grid] Book Figure 4.13 of Computer Architecture: A Quantitative Approach 5th edition (The
+       Morgan Kaufmann Series in Computer Architecture and Design)
+
+.. [#Quantitative-gpu-mem] Book Figure 4.17 of Computer Architecture: A Quantitative Approach 5th edition (The
+       Morgan Kaufmann Series in Computer Architecture and Design)
+
+.. [#Quantitative-gpu-griddef] Book Figure 4.12 of Computer Architecture: A Quantitative Approach 5th edition (The
+       Morgan Kaufmann Series in Computer Architecture and Design)
+
+.. [#Quantitative-gpu-threadblock] search these words from section 4.4 of A Quantitative Approach 5th edition (The
+       Morgan Kaufmann Series in Computer Architecture and Design)
+       
+.. [#Quantitative-gpu-sparse-matrix] Reference "Gather-Scatter: Handling Sparse Matrices in Vector Architectures": section 4.2 Vector Architecture of A Quantitative Approach 5th edition (The
+       Morgan Kaufmann Series in Computer Architecture and Design)
+
+.. [#shadingl1] The whole chip shares a single L2 cache, but the different units will have individual L1 caches. https://computergraphics.stackexchange.com/questions/355/how-does-texture-cache-work-considering-multiple-shader-units
 
 .. [#cudaex] https://devblogs.nvidia.com/easy-introduction-cuda-c-and-c/
 
