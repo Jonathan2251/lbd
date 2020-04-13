@@ -400,6 +400,7 @@ as follows,
     ...
   }
 
+Grid is Vectorizable Loop [#Quantitative-gpu-griddef]_.
 The main() run on CPU while the saxpy() run on GPU. Through 
 cudaMemcpyHostToDevice and cudaMemcpyDeviceToHost, CPU can pass data in x and y 
 array to GPU and get result from GPU to y array. 
@@ -409,10 +410,14 @@ After DMA memcpy from cpu's memory to gpu's, gpu operate the "y[i] = a*x[i] +y[i
 instruction with one Grid where blockIdx is index of ThreadBlock, threadIdx is
 index of SIMD Thread and blockDim is the number of total Thread Blocks in a Grid
 in :numref:`grid` above.
-Though gpu has smaller L1 cache than cpu for each core(usually mapping to Thread Block for each core?),
+In the pro-gramming example in :numref:`grid`, each multithreaded SIMD Processor is assigned
+512 elements of the vectors to work on. SIMD Processors are full processors with
+separate PCs and are programmed using threads [#Quantitative-gpu-threadblock]_.
+
+Though gpu has smaller L1 cache than cpu for each core (usually mapping to Thread Block for each core?),
 the DMA memcpy map the data in cpu memory to gpu memory to each l1 cache of core.
 Or gpu provides operations scatter and gather to access DRAM data for stream 
-processing [#gpgpuwiki]_ [#shadingl1]_.
+processing [#Quantitative-gpu-sparse-matrix]_ [#gpgpuwiki]_ [#shadingl1]_.
 
 When the GPU function is dense computation in array such as MPEG4 encoder or
 deep learning for tuning weights, it mays get much speed up [#mpeg4speedup]_. 
@@ -521,7 +526,16 @@ more. And actually, llvm IR expanding from version 3.1 to now as I feel.
 
 .. [#Quantitative-gpu-mem] Book Figure 4.17 of Computer Architecture: A Quantitative Approach 5th edition (The
        Morgan Kaufmann Series in Computer Architecture and Design)
+
+.. [#Quantitative-gpu-griddef] Book Figure 4.12 of Computer Architecture: A Quantitative Approach 5th edition (The
+       Morgan Kaufmann Series in Computer Architecture and Design)
+
+.. [#Quantitative-gpu-threadblock] search these words from section 4.4 of A Quantitative Approach 5th edition (The
+       Morgan Kaufmann Series in Computer Architecture and Design)
        
+.. [#Quantitative-gpu-sparse-matrix] Reference "Gather-Scatter: Handling Sparse Matrices in Vector Architectures": section 4.2 Vector Architecture of A Quantitative Approach 5th edition (The
+       Morgan Kaufmann Series in Computer Architecture and Design)
+
 .. [#shadingl1] The whole chip shares a single L2 cache, but the different units will have individual L1 caches. https://computergraphics.stackexchange.com/questions/355/how-does-texture-cache-work-considering-multiple-shader-units
 
 .. [#cudaex] https://devblogs.nvidia.com/easy-introduction-cuda-c-and-c/
