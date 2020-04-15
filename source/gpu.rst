@@ -362,13 +362,12 @@ a software frame work instead of OpenGL api, then the system can run some data
 parallel computation on GPU for speeding up and even get CPU and GPU executing 
 simultaneously. Or Any language that allows the code running on the CPU to poll 
 a GPU shader for return values, can create a GPGPU framework [#gpgpuwiki]_.
-Sort the compiler related terms used in book [#Quantitative-grid]_ for Nvidia gpu 
-as follows,
+Nvidia gpu as the following figures.
 
 .. _grid: 
 .. figure:: ../Fig/gpu/grid.png
   :align: center
-  :scale: 100 %
+  :scale: 80 %
 
   core(grid) in Nvidia gpu (figure from book [#Quantitative-grid]_)
  
@@ -401,19 +400,7 @@ as follows,
     ...
   }
 
-In the pro-gramming example in :numref:`grid`, 
-
-- Grid is Vectorizable Loop [#Quantitative-gpu-griddef]_.
-
-- Each multithreaded SIMD Processor is assigned 512 elements of the vectors to work on. 
-  As :numref:`grid`, it has 16 SIMD Block, means 16 threads run on mutithreadeded 
-  SIMD processor.   
-
-- SIMD Processors are full processors with separate PCs and are programmed using 
-  threads [#Quantitative-gpu-threadblock]_. As :numref:`grid`, each SIMD Block has
-  16 SIMD Threads, means 16 lens (number of pipelines as in vector processor).
-  
-
+Grid is Vectorizable Loop [#Quantitative-gpu-griddef]_.
 The main() run on CPU while the saxpy() run on GPU. Through 
 cudaMemcpyHostToDevice and cudaMemcpyDeviceToHost, CPU can pass data in x and y 
 array to GPU and get result from GPU to y array. 
@@ -421,11 +408,17 @@ Since both of these memory transfer trigger the DMA functions without CPU operat
 it maybe speed up by running both CPU/GPU with their data in their own cache.
 After DMA memcpy from cpu's memory to gpu's, gpu operate the "y[i] = a*x[i] +y[i];"
 instruction with one Grid where blockIdx is index of ThreadBlock, threadIdx is
-index of SIMD Thread and blockDim is the number of total Thread Blocks (Thread 
-Block 0 to Thread Block 15) in a Grid as :numref:`grid` above.
+index of SIMD Thread and blockDim is the number of total Thread Blocks in a Grid
+in :numref:`grid` above.
+In the pro-gramming example in :numref:`grid`, each multithreaded SIMD Processor 
+is assigned 512 elements of the vectors to work on. 
+It has 16 SIMD Block, means 16 threads run on mutithreadeded SIMD processor.
+SIMD Processors are full processors with separate PCs and are programmed using 
+threads [#Quantitative-gpu-threadblock]_. Each SIMD Block has 16 SIMD Threads, 
+means 16 lens (number of pipelines as in vector processor).
 
-Though gpu has smaller L1 cache than cpu for each core (usually mapping to Thread 
-Block in gpu),
+Though gpu has smaller L1 cache than cpu for each core (cpu core usually 
+corresponding to Thread Block in gpu),
 the DMA memcpy map the data in cpu memory to gpu memory to each l1 cache of core.
 Or gpu provides operations scatter and gather to access DRAM data for stream 
 processing [#Quantitative-gpu-sparse-matrix]_ [#gpgpuwiki]_ [#shadingl1]_.
