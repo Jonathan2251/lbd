@@ -367,7 +367,7 @@ Nvidia gpu as the following figures.
 .. _grid: 
 .. figure:: ../Fig/gpu/grid.png
   :align: center
-  :scale: 80 %
+  :scale: 100 %
 
   core(grid) in Nvidia gpu (figure from book [#Quantitative-grid]_)
  
@@ -415,7 +415,7 @@ is assigned 512 elements of the vectors to work on.
 It has 16 SIMD Block, means 16 threads run on mutithreadeded SIMD processor.
 SIMD Processors are full processors with separate PCs and are programmed using 
 threads [#Quantitative-gpu-threadblock]_. Each SIMD Block has 16 SIMD Threads, 
-means 16 lens (number of pipelines as in vector processor).
+means 16 lanes (number of pipelines as in vector processor).
 
 Though gpu has smaller L1 cache than cpu for each core (cpu core usually 
 corresponding to Thread Block in gpu),
