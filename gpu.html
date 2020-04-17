@@ -387,17 +387,21 @@ As <a class="reference internal" href="#grid"><span class="std std-numref">Fig. 
 SIMD processor.</li>
 <li>SIMD Processors are full processors with separate PCs and are programmed using
 threads <a class="footnote-reference" href="#quantitative-gpu-threadblock" id="id39">[31]</a>. As <a class="reference internal" href="#grid"><span class="std std-numref">Fig. 41</span></a>, each SIMD Block has
-16 SIMD Threads, means 16 lens (number of pipelines as in vector processor).</li>
+16 SIMD Threads, means 16 lanes (number of pipelines as in vector processor).</li>
+</ul>
+<p>And from saxpy() code above,</p>
+<ul class="simple">
+<li>blockIdx is index of ThreadBlock</li>
+<li>threadIdx is index of SIMD Thread</li>
+<li>blockDim is the number of total Thread Blocks in a Grid</li>
 </ul>
 <p>The main() run on CPU while the saxpy() run on GPU. Through
 cudaMemcpyHostToDevice and cudaMemcpyDeviceToHost, CPU can pass data in x and y
 array to GPU and get result from GPU to y array.
-Since both of these memory transfer trigger the DMA functions without CPU operation,
+Since both of these memory transfers trigger the DMA functions without CPU operation,
 it maybe speed up by running both CPU/GPU with their data in their own cache.
 After DMA memcpy from cpu&#8217;s memory to gpu&#8217;s, gpu operate the &#8220;y[i] = a*x[i] +y[i];&#8221;
-instruction with one Grid where blockIdx is index of ThreadBlock, threadIdx is
-index of SIMD Thread and blockDim is the number of total Thread Blocks in a Grid
-in <a class="reference internal" href="#grid"><span class="std std-numref">Fig. 41</span></a> above.</p>
+instruction with one Grid.</p>
 <p>Though gpu has smaller L1 cache than cpu for each core (cpu core usually
 corresponding to Thread Block in gpu),
 the DMA memcpy map the data in cpu memory to gpu memory to each l1 cache of core.

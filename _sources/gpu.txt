@@ -408,17 +408,24 @@ In the programming example in :numref:`grid`,
 
 - SIMD Processors are full processors with separate PCs and are programmed using
   threads [#Quantitative-gpu-threadblock]_. As :numref:`grid`, each SIMD Block has
-  16 SIMD Threads, means 16 lens (number of pipelines as in vector processor).
+  16 SIMD Threads, means 16 lanes (number of pipelines as in vector processor).
+
+And from saxpy() code above,
+
+- blockIdx is index of ThreadBlock
+
+- threadIdx is index of SIMD Thread
+
+- blockDim is the number of total Thread Blocks in a Grid
+
 
 The main() run on CPU while the saxpy() run on GPU. Through 
 cudaMemcpyHostToDevice and cudaMemcpyDeviceToHost, CPU can pass data in x and y 
 array to GPU and get result from GPU to y array. 
-Since both of these memory transfer trigger the DMA functions without CPU operation,
+Since both of these memory transfers trigger the DMA functions without CPU operation,
 it maybe speed up by running both CPU/GPU with their data in their own cache.
 After DMA memcpy from cpu's memory to gpu's, gpu operate the "y[i] = a*x[i] +y[i];"
-instruction with one Grid where blockIdx is index of ThreadBlock, threadIdx is
-index of SIMD Thread and blockDim is the number of total Thread Blocks in a Grid
-in :numref:`grid` above.
+instruction with one Grid.
 
 Though gpu has smaller L1 cache than cpu for each core (cpu core usually 
 corresponding to Thread Block in gpu),
