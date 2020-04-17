@@ -455,12 +455,15 @@ form (IR) called spir-v [#spirvtoolchain]_.
 As a result, it saves part of compiling time from glsl to gpu instructions on-line 
 since spir-v is IR of level closing to llvm IR [#spirvwiki]_. 
 In addition, vulkan api reduces gpu drivers efforts in optimization and code 
-generation [#vulkanapiwiki]_. These standard provide user programmer option in 
+generation [#vulkanapiwiki]_. These standards provide user programmer option in 
 using vulkan/spir-v or OpenGL/glsl, and allow them to pre-compile glsl into spir-v
 to saving part of on-line compiling time.
 
 With vulkan and spir-v standard, the gpu can be used in OpenCL for Parallel 
 Programming of Heterogeneous Systems [#opencl]_ [#computekernelwiki]_.
+And once OpenCL glows into a popular standard and more languages and frame
+work will support OpenCL language, GPU will take more jobs from CPU 
+[#opencl-wiki-supported-lang]_.
 
 Now, you find llvm IR expanding from cpu to gpu becoming influentially more and
 more. And actually, llvm IR expanding from version 3.1 to now as I feel.
@@ -559,3 +562,5 @@ more. And actually, llvm IR expanding from version 3.1 to now as I feel.
 .. [#opencl] https://www.khronos.org/opencl/
 
 .. [#computekernelwiki] https://en.wikipedia.org/wiki/Compute_kernel
+
+.. [#opencl-wiki-supported-lang] The OpenCL standard defines host APIs for C and C++; third-party APIs exist for other programming languages and platforms such as Python,[14] Java, Perl[15] and .NET.[11]:15 https://en.wikipedia.org/wiki/OpenCL
