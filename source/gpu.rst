@@ -310,9 +310,7 @@ the corresponding 'Texture Unit 1' on gpu will be executing through descriptor
 register of gpu {xLoc, 1} in this example since memory address xSlot includes the
 value of xLoc. And 'Texture Unit 1' is triggered.
 
-Though I was a gpu compiler developer, the scenario above comes from my inference.
-I did not know how user program, OpenGL api and gpu hardware working with
-texturing in details. For instance, Nvidia texture instruction as follow,
+For instance, Nvidia texture instruction as follow,
 
 .. code-block:: console
 
