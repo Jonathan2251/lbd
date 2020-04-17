@@ -60,6 +60,9 @@ follows,
   pdfjam.noarch                        2.08-3.fc17                         @fedora
   [root@localhost lbd]$ 
 
+Do sudo apt-get update -y; sudo apt-get install -y latexmk; if latexmk error 
+in 'make latexpdf' [#latexmk]_.
+
 On Fedora 18, the error as follows,
 
 .. code-block:: console
@@ -444,6 +447,8 @@ to T1 at the corresponding registers of these two assembly output.
 .. [#sphinx-install] http://docs.geoserver.org/latest/en/docguide/install.html
 
 .. [#maxtex] http://www.tug.org/mactex/
+
+.. [#latexmk] https://zoomadmin.com/HowToInstall/UbuntuPackage/latexmk
 
 .. [#rst-ref] http://docutils.sourceforge.net/docs/ref/rst/restructuredtext.html
 
