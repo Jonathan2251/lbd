@@ -360,7 +360,8 @@ a software frame work instead of OpenGL api, then the system can run some data
 parallel computation on GPU for speeding up and even get CPU and GPU executing 
 simultaneously. Or Any language that allows the code running on the CPU to poll 
 a GPU shader for return values, can create a GPGPU framework [#gpgpuwiki]_.
-Nvidia gpu as the following figures.
+The leading GPGPU framdwork CUDA, and architecture of Nvidia gpu as the following 
+figures.
 
 .. _grid: 
 .. figure:: ../Fig/gpu/grid.png
@@ -369,6 +370,21 @@ Nvidia gpu as the following figures.
 
   core(grid) in Nvidia gpu (figure from book [#Quantitative-grid]_)
  
+.. _simd-processors: 
+.. figure:: ../Fig/gpu/SIMD-processors.png
+  :align: center
+  :scale: 100 %
+
+  SIMD processors (figure from book [#Quantitative-simd-processors]_)
+
+.. _threadslanes: 
+.. figure:: ../Fig/gpu/threads-lanes.png
+  :align: center
+  :scale: 100 %
+
+  threads and lanes in gpu (figure from book [#Quantitative-threads-lanes]_)
+  
+  
 .. _gpu-mem: 
 .. figure:: ../Fig/gpu/memory.png
   :align: center
@@ -403,12 +419,19 @@ In the programming example in :numref:`grid`,
 - Grid is Vectorizable Loop [#Quantitative-gpu-griddef]_.
 
 - Each multithreaded SIMD Processor is assigned 512 elements of the vectors to work on.
-  As :numref:`grid`, it has 16 SIMD Block, means 16 threads run on mutithreadeded
-  SIMD processor.
+  As :numref:`grid`: The hardware Thread Block Scheduler assigns Thread Blocks to 
+  multithreaded SIMD Processors. Thread Block <-> SIMD Processor.
 
 - SIMD Processors are full processors with separate PCs and are programmed using
-  threads [#Quantitative-gpu-threadblock]_. As :numref:`grid`, each SIMD Block has
-  16 SIMD Threads, means 16 lanes (number of pipelines as in vector processor).
+  threads [#Quantitative-gpu-threadblock]_. 
+  As :numref:`simd-processors`, it assigns 16 Thread blocks to 16 SIMD Processors.
+  
+- As :numref:`grid`, 
+  the maximum number of SIMD Threads that can execute simultaneously per Thread Block 
+  (SIMD Processor) is 32 for the later Fermi-generation GPUs.
+  Each SIMD Thread has 32 elements run on :numref:`threadslanes`
+  16 SIMD lanes (number of pipelines and each pipeline has it's own functional unit
+  as in vector processor). So it takes 2 clock cycles to complete [#lanes]_.
 
 And from saxpy() code above,
 
@@ -427,8 +450,7 @@ it maybe speed up by running both CPU/GPU with their data in their own cache.
 After DMA memcpy from cpu's memory to gpu's, gpu operate the "y[i] = a*x[i] +y[i];"
 instruction with one Grid.
 
-Though gpu has smaller L1 cache than cpu for each core (cpu core usually 
-corresponding to Thread Block in gpu),
+Though gpu has smaller L1 cache than cpu for each core,
 the DMA memcpy map the data in cpu memory to gpu memory to each l1 cache of core.
 Or gpu provides operations scatter and gather to access DRAM data for stream 
 processing [#Quantitative-gpu-sparse-matrix]_ [#gpgpuwiki]_ [#shadingl1]_.
@@ -442,7 +464,7 @@ memory transferred. It is important for GPGPU applications to have high arithmet
 intensity else the memory access latency will limit computational speedup 
 [#gpgpuwiki]_. 
 
-Wiki here [#gpuspeedup]_ includes speepup applications for gpu as follows:
+Wiki here [#gpuspeedup]_ includes speedup applications for gpu as follows:
 
 General Purpose Computing on GPU, has found its way into fields as diverse as 
 machine learning, oil exploration, scientific image processing, linear algebra,
@@ -541,6 +563,13 @@ more. And actually, llvm IR expanding from version 3.1 to now as I feel.
 .. [#Quantitative-grid] Book Figure 4.13 of Computer Architecture: A Quantitative Approach 5th edition (The
        Morgan Kaufmann Series in Computer Architecture and Design)
 
+.. [#Quantitative-simd-processors] Book Figure 4.15 of Computer Architecture: A Quantitative Approach 5th edition (The
+       Morgan Kaufmann Series in Computer Architecture and Design)
+
+.. [#Quantitative-threads-lanes] The SIMD Thread Scheduler includes a scoreboard that lets it know which threads of SIMD instructions are ready to run, and then it sends them off to a dispatch unit to be run on the multithreaded SIMD Processor. It is identical to a hardware thread scheduler in a traditional multithreaded processor (see Chapter 3), just that it is scheduling threads of SIMD instructions. Thus, GPU hardware has two levels of hardware schedulers: (1) the Thread Block Scheduler that assigns Thread Blocks (bodies of vectorized loops) to multi- threaded SIMD Processors, which ensures that thread blocks are assigned to the processors whose local memories have the corresponding data, and (2) the SIMD Thread Scheduler within a SIMD Processor, which schedules when threads of SIMD instructions should run. 
+       Book Figure 4.14 of Computer Architecture: A Quantitative Approach 5th edition (The
+       Morgan Kaufmann Series in Computer Architecture and Design) 
+
 .. [#Quantitative-gpu-mem] Book Figure 4.17 of Computer Architecture: A Quantitative Approach 5th edition (The
        Morgan Kaufmann Series in Computer Architecture and Design)
 
@@ -549,6 +578,9 @@ more. And actually, llvm IR expanding from version 3.1 to now as I feel.
 
 .. [#Quantitative-gpu-threadblock] search these words from section 4.4 of A Quantitative Approach 5th edition (The
        Morgan Kaufmann Series in Computer Architecture and Design)
+       
+.. [#lanes] "With Fermi, each 32-wide thread of SIMD instructions is mapped to 16 physical SIMD Lanes, so each SIMD instruction in a thread of SIMD instructions takes two clock cycles to complete" search these words from Page 296 of Computer Architecture: A Quantitative Approach 5th edition (The
+       Morgan Kaufmann Series in Computer Architecture and Design).
        
 .. [#Quantitative-gpu-sparse-matrix] Reference "Gather-Scatter: Handling Sparse Matrices in Vector Architectures": section 4.2 Vector Architecture of A Quantitative Approach 5th edition (The
        Morgan Kaufmann Series in Computer Architecture and Design)
