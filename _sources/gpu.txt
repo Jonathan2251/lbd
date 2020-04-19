@@ -448,7 +448,26 @@ array to GPU and get result from GPU to y array.
 Since both of these memory transfers trigger the DMA functions without CPU operation,
 it maybe speed up by running both CPU/GPU with their data in their own cache.
 After DMA memcpy from cpu's memory to gpu's, gpu operate the "y[i] = a*x[i] +y[i];"
-instruction with one Grid.
+instruction with one Grid. Furthermore liking vector processor, gpu provides
+Vector Mask Registers to Handling IF Statements in Vector Loops as the following 
+code [#VMR]_,
+
+.. code:: c
+
+  for(i=0;i<64; i=i+1)
+    if (X[i] != 0)
+      X[i] = X[i] – Y[i];
+
+
+.. code:: asm
+
+  LV V1,Rx         ;load vector X into V1
+  LV V2,Ry         ;load vector Y
+  L.D F0,#0        ;load FP zero into F0
+  SNEVS.D V1,F0    ;sets VM(i) to 1 if V1(i)!=F0
+  SUBVV.D V1,V1,V2 ;subtract under vector mask 
+  SV V1,Rx         ;store the result in X
+
 
 Though gpu has smaller L1 cache than cpu for each core,
 the DMA memcpy map the data in cpu memory to gpu memory to each l1 cache of core.
@@ -582,6 +601,9 @@ more. And actually, llvm IR expanding from version 3.1 to now as I feel.
 .. [#lanes] "With Fermi, each 32-wide thread of SIMD instructions is mapped to 16 physical SIMD Lanes, so each SIMD instruction in a thread of SIMD instructions takes two clock cycles to complete" search these words from Page 296 of Computer Architecture: A Quantitative Approach 5th edition (The
        Morgan Kaufmann Series in Computer Architecture and Design).
        
+.. [#VMR] subsection Vector Mask Registers: Handling IF Statements in Vector Loops of Computer Architecture: A Quantitative Approach 5th edition (The
+       Morgan Kaufmann Series in Computer Architecture and Design)
+
 .. [#Quantitative-gpu-sparse-matrix] Reference "Gather-Scatter: Handling Sparse Matrices in Vector Architectures": section 4.2 Vector Architecture of A Quantitative Approach 5th edition (The
        Morgan Kaufmann Series in Computer Architecture and Design)
 
