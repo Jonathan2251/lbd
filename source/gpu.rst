@@ -464,7 +464,7 @@ memory transferred. It is important for GPGPU applications to have high arithmet
 intensity else the memory access latency will limit computational speedup 
 [#gpgpuwiki]_. 
 
-Wiki here [#gpuspeedup]_ includes speepup applications for gpu as follows:
+Wiki here [#gpuspeedup]_ includes speedup applications for gpu as follows:
 
 General Purpose Computing on GPU, has found its way into fields as diverse as 
 machine learning, oil exploration, scientific image processing, linear algebra,
@@ -563,12 +563,12 @@ more. And actually, llvm IR expanding from version 3.1 to now as I feel.
 .. [#Quantitative-grid] Book Figure 4.13 of Computer Architecture: A Quantitative Approach 5th edition (The
        Morgan Kaufmann Series in Computer Architecture and Design)
 
+.. [#Quantitative-simd-processors] Book Figure 4.15 of Computer Architecture: A Quantitative Approach 5th edition (The
+       Morgan Kaufmann Series in Computer Architecture and Design)
+
 .. [#Quantitative-threads-lanes] The SIMD Thread Scheduler includes a scoreboard that lets it know which threads of SIMD instructions are ready to run, and then it sends them off to a dispatch unit to be run on the multithreaded SIMD Processor. It is identical to a hardware thread scheduler in a traditional multithreaded processor (see Chapter 3), just that it is scheduling threads of SIMD instructions. Thus, GPU hardware has two levels of hardware schedulers: (1) the Thread Block Scheduler that assigns Thread Blocks (bodies of vectorized loops) to multi- threaded SIMD Processors, which ensures that thread blocks are assigned to the processors whose local memories have the corresponding data, and (2) the SIMD Thread Scheduler within a SIMD Processor, which schedules when threads of SIMD instructions should run. 
        Book Figure 4.14 of Computer Architecture: A Quantitative Approach 5th edition (The
        Morgan Kaufmann Series in Computer Architecture and Design) 
-
-.. [[#Quantitative-simd-processors] Book Figure 4.15 of Computer Architecture: A Quantitative Approach 5th edition (The
-       Morgan Kaufmann Series in Computer Architecture and Design)
 
 .. [#Quantitative-gpu-mem] Book Figure 4.17 of Computer Architecture: A Quantitative Approach 5th edition (The
        Morgan Kaufmann Series in Computer Architecture and Design)
