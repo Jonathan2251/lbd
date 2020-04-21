@@ -148,7 +148,7 @@ For example, we install the Graphviz in directory
 
 .. code-block:: console
 
-  118-165-12-177:InputFiles Jonathan$ cat /Users/Jonathan/.profile
+  118-165-12-177:input Jonathan$ cat /Users/Jonathan/.profile
   export PATH=$PATH:/Applications/Xcode.app/Contents/bin:
   /Applications/Graphviz.app/Contents/MacOS/:/Users/Jonathan/llvm/release/
   cmake_release_build/Debug/bin
@@ -365,9 +365,7 @@ Next, please copy Cpu0 example code according the following commands,
   118-165-78-111:test Jonathan$ cp -rf lbdex/Cpu0 src/lib/Target/.
   118-165-78-111:test Jonathan$ ls src/lib/Target/Cpu0
   CMakeLists.txt		Cpu0InstrInfo.td	Cpu0TargetMachine.cpp	TargetInfo
-  Cpu0.h			Cpu0RegisterInfo.td	ExampleCode		readme
-  Cpu0.td			Cpu0Schedule.td		LLVMBuild.txt
-  Cpu0InstrFormats.td	Cpu0Subtarget.h		MCTargetDesc
+  ...
   118-165-80-55:Cpu0 Jonathan$ 
 
 
@@ -409,13 +407,13 @@ debug as follows,
 
 .. code-block:: console
 
-  118-165-65-128:InputFiles Jonathan$ pwd
-  /Users/Jonathan/lbdex/InputFiles
-  118-165-65-128:InputFiles Jonathan$ clang -c ch3.cpp -emit-llvm -o ch3.bc
-  118-165-65-128:InputFiles Jonathan$ /Users/Jonathan/llvm/test/
+  118-165-65-128:input Jonathan$ pwd
+  /Users/Jonathan/lbdex/input
+  118-165-65-128:input Jonathan$ clang -c ch3.cpp -emit-llvm -o ch3.bc
+  118-165-65-128:input Jonathan$ /Users/Jonathan/llvm/test/
   cmake_debug_build/Debug/bin/llc -march=mips -relocation-model=pic -filetype=asm 
   ch3.bc -o ch3.mips.s
-  118-165-65-128:InputFiles Jonathan$ lldb -- /Users/Jonathan/llvm/test/
+  118-165-65-128:input Jonathan$ lldb -- /Users/Jonathan/llvm/test/
   cmake_debug_build/Debug/bin/llc -march=mips -relocation-model=pic -filetype=
   asm ch3.bc -o ch3.mips.s
   Current executable set to '/Users/Jonathan/llvm/test/cmake_debug_build/bin/
@@ -455,7 +453,7 @@ debug as follows,
   (lldb) print X
   (llvm::RegisterTarget<llvm::Triple::ArchType, true>) $0 = {}
   (lldb) quit
-  118-165-65-128:InputFiles Jonathan$ 
+  118-165-65-128:input Jonathan$ 
 
 About the lldb debug command, please reference [#lldb-gdb]_ or lldb portal 
 [#lldb]_. 
@@ -680,11 +678,10 @@ Finally, try gdb as follows.
 
 .. code-block:: console
 
-  [Gamma@localhost InputFiles]$ pwd
-  ~/llvm/test/src/lib/Target/Cpu0/ExampleCode/
-  lbdex/InputFiles
-  [Gamma@localhost InputFiles]$ clang -c ch3.cpp -emit-llvm -o ch3.bc
-  [Gamma@localhost InputFiles]$ gdb -args ~/llvm/test/
+  [Gamma@localhost input]$ pwd
+  ~/lbdex/input
+  [Gamma@localhost input]$ clang -c ch3.cpp -emit-llvm -o ch3.bc
+  [Gamma@localhost input]$ gdb -args ~/llvm/test/
   cmake_debug_build/bin/llc -march=cpu0 -relocation-model=pic -filetype=obj 
   ch3.bc -o ch3.cpu0.o
   GNU gdb (GDB) Fedora (7.4.50.20120120-50.fc17)
@@ -720,7 +717,7 @@ Finally, try gdb as follows.
     Inferior 1 [process 10165] will be killed.
   
   Quit anyway? (y or n) y
-  [Gamma@localhost InputFiles]$ 
+  [Gamma@localhost input]$ 
 
 
 
