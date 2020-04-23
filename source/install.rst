@@ -408,7 +408,7 @@ debug as follows,
 .. code-block:: console
 
   118-165-65-128:input Jonathan$ pwd
-  /Users/Jonathan/lbdex/input
+  /Users/Jonathan/llvm/test/lbdex/input
   118-165-65-128:input Jonathan$ clang -c ch3.cpp -emit-llvm -o ch3.bc
   118-165-65-128:input Jonathan$ /Users/Jonathan/llvm/test/
   cmake_debug_build/Debug/bin/llc -march=cpu0 -relocation-model=pic -filetype=asm 
@@ -569,7 +569,7 @@ list steps, and the corresponding commands shown as below,
   [Gamma@localhost llvm]$ mkdir test
   [Gamma@localhost llvm]$ cd test
   [Gamma@localhost test]$ pwd
-  /home/cschen/llvm/test
+  /home/Gamma/llvm/test
   [Gamma@localhost test]$ cp /home/Gamma/Downloads/llvm-3.9.0.src.tar.xz .
   [Gamma@localhost test]$ tar -xvf llvm-3.9.0.src.tar.xz 
   [Gamma@localhost test]$ mv llvm-3.9.0.src src
@@ -660,7 +660,7 @@ Finally, try gdb as follows.
 .. code-block:: console
 
   [Gamma@localhost input]$ pwd
-  ~/lbdex/input
+  /home/Gamma/lbdex/input
   [Gamma@localhost input]$ clang -c ch3.cpp -emit-llvm -o ch3.bc
   [Gamma@localhost input]$ gdb -args ~/llvm/test/
   cmake_debug_build/bin/llc -march=cpu0 -relocation-model=pic -filetype=obj 
