@@ -411,44 +411,28 @@ debug as follows,
   /Users/Jonathan/lbdex/input
   118-165-65-128:input Jonathan$ clang -c ch3.cpp -emit-llvm -o ch3.bc
   118-165-65-128:input Jonathan$ /Users/Jonathan/llvm/test/
-  cmake_debug_build/Debug/bin/llc -march=mips -relocation-model=pic -filetype=asm 
-  ch3.bc -o ch3.mips.s
+  cmake_debug_build/Debug/bin/llc -march=cpu0 -relocation-model=pic -filetype=asm 
+  ch3.bc -o -
   118-165-65-128:input Jonathan$ lldb -- /Users/Jonathan/llvm/test/
-  cmake_debug_build/Debug/bin/llc -march=mips -relocation-model=pic -filetype=
-  asm ch3.bc -o ch3.mips.s
+  cmake_debug_build/Debug/bin/llc -march=cpu0 -relocation-model=pic -filetype=
+  asm ch3.bc -o -
   Current executable set to '/Users/Jonathan/llvm/test/cmake_debug_build/bin/
   Debug/llc' (x86_64).
-  (lldb) b MipsTargetInfo.cpp:19
-  breakpoint set --file 'MipsTargetInfo.cpp' --line 19
-  Breakpoint created: 1: file ='MipsTargetInfo.cpp', line = 19, locations = 1
+  (lldb) b Cpu0TargetInfo.cpp:19
+  breakpoint set --file 'Cpu0TargetInfo.cpp' --line 19
+  Breakpoint created: 1: file ='Cpu0TargetInfo.cpp', line = 19, locations = 1
   (lldb) run
   Process 6058 launched: '/Users/Jonathan/llvm/test/cmake_debug_build/Debug/bin/
   llc' (x86_64)
   Process 6058 stopped
-  * thread #1: tid = 0x1c03, 0x000000010077f231 llc`LLVMInitializeMipsTargetInfo 
-  + 33 at MipsTargetInfo.cpp:20, stop reason = breakpoint 1.1
-    frame #0: 0x000000010077f231 llc`LLVMInitializeMipsTargetInfo + 33 at 
-    MipsTargetInfo.cpp:20
-     17   
-     18   extern "C" void LLVMInitializeMipsTargetInfo() {
-     19     RegisterTarget<Triple::mips,
-  -> 20           /*HasJIT=*/true> X(TheMipsTarget, "mips", "Mips");
-     21   
-     22     RegisterTarget<Triple::mipsel,
-     23           /*HasJIT=*/true> Y(TheMipselTarget, "mipsel", "Mipsel");
-  (lldb) n
-  Process 6058 stopped
-  * thread #1: tid = 0x1c03, 0x000000010077f24f llc`LLVMInitializeMipsTargetInfo 
-  + 63 at MipsTargetInfo.cpp:23, stop reason = step over
-    frame #0: 0x000000010077f24f llc`LLVMInitializeMipsTargetInfo + 63 at 
-    MipsTargetInfo.cpp:23
-     20           /*HasJIT=*/true> X(TheMipsTarget, "mips", "Mips");
-     21   
-     22     RegisterTarget<Triple::mipsel,
-  -> 23           /*HasJIT=*/true> Y(TheMipselTarget, "mipsel", "Mipsel");
-     24   
-     25     RegisterTarget<Triple::mips64,
-     26           /*HasJIT=*/false> A(TheMips64Target, "mips64", "Mips64 
+  * thread #1: tid = 0x1c03, 0x000000010077f231 llc`LLVMInitializeCpu0TargetInfo 
+  + 33 at Cpu0TargetInfo.cpp:20, stop reason = breakpoint 1.1
+    frame #0: 0x000000010077f231 llc`LLVMInitializeCpu0TargetInfo + 33 at 
+    Cpu0TargetInfo.cpp:20
+     16   
+     17   extern "C" void LLVMInitializeCpu0TargetInfo() {
+     18     RegisterTarget<Triple::cpu0,
+  -> 19           /*HasJIT=*/true> X(TheCpu0Target, "cpu0", "Cpu0");
      [experimental]");
   (lldb) print X
   (llvm::RegisterTarget<llvm::Triple::ArchType, true>) $0 = {}
@@ -537,9 +521,7 @@ bin to PATH to enable the clang, llc, ..., command search path, as follows,
   # User specific environment and startup programs
   
   PATH=$PATH:/usr/local/sphinx/bin:~/llvm/release/cmake_release_build/bin:
-  /opt/mips_linux_toolchain_clang/mips_linux_toolchain/bin:$HOME/.local/bin:
-  $HOME/bin
-  
+  ... 
   export PATH
   [Gamma@localhost ~]$ source .bash_profile
   [Gamma@localhost ~]$ $PATH
@@ -635,7 +617,6 @@ our compiler instead, as follows,
   bin/clang++
    -- works
   ...
-  -- Targeting Mips
   -- Targeting Cpu0
   ...
   -- Configuring done
@@ -695,22 +676,18 @@ Finally, try gdb as follows.
   <http://www.gnu.org/software/gdb/bugs/>...
   Reading symbols from /home/cschen/llvm/test/cmake_debug_build/bin/llc.
   ..done.
-  (gdb) break MipsTargetInfo.cpp:19
+  (gdb) break Cpu0TargetInfo.cpp:19
   Breakpoint 1 at 0xd54441: file /home/cschen/llvm/test/src/lib/Target/
-  Mips/TargetInfo/MipsTargetInfo.cpp, line 19.
+  Cpu0/TargetInfo/Cpu0TargetInfo.cpp, line 19.
   (gdb) run
   Starting program: /home/cschen/llvm/test/cmake_debug_build/bin/llc 
   -march=cpu0 -relocation-model=pic -filetype=obj ch3.bc -o ch3.cpu0.o
   [Thread debugging using libthread_db enabled]
   Using host libthread_db library "/lib64/libthread_db.so.1".
   
-  Breakpoint 1, LLVMInitializeMipsTargetInfo ()
-    at /home/cschen/llvm/test/src/lib/Target/Mips/TargetInfo/MipsTargetInfo.cpp:20
-  20          /*HasJIT=*/true> X(TheMipsTarget, "mips", "Mips");
-  (gdb) next
-  23          /*HasJIT=*/true> Y(TheMipselTarget, "mipsel", "Mipsel");
-  (gdb) print X
-  $1 = {<No data fields>}
+  Breakpoint 1, LLVMInitializeCpu0TargetInfo ()
+    at /home/cschen/llvm/test/src/lib/Target/Cpu0/TargetInfo/Cpu0TargetInfo.cpp:20
+  19          /*HasJIT=*/true> X(TheCpu0Target, "cpu0", "Cpu0");
   (gdb) quit
   A debugging session is active.
   
