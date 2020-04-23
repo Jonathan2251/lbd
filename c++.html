@@ -1,34 +1,26 @@
+
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
-
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    
-    <title>C++ support &mdash; Tutorial: Creating an LLVM Backend for the Cpu0 Architecture</title>
-    
+    <title>C++ support &#8212; Tutorial: Creating an LLVM Backend for the Cpu0 Architecture</title>
     <link rel="stylesheet" href="_static/haiku.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    
-    <script type="text/javascript">
-      var DOCUMENTATION_OPTIONS = {
-        URL_ROOT:    './',
-        VERSION:     '3.9.1',
-        COLLAPSE_INDEX: false,
-        FILE_SUFFIX: '.html',
-        HAS_SOURCE:  true
-      };
-    </script>
+    <link rel="stylesheet" type="text/css" href="_static/graphviz.css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="_static/language_data.js"></script>
     <link rel="author" title="About these documents" href="about.html" />
-    <link rel="top" title="Tutorial: Creating an LLVM Backend for the Cpu0 Architecture" href="index.html" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Verify backend on Verilog simulator" href="verilog.html" />
     <link rel="prev" title="Assembler" href="asm.html" /> 
-  </head>
-  <body role="document">
+  </head><body>
       <div class="header" role="banner"><h1 class="heading"><a href="index.html">
           <span>Tutorial: Creating an LLVM Backend for the Cpu0 Architecture</span></a></h1>
         <h2 class="heading"><span>C++ support</span></h2>
@@ -62,7 +54,7 @@
 <p>The Chapter11_2 can be built and run with the C++ polymorphism example code of
 ch12_inherit.cpp as follows,</p>
 <p class="rubric">lbdex/input/ch12_inherit.cpp</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1">#ifdef COUT_TEST</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1">#ifdef COUT_TEST</span>
 <span class="c1">#include &lt;iostream&gt;</span>
 <span class="n">using</span> <span class="n">namespace</span> <span class="n">std</span><span class="p">;</span>
 <span class="c1">#endif</span>
@@ -142,13 +134,13 @@ ch12_inherit.cpp as follows,</p>
 
 </pre></div>
 </div>
-<p>If using cout instead of printf in ch12_inherit.cpp, it won&#8217;t generate exception
+<p>If using cout instead of printf in ch12_inherit.cpp, it won’t generate exception
 handler IRs on Linux, whereas it will generate invoke, landing, resume
 and unreachable exception handler IRs on iMac.
 Example code, ch12_eh.cpp, which supports <strong>try</strong> and <strong>catch</strong> exception handler
 as the following will generate these exception handler IRs both on iMac and Linux.</p>
 <p class="rubric">lbdex/input/ch12_eh.cpp</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">Ex1</span> <span class="p">{};</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">Ex1</span> <span class="p">{};</span>
 <span class="n">void</span> <span class="n">throw_exception</span><span class="p">(</span><span class="nb">int</span> <span class="n">a</span><span class="p">,</span> <span class="nb">int</span> <span class="n">b</span><span class="p">)</span> <span class="p">{</span>
   <span class="n">Ex1</span> <span class="n">ex1</span><span class="p">;</span>
 
@@ -169,112 +161,16 @@ as the following will generate these exception handler IRs both on iMac and Linu
 
 </pre></div>
 </div>
-<div class="highlight-console"><div class="highlight"><pre><span></span><span class="gp">JonathantekiiMac:input Jonathan$</span> clang -c ch12_eh.cpp -emit-llvm
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">JonathantekiiMac:input Jonathan$</span> clang -c ch12_eh.cpp -emit-llvm
 <span class="go">-o ch12_eh.bc</span>
 <span class="gp">JonathantekiiMac:input Jonathan$</span> /Users/Jonathan/llvm/test/cmake_debug_build/
 <span class="go">Debug/bin/llvm-dis ch12_eh.bc -o -</span>
 </pre></div>
 </div>
-<div class="highlight-default"><div class="highlight"><pre><span></span>; ModuleID = &#39;ch12_eh.bc&#39;
-source_filename = &quot;ch12_eh.bc&quot;
-target datalayout = &quot;E-m:m-p:32:32-i8:8:32-i16:16:32-i64:64-n32-S64&quot;
-target triple = &quot;mips-unknown-linux-gnu&quot;
-
-%class.Ex1 = type { i8 }
-
-$_ZTS3Ex1 = comdat any
-
-$_ZTI3Ex1 = comdat any
-
-@_ZTVN10__cxxabiv117__class_type_infoE = external global i8*
-@_ZTS3Ex1 = linkonce_odr constant [5 x i8] c&quot;3Ex1\00&quot;, comdat
-@_ZTI3Ex1 = linkonce_odr constant { i8*, i8* } { i8* bitcast (i8** getelementptr
- inbounds (i8*, i8** @_ZTVN10__cxxabiv117__class_type_infoE, i32 2) to i8*), i8*
- getelementptr inbounds ([5 x i8], [5 x i8]* @_ZTS3Ex1, i32 0, i32 0) }, comdat
-
-define void @_Z15throw_exceptionii(i32 signext %a, i32 signext %b) #0 {
-  %1 = alloca i32, align 4
-  %2 = alloca i32, align 4
-  %ex1 = alloca %class.Ex1, align 1
-  store i32 %a, i32* %1, align 4
-  store i32 %b, i32* %2, align 4
-  %3 = load i32, i32* %1, align 4
-  %4 = load i32, i32* %2, align 4
-  %5 = icmp sgt i32 %3, %4
-  br i1 %5, label %6, label %9
-
-; &lt;label&gt;:6:                                      ; preds = %0
-  %7 = call i8* @__cxa_allocate_exception(i32 1) #1
-  %8 = bitcast i8* %7 to %class.Ex1*
-  call void @__cxa_throw(i8* %7, i8* bitcast ({ i8*, i8* }* @_ZTI3Ex1 to i8*), i
-8* null) #2
-  unreachable
-
-; &lt;label&gt;:9:                                      ; preds = %0
-  ret void
-}
-
-declare i8* @__cxa_allocate_exception(i32)
-
-declare void @__cxa_throw(i8*, i8*, i8*)
-
-define i32 @_Z14test_try_catchv() #0 personality i8* bitcast (i32 (...)* @__gxx_
-personality_v0 to i8*) {
-  %1 = alloca i32, align 4
-  %2 = alloca i8*
-  %3 = alloca i32
-  %4 = alloca i32
-  invoke void @_Z15throw_exceptionii(i32 signext 2, i32 signext 1)
-          to label %5 unwind label %6
-
-; &lt;label&gt;:5:                                      ; preds = %0
-  br label %13
-
-; &lt;label&gt;:6:                                      ; preds = %0
-  %7 = landingpad { i8*, i32 }
-          catch i8* null
-  %8 = extractvalue { i8*, i32 } %7, 0
-  store i8* %8, i8** %2
-  %9 = extractvalue { i8*, i32 } %7, 1
-  store i32 %9, i32* %3
-  br label %10
-
-; &lt;label&gt;:10:                                     ; preds = %6
-  %11 = load i8*, i8** %2
-  %12 = call i8* @__cxa_begin_catch(i8* %11) #1
-  store i32 1, i32* %1
-  store i32 1, i32* %4
-  call void @__cxa_end_catch()
-  br label %14
-
-; &lt;label&gt;:13:                                     ; preds = %5
-  store i32 0, i32* %1
-  br label %14
-
-; &lt;label&gt;:14:                                     ; preds = %13, %10
-  %15 = load i32, i32* %1
-  ret i32 %15
-}
-
-declare i32 @__gxx_personality_v0(...)
-
-declare i8* @__cxa_begin_catch(i8*)
-
-declare void @__cxa_end_catch()
-
-attributes #0 = { &quot;less-precise-fpmad&quot;=&quot;false&quot; &quot;no-frame-pointer-elim&quot;=&quot;true&quot; &quot;n
-o-frame-pointer-elim-non-leaf&quot; &quot;no-infs-fp-math&quot;=&quot;false&quot; &quot;no-nans-fp-math&quot;=&quot;fals
-e&quot; &quot;stack-protector-buffer-size&quot;=&quot;8&quot; &quot;target-cpu&quot;=&quot;mips32r2&quot; &quot;target-features&quot;=&quot;
-+mips32r2&quot; &quot;unsafe-fp-math&quot;=&quot;false&quot; &quot;use-soft-float&quot;=&quot;false&quot; }
-attributes #1 = { nounwind }
-attributes #2 = { noreturn }
-
-!llvm.ident = !{!0}
-
-!0 = !{!&quot;Apple LLVM version 7.0.0 (clang-700.1.76)&quot;}
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>
 </pre></div>
 </div>
-<div class="code console highlight-default"><div class="highlight"><pre><span></span>JonathantekiiMac:input Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
+<div class="code console highlight-default notranslate"><div class="highlight"><pre><span></span>JonathantekiiMac:input Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
 Debug/bin/llc -march=cpu0 -relocation-model=static -filetype=asm ch12_eh.bc -o -
         .section .mdebug.abi32
         .previous
@@ -289,7 +185,7 @@ def!&quot;&#39; failed.
 Chapter12_1 supports the llvm IRs of corresponding <strong>try</strong> and <strong>catch</strong>
 exception C++ keywords. It can compile ch12_eh.bc as follows,</p>
 <p class="rubric">lbdex/chapters/Chapter12_1/Cpu0ISelLowering.h</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span>    <span class="o">///</span> <span class="n">If</span> <span class="n">a</span> <span class="n">physical</span> <span class="n">register</span><span class="p">,</span> <span class="n">this</span> <span class="n">returns</span> <span class="n">the</span> <span class="n">register</span> <span class="n">that</span> <span class="n">receives</span> <span class="n">the</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>    <span class="o">///</span> <span class="n">If</span> <span class="n">a</span> <span class="n">physical</span> <span class="n">register</span><span class="p">,</span> <span class="n">this</span> <span class="n">returns</span> <span class="n">the</span> <span class="n">register</span> <span class="n">that</span> <span class="n">receives</span> <span class="n">the</span>
     <span class="o">///</span> <span class="n">exception</span> <span class="n">address</span> <span class="n">on</span> <span class="n">entry</span> <span class="n">to</span> <span class="n">an</span> <span class="n">EH</span> <span class="n">pad</span><span class="o">.</span>
     <span class="n">unsigned</span>
     <span class="n">getExceptionPointerRegister</span><span class="p">(</span><span class="n">const</span> <span class="n">Constant</span> <span class="o">*</span><span class="n">PersonalityFn</span><span class="p">)</span> <span class="n">const</span> <span class="n">override</span> <span class="p">{</span>
@@ -304,180 +200,11 @@ exception C++ keywords. It can compile ch12_eh.bc as follows,</p>
     <span class="p">}</span>
 </pre></div>
 </div>
-<div class="highlight-console"><div class="highlight"><pre><span></span><span class="gp">JonathantekiiMac:input Jonathan$</span> /Users/Jonathan/llvm/test/cmake_debug_build/
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">JonathantekiiMac:input Jonathan$</span> /Users/Jonathan/llvm/test/cmake_debug_build/
 <span class="go">Debug/bin/llc -march=cpu0 -relocation-model=static -filetype=asm ch12_eh.bc -o -</span>
 </pre></div>
 </div>
-<div class="highlight-default"><div class="highlight"><pre><span></span>  .text
-  .section .mdebug.abiO32
-  .previous
-  .file  &quot;ch12_eh.bc&quot;
-  .globl  _Z15throw_exceptionii
-  .p2align  2
-  .type  _Z15throw_exceptionii,@function
-  .ent  _Z15throw_exceptionii   # @_Z15throw_exceptionii
-_Z15throw_exceptionii:
-  .cfi_startproc
-  .frame  $fp,40,$lr
-  .mask   0x00005000,-4
-  .set  noreorder
-  .set  nomacro
-# BB#0:
-  addiu  $sp, $sp, -40
-$tmp0:
-  .cfi_def_cfa_offset 40
-  st  $lr, 36($sp)            # 4-byte Folded Spill
-  st  $fp, 32($sp)            # 4-byte Folded Spill
-$tmp1:
-  .cfi_offset 14, -4
-$tmp2:
-  .cfi_offset 12, -8
-  move   $fp, $sp
-$tmp3:
-  .cfi_def_cfa_register 12
-  st  $4, 28($fp)
-  st  $5, 24($fp)
-  ld  $2, 28($fp)
-  cmp  $sw, $2, $5
-  jle  $sw, $BB0_2
-  nop
-  jmp  $BB0_1
-$BB0_2:
-  move   $sp, $fp
-  ld  $fp, 32($sp)            # 4-byte Folded Reload
-  ld  $lr, 36($sp)            # 4-byte Folded Reload
-  addiu  $sp, $sp, 40
-  ret  $lr
-  nop
-$BB0_1:
-  addiu  $4, $zero, 1
-  jsub  __cxa_allocate_exception
-  nop
-  addiu  $3, $zero, 0
-  st  $3, 8($sp)
-  lui  $3, %hi(_ZTI3Ex1)
-  ori  $5, $3, %lo(_ZTI3Ex1)
-  addu  $4, $zero, $2
-  jsub  __cxa_throw
-  nop
-  .set  macro
-  .set  reorder
-  .end  _Z15throw_exceptionii
-$func_end0:
-  .size  _Z15throw_exceptionii, ($func_end0)-_Z15throw_exceptionii
-  .cfi_endproc
-
-  .globl  _Z14test_try_catchv
-  .p2align  2
-  .type  _Z14test_try_catchv,@function
-  .ent  _Z14test_try_catchv     # @_Z14test_try_catchv
-_Z14test_try_catchv:
-$tmp7:
-$func_begin0 = ($tmp7)
-  .cfi_startproc
-  .cfi_personality 0, __gxx_personality_v0
-  .cfi_lsda 0, $exception0
-  .frame  $fp,40,$lr
-  .mask   0x00005200,-4
-  .set  noreorder
-  .set  nomacro
-# BB#0:
-  addiu  $sp, $sp, -40
-$tmp8:
-  .cfi_def_cfa_offset 40
-  st  $lr, 36($sp)            # 4-byte Folded Spill
-  st  $fp, 32($sp)            # 4-byte Folded Spill
-  st  $9, 28($sp)             # 4-byte Folded Spill
-$tmp9:
-  .cfi_offset 14, -4
-$tmp10:
-  .cfi_offset 12, -8
-$tmp11:
-  .cfi_offset 9, -12
-  move   $fp, $sp
-$tmp12:
-  .cfi_def_cfa_register 12
-$tmp4:
-  addiu  $4, $zero, 2
-  addiu  $9, $zero, 1
-  addu  $5, $zero, $9
-  jsub  _Z15throw_exceptionii
-  nop
-$tmp5:
-# BB#2:
-  addiu  $2, $zero, 0
-  st  $2, 24($fp)
-$BB1_3:
-  ld  $2, 24($fp)
-  move   $sp, $fp
-  ld  $9, 28($sp)             # 4-byte Folded Reload
-  ld  $fp, 32($sp)            # 4-byte Folded Reload
-  ld  $lr, 36($sp)            # 4-byte Folded Reload
-  addiu  $sp, $sp, 40
-  ret  $lr
-  nop
-$BB1_1:
-$tmp6:
-  st  $4, 20($fp)
-  st  $5, 16($fp)
-  ld  $4, 20($fp)
-  jsub  __cxa_begin_catch
-  nop
-  st  $9, 24($fp)
-  st  $9, 12($fp)
-  jsub  __cxa_end_catch
-  nop
-  jmp  $BB1_3
-  .set  macro
-  .set  reorder
-  .end  _Z14test_try_catchv
-$func_end1:
-  .size  _Z14test_try_catchv, ($func_end1)-_Z14test_try_catchv
-  .cfi_endproc
-  .section  .gcc_except_table,&quot;a&quot;,@progbits
-  .p2align  2
-GCC_except_table1:
-$exception0:
-  .byte  255                     # @LPStart Encoding = omit
-  .byte  0                       # @TType Encoding = absptr
-  .asciz  &quot;\242\200\200&quot;          # @TType base offset
-  .byte  3                       # Call site Encoding = udata4
-  .byte  26                      # Call site table length
-  .4byte  ($tmp4)-($func_begin0)  # &gt;&gt; Call Site 1 &lt;&lt;
-  .4byte  ($tmp5)-($tmp4)         #   Call between $tmp4 and $tmp5
-  .4byte  ($tmp6)-($func_begin0)  #     jumps to $tmp6
-  .byte  1                       #   On action: 1
-  .4byte  ($tmp5)-($func_begin0)  # &gt;&gt; Call Site 2 &lt;&lt;
-  .4byte  ($func_end1)-($tmp5)    #   Call between $tmp5 and $func_end1
-  .4byte  0                       #     has no landing pad
-  .byte  0                       #   On action: cleanup
-  .byte  1                       # &gt;&gt; Action Record 1 &lt;&lt;
-                                        #   Catch TypeInfo 1
-  .byte  0                       #   No further actions
-                                        # &gt;&gt; Catch TypeInfos &lt;&lt;
-  .4byte  0                       # TypeInfo 1
-  .p2align  2
-
-  .type  _ZTS3Ex1,@object        # @_ZTS3Ex1
-  .section  .rodata._ZTS3Ex1,&quot;aG&quot;,@progbits,_ZTS3Ex1,comdat
-  .weak  _ZTS3Ex1
-  .p2align  2
-_ZTS3Ex1:
-  .asciz  &quot;3Ex1&quot;
-  .size  _ZTS3Ex1, 5
-
-  .type  _ZTI3Ex1,@object        # @_ZTI3Ex1
-  .section  .rodata._ZTI3Ex1,&quot;aG&quot;,@progbits,_ZTI3Ex1,comdat
-  .weak  _ZTI3Ex1
-  .p2align  3
-_ZTI3Ex1:
-  .4byte  _ZTVN10__cxxabiv117__class_type_infoE+8
-  .4byte  _ZTS3Ex1
-  .size  _ZTI3Ex1, 8
-
-
-  .ident  &quot;Apple LLVM version 7.0.0 (clang-700.1.76)&quot;
-  .section  &quot;.note.GNU-stack&quot;,&quot;&quot;,@progbits
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>
 </pre></div>
 </div>
 </div>
@@ -485,7 +212,7 @@ _ZTI3Ex1:
 <h2><a class="toc-backref" href="#id12">Thread variable</a><a class="headerlink" href="#thread-variable" title="Permalink to this headline">¶</a></h2>
 <p>C++ support thread variable as the following file ch12_thread_var.cpp.</p>
 <p class="rubric">lbdex/input/ch12_thread_var.cpp</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">__thread</span> <span class="nb">int</span> <span class="n">a</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">__thread</span> <span class="nb">int</span> <span class="n">a</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
 <span class="n">thread_local</span> <span class="nb">int</span> <span class="n">b</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="o">//</span> <span class="n">need</span> <span class="n">option</span> <span class="o">-</span><span class="n">std</span><span class="o">=</span><span class="n">c</span><span class="o">++</span><span class="mi">11</span>
 <span class="nb">int</span> <span class="n">test_thread_var</span><span class="p">()</span>
 <span class="p">{</span>
@@ -512,7 +239,7 @@ Most of them are for relocation record handle and display since the thread
 variable created by OS or language library which support multi-threads
 programming.</p>
 <p class="rubric">lbdex/chapters/Chapter12_1/MCTargetDesc/Cpu0AsmBackend.cpp</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">const</span> <span class="n">MCFixupKindInfo</span> <span class="o">&amp;</span><span class="n">Cpu0AsmBackend</span><span class="p">::</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">const</span> <span class="n">MCFixupKindInfo</span> <span class="o">&amp;</span><span class="n">Cpu0AsmBackend</span><span class="p">::</span>
 <span class="n">getFixupKindInfo</span><span class="p">(</span><span class="n">MCFixupKind</span> <span class="n">Kind</span><span class="p">)</span> <span class="n">const</span> <span class="p">{</span>
   <span class="n">const</span> <span class="n">static</span> <span class="n">MCFixupKindInfo</span> <span class="n">Infos</span><span class="p">[</span><span class="n">Cpu0</span><span class="p">::</span><span class="n">NumTargetFixupKinds</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
     <span class="o">//</span> <span class="n">This</span> <span class="n">table</span> <span class="o">*</span><span class="n">must</span><span class="o">*</span> <span class="n">be</span> <span class="ow">in</span> <span class="n">same</span> <span class="n">the</span> <span class="n">order</span> <span class="n">of</span> <span class="n">fixup_</span><span class="o">*</span> <span class="n">kinds</span> <span class="ow">in</span>
@@ -521,7 +248,7 @@ programming.</p>
     <span class="o">//</span> <span class="n">name</span>                        <span class="n">offset</span>  <span class="n">bits</span>  <span class="n">flags</span>
 </pre></div>
 </div>
-<div class="highlight-default"><div class="highlight"><pre><span></span>    <span class="p">{</span> <span class="s2">&quot;fixup_Cpu0_TLSGD&quot;</span><span class="p">,</span>          <span class="mi">0</span><span class="p">,</span>     <span class="mi">16</span><span class="p">,</span>   <span class="mi">0</span> <span class="p">},</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>    <span class="p">{</span> <span class="s2">&quot;fixup_Cpu0_TLSGD&quot;</span><span class="p">,</span>          <span class="mi">0</span><span class="p">,</span>     <span class="mi">16</span><span class="p">,</span>   <span class="mi">0</span> <span class="p">},</span>
     <span class="p">{</span> <span class="s2">&quot;fixup_Cpu0_GOTTP&quot;</span><span class="p">,</span>          <span class="mi">0</span><span class="p">,</span>     <span class="mi">16</span><span class="p">,</span>   <span class="mi">0</span> <span class="p">},</span>
     <span class="p">{</span> <span class="s2">&quot;fixup_Cpu0_TP_HI&quot;</span><span class="p">,</span>          <span class="mi">0</span><span class="p">,</span>     <span class="mi">16</span><span class="p">,</span>   <span class="mi">0</span> <span class="p">},</span>
     <span class="p">{</span> <span class="s2">&quot;fixup_Cpu0_TP_LO&quot;</span><span class="p">,</span>          <span class="mi">0</span><span class="p">,</span>     <span class="mi">16</span><span class="p">,</span>   <span class="mi">0</span> <span class="p">},</span>
@@ -530,14 +257,14 @@ programming.</p>
     <span class="p">{</span> <span class="s2">&quot;fixup_Cpu0_DTP_LO&quot;</span><span class="p">,</span>         <span class="mi">0</span><span class="p">,</span>     <span class="mi">16</span><span class="p">,</span>   <span class="mi">0</span> <span class="p">},</span>
 </pre></div>
 </div>
-<div class="highlight-c++"><div class="highlight"><pre><span></span>    <span class="p">...</span>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span>    <span class="p">...</span>
   <span class="p">};</span>
   <span class="p">...</span>
 <span class="p">}</span>
 </pre></div>
 </div>
 <p class="rubric">lbdex/chapters/Chapter12_1/MCTargetDesc/Cpu0BaseInfo.h</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">namespace</span> <span class="n">Cpu0II</span> <span class="p">{</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">namespace</span> <span class="n">Cpu0II</span> <span class="p">{</span>
   <span class="o">///</span> <span class="n">Target</span> <span class="n">Operand</span> <span class="n">Flag</span> <span class="n">enum</span><span class="o">.</span>
   <span class="n">enum</span> <span class="n">TOF</span> <span class="p">{</span>
     <span class="o">//===------------------------------------------------------------------===//</span>
@@ -545,7 +272,7 @@ programming.</p>
 
 </pre></div>
 </div>
-<div class="highlight-default"><div class="highlight"><pre><span></span>    <span class="o">///</span> <span class="n">MO_TLSGD</span> <span class="o">-</span> <span class="n">Represents</span> <span class="n">the</span> <span class="n">offset</span> <span class="n">into</span> <span class="n">the</span> <span class="k">global</span> <span class="n">offset</span> <span class="n">table</span> <span class="n">at</span> <span class="n">which</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>    <span class="o">///</span> <span class="n">MO_TLSGD</span> <span class="o">-</span> <span class="n">Represents</span> <span class="n">the</span> <span class="n">offset</span> <span class="n">into</span> <span class="n">the</span> <span class="k">global</span> <span class="n">offset</span> <span class="n">table</span> <span class="n">at</span> <span class="n">which</span>
     <span class="o">//</span> <span class="n">the</span> <span class="n">module</span> <span class="n">ID</span> <span class="ow">and</span> <span class="n">TSL</span> <span class="n">block</span> <span class="n">offset</span> <span class="n">reside</span> <span class="n">during</span> <span class="n">execution</span> <span class="p">(</span><span class="n">General</span>
     <span class="o">//</span> <span class="n">Dynamic</span> <span class="n">TLS</span><span class="p">)</span><span class="o">.</span>
     <span class="n">MO_TLSGD</span><span class="p">,</span>
@@ -567,14 +294,14 @@ programming.</p>
     <span class="n">MO_TP_LO</span><span class="p">,</span>
 </pre></div>
 </div>
-<div class="highlight-c++"><div class="highlight"><pre><span></span>    <span class="p">...</span>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span>    <span class="p">...</span>
   <span class="p">};</span>
   <span class="p">...</span>
 <span class="p">}</span>
 </pre></div>
 </div>
 <p class="rubric">lbdex/chapters/Chapter12_1/MCTargetDesc/Cpu0ELFObjectWriter.cpp</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">unsigned</span> <span class="n">Cpu0ELFObjectWriter</span><span class="p">::</span><span class="n">getRelocType</span><span class="p">(</span><span class="n">MCContext</span> <span class="o">&amp;</span><span class="n">Ctx</span><span class="p">,</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">unsigned</span> <span class="n">Cpu0ELFObjectWriter</span><span class="p">::</span><span class="n">getRelocType</span><span class="p">(</span><span class="n">MCContext</span> <span class="o">&amp;</span><span class="n">Ctx</span><span class="p">,</span>
                                            <span class="n">const</span> <span class="n">MCValue</span> <span class="o">&amp;</span><span class="n">Target</span><span class="p">,</span>
                                            <span class="n">const</span> <span class="n">MCFixup</span> <span class="o">&amp;</span><span class="n">Fixup</span><span class="p">,</span>
                                            <span class="nb">bool</span> <span class="n">IsPCRel</span><span class="p">)</span> <span class="n">const</span> <span class="p">{</span>
@@ -585,7 +312,7 @@ programming.</p>
   <span class="n">switch</span> <span class="p">(</span><span class="n">Kind</span><span class="p">)</span> <span class="p">{</span>
 </pre></div>
 </div>
-<div class="highlight-default"><div class="highlight"><pre><span></span>  <span class="n">case</span> <span class="n">Cpu0</span><span class="p">::</span><span class="n">fixup_Cpu0_TLSGD</span><span class="p">:</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>  <span class="n">case</span> <span class="n">Cpu0</span><span class="p">::</span><span class="n">fixup_Cpu0_TLSGD</span><span class="p">:</span>
     <span class="n">Type</span> <span class="o">=</span> <span class="n">ELF</span><span class="p">::</span><span class="n">R_CPU0_TLS_GD</span><span class="p">;</span>
     <span class="k">break</span><span class="p">;</span>
   <span class="n">case</span> <span class="n">Cpu0</span><span class="p">::</span><span class="n">fixup_Cpu0_GOTTPREL</span><span class="p">:</span>
@@ -593,15 +320,15 @@ programming.</p>
     <span class="k">break</span><span class="p">;</span>
 </pre></div>
 </div>
-<div class="highlight-c++"><div class="highlight"><pre><span></span>  <span class="p">...</span>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span>  <span class="p">...</span>
 <span class="p">}</span>
 </pre></div>
 </div>
 <p class="rubric">lbdex/chapters/Chapter12_1/MCTargetDesc/Cpu0FixupKinds.h</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span>  <span class="n">enum</span> <span class="n">Fixups</span> <span class="p">{</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>  <span class="n">enum</span> <span class="n">Fixups</span> <span class="p">{</span>
 </pre></div>
 </div>
-<div class="highlight-default"><div class="highlight"><pre><span></span>    <span class="o">//</span> <span class="n">resulting</span> <span class="ow">in</span> <span class="o">-</span> <span class="n">R_CPU0_TLS_GD</span><span class="o">.</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>    <span class="o">//</span> <span class="n">resulting</span> <span class="ow">in</span> <span class="o">-</span> <span class="n">R_CPU0_TLS_GD</span><span class="o">.</span>
     <span class="n">fixup_Cpu0_TLSGD</span><span class="p">,</span>
 
     <span class="o">//</span> <span class="n">resulting</span> <span class="ow">in</span> <span class="o">-</span> <span class="n">R_CPU0_TLS_GOTTPREL</span><span class="o">.</span>
@@ -623,17 +350,17 @@ programming.</p>
     <span class="n">fixup_Cpu0_DTP_LO</span><span class="p">,</span>
 </pre></div>
 </div>
-<div class="highlight-c++"><div class="highlight"><pre><span></span>  <span class="p">...</span>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span>  <span class="p">...</span>
 <span class="p">};</span>
 </pre></div>
 </div>
 <p class="rubric">lbdex/chapters/Chapter12_1/MCTargetDesc/Cpu0MCCodeEmitter.cpp</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">unsigned</span> <span class="n">Cpu0MCCodeEmitter</span><span class="p">::</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">unsigned</span> <span class="n">Cpu0MCCodeEmitter</span><span class="p">::</span>
 <span class="n">getExprOpValue</span><span class="p">(</span><span class="n">const</span> <span class="n">MCExpr</span> <span class="o">*</span><span class="n">Expr</span><span class="p">,</span><span class="n">SmallVectorImpl</span><span class="o">&lt;</span><span class="n">MCFixup</span><span class="o">&gt;</span> <span class="o">&amp;</span><span class="n">Fixups</span><span class="p">,</span>
                <span class="n">const</span> <span class="n">MCSubtargetInfo</span> <span class="o">&amp;</span><span class="n">STI</span><span class="p">)</span> <span class="n">const</span> <span class="p">{</span>
 </pre></div>
 </div>
-<div class="highlight-default"><div class="highlight"><pre><span></span>    <span class="n">case</span> <span class="n">Cpu0MCExpr</span><span class="p">::</span><span class="n">CEK_TLSGD</span><span class="p">:</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>    <span class="n">case</span> <span class="n">Cpu0MCExpr</span><span class="p">::</span><span class="n">CEK_TLSGD</span><span class="p">:</span>
       <span class="n">FixupKind</span> <span class="o">=</span> <span class="n">Cpu0</span><span class="p">::</span><span class="n">fixup_Cpu0_TLSGD</span><span class="p">;</span>
       <span class="k">break</span><span class="p">;</span>
     <span class="n">case</span> <span class="n">Cpu0MCExpr</span><span class="p">::</span><span class="n">CEK_TLSLDM</span><span class="p">:</span>
@@ -656,12 +383,12 @@ programming.</p>
       <span class="k">break</span><span class="p">;</span>
 </pre></div>
 </div>
-<div class="highlight-c++"><div class="highlight"><pre><span></span>  <span class="p">...</span>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span>  <span class="p">...</span>
 <span class="p">}</span>
 </pre></div>
 </div>
 <p class="rubric">lbdex/chapters/Chapter12_1/Cpu0InstrInfo.td</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">//</span> <span class="n">TlsGd</span> <span class="n">node</span> <span class="ow">is</span> <span class="n">used</span> <span class="n">to</span> <span class="n">handle</span> <span class="n">General</span> <span class="n">Dynamic</span> <span class="n">TLS</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">//</span> <span class="n">TlsGd</span> <span class="n">node</span> <span class="ow">is</span> <span class="n">used</span> <span class="n">to</span> <span class="n">handle</span> <span class="n">General</span> <span class="n">Dynamic</span> <span class="n">TLS</span>
 <span class="k">def</span> <span class="nf">Cpu0TlsGd</span> <span class="p">:</span> <span class="n">SDNode</span><span class="o">&lt;</span><span class="s2">&quot;Cpu0ISD::TlsGd&quot;</span><span class="p">,</span> <span class="n">SDTIntUnaryOp</span><span class="o">&gt;</span><span class="p">;</span>
 
 <span class="o">//</span> <span class="n">TpHi</span> <span class="ow">and</span> <span class="n">TpLo</span> <span class="n">nodes</span> <span class="n">are</span> <span class="n">used</span> <span class="n">to</span> <span class="n">handle</span> <span class="n">Local</span> <span class="n">Exec</span> <span class="n">TLS</span>
@@ -669,58 +396,58 @@ programming.</p>
 <span class="k">def</span> <span class="nf">Cpu0TpLo</span>  <span class="p">:</span> <span class="n">SDNode</span><span class="o">&lt;</span><span class="s2">&quot;Cpu0ISD::TpLo&quot;</span><span class="p">,</span> <span class="n">SDTIntUnaryOp</span><span class="o">&gt;</span><span class="p">;</span>
 </pre></div>
 </div>
-<div class="highlight-default"><div class="highlight"><pre><span></span>let Predicates = [Ch12_1] in {
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>let Predicates = [Ch12_1] in {
 def : Pat&lt;(Cpu0Hi tglobaltlsaddr:$in), (LUi tglobaltlsaddr:$in)&gt;;
 }
 </pre></div>
 </div>
-<div class="highlight-default"><div class="highlight"><pre><span></span>let Predicates = [Ch12_1] in {
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>let Predicates = [Ch12_1] in {
 def : Pat&lt;(Cpu0Lo tglobaltlsaddr:$in), (ORi ZERO, tglobaltlsaddr:$in)&gt;;
 }
 </pre></div>
 </div>
-<div class="highlight-default"><div class="highlight"><pre><span></span>let Predicates = [Ch12_1] in {
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>let Predicates = [Ch12_1] in {
 def : Pat&lt;(add CPURegs:$hi, (Cpu0Lo tglobaltlsaddr:$lo)),
               (ORi CPURegs:$hi, tglobaltlsaddr:$lo)&gt;;
 }
 </pre></div>
 </div>
-<div class="highlight-default"><div class="highlight"><pre><span></span>let Predicates = [Ch12_1] in {
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>let Predicates = [Ch12_1] in {
 def : WrapperPat&lt;tglobaltlsaddr, ORi, CPURegs&gt;;
 }
 </pre></div>
 </div>
 <p class="rubric">lbdex/chapters/Chapter12_1/Cpu0SelLowering.cpp</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">Cpu0TargetLowering</span><span class="p">::</span><span class="n">Cpu0TargetLowering</span><span class="p">(</span><span class="n">const</span> <span class="n">Cpu0TargetMachine</span> <span class="o">&amp;</span><span class="n">TM</span><span class="p">,</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Cpu0TargetLowering</span><span class="p">::</span><span class="n">Cpu0TargetLowering</span><span class="p">(</span><span class="n">const</span> <span class="n">Cpu0TargetMachine</span> <span class="o">&amp;</span><span class="n">TM</span><span class="p">,</span>
                                        <span class="n">const</span> <span class="n">Cpu0Subtarget</span> <span class="o">&amp;</span><span class="n">STI</span><span class="p">)</span>
     <span class="p">:</span> <span class="n">TargetLowering</span><span class="p">(</span><span class="n">TM</span><span class="p">),</span> <span class="n">Subtarget</span><span class="p">(</span><span class="n">STI</span><span class="p">),</span> <span class="n">ABI</span><span class="p">(</span><span class="n">TM</span><span class="o">.</span><span class="n">getABI</span><span class="p">())</span> <span class="p">{</span>
 
 </pre></div>
 </div>
-<div class="highlight-default"><div class="highlight"><pre><span></span>  <span class="n">setOperationAction</span><span class="p">(</span><span class="n">ISD</span><span class="p">::</span><span class="n">GlobalTLSAddress</span><span class="p">,</span>   <span class="n">MVT</span><span class="p">::</span><span class="n">i32</span><span class="p">,</span>   <span class="n">Custom</span><span class="p">);</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>  <span class="n">setOperationAction</span><span class="p">(</span><span class="n">ISD</span><span class="p">::</span><span class="n">GlobalTLSAddress</span><span class="p">,</span>   <span class="n">MVT</span><span class="p">::</span><span class="n">i32</span><span class="p">,</span>   <span class="n">Custom</span><span class="p">);</span>
 </pre></div>
 </div>
-<div class="highlight-c++"><div class="highlight"><pre><span></span>  <span class="p">...</span>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span>  <span class="p">...</span>
 <span class="p">}</span>
 </pre></div>
 </div>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">SDValue</span> <span class="n">Cpu0TargetLowering</span><span class="p">::</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">SDValue</span> <span class="n">Cpu0TargetLowering</span><span class="p">::</span>
 <span class="n">LowerOperation</span><span class="p">(</span><span class="n">SDValue</span> <span class="n">Op</span><span class="p">,</span> <span class="n">SelectionDAG</span> <span class="o">&amp;</span><span class="n">DAG</span><span class="p">)</span> <span class="n">const</span>
 <span class="p">{</span>
   <span class="n">switch</span> <span class="p">(</span><span class="n">Op</span><span class="o">.</span><span class="n">getOpcode</span><span class="p">())</span>
   <span class="p">{</span>
 </pre></div>
 </div>
-<div class="highlight-default"><div class="highlight"><pre><span></span>  <span class="n">case</span> <span class="n">ISD</span><span class="p">::</span><span class="n">GlobalTLSAddress</span><span class="p">:</span>   <span class="k">return</span> <span class="n">lowerGlobalTLSAddress</span><span class="p">(</span><span class="n">Op</span><span class="p">,</span> <span class="n">DAG</span><span class="p">);</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>  <span class="n">case</span> <span class="n">ISD</span><span class="p">::</span><span class="n">GlobalTLSAddress</span><span class="p">:</span>   <span class="k">return</span> <span class="n">lowerGlobalTLSAddress</span><span class="p">(</span><span class="n">Op</span><span class="p">,</span> <span class="n">DAG</span><span class="p">);</span>
 </pre></div>
 </div>
-<div class="highlight-c++"><div class="highlight"><pre><span></span>    <span class="p">...</span>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span>    <span class="p">...</span>
   <span class="p">}</span>
   <span class="p">...</span>
 <span class="p">}</span>
 </pre></div>
 </div>
-<div class="highlight-default"><div class="highlight"><pre><span></span>SDValue Cpu0TargetLowering::
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>SDValue Cpu0TargetLowering::
 lowerGlobalTLSAddress(SDValue Op, SelectionDAG &amp;DAG) const
 {
   // If the relocation model is PIC, use the General Dynamic TLS Model or
@@ -801,11 +528,11 @@ lowerGlobalTLSAddress(SDValue Op, SelectionDAG &amp;DAG) const
 </pre></div>
 </div>
 <p class="rubric">lbdex/chapters/Chapter12_1/Cpu0ISelLowering.h</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span>    <span class="n">SDValue</span> <span class="n">lowerGlobalTLSAddress</span><span class="p">(</span><span class="n">SDValue</span> <span class="n">Op</span><span class="p">,</span> <span class="n">SelectionDAG</span> <span class="o">&amp;</span><span class="n">DAG</span><span class="p">)</span> <span class="n">const</span><span class="p">;</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>    <span class="n">SDValue</span> <span class="n">lowerGlobalTLSAddress</span><span class="p">(</span><span class="n">SDValue</span> <span class="n">Op</span><span class="p">,</span> <span class="n">SelectionDAG</span> <span class="o">&amp;</span><span class="n">DAG</span><span class="p">)</span> <span class="n">const</span><span class="p">;</span>
 </pre></div>
 </div>
 <p class="rubric">lbdex/chapters/Chapter12_1/Cpu0MCInstLower.cpp</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">MCOperand</span> <span class="n">Cpu0MCInstLower</span><span class="p">::</span><span class="n">LowerSymbolOperand</span><span class="p">(</span><span class="n">const</span> <span class="n">MachineOperand</span> <span class="o">&amp;</span><span class="n">MO</span><span class="p">,</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">MCOperand</span> <span class="n">Cpu0MCInstLower</span><span class="p">::</span><span class="n">LowerSymbolOperand</span><span class="p">(</span><span class="n">const</span> <span class="n">MachineOperand</span> <span class="o">&amp;</span><span class="n">MO</span><span class="p">,</span>
                                               <span class="n">MachineOperandType</span> <span class="n">MOTy</span><span class="p">,</span>
                                               <span class="n">unsigned</span> <span class="n">Offset</span><span class="p">)</span> <span class="n">const</span> <span class="p">{</span>
   <span class="n">MCSymbolRefExpr</span><span class="p">::</span><span class="n">VariantKind</span> <span class="n">Kind</span> <span class="o">=</span> <span class="n">MCSymbolRefExpr</span><span class="p">::</span><span class="n">VK_None</span><span class="p">;</span>
@@ -815,7 +542,7 @@ lowerGlobalTLSAddress(SDValue Op, SelectionDAG &amp;DAG) const
   <span class="n">switch</span><span class="p">(</span><span class="n">MO</span><span class="o">.</span><span class="n">getTargetFlags</span><span class="p">())</span> <span class="p">{</span>
 </pre></div>
 </div>
-<div class="highlight-default"><div class="highlight"><pre><span></span>  <span class="n">case</span> <span class="n">Cpu0II</span><span class="p">::</span><span class="n">MO_TLSGD</span><span class="p">:</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>  <span class="n">case</span> <span class="n">Cpu0II</span><span class="p">::</span><span class="n">MO_TLSGD</span><span class="p">:</span>
     <span class="n">TargetKind</span> <span class="o">=</span> <span class="n">Cpu0MCExpr</span><span class="p">::</span><span class="n">CEK_TLSGD</span><span class="p">;</span>
     <span class="k">break</span><span class="p">;</span>
   <span class="n">case</span> <span class="n">Cpu0II</span><span class="p">::</span><span class="n">MO_TLSLDM</span><span class="p">:</span>
@@ -838,207 +565,27 @@ lowerGlobalTLSAddress(SDValue Op, SelectionDAG &amp;DAG) const
     <span class="k">break</span><span class="p">;</span>
 </pre></div>
 </div>
-<div class="highlight-c++"><div class="highlight"><pre><span></span>  <span class="p">...</span>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span>  <span class="p">...</span>
   <span class="p">}</span>
   <span class="p">...</span>
 <span class="p">}</span>
 </pre></div>
 </div>
-<div class="highlight-console"><div class="highlight"><pre><span></span><span class="gp">JonathantekiiMac:input Jonathan$</span> clang -target mips-unknown-linux-gnu -c
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">JonathantekiiMac:input Jonathan$</span> clang -target mips-unknown-linux-gnu -c
 <span class="go">ch12_thread_var.cpp -emit-llvm -std=c++11 -o ch12_thread_var.bc</span>
 <span class="gp">JonathantekiiMac:input Jonathan$</span> /Users/Jonathan/llvm/test/cmake_debug_build/
 <span class="go">Debug/bin/llvm-dis ch12_thread_var.bc -o -</span>
 </pre></div>
 </div>
-<div class="highlight-default"><div class="highlight"><pre><span></span>; ModuleID = &#39;ch12_thread_var.bc&#39;
-source_filename = &quot;ch12_thread_var.bc&quot;
-target datalayout = &quot;E-m:m-p:32:32-i8:8:32-i16:16:32-i64:64-n32-S64&quot;
-target triple = &quot;mips-unknown-linux-gnu&quot;
-
-@a = thread_local global i32 0, align 4
-@b = thread_local global i32 0, align 4
-
-; Function Attrs: nounwind
-define i32 @_Z15test_thread_varv() #0 {
-  store i32 2, i32* @a, align 4
-  %1 = load i32, i32* @a, align 4
-  ret i32 %1
-}
-
-define i32 @_Z17test_thread_var_2v() #1 {
-  %1 = call i32* @_ZTW1b()
-  store i32 3, i32* %1, align 4
-  %2 = call i32* @_ZTW1b()
-  %3 = load i32, i32* %2, align 4
-  ret i32 %3
-}
-
-define weak_odr hidden i32* @_ZTW1b() {
-  ret i32* @b
-}
-
-attributes #0 = { nounwind &quot;less-precise-fpmad&quot;=&quot;false&quot; &quot;no-frame-pointer-elim&quot;=
-&quot;true&quot; &quot;no-frame-pointer-elim-non-leaf&quot; &quot;no-infs-fp-math&quot;=&quot;false&quot; &quot;no-nans-fp-ma
-th&quot;=&quot;false&quot; &quot;stack-protector-buffer-size&quot;=&quot;8&quot; &quot;target-cpu&quot;=&quot;mips32r2&quot; &quot;target-fe
-atures&quot;=&quot;+mips32r2&quot; &quot;unsafe-fp-math&quot;=&quot;false&quot; &quot;use-soft-float&quot;=&quot;false&quot; }
-attributes #1 = { &quot;less-precise-fpmad&quot;=&quot;false&quot; &quot;no-frame-pointer-elim&quot;=&quot;true&quot; &quot;n
-o-frame-pointer-elim-non-leaf&quot; &quot;no-infs-fp-math&quot;=&quot;false&quot; &quot;no-nans-fp-math&quot;=&quot;fals
-e&quot; &quot;stack-protector-buffer-size&quot;=&quot;8&quot; &quot;target-cpu&quot;=&quot;mips32r2&quot; &quot;target-features&quot;=&quot;
-+mips32r2&quot; &quot;unsafe-fp-math&quot;=&quot;false&quot; &quot;use-soft-float&quot;=&quot;false&quot; }
-
-!llvm.ident = !{!0}
-
-!0 = !{!&quot;Apple LLVM version 7.0.0 (clang-700.1.76)&quot;}
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>
 </pre></div>
 </div>
-<div class="highlight-console"><div class="highlight"><pre><span></span><span class="gp">JonathantekiiMac:input Jonathan$</span> /Users/Jonathan/llvm/test/cmake_debug_build/
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">JonathantekiiMac:input Jonathan$</span> /Users/Jonathan/llvm/test/cmake_debug_build/
 <span class="go">Debug/bin/llc -march=cpu0 -relocation-model=pic -filetype=asm ch12_thread_var.bc</span>
 <span class="go">-o -</span>
 </pre></div>
 </div>
-<div class="highlight-default"><div class="highlight"><pre><span></span>  .text
-  .section .mdebug.abiO32
-  .previous
-  .file  &quot;ch12_thread_var.bc&quot;
-  .globl  _Z15test_thread_varv
-  .p2align  2
-  .type  _Z15test_thread_varv,@function
-  .ent  _Z15test_thread_varv    # @_Z15test_thread_varv
-_Z15test_thread_varv:
-  .frame  $fp,16,$lr
-  .mask   0x00005000,-4
-  .set  noreorder
-  .cpload  $t9
-  .set  nomacro
-# BB#0:
-  addiu  $sp, $sp, -16
-  st  $lr, 12($sp)            # 4-byte Folded Spill
-  st  $fp, 8($sp)             # 4-byte Folded Spill
-  move   $fp, $sp
-  .cprestore  8
-  ld  $t9, %call16(__tls_get_addr)($gp)
-  ori  $4, $gp, %tlsgd(a)
-  jalr  $t9
-  nop
-  ld  $gp, 8($fp)
-  addiu  $3, $zero, 2
-  st  $3, 0($2)
-  addu  $2, $zero, $3
-  move   $sp, $fp
-  ld  $fp, 8($sp)             # 4-byte Folded Reload
-  ld  $lr, 12($sp)            # 4-byte Folded Reload
-  addiu  $sp, $sp, 16
-  ret  $lr
-  nop
-  .set  macro
-  .set  reorder
-  .end  _Z15test_thread_varv
-$func_end0:
-  .size  _Z15test_thread_varv, ($func_end0)-_Z15test_thread_varv
-
-  .globl  _Z17test_thread_var_2v
-  .p2align  2
-  .type  _Z17test_thread_var_2v,@function
-  .ent  _Z17test_thread_var_2v  # @_Z17test_thread_var_2v
-_Z17test_thread_var_2v:
-  .cfi_startproc
-  .frame  $fp,16,$lr
-  .mask   0x00005000,-4
-  .set  noreorder
-  .cpload  $t9
-  .set  nomacro
-# BB#0:
-  addiu  $sp, $sp, -16
-$tmp0:
-  .cfi_def_cfa_offset 16
-  st  $lr, 12($sp)            # 4-byte Folded Spill
-  st  $fp, 8($sp)             # 4-byte Folded Spill
-$tmp1:
-  .cfi_offset 14, -4
-$tmp2:
-  .cfi_offset 12, -8
-  move   $fp, $sp
-$tmp3:
-  .cfi_def_cfa_register 12
-  .cprestore  8
-  ld  $t9, %call16(_ZTW1b)($gp)
-  jalr  $t9
-  nop
-  ld  $gp, 8($fp)
-  addiu  $3, $zero, 3
-  st  $3, 0($2)
-  ld  $t9, %call16(_ZTW1b)($gp)
-  jalr  $t9
-  nop
-  ld  $gp, 8($fp)
-  ld  $2, 0($2)
-  move   $sp, $fp
-  ld  $fp, 8($sp)             # 4-byte Folded Reload
-  ld  $lr, 12($sp)            # 4-byte Folded Reload
-  addiu  $sp, $sp, 16
-  ret  $lr
-  nop
-  .set  macro
-  .set  reorder
-  .end  _Z17test_thread_var_2v
-$func_end1:
-  .size  _Z17test_thread_var_2v, ($func_end1)-_Z17test_thread_var_2v
-  .cfi_endproc
-
-  .hidden  _ZTW1b
-  .weak  _ZTW1b
-  .p2align  2
-  .type  _ZTW1b,@function
-  .ent  _ZTW1b                  # @_ZTW1b
-_ZTW1b:
-  .cfi_startproc
-  .frame  $sp,16,$lr
-  .mask   0x00004000,-4
-  .set  noreorder
-  .cpload  $t9
-  .set  nomacro
-# BB#0:
-  addiu  $sp, $sp, -16
-$tmp4:
-  .cfi_def_cfa_offset 16
-  st  $lr, 12($sp)            # 4-byte Folded Spill
-$tmp5:
-  .cfi_offset 14, -4
-  .cprestore  8
-  ld  $t9, %call16(__tls_get_addr)($gp)
-  ori  $4, $gp, %tlsgd(b)
-  jalr  $t9
-  nop
-  ld  $gp, 8($sp)
-  ld  $lr, 12($sp)            # 4-byte Folded Reload
-  addiu  $sp, $sp, 16
-  ret  $lr
-  nop
-  .set  macro
-  .set  reorder
-  .end  _ZTW1b
-$func_end2:
-  .size  _ZTW1b, ($func_end2)-_ZTW1b
-  .cfi_endproc
-
-  .type  a,@object               # @a
-  .section  .tbss,&quot;awT&quot;,@nobits
-  .globl  a
-  .p2align  2
-a:
-  .4byte  0                       # 0x0
-  .size  a, 4
-
-  .type  b,@object               # @b
-  .globl  b
-  .p2align  2
-b:
-  .4byte  0                       # 0x0
-  .size  b, 4
-
-
-  .ident  &quot;Apple LLVM version 7.0.0 (clang-700.1.76)&quot;
-  .section  &quot;.note.GNU-stack&quot;,&quot;&quot;,@progbits
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>
 </pre></div>
 </div>
 <p>In pic mode, the __thread variable access by call function __tls_get_addr with
@@ -1048,127 +595,12 @@ which also call the function __tls_get_addr to get the thread_local variable
 address.
 In static mode, the thread variable is accessed by machine instructions as
 follows,</p>
-<div class="highlight-console"><div class="highlight"><pre><span></span><span class="gp">JonathantekiiMac:input Jonathan$</span> /Users/Jonathan/llvm/test/cmake_debug_build/
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">JonathantekiiMac:input Jonathan$</span> /Users/Jonathan/llvm/test/cmake_debug_build/
 <span class="go">Debug/bin/llc -march=cpu0 -relocation-model=static -filetype=asm</span>
 <span class="go">ch12_thread_var.bc -o -</span>
 </pre></div>
 </div>
-<div class="highlight-default"><div class="highlight"><pre><span></span>  .text
-  .section .mdebug.abiO32
-  .previous
-  .file  &quot;ch12_thread_var.bc&quot;
-  .globl  _Z15test_thread_varv
-  .p2align  2
-  .type  _Z15test_thread_varv,@function
-  .ent  _Z15test_thread_varv    # @_Z15test_thread_varv
-_Z15test_thread_varv:
-  .frame  $fp,8,$lr
-  .mask   0x00001000,-4
-  .set  noreorder
-  .set  nomacro
-# BB#0:
-  addiu  $sp, $sp, -8
-  st  $fp, 4($sp)             # 4-byte Folded Spill
-  move   $fp, $sp
-  lui  $2, %tp_hi(a)
-  ori  $3, $2, %tp_lo(a)
-  addiu  $2, $zero, 2
-  st  $2, 0($3)
-  move   $sp, $fp
-  ld  $fp, 4($sp)             # 4-byte Folded Reload
-  addiu  $sp, $sp, 8
-  ret  $lr
-  nop
-  .set  macro
-  .set  reorder
-  .end  _Z15test_thread_varv
-$func_end0:
-  .size  _Z15test_thread_varv, ($func_end0)-_Z15test_thread_varv
-
-  .globl  _Z17test_thread_var_2v
-  .p2align  2
-  .type  _Z17test_thread_var_2v,@function
-  .ent  _Z17test_thread_var_2v  # @_Z17test_thread_var_2v
-_Z17test_thread_var_2v:
-  .cfi_startproc
-  .frame  $fp,16,$lr
-  .mask   0x00005000,-4
-  .set  noreorder
-  .set  nomacro
-# BB#0:
-  addiu  $sp, $sp, -16
-$tmp0:
-  .cfi_def_cfa_offset 16
-  st  $lr, 12($sp)            # 4-byte Folded Spill
-  st  $fp, 8($sp)             # 4-byte Folded Spill
-$tmp1:
-  .cfi_offset 14, -4
-$tmp2:
-  .cfi_offset 12, -8
-  move   $fp, $sp
-$tmp3:
-  .cfi_def_cfa_register 12
-  jsub  _ZTW1b
-  nop
-  addiu  $3, $zero, 3
-  st  $3, 0($2)
-  jsub  _ZTW1b
-  nop
-  ld  $2, 0($2)
-  move   $sp, $fp
-  ld  $fp, 8($sp)             # 4-byte Folded Reload
-  ld  $lr, 12($sp)            # 4-byte Folded Reload
-  addiu  $sp, $sp, 16
-  ret  $lr
-  nop
-  .set  macro
-  .set  reorder
-  .end  _Z17test_thread_var_2v
-$func_end1:
-  .size  _Z17test_thread_var_2v, ($func_end1)-_Z17test_thread_var_2v
-  .cfi_endproc
-
-  .hidden  _ZTW1b
-  .weak  _ZTW1b
-  .p2align  2
-  .type  _ZTW1b,@function
-  .ent  _ZTW1b                  # @_ZTW1b
-_ZTW1b:
-  .cfi_startproc
-  .frame  $sp,0,$lr
-  .mask   0x00000000,0
-  .set  noreorder
-  .set  nomacro
-# BB#0:
-  lui  $2, %tp_hi(b)
-  ori  $2, $2, %tp_lo(b)
-  ret  $lr
-  nop
-  .set  macro
-  .set  reorder
-  .end  _ZTW1b
-$func_end2:
-  .size  _ZTW1b, ($func_end2)-_ZTW1b
-  .cfi_endproc
-
-  .type  a,@object               # @a
-  .section  .tbss,&quot;awT&quot;,@nobits
-  .globl  a
-  .p2align  2
-a:
-  .4byte  0                       # 0x0
-  .size  a, 4
-
-  .type  b,@object               # @b
-  .globl  b
-  .p2align  2
-b:
-  .4byte  0                       # 0x0
-  .size  b, 4
-
-
-  .ident  &quot;Apple LLVM version 7.0.0 (clang-700.1.76)&quot;
-  .section  &quot;.note.GNU-stack&quot;,&quot;&quot;,@progbits
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>
 </pre></div>
 </div>
 <p>While Mips uses rdhwr instruction to access thread varaible as below,
@@ -1178,7 +610,7 @@ accessed through %tp_hi and %tp_lo, and furthermore, this section of memory is
 protected through kernel mode program.
 Thus, the user mode program cannot access this area of memory and
 no space to breathe for hack program.</p>
-<div class="highlight-console"><div class="highlight"><pre><span></span><span class="gp">JonathantekiiMac:input Jonathan$</span> /Users/Jonathan/llvm/test/cmake_debug_build/
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">JonathantekiiMac:input Jonathan$</span> /Users/Jonathan/llvm/test/cmake_debug_build/
 <span class="go">Debug/bin/llc -march=mips -relocation-model=static -filetype=asm</span>
 <span class="go">ch12_thread_var.bc -o -</span>
 <span class="go">  ...</span>
@@ -1250,7 +682,7 @@ You can check them with debug option enabled.</p>
 <td>ret i32* &#64;b;</td>
 </tr>
 <tr class="row-odd"><td>Legalized selection DAG</td>
-<td>%0=(add Cpu0ISD::Hi Cpu0ISD::Lo);...</td>
+<td>%0=(add Cpu0ISD::Hi Cpu0ISD::Lo);…</td>
 </tr>
 <tr class="row-even"><td>Instruction Selection</td>
 <td>ori $2, $zero, %tp_lo(a);</td>
@@ -1274,7 +706,7 @@ You can check them with debug option enabled.</p>
 <h2><a class="toc-backref" href="#id13">Atomic</a><a class="headerlink" href="#atomic" title="Permalink to this headline">¶</a></h2>
 <p>In tradition, C uses different API which provided by OS or library to support
 multi-thread programming. For example, posix thread API on unix/linux, MS
-windows API, ..., etc. In order to achieve synchronization to solve race
+windows API, …, etc. In order to achieve synchronization to solve race
 condition between threads, OS provide their own lock or semaphore functions to
 programmer. But this solution is OS dependent.
 After c++11, programmer can use atomic to program and run the code
@@ -1287,35 +719,35 @@ lock() function only <a class="footnote-reference" href="#atomic-wiki" id="id3">
 <a class="footnote-reference" href="#atomics-llvm" id="id6">[6]</a> <a class="footnote-reference" href="#llvmlang-ordering" id="id7">[7]</a>.</p>
 <p>For supporting llvm atomic IRs, the following code added to Chapter12_1.</p>
 <p class="rubric">lbdex/chapters/Chapter12_1/Disassembler/Cpu0Disassembler.cpp</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">static</span> <span class="n">DecodeStatus</span> <span class="n">DecodeMem</span><span class="p">(</span><span class="n">MCInst</span> <span class="o">&amp;</span><span class="n">Inst</span><span class="p">,</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">static</span> <span class="n">DecodeStatus</span> <span class="n">DecodeMem</span><span class="p">(</span><span class="n">MCInst</span> <span class="o">&amp;</span><span class="n">Inst</span><span class="p">,</span>
                               <span class="n">unsigned</span> <span class="n">Insn</span><span class="p">,</span>
                               <span class="n">uint64_t</span> <span class="n">Address</span><span class="p">,</span>
                               <span class="n">const</span> <span class="n">void</span> <span class="o">*</span><span class="n">Decoder</span><span class="p">)</span> <span class="p">{</span>
 </pre></div>
 </div>
-<div class="highlight-default"><div class="highlight"><pre><span></span>  <span class="k">if</span><span class="p">(</span><span class="n">Inst</span><span class="o">.</span><span class="n">getOpcode</span><span class="p">()</span> <span class="o">==</span> <span class="n">Cpu0</span><span class="p">::</span><span class="n">SC</span><span class="p">){</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>  <span class="k">if</span><span class="p">(</span><span class="n">Inst</span><span class="o">.</span><span class="n">getOpcode</span><span class="p">()</span> <span class="o">==</span> <span class="n">Cpu0</span><span class="p">::</span><span class="n">SC</span><span class="p">){</span>
     <span class="n">Inst</span><span class="o">.</span><span class="n">addOperand</span><span class="p">(</span><span class="n">MCOperand</span><span class="p">::</span><span class="n">createReg</span><span class="p">(</span><span class="n">Reg</span><span class="p">));</span>
   <span class="p">}</span>
 </pre></div>
 </div>
-<div class="highlight-c++"><div class="highlight"><pre><span></span>  <span class="p">...</span>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span>  <span class="p">...</span>
 <span class="p">}</span>
 </pre></div>
 </div>
 <p class="rubric">lbdex/chapters/Chapter12_1/Cpu0InstrInfo.td</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">SDT_Sync</span>             <span class="p">:</span> <span class="n">SDTypeProfile</span><span class="o">&lt;</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="p">[</span><span class="n">SDTCisVT</span><span class="o">&lt;</span><span class="mi">0</span><span class="p">,</span> <span class="n">i32</span><span class="o">&gt;</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">SDT_Sync</span>             <span class="p">:</span> <span class="n">SDTypeProfile</span><span class="o">&lt;</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="p">[</span><span class="n">SDTCisVT</span><span class="o">&lt;</span><span class="mi">0</span><span class="p">,</span> <span class="n">i32</span><span class="o">&gt;</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
 </pre></div>
 </div>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">Cpu0Sync</span> <span class="p">:</span> <span class="n">SDNode</span><span class="o">&lt;</span><span class="s2">&quot;Cpu0ISD::Sync&quot;</span><span class="p">,</span> <span class="n">SDT_Sync</span><span class="p">,</span> <span class="p">[</span><span class="n">SDNPHasChain</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">Cpu0Sync</span> <span class="p">:</span> <span class="n">SDNode</span><span class="o">&lt;</span><span class="s2">&quot;Cpu0ISD::Sync&quot;</span><span class="p">,</span> <span class="n">SDT_Sync</span><span class="p">,</span> <span class="p">[</span><span class="n">SDNPHasChain</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
 </pre></div>
 </div>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">PtrRC</span> <span class="p">:</span> <span class="n">Operand</span><span class="o">&lt;</span><span class="n">iPTR</span><span class="o">&gt;</span> <span class="p">{</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">PtrRC</span> <span class="p">:</span> <span class="n">Operand</span><span class="o">&lt;</span><span class="n">iPTR</span><span class="o">&gt;</span> <span class="p">{</span>
   <span class="n">let</span> <span class="n">MIOperandInfo</span> <span class="o">=</span> <span class="p">(</span><span class="n">ops</span> <span class="n">ptr_rc</span><span class="p">);</span>
   <span class="n">let</span> <span class="n">DecoderMethod</span> <span class="o">=</span> <span class="s2">&quot;DecodeCPURegsRegisterClass&quot;</span><span class="p">;</span>
 <span class="p">}</span>
 </pre></div>
 </div>
-<div class="highlight-default"><div class="highlight"><pre><span></span>// Atomic instructions with 2 source operands (ATOMIC_SWAP &amp; ATOMIC_LOAD_*).
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>// Atomic instructions with 2 source operands (ATOMIC_SWAP &amp; ATOMIC_LOAD_*).
 class Atomic2Ops&lt;PatFrag Op, RegisterClass DRC&gt; :
   PseudoSE&lt;(outs DRC:$dst), (ins PtrRC:$ptr, DRC:$incr),
            [(set DRC:$dst, (Op iPTR:$ptr, DRC:$incr))]&gt;;
@@ -1326,7 +758,7 @@ class AtomicCmpSwap&lt;PatFrag Op, RegisterClass DRC&gt; :
            [(set DRC:$dst, (Op iPTR:$ptr, DRC:$cmp, DRC:$swap))]&gt;;
 </pre></div>
 </div>
-<div class="highlight-default"><div class="highlight"><pre><span></span>class LLBase&lt;bits&lt;8&gt; Opc, string opstring, RegisterClass RC, Operand Mem&gt; :
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>class LLBase&lt;bits&lt;8&gt; Opc, string opstring, RegisterClass RC, Operand Mem&gt; :
   FMem&lt;Opc, (outs RC:$ra), (ins Mem:$addr),
        !strconcat(opstring, &quot;\t$ra, $addr&quot;), [], IILoad&gt; {
   let mayLoad = 1;
@@ -1340,7 +772,7 @@ class SCBase&lt;bits&lt;8&gt; Opc, string opstring, RegisterOperand RO, Operand 
 }
 </pre></div>
 </div>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">let</span> <span class="n">Predicates</span> <span class="o">=</span> <span class="p">[</span><span class="n">Ch12_1</span><span class="p">]</span> <span class="ow">in</span> <span class="p">{</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">let</span> <span class="n">Predicates</span> <span class="o">=</span> <span class="p">[</span><span class="n">Ch12_1</span><span class="p">]</span> <span class="ow">in</span> <span class="p">{</span>
 <span class="n">let</span> <span class="n">usesCustomInserter</span> <span class="o">=</span> <span class="mi">1</span> <span class="ow">in</span> <span class="p">{</span>
   <span class="k">def</span> <span class="nf">ATOMIC_LOAD_ADD_I8</span>   <span class="p">:</span> <span class="n">Atomic2Ops</span><span class="o">&lt;</span><span class="n">atomic_load_add_8</span><span class="p">,</span> <span class="n">CPURegs</span><span class="o">&gt;</span><span class="p">;</span>
   <span class="k">def</span> <span class="nf">ATOMIC_LOAD_ADD_I16</span>  <span class="p">:</span> <span class="n">Atomic2Ops</span><span class="o">&lt;</span><span class="n">atomic_load_add_16</span><span class="p">,</span> <span class="n">CPURegs</span><span class="o">&gt;</span><span class="p">;</span>
@@ -1372,7 +804,7 @@ class SCBase&lt;bits&lt;8&gt; Opc, string opstring, RegisterOperand RO, Operand 
 <span class="p">}</span>
 </pre></div>
 </div>
-<div class="highlight-default"><div class="highlight"><pre><span></span>let Predicates = [Ch12_1] in {
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>let Predicates = [Ch12_1] in {
 let hasSideEffects = 1 in
 def SYNC : Cpu0Inst&lt;(outs), (ins i32imm:$stype), &quot;sync $stype&quot;,
                     [(Cpu0Sync imm:$stype)], NoItinerary, FrmOther&gt;
@@ -1386,25 +818,25 @@ def SYNC : Cpu0Inst&lt;(outs), (ins i32imm:$stype), &quot;sync $stype&quot;,
 }
 </pre></div>
 </div>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">///</span> <span class="n">Load</span><span class="o">-</span><span class="n">linked</span><span class="p">,</span> <span class="n">Store</span><span class="o">-</span><span class="n">conditional</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">///</span> <span class="n">Load</span><span class="o">-</span><span class="n">linked</span><span class="p">,</span> <span class="n">Store</span><span class="o">-</span><span class="n">conditional</span>
 <span class="k">def</span> <span class="nf">LL</span>      <span class="p">:</span> <span class="n">LLBase</span><span class="o">&lt;</span><span class="mh">0x61</span><span class="p">,</span> <span class="s2">&quot;ll&quot;</span><span class="p">,</span> <span class="n">CPURegs</span><span class="p">,</span> <span class="n">mem</span><span class="o">&gt;</span><span class="p">;</span>
 <span class="k">def</span> <span class="nf">SC</span>      <span class="p">:</span> <span class="n">SCBase</span><span class="o">&lt;</span><span class="mh">0x62</span><span class="p">,</span> <span class="s2">&quot;sc&quot;</span><span class="p">,</span> <span class="n">RegisterOperand</span><span class="o">&lt;</span><span class="n">CPURegs</span><span class="o">&gt;</span><span class="p">,</span> <span class="n">mem</span><span class="o">&gt;</span><span class="p">;</span>
 </pre></div>
 </div>
-<div class="highlight-default"><div class="highlight"><pre><span></span>def : Cpu0InstAlias&lt;&quot;sync&quot;,
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>def : Cpu0InstAlias&lt;&quot;sync&quot;,
                     (SYNC 0), 1&gt;;
 </pre></div>
 </div>
 <p class="rubric">lbdex/chapters/Chapter12_1/Cpu0ISelLowering.h</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span>    <span class="n">MachineBasicBlock</span> <span class="o">*</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>    <span class="n">MachineBasicBlock</span> <span class="o">*</span>
     <span class="n">EmitInstrWithCustomInserter</span><span class="p">(</span><span class="n">MachineInstr</span> <span class="o">&amp;</span><span class="n">MI</span><span class="p">,</span>
                                 <span class="n">MachineBasicBlock</span> <span class="o">*</span><span class="n">MBB</span><span class="p">)</span> <span class="n">const</span> <span class="n">override</span><span class="p">;</span>
 </pre></div>
 </div>
-<div class="highlight-default"><div class="highlight"><pre><span></span>    <span class="n">SDValue</span> <span class="n">lowerATOMIC_FENCE</span><span class="p">(</span><span class="n">SDValue</span> <span class="n">Op</span><span class="p">,</span> <span class="n">SelectionDAG</span><span class="o">&amp;</span> <span class="n">DAG</span><span class="p">)</span> <span class="n">const</span><span class="p">;</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>    <span class="n">SDValue</span> <span class="n">lowerATOMIC_FENCE</span><span class="p">(</span><span class="n">SDValue</span> <span class="n">Op</span><span class="p">,</span> <span class="n">SelectionDAG</span><span class="o">&amp;</span> <span class="n">DAG</span><span class="p">)</span> <span class="n">const</span><span class="p">;</span>
 </pre></div>
 </div>
-<div class="highlight-default"><div class="highlight"><pre><span></span>    <span class="nb">bool</span> <span class="n">shouldInsertFencesForAtomic</span><span class="p">(</span><span class="n">const</span> <span class="n">Instruction</span> <span class="o">*</span><span class="n">I</span><span class="p">)</span> <span class="n">const</span> <span class="n">override</span> <span class="p">{</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>    <span class="nb">bool</span> <span class="n">shouldInsertFencesForAtomic</span><span class="p">(</span><span class="n">const</span> <span class="n">Instruction</span> <span class="o">*</span><span class="n">I</span><span class="p">)</span> <span class="n">const</span> <span class="n">override</span> <span class="p">{</span>
       <span class="k">return</span> <span class="n">true</span><span class="p">;</span>
     <span class="p">}</span>
 
@@ -1425,43 +857,43 @@ def SYNC : Cpu0Inst&lt;(outs), (ins i32imm:$stype), &quot;sync $stype&quot;,
 </pre></div>
 </div>
 <p class="rubric">lbdex/chapters/Chapter12_1/Cpu0SelLowering.cpp</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">const</span> <span class="n">char</span> <span class="o">*</span><span class="n">Cpu0TargetLowering</span><span class="p">::</span><span class="n">getTargetNodeName</span><span class="p">(</span><span class="n">unsigned</span> <span class="n">Opcode</span><span class="p">)</span> <span class="n">const</span> <span class="p">{</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">const</span> <span class="n">char</span> <span class="o">*</span><span class="n">Cpu0TargetLowering</span><span class="p">::</span><span class="n">getTargetNodeName</span><span class="p">(</span><span class="n">unsigned</span> <span class="n">Opcode</span><span class="p">)</span> <span class="n">const</span> <span class="p">{</span>
 </pre></div>
 </div>
-<div class="highlight-default"><div class="highlight"><pre><span></span>  <span class="n">case</span> <span class="n">Cpu0ISD</span><span class="p">::</span><span class="n">Sync</span><span class="p">:</span>              <span class="k">return</span> <span class="s2">&quot;Cpu0ISD::Sync&quot;</span><span class="p">;</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>  <span class="n">case</span> <span class="n">Cpu0ISD</span><span class="p">::</span><span class="n">Sync</span><span class="p">:</span>              <span class="k">return</span> <span class="s2">&quot;Cpu0ISD::Sync&quot;</span><span class="p">;</span>
 </pre></div>
 </div>
-<div class="highlight-c++"><div class="highlight"><pre><span></span>  <span class="p">...</span>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span>  <span class="p">...</span>
 <span class="p">}</span>
 </pre></div>
 </div>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">Cpu0TargetLowering</span><span class="p">::</span><span class="n">Cpu0TargetLowering</span><span class="p">(</span><span class="n">const</span> <span class="n">Cpu0TargetMachine</span> <span class="o">&amp;</span><span class="n">TM</span><span class="p">,</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Cpu0TargetLowering</span><span class="p">::</span><span class="n">Cpu0TargetLowering</span><span class="p">(</span><span class="n">const</span> <span class="n">Cpu0TargetMachine</span> <span class="o">&amp;</span><span class="n">TM</span><span class="p">,</span>
                                        <span class="n">const</span> <span class="n">Cpu0Subtarget</span> <span class="o">&amp;</span><span class="n">STI</span><span class="p">)</span>
     <span class="p">:</span> <span class="n">TargetLowering</span><span class="p">(</span><span class="n">TM</span><span class="p">),</span> <span class="n">Subtarget</span><span class="p">(</span><span class="n">STI</span><span class="p">),</span> <span class="n">ABI</span><span class="p">(</span><span class="n">TM</span><span class="o">.</span><span class="n">getABI</span><span class="p">())</span> <span class="p">{</span>
 
 </pre></div>
 </div>
-<div class="highlight-default"><div class="highlight"><pre><span></span>  <span class="n">setOperationAction</span><span class="p">(</span><span class="n">ISD</span><span class="p">::</span><span class="n">ATOMIC_LOAD</span><span class="p">,</span>       <span class="n">MVT</span><span class="p">::</span><span class="n">i32</span><span class="p">,</span>    <span class="n">Expand</span><span class="p">);</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>  <span class="n">setOperationAction</span><span class="p">(</span><span class="n">ISD</span><span class="p">::</span><span class="n">ATOMIC_LOAD</span><span class="p">,</span>       <span class="n">MVT</span><span class="p">::</span><span class="n">i32</span><span class="p">,</span>    <span class="n">Expand</span><span class="p">);</span>
   <span class="n">setOperationAction</span><span class="p">(</span><span class="n">ISD</span><span class="p">::</span><span class="n">ATOMIC_LOAD</span><span class="p">,</span>       <span class="n">MVT</span><span class="p">::</span><span class="n">i64</span><span class="p">,</span>    <span class="n">Expand</span><span class="p">);</span>
   <span class="n">setOperationAction</span><span class="p">(</span><span class="n">ISD</span><span class="p">::</span><span class="n">ATOMIC_STORE</span><span class="p">,</span>      <span class="n">MVT</span><span class="p">::</span><span class="n">i32</span><span class="p">,</span>    <span class="n">Expand</span><span class="p">);</span>
   <span class="n">setOperationAction</span><span class="p">(</span><span class="n">ISD</span><span class="p">::</span><span class="n">ATOMIC_STORE</span><span class="p">,</span>      <span class="n">MVT</span><span class="p">::</span><span class="n">i64</span><span class="p">,</span>    <span class="n">Expand</span><span class="p">);</span>
 </pre></div>
 </div>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">SDValue</span> <span class="n">Cpu0TargetLowering</span><span class="p">::</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">SDValue</span> <span class="n">Cpu0TargetLowering</span><span class="p">::</span>
 <span class="n">LowerOperation</span><span class="p">(</span><span class="n">SDValue</span> <span class="n">Op</span><span class="p">,</span> <span class="n">SelectionDAG</span> <span class="o">&amp;</span><span class="n">DAG</span><span class="p">)</span> <span class="n">const</span>
 <span class="p">{</span>
   <span class="n">switch</span> <span class="p">(</span><span class="n">Op</span><span class="o">.</span><span class="n">getOpcode</span><span class="p">())</span>
   <span class="p">{</span>
 </pre></div>
 </div>
-<div class="highlight-default"><div class="highlight"><pre><span></span>  <span class="n">case</span> <span class="n">ISD</span><span class="p">::</span><span class="n">ATOMIC_FENCE</span><span class="p">:</span>       <span class="k">return</span> <span class="n">lowerATOMIC_FENCE</span><span class="p">(</span><span class="n">Op</span><span class="p">,</span> <span class="n">DAG</span><span class="p">);</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>  <span class="n">case</span> <span class="n">ISD</span><span class="p">::</span><span class="n">ATOMIC_FENCE</span><span class="p">:</span>       <span class="k">return</span> <span class="n">lowerATOMIC_FENCE</span><span class="p">(</span><span class="n">Op</span><span class="p">,</span> <span class="n">DAG</span><span class="p">);</span>
 </pre></div>
 </div>
-<div class="highlight-c++"><div class="highlight"><pre><span></span>  <span class="p">...</span>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span>  <span class="p">...</span>
 <span class="p">}</span>
 </pre></div>
 </div>
-<div class="highlight-default"><div class="highlight"><pre><span></span>MachineBasicBlock *
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>MachineBasicBlock *
 Cpu0TargetLowering::EmitInstrWithCustomInserter(MachineInstr &amp;MI,
                                                 MachineBasicBlock *BB) const {
   switch (MI.getOpcode()) {
@@ -2003,7 +1435,7 @@ Cpu0TargetLowering::emitAtomicCmpSwapPartword(MachineInstr &amp;MI,
 }
 </pre></div>
 </div>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">SDValue</span> <span class="n">Cpu0TargetLowering</span><span class="p">::</span><span class="n">lowerATOMIC_FENCE</span><span class="p">(</span><span class="n">SDValue</span> <span class="n">Op</span><span class="p">,</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">SDValue</span> <span class="n">Cpu0TargetLowering</span><span class="p">::</span><span class="n">lowerATOMIC_FENCE</span><span class="p">(</span><span class="n">SDValue</span> <span class="n">Op</span><span class="p">,</span>
                                               <span class="n">SelectionDAG</span> <span class="o">&amp;</span><span class="n">DAG</span><span class="p">)</span> <span class="n">const</span> <span class="p">{</span>
   <span class="o">//</span> <span class="n">FIXME</span><span class="p">:</span> <span class="n">Need</span> <span class="n">pseudo</span><span class="o">-</span><span class="n">fence</span> <span class="k">for</span> <span class="s1">&#39;singlethread&#39;</span> <span class="n">fences</span>
   <span class="o">//</span> <span class="n">FIXME</span><span class="p">:</span> <span class="n">Set</span> <span class="n">SType</span> <span class="k">for</span> <span class="n">weaker</span> <span class="n">fences</span> <span class="n">where</span> <span class="n">supported</span><span class="o">/</span><span class="n">appropriate</span><span class="o">.</span>
@@ -2015,13 +1447,13 @@ Cpu0TargetLowering::emitAtomicCmpSwapPartword(MachineInstr &amp;MI,
 </pre></div>
 </div>
 <p class="rubric">lbdex/chapters/Chapter12_1/Cpu0RegisterInfo.h</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span>  <span class="o">///</span> <span class="n">Code</span> <span class="n">Generation</span> <span class="n">virtual</span> <span class="n">methods</span><span class="o">...</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>  <span class="o">///</span> <span class="n">Code</span> <span class="n">Generation</span> <span class="n">virtual</span> <span class="n">methods</span><span class="o">...</span>
   <span class="n">const</span> <span class="n">TargetRegisterClass</span> <span class="o">*</span><span class="n">getPointerRegClass</span><span class="p">(</span><span class="n">const</span> <span class="n">MachineFunction</span> <span class="o">&amp;</span><span class="n">MF</span><span class="p">,</span>
                                                 <span class="n">unsigned</span> <span class="n">Kind</span><span class="p">)</span> <span class="n">const</span> <span class="n">override</span><span class="p">;</span>
 </pre></div>
 </div>
 <p class="rubric">lbdex/chapters/Chapter12_1/Cpu0RegisterInfo.cpp</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">const</span> <span class="n">TargetRegisterClass</span> <span class="o">*</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">const</span> <span class="n">TargetRegisterClass</span> <span class="o">*</span>
 <span class="n">Cpu0RegisterInfo</span><span class="p">::</span><span class="n">getPointerRegClass</span><span class="p">(</span><span class="n">const</span> <span class="n">MachineFunction</span> <span class="o">&amp;</span><span class="n">MF</span><span class="p">,</span>
                                      <span class="n">unsigned</span> <span class="n">Kind</span><span class="p">)</span> <span class="n">const</span> <span class="p">{</span>
   <span class="k">return</span> <span class="o">&amp;</span><span class="n">Cpu0</span><span class="p">::</span><span class="n">CPURegsRegClass</span><span class="p">;</span>
@@ -2029,53 +1461,53 @@ Cpu0TargetLowering::emitAtomicCmpSwapPartword(MachineInstr &amp;MI,
 </pre></div>
 </div>
 <p class="rubric">lbdex/chapters/Chapter12_1/Cpu0SEISelLowering.cpp</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">Cpu0SETargetLowering</span><span class="p">::</span><span class="n">Cpu0SETargetLowering</span><span class="p">(</span><span class="n">const</span> <span class="n">Cpu0TargetMachine</span> <span class="o">&amp;</span><span class="n">TM</span><span class="p">,</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Cpu0SETargetLowering</span><span class="p">::</span><span class="n">Cpu0SETargetLowering</span><span class="p">(</span><span class="n">const</span> <span class="n">Cpu0TargetMachine</span> <span class="o">&amp;</span><span class="n">TM</span><span class="p">,</span>
                                            <span class="n">const</span> <span class="n">Cpu0Subtarget</span> <span class="o">&amp;</span><span class="n">STI</span><span class="p">)</span>
     <span class="p">:</span> <span class="n">Cpu0TargetLowering</span><span class="p">(</span><span class="n">TM</span><span class="p">,</span> <span class="n">STI</span><span class="p">)</span> <span class="p">{</span>
 </pre></div>
 </div>
-<div class="highlight-default"><div class="highlight"><pre><span></span>  <span class="n">setOperationAction</span><span class="p">(</span><span class="n">ISD</span><span class="p">::</span><span class="n">ATOMIC_FENCE</span><span class="p">,</span>       <span class="n">MVT</span><span class="p">::</span><span class="n">Other</span><span class="p">,</span> <span class="n">Custom</span><span class="p">);</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>  <span class="n">setOperationAction</span><span class="p">(</span><span class="n">ISD</span><span class="p">::</span><span class="n">ATOMIC_FENCE</span><span class="p">,</span>       <span class="n">MVT</span><span class="p">::</span><span class="n">Other</span><span class="p">,</span> <span class="n">Custom</span><span class="p">);</span>
 </pre></div>
 </div>
-<div class="highlight-c++"><div class="highlight"><pre><span></span>  <span class="p">...</span>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span>  <span class="p">...</span>
 <span class="p">}</span>
 </pre></div>
 </div>
 <p class="rubric">lbdex/chapters/Chapter12_1/Cpu0TargetMachine.cpp</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">///</span> <span class="n">Cpu0</span> <span class="n">Code</span> <span class="n">Generator</span> <span class="n">Pass</span> <span class="n">Configuration</span> <span class="n">Options</span><span class="o">.</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">///</span> <span class="n">Cpu0</span> <span class="n">Code</span> <span class="n">Generator</span> <span class="n">Pass</span> <span class="n">Configuration</span> <span class="n">Options</span><span class="o">.</span>
 <span class="k">class</span> <span class="nc">Cpu0PassConfig</span> <span class="p">:</span> <span class="n">public</span> <span class="n">TargetPassConfig</span> <span class="p">{</span>
 </pre></div>
 </div>
-<div class="highlight-default"><div class="highlight"><pre><span></span>  <span class="n">void</span> <span class="n">addIRPasses</span><span class="p">()</span> <span class="n">override</span><span class="p">;</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>  <span class="n">void</span> <span class="n">addIRPasses</span><span class="p">()</span> <span class="n">override</span><span class="p">;</span>
 </pre></div>
 </div>
-<div class="highlight-c++"><div class="highlight"><pre><span></span>  <span class="p">...</span>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span>  <span class="p">...</span>
 <span class="p">};</span>
 </pre></div>
 </div>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">void</span> <span class="n">Cpu0PassConfig</span><span class="p">::</span><span class="n">addIRPasses</span><span class="p">()</span> <span class="p">{</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">void</span> <span class="n">Cpu0PassConfig</span><span class="p">::</span><span class="n">addIRPasses</span><span class="p">()</span> <span class="p">{</span>
   <span class="n">TargetPassConfig</span><span class="p">::</span><span class="n">addIRPasses</span><span class="p">();</span>
   <span class="n">addPass</span><span class="p">(</span><span class="n">createAtomicExpandPass</span><span class="p">(</span><span class="o">&amp;</span><span class="n">getCpu0TargetMachine</span><span class="p">()));</span>
 <span class="p">}</span>
 </pre></div>
 </div>
 <p>Since SC instruction uses RegisterOperand type in Cpu0InstrInfo.td and SC uses
-FMem node which DecoderMethod is &#8220;DecodeMem&#8221;, the DecodeMem() of
+FMem node which DecoderMethod is “DecodeMem”, the DecodeMem() of
 Cpu0Disassembler.cpp need to be changed as above.</p>
-<p>The atomic node defined in &#8220;let usesCustomInserter = 1 in&#8221; of Cpu0InstrInfo.td
+<p>The atomic node defined in “let usesCustomInserter = 1 in” of Cpu0InstrInfo.td
 tells llvm calling EmitInstrWithCustomInserter() of Cpu0ISelLowering.cpp. For
-example, &#8220;def ATOMIC_LOAD_ADD_I8 : Atomic2Ops&lt;atomic_load_add_8, CPURegs&gt;;&#8221; will
+example, “def ATOMIC_LOAD_ADD_I8 : Atomic2Ops&lt;atomic_load_add_8, CPURegs&gt;;” will
 calling EmitInstrWithCustomInserter() with Machine Instruction Opcode
-&#8220;ATOMIC_LOAD_ADD_I8&#8221; when it meets IR &#8220;load atomic i8*&#8221;.</p>
-<p>The &#8220;setInsertFencesForAtomic(true);&#8221; in Cpu0ISelLowering.cpp will trigger
+“ATOMIC_LOAD_ADD_I8” when it meets IR “load atomic i8*”.</p>
+<p>The “setInsertFencesForAtomic(true);” in Cpu0ISelLowering.cpp will trigger
 addIRPasses() of Cpu0TargetMachine.cpp, then the createAtomicExpandPass() of
 addIRPasses() will create llvm IR ATOMIC_FENCE. Next, the lowerATOMIC_FENCE()
 of Cpu0ISelLowering.cpp will create Cpu0ISD::Sync when it meets IR ATOMIC_FENCE
-since &#8220;setOperationAction(ISD::ATOMIC_FENCE, MVT::Other, Custom);&#8221; of
+since “setOperationAction(ISD::ATOMIC_FENCE, MVT::Other, Custom);” of
 Cpu0SEISelLowering.cpp. Finally the pattern defined in Cpu0InstrInfo.td translate
-it into instruction &#8220;sync&#8221; by &#8220;def SYNC&#8221; and alias &#8220;SYNC 0&#8221;.</p>
+it into instruction “sync” by “def SYNC” and alias “SYNC 0”.</p>
 <p>This part of Cpu0 backend code is same with Mips except Cpu0 has no instruction
-&#8220;nor&#8221;.</p>
+“nor”.</p>
 <p>List the atomic IRs, corresponding DAGs and Opcode as the following table.</p>
 <table border="1" class="docutils" id="id10">
 <caption><span class="caption-number">Table 35 </span><span class="caption-text">The atomic related IRs, their corresponding DAGs and Opcode of Cpu0ISelLowering.cpp</span><a class="headerlink" href="#id10" title="Permalink to this table">¶</a></caption>
@@ -2136,7 +1568,7 @@ it into instruction &#8220;sync&#8221; by &#8220;def SYNC&#8221; and alias &#822
 <p>Input files atomics.ll and atomics-fences.ll include the llvm atomic IRs test.
 Input files ch12_atomics.cpp and ch12_atomics-fences.cpp are the C++
 files for generating llvm atomic IRs. The C++ files need to run with clang
-options &#8220;clang++ -pthread -std=c++11&#8221;.</p>
+options “clang++ -pthread -std=c++11”.</p>
 <table class="docutils footnote" frame="void" id="exception" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
@@ -2197,8 +1629,8 @@ options &#8220;clang++ -pthread -std=c++11&#8221;.</p>
       </div>
 
     <div class="footer" role="contentinfo">
-        &copy; Copyright 2016, Chen Chung-Shu.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.4.
+        &#169; Copyright 2016, Chen Chung-Shu.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.8.5.
     </div>
   </body>
 </html>
