@@ -660,7 +660,7 @@ Finally, try gdb as follows.
 .. code-block:: console
 
   [Gamma@localhost input]$ pwd
-  /home/Gamma/lbdex/input
+  /home/Gamma/llvm/test/lbdex/input
   [Gamma@localhost input]$ clang -c ch3.cpp -emit-llvm -o ch3.bc
   [Gamma@localhost input]$ gdb -args ~/llvm/test/
   cmake_debug_build/bin/llc -march=cpu0 -relocation-model=pic -filetype=obj 
