@@ -352,15 +352,10 @@ GPU compiler.)
 Here is the software stack of 3D graphic system for OpenGL in linux [#mesawiki]_.
 And mesa open source website is here [#mesa]_.
 
-General purpose GPU
---------------------
+Architecture
+------------
 
-Since GLSL shaders provide a general way for writing C code in them, if applying
-a software frame work instead of OpenGL api, then the system can run some data
-parallel computation on GPU for speeding up and even get CPU and GPU executing 
-simultaneously. Or Any language that allows the code running on the CPU to poll 
-a GPU shader for return values, can create a GPGPU framework [#gpgpuwiki]_.
-The leading GPGPU framdwork CUDA, and architecture of Nvidia gpu as the following 
+The leading GPU architecture of Nvidia gpu as the following 
 figures.
 
 .. _grid: 
@@ -392,6 +387,33 @@ figures.
 
   core(grid) in Nvidia gpu (figure from book [#Quantitative-gpu-mem]_)
 
+
+- Grid is Vectorizable Loop [#Quantitative-gpu-griddef]_.
+
+- Each multithreaded SIMD Processor is assigned 512 elements of the vectors to work on.
+  As :numref:`grid`: The hardware Thread Block Scheduler assigns Thread Blocks to 
+  multithreaded SIMD Processors. Thread Block <-> SIMD Processor.
+
+- SIMD Processors are full processors with separate PCs and are programmed using
+  threads [#Quantitative-gpu-threadblock]_. 
+  As :numref:`simd-processors`, it assigns 16 Thread blocks to 16 SIMD Processors.
+  
+- As :numref:`grid`, 
+  the maximum number of SIMD Threads that can execute simultaneously per Thread Block 
+  (SIMD Processor) is 32 for the later Fermi-generation GPUs.
+  Each SIMD Thread has 32 elements run on :numref:`threadslanes`
+  16 SIMD lanes (number of pipelines and each pipeline has it's own functional unit
+  as in vector processor). So it takes 2 clock cycles to complete [#lanes]_.
+
+
+General purpose GPU
+--------------------
+
+Since GLSL shaders provide a general way for writing C code in them, if applying
+a software frame work instead of OpenGL api, then the system can run some data
+parallel computation on GPU for speeding up and even get CPU and GPU executing 
+simultaneously. Or Any language that allows the code running on the CPU to poll 
+a GPU shader for return values, can create a GPGPU framework [#gpgpuwiki]_.
 The following is a CUDA example to run large data in array on GPU [#cudaex]_ 
 as follows,
 
@@ -415,23 +437,6 @@ as follows,
   }
 
 In the programming example in :numref:`grid`,
-
-- Grid is Vectorizable Loop [#Quantitative-gpu-griddef]_.
-
-- Each multithreaded SIMD Processor is assigned 512 elements of the vectors to work on.
-  As :numref:`grid`: The hardware Thread Block Scheduler assigns Thread Blocks to 
-  multithreaded SIMD Processors. Thread Block <-> SIMD Processor.
-
-- SIMD Processors are full processors with separate PCs and are programmed using
-  threads [#Quantitative-gpu-threadblock]_. 
-  As :numref:`simd-processors`, it assigns 16 Thread blocks to 16 SIMD Processors.
-  
-- As :numref:`grid`, 
-  the maximum number of SIMD Threads that can execute simultaneously per Thread Block 
-  (SIMD Processor) is 32 for the later Fermi-generation GPUs.
-  Each SIMD Thread has 32 elements run on :numref:`threadslanes`
-  16 SIMD lanes (number of pipelines and each pipeline has it's own functional unit
-  as in vector processor). So it takes 2 clock cycles to complete [#lanes]_.
 
 And from saxpy() code above,
 
@@ -577,8 +582,6 @@ more. And actually, llvm IR expanding from version 3.1 to now as I feel.
 .. [#mesa] https://www.mesa3d.org/
 
 
-.. [#gpgpuwiki] https://en.wikipedia.org/wiki/General-purpose_computing_on_graphics_processing_units
-
 .. [#Quantitative-grid] Book Figure 4.13 of Computer Architecture: A Quantitative Approach 5th edition (The
        Morgan Kaufmann Series in Computer Architecture and Design)
 
@@ -601,6 +604,9 @@ more. And actually, llvm IR expanding from version 3.1 to now as I feel.
 .. [#lanes] "With Fermi, each 32-wide thread of SIMD instructions is mapped to 16 physical SIMD Lanes, so each SIMD instruction in a thread of SIMD instructions takes two clock cycles to complete" search these words from Page 296 of Computer Architecture: A Quantitative Approach 5th edition (The
        Morgan Kaufmann Series in Computer Architecture and Design).
        
+
+.. [#gpgpuwiki] https://en.wikipedia.org/wiki/General-purpose_computing_on_graphics_processing_units
+
 .. [#VMR] subsection Vector Mask Registers: Handling IF Statements in Vector Loops of Computer Architecture: A Quantitative Approach 5th edition (The
        Morgan Kaufmann Series in Computer Architecture and Design)
 
