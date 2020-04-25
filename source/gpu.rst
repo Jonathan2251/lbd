@@ -436,9 +436,7 @@ as follows,
     ...
   }
 
-In the programming example in :numref:`grid`,
-
-And from saxpy() code above,
+In the programming example saxpy() above,
 
 - blockIdx is index of ThreadBlock
 
