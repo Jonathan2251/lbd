@@ -605,6 +605,8 @@ more. And actually, llvm IR expanding from version 3.1 to now as I feel.
 
 .. [#gpgpuwiki] https://en.wikipedia.org/wiki/General-purpose_computing_on_graphics_processing_units
 
+.. [#cudaex] https://devblogs.nvidia.com/easy-introduction-cuda-c-and-c/
+
 .. [#VMR] subsection Vector Mask Registers: Handling IF Statements in Vector Loops of Computer Architecture: A Quantitative Approach 5th edition (The
        Morgan Kaufmann Series in Computer Architecture and Design)
 
@@ -612,8 +614,6 @@ more. And actually, llvm IR expanding from version 3.1 to now as I feel.
        Morgan Kaufmann Series in Computer Architecture and Design)
 
 .. [#shadingl1] The whole chip shares a single L2 cache, but the different units will have individual L1 caches. https://computergraphics.stackexchange.com/questions/355/how-does-texture-cache-work-considering-multiple-shader-units
-
-.. [#cudaex] https://devblogs.nvidia.com/easy-introduction-cuda-c-and-c/
 
 .. [#mpeg4speedup] https://www.manchestervideo.com/2016/06/11/speed-h-264-encoding-budget-gpu/
 
