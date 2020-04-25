@@ -1,26 +1,34 @@
-
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
+
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>ELF Support &#8212; Tutorial: Creating an LLVM Backend for the Cpu0 Architecture</title>
+    
+    <title>ELF Support &mdash; Tutorial: Creating an LLVM Backend for the Cpu0 Architecture</title>
+    
     <link rel="stylesheet" href="_static/haiku.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    <link rel="stylesheet" type="text/css" href="_static/graphviz.css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '3.9.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <script type="text/javascript" src="_static/language_data.js"></script>
     <link rel="author" title="About these documents" href="about.html" />
-    <link rel="index" title="Index" href="genindex.html" />
-    <link rel="search" title="Search" href="search.html" />
+    <link rel="top" title="Tutorial: Creating an LLVM Backend for the Cpu0 Architecture" href="index.html" />
     <link rel="next" title="Assembler" href="asm.html" />
     <link rel="prev" title="Function call" href="funccall.html" /> 
-  </head><body>
+  </head>
+  <body role="document">
       <div class="header" role="banner"><h1 class="heading"><a href="index.html">
           <span>Tutorial: Creating an LLVM Backend for the Cpu0 Architecture</span></a></h1>
         <h2 class="heading"><span>ELF Support</span></h2>
@@ -67,12 +75,12 @@ Unix-like systems on x86 by the x86open project.
 Please reference <a class="footnote-reference" href="#id7" id="id1">[1]</a>.</p>
 <p>The binary encode of Cpu0 instruction set in obj has been checked in the
 previous chapters.
-But we didn’t dig into the ELF file format like elf header and relocation
+But we didn&#8217;t dig into the ELF file format like elf header and relocation
 record at that time.
 This chapter will use the binutils which has been installed in
-“sub-section Install other tools on iMac” of Appendix A: “Installing LLVM”
+&#8220;sub-section Install other tools on iMac&#8221; of Appendix A: “Installing LLVM”
 <a class="footnote-reference" href="#id8" id="id2">[2]</a> to check the generated cpu0 ELF file.
-You will learn the objdump, readelf, …, tools and understand the ELF file
+You will learn the objdump, readelf, ..., tools and understand the ELF file
 format itself through using these tools to analyze the cpu0 generated obj in
 this chapter.
 LLVM has the llvm-objdump tool which like objdump. We will make cpu0 support
@@ -86,7 +94,7 @@ The iMac corresponding binutils have no problem except it add g in command name
 and and display with your area language instead of pure English on iMac.
 For example, when using gobjdump instead of objdump, I have the result of
 Chinese language unicode display instead of pure English on my iMac.</p>
-<p>The binutils tool we use is not a part of llvm tools, but it’s a powerful tool
+<p>The binutils tool we use is not a part of llvm tools, but it&#8217;s a powerful tool
 in ELF analysis.
 This chapter introduce the tool to readers since we think it is a valuable
 knowledge in this popular ELF format and the ELF binutils analysis tool.
@@ -99,7 +107,7 @@ topics
 of assembler, linker, loader, compiler and OS in concept, and at same time
 demonstrates how to use binutils and gcc to analysis ELF through the example
 code in his book.
-It’s a Chinese book of “System Software” in concept and practice.
+It&#8217;s a Chinese book of “System Software” in concept and practice.
 This book does the real analysis through binutils.
 The “System Software” <a class="footnote-reference" href="#id9" id="id3">[3]</a> written by Beck is a famous book in concept of
 telling readers what about the compiler output, what about the linker output,
@@ -118,16 +126,16 @@ So, there are two views in it as <a class="reference internal" href="#elf-f1"><s
 <p class="caption"><span class="caption-number">Fig. 28 </span><span class="caption-text">ELF file format overview</span></p>
 </div>
 <p>As <a class="reference internal" href="#elf-f1"><span class="std std-numref">Fig. 28</span></a>, the “Section header table” include sections .text,
-.rodata, …, .data which are sections layout for code, read only data, …,
+.rodata, ..., .data which are sections layout for code, read only data, ...,
 and read/write data, respectively.
 “Program header table” include segments for run time code and data.
 The definition of segments is the run time layout for code and data while
 sections is the link time layout for code and data.</p>
 <div class="section" id="elf-header-and-section-header-table">
 <h3><a class="toc-backref" href="#id15">ELF header and Section header table</a><a class="headerlink" href="#elf-header-and-section-header-table" title="Permalink to this headline">¶</a></h3>
-<p>Let’s run Chapter9_3/ with ch6_1.cpp, and dump ELF header information by
-<code class="docutils literal notranslate"><span class="pre">readelf</span> <span class="pre">-h</span></code> to see what information the ELF header contains.</p>
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">[Gamma@localhost input]$</span> ~/llvm/test/cmake_debug_build/bin/llc -march<span class="o">=</span>cpu0
+<p>Let&#8217;s run Chapter9_3/ with ch6_1.cpp, and dump ELF header information by
+<code class="docutils literal"><span class="pre">readelf</span> <span class="pre">-h</span></code> to see what information the ELF header contains.</p>
+<div class="highlight-console"><div class="highlight"><pre><span></span><span class="gp">[Gamma@localhost input]$</span> ~/llvm/test/cmake_debug_build/bin/llc -march<span class="o">=</span>cpu0
 <span class="go">-relocation-model=pic -filetype=obj ch6_1.bc -o ch6_1.cpu0.o</span>
 
 <span class="gp">[Gamma@localhost input]$</span> readelf -h ch6_1.cpu0.o
@@ -180,11 +188,11 @@ sections is the link time layout for code and data.</p>
 </pre></div>
 </div>
 <p>As above ELF header display, it contains information of magic number, version,
-ABI, …, . The Machine field of cpu0 is unknown while mips is known as
+ABI, ..., . The Machine field of cpu0 is unknown while mips is known as
 MIPSR3000.
 It is unknown because cpu0 is not a popular CPU recognized by utility readelf.
-Let’s check ELF segments information as follows,</p>
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">[Gamma@localhost input]$</span> readelf -l ch6_1.cpu0.o
+Let&#8217;s check ELF segments information as follows,</p>
+<div class="highlight-console"><div class="highlight"><pre><span></span><span class="gp">[Gamma@localhost input]$</span> readelf -l ch6_1.cpu0.o
 
 <span class="go">There are no program headers in this file.</span>
 <span class="gp">[Gamma@localhost input]$</span>
@@ -195,7 +203,7 @@ execution.
 So, the segments is empty.
 Check ELF sections information as follows.
 Every section contains offset and size information.</p>
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">[Gamma@localhost input]$</span> readelf -S ch6_1.cpu0.o
+<div class="highlight-console"><div class="highlight"><pre><span></span><span class="gp">[Gamma@localhost input]$</span> readelf -S ch6_1.cpu0.o
 <span class="go">There are 10 section headers, starting at offset 0xd4:</span>
 
 <span class="go">Section Headers:</span>
@@ -221,7 +229,7 @@ Every section contains offset and size information.</p>
 <div class="section" id="relocation-record">
 <h3><a class="toc-backref" href="#id16">Relocation Record</a><a class="headerlink" href="#relocation-record" title="Permalink to this headline">¶</a></h3>
 <p>Cpu0 backend translate global variable as follows,</p>
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">[Gamma@localhost input]$</span> clang -target mips-unknown-linux-gnu -c ch6_1.cpp
+<div class="highlight-console"><div class="highlight"><pre><span></span><span class="gp">[Gamma@localhost input]$</span> clang -target mips-unknown-linux-gnu -c ch6_1.cpp
 <span class="go">-emit-llvm -o ch6_1.bc</span>
 <span class="gp">[Gamma@localhost input]$</span> ~/llvm/test/cmake_debug_build/
 <span class="go">bin/llc -march=cpu0 -relocation-model=pic -filetype=asm ch6_1.bc -o ch6_1.cpu0.s</span>
@@ -348,17 +356,17 @@ Every section contains offset and size information.</p>
 </div>
 <p>As depicted in <a class="reference external" href="http://jonathan2251.github.io/lbd/funccall.html#handle-gp-register-in-pic-addressing-mode">section Handle $gp register in PIC addressing mode</a>, it
 translates <strong>“.cpload %reg”</strong> into the following.</p>
-<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="c1">// Lower &quot;.cpload $reg&quot; to</span>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="c1">// Lower &quot;.cpload $reg&quot; to</span>
 <span class="c1">//  &quot;lui   $gp, %hi(_gp_disp)&quot;</span>
 <span class="c1">//  &quot;ori $gp, $gp, %lo(_gp_disp)&quot;</span>
 <span class="c1">//  &quot;addu  $gp, $gp, $t9&quot;</span>
 </pre></div>
 </div>
-<p>The _gp_disp value is determined by loader. So, it’s undefined in obj.
+<p>The _gp_disp value is determined by loader. So, it&#8217;s undefined in obj.
 You can find both the Relocation Records for offset 0 and 4 of .text section
 refer to _gp_disp value.
-The offset 0 and 4 of .text section are instructions “lui $gp, %hi(_gp_disp)”
-and “ori $gp, $gp, %lo(_gp_disp)” which their corresponding obj
+The offset 0 and 4 of .text section are instructions &#8220;lui $gp, %hi(_gp_disp)&#8221;
+and &#8220;ori $gp, $gp, %lo(_gp_disp)&#8221; which their corresponding obj
 encode are 0fa00000 and  0daa0000, respectively.
 The obj translates the %hi(_gp_disp) and %lo(_gp_disp) into 0 since when loader
 loads this obj into memory, loader will know the _gp_disp value at run time and
@@ -366,7 +374,7 @@ will update these two offset relocation records to the correct offset value.
 You can check if the cpu0 of %hi(_gp_disp) and %lo(_gp_disp) are correct by
 above mips Relocation Records of R_MIPS_HI(_gp_disp) and  R_MIPS_LO(_gp_disp)
 even though the cpu0 is not a CPU recognized by readelf utilitly.
-The instruction <strong>“ld $2, %got(gI)($gp)”</strong> is same since we don’t know what the
+The instruction <strong>“ld $2, %got(gI)($gp)”</strong> is same since we don&#8217;t know what the
 address of .data section variable will load to.
 So, Cpu0 translate the address to 0 and made a relocation record on 0x00000020
 of .text section.
@@ -387,10 +395,10 @@ automatically.</p>
 <h2><a class="toc-backref" href="#id18">llvm-objdump</a><a class="headerlink" href="#llvm-objdump" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="llvm-objdump-t-r">
 <h3><a class="toc-backref" href="#id19">llvm-objdump -t -r</a><a class="headerlink" href="#llvm-objdump-t-r" title="Permalink to this headline">¶</a></h3>
-<p>In iMac, <code class="docutils literal notranslate"><span class="pre">gobjdump</span> <span class="pre">-tr</span></code> can display the information of relocation records
-like <code class="docutils literal notranslate"><span class="pre">readelf</span> <span class="pre">-tr</span></code>. LLVM tool llvm-objdump is the same tool as objdump.
-Let’s run gobjdump and llvm-objdump commands as follows to see the differences.</p>
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">118-165-83-12:input Jonathan$</span> clang -target mips-unknown-linux-gnu -c
+<p>In iMac, <code class="docutils literal"><span class="pre">gobjdump</span> <span class="pre">-tr</span></code> can display the information of relocation records
+like <code class="docutils literal"><span class="pre">readelf</span> <span class="pre">-tr</span></code>. LLVM tool llvm-objdump is the same tool as objdump.
+Let&#8217;s run gobjdump and llvm-objdump commands as follows to see the differences.</p>
+<div class="highlight-console"><div class="highlight"><pre><span></span><span class="gp">118-165-83-12:input Jonathan$</span> clang -target mips-unknown-linux-gnu -c
 <span class="go">ch9_3.cpp -emit-llvm -o ch9_3.bc</span>
 <span class="gp">118-165-83-10:input Jonathan$</span> /Users/Jonathan/llvm/test/cmake_debug_build/
 <span class="go">Debug/bin/llc -march=cpu0 -relocation-model=pic -filetype=obj ch9_3.bc -o</span>
@@ -441,7 +449,7 @@ Let’s run gobjdump and llvm-objdump commands as follows to see the differences
 well while the objdump cannot since we add the relocation records information
 in ELF.h as follows,</p>
 <p class="rubric">include/llvm/support/ELF.h</p>
-<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="c1">// Machine architectures</span>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="c1">// Machine architectures</span>
 <span class="k">enum</span> <span class="p">{</span>
   <span class="p">...</span>
   <span class="n">EM_CPU0</span>          <span class="o">=</span> <span class="mi">998</span><span class="p">,</span> <span class="c1">// Document LLVM Backend Tutorial Cpu0</span>
@@ -450,7 +458,7 @@ in ELF.h as follows,</p>
 </pre></div>
 </div>
 <p class="rubric">lib/object/ELF.cpp</p>
-<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="p">...</span>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="p">...</span>
 
 <span class="n">StringRef</span> <span class="n">getELFRelocationTypeName</span><span class="p">(</span><span class="kt">uint32_t</span> <span class="n">Machine</span><span class="p">,</span> <span class="kt">uint32_t</span> <span class="n">Type</span><span class="p">)</span> <span class="p">{</span>
   <span class="k">switch</span> <span class="p">(</span><span class="n">Machine</span><span class="p">)</span> <span class="p">{</span>
@@ -467,7 +475,7 @@ in ELF.h as follows,</p>
 </pre></div>
 </div>
 <p class="rubric">include/llvm/Support/ELFRelocs/Cpu0.def</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>
+<div class="highlight-default"><div class="highlight"><pre><span></span>
 <span class="c1">#ifndef ELF_RELOC</span>
 <span class="c1">#error &quot;ELF_RELOC must be defined&quot;</span>
 <span class="c1">#endif</span>
@@ -499,7 +507,7 @@ in ELF.h as follows,</p>
 </pre></div>
 </div>
 <p class="rubric">include/llvm/Object/ELFObjectFile.h</p>
-<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="k">template</span><span class="o">&lt;</span><span class="n">support</span><span class="o">::</span><span class="n">endianness</span> <span class="n">target_endianness</span><span class="p">,</span> <span class="kt">bool</span> <span class="n">is64Bits</span><span class="o">&gt;</span>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="k">template</span><span class="o">&lt;</span><span class="n">support</span><span class="o">::</span><span class="n">endianness</span> <span class="n">target_endianness</span><span class="p">,</span> <span class="kt">bool</span> <span class="n">is64Bits</span><span class="o">&gt;</span>
 <span class="n">error_code</span> <span class="n">ELFObjectFile</span><span class="o">&lt;</span><span class="n">target_endianness</span><span class="p">,</span> <span class="n">is64Bits</span><span class="o">&gt;</span>
             <span class="o">::</span><span class="n">getRelocationValueString</span><span class="p">(</span><span class="n">DataRefImpl</span> <span class="n">Rel</span><span class="p">,</span>
                       <span class="n">SmallVectorImpl</span><span class="o">&lt;</span><span class="kt">char</span><span class="o">&gt;</span> <span class="o">&amp;</span><span class="n">Result</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
@@ -533,14 +541,14 @@ in ELF.h as follows,</p>
 <span class="p">}</span>
 </pre></div>
 </div>
-<p>In addition to <code class="docutils literal notranslate"><span class="pre">llvm-objdump</span> <span class="pre">-t</span> <span class="pre">-r</span></code>, the <code class="docutils literal notranslate"><span class="pre">llvm-readobj</span> <span class="pre">-h</span></code> can display the
+<p>In addition to <code class="docutils literal"><span class="pre">llvm-objdump</span> <span class="pre">-t</span> <span class="pre">-r</span></code>, the <code class="docutils literal"><span class="pre">llvm-readobj</span> <span class="pre">-h</span></code> can display the
 Cpu0 elf header information with above EM_CPU0 defined.</p>
 </div>
 <div class="section" id="llvm-objdump-d">
 <h3><a class="toc-backref" href="#id20">llvm-objdump -d</a><a class="headerlink" href="#llvm-objdump-d" title="Permalink to this headline">¶</a></h3>
-<p>Run the last Chapter example code with command <code class="docutils literal notranslate"><span class="pre">llvm-objdump</span> <span class="pre">-d</span></code> for dumping
+<p>Run the last Chapter example code with command <code class="docutils literal"><span class="pre">llvm-objdump</span> <span class="pre">-d</span></code> for dumping
 file from elf to hex as follows,</p>
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">JonathantekiiMac:input Jonathan$</span> clang -target mips-unknown-linux-gnu -c
+<div class="highlight-console"><div class="highlight"><pre><span></span><span class="gp">JonathantekiiMac:input Jonathan$</span> clang -target mips-unknown-linux-gnu -c
 <span class="go">ch8_1_1.cpp -emit-llvm -o ch8_1_1.bc</span>
 <span class="gp">JonathantekiiMac:input Jonathan$</span> /Users/Jonathan/llvm/test/cmake_debug_
 <span class="go">build/Debug/bin/llc -march=cpu0 -relocation-model=pic -filetype=obj ch8_1_1.bc</span>
@@ -557,24 +565,24 @@ file from elf to hex as follows,</p>
 <p>To support llvm-objdump, the following code added to Chapter10_1/
 (the DecoderMethod for brtarget24 has been added in previous chapter).</p>
 <p class="rubric">lbdex/chapters/Chapter10_1/CMakeLists.txt</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">tablegen</span><span class="p">(</span><span class="n">LLVM</span> <span class="n">Cpu0GenDisassemblerTables</span><span class="o">.</span><span class="n">inc</span> <span class="o">-</span><span class="n">gen</span><span class="o">-</span><span class="n">disassembler</span><span class="p">)</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">tablegen</span><span class="p">(</span><span class="n">LLVM</span> <span class="n">Cpu0GenDisassemblerTables</span><span class="o">.</span><span class="n">inc</span> <span class="o">-</span><span class="n">gen</span><span class="o">-</span><span class="n">disassembler</span><span class="p">)</span>
 </pre></div>
 </div>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">add_subdirectory</span><span class="p">(</span><span class="n">Disassembler</span><span class="p">)</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">add_subdirectory</span><span class="p">(</span><span class="n">Disassembler</span><span class="p">)</span>
 </pre></div>
 </div>
 <p class="rubric">lbdex/chapters/Chapter10_1/LLVMBuild.txt</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">subdirectories</span> <span class="o">=</span> 
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">subdirectories</span> <span class="o">=</span> 
 </pre></div>
 </div>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>  <span class="n">Disassembler</span> 
+<div class="highlight-default"><div class="highlight"><pre><span></span>  <span class="n">Disassembler</span> 
 </pre></div>
 </div>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">has_disassembler</span> <span class="o">=</span> <span class="mi">1</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">has_disassembler</span> <span class="o">=</span> <span class="mi">1</span>
 </pre></div>
 </div>
 <p class="rubric">lbdex/chapters/Chapter10_1/Cpu0InstrInfo.td</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>let isBranch=1, isTerminator=1, isBarrier=1, imm16=0, hasDelaySlot = 1,
+<div class="highlight-default"><div class="highlight"><pre><span></span>let isBranch=1, isTerminator=1, isBarrier=1, imm16=0, hasDelaySlot = 1,
     isIndirectBranch = 1 in
 class JumpFR&lt;bits&lt;8&gt; op, string instr_asm, RegisterClass RC&gt;:
   FL&lt;op, (outs), (ins RC:$ra),
@@ -587,7 +595,7 @@ class JumpFR&lt;bits&lt;8&gt; op, string instr_asm, RegisterClass RC&gt;:
 }
 </pre></div>
 </div>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>  class JumpLink&lt;bits&lt;8&gt; op, string instr_asm&gt;:
+<div class="highlight-default"><div class="highlight"><pre><span></span>  class JumpLink&lt;bits&lt;8&gt; op, string instr_asm&gt;:
     FJ&lt;op, (outs), (ins calltarget:$target, variable_ops),
        !strconcat(instr_asm, &quot;\t$target&quot;), [(Cpu0JmpLink imm:$target)],
        IIBranch&gt; {
@@ -598,13 +606,13 @@ class JumpFR&lt;bits&lt;8&gt; op, string instr_asm, RegisterClass RC&gt;:
 </pre></div>
 </div>
 <p class="rubric">lbdex/chapters/Chapter10_1/Disassembler/CMakeLists.txt</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">add_llvm_library</span><span class="p">(</span><span class="n">LLVMCpu0Disassembler</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">add_llvm_library</span><span class="p">(</span><span class="n">LLVMCpu0Disassembler</span>
   <span class="n">Cpu0Disassembler</span><span class="o">.</span><span class="n">cpp</span>
   <span class="p">)</span>
 </pre></div>
 </div>
 <p class="rubric">lbdex/chapters/Chapter10_1/Disassembler/LLVMBuild.txt</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">;</span><span class="o">===-</span> <span class="o">./</span><span class="n">lib</span><span class="o">/</span><span class="n">Target</span><span class="o">/</span><span class="n">Cpu0</span><span class="o">/</span><span class="n">Disassembler</span><span class="o">/</span><span class="n">LLVMBuild</span><span class="o">.</span><span class="n">txt</span> <span class="o">--------------*-</span> <span class="n">Conf</span> <span class="o">-*--===</span><span class="p">;</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">;</span><span class="o">===-</span> <span class="o">./</span><span class="n">lib</span><span class="o">/</span><span class="n">Target</span><span class="o">/</span><span class="n">Cpu0</span><span class="o">/</span><span class="n">Disassembler</span><span class="o">/</span><span class="n">LLVMBuild</span><span class="o">.</span><span class="n">txt</span> <span class="o">--------------*-</span> <span class="n">Conf</span> <span class="o">-*--===</span><span class="p">;</span>
 <span class="p">;</span>
 <span class="p">;</span>                     <span class="n">The</span> <span class="n">LLVM</span> <span class="n">Compiler</span> <span class="n">Infrastructure</span>
 <span class="p">;</span>
@@ -630,7 +638,7 @@ class JumpFR&lt;bits&lt;8&gt; op, string instr_asm, RegisterClass RC&gt;:
 </pre></div>
 </div>
 <p class="rubric">lbdex/chapters/Chapter10_1/Disassembler/Cpu0Disassembler.cpp</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>//===- Cpu0Disassembler.cpp - Disassembler for Cpu0 -------------*- C++ -*-===//
+<div class="highlight-default"><div class="highlight"><pre><span></span>//===- Cpu0Disassembler.cpp - Disassembler for Cpu0 -------------*- C++ -*-===//
 //
 //                     The LLVM Compiler Infrastructure
 //
@@ -967,29 +975,29 @@ static DecodeStatus DecodeSimm16(MCInst &amp;Inst,
 <p>As above code, it adds directory Disassembler to handle the reverse translation
 from obj to assembly. So, add Disassembler/Cpu0Disassembler.cpp and modify
 the CMakeList.txt and LLVMBuild.txt to build directory Disassembler, and
-enable the disassembler table generated by “has_disassembler = 1”.
+enable the disassembler table generated by &#8220;has_disassembler = 1&#8221;.
 Most of code is handled by the table defined in *.td files.
 Not every instruction in *.td can be disassembled without trouble even though
 they can be translated into assembly and obj successfully.
-For those cannot be disassembled, LLVM supply the <strong>“let DecoderMethod”</strong>
+For those cannot be disassembled, LLVM supply the <strong>&#8220;let DecoderMethod&#8221;</strong>
 keyword to allow programmers implement their decode function.
 For example in Cpu0, we define functions DecodeBranch24Target(),
 DecodeJumpTarget() and DecodeJumpFR() in
 Cpu0Disassembler.cpp and tell the llvm-tblgen by writing
-<strong>“let DecoderMethod = …”</strong> in the corresponding instruction definitions or
+<strong>&#8220;let DecoderMethod = ...&#8221;</strong> in the corresponding instruction definitions or
 ISD node of Cpu0InstrInfo.td.
 LLVM will call these DecodeMethod when user uses Disassembler tools, such
-as <code class="docutils literal notranslate"><span class="pre">llvm-objdump</span> <span class="pre">-d</span></code>.</p>
+as <code class="docutils literal"><span class="pre">llvm-objdump</span> <span class="pre">-d</span></code>.</p>
 <p>Finally cpu032II include all cpu032I instruction set and adds some instrucitons.
-When <code class="docutils literal notranslate"><span class="pre">llvm-objdump</span> <span class="pre">-d</span></code> is invoked, function selectCpu0ArchFeature() as
+When <code class="docutils literal"><span class="pre">llvm-objdump</span> <span class="pre">-d</span></code> is invoked, function selectCpu0ArchFeature() as
 the following will be called through createCpu0MCSubtargetInfo().
-The llvm-objdump cannot set cpu option like llc as <code class="docutils literal notranslate"><span class="pre">llc</span> <span class="pre">-mcpu=cpu032I</span></code>,
+The llvm-objdump cannot set cpu option like llc as <code class="docutils literal"><span class="pre">llc</span> <span class="pre">-mcpu=cpu032I</span></code>,
 so the varaible CPU in selectCpu0ArchFeature() is empty when invoked by
-<code class="docutils literal notranslate"><span class="pre">llvm-objdump</span> <span class="pre">-d</span></code>. Set Cpu0ArchFeature to “+cpu032II” than it can disassemble
+<code class="docutils literal"><span class="pre">llvm-objdump</span> <span class="pre">-d</span></code>. Set Cpu0ArchFeature to &#8220;+cpu032II&#8221; than it can disassemble
 all instructions (cpu032II include all cpu032I instructions and add some new
 instructions).</p>
 <p class="rubric">lbdex/chapters/Chapter10_1/MCTargetDesc/Cpu0MCTargetDesc.cpp</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">///</span> <span class="n">Select</span> <span class="n">the</span> <span class="n">Cpu0</span> <span class="n">Architecture</span> <span class="n">Feature</span> <span class="k">for</span> <span class="n">the</span> <span class="n">given</span> <span class="n">triple</span> <span class="ow">and</span> <span class="n">cpu</span> <span class="n">name</span><span class="o">.</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">///</span> <span class="n">Select</span> <span class="n">the</span> <span class="n">Cpu0</span> <span class="n">Architecture</span> <span class="n">Feature</span> <span class="k">for</span> <span class="n">the</span> <span class="n">given</span> <span class="n">triple</span> <span class="ow">and</span> <span class="n">cpu</span> <span class="n">name</span><span class="o">.</span>
 <span class="o">///</span> <span class="n">The</span> <span class="n">function</span> <span class="n">will</span> <span class="n">be</span> <span class="n">called</span> <span class="n">at</span> <span class="n">command</span> <span class="s1">&#39;llvm-objdump -d&#39;</span> <span class="k">for</span> <span class="n">Cpu0</span> <span class="n">elf</span> <span class="nb">input</span><span class="o">.</span>
 <span class="n">static</span> <span class="n">std</span><span class="p">::</span><span class="n">string</span> <span class="n">selectCpu0ArchFeature</span><span class="p">(</span><span class="n">const</span> <span class="n">Triple</span> <span class="o">&amp;</span><span class="n">TT</span><span class="p">,</span> <span class="n">StringRef</span> <span class="n">CPU</span><span class="p">)</span> <span class="p">{</span>
   <span class="n">std</span><span class="p">::</span><span class="n">string</span> <span class="n">Cpu0ArchFeature</span><span class="p">;</span>
@@ -1009,9 +1017,9 @@ instructions).</p>
 <span class="p">}</span>
 </pre></div>
 </div>
-<p>Now, run Chapter10_1/ with command <code class="docutils literal notranslate"><span class="pre">llvm-objdump</span> <span class="pre">-d</span> <span class="pre">ch8_1_1.cpu0.o</span></code> will get
+<p>Now, run Chapter10_1/ with command <code class="docutils literal"><span class="pre">llvm-objdump</span> <span class="pre">-d</span> <span class="pre">ch8_1_1.cpu0.o</span></code> will get
 the following result.</p>
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">JonathantekiiMac:input Jonathan$</span> /Users/Jonathan/llvm/test/cmake_debug_
+<div class="highlight-console"><div class="highlight"><pre><span></span><span class="gp">JonathantekiiMac:input Jonathan$</span> /Users/Jonathan/llvm/test/cmake_debug_
 <span class="go">build/Debug/bin/llc -march=cpu0 -relocation-model=pic -filetype=obj</span>
 <span class="go">ch8_1_1.bc -o ch8_1_1.cpu0.o</span>
 <span class="gp">JonathantekiiMac:input Jonathan$</span> /Users/Jonathan/llvm/test/cmake_debug_
@@ -1086,8 +1094,8 @@ the following result.</p>
       </div>
 
     <div class="footer" role="contentinfo">
-        &#169; Copyright 2016, Chen Chung-Shu.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.8.5.
+        &copy; Copyright 2016, Chen Chung-Shu.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.4.
     </div>
   </body>
 </html>

@@ -1,26 +1,34 @@
-
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
+
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>Other data type &#8212; Tutorial: Creating an LLVM Backend for the Cpu0 Architecture</title>
+    
+    <title>Other data type &mdash; Tutorial: Creating an LLVM Backend for the Cpu0 Architecture</title>
+    
     <link rel="stylesheet" href="_static/haiku.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    <link rel="stylesheet" type="text/css" href="_static/graphviz.css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '3.9.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <script type="text/javascript" src="_static/language_data.js"></script>
     <link rel="author" title="About these documents" href="about.html" />
-    <link rel="index" title="Index" href="genindex.html" />
-    <link rel="search" title="Search" href="search.html" />
+    <link rel="top" title="Tutorial: Creating an LLVM Backend for the Cpu0 Architecture" href="index.html" />
     <link rel="next" title="Control flow statements" href="ctrlflow.html" />
     <link rel="prev" title="Global variables" href="globalvar.html" /> 
-  </head><body>
+  </head>
+  <body role="document">
       <div class="header" role="banner"><h1 class="heading"><a href="index.html">
           <span>Tutorial: Creating an LLVM Backend for the Cpu0 Architecture</span></a></h1>
         <h2 class="heading"><span>Other data type</span></h2>
@@ -59,20 +67,20 @@ are not 32-bit size which inlcude bool, char, short int and long long.</p>
 <p>To support pointer to local variable, add this code fragment in
 Cpu0InstrInfo.td and Cpu0InstPrinter.cpp as follows,</p>
 <p class="rubric">lbdex/chapters/Chapter7_1/Cpu0InstrInfo.td</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">mem_ea</span> <span class="p">:</span> <span class="n">Operand</span><span class="o">&lt;</span><span class="n">iPTR</span><span class="o">&gt;</span> <span class="p">{</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">mem_ea</span> <span class="p">:</span> <span class="n">Operand</span><span class="o">&lt;</span><span class="n">iPTR</span><span class="o">&gt;</span> <span class="p">{</span>
   <span class="n">let</span> <span class="n">PrintMethod</span> <span class="o">=</span> <span class="s2">&quot;printMemOperandEA&quot;</span><span class="p">;</span>
   <span class="n">let</span> <span class="n">MIOperandInfo</span> <span class="o">=</span> <span class="p">(</span><span class="n">ops</span> <span class="n">CPURegs</span><span class="p">,</span> <span class="n">simm16</span><span class="p">);</span>
   <span class="n">let</span> <span class="n">EncoderMethod</span> <span class="o">=</span> <span class="s2">&quot;getMemEncoding&quot;</span><span class="p">;</span>
 <span class="p">}</span>
 </pre></div>
 </div>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>class EffectiveAddress&lt;string instr_asm, RegisterClass RC, Operand Mem&gt; :
+<div class="highlight-default"><div class="highlight"><pre><span></span>class EffectiveAddress&lt;string instr_asm, RegisterClass RC, Operand Mem&gt; :
   FMem&lt;0x09, (outs RC:$ra), (ins Mem:$addr),
      instr_asm, [(set RC:$ra, addr:$addr)], IIAlu&gt;;
 }
 </pre></div>
 </div>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">//</span> <span class="n">FrameIndexes</span> <span class="n">are</span> <span class="n">legalized</span> <span class="n">when</span> <span class="n">they</span> <span class="n">are</span> <span class="n">operands</span> <span class="kn">from</span> <span class="nn">load</span><span class="o">/</span><span class="n">store</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">//</span> <span class="n">FrameIndexes</span> <span class="n">are</span> <span class="n">legalized</span> <span class="n">when</span> <span class="n">they</span> <span class="n">are</span> <span class="n">operands</span> <span class="kn">from</span> <span class="nn">load</span><span class="o">/</span><span class="n">store</span>
 <span class="o">//</span> <span class="n">instructions</span><span class="o">.</span> <span class="n">The</span> <span class="n">same</span> <span class="ow">not</span> <span class="n">happens</span> <span class="k">for</span> <span class="n">stack</span> <span class="n">address</span> <span class="n">copies</span><span class="p">,</span> <span class="n">so</span> <span class="n">an</span>
 <span class="o">//</span> <span class="n">add</span> <span class="n">op</span> <span class="k">with</span> <span class="n">mem</span> <span class="n">ComplexPattern</span> <span class="ow">is</span> <span class="n">used</span> <span class="ow">and</span> <span class="n">the</span> <span class="n">stack</span> <span class="n">address</span> <span class="n">copy</span>
 <span class="o">//</span> <span class="n">can</span> <span class="n">be</span> <span class="n">matched</span><span class="o">.</span> <span class="n">It</span><span class="s1">&#39;s similar to Sparc LEA_ADDRi</span>
@@ -82,11 +90,11 @@ Cpu0InstrInfo.td and Cpu0InstPrinter.cpp as follows,</p>
 </pre></div>
 </div>
 <p class="rubric">lbdex/chapters/Chapter3_2/InstPrinter/Cpu0InstPrinter.h</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>  <span class="n">void</span> <span class="n">printMemOperandEA</span><span class="p">(</span><span class="n">const</span> <span class="n">MCInst</span> <span class="o">*</span><span class="n">MI</span><span class="p">,</span> <span class="nb">int</span> <span class="n">opNum</span><span class="p">,</span> <span class="n">raw_ostream</span> <span class="o">&amp;</span><span class="n">O</span><span class="p">);</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span>  <span class="n">void</span> <span class="n">printMemOperandEA</span><span class="p">(</span><span class="n">const</span> <span class="n">MCInst</span> <span class="o">*</span><span class="n">MI</span><span class="p">,</span> <span class="nb">int</span> <span class="n">opNum</span><span class="p">,</span> <span class="n">raw_ostream</span> <span class="o">&amp;</span><span class="n">O</span><span class="p">);</span>
 </pre></div>
 </div>
 <p class="rubric">lbdex/chapters/Chapter3_2/InstPrinter/Cpu0InstPrinter.cpp</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">//</span> <span class="n">The</span> <span class="n">DAG</span> <span class="n">data</span> <span class="n">node</span><span class="p">,</span> <span class="n">mem_ea</span> <span class="n">of</span> <span class="n">Cpu0InstrInfo</span><span class="o">.</span><span class="n">td</span><span class="p">,</span> <span class="n">cannot</span> <span class="n">be</span> <span class="n">disabled</span> <span class="n">by</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">//</span> <span class="n">The</span> <span class="n">DAG</span> <span class="n">data</span> <span class="n">node</span><span class="p">,</span> <span class="n">mem_ea</span> <span class="n">of</span> <span class="n">Cpu0InstrInfo</span><span class="o">.</span><span class="n">td</span><span class="p">,</span> <span class="n">cannot</span> <span class="n">be</span> <span class="n">disabled</span> <span class="n">by</span>
 <span class="o">//</span> <span class="n">ch7_1</span><span class="p">,</span> <span class="n">only</span> <span class="n">opcode</span> <span class="n">node</span> <span class="n">can</span> <span class="n">be</span> <span class="n">disabled</span><span class="o">.</span>
 <span class="n">void</span> <span class="n">Cpu0InstPrinter</span><span class="p">::</span>
 <span class="n">printMemOperandEA</span><span class="p">(</span><span class="n">const</span> <span class="n">MCInst</span> <span class="o">*</span><span class="n">MI</span><span class="p">,</span> <span class="nb">int</span> <span class="n">opNum</span><span class="p">,</span> <span class="n">raw_ostream</span> <span class="o">&amp;</span><span class="n">O</span><span class="p">)</span> <span class="p">{</span>
@@ -105,7 +113,7 @@ disabled by ch7_1_localpointer, only opcode node can be disabled.
 Run ch7_1_localpointer.cpp with code Chapter7_1/ which support pointer to local
 variable, will get result as follows,</p>
 <p class="rubric">lbdex/input/ch7_1_localpointer.cpp</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="nb">int</span> <span class="n">test_local_pointer</span><span class="p">()</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="nb">int</span> <span class="n">test_local_pointer</span><span class="p">()</span>
 <span class="p">{</span>
   <span class="nb">int</span> <span class="n">b</span> <span class="o">=</span> <span class="mi">3</span><span class="p">;</span>
   
@@ -115,18 +123,18 @@ variable, will get result as follows,</p>
 <span class="p">}</span>
 </pre></div>
 </div>
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">118-165-66-82:input Jonathan$</span> clang -target mips-unknown-linux-gnu -c
+<div class="highlight-console"><div class="highlight"><pre><span></span><span class="gp">118-165-66-82:input Jonathan$</span> clang -target mips-unknown-linux-gnu -c
 <span class="go">ch7_1_localpointer.cpp -emit-llvm -o ch7_1_localpointer.bc</span>
 <span class="gp">118-165-66-82:input Jonathan$</span> llvm-dis ch7_1_localpointer.bc -o -
 <span class="go">...</span>
 <span class="go">; Function Attrs: nounwind</span>
 <span class="go">define i32 @_Z18test_local_pointerv() #0 {</span>
-<span class="gp">  %</span><span class="nv">b</span> <span class="o">=</span> alloca i32, align <span class="m">4</span>
-<span class="gp">  %</span><span class="nv">p</span> <span class="o">=</span> alloca i32*, align <span class="m">4</span>
+<span class="gp">  %</span><span class="nv">b</span> <span class="o">=</span> alloca i32, align 4
+<span class="gp">  %</span><span class="nv">p</span> <span class="o">=</span> alloca i32*, align 4
 <span class="go">  store i32 3, i32* %b, align 4</span>
 <span class="go">  store i32* %b, i32** %p, align 4</span>
-<span class="gp">  %</span><span class="nv">1</span> <span class="o">=</span> load i32** %p, align <span class="m">4</span>
-<span class="gp">  %</span><span class="nv">2</span> <span class="o">=</span> load i32* %1, align <span class="m">4</span>
+<span class="gp">  %</span><span class="nv">1</span> <span class="o">=</span> load i32** %p, align 4
+<span class="gp">  %</span><span class="nv">2</span> <span class="o">=</span> load i32* %1, align 4
 <span class="go">  ret i32 %2</span>
 <span class="go">}</span>
 <span class="go">...</span>
@@ -152,15 +160,15 @@ variable, will get result as follows,</p>
 <p>To support signed/unsigned type of char and short int, adding the following
 code to Chapter7_1/.</p>
 <p class="rubric">lbdex/chapters/Chapter7_1/Cpu0InstrInfo.td</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">sextloadi16_a</span>   <span class="p">:</span> <span class="n">AlignedLoad</span><span class="o">&lt;</span><span class="n">sextloadi16</span><span class="o">&gt;</span><span class="p">;</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">sextloadi16_a</span>   <span class="p">:</span> <span class="n">AlignedLoad</span><span class="o">&lt;</span><span class="n">sextloadi16</span><span class="o">&gt;</span><span class="p">;</span>
 <span class="k">def</span> <span class="nf">zextloadi16_a</span>   <span class="p">:</span> <span class="n">AlignedLoad</span><span class="o">&lt;</span><span class="n">zextloadi16</span><span class="o">&gt;</span><span class="p">;</span>
 <span class="k">def</span> <span class="nf">extloadi16_a</span>    <span class="p">:</span> <span class="n">AlignedLoad</span><span class="o">&lt;</span><span class="n">extloadi16</span><span class="o">&gt;</span><span class="p">;</span>
 </pre></div>
 </div>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">truncstorei16_a</span> <span class="p">:</span> <span class="n">AlignedStore</span><span class="o">&lt;</span><span class="n">truncstorei16</span><span class="o">&gt;</span><span class="p">;</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">truncstorei16_a</span> <span class="p">:</span> <span class="n">AlignedStore</span><span class="o">&lt;</span><span class="n">truncstorei16</span><span class="o">&gt;</span><span class="p">;</span>
 </pre></div>
 </div>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">let</span> <span class="n">Predicates</span> <span class="o">=</span> <span class="p">[</span><span class="n">Ch7_1</span><span class="p">]</span> <span class="ow">in</span> <span class="p">{</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">let</span> <span class="n">Predicates</span> <span class="o">=</span> <span class="p">[</span><span class="n">Ch7_1</span><span class="p">]</span> <span class="ow">in</span> <span class="p">{</span>
 <span class="n">defm</span> <span class="n">LB</span>     <span class="p">:</span> <span class="n">LoadM32</span><span class="o">&lt;</span><span class="mh">0x03</span><span class="p">,</span> <span class="s2">&quot;lb&quot;</span><span class="p">,</span>  <span class="n">sextloadi8</span><span class="o">&gt;</span><span class="p">;</span>
 <span class="n">defm</span> <span class="n">LBu</span>    <span class="p">:</span> <span class="n">LoadM32</span><span class="o">&lt;</span><span class="mh">0x04</span><span class="p">,</span> <span class="s2">&quot;lbu&quot;</span><span class="p">,</span> <span class="n">zextloadi8</span><span class="o">&gt;</span><span class="p">;</span>
 <span class="n">defm</span> <span class="n">SB</span>     <span class="p">:</span> <span class="n">StoreM32</span><span class="o">&lt;</span><span class="mh">0x05</span><span class="p">,</span> <span class="s2">&quot;sb&quot;</span><span class="p">,</span> <span class="n">truncstorei8</span><span class="o">&gt;</span><span class="p">;</span>
@@ -172,7 +180,7 @@ code to Chapter7_1/.</p>
 </div>
 <p>Run Chapter7_1/ with ch7_1_char_in_struct.cpp will get the following result.</p>
 <p class="rubric">lbdex/input/ch7_1_char_in_struct.cpp</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">struct</span> <span class="n">Date</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">struct</span> <span class="n">Date</span>
 <span class="p">{</span>
   <span class="n">short</span> <span class="n">year</span><span class="p">;</span>
   <span class="n">char</span> <span class="n">month</span><span class="p">;</span>
@@ -197,26 +205,26 @@ code to Chapter7_1/.</p>
 
 </pre></div>
 </div>
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">118-165-64-245:input Jonathan$</span> /Users/Jonathan/llvm/test/cmake_debug_build/
+<div class="highlight-console"><div class="highlight"><pre><span></span><span class="gp">118-165-64-245:input Jonathan$</span> /Users/Jonathan/llvm/test/cmake_debug_build/
 <span class="go">Debug/bin/llvm-dis ch7_1_char_in_struct.bc -o -</span>
 <span class="go">define i32 @_Z9test_charv() #0 {</span>
-<span class="gp">  %</span><span class="nv">a</span> <span class="o">=</span> alloca i8, align <span class="m">1</span>
-<span class="gp">  %</span><span class="nv">c</span> <span class="o">=</span> alloca i8, align <span class="m">1</span>
-<span class="gp">  %</span><span class="nv">date1</span> <span class="o">=</span> alloca %struct.Date, align <span class="m">2</span>
-<span class="gp">  %</span><span class="nv">m</span> <span class="o">=</span> alloca i8, align <span class="m">1</span>
-<span class="gp">  %</span><span class="nv">s</span> <span class="o">=</span> alloca i8, align <span class="m">1</span>
-<span class="gp">  %</span><span class="nv">1</span> <span class="o">=</span> load i8* getelementptr inbounds <span class="o">([</span><span class="m">4</span> x i8<span class="o">]</span>* @b, i32 <span class="m">0</span>, i32 <span class="m">1</span><span class="o">)</span>, align <span class="m">1</span>
+<span class="gp">  %</span><span class="nv">a</span> <span class="o">=</span> alloca i8, align 1
+<span class="gp">  %</span><span class="nv">c</span> <span class="o">=</span> alloca i8, align 1
+<span class="gp">  %</span><span class="nv">date1</span> <span class="o">=</span> alloca %struct.Date, align 2
+<span class="gp">  %</span><span class="nv">m</span> <span class="o">=</span> alloca i8, align 1
+<span class="gp">  %</span><span class="nv">s</span> <span class="o">=</span> alloca i8, align 1
+<span class="gp">  %</span><span class="nv">1</span> <span class="o">=</span> load i8* getelementptr inbounds <span class="o">([</span><span class="m">4</span> x i8<span class="o">]</span>* @b, i32 0, i32 1<span class="o">)</span>, align 1
 <span class="go">  store i8 %1, i8* %a, align 1</span>
-<span class="gp">  %</span><span class="nv">2</span> <span class="o">=</span> load i8* getelementptr inbounds <span class="o">([</span><span class="m">4</span> x i8<span class="o">]</span>* @b, i32 <span class="m">0</span>, i32 <span class="m">1</span><span class="o">)</span>, align <span class="m">1</span>
+<span class="gp">  %</span><span class="nv">2</span> <span class="o">=</span> load i8* getelementptr inbounds <span class="o">([</span><span class="m">4</span> x i8<span class="o">]</span>* @b, i32 0, i32 1<span class="o">)</span>, align 1
 <span class="go">  store i8 %2, i8* %c, align 1</span>
 <span class="gp">  %</span><span class="nv">3</span> <span class="o">=</span> bitcast %struct.Date* %date1 to i8*
 <span class="go">  call void @llvm.memcpy.p0i8.p0i8.i32(i8* %3, i8* bitcast ({ i16, i8, i8, i8,</span>
 <span class="go">  i8, i8, i8 }* @_ZZ9test_charvE5date1 to i8*), i32 8, i32 2, i1 false)</span>
-<span class="gp">  %</span><span class="nv">4</span> <span class="o">=</span> getelementptr inbounds %struct.Date* %date1, i32 <span class="m">0</span>, i32 <span class="m">1</span>
-<span class="gp">  %</span><span class="nv">5</span> <span class="o">=</span> load i8* %4, align <span class="m">1</span>
+<span class="gp">  %</span><span class="nv">4</span> <span class="o">=</span> getelementptr inbounds %struct.Date* %date1, i32 0, i32 1
+<span class="gp">  %</span><span class="nv">5</span> <span class="o">=</span> load i8* %4, align 1
 <span class="go">  store i8 %5, i8* %m, align 1</span>
-<span class="gp">  %</span><span class="nv">6</span> <span class="o">=</span> getelementptr inbounds %struct.Date* %date1, i32 <span class="m">0</span>, i32 <span class="m">5</span>
-<span class="gp">  %</span><span class="nv">7</span> <span class="o">=</span> load i8* %6, align <span class="m">1</span>
+<span class="gp">  %</span><span class="nv">6</span> <span class="o">=</span> getelementptr inbounds %struct.Date* %date1, i32 0, i32 5
+<span class="gp">  %</span><span class="nv">7</span> <span class="o">=</span> load i8* %6, align 1
 <span class="go">  store i8 %7, i8* %s, align 1</span>
 <span class="go">  ret i32 0</span>
 <span class="go">}</span>
@@ -283,7 +291,7 @@ code to Chapter7_1/.</p>
 </div>
 <p>Run Chapter7_1/ with ch7_1_char_short.cpp will get the following result.</p>
 <p class="rubric">lbdex/input/ch7_1_char_short.cpp</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="nb">int</span> <span class="n">test_signed_char</span><span class="p">()</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="nb">int</span> <span class="n">test_signed_char</span><span class="p">()</span>
 <span class="p">{</span>
   <span class="n">char</span> <span class="n">a</span> <span class="o">=</span> <span class="mh">0x80</span><span class="p">;</span>
   <span class="nb">int</span> <span class="n">i</span> <span class="o">=</span> <span class="p">(</span><span class="n">signed</span> <span class="nb">int</span><span class="p">)</span><span class="n">a</span><span class="p">;</span>
@@ -322,12 +330,12 @@ code to Chapter7_1/.</p>
 
 </pre></div>
 </div>
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">1-160-136-236:input Jonathan$</span> /Users/Jonathan/llvm/test/cmake_debug_build/
+<div class="highlight-console"><div class="highlight"><pre><span></span><span class="gp">1-160-136-236:input Jonathan$</span> /Users/Jonathan/llvm/test/cmake_debug_build/
 <span class="go">Debug/bin/llvm-dis ch7_1_char_short.bc -o -</span>
 <span class="go">  ...</span>
 <span class="go">define i32 @_Z16test_signed_charv() #0 {</span>
 <span class="go">  ...</span>
-<span class="gp">  %</span><span class="nv">1</span> <span class="o">=</span> load i8* %a, align <span class="m">1</span>
+<span class="gp">  %</span><span class="nv">1</span> <span class="o">=</span> load i8* %a, align 1
 <span class="gp">  %</span><span class="nv">2</span> <span class="o">=</span> sext i8 %1 to i32
 <span class="go">  ...</span>
 <span class="go">}</span>
@@ -335,7 +343,7 @@ code to Chapter7_1/.</p>
 <span class="go">; Function Attrs: nounwind</span>
 <span class="go">define i32 @_Z18test_unsigned_charv() #0 {</span>
 <span class="go">  ...</span>
-<span class="gp">  %</span><span class="nv">1</span> <span class="o">=</span> load i8* %c, align <span class="m">1</span>
+<span class="gp">  %</span><span class="nv">1</span> <span class="o">=</span> load i8* %c, align 1
 <span class="gp">  %</span><span class="nv">2</span> <span class="o">=</span> zext i8 %1 to i32
 <span class="go">  ...</span>
 <span class="go">}</span>
@@ -343,7 +351,7 @@ code to Chapter7_1/.</p>
 <span class="go">; Function Attrs: nounwind</span>
 <span class="go">define i32 @_Z17test_signed_shortv() #0 {</span>
 <span class="go">  ...</span>
-<span class="gp">  %</span><span class="nv">1</span> <span class="o">=</span> load i16* %a, align <span class="m">2</span>
+<span class="gp">  %</span><span class="nv">1</span> <span class="o">=</span> load i16* %a, align 2
 <span class="gp">  %</span><span class="nv">2</span> <span class="o">=</span> sext i16 %1 to i32
 <span class="go">  ...</span>
 <span class="go">}</span>
@@ -351,7 +359,7 @@ code to Chapter7_1/.</p>
 <span class="go">; Function Attrs: nounwind</span>
 <span class="go">define i32 @_Z19test_unsigned_shortv() #0 {</span>
 <span class="go">  ...</span>
-<span class="gp">  %</span><span class="nv">1</span> <span class="o">=</span> load i16* %c, align <span class="m">2</span>
+<span class="gp">  %</span><span class="nv">1</span> <span class="o">=</span> load i16* %c, align 2
 <span class="gp">  %</span><span class="nv">2</span> <span class="o">=</span> zext i16 %1 to i32
 <span class="go">  ...</span>
 <span class="go">}</span>
@@ -390,19 +398,19 @@ code to Chapter7_1/.</p>
 <p>As you can see lb/lh are for signed byte/short type while lbu/lhu are for
 unsigned byte/short type.
 To support C type-cast or type-conversion feature efficiently, Cpu0 provide
-instruction “lb” to converse type char to int with one single instruction.
+instruction &#8220;lb&#8221; to converse type char to int with one single instruction.
 The other instructions lbu, lh, lhu, sb and sh are applied in both signed or
 unsigned of type byte and short conversion.
 Their differences have been explained in Chapter 2.</p>
 <p>To support load bool type, the following code added.</p>
 <p class="rubric">lbdex/chapters/Chapter7_1/Cpu0ISelLowering.cpp</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Cpu0TargetLowering</span><span class="p">::</span><span class="n">Cpu0TargetLowering</span><span class="p">(</span><span class="n">const</span> <span class="n">Cpu0TargetMachine</span> <span class="o">&amp;</span><span class="n">TM</span><span class="p">,</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">Cpu0TargetLowering</span><span class="p">::</span><span class="n">Cpu0TargetLowering</span><span class="p">(</span><span class="n">const</span> <span class="n">Cpu0TargetMachine</span> <span class="o">&amp;</span><span class="n">TM</span><span class="p">,</span>
                                        <span class="n">const</span> <span class="n">Cpu0Subtarget</span> <span class="o">&amp;</span><span class="n">STI</span><span class="p">)</span>
     <span class="p">:</span> <span class="n">TargetLowering</span><span class="p">(</span><span class="n">TM</span><span class="p">),</span> <span class="n">Subtarget</span><span class="p">(</span><span class="n">STI</span><span class="p">),</span> <span class="n">ABI</span><span class="p">(</span><span class="n">TM</span><span class="o">.</span><span class="n">getABI</span><span class="p">())</span> <span class="p">{</span>
 
 </pre></div>
 </div>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>  <span class="o">//</span> <span class="n">Cpu0</span> <span class="n">does</span> <span class="ow">not</span> <span class="n">have</span> <span class="n">i1</span> <span class="nb">type</span><span class="p">,</span> <span class="n">so</span> <span class="n">use</span> <span class="n">i32</span> <span class="k">for</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span>  <span class="o">//</span> <span class="n">Cpu0</span> <span class="n">does</span> <span class="ow">not</span> <span class="n">have</span> <span class="n">i1</span> <span class="nb">type</span><span class="p">,</span> <span class="n">so</span> <span class="n">use</span> <span class="n">i32</span> <span class="k">for</span>
   <span class="o">//</span> <span class="n">setcc</span> <span class="n">operations</span> <span class="n">results</span> <span class="p">(</span><span class="n">slt</span><span class="p">,</span> <span class="n">sgt</span><span class="p">,</span> <span class="o">...</span><span class="p">)</span><span class="o">.</span>
   <span class="n">setBooleanContents</span><span class="p">(</span><span class="n">ZeroOrOneBooleanContent</span><span class="p">);</span>
   <span class="n">setBooleanVectorContents</span><span class="p">(</span><span class="n">ZeroOrNegativeOneBooleanContent</span><span class="p">);</span>
@@ -415,17 +423,17 @@ Their differences have been explained in Chapter 2.</p>
   <span class="p">}</span>
 </pre></div>
 </div>
-<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span>  <span class="p">...</span>
+<div class="highlight-c++"><div class="highlight"><pre><span></span>  <span class="p">...</span>
 <span class="p">}</span>
 </pre></div>
 </div>
-<p>The setBooleanContents() purpose as following, but I don’t know it well.
+<p>The setBooleanContents() purpose as following, but I don&#8217;t know it well.
 Without it, the ch7_1_bool2.ll still works as below.
 The IR input file ch7_1_bool2.ll is used in testing here since the c++ version
 need flow control which is not supported at this point.
 File ch_run_backend.cpp include the test fragment for bool as below.</p>
 <p class="rubric">include/llvm/Target/TargetLowering.h</p>
-<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span>  <span class="k">enum</span> <span class="n">BooleanContent</span> <span class="p">{</span> <span class="c1">// How the target represents true/false values.</span>
+<div class="highlight-c++"><div class="highlight"><pre><span></span>  <span class="k">enum</span> <span class="n">BooleanContent</span> <span class="p">{</span> <span class="c1">// How the target represents true/false values.</span>
     <span class="n">UndefinedBooleanContent</span><span class="p">,</span>    <span class="c1">// Only bit 0 counts, the rest can hold garbage.</span>
     <span class="n">ZeroOrOneBooleanContent</span><span class="p">,</span>        <span class="c1">// All bits zero except for bit 0.</span>
     <span class="n">ZeroOrNegativeOneBooleanContent</span> <span class="c1">// All bits equal to bit 0.</span>
@@ -444,7 +452,7 @@ File ch_run_backend.cpp include the test fragment for bool as below.</p>
 </pre></div>
 </div>
 <p class="rubric">lbdex/input/ch7_1_bool2.ll</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">define</span> <span class="n">zeroext</span> <span class="n">i1</span> <span class="nd">@verify_load_bool</span><span class="p">()</span> <span class="c1">#0 {</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">define</span> <span class="n">zeroext</span> <span class="n">i1</span> <span class="nd">@verify_load_bool</span><span class="p">()</span> <span class="c1">#0 {</span>
 <span class="n">entry</span><span class="p">:</span>
   <span class="o">%</span><span class="n">retval</span> <span class="o">=</span> <span class="n">alloca</span> <span class="n">i1</span><span class="p">,</span> <span class="n">align</span> <span class="mi">1</span>
   <span class="n">store</span> <span class="n">i1</span> <span class="mi">1</span><span class="p">,</span> <span class="n">i1</span><span class="o">*</span> <span class="o">%</span><span class="n">retval</span><span class="p">,</span> <span class="n">align</span> <span class="mi">1</span>
@@ -453,7 +461,7 @@ File ch_run_backend.cpp include the test fragment for bool as below.</p>
 <span class="p">}</span>
 </pre></div>
 </div>
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">  118-165-64-245:input Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/</span>
+<div class="highlight-console"><div class="highlight"><pre><span></span><span class="go">  118-165-64-245:input Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/</span>
 <span class="go">  Debug/bin/llc -march=cpu0 -relocation-model=pic -filetype=asm ch7_1_bool2.ll -o -</span>
 
 <span class="go">  .section .mdebug.abi32</span>
@@ -489,7 +497,7 @@ File ch_run_backend.cpp include the test fragment for bool as below.</p>
 <p>The ch7_1_bool.cpp is the bool test version for C language.
 You can run with it at Chapter8_1 to get the similar result with ch7_1_bool2.ll.</p>
 <p class="rubric">lbdex/input/ch7_1_bool.cpp</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="nb">bool</span> <span class="n">test_load_bool</span><span class="p">()</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="nb">bool</span> <span class="n">test_load_bool</span><span class="p">()</span>
 <span class="p">{</span>
   <span class="nb">int</span> <span class="n">a</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
 
@@ -525,7 +533,7 @@ You can run with it at Chapter8_1 to get the similar result with ch7_1_bool2.ll.
 </tr>
 <tr class="row-odd"><td>int i = (signed int)a;</td>
 <td>%2 = sext i8 %1 to i32</td>
-<td>load …, &lt;…, sext from i8&gt;</td>
+<td>load ..., &lt;..., sext from i8&gt;</td>
 </tr>
 <tr class="row-even"><td>unsigned char c = 0x80;</td>
 <td>%1 = load i8* %c, align 1</td>
@@ -536,7 +544,7 @@ You can run with it at Chapter8_1 to get the similar result with ch7_1_bool2.ll.
 </tr>
 <tr class="row-odd"><td>unsigned int ui = (unsigned int)c;</td>
 <td>%2 = zext i8 %1 to i32</td>
-<td>load …, &lt;…, zext from i8&gt;</td>
+<td>load ..., &lt;..., zext from i8&gt;</td>
 </tr>
 <tr class="row-even"><td>short a =0x8000;</td>
 <td>%1 = load i16* %a, align 2</td>
@@ -547,7 +555,7 @@ You can run with it at Chapter8_1 to get the similar result with ch7_1_bool2.ll.
 </tr>
 <tr class="row-odd"><td>int i = (signed int)a;</td>
 <td>%2 = sext i16 %1 to i32</td>
-<td>load …, &lt;…, sext from i16&gt;</td>
+<td>load ..., &lt;..., sext from i16&gt;</td>
 </tr>
 <tr class="row-even"><td>unsigned short c = 0x8000;</td>
 <td>%1 = load i16* %c, align 2</td>
@@ -558,7 +566,7 @@ You can run with it at Chapter8_1 to get the similar result with ch7_1_bool2.ll.
 </tr>
 <tr class="row-odd"><td>unsigned int ui = (unsigned int)c;</td>
 <td>%2 = zext i16 %1 to i32</td>
-<td>load …, &lt;…, zext from i16&gt;</td>
+<td>load ..., &lt;..., zext from i16&gt;</td>
 </tr>
 <tr class="row-even"><td>c = (unsigned short)ui;</td>
 <td>%6 = trunc i32 %5 to i16</td>
@@ -572,11 +580,11 @@ You can run with it at Chapter8_1 to get the similar result with ch7_1_bool2.ll.
 </ul>
 </td>
 <td>store i16 %6, i16* %c, align 2</td>
-<td>store …,&lt;…, trunc to i16&gt;</td>
+<td>store ...,&lt;..., trunc to i16&gt;</td>
 </tr>
 <tr class="row-even"><td>return true;</td>
 <td>store i1 1, i1* %retval, align 1</td>
-<td>store …,&lt;…, trunc to i8&gt;</td>
+<td>store ...,&lt;..., trunc to i8&gt;</td>
 </tr>
 </tbody>
 </table>
@@ -594,29 +602,29 @@ You can run with it at Chapter8_1 to get the similar result with ch7_1_bool2.ll.
 </tr>
 </thead>
 <tbody valign="top">
-<tr class="row-even"><td>load …, &lt;…, sext from i8&gt;</td>
+<tr class="row-even"><td>load ..., &lt;..., sext from i8&gt;</td>
 <td>lb</td>
-<td>LB  : LoadM32&lt;0x03, “lb”,  sextloadi8&gt;;</td>
+<td>LB  : LoadM32&lt;0x03, &#8220;lb&#8221;,  sextloadi8&gt;;</td>
 </tr>
-<tr class="row-odd"><td>load …, &lt;…, zext from i8&gt;</td>
+<tr class="row-odd"><td>load ..., &lt;..., zext from i8&gt;</td>
 <td>lbu</td>
-<td>LBu : LoadM32&lt;0x04, “lbu”, zextloadi8&gt;;</td>
+<td>LBu : LoadM32&lt;0x04, &#8220;lbu&#8221;, zextloadi8&gt;;</td>
 </tr>
-<tr class="row-even"><td>load …, &lt;…, sext from i16&gt;</td>
+<tr class="row-even"><td>load ..., &lt;..., sext from i16&gt;</td>
 <td>lh</td>
-<td>LH  : LoadM32&lt;0x06, “lh”,  sextloadi16_a&gt;;</td>
+<td>LH  : LoadM32&lt;0x06, &#8220;lh&#8221;,  sextloadi16_a&gt;;</td>
 </tr>
-<tr class="row-odd"><td>load …, &lt;…, zext from i16&gt;</td>
+<tr class="row-odd"><td>load ..., &lt;..., zext from i16&gt;</td>
 <td>lhu</td>
-<td>LHu : LoadM32&lt;0x07, “lhu”, zextloadi16_a&gt;;</td>
+<td>LHu : LoadM32&lt;0x07, &#8220;lhu&#8221;, zextloadi16_a&gt;;</td>
 </tr>
-<tr class="row-even"><td>store …,&lt;…, trunc to i16&gt;</td>
+<tr class="row-even"><td>store ...,&lt;..., trunc to i16&gt;</td>
 <td>sh</td>
-<td>SH  : StoreM32&lt;0x08, “sh”, truncstorei16_a&gt;;</td>
+<td>SH  : StoreM32&lt;0x08, &#8220;sh&#8221;, truncstorei16_a&gt;;</td>
 </tr>
-<tr class="row-odd"><td>store …,&lt;…, trunc to i8&gt;</td>
+<tr class="row-odd"><td>store ...,&lt;..., trunc to i8&gt;</td>
 <td>sb</td>
-<td>SB  : StoreM32&lt;0x05, “sb”, truncstorei8&gt;;</td>
+<td>SB  : StoreM32&lt;0x05, &#8220;sb&#8221;, truncstorei8&gt;;</td>
 </tr>
 </tbody>
 </table>
@@ -627,7 +635,7 @@ You can run with it at Chapter8_1 to get the similar result with ch7_1_bool2.ll.
 language. To support type long long, we add the following code to
 Chapter7_1/.</p>
 <p class="rubric">lbdex/chapters/Chapter7_1/Cpu0SEISelDAGToDAG.cpp</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">void</span> <span class="n">Cpu0SEDAGToDAGISel</span><span class="p">::</span><span class="n">selectAddESubE</span><span class="p">(</span><span class="n">unsigned</span> <span class="n">MOp</span><span class="p">,</span> <span class="n">SDValue</span> <span class="n">InFlag</span><span class="p">,</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">void</span> <span class="n">Cpu0SEDAGToDAGISel</span><span class="p">::</span><span class="n">selectAddESubE</span><span class="p">(</span><span class="n">unsigned</span> <span class="n">MOp</span><span class="p">,</span> <span class="n">SDValue</span> <span class="n">InFlag</span><span class="p">,</span>
                                            <span class="n">SDValue</span> <span class="n">CmpLHS</span><span class="p">,</span> <span class="n">const</span> <span class="n">SDLoc</span> <span class="o">&amp;</span><span class="n">DL</span><span class="p">,</span>
                                            <span class="n">SDNode</span> <span class="o">*</span><span class="n">Node</span><span class="p">)</span> <span class="n">const</span> <span class="p">{</span>
   <span class="n">unsigned</span> <span class="n">Opc</span> <span class="o">=</span> <span class="n">InFlag</span><span class="o">.</span><span class="n">getOpcode</span><span class="p">();</span> <span class="p">(</span><span class="n">void</span><span class="p">)</span><span class="n">Opc</span><span class="p">;</span>
@@ -655,7 +663,7 @@ Chapter7_1/.</p>
 <span class="p">}</span>
 </pre></div>
 </div>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="nb">bool</span> <span class="n">Cpu0SEDAGToDAGISel</span><span class="p">::</span><span class="n">trySelect</span><span class="p">(</span><span class="n">SDNode</span> <span class="o">*</span><span class="n">Node</span><span class="p">)</span> <span class="p">{</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="nb">bool</span> <span class="n">Cpu0SEDAGToDAGISel</span><span class="p">::</span><span class="n">trySelect</span><span class="p">(</span><span class="n">SDNode</span> <span class="o">*</span><span class="n">Node</span><span class="p">)</span> <span class="p">{</span>
   <span class="n">unsigned</span> <span class="n">Opcode</span> <span class="o">=</span> <span class="n">Node</span><span class="o">-&gt;</span><span class="n">getOpcode</span><span class="p">();</span>
   <span class="n">SDLoc</span> <span class="n">DL</span><span class="p">(</span><span class="n">Node</span><span class="p">);</span>
 
@@ -676,7 +684,7 @@ Chapter7_1/.</p>
 
 </pre></div>
 </div>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>  case ISD::SUBE: {
+<div class="highlight-default"><div class="highlight"><pre><span></span>  case ISD::SUBE: {
     SDValue InFlag = Node-&gt;getOperand(2);
     selectAddESubE(Cpu0::SUBu, InFlag, InFlag.getOperand(0), DL, Node);
     return true;
@@ -707,35 +715,35 @@ Chapter7_1/.</p>
   }
 </pre></div>
 </div>
-<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span>  <span class="p">...</span>
+<div class="highlight-c++"><div class="highlight"><pre><span></span>  <span class="p">...</span>
 <span class="p">}</span>
 </pre></div>
 </div>
 <p class="rubric">lbdex/chapters/Chapter7_1/Cpu0ISelLowering.h</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>  <span class="k">class</span> <span class="nc">Cpu0TargetLowering</span> <span class="p">:</span> <span class="n">public</span> <span class="n">TargetLowering</span>  <span class="p">{</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span>  <span class="k">class</span> <span class="nc">Cpu0TargetLowering</span> <span class="p">:</span> <span class="n">public</span> <span class="n">TargetLowering</span>  <span class="p">{</span>
 </pre></div>
 </div>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>    <span class="nb">bool</span> <span class="n">isOffsetFoldingLegal</span><span class="p">(</span><span class="n">const</span> <span class="n">GlobalAddressSDNode</span> <span class="o">*</span><span class="n">GA</span><span class="p">)</span> <span class="n">const</span> <span class="n">override</span><span class="p">;</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span>    <span class="nb">bool</span> <span class="n">isOffsetFoldingLegal</span><span class="p">(</span><span class="n">const</span> <span class="n">GlobalAddressSDNode</span> <span class="o">*</span><span class="n">GA</span><span class="p">)</span> <span class="n">const</span> <span class="n">override</span><span class="p">;</span>
 </pre></div>
 </div>
-<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span>  <span class="p">...</span>
+<div class="highlight-c++"><div class="highlight"><pre><span></span>  <span class="p">...</span>
 <span class="p">}</span>
 </pre></div>
 </div>
 <p class="rubric">lbdex/chapters/Chapter7_1/Cpu0ISelLowering.cpp</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Cpu0TargetLowering</span><span class="p">::</span><span class="n">Cpu0TargetLowering</span><span class="p">(</span><span class="n">const</span> <span class="n">Cpu0TargetMachine</span> <span class="o">&amp;</span><span class="n">TM</span><span class="p">,</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">Cpu0TargetLowering</span><span class="p">::</span><span class="n">Cpu0TargetLowering</span><span class="p">(</span><span class="n">const</span> <span class="n">Cpu0TargetMachine</span> <span class="o">&amp;</span><span class="n">TM</span><span class="p">,</span>
                                        <span class="n">const</span> <span class="n">Cpu0Subtarget</span> <span class="o">&amp;</span><span class="n">STI</span><span class="p">)</span>
     <span class="p">:</span> <span class="n">TargetLowering</span><span class="p">(</span><span class="n">TM</span><span class="p">),</span> <span class="n">Subtarget</span><span class="p">(</span><span class="n">STI</span><span class="p">),</span> <span class="n">ABI</span><span class="p">(</span><span class="n">TM</span><span class="o">.</span><span class="n">getABI</span><span class="p">())</span> <span class="p">{</span>
 
 </pre></div>
 </div>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>  <span class="o">//</span> <span class="n">Handle</span> <span class="n">i64</span> <span class="n">shl</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span>  <span class="o">//</span> <span class="n">Handle</span> <span class="n">i64</span> <span class="n">shl</span>
   <span class="n">setOperationAction</span><span class="p">(</span><span class="n">ISD</span><span class="p">::</span><span class="n">SHL_PARTS</span><span class="p">,</span>          <span class="n">MVT</span><span class="p">::</span><span class="n">i32</span><span class="p">,</span>   <span class="n">Expand</span><span class="p">);</span>
   <span class="n">setOperationAction</span><span class="p">(</span><span class="n">ISD</span><span class="p">::</span><span class="n">SRA_PARTS</span><span class="p">,</span>          <span class="n">MVT</span><span class="p">::</span><span class="n">i32</span><span class="p">,</span>   <span class="n">Expand</span><span class="p">);</span>
   <span class="n">setOperationAction</span><span class="p">(</span><span class="n">ISD</span><span class="p">::</span><span class="n">SRL_PARTS</span><span class="p">,</span>          <span class="n">MVT</span><span class="p">::</span><span class="n">i32</span><span class="p">,</span>   <span class="n">Expand</span><span class="p">);</span>
 </pre></div>
 </div>
-<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span>  <span class="p">...</span>
+<div class="highlight-c++"><div class="highlight"><pre><span></span>  <span class="p">...</span>
 <span class="p">}</span>
 </pre></div>
 </div>
@@ -745,10 +753,10 @@ When applying operators &lt;&lt; and &gt;&gt; in 64-bit variables will create DA
 SRA_PARTS and SRL_PARTS those which take care the 32 bits operands during llvm
 DAGs translation.
 File ch9_7.cpp of 64-bit shift operations cannot be run at this
-point. It will be verified on later chapter “Function call”.</p>
+point. It will be verified on later chapter &#8220;Function call&#8221;.</p>
 <p>Run Chapter7_1 with ch7_1_longlong.cpp to get the result as follows,</p>
 <p class="rubric">lbdex/input/ch7_1_longlong.cpp</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">long</span> <span class="n">long</span> <span class="n">test_longlong</span><span class="p">()</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">long</span> <span class="n">long</span> <span class="n">test_longlong</span><span class="p">()</span>
 <span class="p">{</span>
   <span class="n">long</span> <span class="n">long</span> <span class="n">a</span> <span class="o">=</span> <span class="mh">0x300000002</span><span class="p">;</span>
   <span class="n">long</span> <span class="n">long</span> <span class="n">b</span> <span class="o">=</span> <span class="mh">0x100000001</span><span class="p">;</span>
@@ -765,7 +773,7 @@ point. It will be verified on later chapter “Function call”.</p>
 
 </pre></div>
 </div>
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">1-160-134-62:input Jonathan$</span> clang -target mips-unknown-linux-gnu -c
+<div class="highlight-console"><div class="highlight"><pre><span></span><span class="gp">1-160-134-62:input Jonathan$</span> clang -target mips-unknown-linux-gnu -c
 <span class="go">ch7_1_longlong.cpp -emit-llvm -o ch7_1_longlong.bc</span>
 <span class="gp">1-160-134-62:input Jonathan$</span> /Users/Jonathan/llvm/test/cmake_debug_build/
 <span class="go">Debug/bin/llc -march=cpu0 -mcpu=cpu032I -relocation-model=pic -filetype=asm</span>
@@ -867,13 +875,13 @@ will call the library function to translate integer to float. This float (or
 double) function call for Cpu0 will be supported after the chapter of function
 call. For hardware cost reason, many CPU have no hardware float instructions.
 They call library function to finish float operations. Mips sperarate float
-operations with a sperarate co-processor for those needing “float intended”
+operations with a sperarate co-processor for those needing &#8220;float intended&#8221;
 application.</p>
 <p>In order to support float point library (part of compiler-rt)
 <a class="footnote-reference" href="#lbt-compiler-rt" id="id1">[2]</a>, the following code are added to support instructions clz
 and clo.</p>
 <p class="rubric">lbdex/chapters/Chapter7_1/Cpu0InstrInfo.td</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>let Predicates = [Ch7_1] in {
+<div class="highlight-default"><div class="highlight"><pre><span></span>let Predicates = [Ch7_1] in {
 // Count Leading Ones/Zeros in Word
 class CountLeading0&lt;bits&lt;8&gt; op, string instr_asm, RegisterClass RC&gt;:
   FA&lt;op, (outs GPROut:$ra), (ins RC:$rb),
@@ -892,7 +900,7 @@ class CountLeading1&lt;bits&lt;8&gt; op, string instr_asm, RegisterClass RC&gt;:
 }
 </pre></div>
 </div>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">let</span> <span class="n">Predicates</span> <span class="o">=</span> <span class="p">[</span><span class="n">Ch7_1</span><span class="p">]</span> <span class="ow">in</span> <span class="p">{</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">let</span> <span class="n">Predicates</span> <span class="o">=</span> <span class="p">[</span><span class="n">Ch7_1</span><span class="p">]</span> <span class="ow">in</span> <span class="p">{</span>
 <span class="o">///</span> <span class="n">Count</span> <span class="n">Leading</span>
 <span class="k">def</span> <span class="nf">CLZ</span> <span class="p">:</span> <span class="n">CountLeading0</span><span class="o">&lt;</span><span class="mh">0x15</span><span class="p">,</span> <span class="s2">&quot;clz&quot;</span><span class="p">,</span> <span class="n">CPURegs</span><span class="o">&gt;</span><span class="p">;</span>
 <span class="k">def</span> <span class="nf">CLO</span> <span class="p">:</span> <span class="n">CountLeading1</span><span class="o">&lt;</span><span class="mh">0x16</span><span class="p">,</span> <span class="s2">&quot;clo&quot;</span><span class="p">,</span> <span class="n">CPURegs</span><span class="o">&gt;</span><span class="p">;</span>
@@ -906,7 +914,7 @@ class CountLeading1&lt;bits&lt;8&gt; op, string instr_asm, RegisterClass RC&gt;:
 Please reference here <a class="footnote-reference" href="#id4" id="id2">[1]</a>.
 For ch7_1_globalstructoffset.cpp, the llvm IR as follows,</p>
 <p class="rubric">lbdex/input/ch7_1_globalstructoffset.cpp</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">struct</span> <span class="n">Date</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">struct</span> <span class="n">Date</span>
 <span class="p">{</span>
   <span class="nb">int</span> <span class="n">year</span><span class="p">;</span>
   <span class="nb">int</span> <span class="n">month</span><span class="p">;</span>
@@ -926,7 +934,7 @@ For ch7_1_globalstructoffset.cpp, the llvm IR as follows,</p>
 
 </pre></div>
 </div>
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">// ch7_1_globalstructoffset.ll</span>
+<div class="highlight-console"><div class="highlight"><pre><span></span><span class="go">// ch7_1_globalstructoffset.ll</span>
 <span class="go">; ModuleID = &#39;ch7_1_globalstructoffset.bc&#39;</span>
 <span class="go">...</span>
 <span class="gp">%</span>struct.Date <span class="o">=</span> <span class="nb">type</span> <span class="o">{</span> i32, i32, i32 <span class="o">}</span>
@@ -936,14 +944,14 @@ For ch7_1_globalstructoffset.cpp, the llvm IR as follows,</p>
 
 <span class="go">; Function Attrs: nounwind</span>
 <span class="go">define i32 @_Z11test_structv() #0 {</span>
-<span class="gp">  %</span><span class="nv">day</span> <span class="o">=</span> alloca i32, align <span class="m">4</span>
-<span class="gp">  %</span><span class="nv">i</span> <span class="o">=</span> alloca i32, align <span class="m">4</span>
-<span class="gp">  %</span><span class="nv">1</span> <span class="o">=</span> load i32* getelementptr inbounds <span class="o">(</span>%struct.Date* @date, i32 <span class="m">0</span>, i32 <span class="m">2</span><span class="o">)</span>, align <span class="m">4</span>
+<span class="gp">  %</span><span class="nv">day</span> <span class="o">=</span> alloca i32, align 4
+<span class="gp">  %</span><span class="nv">i</span> <span class="o">=</span> alloca i32, align 4
+<span class="gp">  %</span><span class="nv">1</span> <span class="o">=</span> load i32* getelementptr inbounds <span class="o">(</span>%struct.Date* @date, i32 0, i32 2<span class="o">)</span>, align 4
 <span class="go">  store i32 %1, i32* %day, align 4</span>
-<span class="gp">  %</span><span class="nv">2</span> <span class="o">=</span> load i32* getelementptr inbounds <span class="o">([</span><span class="m">3</span> x i32<span class="o">]</span>* @a, i32 <span class="m">0</span>, i32 <span class="m">1</span><span class="o">)</span>, align <span class="m">4</span>
+<span class="gp">  %</span><span class="nv">2</span> <span class="o">=</span> load i32* getelementptr inbounds <span class="o">([</span><span class="m">3</span> x i32<span class="o">]</span>* @a, i32 0, i32 1<span class="o">)</span>, align 4
 <span class="go">  store i32 %2, i32* %i, align 4</span>
-<span class="gp">  %</span><span class="nv">3</span> <span class="o">=</span> load i32* %i, align <span class="m">4</span>
-<span class="gp">  %</span><span class="nv">4</span> <span class="o">=</span> load i32* %day, align <span class="m">4</span>
+<span class="gp">  %</span><span class="nv">3</span> <span class="o">=</span> load i32* %i, align 4
+<span class="gp">  %</span><span class="nv">4</span> <span class="o">=</span> load i32* %day, align 4
 <span class="gp">  %</span><span class="nv">5</span> <span class="o">=</span> add nsw i32 %3, %4
 <span class="go">  ret i32 %5</span>
 <span class="go">}</span>
@@ -951,7 +959,7 @@ For ch7_1_globalstructoffset.cpp, the llvm IR as follows,</p>
 </div>
 <p>Run Chapter6_1/ with ch7_1_globalstructoffset.bc on static mode will get the
 incorrect asm file as follows,</p>
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">1-160-134-62:input Jonathan$</span> /Users/Jonathan/llvm/test/cmake_debug_build/bin/
+<div class="highlight-console"><div class="highlight"><pre><span></span><span class="gp">1-160-134-62:input Jonathan$</span> /Users/Jonathan/llvm/test/cmake_debug_build/bin/
 <span class="go">Debug/llc -march=cpu0 -relocation-model=static -filetype=asm</span>
 <span class="go">ch7_1_globalstructoffset.bc -o -</span>
 <span class="go">  ...</span>
@@ -965,8 +973,8 @@ incorrect asm file as follows,</p>
 <strong>“ld $2, 0($2)”</strong>, since date.day is offset 8(date) (
 Type int is 4 bytes in Cpu0, and the date.day has fields year and month before
 it).
-Let’s use debug option in llc to see what’s wrong,</p>
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">jonathantekiimac:input Jonathan$</span> /Users/Jonathan/llvm/test/
+Let&#8217;s use debug option in llc to see what&#8217;s wrong,</p>
+<div class="highlight-console"><div class="highlight"><pre><span></span><span class="gp">jonathantekiimac:input Jonathan$</span> /Users/Jonathan/llvm/test/
 <span class="go">cmake_debug_build/Debug/bin/llc -march=cpu0 -debug -relocation-model=static</span>
 <span class="go">-filetype=asm ch6_2.bc -o ch6_2.cpu0.static.s</span>
 <span class="go">...</span>
@@ -1064,19 +1072,19 @@ Let’s use debug option in llc to see what’s wrong,</p>
 <span class="go">...</span>
 </pre></div>
 </div>
-<p>Through <code class="docutils literal notranslate"><span class="pre">llc</span> <span class="pre">-debug</span></code>, you can see the DAG translation process.
+<p>Through <code class="docutils literal"><span class="pre">llc</span> <span class="pre">-debug</span></code>, you can see the DAG translation process.
 As above, the DAG list
 for date.day (add GlobalAddress&lt;[3 x i32]* &#64;a&gt; 0, Constant&lt;8&gt;) with 3 nodes is
 replaced by 1 node GlobalAddress&lt;%struct.Date* &#64;date&gt; + 8.
 The DAG list for a[1] is same.
-The replacement occurs since TargetLowering.cpp::isOffsetFoldingLegal(…)
-return true in <code class="docutils literal notranslate"><span class="pre">llc</span> <span class="pre">-static</span></code> static addressing mode as below.
+The replacement occurs since TargetLowering.cpp::isOffsetFoldingLegal(...)
+return true in <code class="docutils literal"><span class="pre">llc</span> <span class="pre">-static</span></code> static addressing mode as below.
 In Cpu0 the <strong>ld</strong> instruction format is <strong>“ld $r1, offset($r2)”</strong> which
 meaning load $r2 address+offset to $r1.
-So, we just replace the isOffsetFoldingLegal(…) function by override
+So, we just replace the isOffsetFoldingLegal(...) function by override
 mechanism as below.</p>
 <p class="rubric">lib/CodeGen/SelectionDAG/TargetLowering.cpp</p>
-<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="kt">bool</span>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="kt">bool</span>
 <span class="n">TargetLowering</span><span class="o">::</span><span class="n">isOffsetFoldingLegal</span><span class="p">(</span><span class="k">const</span> <span class="n">GlobalAddressSDNode</span> <span class="o">*</span><span class="n">GA</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
   <span class="c1">// Assume that everything is safe in static mode.</span>
   <span class="k">if</span> <span class="p">(</span><span class="n">getTargetMachine</span><span class="p">().</span><span class="n">getRelocationModel</span><span class="p">()</span> <span class="o">==</span> <span class="n">Reloc</span><span class="o">::</span><span class="n">Static</span><span class="p">)</span>
@@ -1095,7 +1103,7 @@ mechanism as below.</p>
 </pre></div>
 </div>
 <p class="rubric">lbdex/chapters/Chapter7_1/Cpu0ISelLowering.cpp</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="nb">bool</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="nb">bool</span>
 <span class="n">Cpu0TargetLowering</span><span class="p">::</span><span class="n">isOffsetFoldingLegal</span><span class="p">(</span><span class="n">const</span> <span class="n">GlobalAddressSDNode</span> <span class="o">*</span><span class="n">GA</span><span class="p">)</span> <span class="n">const</span> <span class="p">{</span>
   <span class="o">//</span> <span class="n">The</span> <span class="n">Cpu0</span> <span class="n">target</span> <span class="n">isn</span><span class="s1">&#39;t yet aware of offsets.</span>
   <span class="k">return</span> <span class="n">false</span><span class="p">;</span>
@@ -1104,13 +1112,13 @@ mechanism as below.</p>
 </div>
 <p>Beyond that, we need to add the following code fragment to Cpu0ISelDAGToDAG.cpp,</p>
 <p class="rubric">lbdex/chapters/Chapter7_1/Cpu0ISelDAGToDAG.cpp</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">///</span> <span class="n">ComplexPattern</span> <span class="n">used</span> <span class="n">on</span> <span class="n">Cpu0InstrInfo</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">///</span> <span class="n">ComplexPattern</span> <span class="n">used</span> <span class="n">on</span> <span class="n">Cpu0InstrInfo</span>
 <span class="o">///</span> <span class="n">Used</span> <span class="n">on</span> <span class="n">Cpu0</span> <span class="n">Load</span><span class="o">/</span><span class="n">Store</span> <span class="n">instructions</span>
 <span class="nb">bool</span> <span class="n">Cpu0DAGToDAGISel</span><span class="p">::</span>
 <span class="n">SelectAddr</span><span class="p">(</span><span class="n">SDNode</span> <span class="o">*</span><span class="n">Parent</span><span class="p">,</span> <span class="n">SDValue</span> <span class="n">Addr</span><span class="p">,</span> <span class="n">SDValue</span> <span class="o">&amp;</span><span class="n">Base</span><span class="p">,</span> <span class="n">SDValue</span> <span class="o">&amp;</span><span class="n">Offset</span><span class="p">)</span> <span class="p">{</span>
 </pre></div>
 </div>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>  <span class="o">//</span> <span class="n">Addresses</span> <span class="n">of</span> <span class="n">the</span> <span class="n">form</span> <span class="n">FI</span><span class="o">+</span><span class="n">const</span> <span class="ow">or</span> <span class="n">FI</span><span class="o">|</span><span class="n">const</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span>  <span class="o">//</span> <span class="n">Addresses</span> <span class="n">of</span> <span class="n">the</span> <span class="n">form</span> <span class="n">FI</span><span class="o">+</span><span class="n">const</span> <span class="ow">or</span> <span class="n">FI</span><span class="o">|</span><span class="n">const</span>
   <span class="k">if</span> <span class="p">(</span><span class="n">CurDAG</span><span class="o">-&gt;</span><span class="n">isBaseWithConstantOffset</span><span class="p">(</span><span class="n">Addr</span><span class="p">))</span> <span class="p">{</span>
     <span class="n">ConstantSDNode</span> <span class="o">*</span><span class="n">CN</span> <span class="o">=</span> <span class="n">dyn_cast</span><span class="o">&lt;</span><span class="n">ConstantSDNode</span><span class="o">&gt;</span><span class="p">(</span><span class="n">Addr</span><span class="o">.</span><span class="n">getOperand</span><span class="p">(</span><span class="mi">1</span><span class="p">));</span>
     <span class="k">if</span> <span class="p">(</span><span class="n">isInt</span><span class="o">&lt;</span><span class="mi">16</span><span class="o">&gt;</span><span class="p">(</span><span class="n">CN</span><span class="o">-&gt;</span><span class="n">getSExtValue</span><span class="p">()))</span> <span class="p">{</span>
@@ -1128,7 +1136,7 @@ mechanism as below.</p>
   <span class="p">}</span>
 </pre></div>
 </div>
-<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span>  <span class="p">...</span>
+<div class="highlight-c++"><div class="highlight"><pre><span></span>  <span class="p">...</span>
 <span class="p">}</span>
 </pre></div>
 </div>
@@ -1137,7 +1145,7 @@ mechanism as below.</p>
 (add (add Cpu0ISD::Hi (Cpu0II::MO_ABS_HI), Cpu0ISD::Lo(Cpu0II::MO_ABS_LO)),
 Constant&lt;8&gt;) by the following code in Cpu0ISelLowering.cpp.</p>
 <p class="rubric">lbdex/chapters/Chapter6_1/Cpu0ISelLowering.h</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>    <span class="o">//</span> <span class="n">This</span> <span class="n">method</span> <span class="n">creates</span> <span class="n">the</span> <span class="n">following</span> <span class="n">nodes</span><span class="p">,</span> <span class="n">which</span> <span class="n">are</span> <span class="n">necessary</span> <span class="k">for</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span>    <span class="o">//</span> <span class="n">This</span> <span class="n">method</span> <span class="n">creates</span> <span class="n">the</span> <span class="n">following</span> <span class="n">nodes</span><span class="p">,</span> <span class="n">which</span> <span class="n">are</span> <span class="n">necessary</span> <span class="k">for</span>
     <span class="o">//</span> <span class="n">computing</span> <span class="n">a</span> <span class="n">symbol</span><span class="s1">&#39;s address in non-PIC mode:</span>
     <span class="o">//</span>
     <span class="o">//</span> <span class="p">(</span><span class="n">add</span> <span class="o">%</span><span class="n">hi</span><span class="p">(</span><span class="n">sym</span><span class="p">),</span> <span class="o">%</span><span class="n">lo</span><span class="p">(</span><span class="n">sym</span><span class="p">))</span>
@@ -1152,8 +1160,8 @@ Constant&lt;8&gt;) by the following code in Cpu0ISelLowering.cpp.</p>
     <span class="p">}</span>
 </pre></div>
 </div>
-<p>So, when the SelectAddr(…) of Cpu0ISelDAGToDAG.cpp is called.
-The Addr SDValue in SelectAddr(…, Addr, …) is DAG list for date.day
+<p>So, when the SelectAddr(...) of Cpu0ISelDAGToDAG.cpp is called.
+The Addr SDValue in SelectAddr(..., Addr, ...) is DAG list for date.day
 (add (add Cpu0ISD::Hi (Cpu0II::MO_ABS_HI), Cpu0ISD::Lo(Cpu0II::MO_ABS_LO)),
 Constant&lt;8&gt;).
 Since Addr.getOpcode() = ISD:ADD, Addr.getOperand(0) =
@@ -1167,7 +1175,7 @@ stage.</p>
 <p>Chapter7_1/ include these changes as above, you can run it with
 ch7_1_globalstructoffset.cpp to get the correct generated instruction
 <strong>“ld $r1, 8($r2)”</strong> for date.day access, as follows.</p>
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">...</span>
+<div class="highlight-console"><div class="highlight"><pre><span></span><span class="go">...</span>
 <span class="go">      lui   $2, %hi(date)</span>
 <span class="go">      ori   $2, $2, %lo(date)</span>
 <span class="go">      ld    $2, 8($2)   // correct</span>
@@ -1177,7 +1185,7 @@ ch7_1_globalstructoffset.cpp to get the correct generated instruction
 <p>The ch7_1_localarrayinit.cpp is for local variable initialization test.
 The result as follows,</p>
 <p class="rubric">lbdex/input/ch7_1_localarrayinit.cpp</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="nb">int</span> <span class="n">main</span><span class="p">()</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="nb">int</span> <span class="n">main</span><span class="p">()</span>
 <span class="p">{</span>
   <span class="nb">int</span> <span class="n">a</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span><span class="o">=</span><span class="p">{</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">};</span>
     
@@ -1185,27 +1193,27 @@ The result as follows,</p>
 <span class="p">}</span>
 </pre></div>
 </div>
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">118-165-79-206:input Jonathan$</span> clang -target mips-unknown-linux-gnu -c
+<div class="highlight-console"><div class="highlight"><pre><span></span><span class="gp">118-165-79-206:input Jonathan$</span> clang -target mips-unknown-linux-gnu -c
 <span class="go">ch7_1_localarrayinit.cpp -emit-llvm -o ch7_1_localarrayinit.bc</span>
 <span class="gp">118-165-79-206:input Jonathan$</span> llvm-dis ch7_1_localarrayinit.bc -o -
 <span class="go">...</span>
 </pre></div>
 </div>
-<div class="highlight-llvm notranslate"><div class="highlight"><pre><span></span><span class="k">define</span> <span class="k">i32</span> <span class="vg">@main</span><span class="p">()</span> <span class="k">nounwind</span> <span class="k">ssp</span> <span class="p">{</span>
+<div class="highlight-llvm"><div class="highlight"><pre><span></span><span class="k">define</span> <span class="k">i32</span> <span class="vg">@main</span><span class="p">()</span> <span class="k">nounwind</span> <span class="k">ssp</span> <span class="p">{</span>
 <span class="nl">entry:</span>
   <span class="nv">%retval</span> <span class="p">=</span> <span class="k">alloca</span> <span class="k">i32</span><span class="p">,</span> <span class="k">align</span> <span class="m">4</span>
   <span class="nv">%a</span> <span class="p">=</span> <span class="k">alloca</span> <span class="p">[</span><span class="m">3</span> <span class="k">x</span> <span class="k">i32</span><span class="p">],</span> <span class="k">align</span> <span class="m">4</span>
   <span class="k">store</span> <span class="k">i32</span> <span class="m">0</span><span class="p">,</span> <span class="k">i32</span><span class="p">*</span> <span class="nv">%retval</span>
   <span class="nv nv-Anonymous">%0</span> <span class="p">=</span> <span class="k">bitcast</span> <span class="p">[</span><span class="m">3</span> <span class="k">x</span> <span class="k">i32</span><span class="p">]*</span> <span class="nv">%a</span> <span class="k">to</span> <span class="k">i8</span><span class="p">*</span>
-  <span class="k">call</span> <span class="k">void</span> <span class="vg">@llvm.memcpy.p0i8.p0i8.i32</span><span class="p">(</span><span class="k">i8</span><span class="p">*</span> <span class="nv nv-Anonymous">%0</span><span class="p">,</span> <span class="k">i8</span><span class="p">*</span> <span class="k">bitcast</span> <span class="p">([</span><span class="m">3</span> <span class="k">x</span> <span class="k">i32</span><span class="p">]*</span>
+  <span class="k">call</span> <span class="kt">void</span> <span class="vg">@llvm.memcpy.p0i8.p0i8.i32</span><span class="p">(</span><span class="k">i8</span><span class="p">*</span> <span class="nv nv-Anonymous">%0</span><span class="p">,</span> <span class="k">i8</span><span class="p">*</span> <span class="k">bitcast</span> <span class="p">([</span><span class="m">3</span> <span class="k">x</span> <span class="k">i32</span><span class="p">]*</span>
     <span class="vg">@_ZZ4mainE1a</span> <span class="k">to</span> <span class="k">i8</span><span class="p">*),</span> <span class="k">i32</span> <span class="m">12</span><span class="p">,</span> <span class="k">i32</span> <span class="m">4</span><span class="p">,</span> <span class="k">i1</span> <span class="k">false</span><span class="p">)</span>
   <span class="k">ret</span> <span class="k">i32</span> <span class="m">0</span>
 <span class="p">}</span>
 <span class="c">; Function Attrs: nounwind</span>
-<span class="k">declare</span> <span class="k">void</span> <span class="vg">@llvm.memcpy.p0i8.p0i8.i32</span><span class="p">(</span><span class="k">i8</span><span class="p">*</span> <span class="k">nocapture</span><span class="p">,</span> <span class="k">i8</span><span class="p">*</span> <span class="k">nocapture</span><span class="p">,</span> <span class="k">i32</span><span class="p">,</span> <span class="k">i32</span><span class="p">,</span> <span class="k">i1</span><span class="p">)</span> <span class="vg">#1</span>
+<span class="k">declare</span> <span class="kt">void</span> <span class="vg">@llvm.memcpy.p0i8.p0i8.i32</span><span class="p">(</span><span class="k">i8</span><span class="p">*</span> <span class="k">nocapture</span><span class="p">,</span> <span class="k">i8</span><span class="p">*</span> <span class="k">nocapture</span><span class="p">,</span> <span class="k">i32</span><span class="p">,</span> <span class="k">i32</span><span class="p">,</span> <span class="k">i1</span><span class="p">)</span> <span class="vg">#1</span>
 </pre></div>
 </div>
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">118-165-79-206:input Jonathan$</span> ~/llvm/test/cmake_debug_build/
+<div class="highlight-console"><div class="highlight"><pre><span></span><span class="gp">118-165-79-206:input Jonathan$</span> ~/llvm/test/cmake_debug_build/
 <span class="go">bin/llc -march=cpu0 -relocation-model=pic -filetype=asm ch7_1_localarrayinit.bc -o -</span>
 <span class="go">        ...</span>
 <span class="gp">#</span> BB#0:                                 <span class="c1"># %entry</span>
@@ -1238,10 +1246,10 @@ The result as follows,</p>
 <h2><a class="toc-backref" href="#id12">Vector type (SIMD) support</a><a class="headerlink" href="#vector-type-simd-support" title="Permalink to this headline">¶</a></h2>
 <p>Vector types are used when multiple primitive data are operated in parallel
 using a single instruction (SIMD) <a class="footnote-reference" href="#vector" id="id3">[3]</a>. Mips supports the
-following llvm IRs “icmp slt” and “sext” for vector type, Cpu0 supports them
+following llvm IRs &#8220;icmp slt&#8221; and &#8220;sext&#8221; for vector type, Cpu0 supports them
 either.</p>
 <p class="rubric">lbdex/input/ch7_1_vector.cpp</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>
+<div class="highlight-default"><div class="highlight"><pre><span></span>
 <span class="n">typedef</span> <span class="n">long</span>   <span class="n">vector8long</span>   <span class="n">__attribute__</span><span class="p">((</span><span class="n">__vector_size__</span><span class="p">(</span><span class="mi">32</span><span class="p">)));</span>
 <span class="n">typedef</span> <span class="n">long</span>   <span class="n">vector8short</span>   <span class="n">__attribute__</span><span class="p">((</span><span class="n">__vector_size__</span><span class="p">(</span><span class="mi">16</span><span class="p">)));</span>
 
@@ -1267,14 +1275,14 @@ either.</p>
 
 </pre></div>
 </div>
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">118-165-79-206:input Jonathan$</span> clang -target mips-unknown-linux-gnu -c
+<div class="highlight-console"><div class="highlight"><pre><span></span><span class="gp">118-165-79-206:input Jonathan$</span> clang -target mips-unknown-linux-gnu -c
 <span class="go">ch7_1_vector.cpp -emit-llvm -o ch7_1_vector.bc</span>
 <span class="gp">118-165-79-206:input Jonathan$</span> ~/llvm/test/cmake_debug_build/Debug/bin/
 <span class="go">llvm-dis ch7_1_vector.bc -o -</span>
 <span class="go">...</span>
 </pre></div>
 </div>
-<div class="highlight-llvm notranslate"><div class="highlight"><pre><span></span><span class="c">; Function Attrs: nounwind</span>
+<div class="highlight-llvm"><div class="highlight"><pre><span></span><span class="c">; Function Attrs: nounwind</span>
 <span class="k">define</span> <span class="k">i32</span> <span class="vg">@_Z16test_cmplt_shortv</span><span class="p">()</span> <span class="vg">#0</span> <span class="p">{</span>
   <span class="nv">%a0</span> <span class="p">=</span> <span class="k">alloca</span> <span class="p">&lt;</span><span class="m">4</span> <span class="k">x</span> <span class="k">i32</span><span class="p">&gt;,</span> <span class="k">align</span> <span class="m">16</span>
   <span class="nv">%b0</span> <span class="p">=</span> <span class="k">alloca</span> <span class="p">&lt;</span><span class="m">4</span> <span class="k">x</span> <span class="k">i32</span><span class="p">&gt;,</span> <span class="k">align</span> <span class="m">16</span>
@@ -1301,7 +1309,7 @@ either.</p>
 <span class="p">}</span>
 </pre></div>
 </div>
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">118-165-79-206:input Jonathan$</span> ~/llvm/test/cmake_debug_build/Debug/bin/llc
+<div class="highlight-console"><div class="highlight"><pre><span></span><span class="gp">118-165-79-206:input Jonathan$</span> ~/llvm/test/cmake_debug_build/Debug/bin/llc
 <span class="go">  -march=cpu0 -mcpu=cpu032II -relocation-model=pic -filetype=asm ch7_1_vector.bc</span>
 <span class="go">  -o -</span>
 <span class="go">  .text</span>
@@ -1390,13 +1398,13 @@ either.</p>
 <p>Since test_longlong_shift2() of ch7_1_vector.cpp needs implementation
 storeRegToStack() of Cpu0SEInstInfo.cpp, at this point it cannot be verified.</p>
 <p class="rubric">lbdex/chapters/Chapter7_1/Cpu0ISelLowering.h</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>    <span class="o">///</span> <span class="n">getSetCCResultType</span> <span class="o">-</span> <span class="n">get</span> <span class="n">the</span> <span class="n">ISD</span><span class="p">::</span><span class="n">SETCC</span> <span class="n">result</span> <span class="n">ValueType</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span>    <span class="o">///</span> <span class="n">getSetCCResultType</span> <span class="o">-</span> <span class="n">get</span> <span class="n">the</span> <span class="n">ISD</span><span class="p">::</span><span class="n">SETCC</span> <span class="n">result</span> <span class="n">ValueType</span>
     <span class="n">EVT</span> <span class="n">getSetCCResultType</span><span class="p">(</span><span class="n">const</span> <span class="n">DataLayout</span> <span class="o">&amp;</span><span class="n">DL</span><span class="p">,</span> <span class="n">LLVMContext</span> <span class="o">&amp;</span><span class="n">Context</span><span class="p">,</span>
                            <span class="n">EVT</span> <span class="n">VT</span><span class="p">)</span> <span class="n">const</span> <span class="n">override</span><span class="p">;</span>
 </pre></div>
 </div>
 <p class="rubric">lbdex/chapters/Chapter7_1/Cpu0ISelLowering.cpp</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>EVT Cpu0TargetLowering::getSetCCResultType(const DataLayout &amp;, LLVMContext &amp;,
+<div class="highlight-default"><div class="highlight"><pre><span></span>EVT Cpu0TargetLowering::getSetCCResultType(const DataLayout &amp;, LLVMContext &amp;,
                                            EVT VT) const {
   if (!VT.isVector())
     return MVT::i32;
@@ -1440,8 +1448,8 @@ storeRegToStack() of Cpu0SEInstInfo.cpp, at this point it cannot be verified.</p
       </div>
 
     <div class="footer" role="contentinfo">
-        &#169; Copyright 2016, Chen Chung-Shu.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.8.5.
+        &copy; Copyright 2016, Chen Chung-Shu.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.4.
     </div>
   </body>
 </html>
