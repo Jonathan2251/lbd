@@ -157,6 +157,13 @@ add up this few mini-seconds of on-line compile time in running OpenGL
 program is a good choice for dealing the cases of driver software or gpu 
 hardware changes [#onlinecompile]_. 
 
+If your models will be rigid, meaning you will not change each vertex 
+individually, and you will render many frames with the same model, you will 
+achieve the best performance not by storing the models in your class, but in 
+vertex buffer objects (VBOs) [#classorvbo]_. Vertex buffer object (VBO) allows 
+vertex array data to be stored in high-performance graphics memory on the 
+server side and promotes efficient data transfer [#vbo]_.
+
 OpenGL Shader compiler
 -----------------------
 
@@ -554,6 +561,11 @@ more. And actually, llvm IR expanding from version 3.1 to now as I feel.
 .. [#smoothshadingex] https://github.com/ruange/Gouraud-Shading-and-Phong-Shading
 
 .. [#onlinecompile] https://community.khronos.org/t/offline-glsl-compilation/61784
+
+.. [#classorvbo] https://gamedev.stackexchange.com/questions/19560/what-is-the-best-way-to-store-meshes-or-3d-models-in-a-class
+
+.. [#vbo] http://www.songho.ca/opengl/gl_vbo.html
+
 
 .. [#openglspec] https://www.khronos.org/registry/OpenGL-Refpages/
 
