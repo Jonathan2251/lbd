@@ -8,7 +8,7 @@ Appendix C: GPU compiler
    :depth: 4
 
 Basicly CPU compiler is SISD (Single Instruction Single Data Architecture). 
-The vector or multimedia instructions in CPU are small scaled of SIMD
+The multimedia instructions in CPU are small scaled of SIMD
 (Single Instruction Multiple Data) for 4 or 16 element while GPU is a large 
 scaled of SIMD processor needing to color millions of pixels of image in few 
 micro seconds.
@@ -32,7 +32,7 @@ as follows,
 
   Creating 3D model and texturing
 
-After the next smooth shading [#polygon]_, the vertices and edge line are covered 
+After the next smooth shading [#polygon]_, the vertices and edge lines are covered 
 with color (or remove edges), then model looks much more smooth [#shading]_. 
 Furthermore, after texturing (texture mapping), the model looks real more 
 [#texturemapping]_.
@@ -84,7 +84,7 @@ with their type.
 
 For 2D animation, the model is created by 2D only (1 face only), so it only can be 
 viewed from the same face of model. If you want to display different faces of model,
-multiple 2D models need to be created and switch these 2D models for face(flame) to 
+multiple 2D models need to be created and switch these 2D models from face(flame) to 
 face(flame) from time to time [#2danimation]_.
 
 GLSL (GL Shader Language)
@@ -94,6 +94,8 @@ OpenGL is a standard for designing 2D/3D animation in computer graphic.
 To do animation well, OpenGL provides a lots of api(functions) call for
 graphic processing. The 3D model construction tools such as Maya, Blender, ...,
 only need to call this api to finish the 3D to 2D projecting function in computer.
+Any GPU hardware dependent code in these api will provided by chip designed 
+company.
 An OpenGL program looks like the following,
 
 .. code-block:: c++
@@ -123,18 +125,18 @@ An OpenGL program looks like the following,
   } 
   
   // openGl user program
-  int 
-  main(int argc, char **argv)
+  int main(int argc, char ** argv)
   {
-  // init window, detect user input and do corresponding animation by calling opengl api
+    // init window, detect user input and do corresponding animation by calling opengl api
+    ...
   }
 
 The last main() is programed by user clearly. Let's explain what the first two 
 main() work for. 
 As you know, the OpenGL is a lots of api to let programmer display the 3D object 
-into 2D computer screen explained from book concept of computer graphic.
-3D graphic model can set light and object texture by user, next calculating the 
-postion of each vertex and color for each pixel automatically by 3D software 
+into 2D computer screen explained from book of concept of computer graphic.
+3D graphic model can set light and object texture by user first, and next calculating the 
+postion of each vertex, and next color for each pixel automatically by 3D software 
 and GPU, finally display the color of each pixel in computer screen.
 But in order to let user/programmer add some special effect or decoration in 
 coordinate of each vertex or color of each pixel, OpenGL provides these two 
@@ -147,10 +149,10 @@ Unlike the shaders example here [#shadersex]_, some shaders converting function
 in vertex or color(Fragment shade) are more complicated according the scenes of 
 animation. Here is an example [#glsleffect]_.
 In wiki shading page [#shading]_, Gourand and Phong shading methods make the
-surface of object more smooth are achieved by glsl. Example glsl code of Gourand 
+surface of object more smooth by glsl. Example glsl code of Gourand 
 and Phong shading on OpenGL api are here [#smoothshadingex]_.
 Since the hardware of graphic card and software graphic driver can be changed, 
-the compiler is run on-line which means compile the shaders program when it is 
+the compiler is run on-line meaning compile the shaders program when it is 
 run at first time.
 The shaders program is C-like syntax and can be compiled in few mini-seconds, 
 add up this few mini-seconds of on-line compile time in running OpenGL 
@@ -172,9 +174,9 @@ while the OpenGL ES is for embedded system [#opengleswiki]_. Though shaders are 
 a small part of the whole OpenGL software/hardware system. It is still a big effort 
 to finish the compiler implementation since there are lots of api need to be 
 implemented.
-For example, the number of texture related api is close to one hundred for code
-generation since they include different api names with different operands for 
-each api name.
+For example, the number of texture related api is close to one hundred combinations 
+for code generation since they include different api names with different operands for 
+each name.
 This implementation can be done by generating llvm extended intrinsic functions 
 from shader parser of frontend compiler, and then llvm backend convert those intrinsic 
 to gpu instructions as follows,
@@ -225,9 +227,9 @@ The texture object is not bound directly into the shader (where the actual
 sampling takes place). Instead, it is bound to a 'texture unit' whose index 
 is passed to the shader. So the shader reaches the texture object by going 
 through the texture unit. There are usually multiple texture units available 
-and the exact number depends on the capability of your graphis card [#textureobject]_. 
+and the exact number depends on the capability of your graphic card [#textureobject]_. 
 A texture unit, also called a texture mapping unit (TMU) or a texture processing 
-unit (TPU), is a hardware component in a GPU that does sampling.
+unit (TPU), is a hardware component in a GPU that does sampling operation.
 The argument sampler in texture function as above is sampler_2d index from
 'teuxture unit' for texture object [#textureobject]_. 
 
@@ -344,16 +346,17 @@ Fast texture sampling is one of the key requirements for good GPU performance
 
 In addition to binding api for texture, OpenGL providing glTexParameteri api to
 do Texture Wrapping [#texturewrapper]_. 
-And the texture instruction of some gpu including S# T# value in operands.
+Furthmore the texture instruction of some gpu may including S# T# values in operands.
 Same with associating 'Sampler Variables' to 'Texture Unit', S# and T# value are
-location of memory associating to Texture Wrapping descriptor register.
-Allowing user program change Wrapping option without re-compiling glsl.
+location of memory associating to Texture Wrapping descriptor register allowing 
+user program change Wrapping option without re-compiling glsl.
 
 Even llvm intrinsic extended function providing an easy way to do code 
 generation through llvm td (Target Description) file written, 
 GPU backend compiler is still a little complex than CPU backend. 
-(When counting in frontend compier such as clang or other toolchain such
-as linker and gdb/lldb, of course, CPU compiler is much much complex than
+(But when considering the effort in frontend compier such as clang or other 
+toolchain such
+as linker and gdb/lldb, of course, CPU compiler is much complex than
 GPU compiler.)
 
 Here is the software stack of 3D graphic system for OpenGL in linux [#mesawiki]_.
@@ -419,7 +422,7 @@ General purpose GPU
 Since GLSL shaders provide a general way for writing C code in them, if applying
 a software frame work instead of OpenGL api, then the system can run some data
 parallel computation on GPU for speeding up and even get CPU and GPU executing 
-simultaneously. Or Any language that allows the code running on the CPU to poll 
+simultaneously. Furthmore, any language that allows the code running on the CPU to poll 
 a GPU shader for return values, can create a GPGPU framework [#gpgpuwiki]_.
 The following is a CUDA example to run large data in array on GPU [#cudaex]_ 
 as follows,
@@ -427,7 +430,7 @@ as follows,
 .. code-block:: c++
 
   __global__
-  void saxpy(int n, float a, float *x, float *y)
+  void saxpy(int n, float a, float * x, float * y)
   {
     int i = blockIdx.x*blockDim.x + threadIdx.x;
     if (i < n) y[i] = a*x[i] + y[i];
@@ -457,7 +460,8 @@ cudaMemcpyHostToDevice and cudaMemcpyDeviceToHost, CPU can pass data in x and y
 array to GPU and get result from GPU to y array. 
 Since both of these memory transfers trigger the DMA functions without CPU operation,
 it maybe speed up by running both CPU/GPU with their data in their own cache.
-After DMA memcpy from cpu's memory to gpu's, gpu operate the "y[i] = a*x[i] +y[i];"
+After DMA memcpy from cpu's memory to gpu's, gpu operate the whole loop of matrix 
+operation for "y[] = a*x[]+y[];"
 instruction with one Grid. Furthermore liking vector processor, gpu provides
 Vector Mask Registers to Handling IF Statements in Vector Loops as the following 
 code [#VMR]_,
@@ -513,7 +517,7 @@ do these things in OpenGL to compete against Microsoft direct3D.
 Here is an example [#vulkanex]_. Meanwhile glsl is C-like language. The vulkan 
 infrastructure provides tool to compile glsl into an Intermediate Representation 
 form (IR) called spir-v [#spirvtoolchain]_. 
-As a result, it saves part of compiling time from glsl to gpu instructions on-line 
+As a result, it saves part of compilation time from glsl to gpu instructions on-line 
 since spir-v is IR of level closing to llvm IR [#spirvwiki]_. 
 In addition, vulkan api reduces gpu drivers efforts in optimization and code 
 generation [#vulkanapiwiki]_. These standards provide user programmer option in 
@@ -522,8 +526,8 @@ to saving part of on-line compiling time.
 
 With vulkan and spir-v standard, the gpu can be used in OpenCL for Parallel 
 Programming of Heterogeneous Systems [#opencl]_ [#computekernelwiki]_.
-And once OpenCL glows into a popular standard and more languages and frame
-work will support OpenCL language, GPU will take more jobs from CPU 
+And once OpenCL grows into a popular standard with more languages and framework 
+supporting OpenCL language, GPU will take more jobs from CPU 
 [#opencl-wiki-supported-lang]_.
 
 Now, you find llvm IR expanding from cpu to gpu becoming influentially more and
