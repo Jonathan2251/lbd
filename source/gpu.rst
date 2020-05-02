@@ -13,10 +13,9 @@ The multimedia instructions in CPU are small scaled of SIMD
 scaled of SIMD processor needing to color millions of pixels of image in few 
 micro seconds.
 Since the 2D or 3D graphic processing providing large opportunity in parallel
-data processing, GPU hardware usually composed of hundreds of cores with thousands
+data processing, GPU hardware usually composed of thousands
 of functional units in each core(grid) in N-Vidia processors.
-Or tens of cores with tens thousands of functional units in each core for big 
-cores architecture.
+
 
 3D modeling
 ------------
@@ -94,8 +93,7 @@ OpenGL is a standard for designing 2D/3D animation in computer graphic.
 To do animation well, OpenGL provides a lots of api(functions) call for
 graphic processing. The 3D model construction tools such as Maya, Blender, ...,
 only need to call this api to finish the 3D to 2D projecting function in computer.
-Any GPU hardware dependent code in these api will provided by chip designed 
-company.
+Any GPU hardware dependent code in these api provided by chip designed company.
 An OpenGL program looks like the following,
 
 .. code-block:: c++
@@ -131,22 +129,23 @@ An OpenGL program looks like the following,
     ...
   }
 
-The last main() is programed by user clearly. Let's explain what the first two 
+The last main() is programed by user obviously. Let's explain what the first two 
 main() work for. 
 As you know, the OpenGL is a lots of api to let programmer display the 3D object 
 into 2D computer screen explained from book of concept of computer graphic.
-3D graphic model can set light and object texture by user first, and next calculating the 
-postion of each vertex, and next color for each pixel automatically by 3D software 
-and GPU, finally display the color of each pixel in computer screen.
+3D graphic model can set light and object texture by user firstly, and calculating the 
+postion of each vertex secondly, then color for each pixel automatically by 3D software 
+and GPU thirdly, finally display the color of each pixel in computer screen.
 But in order to let user/programmer add some special effect or decoration in 
-coordinate of each vertex or color of each pixel, OpenGL provides these two 
+coordinate for each vertex or in color for each pixel, OpenGL provides these two 
 functions to do it. 
 Programmer can add their converting functions then compiler translate them 
 into GPU instructions running on GPU processor. With these two shaders, new 
 features have been added to allow for increased flexibility in the rendering 
 pipeline at the vertex and fragment level [#shaderswiki]_.
-Unlike the shaders example here [#shadersex]_, some shaders converting function 
-in vertex or color(Fragment shade) are more complicated according the scenes of 
+Unlike the shaders example here [#shadersex]_, some converting functions 
+for coordinate in vertex shader or for color in fragment shade are more 
+complicated according the scenes of 
 animation. Here is an example [#glsleffect]_.
 In wiki shading page [#shading]_, Gourand and Phong shading methods make the
 surface of object more smooth by glsl. Example glsl code of Gourand 
@@ -159,12 +158,10 @@ add up this few mini-seconds of on-line compile time in running OpenGL
 program is a good choice for dealing the cases of driver software or gpu 
 hardware changes [#onlinecompile]_. 
 
-If your models will be rigid, meaning you will not change each vertex 
-individually, and you will render many frames with the same model, you will 
-achieve the best performance not by storing the models in your class, but in 
-vertex buffer objects (VBOs) [#classorvbo]_. Vertex buffer object (VBO) allows 
+In addition, OpenGL provides vertex buffer object (VBO) allows 
 vertex array data to be stored in high-performance graphics memory on the 
-server side and promotes efficient data transfer [#vbo]_.
+server side and promotes efficient data transfer [#vbo]_ [#classorvbo]_.
+
 
 OpenGL Shader compiler
 -----------------------
@@ -175,7 +172,7 @@ a small part of the whole OpenGL software/hardware system. It is still a big eff
 to finish the compiler implementation since there are lots of api need to be 
 implemented.
 For example, the number of texture related api is close to one hundred combinations 
-for code generation since they include different api names with different operands for 
+in code generation since they include different api names with different operands for 
 each name.
 This implementation can be done by generating llvm extended intrinsic functions 
 from shader parser of frontend compiler, and then llvm backend convert those intrinsic 
@@ -315,9 +312,9 @@ information [#descriptorreg]_.
   load $1, &xSlot;
   sample2d_inst $1, $2, $3 // $1: %x, $2: %uv_2d, $3: %bias
       
-the corresponding 'Texture Unit 1' on gpu will be executing through descriptor 
+the corresponding 'Texture Unit 1' on gpu will being executed through descriptor 
 register of gpu {xLoc, 1} in this example since memory address xSlot includes the
-value of xLoc. And 'Texture Unit 1' is triggered.
+value of xLoc. 
 
 For instance, Nvidia texture instruction as follow,
 
@@ -325,11 +322,16 @@ For instance, Nvidia texture instruction as follow,
 
   tex.3d.v4.s32.s32  {r1,r2,r3,r4}, [tex_a, {f1,f2,f3,f4}];
 
-Above 3d texture instruction load tex_a texture memory address for
-'sampler uniform variable' x at at coordinates (x,y,z)=(f1,f2,f3) into GPRs
-(r1,r2,r3,r4)=(R,G,B,A). The f4 is skipped for 3D texture.
-And fragment shader can calculate the color of this pixel with this color of
-texture value [#ptxtex]_. For instance, 1d texture instruction as follows,
+Where tex_a is the texture memory address for 'sampler uniform variable' x,
+and the pixel of coordinates (x,y,z) is given by (f1,f2,f3) user input.
+The f4 is skipped for 3D texture.
+
+Above tex.3d texture instruction load the color of pixel (x,y.z) into GPRs
+(r1,r2,r3,r4)=(R,G,B,A). 
+And fragment shader can calculate the color of this pixel with the color of
+this pixel at texture [#ptxtex]_. 
+
+If it is 1d texture instruction, the tex.1d as follows,
 
 .. code-block:: console
 
@@ -344,14 +346,15 @@ It is kept in cache and is executing directly after first time of compiling.
 Fast texture sampling is one of the key requirements for good GPU performance 
 [#tpu]_.
 
-In addition to binding api for texture, OpenGL providing glTexParameteri api to
+In addition to binding api for texture, OpenGL provides glTexParameteri api to
 do Texture Wrapping [#texturewrapper]_. 
-Furthmore the texture instruction of some gpu may including S# T# values in operands.
+Furthmore the texture instruction for some gpu may including S# T# values in operands.
 Same with associating 'Sampler Variables' to 'Texture Unit', S# and T# value are
-location of memory associating to Texture Wrapping descriptor register allowing 
-user program change Wrapping option without re-compiling glsl.
+location of memory associated to Texture Wrapping descriptor register allowing 
+user program to change Wrapping option without re-compiling glsl.
 
-Even llvm intrinsic extended function providing an easy way to do code 
+Even glsl frontend compiler always expanding function call into inline function 
+as well as llvm intrinsic extended function providing an easy way to do code 
 generation through llvm td (Target Description) file written, 
 GPU backend compiler is still a little complex than CPU backend. 
 (But when considering the effort in frontend compier such as clang or other 
@@ -365,7 +368,7 @@ And mesa open source website is here [#mesa]_.
 Architecture
 ------------
 
-The leading GPU architecture of Nvidia gpu as the following 
+The leading GPU architecture of Nvidia's gpu as the following 
 figures.
 
 .. _grid: 
@@ -395,7 +398,7 @@ figures.
   :align: center
   :scale: 80 %
 
-  core(grid) in Nvidia gpu (figure from book [#Quantitative-gpu-mem]_)
+  core(grid) in Nvidia's gpu (figure from book [#Quantitative-gpu-mem]_)
 
 
 - Grid is Vectorizable Loop [#Quantitative-gpu-griddef]_.
@@ -411,8 +414,8 @@ figures.
 - As :numref:`grid`, 
   the maximum number of SIMD Threads that can execute simultaneously per Thread Block 
   (SIMD Processor) is 32 for the later Fermi-generation GPUs.
-  Each SIMD Thread has 32 elements run on :numref:`threadslanes`
-  16 SIMD lanes (number of pipelines and each pipeline has it's own functional unit
+  Each SIMD Thread has 32 elements run as :numref:`threadslanes` on 
+  16 SIMD lanes (number of functional units just same
   as in vector processor). So it takes 2 clock cycles to complete [#lanes]_.
 
 
@@ -459,10 +462,10 @@ The main() run on CPU while the saxpy() run on GPU. Through
 cudaMemcpyHostToDevice and cudaMemcpyDeviceToHost, CPU can pass data in x and y 
 array to GPU and get result from GPU to y array. 
 Since both of these memory transfers trigger the DMA functions without CPU operation,
-it maybe speed up by running both CPU/GPU with their data in their own cache.
+it mays speed up by running both CPU/GPU with their data in their own cache.
 After DMA memcpy from cpu's memory to gpu's, gpu operate the whole loop of matrix 
 operation for "y[] = a*x[]+y[];"
-instruction with one Grid. Furthermore liking vector processor, gpu provides
+instructions with one Grid. Furthermore liking vector processor, gpu provides
 Vector Mask Registers to Handling IF Statements in Vector Loops as the following 
 code [#VMR]_,
 
@@ -490,7 +493,7 @@ processing [#Quantitative-gpu-sparse-matrix]_ [#gpgpuwiki]_ [#shadingl1]_.
 
 When the GPU function is dense computation in array such as MPEG4 encoder or
 deep learning for tuning weights, it mays get much speed up [#mpeg4speedup]_. 
-But when GPU function is matrix addition and CPU will idle for waiting 
+However when GPU function is matrix addition and CPU will idle for waiting 
 GPU's result. It mays slow down than doing matrix addition by CPU only.
 Arithmetic intensity is defined as the number of operations performed per word of 
 memory transferred. It is important for GPGPU applications to have high arithmetic 
@@ -502,8 +505,8 @@ Wiki here [#gpuspeedup]_ includes speedup applications for gpu as follows:
 General Purpose Computing on GPU, has found its way into fields as diverse as 
 machine learning, oil exploration, scientific image processing, linear algebra,
 statistics, 3D reconstruction and even stock options pricing determination.
-And section "GPU accelerated video decoding and encoding" for video compressing
-more.
+In addition, section "GPU accelerated video decoding and encoding" for video 
+compressing in [#gpuspeedup]_ gives the more applications for GPU acceleration.
 
 
 Vulkan and spir-v
@@ -516,22 +519,22 @@ Vulkan api is lower level C/C++ api to fill the gap allowing user program to
 do these things in OpenGL to compete against Microsoft direct3D. 
 Here is an example [#vulkanex]_. Meanwhile glsl is C-like language. The vulkan 
 infrastructure provides tool to compile glsl into an Intermediate Representation 
-form (IR) called spir-v [#spirvtoolchain]_. 
+Form (IR) called spir-v [#spirvtoolchain]_. 
 As a result, it saves part of compilation time from glsl to gpu instructions on-line 
-since spir-v is IR of level closing to llvm IR [#spirvwiki]_. 
+since spir-v is an IR of level closing to llvm IR [#spirvwiki]_. 
 In addition, vulkan api reduces gpu drivers efforts in optimization and code 
-generation [#vulkanapiwiki]_. These standards provide user programmer option in 
-using vulkan/spir-v or OpenGL/glsl, and allow them to pre-compile glsl into spir-v
-to saving part of on-line compiling time.
+generation [#vulkanapiwiki]_. These standards provide user programmer option to 
+using vulkan/spir-v instead of OpenGL/glsl, and allow them pre-compiling glsl 
+into spir-v to saving part of on-line compilation time.
 
 With vulkan and spir-v standard, the gpu can be used in OpenCL for Parallel 
 Programming of Heterogeneous Systems [#opencl]_ [#computekernelwiki]_.
-And once OpenCL grows into a popular standard with more languages and framework 
-supporting OpenCL language, GPU will take more jobs from CPU 
+Once OpenCL grows into a popular standard with more computer languages or 
+framework supporting OpenCL language, GPU will take more jobs from CPU 
 [#opencl-wiki-supported-lang]_.
 
 Now, you find llvm IR expanding from cpu to gpu becoming influentially more and
-more. And actually, llvm IR expanding from version 3.1 to now as I feel.
+more. And actually, llvm IR expanding from version 3.1 util now as I can feel.
 
 
 
@@ -566,7 +569,7 @@ more. And actually, llvm IR expanding from version 3.1 to now as I feel.
 
 .. [#onlinecompile] https://community.khronos.org/t/offline-glsl-compilation/61784
 
-.. [#classorvbo] https://gamedev.stackexchange.com/questions/19560/what-is-the-best-way-to-store-meshes-or-3d-models-in-a-class
+.. [#classorvbo] If your models will be rigid, meaning you will not change each vertex individually, and you will render many frames with the same model, you will achieve the best performance not by storing the models in your class, but in vertex buffer objects (VBOs) https://gamedev.stackexchange.com/questions/19560/what-is-the-best-way-to-store-meshes-or-3d-models-in-a-class
 
 .. [#vbo] http://www.songho.ca/opengl/gl_vbo.html
 
