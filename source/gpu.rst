@@ -529,6 +529,8 @@ into spir-v to saving part of on-line compilation time.
 
 With vulkan and spir-v standard, the gpu can be used in OpenCL for Parallel 
 Programming of Heterogeneous Systems [#opencl]_ [#computekernelwiki]_.
+Similar with Cuda, a OpenCL example for fast Fourier transform (FFT) is here 
+[#openclexfft]_.
 Once OpenCL grows into a popular standard with more computer languages or 
 framework supporting OpenCL language, GPU will take more jobs from CPU 
 [#opencl-wiki-supported-lang]_.
@@ -649,5 +651,7 @@ more. And actually, llvm IR expanding from version 3.1 util now as I can feel.
 .. [#opencl] https://www.khronos.org/opencl/
 
 .. [#computekernelwiki] https://en.wikipedia.org/wiki/Compute_kernel
+
+.. [#openclexfft] https://en.wikipedia.org/wiki/OpenCL
 
 .. [#opencl-wiki-supported-lang] The OpenCL standard defines host APIs for C and C++; third-party APIs exist for other programming languages and platforms such as Python,[14] Java, Perl[15] and .NET.[11]:15 https://en.wikipedia.org/wiki/OpenCL
