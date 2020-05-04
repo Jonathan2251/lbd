@@ -1,7 +1,7 @@
 .. _sec-gpu:
 
-Appendix C: GPU compiler
-========================
+Appendix C: The concept of GPU compiler
+=======================================
 
 .. contents::
    :local:
@@ -9,10 +9,10 @@ Appendix C: GPU compiler
 
 Basicly CPU compiler is SISD (Single Instruction Single Data Architecture). 
 The multimedia instructions in CPU are small scaled of SIMD
-(Single Instruction Multiple Data) for 4 or 16 element while GPU is a large 
+(Single Instruction Multiple Data) for 4 or 16 elements while GPU is a large 
 scaled of SIMD processor needing to color millions of pixels of image in few 
 micro seconds.
-Since the 2D or 3D graphic processing providing large opportunity in parallel
+Since the 2D or 3D graphic processing provide large opportunity in parallel
 data processing, GPU hardware usually composed of thousands
 of functional units in each core(grid) in N-Vidia processors.
 
@@ -32,8 +32,8 @@ as follows,
   Creating 3D model and texturing
 
 After the next smooth shading [#polygon]_, the vertices and edge lines are covered 
-with color (or remove edges), then model looks much more smooth [#shading]_. 
-Furthermore, after texturing (texture mapping), the model looks real more 
+with color (or remove edges), and model looks much more smooth [#shading]_. 
+Further, after texturing (texture mapping), the model looks real more 
 [#texturemapping]_.
  
 To get to know how animation for a 3D modeling, please look video here [#animation1]_.
@@ -91,7 +91,7 @@ GLSL (GL Shader Language)
 
 OpenGL is a standard for designing 2D/3D animation in computer graphic.
 To do animation well, OpenGL provides a lots of api(functions) call for
-graphic processing. The 3D model construction tools such as Maya, Blender, ...,
+graphic processing. The 3D model construction tools such as Maya, Blender, ..., etc,
 only need to call this api to finish the 3D to 2D projecting function in computer.
 Any GPU hardware dependent code in these api provided by chip designed company.
 An OpenGL program looks like the following,
@@ -139,7 +139,7 @@ and GPU thirdly, finally display the color of each pixel in computer screen.
 But in order to let user/programmer add some special effect or decoration in 
 coordinate for each vertex or in color for each pixel, OpenGL provides these two 
 functions to do it. 
-Programmer can add their converting functions then compiler translate them 
+Programmer is allowed to add their converting functions that compiler translate them 
 into GPU instructions running on GPU processor. With these two shaders, new 
 features have been added to allow for increased flexibility in the rendering 
 pipeline at the vertex and fragment level [#shaderswiki]_.
@@ -150,15 +150,16 @@ animation. Here is an example [#glsleffect]_.
 In wiki shading page [#shading]_, Gourand and Phong shading methods make the
 surface of object more smooth by glsl. Example glsl code of Gourand 
 and Phong shading on OpenGL api are here [#smoothshadingex]_.
-Since the hardware of graphic card and software graphic driver can be changed, 
-the compiler is run on-line meaning compile the shaders program when it is 
-run at first time.
-The shaders program is C-like syntax and can be compiled in few mini-seconds, 
-add up this few mini-seconds of on-line compile time in running OpenGL 
-program is a good choice for dealing the cases of driver software or gpu 
-hardware changes [#onlinecompile]_. 
+Since the hardware of graphic card and software graphic driver can be replaced, 
+the compiler is run on-line meaning driver will compile the shaders program when 
+it is run at first time and kept in cache after compilation.
 
-In addition, OpenGL provides vertex buffer object (VBO) allows 
+The shaders program is C-like syntax and can be compiled in few mini-seconds, 
+add up this few mini-seconds of on-line compilation time in running OpenGL 
+program is a good choice for dealing the cases of driver software or gpu 
+hardware replacement [#onlinecompile]_. 
+
+In addition, OpenGL provides vertex buffer object (VBO) allowing 
 vertex array data to be stored in high-performance graphics memory on the 
 server side and promotes efficient data transfer [#vbo]_ [#classorvbo]_.
 
@@ -168,14 +169,14 @@ OpenGL Shader compiler
 
 OpenGL standard is here [#openglspec]_. The OpenGL is for desktop computer or server
 while the OpenGL ES is for embedded system [#opengleswiki]_. Though shaders are only
-a small part of the whole OpenGL software/hardware system. It is still a big effort 
+a small part of the whole OpenGL software/hardware system. It is still a large effort 
 to finish the compiler implementation since there are lots of api need to be 
 implemented.
 For example, the number of texture related api is close to one hundred combinations 
 in code generation since they include different api names with different operands for 
 each name.
 This implementation can be done by generating llvm extended intrinsic functions 
-from shader parser of frontend compiler, and then llvm backend convert those intrinsic 
+from shader parser of frontend compiler as well as llvm backend converting those intrinsic 
 to gpu instructions as follows,
 
 .. code-block:: console
@@ -246,12 +247,12 @@ corresponding texture unit (and texture object) will be used [#textureobject]_.
 
   Binding sampler variables [#tpu]_.
 
-As Figure: Binding sampler variables, the Java OpenGL wrapper api
+As Figure: Binding sampler variables, the Java api
 gl.bindTexture binding 'Texture Object' to 'Texture Unit'. 
 The gl.getUniformLocation and gl.uniform1i associate 'Texture Unit' to
 'sampler uniform variables'. 
 
-The gl.uniform1i(xLoc, 1) where 1 is 
+gl.uniform1i(xLoc, 1): where 1 is 
 'Texture Unit 1', 2 is 'Texture Unit 2', ..., etc [#tpu]_.
 
 The following figure depicts how driver read metadata from compiled glsl obj,
@@ -326,10 +327,10 @@ Where tex_a is the texture memory address for 'sampler uniform variable' x,
 and the pixel of coordinates (x,y,z) is given by (f1,f2,f3) user input.
 The f4 is skipped for 3D texture.
 
-Above tex.3d texture instruction load the color of pixel (x,y.z) into GPRs
-(r1,r2,r3,r4)=(R,G,B,A). 
-And fragment shader can calculate the color of this pixel with the color of
-this pixel at texture [#ptxtex]_. 
+Above tex.3d texture instruction load the calculated color of pixel (x,y.z) from 
+texture image into GPRs (r1,r2,r3,r4)=(R,G,B,A). 
+And fragment shader can re-calculate the color of this pixel with the color of
+this pixel at texture image [#ptxtex]_. 
 
 If it is 1d texture instruction, the tex.1d as follows,
 
@@ -338,26 +339,24 @@ If it is 1d texture instruction, the tex.1d as follows,
   tex.1d.v4.s32.f32  {r1,r2,r3,r4}, [tex_a, {f1}];
 
 Since 'Texture Unit' is limited hardware accelerator on gpu, OpenGL
-providing api to user program for binding 'Texture Unit' to 'Sampler Variables'
-to doing load balance in using the 'Texture Unit'. With this mechanism, programmer
-can do load balance through OpenGL api without recompiling glsl. 
-The glsl on-line compiling only be triggered at first time of running program. 
-It is kept in cache and is executing directly after first time of compiling.
+providing api to user program for binding 'Texture Unit' to 'Sampler Variables'.
+As a result, user program is allowed doing load balance in using 'Texture Unit'
+through OpenGL api without recompiling glsl. 
 Fast texture sampling is one of the key requirements for good GPU performance 
 [#tpu]_.
 
-In addition to binding api for texture, OpenGL provides glTexParameteri api to
+In addition to api for binding texture, OpenGL provides glTexParameteri api to
 do Texture Wrapping [#texturewrapper]_. 
 Furthmore the texture instruction for some gpu may including S# T# values in operands.
-Same with associating 'Sampler Variables' to 'Texture Unit', S# and T# value are
-location of memory associated to Texture Wrapping descriptor register allowing 
+Same with associating 'Sampler Variables' to 'Texture Unit', S# and T# are
+location of memory associated to Texture Wrapping descriptor registers allowing 
 user program to change Wrapping option without re-compiling glsl.
 
 Even glsl frontend compiler always expanding function call into inline function 
 as well as llvm intrinsic extended function providing an easy way to do code 
 generation through llvm td (Target Description) file written, 
 GPU backend compiler is still a little complex than CPU backend. 
-(But when considering the effort in frontend compier such as clang or other 
+(But when considering the effort in frontend compier such as clang, or other 
 toolchain such
 as linker and gdb/lldb, of course, CPU compiler is much complex than
 GPU compiler.)
@@ -368,7 +367,7 @@ And mesa open source website is here [#mesa]_.
 Architecture
 ------------
 
-The leading GPU architecture of Nvidia's gpu as the following 
+The leading GPU architecture of Nvidia's gpu is as the following 
 figures.
 
 .. _grid: 
@@ -459,10 +458,11 @@ In the programming example saxpy() above,
 
 
 The main() run on CPU while the saxpy() run on GPU. Through 
-cudaMemcpyHostToDevice and cudaMemcpyDeviceToHost, CPU can pass data in x and y 
+cudaMemcpyHostToDevice and cudaMemcpyDeviceToHost, CPU can pass data in x and in y 
 array to GPU and get result from GPU to y array. 
 Since both of these memory transfers trigger the DMA functions without CPU operation,
-it mays speed up by running both CPU/GPU with their data in their own cache.
+it mays speed up by running both CPU/GPU with their data in their own cache 
+repectively.
 After DMA memcpy from cpu's memory to gpu's, gpu operate the whole loop of matrix 
 operation for "y[] = a*x[]+y[];"
 instructions with one Grid. Furthermore liking vector processor, gpu provides
@@ -486,9 +486,9 @@ code [#VMR]_,
   SV V1,Rx         ;store the result in X
 
 
-Though gpu has smaller L1 cache than cpu for each core,
-the DMA memcpy map the data in cpu memory to gpu memory to each l1 cache of core.
-Or gpu provides operations scatter and gather to access DRAM data for stream 
+GPU has smaller L1 cache than cpu for each core.
+DMA memcpy map the data in cpu memory to each l1 cache of core on gpu memory.
+Many gpu provides operations scatter and gather to access DRAM data for stream 
 processing [#Quantitative-gpu-sparse-matrix]_ [#gpgpuwiki]_ [#shadingl1]_.
 
 When the GPU function is dense computation in array such as MPEG4 encoder or
@@ -506,7 +506,7 @@ General Purpose Computing on GPU, has found its way into fields as diverse as
 machine learning, oil exploration, scientific image processing, linear algebra,
 statistics, 3D reconstruction and even stock options pricing determination.
 In addition, section "GPU accelerated video decoding and encoding" for video 
-compressing in [#gpuspeedup]_ gives the more applications for GPU acceleration.
+compressing [#gpuspeedup]_ gives the more applications for GPU acceleration.
 
 
 Vulkan and spir-v
@@ -515,23 +515,23 @@ Vulkan and spir-v
 Though OpenGL api existed in higher level with many advantages from sections
 above, sometimes it cannot compete in efficience with direct3D providing 
 lower levels api for operating memory by user program [#vulkanapiwiki]_. 
-Vulkan api is lower level C/C++ api to fill the gap allowing user program to 
+Vulkan api is lower level's C/C++ api to fill the gap allowing user program to 
 do these things in OpenGL to compete against Microsoft direct3D. 
 Here is an example [#vulkanex]_. Meanwhile glsl is C-like language. The vulkan 
 infrastructure provides tool to compile glsl into an Intermediate Representation 
-Form (IR) called spir-v [#spirvtoolchain]_. 
+Form (IR) called spir-v [#spirvtoolchain]_ off-line. 
 As a result, it saves part of compilation time from glsl to gpu instructions on-line 
 since spir-v is an IR of level closing to llvm IR [#spirvwiki]_. 
 In addition, vulkan api reduces gpu drivers efforts in optimization and code 
 generation [#vulkanapiwiki]_. These standards provide user programmer option to 
 using vulkan/spir-v instead of OpenGL/glsl, and allow them pre-compiling glsl 
-into spir-v to saving part of on-line compilation time.
+into spir-v off-line to saving part of on-line compilation time.
 
 With vulkan and spir-v standard, the gpu can be used in OpenCL for Parallel 
 Programming of Heterogeneous Systems [#opencl]_ [#computekernelwiki]_.
 Similar with Cuda, a OpenCL example for fast Fourier transform (FFT) is here 
 [#openclexfft]_.
-Once OpenCL grows into a popular standard with more computer languages or 
+Once OpenCL grows into a popular standard when more computer languages or 
 framework supporting OpenCL language, GPU will take more jobs from CPU 
 [#opencl-wiki-supported-lang]_.
 
