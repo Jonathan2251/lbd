@@ -1,0 +1,40 @@
+digraph G {
+
+	rankdir=LR;
+	subgraph cluster_2 {
+		style=filled;
+		color=lightgrey;
+		label = "Flow of lbd + lbt";
+		node [style=filled,color=white]; c2clang [label="clang"];
+		node [style=filled,color=yellow]; c2llc [label="llc"];
+		node [style=filled,color=yellow]; c2vm [label="Verilog machine"];
+		node [style=filled,color=green]; lld, elf2hex;
+	    c2clang -> c2llc [ label = "IR" ];
+	    c2llc -> lld [ label = "obj" ];
+	    lld -> elf2hex [ label = "exe" ];
+	    elf2hex -> c2vm [ label = "hex" ];
+	}
+	subgraph cluster_1 {
+		style=filled;
+		color=lightgrey;
+		label = "Flow of lbd";
+		node [style=filled,color=white]; c1clang [label="clang"];
+		node [style=filled,color=yellow]; c1llc [label="llc"];
+		node [style=filled,color=white]; "llvm-objdump";
+		node [style=filled,color=yellow]; c1vm [label="Verilog machine"];
+	    c1clang -> c1llc [ label = "IR" ];
+	    c1llc -> "llvm-objdump" [ label = "obj" ];
+	    "llvm-objdump" -> c1vm [ label = "hex" ];
+	}
+	subgraph cluster_0 {
+		style=filled;
+		label = "Compiler flow";
+		node [style=filled,color=white]; frontend, backend, linker, loader, computer;
+	    frontend -> backend [ label = "IR" ];
+	    backend -> linker [ label = "obj" ];
+	    linker -> loader [ label = "exe" ];
+	    loader -> computer [ label = "bin" ];
+		color=lightgrey
+	}
+
+}

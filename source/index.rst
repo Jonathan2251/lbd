@@ -6,6 +6,13 @@
 .. .. warning::
    This is a work in progress. If you would like to contribution, please push updates and patches to the main github project available at http://github.com/Jonathan2251/lbd for review.
 
+.. _index-f1: 
+.. figure:: ../Fig/lbdwork.png
+  :scale: 100 %
+  :align: center
+
+  This book's flow
+
 Table of Contents
 =================
 
