@@ -576,7 +576,7 @@ Outline of Chapters
 -------------------
 
 .. _about-f1: 
-.. figure:: ../Fig/about/mywork_1.png
+.. figure:: ../Fig/about/lbd_and_lbt.png
   :width: 899 px
   :height: 261 px
   :scale: 100 %
@@ -584,11 +584,10 @@ Outline of Chapters
 
   Code generation and execution flow
 
-The upper half of :numref:`about-f1` is the work flow and software package 
+The top part of :numref:`about-f1` is the work flow and software package 
 of a computer program be generated and executed. IR stands for Intermediate 
 Representation. 
-The lower half is this book's work flow and software package of the toolchain 
-extended implementation based on llvm. Except clang, the other blocks need to 
+The middle part is this book's work flow. Except clang, the other blocks need to 
 be extended for a new backend development (Many backend extending clang too, but
 Cpu0 backend has not this need at this point). 
 This book implement the yellow boxes part. The green parts of this figure, lld 
