@@ -16,6 +16,22 @@ Since the 2D or 3D graphic processing provide large opportunity in parallel
 data processing, GPU hardware usually composed of thousands
 of functional units in each core(grid) in N-Vidia processors.
 
+The diagram for flow of 3D/2D modeling to create OpenGL and run on CPU/GPU 
+as follows,
+
+.. _modeling1: 
+.. figure:: ../Fig/gpu/opengl_flow.png
+  :align: center
+  :scale: 100 %
+
+  OpenGL flow
+
+The most of time for running OpenGL api is on GPU. Usually, CPU is a function 
+call to GPU's functions.
+This chapter is giving a concept for the flow above and focus on shader compiler
+for GPU. Furthermore, explaining how GPU take more applications from GPU through
+GPGPU concept and related standards.
+
 
 3D modeling
 ------------
