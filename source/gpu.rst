@@ -10,7 +10,7 @@ Appendix C: The concept of GPU compiler
 Basicly CPU compiler is SISD (Single Instruction Single Data Architecture). 
 The multimedia instructions in CPU are small scaled of SIMD
 (Single Instruction Multiple Data) for 4 or 16 elements while GPU is a large 
-scaled of SIMD processor needing to color millions of pixels of image in few 
+scaled of SIMD processor coloring millions of pixels of image in few 
 micro seconds.
 Since the 2D or 3D graphic processing provide large opportunity in parallel
 data processing, GPU hardware usually composed of thousands
@@ -65,23 +65,21 @@ Two famous examples of neutral formats are STL (with a .STL extension) and COLLA
 (with a .DAE extension). Here is the list, where the 3D file formats are marked 
 with their type.
 
-- 3D file format 	Type
+.. table:: 3D file formats [#3dfmt]_
 
-- STL 	Neutral
+  ==============  ==================
+  3D file format  Type
+  ==============  ==================
+  STL             Neutral
+  OBJ             ASCII variant is neutral, binary variant is proprietary
+  FBX             Proprietary
+  COLLADA         Neutral
+  3DS             Proprietary
+  IGES            Neutral
+  STEP            Neutral
+  VRML/X3D        Neutral
+  ==============  ==================
 
-- OBJ 	ASCII variant is neutral, binary variant is proprietary
-
-- FBX 	Proprietary
-
-- COLLADA 	Neutral
-
-- 3DS 	Proprietary
-
-- IGES 	Neutral
-
-- STEP 	Neutral
-
-- VRML/X3D 	Neutral [#3dfmt]_
 
 3D Rendering
 ------------
