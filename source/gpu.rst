@@ -12,14 +12,13 @@ The multimedia instructions in CPU are small scaled of SIMD
 (Single Instruction Multiple Data) for 4 or 16 elements while GPU is a large 
 scaled of SIMD processor coloring millions of pixels of image in few 
 micro seconds.
-Since the 2D or 3D graphic processing provide large opportunity in parallel
+Since the 2D or 3D graphic processing provides large opportunity in parallel
 data processing, GPU hardware usually composed of thousands
 of functional units in each core(grid) in N-Vidia processors.
 
-The diagram for flow of 3D/2D modeling to create OpenGL and run on CPU/GPU 
-as follows,
+The flow for 3D/2D graphic processing as the following diagram.
 
-.. _modeling1: 
+.. _opengl_flow: 
 .. figure:: ../Fig/gpu/opengl_flow.png
   :align: center
   :scale: 100 %
@@ -28,9 +27,9 @@ as follows,
 
 The most of time for running OpenGL api is on GPU. Usually, CPU is a function 
 call to GPU's functions.
-This chapter is giving a concept for the flow above and focus on shader compiler
-for GPU. Furthermore, explaining how GPU take more applications from GPU through
-GPGPU concept and related standards.
+This chapter is giving a concept for the flow above and focuses on shader compiler
+for GPU. Furthermore, explaining how GPU has taking more applications from 
+CPU through GPGPU concept and related standards emerged.
 
 
 3D modeling
@@ -107,7 +106,7 @@ OpenGL is a standard for designing 2D/3D animation in computer graphic.
 To do animation well, OpenGL provides a lots of api(functions) call for
 graphic processing. The 3D model construction tools such as Maya, Blender, ..., etc,
 only need to call this api to finish the 3D to 2D projecting function in computer.
-Any GPU hardware dependent code in these api provided by chip designed company.
+Any GPU hardware dependent code in these api provided by GPU manufacturer.
 An OpenGL program looks like the following,
 
 .. code-block:: c++
@@ -234,7 +233,7 @@ About llvm intrinsic extended function, please refer this book here [#intrinsicc
 
   Relationships between the texturing concept [#textureobject]_.
 
-The figure of 'Relationships between the texturing concept' as above.
+The :numref:`sampling` as above.
 The texture object is not bound directly into the shader (where the actual 
 sampling takes place). Instead, it is bound to a 'texture unit' whose index 
 is passed to the shader. So the shader reaches the texture object by going 
@@ -261,7 +260,7 @@ corresponding texture unit (and texture object) will be used [#textureobject]_.
 
   Binding sampler variables [#tpu]_.
 
-As Figure: Binding sampler variables, the Java api
+As :numref:`sampling_binding`, the Java api
 gl.bindTexture binding 'Texture Object' to 'Texture Unit'. 
 The gl.getUniformLocation and gl.uniform1i associate 'Texture Unit' to
 'sampler uniform variables'. 
