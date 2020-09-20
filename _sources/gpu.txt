@@ -10,16 +10,15 @@ Appendix C: The concept of GPU compiler
 Basicly CPU compiler is SISD (Single Instruction Single Data Architecture). 
 The multimedia instructions in CPU are small scaled of SIMD
 (Single Instruction Multiple Data) for 4 or 16 elements while GPU is a large 
-scaled of SIMD processor needing to color millions of pixels of image in few 
+scaled of SIMD processor coloring millions of pixels of image in few 
 micro seconds.
-Since the 2D or 3D graphic processing provide large opportunity in parallel
+Since the 2D or 3D graphic processing provides large opportunity in parallel
 data processing, GPU hardware usually composed of thousands
 of functional units in each core(grid) in N-Vidia processors.
 
-The diagram for flow of 3D/2D modeling to create OpenGL and run on CPU/GPU 
-as follows,
+The flow for 3D/2D graphic processing as the following diagram.
 
-.. _modeling1: 
+.. _opengl_flow: 
 .. figure:: ../Fig/gpu/opengl_flow.png
   :align: center
   :scale: 100 %
@@ -28,9 +27,9 @@ as follows,
 
 The most of time for running OpenGL api is on GPU. Usually, CPU is a function 
 call to GPU's functions.
-This chapter is giving a concept for the flow above and focus on shader compiler
-for GPU. Furthermore, explaining how GPU take more applications from GPU through
-GPGPU concept and related standards.
+This chapter is giving a concept for the flow above and focuses on shader compiler
+for GPU. Furthermore, explaining how GPU has taking more applications from 
+CPU through GPGPU concept and related standards emerged.
 
 
 3D modeling
@@ -65,23 +64,21 @@ Two famous examples of neutral formats are STL (with a .STL extension) and COLLA
 (with a .DAE extension). Here is the list, where the 3D file formats are marked 
 with their type.
 
-- 3D file format 	Type
+.. table:: 3D file formats [#3dfmt]_
 
-- STL 	Neutral
+  ==============  ==================
+  3D file format  Type
+  ==============  ==================
+  STL             Neutral
+  OBJ             ASCII variant is neutral, binary variant is proprietary
+  FBX             Proprietary
+  COLLADA         Neutral
+  3DS             Proprietary
+  IGES            Neutral
+  STEP            Neutral
+  VRML/X3D        Neutral
+  ==============  ==================
 
-- OBJ 	ASCII variant is neutral, binary variant is proprietary
-
-- FBX 	Proprietary
-
-- COLLADA 	Neutral
-
-- 3DS 	Proprietary
-
-- IGES 	Neutral
-
-- STEP 	Neutral
-
-- VRML/X3D 	Neutral [#3dfmt]_
 
 3D Rendering
 ------------
@@ -109,7 +106,7 @@ OpenGL is a standard for designing 2D/3D animation in computer graphic.
 To do animation well, OpenGL provides a lots of api(functions) call for
 graphic processing. The 3D model construction tools such as Maya, Blender, ..., etc,
 only need to call this api to finish the 3D to 2D projecting function in computer.
-Any GPU hardware dependent code in these api provided by chip designed company.
+Any GPU hardware dependent code in these api provided by GPU manufacturer.
 An OpenGL program looks like the following,
 
 .. code-block:: c++
@@ -188,9 +185,7 @@ while the OpenGL ES is for embedded system [#opengleswiki]_. Though shaders are 
 a small part of the whole OpenGL software/hardware system. It is still a large effort 
 to finish the compiler implementation since there are lots of api need to be 
 implemented.
-For example, the number of texture related api is close to one hundred combinations 
-in code generation since they include different api names with different operands for 
-each name.
+For example, the number of texture related texture api has 80 [#textureapi]_.
 This implementation can be done by generating llvm extended intrinsic functions 
 from shader parser of frontend compiler as well as llvm backend converting those intrinsic 
 to gpu instructions as follows,
@@ -236,7 +231,7 @@ About llvm intrinsic extended function, please refer this book here [#intrinsicc
 
   Relationships between the texturing concept [#textureobject]_.
 
-The figure of 'Relationships between the texturing concept' as above.
+The :numref:`sampling` as above.
 The texture object is not bound directly into the shader (where the actual 
 sampling takes place). Instead, it is bound to a 'texture unit' whose index 
 is passed to the shader. So the shader reaches the texture object by going 
@@ -263,7 +258,7 @@ corresponding texture unit (and texture object) will be used [#textureobject]_.
 
   Binding sampler variables [#tpu]_.
 
-As Figure: Binding sampler variables, the Java api
+As :numref:`sampling_binding`, the Java api
 gl.bindTexture binding 'Texture Object' to 'Texture Unit'. 
 The gl.getUniformLocation and gl.uniform1i associate 'Texture Unit' to
 'sampler uniform variables'. 
@@ -374,7 +369,7 @@ generation through llvm td (Target Description) file written,
 GPU backend compiler is still a little complex than CPU backend. 
 (But when considering the effort in frontend compier such as clang, or other 
 toolchain such
-as linker and gdb/lldb, of course, CPU compiler is much complex than
+as linker and gdb/lldb, of course, CPU compiler is not easier than
 GPU compiler.)
 
 Here is the software stack of 3D graphic system for OpenGL in linux [#mesawiki]_.
@@ -595,6 +590,8 @@ more. And actually, llvm IR expanding from version 3.1 util now as I can feel.
 .. [#openglspec] https://www.khronos.org/registry/OpenGL-Refpages/
 
 .. [#opengleswiki] https://en.wikipedia.org/wiki/OpenGL_ES
+
+.. [#textureapi] All the api listed in section 8.9 of https://www.khronos.org/registry/OpenGL/specs/es/3.2/GLSL_ES_Specification_3.20.html#texture-functions
 
 .. [#intrinsiccpu0] http://jonathan2251.github.io/lbd/funccall.html#add-specific-backend-intrinsic-function
 
