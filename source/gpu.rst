@@ -185,9 +185,7 @@ while the OpenGL ES is for embedded system [#opengleswiki]_. Though shaders are 
 a small part of the whole OpenGL software/hardware system. It is still a large effort 
 to finish the compiler implementation since there are lots of api need to be 
 implemented.
-For example, the number of texture related api is close to one hundred combinations 
-in code generation since they include different api names with different operands for 
-each name.
+For example, the number of texture related texture api has 80 [#textureapi]_.
 This implementation can be done by generating llvm extended intrinsic functions 
 from shader parser of frontend compiler as well as llvm backend converting those intrinsic 
 to gpu instructions as follows,
@@ -371,7 +369,7 @@ generation through llvm td (Target Description) file written,
 GPU backend compiler is still a little complex than CPU backend. 
 (But when considering the effort in frontend compier such as clang, or other 
 toolchain such
-as linker and gdb/lldb, of course, CPU compiler is much complex than
+as linker and gdb/lldb, of course, CPU compiler is not easier than
 GPU compiler.)
 
 Here is the software stack of 3D graphic system for OpenGL in linux [#mesawiki]_.
@@ -592,6 +590,8 @@ more. And actually, llvm IR expanding from version 3.1 util now as I can feel.
 .. [#openglspec] https://www.khronos.org/registry/OpenGL-Refpages/
 
 .. [#opengleswiki] https://en.wikipedia.org/wiki/OpenGL_ES
+
+.. [#textureapi] All the api listed in section 8.9 of https://www.khronos.org/registry/OpenGL/specs/es/3.2/GLSL_ES_Specification_3.20.html#texture-functions
 
 .. [#intrinsiccpu0] http://jonathan2251.github.io/lbd/funccall.html#add-specific-backend-intrinsic-function
 
