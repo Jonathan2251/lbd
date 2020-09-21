@@ -152,6 +152,11 @@ and GPU thirdly, finally display the color of each pixel in computer screen.
 But in order to let user/programmer add some special effect or decoration in 
 coordinate for each vertex or in color for each pixel, OpenGL provides these two 
 functions to do it. 
+OpenGL uses fragment shader instead of pixel is : "Fragment shaders are a more 
+accurate name for the same functionality as Pixel shaders. They aren’t pixels 
+yet, since the output still has to past several tests (depth, alpha, stencil) 
+as well as the fact that one may be using antialiasing, which renders 
+one-fragment-to-one-pixel non-true [#fragmentshader_reason]_.
 Programmer is allowed to add their converting functions that compiler translate them 
 into GPU instructions running on GPU processor. With these two shaders, new 
 features have been added to allow for increased flexibility in the rendering 
@@ -571,6 +576,8 @@ more. And actually, llvm IR expanding from version 3.1 util now as I can feel.
 
 .. [#2danimation] https://tw.video.search.yahoo.com/search/video?fr=yfp-search-sb&p=2d+animation#id=12&vid=46be09edf57b960ae79e9cd077eea1ea&action=view
 
+
+.. [#fragmentshader_reason] https://community.khronos.org/t/pixel-vs-fragment-shader/52838
 
 .. [#shaderswiki] https://en.m.wikipedia.org/wiki/OpenGL_Shading_Language
 
