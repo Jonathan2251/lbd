@@ -335,6 +335,14 @@ high performance code by the target hardware instructions rather than couting on
 lock() function only [#atomic-wiki]_ [#atomic-stackoverflow]_ 
 [#atomic-herbsutter]_.
 
+Compare-and-swap operation is used to implement synchronization primitives like semaphores 
+and mutexes, as well as more sophisticated lock-free and wait-free algorithms [#cas-wiki]_. 
+For atomic variables, Mips lock instructions, ll and sc, to solve the race 
+condition problem [#ll-wiki]_. 
+
+Mips sync and ARM/X86-64 memory-barrier instruction [#mb-wiki]_ provide 
+synchronization mechanism very efficiently in some scenarios.
+
 In order to support atomic in C++ and java, llvm provides the atomic IRs here 
 [#atomics-llvm]_ [#llvmlang-ordering]_.
 
@@ -529,6 +537,12 @@ options "clang++ -pthread -std=c++11".
 .. [#atomic-stackoverflow] http://stackoverflow.com/questions/6319146/c11-introduced-a-standardized-memory-model-what-does-it-mean-and-how-is-it-g
 
 .. [#atomic-herbsutter] http://herbsutter.com/2013/02/11/atomic-weapons-the-c-memory-model-and-modern-hardware/
+
+.. [#cas-wiki] https://en.wikipedia.org/wiki/Compare-and-swap
+
+.. [#ll-wiki] https://en.wikipedia.org/wiki/Load-link/store-conditional
+
+.. [#mb-wiki] https://en.wikipedia.org/wiki/Memory_barrier
 
 .. [#atomics-llvm] http://llvm.org/docs/Atomics.html
 

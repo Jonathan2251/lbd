@@ -7,7 +7,7 @@ define i8 @load_i8_unordered(i8* %mem) {
 ; CHECK: ll
 ; CHECK: sc
 ; CHECK-NOT: sync
-  %val = load atomic i8* %mem unordered, align 1
+  %val = load atomic i8, i8* %mem unordered, align 1
   ret i8 %val
 }
 define i16 @load_i16_monotonic(i16* %mem) {
@@ -15,21 +15,21 @@ define i16 @load_i16_monotonic(i16* %mem) {
 ; CHECK: ll
 ; CHECK: sc
 ; CHECK-NOT: sync
-  %val = load atomic i16* %mem monotonic, align 2
+  %val = load atomic i16, i16* %mem monotonic, align 2
   ret i16 %val
 }
 define i32 @load_i32_acquire(i32* %mem) {
 ; CHECK-LABEL: load_i32_acquire
 ; CHECK: ll
 ; CHECK: sc
-  %val = load atomic i32* %mem acquire, align 4
+  %val = load atomic i32, i32* %mem acquire, align 4
 ; CHECK: sync
   ret i32 %val
 }
 define i64 @load_i64_seq_cst(i64* %mem) {
 ; CHECK-LABEL: load_i64_seq_cst
 ; CHECK: sync
-  %val = load atomic i64* %mem seq_cst, align 8
+  %val = load atomic i64, i64* %mem seq_cst, align 8
   ret i64 %val
 }
 
