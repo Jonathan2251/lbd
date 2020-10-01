@@ -336,7 +336,7 @@ lock() function only [#atomic-wiki]_ [#atomic-stackoverflow]_
 [#atomic-herbsutter]_.
 
 Compare-and-swap operation is used to implement synchronization primitives like semaphores 
-and mutexes, as well as more sophisticated lock-free and wait-free algorithms [#cas-wiki]_. 
+and mutexes, as well as more sophisticated lock-free [#lf-wiki]_ and wait-free algorithms [#cas-wiki]_. 
 For atomic variables, Mips lock instructions, ll and sc, to solve the race 
 condition problem [#ll-wiki]_. 
 
@@ -537,6 +537,8 @@ options "clang++ -pthread -std=c++11".
 .. [#atomic-stackoverflow] http://stackoverflow.com/questions/6319146/c11-introduced-a-standardized-memory-model-what-does-it-mean-and-how-is-it-g
 
 .. [#atomic-herbsutter] http://herbsutter.com/2013/02/11/atomic-weapons-the-c-memory-model-and-modern-hardware/
+
+.. [#lf-wiki] Such as Mips LL instruction, provides programmer using it to call semaphore api function to block it on waiting queue or run other code to do something else useful when the resource/memory is occupied (LL return not success to access it). On the other hand, if hardware instruction provides WAIT instruction to block the CPU into wait until some condition (memory status) is true. Leave programmer no choice, then it is not lock-free. https://en.wikipedia.org/wiki/Non-blocking_algorithm
 
 .. [#cas-wiki] https://en.wikipedia.org/wiki/Compare-and-swap
 
