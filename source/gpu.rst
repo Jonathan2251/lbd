@@ -170,7 +170,7 @@ surface of object more smooth by glsl. Example glsl code of Gourand
 and Phong shading on OpenGL api are here [#smoothshadingex]_.
 Since the hardware of graphic card and software graphic driver can be replaced, 
 the compiler is run on-line meaning driver will compile the shaders program when 
-it is run at first time and kept in cache after compilation.
+it is run at first time and kept in cache after compilation [#on-line]_.
 
 The shaders program is C-like syntax and can be compiled in few mini-seconds, 
 add up this few mini-seconds of on-line compilation time in running OpenGL 
@@ -190,7 +190,7 @@ while the OpenGL ES is for embedded system [#opengleswiki]_. Though shaders are 
 a small part of the whole OpenGL software/hardware system. It is still a large effort 
 to finish the compiler implementation since there are lots of api need to be 
 implemented.
-For example, the number of texture related texture api has 80 [#textureapi]_.
+For example, there are 80 related texture APIs [#textureapi]_.
 This implementation can be done by generating llvm extended intrinsic functions 
 from shader parser of frontend compiler as well as llvm backend converting those intrinsic 
 to gpu instructions as follows,
@@ -536,7 +536,8 @@ do these things in OpenGL to compete against Microsoft direct3D.
 Here is an example [#vulkanex]_. Meanwhile glsl is C-like language. The vulkan 
 infrastructure provides tool to compile glsl into an Intermediate Representation 
 Form (IR) called spir-v [#spirvtoolchain]_ off-line. 
-As a result, it saves part of compilation time from glsl to gpu instructions on-line 
+As a result, it saves part of compilation time from glsl to gpu instructions 
+on-line
 since spir-v is an IR of level closing to llvm IR [#spirvwiki]_. 
 In addition, vulkan api reduces gpu drivers efforts in optimization and code 
 generation [#vulkanapiwiki]_. These standards provide user programmer option to 
@@ -586,6 +587,8 @@ more. And actually, llvm IR expanding from version 3.1 util now as I can feel.
 .. [#glsleffect] https://www.youtube.com/watch?v=LyoSSoYyfVU at 5:25 from beginning: combine different textures.
 
 .. [#smoothshadingex] https://github.com/ruange/Gouraud-Shading-and-Phong-Shading
+
+.. [#on-line] Compiler and interpreter: (https://www.guru99.com/difference-compiler-vs-interpreter.html). AOT compiler: compiles before running; JIT compiler: compiles while running; interpreter: runs (reference https://softwareengineering.stackexchange.com/questions/246094/understanding-the-differences-traditional-interpreter-jit-compiler-jit-interp). Both online and offline compiler are AOT compiler. User call OpenGL api to run their program and the driver call call online compiler to compile user's shaders without user compiling their shader before running their program. When user run a CPU program of C language, he must compile C program before running the program. This is offline compiler.
 
 .. [#onlinecompile] https://community.khronos.org/t/offline-glsl-compilation/61784
 
