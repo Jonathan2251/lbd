@@ -17,8 +17,10 @@ prologue() {
 
   if [ "$OS" == "Linux" ]; then
     TOOLDIR=~/llvm/test/cmake_debug_build/bin
+    CLANG=~/llvm/3.9.0/release/cmake_debug_build/bin/clang
   else
     TOOLDIR=~/llvm/test/cmake_debug_build/Debug/bin
+    CLANG=~/llvm/3.9.0/release/cmake_debug_build/Debug/bin/clang
   fi
 
   CPU=$arg1

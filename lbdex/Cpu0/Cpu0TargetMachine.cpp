@@ -182,6 +182,9 @@ TargetPassConfig *Cpu0TargetMachine::createPassConfig(PassManagerBase &PM) {
 }
 
 #if CH >= CH12_1 //2
+// createAtomicExpandPass create fence for atomic_store() and atomic_load() 
+// in lbdex/regression-test/Cpu0
+// ref. https://www.bookstack.cn/read/LLVM-10-Reference/c024642b7b382b4b.md
 void Cpu0PassConfig::addIRPasses() {
   TargetPassConfig::addIRPasses();
   addPass(createAtomicExpandPass(&getCpu0TargetMachine()));

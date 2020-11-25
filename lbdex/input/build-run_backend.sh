@@ -17,12 +17,12 @@ prologue;
 
 # ch8_2_select_global_pic.cpp just for compile build test only, without running 
 # on verilog.
-clang ${DEFFLAGS} -target mips-unknown-linux-gnu -c ch8_2_select_global_pic.cpp \
+$CLANG ${DEFFLAGS} -target mips-unknown-linux-gnu -c ch8_2_select_global_pic.cpp \
 -emit-llvm -o ch8_2_select_global_pic.bc
 ${TOOLDIR}/llc -march=cpu0${endian} -mcpu=${CPU} -relocation-model=pic \
 -filetype=obj ch8_2_select_global_pic.bc -o ch8_2_select_global_pic.cpu0.o
 
-clang ${DEFFLAGS} -target mips-unknown-linux-gnu -c ch_run_backend.cpp \
+$CLANG ${DEFFLAGS} -target mips-unknown-linux-gnu -c ch_run_backend.cpp \
 -emit-llvm -o ch_run_backend.bc
 echo "${TOOLDIR}/llc -march=cpu0${endian} -mcpu=${CPU} -relocation-model=static \
 -filetype=obj -enable-cpu0-tail-calls ch_run_backend.bc -o ch_run_backend.cpu0.o"
