@@ -304,6 +304,9 @@ def immZExt5 : ImmLeaf<i32, [{return Imm == (Imm & 0x1f);}]>;
 //#endif
 
 //#if CH >= CH2 7
+// As TableGen is unable to generate selection code for complex addressing modes,
+// selection of a MEMbol operand must be done manually. 
+// Reference https://opus4.kobv.de/opus4-fau/files/1108/tricore_llvm.pdf
 // Cpu0 Address Mode! SDNode frameindex could possibily be a match
 // since load and store instructions from stack used it.
 def addr : 
