@@ -15,6 +15,10 @@
 // Cpu0 profiles and nodes
 //===----------------------------------------------------------------------===//
 
+// Reference for SDTypeProfile here:
+// https://github.com/llvm-mirror/llvm/blob/master/include/llvm/Target/TargetSelectionDAG.td
+// DAG is composed of SDNodes. SDNode, PatLeaf and SDNodeXForm are in the same link above.
+
 //#if CH >= CH2 //1
 def SDT_Cpu0Ret          : SDTypeProfile<0, 1, [SDTCisInt<0>]>;
 //#endif
@@ -216,6 +220,10 @@ def calltarget  : Operand<iPTR> {
 //#if CH >= CH2 4
 // Signed Operand
 def simm16      : Operand<i32> {
+// LLVM supply the “let DecoderMethod” keyword to allow programmers implement 
+// their decode function.
+// LLVM will call these DecodeMethod when user uses Disassembler tools, such as
+// llvm-objdump -d.
   let DecoderMethod= "DecodeSimm16";
 }
 //#endif
@@ -239,10 +247,17 @@ def Cpu0MemAsmOperand : AsmOperandClass {
 //#if CH >= CH2 5
 // Address operand
 def mem : Operand<iPTR> {
+// Making llvm call function Cpu0InstPrinter::printMemOperand()
   let PrintMethod = "printMemOperand";
+// For example, ld $2, 4($sp), the mem operand is 4($sp):(ops CPURegs, simm16). 
   let MIOperandInfo = (ops CPURegs, simm16);
+// Making llvm call function getMemEncoding() when either ld or st instruction is 
+// issued in elf obj since these two instructions use mem Operand.
   let EncoderMethod = "getMemEncoding";
 //#if CH >= CH11_1 2
+// Accompany with “let ParserMatchClass = Cpu0MemAsmOperand;”, LLVM will call 
+// parseMemOperand() of Cpu0AsmParser.cpp when it meets the assembly mem operand 
+// 4($sp).
   let ParserMatchClass = Cpu0MemAsmOperand;
 //#endif //#if CH >= CH11_1 2
 }
@@ -266,6 +281,7 @@ def PtrRC : Operand<iPTR> {
 //#if CH >= CH3_5 3
 // Transformation Function - get the lower 16 bits.
 def LO16 : SDNodeXForm<imm, [{
+  // N is SDNode, getZExtValue() is N's member function
   return getImm(N, N->getZExtValue() & 0xffff);
 }]>;
 
@@ -474,6 +490,8 @@ class StoreM<bits<8> op, string instr_asm, PatFrag OpNode, RegisterClass RC,
 //@ 32-bit load.
 multiclass LoadM32<bits<8> op, string instr_asm, PatFrag OpNode,
                    bit Pseudo = 0> {
+// When defm LD : LoadM32<...>, then #NAME# is LD
+// When defm LB : LoadM32<...>, then #NAME# is LB
   def #NAME# : LoadM<op, instr_asm, OpNode, GPROut, mem, Pseudo>;
 }
 

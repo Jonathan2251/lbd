@@ -420,7 +420,15 @@ figures.
 
 - Each multithreaded SIMD Processor is assigned 512 elements of the vectors to work on.
   As :numref:`grid`: The hardware Thread Block Scheduler assigns Thread Blocks to 
-  multithreaded SIMD Processors. Thread Block <-> SIMD Processor.
+  multithreaded SIMD Processors. Thread Block <-> SIMD Processor. In this 8192 elements
+  of matrix multiplication A[] = B[] * C[] example, Warp is the 512 elements of 
+  matrix mutiplication.
+  If another 512 elements of matrix addition F[] = D[] + E[] assigned in the same 
+  Thread Block, then another Warp for it. Warp has it's own
+  PC and TLR (Thread Level Registers). Warp may map to
+  one whole function or part of function. Assume these two matrix mutiplication and 
+  addition instructions come from the same function. Compiler and run time may assign
+  them to the same Warp or different Warps [#Quantitative-gpu-warp]_.
 
 - SIMD Processors are full processors with separate PCs and are programmed using
   threads [#Quantitative-gpu-threadblock]_. 
@@ -432,6 +440,26 @@ figures.
   Each SIMD Thread has 32 elements run as :numref:`threadslanes` on 
   16 SIMD lanes (number of functional units just same
   as in vector processor). So it takes 2 clock cycles to complete [#lanes]_.
+
+- As the following code.
+  Thread Block 0 has 16 threads and each thread (warp) has it's own PC. The The 
+  SIMD Thread Scheduler select threads to run as :numref:`simd-processors`.
+
+.. code-block:: c++
+
+  Thread Block 0:
+    A[i0] = B[i0] * C[i0]; // thread 0, i0:(0..31) run in one or few SIMD instructions
+    A[i1] = B[i1] * C[i1]; // thread 1, i1:(32..63) 
+    ...
+    A[i15] = B[i15] * C[i15]; thread 15, i15:(480..511)
+
+  Thread Block 1:
+    A[i0] = B[i0] * C[i0]; // thread 0, i0:(512..543)
+    ...
+
+- Each thread handle 32 elements computing, so there are few hundred Thread 
+  Level Registers in a thread to support the SIMT computing.
+
 
 
 General purpose GPU
@@ -638,6 +666,9 @@ more. And actually, llvm IR expanding from version 3.1 util now as I can feel.
        Morgan Kaufmann Series in Computer Architecture and Design)
 
 .. [#Quantitative-gpu-griddef] Book Figure 4.12 of Computer Architecture: A Quantitative Approach 5th edition (The
+       Morgan Kaufmann Series in Computer Architecture and Design)
+
+.. [#Quantitative-gpu-warp] Book Figure 4.14 and 4.24 of Computer Architecture: A Quantitative Approach 5th edition (The
        Morgan Kaufmann Series in Computer Architecture and Design)
 
 .. [#Quantitative-gpu-threadblock] search these words from section 4.4 of A Quantitative Approach 5th edition (The
