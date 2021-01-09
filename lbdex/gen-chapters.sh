@@ -365,7 +365,7 @@ dest_parent_dir=chapters
 rm -rf $dest_parent_dir
 mkdir $dest_parent_dir
 
-clang++ preprocess.cpp -o preprocess
+g++ preprocess.cpp -o preprocess
 
 allch="2 3_1 3_2 3_3 3_4 3_5 4_1 4_2 5_1 6_1 7_1 8_1 8_2 9_1 9_2 9_3 \
       10_1 11_1 11_2 12_1"
