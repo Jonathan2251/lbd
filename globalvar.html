@@ -1,34 +1,33 @@
+
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    
-    <title>Global variables &mdash; Tutorial: Creating an LLVM Backend for the Cpu0 Architecture</title>
-    
+    <title>Global variables &#8212; Tutorial: Creating an LLVM Backend for the Cpu0 Architecture</title>
     <link rel="stylesheet" href="_static/haiku.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
         VERSION:     '3.9.1',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
-        HAS_SOURCE:  true
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
       };
     </script>
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
     <link rel="author" title="About these documents" href="about.html" />
-    <link rel="top" title="Tutorial: Creating an LLVM Backend for the Cpu0 Architecture" href="index.html" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Other data type" href="othertype.html" />
     <link rel="prev" title="Generating object files" href="genobj.html" /> 
   </head>
-  <body role="document">
+  <body>
       <div class="header" role="banner"><h1 class="heading"><a href="index.html">
           <span>Tutorial: Creating an LLVM Backend for the Cpu0 Architecture</span></a></h1>
         <h2 class="heading"><span>Global variables</span></h2>
@@ -78,7 +77,7 @@ Readers should focus on how to add code for creating DAG nodes at run time and
 how to define the pattern match in td for the run time created DAG nodes.
 In addition, the machine instruction printing function for global variable
 related assembly directive (macro) should be cared if your backend has it.</p>
-<p>Chapter6_1/ supports the global variable, let&#8217;s compile ch6_1.cpp with this
+<p>Chapter6_1/ supports the global variable, let’s compile ch6_1.cpp with this
 version first, then explain the code changes after that.</p>
 <p class="rubric">lbdex/input/ch6_1.cpp</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="nb">int</span> <span class="n">gStart</span> <span class="o">=</span> <span class="mi">3</span><span class="p">;</span>
@@ -99,13 +98,13 @@ version first, then explain the code changes after that.</p>
 <span class="go">@gI = global i32 100, align 4</span>
 
 <span class="go">define i32 @_Z3funv() nounwind uwtable ssp {</span>
-<span class="gp">  %</span><span class="nv">1</span> <span class="o">=</span> alloca i32, align 4
-<span class="gp">  %</span><span class="nv">c</span> <span class="o">=</span> alloca i32, align 4
+<span class="gp">  %</span><span class="nv">1</span> <span class="o">=</span> alloca i32, align <span class="m">4</span>
+<span class="gp">  %</span><span class="nv">c</span> <span class="o">=</span> alloca i32, align <span class="m">4</span>
 <span class="go">  store i32 0, i32* %1</span>
 <span class="go">  store i32 0, i32* %c, align 4</span>
-<span class="gp">  %</span><span class="nv">2</span> <span class="o">=</span> load i32* @gI, align 4
+<span class="gp">  %</span><span class="nv">2</span> <span class="o">=</span> load i32* @gI, align <span class="m">4</span>
 <span class="go">  store i32 %2, i32* %c, align 4</span>
-<span class="gp">  %</span><span class="nv">3</span> <span class="o">=</span> load i32* %c, align 4
+<span class="gp">  %</span><span class="nv">3</span> <span class="o">=</span> load i32* %c, align <span class="m">4</span>
 <span class="go">  ret i32 %3</span>
 <span class="go">}</span>
 </pre></div>
@@ -116,11 +115,11 @@ version first, then explain the code changes after that.</p>
 There are two different layout of global variables for static mode which
 controlled by option cpu0-use-small-section.
 Chapter6_1/ supports the global variable translation.
-Let&#8217;s run Chapter6_1/ with ch6_1.cpp via four different options
-<code class="docutils literal"><span class="pre">llc</span>&nbsp; <span class="pre">-relocation-model=static</span> <span class="pre">-cpu0-use-small-section=false</span></code>,
-<code class="docutils literal"><span class="pre">llc</span>&nbsp; <span class="pre">-relocation-model=static</span> <span class="pre">-cpu0-use-small-section=true</span></code>,
-<code class="docutils literal"><span class="pre">llc</span>&nbsp; <span class="pre">-relocation-model=pic</span> <span class="pre">-cpu0-use-small-section=false</span></code> and
-<code class="docutils literal"><span class="pre">llc</span>&nbsp; <span class="pre">-relocation-model=pic</span> <span class="pre">-cpu0-use-small-section=true</span></code> to tracing the
+Let’s run Chapter6_1/ with ch6_1.cpp via four different options
+<code class="docutils literal"><span class="pre">llc</span>&#160; <span class="pre">-relocation-model=static</span> <span class="pre">-cpu0-use-small-section=false</span></code>,
+<code class="docutils literal"><span class="pre">llc</span>&#160; <span class="pre">-relocation-model=static</span> <span class="pre">-cpu0-use-small-section=true</span></code>,
+<code class="docutils literal"><span class="pre">llc</span>&#160; <span class="pre">-relocation-model=pic</span> <span class="pre">-cpu0-use-small-section=false</span></code> and
+<code class="docutils literal"><span class="pre">llc</span>&#160; <span class="pre">-relocation-model=pic</span> <span class="pre">-cpu0-use-small-section=true</span></code> to tracing the
 DAGs and Cpu0 instructions.</p>
 <div class="highlight-console"><div class="highlight"><pre><span></span><span class="gp">118-165-78-166:input Jonathan$</span> clang -target mips-unknown-linux-gnu -c
 <span class="go">ch6_1.cpp -emit-llvm -o ch6_1.bc</span>
@@ -401,7 +400,7 @@ DAGs and Cpu0 instructions.</p>
 </tr>
 </tbody>
 </table>
-<table border="1" class="docutils" id="id10">
+<table border="1" class="colwidths-given docutils" id="id10">
 <caption><span class="caption-number">Table 24 </span><span class="caption-text">Cpu0 DAGs and instructions for -relocation-model=static</span><a class="headerlink" href="#id10" title="Permalink to this table">¶</a></caption>
 <colgroup>
 <col width="33%" />
@@ -439,9 +438,9 @@ DAGs and Cpu0 instructions.</p>
 </table>
 <ul class="simple">
 <li>In static, cpu0-use-small-section=true, offset between gI and .data can be calculated since the $gp is assigned at fixed address of the start of global address table.</li>
-<li>In &#8220;static, cpu0-use-small-section=false&#8221;, the gI high and low address (%hi(gI) and %lo(gI)) are translated into absolute address.</li>
+<li>In “static, cpu0-use-small-section=false”, the gI high and low address (%hi(gI) and %lo(gI)) are translated into absolute address.</li>
 </ul>
-<table border="1" class="docutils" id="id11">
+<table border="1" class="colwidths-given docutils" id="id11">
 <caption><span class="caption-number">Table 25 </span><span class="caption-text">Cpu0 DAGs and instructions for -relocation-model=pic</span><a class="headerlink" href="#id11" title="Permalink to this table">¶</a></caption>
 <colgroup>
 <col width="33%" />
@@ -829,7 +828,7 @@ llvm want to translate IR DAG of loading global variable into machine code.
 Although all the Custom type of IR operations set by
 setOperationAction(ISD::XXX, MVT::XXX, Custom) in construction function
 Cpu0TargetLowering() will invoke llvm to call
-Cpu0TargetLowering::LowerOperation() in stage &#8220;Legalized selection DAG&#8221;, the
+Cpu0TargetLowering::LowerOperation() in stage “Legalized selection DAG”, the
 global address access operation can be identified by checking whether the opcode
 of DAG Node is ISD::GlobalAddress or not, furthmore.</p>
 <p>Finally, add the following code in Cpu0ISelDAGToDAG.cpp and Cpu0InstrInfo.td.</p>
@@ -972,20 +971,20 @@ Option cpu0-use-small-section=false will generate the following instructions.</p
 </div>
 <p>As above code, it loads the high address part of gI PC relative address
 (16 bits) to register $2 and shift 16 bits.
-Now, the register $2 got it&#8217;s high part of gI absolute address.
+Now, the register $2 got it’s high part of gI absolute address.
 Next, it adds register $2 and low part of gI absolute address into $2.
 At this point, it gets the gI memory address. Finally, it gets the gI content by
-instruction &#8220;ld $2, 0($2)&#8221;.
+instruction “ld $2, 0($2)”.
 The <code class="docutils literal"><span class="pre">llc</span> <span class="pre">-relocation-model=static</span></code> is for absolute address mode which must be
 used in static link mode. The dynamic link must be encoded with Position
 Independent Addressing.
 As you can see, the PC relative address can be solved in static link (
-The offset between the address of gI and instruction &#8220;lui $2, %hi(gI)&#8221; can be
+The offset between the address of gI and instruction “lui $2, %hi(gI)” can be
 caculated). Since Cpu0 uses PC relative address coding, this program can be
 loaded to any address and run correctly there.
 If this program uses absolute address and can be loaded at a specific address
 known at link stage, the relocation record of gI variable access instruction
-such as &#8220;lui $2, %hi(gI)&#8221; and &#8220;ori      $2, $2, %lo(gI)&#8221; can be solved
+such as “lui $2, %hi(gI)” and “ori      $2, $2, %lo(gI)” can be solved
 at link time. On the other hand,
 if this program use absolute address and the loading address is known at load
 time, then this relocation record will be solved by loader at load time.</p>
@@ -994,7 +993,7 @@ time, then this relocation record will be solved by loader at load time.</p>
 <code class="docutils literal"><span class="pre">llc</span> <span class="pre">-relocation-model=static</span> <span class="pre">-cpu0-use-small-section=false</span></code> will translate
 DAG (GlobalAddress&lt;i32* &#64;gI&gt; 0) into
 (add Cpu0ISD::Hi&lt;gI offset Hi16&gt; Cpu0ISD::Lo&lt;gI offset Lo16&gt;) in
-stage &#8220;Legalized selection DAG&#8221; as below.</p>
+stage “Legalized selection DAG” as below.</p>
 <p class="rubric">lbdex/chapters/Chapter6_1/Cpu0ISelLowering.h</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span>    <span class="o">//</span> <span class="n">This</span> <span class="n">method</span> <span class="n">creates</span> <span class="n">the</span> <span class="n">following</span> <span class="n">nodes</span><span class="p">,</span> <span class="n">which</span> <span class="n">are</span> <span class="n">necessary</span> <span class="k">for</span>
     <span class="o">//</span> <span class="n">computing</span> <span class="n">a</span> <span class="n">symbol</span><span class="s1">&#39;s address in non-PIC mode:</span>
@@ -1113,12 +1112,12 @@ def : Pat&lt;(add CPURegs:$hi, (Cpu0Lo tglobaladdr:$lo)),
 <span class="go">...</span>
 </pre></div>
 </div>
-<p>As above, Pat&lt;(...),(...)&gt; include two lists of DAGs.
+<p>As above, Pat&lt;(…),(…)&gt; include two lists of DAGs.
 The left is IR DAG and the right is machine instruction DAG.
-&#8220;Pat&lt;(Cpu0Hi tglobaladdr:$in), (LUi, tglobaladdr:$in)&gt;;&#8221; will
+“Pat&lt;(Cpu0Hi tglobaladdr:$in), (LUi, tglobaladdr:$in)&gt;;” will
 translate DAG (Cpu0ISD::Hi tglobaladdr) into (lui (ori ZERO, tglobaladdr), 16).
-&#8220;Pat&lt;(add CPURegs:$hi, (Cpu0Lo tglobaladdr:$lo)), (ORi CPURegs:$hi,
-tglobaladdr:$lo)&gt;;&#8221; will translate DAG (add Cpu0ISD::Hi, Cpu0ISD::Lo) into Cpu0
+“Pat&lt;(add CPURegs:$hi, (Cpu0Lo tglobaladdr:$lo)), (ORi CPURegs:$hi,
+tglobaladdr:$lo)&gt;;” will translate DAG (add Cpu0ISD::Hi, Cpu0ISD::Lo) into Cpu0
 instruction (ori Cpu0ISD::Hi, Cpu0ISD::Lo).</p>
 </div>
 <div class="section" id="sdata-or-sbss">
@@ -1148,7 +1147,7 @@ Option cpu0-use-small-section=true will generate the following instructions.</p>
 <code class="docutils literal"><span class="pre">llc</span> <span class="pre">-relocation-model=static</span> <span class="pre">-cpu0-use-small-section=true</span></code> will translate DAG
 (GlobalAddress&lt;i32* &#64;gI&gt; 0) into
 (add register %GP Cpu0ISD::GPRel&lt;gI offset&gt;) in
-stage &#8220;Legalized selection DAG&#8221; as below.</p>
+stage “Legalized selection DAG” as below.</p>
 <p class="rubric">lbdex/chapters/Chapter6_1/Cpu0ISelLowering.cpp</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span>SDValue Cpu0TargetLowering::lowerGlobalAddress(SDValue Op,
                                                SelectionDAG &amp;DAG) const {
@@ -1236,8 +1235,8 @@ def : Pat&lt;(add CPURegs:$gp, (Cpu0GPRel tglobaladdr:$in)),
 <span class="go">...</span>
 </pre></div>
 </div>
-<p>&#8220;Pat&lt;(add CPURegs:$gp, (Cpu0GPRel tglobaladdr:$in)), (ADD CPURegs:$gp, (ORi
-ZERO, tglobaladdr:$in))&gt;;&#8221; will translate (add register %GP Cpu0ISD::GPRel
+<p>“Pat&lt;(add CPURegs:$gp, (Cpu0GPRel tglobaladdr:$in)), (ADD CPURegs:$gp, (ORi
+ZERO, tglobaladdr:$in))&gt;;” will translate (add register %GP Cpu0ISD::GPRel
 tglobaladdr) into (add $gp, (ori ZERO, tglobaladdr)).</p>
 <p>In this mode, the $gp content is assigned at compile/link time, changed only at
 program be loaded, and is fixed during the program running; on the contrary,
@@ -1245,7 +1244,7 @@ when -relocation-model=pic the $gp can be changed during program running.
 For this example code, if $gp is assigned to the start address of .sdata by loader
 when program ch6_1.cpu0.s is loaded, then linker can caculate %gp_rel(gI) (=
 the relative address distance between gI and start of .sdata section).
-Which meaning this relocation record can be solved at link time, that&#8217;s why it
+Which meaning this relocation record can be solved at link time, that’s why it
 is static mode.</p>
 <p>In this mode, we reserve $gp to a specfic fixed address of the program is
 loaded. As a result, the $gp cannot be allocated as a general purpose for
@@ -1410,7 +1409,7 @@ causes the assembler to print a warning message whenever
 an assembler operation generates more than one machine language instruction,
 reference Mips ABI <a class="footnote-reference" href="#id7" id="id3">[2]</a>.</p>
 <p>Following code will exspand .cpload into machine instructions as below.
-&#8220;0fa00000 09aa0000 13aa6000&#8221; is the <strong>.cpload</strong> machine instructions
+“0fa00000 09aa0000 13aa6000” is the <strong>.cpload</strong> machine instructions
 displayed in comments of Cpu0MCInstLower.cpp.</p>
 <p class="rubric">lbdex/chapters/Chapter6_1/Cpu0MCInstLower.h</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">///</span> <span class="n">This</span> <span class="k">class</span> <span class="nc">is</span> <span class="n">used</span> <span class="n">to</span> <span class="n">lower</span> <span class="n">an</span> <span class="n">MachineInstr</span> <span class="n">into</span> <span class="n">an</span> <span class="n">MCInst</span><span class="o">.</span>
@@ -1480,7 +1479,7 @@ displayed in comments of Cpu0MCInstLower.cpp.</p>
 After calculating the gp, a function allocates the local stack space and saves
 the gp on the stack, so it can be restored after subsequent function calls.
 In other words, the gp is a caller saved register.</p>
-<p>...</p>
+<p>…</p>
 <p class="last">_gp_disp represents the offset between the beginning of the function and the
 global offset table.
 Various optimizations are possible in this code example and the others that
@@ -1490,23 +1489,23 @@ function that is strictly local to an object module.</p>
 </div>
 <p>The _gp_disp as above is a relocation record, it means both the machine
 instructions 0da00000 (offset 0) and 0daa0000 (offset 8) which equal to assembly
-&#8220;ori $gp, $zero, %hi(_gp_disp)&#8221; and assembly &#8220;ori $gp, $gp, %lo(_gp_disp)&#8221;,
+“ori $gp, $zero, %hi(_gp_disp)” and assembly “ori $gp, $gp, %lo(_gp_disp)”,
 respectively, are relocated records depend on _gp_disp.
 The loader or OS can caculate _gp_disp by (x - start address of .data)
 when load the dynamic function into memory x, and adjusts these two
 instructions offet correctly.
 Since shared function is loaded when this function is called, the relocation
-record &#8220;ld $2, %got(gI)($gp)&#8221; cannot be resolved in link time.
+record “ld $2, %got(gI)($gp)” cannot be resolved in link time.
 In spite of the reloation record is solved on load time, the name binding
 is static, since linker deliver the memory address to loader, and loader can solve
 this just by caculate the offset directly. The memory reference bind with
 the offset of _gp_disp at link time.
 The ELF relocation records will be introduced in Chapter ELF Support.
-So, don&#8217;t worry if you don&#8217;t quite understand it at this point.</p>
+So, don’t worry if you don’t quite understand it at this point.</p>
 <p>The code fragment of lowerGlobalAddress() as the following corresponding option
 <code class="docutils literal"><span class="pre">llc</span> <span class="pre">-relocation-model=pic</span></code> will translate DAG (GlobalAddress&lt;i32* &#64;gI&gt; 0) into
 (load EntryToken, (Cpu0ISD::Wrapper Register %GP, TargetGlobalAddress&lt;i32* &#64;gI&gt; 0))
-in stage &#8220;Legalized selection DAG&#8221; as below.</p>
+in stage “Legalized selection DAG” as below.</p>
 <p class="rubric">lbdex/chapters/Chapter6_1/Cpu0ISelLowering.h</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span>    // This method creates the following nodes, which are necessary for
     // computing a global symbol&#39;s address:
@@ -1614,21 +1613,21 @@ TargetGlobalAddress&lt;i32* &#64;gI&gt; 0)) into Cpu0 instruction as follows,</p
 <span class="go">...</span>
 </pre></div>
 </div>
-<p>Remind in pic mode, Cpu0 uses &#8221;.cpload&#8221; and &#8220;ld $2, %got(gI)($gp)&#8221; to access
+<p>Remind in pic mode, Cpu0 uses “.cpload” and “ld $2, %got(gI)($gp)” to access
 global variable as Mips. It takes 4 instructions in both Cpu0 and Mips.
-The cost came from we didn&#8217;t assume that register $gp is always assigned to
+The cost came from we didn’t assume that register $gp is always assigned to
 address .sdata and fixed there. Even we reserve $gp in this function, the $gp
 register can be changed at other functions. In last sub-section, the $gp is
 assumed to preserved at any function. If $gp is fixed during the run time, then
-&#8221;.cpload&#8221; can be removed here and have only one instruction cost in global
-variable access. The advantage of &#8221;.cpload&#8221; removing come from losing one
+“.cpload” can be removed here and have only one instruction cost in global
+variable access. The advantage of “.cpload” removing come from losing one
 general purpose register $gp which can be allocated for variables.
-In last sub-section, .sdata mode, we use &#8221;.cpload&#8221; removing since it is
+In last sub-section, .sdata mode, we use “.cpload” removing since it is
 static link.
 In pic mode, the dynamic loading takes too much time.
-Romove &#8221;.cpload&#8221; with the cost of losing one general purpose register at all
+Romove “.cpload” with the cost of losing one general purpose register at all
 functions is not deserved here.
-The relocation records of &#8221;.cpload&#8221; from <code class="docutils literal"><span class="pre">llc</span> <span class="pre">-relocation-model=pic</span></code> can also
+The relocation records of “.cpload” from <code class="docutils literal"><span class="pre">llc</span> <span class="pre">-relocation-model=pic</span></code> can also
 be solved in link stage if we want to link this function by static link.</p>
 </div>
 <div class="section" id="id4">
@@ -1637,7 +1636,7 @@ be solved in link stage if we want to link this function by static link.</p>
 <code class="docutils literal"><span class="pre">llc</span> <span class="pre">-relocation-model=pic</span></code> will translate DAG (GlobalAddress&lt;i32* &#64;gI&gt; 0) into
 (load EntryToken, (Cpu0ISD::Wrapper (add Cpu0ISD::Hi&lt;gI offset Hi16&gt;, Register %GP),
 TargetGlobalAddress&lt;i32* &#64;gI&gt; 0))
-in stage &#8220;Legalized selection DAG&#8221; as below.</p>
+in stage “Legalized selection DAG” as below.</p>
 <p class="rubric">lbdex/chapters/Chapter6_1/Cpu0ISelLowering.h</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span>    // This method creates the following nodes, which are necessary for
     // computing a global symbol&#39;s address in large-GOT mode:
@@ -1728,7 +1727,7 @@ offset Hi16&gt;, Register %GP), Cpu0ISD::Lo&lt;gI offset Lo16&gt;)) into Cpu0
 instructions as below.</p>
 <div class="highlight-console"><div class="highlight"><pre><span></span><span class="go">...</span>
 <span class="go">ori $2, $zero, %got_hi(gI)</span>
-<span class="gp">shl $</span>2, <span class="nv">$2</span>, 16
+<span class="gp">shl $</span><span class="m">2</span>, <span class="nv">$2</span>, <span class="m">16</span>
 <span class="go">add $2, $2, $gp</span>
 <span class="go">ld  $2, %got_lo(gI)($2)</span>
 <span class="go">...</span>
@@ -1908,8 +1907,8 @@ should be moved from .sdata/.sbss to .data/.bss by set option
 <span class="o">-</span><span class="n">filetype</span><span class="o">=</span><span class="n">obj</span> <span class="n">b</span><span class="p">.</span><span class="n">bc</span> <span class="o">-</span><span class="n">o</span> <span class="n">b</span><span class="p">.</span><span class="n">cpu0</span><span class="p">.</span><span class="n">o</span>
 </pre></div>
 </div>
-<p>The rule for global variables allocation is &#8220;set the small and frequent
-variables in small 16 addressable area&#8221;.</p>
+<p>The rule for global variables allocation is “set the small and frequent
+variables in small 16 addressable area”.</p>
 <table class="docutils footnote" frame="void" id="id6" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
@@ -1946,8 +1945,8 @@ variables in small 16 addressable area&#8221;.</p>
       </div>
 
     <div class="footer" role="contentinfo">
-        &copy; Copyright 2016, Chen Chung-Shu.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.4.
+        &#169; Copyright 2016, Chen Chung-Shu.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.7.
     </div>
   </body>
 </html>

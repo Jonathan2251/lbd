@@ -1,34 +1,33 @@
+
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    
-    <title>C++ support &mdash; Tutorial: Creating an LLVM Backend for the Cpu0 Architecture</title>
-    
+    <title>C++ support &#8212; Tutorial: Creating an LLVM Backend for the Cpu0 Architecture</title>
     <link rel="stylesheet" href="_static/haiku.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
         VERSION:     '3.9.1',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
-        HAS_SOURCE:  true
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
       };
     </script>
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
     <link rel="author" title="About these documents" href="about.html" />
-    <link rel="top" title="Tutorial: Creating an LLVM Backend for the Cpu0 Architecture" href="index.html" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Verify backend on Verilog simulator" href="verilog.html" />
     <link rel="prev" title="Assembler" href="asm.html" /> 
   </head>
-  <body role="document">
+  <body>
       <div class="header" role="banner"><h1 class="heading"><a href="index.html">
           <span>Tutorial: Creating an LLVM Backend for the Cpu0 Architecture</span></a></h1>
         <h2 class="heading"><span>C++ support</span></h2>
@@ -142,7 +141,7 @@ ch12_inherit.cpp as follows,</p>
 
 </pre></div>
 </div>
-<p>If using cout instead of printf in ch12_inherit.cpp, it won&#8217;t generate exception
+<p>If using cout instead of printf in ch12_inherit.cpp, it won’t generate exception
 handler IRs on Linux, whereas it will generate invoke, landing, resume
 and unreachable exception handler IRs on iMac.
 Example code, ch12_eh.cpp, which supports <strong>try</strong> and <strong>catch</strong> exception handler
@@ -176,7 +175,7 @@ as the following will generate these exception handler IRs both on iMac and Linu
 </pre></div>
 </div>
 <div class="highlight-default"><div class="highlight"><pre><span></span>; ModuleID = &#39;ch12_eh.bc&#39;
-source_filename = &quot;ch12_eh.bc&quot;
+source_filename = &quot;input/ch12_eh.cpp&quot;
 target datalayout = &quot;E-m:m-p:32:32-i8:8:32-i16:16:32-i64:64-n32-S64&quot;
 target triple = &quot;mips-unknown-linux-gnu&quot;
 
@@ -193,24 +192,25 @@ $_ZTI3Ex1 = comdat any
  getelementptr inbounds ([5 x i8], [5 x i8]* @_ZTS3Ex1, i32 0, i32 0) }, comdat
 
 define void @_Z15throw_exceptionii(i32 signext %a, i32 signext %b) #0 {
-  %1 = alloca i32, align 4
-  %2 = alloca i32, align 4
+entry:
+  %a.addr = alloca i32, align 4
+  %b.addr = alloca i32, align 4
   %ex1 = alloca %class.Ex1, align 1
-  store i32 %a, i32* %1, align 4
-  store i32 %b, i32* %2, align 4
-  %3 = load i32, i32* %1, align 4
-  %4 = load i32, i32* %2, align 4
-  %5 = icmp sgt i32 %3, %4
-  br i1 %5, label %6, label %9
+  store i32 %a, i32* %a.addr, align 4
+  store i32 %b, i32* %b.addr, align 4
+  %0 = load i32, i32* %a.addr, align 4
+  %1 = load i32, i32* %b.addr, align 4
+  %cmp = icmp sgt i32 %0, %1
+  br i1 %cmp, label %if.then, label %if.end
 
-; &lt;label&gt;:6:                                      ; preds = %0
-  %7 = call i8* @__cxa_allocate_exception(i32 1) #1
-  %8 = bitcast i8* %7 to %class.Ex1*
-  call void @__cxa_throw(i8* %7, i8* bitcast ({ i8*, i8* }* @_ZTI3Ex1 to i8*), i
-8* null) #2
+if.then:                                          ; preds = %entry
+  %exception = call i8* @__cxa_allocate_exception(i32 1) #1
+  %2 = bitcast i8* %exception to %class.Ex1*
+  call void @__cxa_throw(i8* %exception, i8* bitcast ({ i8*, i8* }* @_ZTI3Ex1 to
+ i8*), i8* null) #2
   unreachable
 
-; &lt;label&gt;:9:                                      ; preds = %0
+if.end:                                           ; preds = %entry
   ret void
 }
 
@@ -220,40 +220,39 @@ declare void @__cxa_throw(i8*, i8*, i8*)
 
 define i32 @_Z14test_try_catchv() #0 personality i8* bitcast (i32 (...)* @__gxx_
 personality_v0 to i8*) {
-  %1 = alloca i32, align 4
-  %2 = alloca i8*
-  %3 = alloca i32
-  %4 = alloca i32
+entry:
+  %retval = alloca i32, align 4
+  %exn.slot = alloca i8*
+  %ehselector.slot = alloca i32
   invoke void @_Z15throw_exceptionii(i32 signext 2, i32 signext 1)
-          to label %5 unwind label %6
+          to label %invoke.cont unwind label %lpad
 
-; &lt;label&gt;:5:                                      ; preds = %0
-  br label %13
+invoke.cont:                                      ; preds = %entry
+  br label %try.cont
 
-; &lt;label&gt;:6:                                      ; preds = %0
-  %7 = landingpad { i8*, i32 }
+lpad:                                             ; preds = %entry
+  %0 = landingpad { i8*, i32 }
           catch i8* null
-  %8 = extractvalue { i8*, i32 } %7, 0
-  store i8* %8, i8** %2
-  %9 = extractvalue { i8*, i32 } %7, 1
-  store i32 %9, i32* %3
-  br label %10
+  %1 = extractvalue { i8*, i32 } %0, 0
+  store i8* %1, i8** %exn.slot, align 4
+  %2 = extractvalue { i8*, i32 } %0, 1
+  store i32 %2, i32* %ehselector.slot, align 4
+  br label %catch
 
-; &lt;label&gt;:10:                                     ; preds = %6
-  %11 = load i8*, i8** %2
-  %12 = call i8* @__cxa_begin_catch(i8* %11) #1
-  store i32 1, i32* %1
-  store i32 1, i32* %4
+catch:                                            ; preds = %lpad
+  %exn = load i8*, i8** %exn.slot, align 4
+  %3 = call i8* @__cxa_begin_catch(i8* %exn) #1
+  store i32 1, i32* %retval, align 4
   call void @__cxa_end_catch()
-  br label %14
+  br label %return
 
-; &lt;label&gt;:13:                                     ; preds = %5
-  store i32 0, i32* %1
-  br label %14
+try.cont:                                         ; preds = %invoke.cont
+  store i32 0, i32* %retval, align 4
+  br label %return
 
-; &lt;label&gt;:14:                                     ; preds = %13, %10
-  %15 = load i32, i32* %1
-  ret i32 %15
+return:                                           ; preds = %try.cont, %catch
+  %4 = load i32, i32* %retval, align 4
+  ret i32 %4
 }
 
 declare i32 @__gxx_personality_v0(...)
@@ -262,16 +261,17 @@ declare i8* @__cxa_begin_catch(i8*)
 
 declare void @__cxa_end_catch()
 
-attributes #0 = { &quot;less-precise-fpmad&quot;=&quot;false&quot; &quot;no-frame-pointer-elim&quot;=&quot;true&quot; &quot;n
-o-frame-pointer-elim-non-leaf&quot; &quot;no-infs-fp-math&quot;=&quot;false&quot; &quot;no-nans-fp-math&quot;=&quot;fals
-e&quot; &quot;stack-protector-buffer-size&quot;=&quot;8&quot; &quot;target-cpu&quot;=&quot;mips32r2&quot; &quot;target-features&quot;=&quot;
-+mips32r2&quot; &quot;unsafe-fp-math&quot;=&quot;false&quot; &quot;use-soft-float&quot;=&quot;false&quot; }
+attributes #0 = { &quot;disable-tail-calls&quot;=&quot;false&quot; &quot;less-precise-fpmad&quot;=&quot;false&quot; &quot;no-
+frame-pointer-elim&quot;=&quot;true&quot; &quot;no-frame-pointer-elim-non-leaf&quot; &quot;no-infs-fp-math&quot;=&quot;f
+alse&quot; &quot;no-jump-tables&quot;=&quot;false&quot; &quot;no-nans-fp-math&quot;=&quot;false&quot; &quot;no-signed-zeros-fp-mat
+h&quot;=&quot;false&quot; &quot;stack-protector-buffer-size&quot;=&quot;8&quot; &quot;target-cpu&quot;=&quot;mips32r2&quot; &quot;target-fea
+tures&quot;=&quot;+mips32r2&quot; &quot;unsafe-fp-math&quot;=&quot;false&quot; &quot;use-soft-float&quot;=&quot;false&quot; }
 attributes #1 = { nounwind }
 attributes #2 = { noreturn }
 
 !llvm.ident = !{!0}
 
-!0 = !{!&quot;Apple LLVM version 7.0.0 (clang-700.1.76)&quot;}
+!0 = !{!&quot;clang version 3.9.0 (tags/RELEASE_390/final)&quot;}
 </pre></div>
 </div>
 <div class="code console highlight-default"><div class="highlight"><pre><span></span>JonathantekiiMac:input Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
@@ -322,7 +322,7 @@ _Z15throw_exceptionii:
   .mask   0x00005000,-4
   .set  noreorder
   .set  nomacro
-# BB#0:
+# BB#0:                                 # %entry
   addiu  $sp, $sp, -40
 $tmp0:
   .cfi_def_cfa_offset 40
@@ -342,14 +342,14 @@ $tmp3:
   jle  $sw, $BB0_2
   nop
   jmp  $BB0_1
-$BB0_2:
+$BB0_2:                                 # %if.end
   move   $sp, $fp
   ld  $fp, 32($sp)            # 4-byte Folded Reload
   ld  $lr, 36($sp)            # 4-byte Folded Reload
   addiu  $sp, $sp, 40
   ret  $lr
   nop
-$BB0_1:
+$BB0_1:                                 # %if.then
   addiu  $4, $zero, 1
   jsub  __cxa_allocate_exception
   nop
@@ -377,17 +377,17 @@ $func_begin0 = ($tmp7)
   .cfi_startproc
   .cfi_personality 0, __gxx_personality_v0
   .cfi_lsda 0, $exception0
-  .frame  $fp,40,$lr
+  .frame  $fp,32,$lr
   .mask   0x00005200,-4
   .set  noreorder
   .set  nomacro
-# BB#0:
-  addiu  $sp, $sp, -40
+# BB#0:                                 # %entry
+  addiu  $sp, $sp, -32
 $tmp8:
-  .cfi_def_cfa_offset 40
-  st  $lr, 36($sp)            # 4-byte Folded Spill
-  st  $fp, 32($sp)            # 4-byte Folded Spill
-  st  $9, 28($sp)             # 4-byte Folded Spill
+  .cfi_def_cfa_offset 32
+  st  $lr, 28($sp)            # 4-byte Folded Spill
+  st  $fp, 24($sp)            # 4-byte Folded Spill
+  st  $9, 20($sp)             # 4-byte Folded Spill
 $tmp9:
   .cfi_offset 14, -4
 $tmp10:
@@ -404,27 +404,26 @@ $tmp4:
   jsub  _Z15throw_exceptionii
   nop
 $tmp5:
-# BB#2:
+# BB#2:                                 # %try.cont
   addiu  $2, $zero, 0
-  st  $2, 24($fp)
-$BB1_3:
-  ld  $2, 24($fp)
+  st  $2, 16($fp)
+$BB1_3:                                 # %return
+  ld  $2, 16($fp)
   move   $sp, $fp
-  ld  $9, 28($sp)             # 4-byte Folded Reload
-  ld  $fp, 32($sp)            # 4-byte Folded Reload
-  ld  $lr, 36($sp)            # 4-byte Folded Reload
-  addiu  $sp, $sp, 40
+  ld  $9, 20($sp)             # 4-byte Folded Reload
+  ld  $fp, 24($sp)            # 4-byte Folded Reload
+  ld  $lr, 28($sp)            # 4-byte Folded Reload
+  addiu  $sp, $sp, 32
   ret  $lr
   nop
-$BB1_1:
+$BB1_1:                                 # %catch
 $tmp6:
-  st  $4, 20($fp)
-  st  $5, 16($fp)
-  ld  $4, 20($fp)
+  st  $4, 12($fp)
+  st  $5, 8($fp)
+  ld  $4, 12($fp)
   jsub  __cxa_begin_catch
   nop
-  st  $9, 24($fp)
-  st  $9, 12($fp)
+  st  $9, 16($fp)
   jsub  __cxa_end_catch
   nop
   jmp  $BB1_3
@@ -476,7 +475,7 @@ _ZTI3Ex1:
   .size  _ZTI3Ex1, 8
 
 
-  .ident  &quot;Apple LLVM version 7.0.0 (clang-700.1.76)&quot;
+  .ident  &quot;clang version 3.9.0 (tags/RELEASE_390/final)&quot;
   .section  &quot;.note.GNU-stack&quot;,&quot;&quot;,@progbits
 </pre></div>
 </div>
@@ -851,7 +850,7 @@ lowerGlobalTLSAddress(SDValue Op, SelectionDAG &amp;DAG) const
 </pre></div>
 </div>
 <div class="highlight-default"><div class="highlight"><pre><span></span>; ModuleID = &#39;ch12_thread_var.bc&#39;
-source_filename = &quot;ch12_thread_var.bc&quot;
+source_filename = &quot;input/ch12_thread_var.cpp&quot;
 target datalayout = &quot;E-m:m-p:32:32-i8:8:32-i16:16:32-i64:64-n32-S64&quot;
 target triple = &quot;mips-unknown-linux-gnu&quot;
 
@@ -860,35 +859,44 @@ target triple = &quot;mips-unknown-linux-gnu&quot;
 
 ; Function Attrs: nounwind
 define i32 @_Z15test_thread_varv() #0 {
+entry:
   store i32 2, i32* @a, align 4
-  %1 = load i32, i32* @a, align 4
-  ret i32 %1
+  %0 = load i32, i32* @a, align 4
+  ret i32 %0
 }
 
 define i32 @_Z17test_thread_var_2v() #1 {
+entry:
+  %0 = call i32* @_ZTW1b()
+  store i32 3, i32* %0, align 4
   %1 = call i32* @_ZTW1b()
-  store i32 3, i32* %1, align 4
-  %2 = call i32* @_ZTW1b()
-  %3 = load i32, i32* %2, align 4
-  ret i32 %3
+  %2 = load i32, i32* %1, align 4
+  ret i32 %2
 }
 
-define weak_odr hidden i32* @_ZTW1b() {
+define weak_odr hidden i32* @_ZTW1b() #2 {
   ret i32* @b
 }
 
-attributes #0 = { nounwind &quot;less-precise-fpmad&quot;=&quot;false&quot; &quot;no-frame-pointer-elim&quot;=
-&quot;true&quot; &quot;no-frame-pointer-elim-non-leaf&quot; &quot;no-infs-fp-math&quot;=&quot;false&quot; &quot;no-nans-fp-ma
-th&quot;=&quot;false&quot; &quot;stack-protector-buffer-size&quot;=&quot;8&quot; &quot;target-cpu&quot;=&quot;mips32r2&quot; &quot;target-fe
-atures&quot;=&quot;+mips32r2&quot; &quot;unsafe-fp-math&quot;=&quot;false&quot; &quot;use-soft-float&quot;=&quot;false&quot; }
-attributes #1 = { &quot;less-precise-fpmad&quot;=&quot;false&quot; &quot;no-frame-pointer-elim&quot;=&quot;true&quot; &quot;n
-o-frame-pointer-elim-non-leaf&quot; &quot;no-infs-fp-math&quot;=&quot;false&quot; &quot;no-nans-fp-math&quot;=&quot;fals
-e&quot; &quot;stack-protector-buffer-size&quot;=&quot;8&quot; &quot;target-cpu&quot;=&quot;mips32r2&quot; &quot;target-features&quot;=&quot;
-+mips32r2&quot; &quot;unsafe-fp-math&quot;=&quot;false&quot; &quot;use-soft-float&quot;=&quot;false&quot; }
+attributes #0 = { nounwind &quot;disable-tail-calls&quot;=&quot;false&quot; &quot;less-precise-fpmad&quot;=&quot;fa
+lse&quot; &quot;no-frame-pointer-elim&quot;=&quot;true&quot; &quot;no-frame-pointer-elim-non-leaf&quot; &quot;no-infs-fp
+-math&quot;=&quot;false&quot; &quot;no-jump-tables&quot;=&quot;false&quot; &quot;no-nans-fp-math&quot;=&quot;false&quot; &quot;no-signed-zer
+os-fp-math&quot;=&quot;false&quot; &quot;stack-protector-buffer-size&quot;=&quot;8&quot; &quot;target-cpu&quot;=&quot;mips32r2&quot; &quot;t
+arget-features&quot;=&quot;+mips32r2&quot; &quot;unsafe-fp-math&quot;=&quot;false&quot; &quot;use-soft-float&quot;=&quot;false&quot; }
+attributes #1 = { &quot;disable-tail-calls&quot;=&quot;false&quot; &quot;less-precise-fpmad&quot;=&quot;false&quot; &quot;no-
+frame-pointer-elim&quot;=&quot;true&quot; &quot;no-frame-pointer-elim-non-leaf&quot; &quot;no-infs-fp-math&quot;=&quot;f
+alse&quot; &quot;no-jump-tables&quot;=&quot;false&quot; &quot;no-nans-fp-math&quot;=&quot;false&quot; &quot;no-signed-zeros-fp-mat
+h&quot;=&quot;false&quot; &quot;stack-protector-buffer-size&quot;=&quot;8&quot; &quot;target-cpu&quot;=&quot;mips32r2&quot; &quot;target-fea
+tures&quot;=&quot;+mips32r2&quot; &quot;unsafe-fp-math&quot;=&quot;false&quot; &quot;use-soft-float&quot;=&quot;false&quot; }
+attributes #2 = { &quot;disable-tail-calls&quot;=&quot;false&quot; &quot;less-precise-fpmad&quot;=&quot;false&quot; &quot;no-
+frame-pointer-elim&quot;=&quot;true&quot; &quot;no-frame-pointer-elim-non-leaf&quot; &quot;no-infs-fp-math&quot;=&quot;f
+alse&quot; &quot;no-nans-fp-math&quot;=&quot;false&quot; &quot;no-signed-zeros-fp-math&quot;=&quot;false&quot; &quot;stack-protect
+or-buffer-size&quot;=&quot;8&quot; &quot;target-cpu&quot;=&quot;mips32r2&quot; &quot;target-features&quot;=&quot;+mips32r2&quot; &quot;unsaf
+e-fp-math&quot;=&quot;false&quot; &quot;use-soft-float&quot;=&quot;false&quot; }
 
 !llvm.ident = !{!0}
 
-!0 = !{!&quot;Apple LLVM version 7.0.0 (clang-700.1.76)&quot;}
+!0 = !{!&quot;clang version 3.9.0 (tags/RELEASE_390/final)&quot;}
 </pre></div>
 </div>
 <div class="highlight-console"><div class="highlight"><pre><span></span><span class="gp">JonathantekiiMac:input Jonathan$</span> /Users/Jonathan/llvm/test/cmake_debug_build/
@@ -910,7 +918,7 @@ _Z15test_thread_varv:
   .set  noreorder
   .cpload  $t9
   .set  nomacro
-# BB#0:
+# BB#0:                                 # %entry
   addiu  $sp, $sp, -16
   st  $lr, 12($sp)            # 4-byte Folded Spill
   st  $fp, 8($sp)             # 4-byte Folded Spill
@@ -947,7 +955,7 @@ _Z17test_thread_var_2v:
   .set  noreorder
   .cpload  $t9
   .set  nomacro
-# BB#0:
+# BB#0:                                 # %entry
   addiu  $sp, $sp, -16
 $tmp0:
   .cfi_def_cfa_offset 16
@@ -992,8 +1000,8 @@ $func_end1:
   .ent  _ZTW1b                  # @_ZTW1b
 _ZTW1b:
   .cfi_startproc
-  .frame  $sp,16,$lr
-  .mask   0x00004000,-4
+  .frame  $fp,16,$lr
+  .mask   0x00005000,-4
   .set  noreorder
   .cpload  $t9
   .set  nomacro
@@ -1002,14 +1010,22 @@ _ZTW1b:
 $tmp4:
   .cfi_def_cfa_offset 16
   st  $lr, 12($sp)            # 4-byte Folded Spill
+  st  $fp, 8($sp)             # 4-byte Folded Spill
 $tmp5:
   .cfi_offset 14, -4
+$tmp6:
+  .cfi_offset 12, -8
+  move   $fp, $sp
+$tmp7:
+  .cfi_def_cfa_register 12
   .cprestore  8
   ld  $t9, %call16(__tls_get_addr)($gp)
   ori  $4, $gp, %tlsgd(b)
   jalr  $t9
   nop
-  ld  $gp, 8($sp)
+  ld  $gp, 8($fp)
+  move   $sp, $fp
+  ld  $fp, 8($sp)             # 4-byte Folded Reload
   ld  $lr, 12($sp)            # 4-byte Folded Reload
   addiu  $sp, $sp, 16
   ret  $lr
@@ -1037,7 +1053,7 @@ b:
   .size  b, 4
 
 
-  .ident  &quot;Apple LLVM version 7.0.0 (clang-700.1.76)&quot;
+  .ident  &quot;clang version 3.9.0 (tags/RELEASE_390/final)&quot;
   .section  &quot;.note.GNU-stack&quot;,&quot;&quot;,@progbits
 </pre></div>
 </div>
@@ -1066,7 +1082,7 @@ _Z15test_thread_varv:
   .mask   0x00001000,-4
   .set  noreorder
   .set  nomacro
-# BB#0:
+# BB#0:                                 # %entry
   addiu  $sp, $sp, -8
   st  $fp, 4($sp)             # 4-byte Folded Spill
   move   $fp, $sp
@@ -1095,7 +1111,7 @@ _Z17test_thread_var_2v:
   .mask   0x00005000,-4
   .set  noreorder
   .set  nomacro
-# BB#0:
+# BB#0:                                 # %entry
   addiu  $sp, $sp, -16
 $tmp0:
   .cfi_def_cfa_offset 16
@@ -1135,13 +1151,25 @@ $func_end1:
   .ent  _ZTW1b                  # @_ZTW1b
 _ZTW1b:
   .cfi_startproc
-  .frame  $sp,0,$lr
-  .mask   0x00000000,0
+  .frame  $fp,8,$lr
+  .mask   0x00001000,-4
   .set  noreorder
   .set  nomacro
 # BB#0:
+  addiu  $sp, $sp, -8
+$tmp4:
+  .cfi_def_cfa_offset 8
+  st  $fp, 4($sp)             # 4-byte Folded Spill
+$tmp5:
+  .cfi_offset 12, -4
+  move   $fp, $sp
+$tmp6:
+  .cfi_def_cfa_register 12
   lui  $2, %tp_hi(b)
   ori  $2, $2, %tp_lo(b)
+  move   $sp, $fp
+  ld  $fp, 4($sp)             # 4-byte Folded Reload
+  addiu  $sp, $sp, 8
   ret  $lr
   nop
   .set  macro
@@ -1167,7 +1195,7 @@ b:
   .size  b, 4
 
 
-  .ident  &quot;Apple LLVM version 7.0.0 (clang-700.1.76)&quot;
+  .ident  &quot;clang version 3.9.0 (tags/RELEASE_390/final)&quot;
   .section  &quot;.note.GNU-stack&quot;,&quot;&quot;,@progbits
 </pre></div>
 </div>
@@ -1250,7 +1278,7 @@ You can check them with debug option enabled.</p>
 <td>ret i32* &#64;b;</td>
 </tr>
 <tr class="row-odd"><td>Legalized selection DAG</td>
-<td>%0=(add Cpu0ISD::Hi Cpu0ISD::Lo);...</td>
+<td>%0=(add Cpu0ISD::Hi Cpu0ISD::Lo);…</td>
 </tr>
 <tr class="row-even"><td>Instruction Selection</td>
 <td>ori $2, $zero, %tp_lo(a);</td>
@@ -1274,7 +1302,7 @@ You can check them with debug option enabled.</p>
 <h2><a class="toc-backref" href="#id17">Atomic</a><a class="headerlink" href="#atomic" title="Permalink to this headline">¶</a></h2>
 <p>In tradition, C uses different API which provided by OS or library to support
 multi-thread programming. For example, posix thread API on unix/linux, MS
-windows API, ..., etc. In order to achieve synchronization to solve race
+windows API, …, etc. In order to achieve synchronization to solve race
 condition between threads, OS provide their own lock or semaphore functions to
 programmer. But this solution is OS dependent.
 After c++11, programmer can use atomic to program and run the code
@@ -2059,29 +2087,34 @@ Cpu0TargetLowering::emitAtomicCmpSwapPartword(MachineInstr &amp;MI,
 <span class="p">};</span>
 </pre></div>
 </div>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">void</span> <span class="n">Cpu0PassConfig</span><span class="p">::</span><span class="n">addIRPasses</span><span class="p">()</span> <span class="p">{</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">//</span> <span class="n">createAtomicExpandPass</span> <span class="n">create</span> <span class="n">fence</span> <span class="k">for</span> <span class="n">atomic_store</span><span class="p">()</span> <span class="ow">and</span> <span class="n">atomic_load</span><span class="p">()</span> 
+<span class="o">//</span> <span class="ow">in</span> <span class="n">lbdex</span><span class="o">/</span><span class="n">regression</span><span class="o">-</span><span class="n">test</span><span class="o">/</span><span class="n">Cpu0</span>
+<span class="o">//</span> <span class="n">ref</span><span class="o">.</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">www</span><span class="o">.</span><span class="n">bookstack</span><span class="o">.</span><span class="n">cn</span><span class="o">/</span><span class="n">read</span><span class="o">/</span><span class="n">LLVM</span><span class="o">-</span><span class="mi">10</span><span class="o">-</span><span class="n">Reference</span><span class="o">/</span><span class="n">c024642b7b382b4b</span><span class="o">.</span><span class="n">md</span>
+<span class="n">void</span> <span class="n">Cpu0PassConfig</span><span class="p">::</span><span class="n">addIRPasses</span><span class="p">()</span> <span class="p">{</span>
   <span class="n">TargetPassConfig</span><span class="p">::</span><span class="n">addIRPasses</span><span class="p">();</span>
   <span class="n">addPass</span><span class="p">(</span><span class="n">createAtomicExpandPass</span><span class="p">(</span><span class="o">&amp;</span><span class="n">getCpu0TargetMachine</span><span class="p">()));</span>
 <span class="p">}</span>
 </pre></div>
 </div>
 <p>Since SC instruction uses RegisterOperand type in Cpu0InstrInfo.td and SC uses
-FMem node which DecoderMethod is &#8220;DecodeMem&#8221;, the DecodeMem() of
+FMem node which DecoderMethod is “DecodeMem”, the DecodeMem() of
 Cpu0Disassembler.cpp need to be changed as above.</p>
-<p>The atomic node defined in &#8220;let usesCustomInserter = 1 in&#8221; of Cpu0InstrInfo.td
-tells llvm calling EmitInstrWithCustomInserter() of Cpu0ISelLowering.cpp. For
-example, &#8220;def ATOMIC_LOAD_ADD_I8 : Atomic2Ops&lt;atomic_load_add_8, CPURegs&gt;;&#8221; will
+<p>The atomic node defined in “let usesCustomInserter = 1 in” of Cpu0InstrInfo.td
+tells llvm calling EmitInstrWithCustomInserter() of Cpu0ISelLowering.cpp after
+Instruction Selection stage at Cpu0TargetLowering::EmitInstrWithCustomInserter()
+of ExpandISelPseudos::runOnMachineFunction() stage. For
+example, “def ATOMIC_LOAD_ADD_I8 : Atomic2Ops&lt;atomic_load_add_8, CPURegs&gt;;” will
 calling EmitInstrWithCustomInserter() with Machine Instruction Opcode
-&#8220;ATOMIC_LOAD_ADD_I8&#8221; when it meets IR &#8220;load atomic i8*&#8221;.</p>
-<p>The &#8220;setInsertFencesForAtomic(true);&#8221; in Cpu0ISelLowering.cpp will trigger
+“ATOMIC_LOAD_ADD_I8” when it meets IR “load atomic i8*”.</p>
+<p>The “setInsertFencesForAtomic(true);” in Cpu0ISelLowering.cpp will trigger
 addIRPasses() of Cpu0TargetMachine.cpp, then the createAtomicExpandPass() of
 addIRPasses() will create llvm IR ATOMIC_FENCE. Next, the lowerATOMIC_FENCE()
 of Cpu0ISelLowering.cpp will create Cpu0ISD::Sync when it meets IR ATOMIC_FENCE
-since &#8220;setOperationAction(ISD::ATOMIC_FENCE, MVT::Other, Custom);&#8221; of
+since “setOperationAction(ISD::ATOMIC_FENCE, MVT::Other, Custom);” of
 Cpu0SEISelLowering.cpp. Finally the pattern defined in Cpu0InstrInfo.td translate
-it into instruction &#8220;sync&#8221; by &#8220;def SYNC&#8221; and alias &#8220;SYNC 0&#8221;.</p>
+it into instruction “sync” by “def SYNC” and alias “SYNC 0”.</p>
 <p>This part of Cpu0 backend code is same with Mips except Cpu0 has no instruction
-&#8220;nor&#8221;.</p>
+“nor”.</p>
 <p>List the atomic IRs, corresponding DAGs and Opcode as the following table.</p>
 <table border="1" class="docutils" id="id14">
 <caption><span class="caption-number">Table 35 </span><span class="caption-text">The atomic related IRs, their corresponding DAGs and Opcode of Cpu0ISelLowering.cpp</span><a class="headerlink" href="#id14" title="Permalink to this table">¶</a></caption>
@@ -2142,7 +2175,7 @@ it into instruction &#8220;sync&#8221; by &#8220;def SYNC&#8221; and alias &#822
 <p>Input files atomics.ll and atomics-fences.ll include the llvm atomic IRs test.
 Input files ch12_atomics.cpp and ch12_atomics-fences.cpp are the C++
 files for generating llvm atomic IRs. The C++ files need to run with clang
-options &#8220;clang++ -pthread -std=c++11&#8221;.</p>
+options “clang++ -pthread -std=c++11”.</p>
 <table class="docutils footnote" frame="void" id="exception" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
@@ -2227,8 +2260,8 @@ options &#8220;clang++ -pthread -std=c++11&#8221;.</p>
       </div>
 
     <div class="footer" role="contentinfo">
-        &copy; Copyright 2016, Chen Chung-Shu.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.4.
+        &#169; Copyright 2016, Chen Chung-Shu.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.7.
     </div>
   </body>
 </html>

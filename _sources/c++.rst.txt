@@ -487,7 +487,9 @@ FMem node which DecoderMethod is "DecodeMem", the DecodeMem() of
 Cpu0Disassembler.cpp need to be changed as above.
 
 The atomic node defined in "let usesCustomInserter = 1 in" of Cpu0InstrInfo.td
-tells llvm calling EmitInstrWithCustomInserter() of Cpu0ISelLowering.cpp. For
+tells llvm calling EmitInstrWithCustomInserter() of Cpu0ISelLowering.cpp after 
+Instruction Selection stage at Cpu0TargetLowering::EmitInstrWithCustomInserter() 
+of ExpandISelPseudos::runOnMachineFunction() stage. For
 example, "def ATOMIC_LOAD_ADD_I8 : Atomic2Ops<atomic_load_add_8, CPURegs>;" will
 calling EmitInstrWithCustomInserter() with Machine Instruction Opcode 
 "ATOMIC_LOAD_ADD_I8" when it meets IR "load atomic i8*".
