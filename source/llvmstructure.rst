@@ -524,8 +524,8 @@ The following table details the cpu032II instruction set added:
   The ADDu and SUBu handle both signed and unsigned integers well. 
   For example, (ADDu 1, -2) is -1; (ADDu 0x01, 0xfffffffe) is 0xffffffff = (4G 
   - 1). 
-  If you treat the result is negative then it is -1. 
-  On the other hand, it's (+4G - 1) if you treat the result is positive.
+  If you treat the result as negative then it is -1. 
+  On the other hand, it's (+4G - 1) if you treat the result as positive.
   
 
 Why not using ADD instead of SUB?
@@ -581,7 +581,7 @@ Cpu0's Stages of Instruction Execution
 
 The Cpu0 architecture has a five-stage pipeline. The stages are instruction 
 fetch (IF), instruction decode (ID), execute (EX), memory access (MEM) and 
-write backe (WB).  
+write back (WB).
 Here is a description of what happens in the processor for each stage:
 
 1) Instruction fetch (IF)
@@ -975,7 +975,7 @@ next two sections for DAG and Instruction Selection.
 
    Any “last-minute” peephole optimizations of the final machine code can be 
    applied during this phase. 
-   For example, replace x = x * 2 by x = x < 1 for integer operand.
+   For example, replace x = x * 2 by x = x << 1 for integer operand.
   
 7. Code Emission
 
@@ -1382,7 +1382,7 @@ Now, let's check the ADDiu instruction defined in Cpu0InstrInfo.td as follows,
 **add**, and instruction node, **ADDiu**, which both defined in 
 Cpu0InstrInfo.td. In 
 this example, IR node "add %a, 5" will be translated to "addiu $r1, 5" after %a 
-is allcated to register $r1 in regiter allocation stage since the IR 
+is allocated to register $r1 in register allocation stage since the IR 
 pattern[(set RC:$ra, (OpNode RC:$rb, imm_type:$imm16))] is set in ADDiu and the
 2nd operand is "signed immediate" which matched "%a, 5". In addition to pattern 
 match, the .td also set assembly string "addiu" and op code 0x09. 
@@ -1704,7 +1704,7 @@ introduction. The following files are modified to add Cpu0 backend as follows,
     EF_CPU0_ARCH      = 0xf0000000  // Mask for applying EF_CPU0_ARCH_ variant
   };
   
-  // ELF Relocation types for Mips
+  // ELF Relocation types for Cpu0
   enum {
   #include "ELFRelocs/Cpu0.def"
   };

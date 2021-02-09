@@ -275,8 +275,8 @@ We will add it in next section.
 Chapter3_1 create FeatureCpu032I and FeatureCpu032II for CPU cpu032I and 
 cpu032II, repectively.
 Beyond that, it defines two more features, FeatureCmp and FeatureSlt. 
-In order to demostrate the "instruction set designing choice" to readers, this 
-book creates two CPU. 
+In order to demonstrate the "instruction set designing choice" to readers, this 
+book create two CPU. 
 Readers will realize why Mips CPU uses instruction SLT instead of
 CMP after they have read later Chapter "Control flow statement".
 With the added code of supporting cpu032I and cpu32II in Cpu0.td and 

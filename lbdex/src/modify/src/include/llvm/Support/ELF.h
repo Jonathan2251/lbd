@@ -566,7 +566,7 @@ enum {
   EF_CPU0_ARCH      = 0xf0000000  // Mask for applying EF_CPU0_ARCH_ variant
 };
 
-// ELF Relocation types for Mips
+// ELF Relocation types for Cpu0
 enum {
 #include "ELFRelocs/Cpu0.def"
 };
