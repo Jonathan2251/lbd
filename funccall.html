@@ -1,33 +1,34 @@
-
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>Function call &#8212; Tutorial: Creating an LLVM Backend for the Cpu0 Architecture</title>
+    
+    <title>Function call &mdash; Tutorial: Creating an LLVM Backend for the Cpu0 Architecture</title>
+    
     <link rel="stylesheet" href="_static/haiku.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
         VERSION:     '3.9.1',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
-        HAS_SOURCE:  true,
-        SOURCELINK_SUFFIX: '.txt'
+        HAS_SOURCE:  true
       };
     </script>
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
     <link rel="author" title="About these documents" href="about.html" />
-    <link rel="index" title="Index" href="genindex.html" />
-    <link rel="search" title="Search" href="search.html" />
+    <link rel="top" title="Tutorial: Creating an LLVM Backend for the Cpu0 Architecture" href="index.html" />
     <link rel="next" title="ELF Support" href="elf.html" />
     <link rel="prev" title="Control flow statements" href="ctrlflow.html" /> 
   </head>
-  <body>
+  <body role="document">
       <div class="header" role="banner"><h1 class="heading"><a href="index.html">
           <span>Tutorial: Creating an LLVM Backend for the Cpu0 Architecture</span></a></h1>
         <h2 class="heading"><span>Function call</span></h2>
@@ -54,7 +55,7 @@
 <li><a class="reference internal" href="#load-incoming-arguments-from-stack-frame" id="id24">Load incoming arguments from stack frame</a></li>
 <li><a class="reference internal" href="#store-outgoing-arguments-to-stack-frame" id="id25">Store outgoing arguments to stack frame</a><ul>
 <li><a class="reference internal" href="#pseudo-hook-instruction-adjcallstackdown-and-adjcallstackup" id="id26">Pseudo hook instruction ADJCALLSTACKDOWN and ADJCALLSTACKUP</a></li>
-<li><a class="reference internal" href="#read-lowercall-with-graphivz-s-help" id="id27">Read Lowercall() with Graphivz’s help</a></li>
+<li><a class="reference internal" href="#read-lowercall-with-graphivz-s-help" id="id27">Read Lowercall() with Graphivz&#8217;s help</a></li>
 <li><a class="reference internal" href="#long-and-short-string-initialization" id="id28">Long and short string initialization</a></li>
 </ul>
 </li>
@@ -92,7 +93,7 @@ A lot of code are needed to support function call in this chapter.
 They are added according llvm supplied interface to explain easily.
 This chapter starts from introducing the Mips stack frame structure since we
 borrow many parts of ABI from it.
-Although each CPU has it’s own ABI, most of ABI for RISC CPUs are similar.
+Although each CPU has it&#8217;s own ABI, most of ABI for RISC CPUs are similar.
 The section “4.5 DAG Lowering” of tricore_llvm.pdf contains knowledge
 about Lowering process. Section “4.5.1 Calling Conventions” of tricore_llvm.pdf
 is the related material you can reference further.</p>
@@ -117,7 +118,7 @@ if it over 4 arguments. <a class="reference internal" href="#funccall-f1"><span 
 <p class="caption"><span class="caption-number">Fig. 24 </span><span class="caption-text">Mips stack frame</span></p>
 </div>
 <p>Run <code class="docutils literal"><span class="pre">llc</span> <span class="pre">-march=mips</span></code> for ch9_1.bc, you will get the following result.
-See comments <strong>“//”</strong>.</p>
+See comments <strong>&#8220;//&#8221;</strong>.</p>
 <p class="rubric">lbdex/input/ch9_1.cpp</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="nb">int</span> <span class="n">gI</span> <span class="o">=</span> <span class="mi">100</span><span class="p">;</span>
 
@@ -259,7 +260,7 @@ Here <a class="footnote-reference" href="#abi" id="id4">[3]</a> is Mips Applicat
 <h2><a class="toc-backref" href="#id24">Load incoming arguments from stack frame</a><a class="headerlink" href="#load-incoming-arguments-from-stack-frame" title="Permalink to this headline">¶</a></h2>
 <p>From last section, in order to support function call, we need implementing the
 arguments passing mechanism with stack frame.
-Before doing it, let’s run the old version of code Chapter8_2/ with ch9_1.cpp
+Before doing it, let&#8217;s run the old version of code Chapter8_2/ with ch9_1.cpp
 and see what happens.</p>
 <div class="highlight-console"><div class="highlight"><pre><span></span><span class="gp">118-165-79-31:input Jonathan$</span> /Users/Jonathan/llvm/test/
 <span class="go">cmake_debug_build/Debug/bin/llc -march=cpu0 -relocation-model=pic -filetype=asm</span>
@@ -284,7 +285,7 @@ Before defining LowerFormalArguments(), we have to choose how to pass arguments
 in function call.
 For demonstration, Cpu0 passes first two arguments in registers as
 default setting of <code class="docutils literal"><span class="pre">llc</span> <span class="pre">-cpu0-s32-calls=false</span></code>.
-When <code class="docutils literal"><span class="pre">llc</span> <span class="pre">-cpu0-s32-calls=true</span></code>, Cpu0 passes all it’s arguments in stack.</p>
+When <code class="docutils literal"><span class="pre">llc</span> <span class="pre">-cpu0-s32-calls=true</span></code>, Cpu0 passes all it&#8217;s arguments in stack.</p>
 <p>Function LowerFormalArguments() is in charge of incoming arguments creation.
 We define it as follows,</p>
 <p class="rubric">lbdex/chapters/Chapter9_1/Cpu0ISelLowering.h</p>
@@ -739,21 +740,21 @@ unsigned Cpu0TargetLowering::Cpu0CC::numIntArgRegs() const {
 }
 </pre></div>
 </div>
-<p>Refresh “section Global variable” <a class="footnote-reference" href="#secglobal" id="id5">[4]</a>, we handled global
+<p>Refresh &#8220;section Global variable&#8221; <a class="footnote-reference" href="#secglobal" id="id5">[4]</a>, we handled global
 variable translation by creating the IR DAG in LowerGlobalAddress() first, and
 then finish the Instruction Selection according their corresponding machine
 instruction DAGs in Cpu0InstrInfo.td.
 LowerGlobalAddress() is called when <code class="docutils literal"><span class="pre">llc</span></code> meets the global variable access.
 LowerFormalArguments() work in the same way.
 It is called when function is entered.
-It gets incoming arguments information by CCInfo(CallConv,…, ArgLocs, …)
-before entering <strong>“for loop”</strong>. In ch9_1.cpp, there are 6 arguments in sum_i(…)
+It gets incoming arguments information by CCInfo(CallConv,..., ArgLocs, ...)
+before entering <strong>“for loop”</strong>. In ch9_1.cpp, there are 6 arguments in sum_i(...)
 function call.
 So ArgLocs.size() is 6, each argument information is in ArgLocs[i].
 When VA.isRegLoc() is true, meaning the arguement passes in register. On the
 contrary, when VA.isMemLoc() is true, meaning the arguement pass in memory
 stack.
-When passing in register, it marks the register “live in” and copy directly
+When passing in register, it marks the register &#8220;live in&#8221; and copy directly
 from the register.
 When passing in memory stack, it creates stack offset for this frame index
 object and load node with the created stack offset, and then puts the load node
@@ -764,22 +765,22 @@ passes all arguments in stack frame.</p>
 <p>Before taking care the arguments as above, it calls analyzeFormalArguments().
 In analyzeFormalArguments() it calls fixedArgFn() which return the function
 pointer of CC_Cpu0O32() or CC_Cpu0S32().
-ArgFlags.isByVal() will be true when it meets “struct pointer byval” keyword,
-such as “%struct.S* byval” in tailcall.ll.
+ArgFlags.isByVal() will be true when it meets &#8220;struct pointer byval&#8221; keyword,
+such as &#8220;%struct.S* byval&#8221; in tailcall.ll.
 When <code class="docutils literal"><span class="pre">llc</span> <span class="pre">-cpu0-s32-calls=false</span></code> the stack offset begin from 8 (in case the
 arguement registers need spill out) while <code class="docutils literal"><span class="pre">llc</span> <span class="pre">-cpu0-s32-calls=true</span></code> stack
 offset begin from 0.</p>
 <p>For instance of example code ch9_1.cpp with <code class="docutils literal"><span class="pre">llc</span> <span class="pre">-cpu0-s32-calls=true</span></code> (using
 memory stack only to pass arguments), LowerFormalArguments()
-will be called twice. First time is for sum_i() which will create 6 “load DAGs”
+will be called twice. First time is for sum_i() which will create 6 &#8220;load DAGs&#8221;
 for 6 incoming arguments passing into this function.
-Second time is for main() which won’t create any “load DAG” since no incoming
+Second time is for main() which won&#8217;t create any &#8220;load DAG&#8221; since no incoming
 argument passing into main().
-In addition to LowerFormalArguments() which creates the “load DAG”, we need
+In addition to LowerFormalArguments() which creates the &#8220;load DAG&#8221;, we need
 loadRegFromStackSlot() (defined in the early chapter) to issue the machine
 instruction
 <strong>“ld $r, offset($sp)”</strong> to load incoming arguments from stack frame offset.
-GetMemOperand(…, FI, …) return the Memory location of the frame index
+GetMemOperand(..., FI, ...) return the Memory location of the frame index
 variable, which is the offset.</p>
 <p>For input ch9_incoming.cpp as below, LowerFormalArguments() will generate the
 red box parts of DAG nodes shown as the next two figures for
@@ -1218,7 +1219,7 @@ spillCalleeSavedRegisters(MachineBasicBlock &amp;MBB,
 </pre></div>
 </div>
 <p>Both JSUB and JALR defined in Cpu0InstrInfo.td as above use Cpu0JmpLink
-node. They are distinguishable since JSUB use “imm” operand while
+node. They are distinguishable since JSUB use &#8220;imm&#8221; operand while
 JALR uses register operand.</p>
 <p class="rubric">lbdex/chapters/Chapter9_1/Cpu0InstrInfo.td</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span>let Predicates = [Ch9_1] in {
@@ -1229,13 +1230,13 @@ def : Pat&lt;(Cpu0JmpLink (i32 texternalsym:$dst)),
 
 </pre></div>
 </div>
-<p>The code tells TableGen generating pattern match code that matching the “imm” for
-“tglobaladdr” pattern first. If it fails then trying to match “texternalsym” next.
-The function you declared belongs to “tglobaladdr”, (for instance the function
-sum_i(…) defined in ch9_1.cpp belongs to “tglobaladdr”); the function which
-implicitly used by llvm belongs to “texternalsym” (for instance the function
-“memcpy” belongs to “texternalsym”). The “memcpy” will be generated when
-defining a long string. The ch9_1_2.cpp is an example for generating “memcpy”
+<p>The code tells TableGen generating pattern match code that matching the &#8220;imm&#8221; for
+&#8220;tglobaladdr&#8221; pattern first. If it fails then trying to match &#8220;texternalsym&#8221; next.
+The function you declared belongs to &#8220;tglobaladdr&#8221;, (for instance the function
+sum_i(...) defined in ch9_1.cpp belongs to &#8220;tglobaladdr&#8221;); the function which
+implicitly used by llvm belongs to &#8220;texternalsym&#8221; (for instance the function
+&#8220;memcpy&#8221; belongs to &#8220;texternalsym&#8221;). The &#8220;memcpy&#8221; will be generated when
+defining a long string. The ch9_1_2.cpp is an example for generating &#8220;memcpy&#8221;
 function call. It will be shown in next section with Chapter9_2 example code.
 Cpu0GenDAGISel.inc contains pattern matched information of JSUB and JALR
 which generated from TablGen as follows,</p>
@@ -1767,10 +1768,10 @@ analyzeCallOperands(const SmallVectorImpl&lt;ISD::OutputArg&gt; &amp;Args,
 </pre></div>
 </div>
 <p>Just like load incoming arguments from stack frame, we call
-CCInfo(CallConv,…, ArgLocs, …) to get outgoing arguments information before
+CCInfo(CallConv,..., ArgLocs, ...) to get outgoing arguments information before
 entering <strong>“for loop”*.
-They’re almost same in **“for loop”</strong> with LowerFormalArguments(), except
-LowerCall() creates “store DAG vector” instead of “load DAG vector”.
+They&#8217;re almost same in **“for loop”</strong> with LowerFormalArguments(), except
+LowerCall() creates &#8220;store DAG vector&#8221; instead of &#8220;load DAG vector&#8221;.
 After the <strong>“for loop”</strong>, it create <strong>“ld $t9, %call16(_Z5sum_iiiiiii)($gp)”</strong>
 and jalr $t9 for calling subroutine (the $6 is $t9) in PIC mode.</p>
 <p>Like loading incoming arguments, we need to implement storeRegToStackSlot() at
@@ -1853,22 +1854,22 @@ stack.</p>
 </div>
 </div>
 <div class="section" id="read-lowercall-with-graphivz-s-help">
-<h3><a class="toc-backref" href="#id27">Read Lowercall() with Graphivz’s help</a><a class="headerlink" href="#read-lowercall-with-graphivz-s-help" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id27">Read Lowercall() with Graphivz&#8217;s help</a><a class="headerlink" href="#read-lowercall-with-graphivz-s-help" title="Permalink to this headline">¶</a></h3>
 <p>The whole DAGs created for outgoing arguments as
-“Figure Outgoing arguments DAG (A)…” below for ch9_outgoing.cpp with cpu032I.
+&#8220;Figure Outgoing arguments DAG (A)...&#8221; below for ch9_outgoing.cpp with cpu032I.
 LowerCall() (excluding calling LowerCallResult()) will generate the DAG nodes as
-“Figure Outgoing arguments DAG (B)…” below
+&#8220;Figure Outgoing arguments DAG (B)...&#8221; below
 for ch9_outgoing.cpp with cpu032I. The corresponding code of DAGs Store and
 TargetGlobalAddress are listed in the figure, user can match the other DAGs
 to function LowerCall() easily.
 Through Graphivz tool with llc option -view-dag-combine1-dags, you can design
 a small input C or llvm IR source code and then check the DAGs to understand the
 code in LowerCall() and LowerFormalArguments().
-At the sub-sections “variable arguments” and “dynamic stack allocation
-support” in the later section of this chapter, you can design
+At the sub-sections &#8220;variable arguments&#8221; and &#8220;dynamic stack allocation
+support&#8221; in the later section of this chapter, you can design
 the input example with this features and check the DAGs with these two functions
 again to make sure you know the code in these two function. About Graphivz,
-please refer to section “Display llvm IR nodes with Graphviz” of chapter 4,
+please refer to section &#8220;Display llvm IR nodes with Graphviz&#8221; of chapter 4,
 Arithmetic and logic instructions.
 The DAGs diagram can be got by llc option as follows,</p>
 <p class="rubric">lbdex/input/ch9_outgoing.cpp</p>
@@ -1885,7 +1886,7 @@ The DAGs diagram can be got by llc option as follows,</p>
 <span class="go">Debug/bin/llvm-dis ch9_outgoing.bc -o -</span>
 <span class="go">...</span>
 <span class="go">define i32 @_Z10call_sum_iv() #0 {</span>
-<span class="gp">  %</span><span class="nv">1</span> <span class="o">=</span> tail call i32 @_Z5sum_ii<span class="o">(</span>i32 <span class="m">1</span><span class="o">)</span>
+<span class="gp">  %</span><span class="nv">1</span> <span class="o">=</span> tail call i32 @_Z5sum_ii<span class="o">(</span>i32 1<span class="o">)</span>
 <span class="go">  ret i32 %1</span>
 <span class="go">}</span>
 <span class="gp">JonathantekiiMac:input Jonathan$</span> /Users/Jonathan/llvm/test/cmake_debug_build/
@@ -2172,10 +2173,10 @@ registers and other arguments at stack. The result as follows,</p>
 </div>
 <div class="section" id="long-and-short-string-initialization">
 <h3><a class="toc-backref" href="#id28">Long and short string initialization</a><a class="headerlink" href="#long-and-short-string-initialization" title="Permalink to this headline">¶</a></h3>
-<p>The last section mentioned the “JSUB texternalsym” pattern. Run Chapter9_2 with
+<p>The last section mentioned the &#8220;JSUB texternalsym&#8221; pattern. Run Chapter9_2 with
 ch9_1_2.cpp to get the result as below. For long string, llvm call memcpy() to
-initialize string (char str[81] = “Hello world” in this case). For short string,
-the “call memcpy” is translated into “store with contant” in stages of
+initialize string (char str[81] = &#8220;Hello world&#8221; in this case). For short string,
+the &#8220;call memcpy&#8221; is translated into &#8220;store with contant&#8221; in stages of
 optimization.</p>
 <p class="rubric">lbdex/input/ch9_1_2.cpp</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="nb">int</span> <span class="n">main</span><span class="p">()</span>
@@ -2199,8 +2200,8 @@ optimization.</p>
 <span class="go">; Function Attrs: nounwind</span>
 <span class="go">define i32 @main() #0 {</span>
 <span class="go">entry:</span>
-<span class="gp">  %</span><span class="nv">retval</span> <span class="o">=</span> alloca i32, align <span class="m">4</span>
-<span class="gp">  %</span><span class="nv">str</span> <span class="o">=</span> alloca <span class="o">[</span><span class="m">81</span> x i8<span class="o">]</span>, align <span class="m">1</span>
+<span class="gp">  %</span><span class="nv">retval</span> <span class="o">=</span> alloca i32, align 4
+<span class="gp">  %</span><span class="nv">str</span> <span class="o">=</span> alloca <span class="o">[</span><span class="m">81</span> x i8<span class="o">]</span>, align 1
 <span class="go">  store i32 0, i32* %retval</span>
 <span class="gp">  %</span><span class="nv">0</span> <span class="o">=</span> bitcast <span class="o">[</span><span class="m">81</span> x i8<span class="o">]</span>* %str to i8*
 <span class="go">  call void @llvm.memcpy.p0i8.p0i8.i32(i8* %0, i8* getelementptr inbounds</span>
@@ -2261,8 +2262,8 @@ optimization.</p>
 <span class="go">        .size $_ZZ4mainE1s, 6</span>
 </pre></div>
 </div>
-<p>The “call memcpy” for short string is optimized by llvm before “DAG-&gt;DAG Pattern
-Instruction Selection” stage and translates it into “store with contant” as
+<p>The &#8220;call memcpy&#8221; for short string is optimized by llvm before &#8220;DAG-&gt;DAG Pattern
+Instruction Selection&#8221; stage and translates it into &#8220;store with contant&#8221; as
 follows,</p>
 <div class="highlight-console"><div class="highlight"><pre><span></span><span class="gp">JonathantekiiMac:input Jonathan$</span> /Users/Jonathan/llvm/test/cmake_debug_build
 <span class="go">/Debug/bin/llc -march=cpu0 -mcpu=cpu032II -cpu0-s32-calls=true</span>
@@ -2400,9 +2401,9 @@ chapter as follows,</p>
 </pre></div>
 </div>
 <p>It meaning for the return value, we keep it in registers V0, V1, A0, A1 if the size of
-return value doesn’t over 4 registers; If it overs 4 registers, cpu0 will save
+return value doesn&#8217;t over 4 registers; If it overs 4 registers, cpu0 will save
 them in memory with a pointer of memory in register.
-For explanation, let’s run Chapter9_2/ with ch9_1_struct.cpp and explain with this
+For explanation, let&#8217;s run Chapter9_2/ with ch9_1_struct.cpp and explain with this
 example.</p>
 <p class="rubric">lbdex/input/ch9_1_struct.cpp</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span>extern &quot;C&quot; int printf(const char *format, ...);
@@ -2591,10 +2592,10 @@ int test_func_arg_struct()
 <span class="go">  ...</span>
 </pre></div>
 </div>
-<p>The ch9_1_constructor.cpp includes C++ class “Date” implementation.
+<p>The ch9_1_constructor.cpp includes C++ class &#8220;Date&#8221; implementation.
 It can be translated into cpu0 backend too since the frontend (clang in this
 example) translate them into C language form.
-If you mark the “if hasStructRetAttr()” part from both of above functions,
+If you mark the &#8220;if hasStructRetAttr()&#8221; part from both of above functions,
 the output of cpu0 code for ch9_1_struct.cpp will use $3 instead of $2 as return
 register as follows,</p>
 <div class="highlight-console"><div class="highlight"><pre><span></span><span class="go">        .text</span>
@@ -2633,7 +2634,7 @@ register as follows,</p>
 <span class="go">  ...</span>
 </pre></div>
 </div>
-<p>Mips ABI asks “return struct varaible address” to be set at $2.</p>
+<p>Mips ABI asks &#8220;return struct varaible address&#8221; to be set at $2.</p>
 </div>
 <div class="section" id="byval-struct-type">
 <h3><a class="toc-backref" href="#id31">byval struct type</a><a class="headerlink" href="#byval-struct-type" title="Permalink to this headline">¶</a></h3>
@@ -2888,7 +2889,7 @@ in callee function as follows,</p>
 <span class="p">}</span>
 </pre></div>
 </div>
-<p>At this point, I don’t know how to create a make clang to generate byval IR with
+<p>At this point, I don&#8217;t know how to create a make clang to generate byval IR with
 C language.</p>
 </div>
 </div>
@@ -2928,19 +2929,19 @@ to make tail call optimization.</p>
 <span class="go">...</span>
 <span class="go">; Function Attrs: nounwind readnone</span>
 <span class="go">define i32 @_Z9factoriali(i32 %x) #0 {</span>
-<span class="gp">  %</span><span class="nv">1</span> <span class="o">=</span> icmp sgt i32 %x, <span class="m">0</span>
+<span class="gp">  %</span><span class="nv">1</span> <span class="o">=</span> icmp sgt i32 %x, 0
 <span class="go">  br i1 %1, label %tailrecurse, label %tailrecurse._crit_edge</span>
 
 <span class="go">tailrecurse:                                      ; preds = %tailrecurse, %0</span>
 <span class="gp">  %</span>x.tr2 <span class="o">=</span> phi i32 <span class="o">[</span> %2, %tailrecurse <span class="o">]</span>, <span class="o">[</span> %x, %0 <span class="o">]</span>
-<span class="gp">  %</span>accumulator.tr1 <span class="o">=</span> phi i32 <span class="o">[</span> %3, %tailrecurse <span class="o">]</span>, <span class="o">[</span> <span class="m">1</span>, %0 <span class="o">]</span>
+<span class="gp">  %</span>accumulator.tr1 <span class="o">=</span> phi i32 <span class="o">[</span> %3, %tailrecurse <span class="o">]</span>, <span class="o">[</span> 1, %0 <span class="o">]</span>
 <span class="gp">  %</span><span class="nv">2</span> <span class="o">=</span> add nsw i32 %x.tr2, -1
 <span class="gp">  %</span><span class="nv">3</span> <span class="o">=</span> mul nsw i32 %x.tr2, %accumulator.tr1
-<span class="gp">  %</span><span class="nv">4</span> <span class="o">=</span> icmp sgt i32 %2, <span class="m">0</span>
+<span class="gp">  %</span><span class="nv">4</span> <span class="o">=</span> icmp sgt i32 %2, 0
 <span class="go">  br i1 %4, label %tailrecurse, label %tailrecurse._crit_edge</span>
 
 <span class="go">tailrecurse._crit_edge:                           ; preds = %tailrecurse, %0</span>
-<span class="gp">  %</span>accumulator.tr.lcssa <span class="o">=</span> phi i32 <span class="o">[</span> <span class="m">1</span>, %0 <span class="o">]</span>, <span class="o">[</span> %3, %tailrecurse <span class="o">]</span>
+<span class="gp">  %</span>accumulator.tr.lcssa <span class="o">=</span> phi i32 <span class="o">[</span> 1, %0 <span class="o">]</span>, <span class="o">[</span> %3, %tailrecurse <span class="o">]</span>
 <span class="go">  ret i32 %accumulator.tr.lcssa</span>
 <span class="go">}</span>
 
@@ -2972,7 +2973,7 @@ to make tail call optimization.</p>
 <span class="go">        bne   $3, $zero, $BB0_2</span>
 <span class="go">        nop</span>
 <span class="gp">$</span>BB0_1:                                 <span class="c1"># %tailrecurse</span>
-<span class="gp">                                        #</span> <span class="o">=</span>&gt;This Inner Loop Header: <span class="nv">Depth</span><span class="o">=</span><span class="m">1</span>
+<span class="gp">                                        #</span> <span class="o">=</span>&gt;This Inner Loop Header: <span class="nv">Depth</span><span class="o">=</span>1
 <span class="go">        mul   $2, $4, $2</span>
 <span class="go">        addiu $4, $4, -1</span>
 <span class="go">        addiu $3, $zero, 0</span>
@@ -3016,11 +3017,11 @@ to make tail call optimization.</p>
 <span class="go"> ...</span>
 </pre></div>
 </div>
-<p>The tail call optimization shares caller’s and callee’s stack and it is applied
-in cpu032II only for this example (it uses “jmp _Z9factoriali” instead of
-“jsub _Z9factoriali”).
+<p>The tail call optimization shares caller&#8217;s and callee&#8217;s stack and it is applied
+in cpu032II only for this example (it uses &#8220;jmp _Z9factoriali&#8221; instead of
+&#8220;jsub _Z9factoriali&#8221;).
 Then cpu032I (pass all arguments in
-stack) doesn’t satisfy the statement, NextStackOffset &lt;=
+stack) doesn&#8217;t satisfy the statement, NextStackOffset &lt;=
 FI.getIncomingArgSize() in isEligibleForTailCallOptimization(), and return
 false for the function as follows,</p>
 <p class="rubric">lbdex/chapters/Chapter9_2/Cpu0SEISelLowering.cpp</p>
@@ -3222,7 +3223,7 @@ than tail call as follows,</p>
 <span class="go">...</span>
 <span class="go">; Function Attrs: nounwind readnone</span>
 <span class="go">define i32 @_Z9factoriali(i32 %x) #0 {</span>
-<span class="gp">  %</span><span class="nv">1</span> <span class="o">=</span> icmp sgt i32 %x, <span class="m">0</span>
+<span class="gp">  %</span><span class="nv">1</span> <span class="o">=</span> icmp sgt i32 %x, 0
 <span class="go">  br i1 %1, label %tailrecurse.preheader, label %tailrecurse._crit_edge</span>
 
 <span class="go">tailrecurse.preheader:                            ; preds = %0</span>
@@ -3231,10 +3232,10 @@ than tail call as follows,</p>
 <span class="go">tailrecurse:                                      ; preds = %tailrecurse,</span>
 <span class="gp">%</span>tailrecurse.preheader
 <span class="gp">  %</span>x.tr2 <span class="o">=</span> phi i32 <span class="o">[</span> %2, %tailrecurse <span class="o">]</span>, <span class="o">[</span> %x, %tailrecurse.preheader <span class="o">]</span>
-<span class="gp">  %</span>accumulator.tr1 <span class="o">=</span> phi i32 <span class="o">[</span> %3, %tailrecurse <span class="o">]</span>, <span class="o">[</span> <span class="m">1</span>, %tailrecurse.preheader <span class="o">]</span>
+<span class="gp">  %</span>accumulator.tr1 <span class="o">=</span> phi i32 <span class="o">[</span> %3, %tailrecurse <span class="o">]</span>, <span class="o">[</span> 1, %tailrecurse.preheader <span class="o">]</span>
 <span class="gp">  %</span><span class="nv">2</span> <span class="o">=</span> add nsw i32 %x.tr2, -1
 <span class="gp">  %</span><span class="nv">3</span> <span class="o">=</span> mul nsw i32 %x.tr2, %accumulator.tr1
-<span class="gp">  %</span><span class="nv">4</span> <span class="o">=</span> icmp sgt i32 %2, <span class="m">0</span>
+<span class="gp">  %</span><span class="nv">4</span> <span class="o">=</span> icmp sgt i32 %2, 0
 <span class="go">  br i1 %4, label %tailrecurse, label %tailrecurse._crit_edge.loopexit</span>
 
 <span class="go">tailrecurse._crit_edge.loopexit:                  ; preds = %tailrecurse</span>
@@ -3243,14 +3244,14 @@ than tail call as follows,</p>
 
 <span class="go">tailrecurse._crit_edge:                           ; preds = %tailrecurse._crit</span>
 <span class="go">  _edge.loopexit, %0</span>
-<span class="gp">  %</span>accumulator.tr.lcssa <span class="o">=</span> phi i32 <span class="o">[</span> <span class="m">1</span>, %0 <span class="o">]</span>, <span class="o">[</span> %.lcssa, %tailrecurse._crit_edge
+<span class="gp">  %</span>accumulator.tr.lcssa <span class="o">=</span> phi i32 <span class="o">[</span> 1, %0 <span class="o">]</span>, <span class="o">[</span> %.lcssa, %tailrecurse._crit_edge
 <span class="go">  .loopexit ]</span>
 <span class="go">  ret i32 %accumulator.tr.lcssa</span>
 <span class="go">}</span>
 
 <span class="go">; Function Attrs: nounwind readnone</span>
 <span class="go">define i32 @_Z13test_tailcalli(i32 %a) #0 {</span>
-<span class="gp">  %</span><span class="nv">1</span> <span class="o">=</span> icmp sgt i32 %a, <span class="m">0</span>
+<span class="gp">  %</span><span class="nv">1</span> <span class="o">=</span> icmp sgt i32 %a, 0
 <span class="go">  br i1 %1, label %tailrecurse.i.preheader, label %_Z9factoriali.exit</span>
 
 <span class="go">tailrecurse.i.preheader:                          ; preds = %0</span>
@@ -3259,11 +3260,11 @@ than tail call as follows,</p>
 <span class="go">tailrecurse.i:                                    ; preds = %tailrecurse.i,</span>
 <span class="gp">  %</span>tailrecurse.i.preheader
 <span class="gp">  %</span>x.tr2.i <span class="o">=</span> phi i32 <span class="o">[</span> %2, %tailrecurse.i <span class="o">]</span>, <span class="o">[</span> %a, %tailrecurse.i.preheader <span class="o">]</span>
-<span class="gp">  %</span>accumulator.tr1.i <span class="o">=</span> phi i32 <span class="o">[</span> %3, %tailrecurse.i <span class="o">]</span>, <span class="o">[</span> <span class="m">1</span>, %tailrecurse.i.
+<span class="gp">  %</span>accumulator.tr1.i <span class="o">=</span> phi i32 <span class="o">[</span> %3, %tailrecurse.i <span class="o">]</span>, <span class="o">[</span> 1, %tailrecurse.i.
 <span class="go">  preheader ]</span>
 <span class="gp">  %</span><span class="nv">2</span> <span class="o">=</span> add nsw i32 %x.tr2.i, -1
 <span class="gp">  %</span><span class="nv">3</span> <span class="o">=</span> mul nsw i32 %accumulator.tr1.i, %x.tr2.i
-<span class="gp">  %</span><span class="nv">4</span> <span class="o">=</span> icmp sgt i32 %2, <span class="m">0</span>
+<span class="gp">  %</span><span class="nv">4</span> <span class="o">=</span> icmp sgt i32 %2, 0
 <span class="go">  br i1 %4, label %tailrecurse.i, label %_Z9factoriali.exit.loopexit</span>
 
 <span class="go">_Z9factoriali.exit.loopexit:                      ; preds = %tailrecurse.i</span>
@@ -3272,7 +3273,7 @@ than tail call as follows,</p>
 
 <span class="go">_Z9factoriali.exit:                               ; preds = %_Z9factoriali.</span>
 <span class="go">  exit.loopexit, %0</span>
-<span class="gp">  %</span>accumulator.tr.lcssa.i <span class="o">=</span> phi i32 <span class="o">[</span> <span class="m">1</span>, %0 <span class="o">]</span>, <span class="o">[</span> %.lcssa, %_Z9factoriali.
+<span class="gp">  %</span>accumulator.tr.lcssa.i <span class="o">=</span> phi i32 <span class="o">[</span> 1, %0 <span class="o">]</span>, <span class="o">[</span> %.lcssa, %_Z9factoriali.
 <span class="go">  exit.loopexit ]</span>
 <span class="go">  ret i32 %accumulator.tr.lcssa.i</span>
 <span class="go">}</span>
@@ -3300,7 +3301,7 @@ than tail call as follows,</p>
 <span class="go">        jlt   $sw, $BB0_2</span>
 <span class="go">        nop</span>
 <span class="gp">$</span>BB0_1:                                 <span class="c1"># %tailrecurse</span>
-<span class="gp">                                        #</span> <span class="o">=</span>&gt;This Inner Loop Header: <span class="nv">Depth</span><span class="o">=</span><span class="m">1</span>
+<span class="gp">                                        #</span> <span class="o">=</span>&gt;This Inner Loop Header: <span class="nv">Depth</span><span class="o">=</span>1
 <span class="go">        mul   $2, $3, $2</span>
 <span class="go">        addiu $3, $3, -1</span>
 <span class="go">        addiu $4, $zero, 0</span>
@@ -3332,7 +3333,7 @@ than tail call as follows,</p>
 <span class="go">        jlt   $sw, $BB1_2</span>
 <span class="go">        nop</span>
 <span class="gp">$</span>BB1_1:                                 <span class="c1"># %tailrecurse.i</span>
-<span class="gp">                                        #</span> <span class="o">=</span>&gt;This Inner Loop Header: <span class="nv">Depth</span><span class="o">=</span><span class="m">1</span>
+<span class="gp">                                        #</span> <span class="o">=</span>&gt;This Inner Loop Header: <span class="nv">Depth</span><span class="o">=</span>1
 <span class="go">        mul   $2, $2, $3</span>
 <span class="go">        addiu $3, $3, -1</span>
 <span class="go">        addiu $4, $zero, 0</span>
@@ -3352,7 +3353,7 @@ than tail call as follows,</p>
 <p>According above llvm IR, <code class="docutils literal"><span class="pre">clang</span> <span class="pre">-O3</span></code> option replace recursion with loop by
 inline the callee recursion function. This is a frontend optimization through
 cross over function analysis.</p>
-<p>Cpu0 doesn’t support fastcc <a class="footnote-reference" href="#callconv" id="id8">[7]</a> but it can pass the fastcc keyword of
+<p>Cpu0 doesn&#8217;t support fastcc <a class="footnote-reference" href="#callconv" id="id8">[7]</a> but it can pass the fastcc keyword of
 IR.
 Mips supports fastcc by using as more registers as possible without following
 ABI specification.</p>
@@ -3360,8 +3361,8 @@ ABI specification.</p>
 </div>
 <div class="section" id="other-features-supporting">
 <h2><a class="toc-backref" href="#id35">Other features supporting</a><a class="headerlink" href="#other-features-supporting" title="Permalink to this headline">¶</a></h2>
-<p>This section supports features for “$gp register caller saved register in PIC
-addressing mode”, “variable number of arguments” and “dynamic stack allocation”.</p>
+<p>This section supports features for &#8220;$gp register caller saved register in PIC
+addressing mode&#8221;, &#8220;variable number of arguments&#8221; and &#8220;dynamic stack allocation&#8221;.</p>
 <p>Run Chapter9_2/ with ch9_3_vararg.cpp to get the following error,</p>
 <p class="rubric">lbdex/input/ch9_3_vararg.cpp</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1">#include &lt;stdarg.h&gt;</span>
@@ -3476,11 +3477,11 @@ We reserve <strong>“jalr”</strong> as PIC mode for dynamic linking function 
 <li>How the code in the shared libray function uses $gp to access global variable
 address.</li>
 <li>The jalr for dynamic linking function is easier in implementation and faster.
-As we have depicted in section “pic mode” of chapter “Global variables, structs
-and arrays, other type”. This solution is popular in reality and deserve changing
+As we have depicted in section &#8220;pic mode&#8221; of chapter &#8220;Global variables, structs
+and arrays, other type&#8221;. This solution is popular in reality and deserve changing
 cpu0 official design as a compiler book.</li>
 </ol>
-<p>In chapter “Global variable”, we mentioned two link
+<p>In chapter &#8220;Global variable&#8221;, we mentioned two link
 type, the static link and dynamic link.
 The option -relocation-model=static is for static link function while option
 -relocation-model=pic is for dynamic link function.
@@ -3492,7 +3493,7 @@ Since share library can be loaded in different memory address, the global
 variable address be accessed cannot be decided at link time.
 Whatever, he distance between the global variable address and the start address
 of shared library function can be calculated when it has been loaded.</p>
-<p>Let’s run Chapter9_3/ with ch9_gprestore.cpp to get the following result.
+<p>Let&#8217;s run Chapter9_3/ with ch9_gprestore.cpp to get the following result.
 We putting the comments in the result for explanation.</p>
 <p class="rubric">lbdex/input/ch9_gprestore.cpp</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">extern</span> <span class="nb">int</span> <span class="n">sum_i</span><span class="p">(</span><span class="nb">int</span> <span class="n">x1</span><span class="p">);</span>
@@ -3542,8 +3543,8 @@ We putting the comments in the result for explanation.</p>
 </div>
 <p>As above code comment, <strong>“.cprestore 8”</strong> is a pseudo instruction for saving
 <strong>$gp</strong> to <strong>8($sp)</strong> while Instruction <strong>“ld $gp, 8($sp)”</strong> restore
-the $gp, refer to Table 8-1 of “MIPSpro TM Assembly Language Programmer’s
-Guide” <a class="footnote-reference" href="#mipsasm" id="id9">[2]</a>.
+the $gp, refer to Table 8-1 of &#8220;MIPSpro TM Assembly Language Programmer’s
+Guide&#8221; <a class="footnote-reference" href="#mipsasm" id="id9">[2]</a>.
 In other words, $gp is a caller saved register, so main() need to save/restore
 $gp before/after call the shared library _Z5sum_ii() function.
 In llvm Mips 3.5, it removed the .cprestore in mode PIC which meaning $gp
@@ -3557,12 +3558,12 @@ variable, the PIC is not critial function and the performance advantage can be
 ignored in dynamic link, so we keep this feature in Cpu0.
 Reserving $gp as a specific register in
 PIC will save a lot of code in programming.
-When reserving $gp, .cprestore can be disabled by option “-cpu0-reserve-gp”.
+When reserving $gp, .cprestore can be disabled by option &#8220;-cpu0-reserve-gp&#8221;.
 The .cpload is needed even reserving $gp (considering that programmers
 implement a boot code function with C and assembly mixed, programmer can set
 $gp value through .cpload be issued.</p>
-<p>If enabling “-cpu0-no-cpload”, and undefining ENABLE_GPRESTORE or enable
-“-cpu0-reserve-gp”, .cpload and $gp save/restore won’t be issued as follow,</p>
+<p>If enabling &#8220;-cpu0-no-cpload&#8221;, and undefining ENABLE_GPRESTORE or enable
+&#8220;-cpu0-reserve-gp&#8221;, .cpload and $gp save/restore won&#8217;t be issued as follow,</p>
 <div class="highlight-console"><div class="highlight"><pre><span></span><span class="gp">118-165-78-230:input Jonathan$</span> /Users/Jonathan/llvm/test/cmake_debug_build/
 <span class="go">Debug/bin/llc -march=cpu0 -mcpu=cpu032II-cpu0-s32-calls=true</span>
 <span class="go">-relocation-model=pic -filetype=asm ch9_gprestore.bc -cpu0-no-cpload</span>
@@ -3604,7 +3605,7 @@ $gp value through .cpload be issued.</p>
 <p>LLVM Mips 3.1 issues the .cpload and .cprestore and Cpu0 borrows it from that
 version. But now, llvm Mips replace .cpload with real instructions and remove
 .cprestore. It treats $gp as reserved register in PIC mode. Since the Mips
-assembly document which I reference say $gp is “caller save register”, Cpu0 follows
+assembly document which I reference say $gp is &#8220;caller save register&#8221;, Cpu0 follows
 this document at this point and provides reserving $gp register as option.</p>
 <div class="highlight-console"><div class="highlight"><pre><span></span><span class="gp">118-165-78-230:input Jonathan$</span> /Users/Jonathan/llvm/test/cmake_debug_build/
 <span class="go">Debug/bin/llc -march=mips -relocation-model=pic -filetype=asm ch9_gprestore.bc</span>
@@ -3875,12 +3876,12 @@ instructions.</p>
 </div>
 <p>Run ch9_1.bc with <code class="docutils literal"><span class="pre">llc</span> <span class="pre">-filetype=obj</span></code>, you will find the Cx of <strong>“jsub Cx”</strong>
 is 0 since the Cx is calculated by linker as below.
-Mips has the same 0 in it’s jal instruction.</p>
+Mips has the same 0 in it&#8217;s jal instruction.</p>
 <div class="highlight-console"><div class="highlight"><pre><span></span><span class="go">// jsub _Z5sum_iiiiiii translate into 2B 00 00 00</span>
 <span class="go">00F0: 2B 00 00 00 01 2D 00 34 00 ED 00 3C 09 DD 00 40</span>
 </pre></div>
 </div>
-<p>The following code will emit “ld $gp, ($gp save slot on stack)” after jalr by
+<p>The following code will emit &#8220;ld $gp, ($gp save slot on stack)&#8221; after jalr by
 creating file Cpu0EmitGPRestore.cpp which run as a function pass.</p>
 <p class="rubric">lbdex/chapters/Chapter9_3/CMakeLists.txt</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span>  <span class="n">Cpu0EmitGPRestore</span><span class="o">.</span><span class="n">cpp</span>
@@ -4381,8 +4382,8 @@ backend code too.</p>
 </div>
 <p>Mips qemu reference <a class="footnote-reference" href="#mipsqemu" id="id10">[8]</a>, you can download and run it with gcc to
 verify the result with printf() function at this point.
-We will verify the correction of the code in chapter “Verify backend on
-Verilog simulator” through the CPU0 Verilog language machine.</p>
+We will verify the correction of the code in chapter &#8220;Verify backend on
+Verilog simulator&#8221; through the CPU0 Verilog language machine.</p>
 </div>
 <div class="section" id="dynamic-stack-allocation-support">
 <h3><a class="toc-backref" href="#id38">Dynamic stack allocation support</a><a class="headerlink" href="#dynamic-stack-allocation-support" title="Permalink to this headline">¶</a></h3>
@@ -4631,7 +4632,7 @@ Next, the fp is set to sp where the position is just above alloca() spaces area
 as <a class="reference internal" href="#funccall-f4"><span class="std std-numref">Fig. 26</span></a> when meets instruction <strong>move $fp, $sp</strong>.
 After that, the sp is changed to the area just below of alloca().
 Remind, the alloca() area where the b point to,
-<strong>“*b = (int*)__builtin_alloca(sizeof(int) * 2 * x6)”</strong>, is
+<strong>&#8220;*b = (int*)__builtin_alloca(sizeof(int) * 2 * x6)&#8221;</strong>, is
 allocated at run time since the size of the space which depends on x1
 variable and cannot be calculated at link time.</p>
 <p><a class="reference internal" href="#funccall-f5"><span class="std std-numref">Fig. 27</span></a> depict how the stack pointer changes back to the
@@ -4668,7 +4669,7 @@ local variables have better performance comparing to use the sp only.</p>
 <p>Cpu0 uses fp and sp to access the above and below areas of alloca() too.
 As ch9_3_alloc.cpu0.s, it accesses local variables (above of alloca()) by fp
 offset and outgoing arguments (below of alloca()) by sp offset.</p>
-<p>And more, the “move $sp, $fp” is the alias instruction of “addu $fp, $sp, $zero”.
+<p>And more, the &#8220;move $sp, $fp&#8221; is the alias instruction of &#8220;addu $fp, $sp, $zero&#8221;.
 The machine code is the latter one, and the former is only for easy understanding by
 user. This alias comes from code added in Chapter3_2 and Chapter3_5 as
 follows,</p>
@@ -4694,11 +4695,11 @@ def : Cpu0InstAlias&lt;&quot;move $dst, $src&quot;,
 </pre></div>
 </div>
 <p>Finally the MFI-&gt;hasVarSizedObjects() defined in hasReservedCallFrame() of
-Cpu0SEFrameLowering.cpp is true when it meets “%9 = alloca i8, i32 %8” of IR
-which corresponding “(int*)__builtin_alloca(sizeof(int) * 1 * x1);” of C.
-It will generate asm “addiu     $sp, $sp, -24” for ch9_3_alloc.cpp by calling
-“adjustStackPtr()” in eliminateCallFramePseudoInstr() of Cpu0FrameLowering.cpp.</p>
-<p>File ch9_3_longlongshift.cpp is for type “long long shift operations”
+Cpu0SEFrameLowering.cpp is true when it meets &#8220;%9 = alloca i8, i32 %8&#8221; of IR
+which corresponding &#8220;(int*)__builtin_alloca(sizeof(int) * 1 * x1);&#8221; of C.
+It will generate asm &#8220;addiu     $sp, $sp, -24&#8221; for ch9_3_alloc.cpp by calling
+&#8220;adjustStackPtr()&#8221; in eliminateCallFramePseudoInstr() of Cpu0FrameLowering.cpp.</p>
+<p>File ch9_3_longlongshift.cpp is for type &#8220;long long shift operations&#8221;
 which can be tested now as follows.</p>
 <p class="rubric">lbdex/input/ch9_3_longlongshift.cpp</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1">#include &quot;debug.h&quot;</span>
@@ -4737,22 +4738,22 @@ which can be tested now as follows.</p>
 <span class="go">...</span>
 <span class="go">; Function Attrs: nounwind</span>
 <span class="go">define i64 @_Z19test_longlong_shiftv() #0 {</span>
-<span class="gp">  %</span><span class="nv">a</span> <span class="o">=</span> alloca i64, align <span class="m">8</span>
-<span class="gp">  %</span><span class="nv">b</span> <span class="o">=</span> alloca i64, align <span class="m">8</span>
-<span class="gp">  %</span><span class="nv">c</span> <span class="o">=</span> alloca i64, align <span class="m">8</span>
-<span class="gp">  %</span><span class="nv">d</span> <span class="o">=</span> alloca i64, align <span class="m">8</span>
+<span class="gp">  %</span><span class="nv">a</span> <span class="o">=</span> alloca i64, align 8
+<span class="gp">  %</span><span class="nv">b</span> <span class="o">=</span> alloca i64, align 8
+<span class="gp">  %</span><span class="nv">c</span> <span class="o">=</span> alloca i64, align 8
+<span class="gp">  %</span><span class="nv">d</span> <span class="o">=</span> alloca i64, align 8
 <span class="go">  store i64 4, i64* %a, align 8</span>
 <span class="go">  store i64 18, i64* %b, align 8</span>
-<span class="gp">  %</span><span class="nv">1</span> <span class="o">=</span> load i64* %b, align <span class="m">8</span>
-<span class="gp">  %</span><span class="nv">2</span> <span class="o">=</span> load i64* %a, align <span class="m">8</span>
+<span class="gp">  %</span><span class="nv">1</span> <span class="o">=</span> load i64* %b, align 8
+<span class="gp">  %</span><span class="nv">2</span> <span class="o">=</span> load i64* %a, align 8
 <span class="gp">  %</span><span class="nv">3</span> <span class="o">=</span> ashr i64 %1, %2
 <span class="go">  store i64 %3, i64* %c, align 8</span>
-<span class="gp">  %</span><span class="nv">4</span> <span class="o">=</span> load i64* %b, align <span class="m">8</span>
-<span class="gp">  %</span><span class="nv">5</span> <span class="o">=</span> load i64* %a, align <span class="m">8</span>
+<span class="gp">  %</span><span class="nv">4</span> <span class="o">=</span> load i64* %b, align 8
+<span class="gp">  %</span><span class="nv">5</span> <span class="o">=</span> load i64* %a, align 8
 <span class="gp">  %</span><span class="nv">6</span> <span class="o">=</span> shl i64 %4, %5
 <span class="go">  store i64 %6, i64* %d, align 8</span>
-<span class="gp">  %</span><span class="nv">7</span> <span class="o">=</span> load i64* %c, align <span class="m">8</span>
-<span class="gp">  %</span><span class="nv">8</span> <span class="o">=</span> load i64* %d, align <span class="m">8</span>
+<span class="gp">  %</span><span class="nv">7</span> <span class="o">=</span> load i64* %c, align 8
+<span class="gp">  %</span><span class="nv">8</span> <span class="o">=</span> load i64* %d, align 8
 <span class="gp">  %</span><span class="nv">9</span> <span class="o">=</span> add nsw i64 %7, %8
 <span class="go">  ret i64 %9</span>
 <span class="go">}</span>
@@ -4902,20 +4903,20 @@ replace them.</p>
 <span class="gp">JonathantekiiMac:input Jonathan$</span> llvm-dis ch9_3_stacksave.bc -o -
 
 <span class="go">define i32 @_Z21test_stacksaverestorej(i32 zeroext %x) #0 {</span>
-<span class="gp">  %</span><span class="nv">1</span> <span class="o">=</span> alloca i32, align <span class="m">4</span>
+<span class="gp">  %</span><span class="nv">1</span> <span class="o">=</span> alloca i32, align 4
 <span class="gp">  %</span><span class="nv">2</span> <span class="o">=</span> alloca i8*
 <span class="gp">  %</span><span class="nv">3</span> <span class="o">=</span> alloca i32
 <span class="go">  store i32 %x, i32* %1, align 4</span>
-<span class="gp">  %</span><span class="nv">4</span> <span class="o">=</span> load i32, i32* %1, align <span class="m">4</span>
+<span class="gp">  %</span><span class="nv">4</span> <span class="o">=</span> load i32, i32* %1, align 4
 <span class="gp">  %</span><span class="nv">5</span> <span class="o">=</span> call i8* @llvm.stacksave<span class="o">()</span>
 <span class="go">  store i8* %5, i8** %2</span>
-<span class="gp">  %</span><span class="nv">6</span> <span class="o">=</span> alloca i8, i32 %4, align <span class="m">1</span>
-<span class="gp">  %</span><span class="nv">7</span> <span class="o">=</span> load i32, i32* %1, align <span class="m">4</span>
+<span class="gp">  %</span><span class="nv">6</span> <span class="o">=</span> alloca i8, i32 %4, align 1
+<span class="gp">  %</span><span class="nv">7</span> <span class="o">=</span> load i32, i32* %1, align 4
 <span class="gp">  %</span><span class="nv">8</span> <span class="o">=</span> getelementptr inbounds i8, i8* %6, i32 %7
 <span class="go">  store i8 5, i8* %8, align 1</span>
-<span class="gp">  %</span><span class="nv">9</span> <span class="o">=</span> load i32, i32* %1, align <span class="m">4</span>
+<span class="gp">  %</span><span class="nv">9</span> <span class="o">=</span> load i32, i32* %1, align 4
 <span class="gp">  %</span><span class="nv">10</span> <span class="o">=</span> getelementptr inbounds i8, i8* %6, i32 %9
-<span class="gp">  %</span><span class="nv">11</span> <span class="o">=</span> load i8, i8* %10, align <span class="m">1</span>
+<span class="gp">  %</span><span class="nv">11</span> <span class="o">=</span> load i8, i8* %10, align 1
 <span class="gp">  %</span><span class="nv">12</span> <span class="o">=</span> sext i8 %11 to i32
 <span class="go">  store i32 1, i32* %3</span>
 <span class="gp">  %</span><span class="nv">13</span> <span class="o">=</span> load i8*, i8** %2
@@ -5073,7 +5074,7 @@ intrinsic IRs, the following code added to Cpu0 backend.</p>
 <span class="go">...</span>
 <span class="go">; Function Attrs: nounwind</span>
 <span class="go">define i32 @_Z20display_frameaddressv() #0 {</span>
-<span class="gp">  %</span><span class="nv">1</span> <span class="o">=</span> call i8* @llvm.frameaddress<span class="o">(</span>i32 <span class="m">0</span><span class="o">)</span>
+<span class="gp">  %</span><span class="nv">1</span> <span class="o">=</span> call i8* @llvm.frameaddress<span class="o">(</span>i32 0<span class="o">)</span>
 <span class="gp">  %</span><span class="nv">2</span> <span class="o">=</span> ptrtoint i8* %1 to i32
 <span class="go">  ret i32 %2</span>
 <span class="go">}</span>
@@ -5082,12 +5083,12 @@ intrinsic IRs, the following code added to Cpu0 backend.</p>
 <span class="go">declare i8* @llvm.frameaddress(i32) #1</span>
 
 <span class="go">define i32 @_Z22display_returnaddressv() #2 {</span>
-<span class="gp">  %</span><span class="nv">a</span> <span class="o">=</span> alloca i32, align <span class="m">4</span>
-<span class="gp">  %</span><span class="nv">1</span> <span class="o">=</span> call i8* @llvm.returnaddress<span class="o">(</span>i32 <span class="m">0</span><span class="o">)</span>
+<span class="gp">  %</span><span class="nv">a</span> <span class="o">=</span> alloca i32, align 4
+<span class="gp">  %</span><span class="nv">1</span> <span class="o">=</span> call i8* @llvm.returnaddress<span class="o">(</span>i32 0<span class="o">)</span>
 <span class="gp">  %</span><span class="nv">2</span> <span class="o">=</span> ptrtoint i8* %1 to i32
 <span class="go">  store i32 %2, i32* %a, align 4</span>
 <span class="gp">  %</span><span class="nv">3</span> <span class="o">=</span> call i32 @_Z2fnv<span class="o">()</span>
-<span class="gp">  %</span><span class="nv">4</span> <span class="o">=</span> load i32, i32* %a, align <span class="m">4</span>
+<span class="gp">  %</span><span class="nv">4</span> <span class="o">=</span> load i32, i32* %a, align 4
 <span class="go">  ret i32 %4</span>
 <span class="go">}</span>
 
@@ -5164,9 +5165,9 @@ intrinsic IRs, the following code added to Cpu0 backend.</p>
 <span class="go">      .cfi_endproc</span>
 </pre></div>
 </div>
-<p>The asm “ld     $2, 12($fp)” in function _Z22display_returnaddress1v reloads $lr
-to $2 after “jsub _Z3fnv”. The reason that Cpu0 doesn’t produce
-“addiu $2, $zero, $lr” is if a bug program in _Z3fnv changes $lr value without
+<p>The asm &#8220;ld     $2, 12($fp)&#8221; in function _Z22display_returnaddress1v reloads $lr
+to $2 after &#8220;jsub _Z3fnv&#8221;. The reason that Cpu0 doesn&#8217;t produce
+&#8220;addiu $2, $zero, $lr&#8221; is if a bug program in _Z3fnv changes $lr value without
 following ABI then it will get the wrong $lr to $2.
 The following code kills $lr register and make the reference to $lr by
 loading from stack slot rather than uses register directly.</p>
@@ -5388,12 +5389,12 @@ let Uses = [V0, V1], isTerminator = 1, isReturn = 1, isBarrier = 1 in {
 
 <span class="go">; Function Attrs: nounwind</span>
 <span class="go">define void @_Z17exception_handlerv() #0 {</span>
-<span class="gp">  %</span><span class="nv">frameaddr</span> <span class="o">=</span> alloca i32, align <span class="m">4</span>
+<span class="gp">  %</span><span class="nv">frameaddr</span> <span class="o">=</span> alloca i32, align 4
 <span class="go">  store i8 1, i8* @exceptionOccur, align 1</span>
-<span class="gp">  %</span><span class="nv">1</span> <span class="o">=</span> call i8* @llvm.frameaddress<span class="o">(</span>i32 <span class="m">0</span><span class="o">)</span>
+<span class="gp">  %</span><span class="nv">1</span> <span class="o">=</span> call i8* @llvm.frameaddress<span class="o">(</span>i32 0<span class="o">)</span>
 <span class="gp">  %</span><span class="nv">2</span> <span class="o">=</span> ptrtoint i8* %1 to i32
 <span class="go">  store i32 %2, i32* %frameaddr, align 4</span>
-<span class="gp">  %</span><span class="nv">3</span> <span class="o">=</span> load i8*, i8** @returnAddr, align <span class="m">4</span>
+<span class="gp">  %</span><span class="nv">3</span> <span class="o">=</span> load i8*, i8** @returnAddr, align 4
 <span class="go">  call void @llvm.eh.return.i32(i32 0, i8* %3)</span>
 <span class="go">  unreachable</span>
 <span class="go">                                                  ; No predecessors!</span>
@@ -5407,20 +5408,20 @@ let Uses = [V0, V1], isTerminator = 1, isReturn = 1, isBarrier = 1 in {
 <span class="go">declare void @llvm.eh.return.i32(i32, i8*) #2</span>
 
 <span class="go">define weak i32 @_Z21test_detect_exceptionb(i1 zeroext %exception) #3 {</span>
-<span class="gp">  %</span><span class="nv">1</span> <span class="o">=</span> alloca i8, align <span class="m">1</span>
-<span class="gp">  %</span><span class="nv">handler</span> <span class="o">=</span> alloca i8*, align <span class="m">4</span>
+<span class="gp">  %</span><span class="nv">1</span> <span class="o">=</span> alloca i8, align 1
+<span class="gp">  %</span><span class="nv">handler</span> <span class="o">=</span> alloca i8*, align 4
 <span class="gp">  %</span><span class="nv">2</span> <span class="o">=</span> zext i1 %exception to i8
 <span class="go">  store i8 %2, i8* %1, align 1</span>
 <span class="go">  store i8 0, i8* @exceptionOccur, align 1</span>
 <span class="go">  store i8* bitcast (void ()* @_Z17exception_handlerv to i8*), i8** %handler, align 4</span>
-<span class="gp">  %</span><span class="nv">3</span> <span class="o">=</span> load i8, i8* %1, align <span class="m">1</span>
+<span class="gp">  %</span><span class="nv">3</span> <span class="o">=</span> load i8, i8* %1, align 1
 <span class="gp">  %</span><span class="nv">4</span> <span class="o">=</span> trunc i8 %3 to i1
 <span class="go">  br i1 %4, label %5, label %8</span>
 
 <span class="go">; &lt;label&gt;:5                                       ; preds = %0</span>
-<span class="gp">  %</span><span class="nv">6</span> <span class="o">=</span> call i8* @llvm.returnaddress<span class="o">(</span>i32 <span class="m">0</span><span class="o">)</span>
+<span class="gp">  %</span><span class="nv">6</span> <span class="o">=</span> call i8* @llvm.returnaddress<span class="o">(</span>i32 0<span class="o">)</span>
 <span class="go">  store i8* %6, i8** @returnAddr, align 4</span>
-<span class="gp">  %</span><span class="nv">7</span> <span class="o">=</span> load i8*, i8** %handler, align <span class="m">4</span>
+<span class="gp">  %</span><span class="nv">7</span> <span class="o">=</span> load i8*, i8** %handler, align 4
 <span class="go">  call void @llvm.eh.return.i32(i32 0, i8* %7)</span>
 <span class="go">  unreachable</span>
 
@@ -5579,14 +5580,14 @@ let Uses = [V0, V1], isTerminator = 1, isReturn = 1, isBarrier = 1 in {
 <span class="go">  ...</span>
 </pre></div>
 </div>
-<p>If you disable “__attribute__ ((weak))” in the C file, then the IR will has
-“nounwind” in attributes #3. The side effect in asm output is “No .cfi_offset
-issued” like function exception_handler().</p>
+<p>If you disable &#8220;__attribute__ ((weak))&#8221; in the C file, then the IR will has
+&#8220;nounwind&#8221; in attributes #3. The side effect in asm output is &#8220;No .cfi_offset
+issued&#8221; like function exception_handler().</p>
 <p>This example code of exception handler implementation can get frame, return and
 call exception handler by call __builtin_xxx in clang in C language, without
 introducing any assembly instruction.
-And this example can be verified in the Chapter “Cpu0 ELF linker” of the other
-book “llvm tool chain for Cpu0” <a class="footnote-reference" href="#cpu0lld" id="id13">[12]</a>.
+And this example can be verified in the Chapter &#8220;Cpu0 ELF linker&#8221; of the other
+book &#8220;llvm tool chain for Cpu0&#8221; <a class="footnote-reference" href="#cpu0lld" id="id13">[12]</a>.
 Through examining global variable, exceptionOccur, is true or false, program
 will set the control flow to exception_handler() or not to correctly.</p>
 </div>
@@ -5713,16 +5714,16 @@ entry:
 <span class="go">ch9_3_bswap.bc -o -</span>
 <span class="go">...</span>
 <span class="go">define i32 @_Z12test_bswap16v() #0 {</span>
-<span class="gp">  %</span><span class="nv">a</span> <span class="o">=</span> alloca i32, align <span class="m">4</span>
-<span class="gp">  %</span><span class="nv">result</span> <span class="o">=</span> alloca i32, align <span class="m">4</span>
+<span class="gp">  %</span><span class="nv">a</span> <span class="o">=</span> alloca i32, align 4
+<span class="gp">  %</span><span class="nv">result</span> <span class="o">=</span> alloca i32, align 4
 <span class="go">  store volatile i32 4660, i32* %a, align 4</span>
-<span class="gp">  %</span><span class="nv">1</span> <span class="o">=</span> load volatile i32, i32* %a, align <span class="m">4</span>
+<span class="gp">  %</span><span class="nv">1</span> <span class="o">=</span> load volatile i32, i32* %a, align 4
 <span class="gp">  %</span><span class="nv">2</span> <span class="o">=</span> trunc i32 %1 to i16
 <span class="gp">  %</span><span class="nv">3</span> <span class="o">=</span> call i16 @llvm.bswap.i16<span class="o">(</span>i16 %2<span class="o">)</span>
 <span class="gp">  %</span><span class="nv">4</span> <span class="o">=</span> zext i16 %3 to i32
-<span class="gp">  %</span><span class="nv">5</span> <span class="o">=</span> xor i32 %4, <span class="m">13330</span>
+<span class="gp">  %</span><span class="nv">5</span> <span class="o">=</span> xor i32 %4, 13330
 <span class="go">  store i32 %5, i32* %result, align 4</span>
-<span class="gp">  %</span><span class="nv">6</span> <span class="o">=</span> load i32, i32* %result, align <span class="m">4</span>
+<span class="gp">  %</span><span class="nv">6</span> <span class="o">=</span> load i32, i32* %result, align 4
 <span class="go">  ret i32 %6</span>
 <span class="go">}</span>
 <span class="go">...</span>
@@ -5786,10 +5787,10 @@ The code as follows,</p>
 </pre></div>
 </div>
 <p>When running llc with cpu0_gcd.ll, it gets the gcd machine instruction,
-meanwhile, when running cpu0_gcd_soft.ll, it gets the “call llvm.cpu0.gcd.soft”
+meanwhile, when running cpu0_gcd_soft.ll, it gets the &#8220;call llvm.cpu0.gcd.soft&#8221;
 function.
-In other words, “&#64;llvm.cpu0.gcd” is intrinsic function for “gcd” machine
-instruction; “&#64;llvm.cpu0.gcd.soft” is intrinsic function for hand-written
+In other words, &#8220;&#64;llvm.cpu0.gcd&#8221; is intrinsic function for &#8220;gcd&#8221; machine
+instruction; &#8220;&#64;llvm.cpu0.gcd.soft&#8221; is intrinsic function for hand-written
 function code.</p>
 </div>
 </div>
@@ -5805,7 +5806,7 @@ LLVM is a real structure following the compiler theory, any backend of LLVM can
 get benefit from this structure.
 The best part of 3 tiers compiler structure is that backend will grow up
 automatically in languages support as the frontend supporting languages more
-and more when the frontend doesn’t add any new IR for a new language.</p>
+and more when the frontend doesn&#8217;t add any new IR for a new language.</p>
 <table class="docutils footnote" frame="void" id="computer-arch-interface" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
@@ -5908,8 +5909,8 @@ and more when the frontend doesn’t add any new IR for a new language.</p>
       </div>
 
     <div class="footer" role="contentinfo">
-        &#169; Copyright 2016, Chen Chung-Shu.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.7.
+        &copy; Copyright 2016, Chen Chung-Shu.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.4.
     </div>
   </body>
 </html>
