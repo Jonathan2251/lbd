@@ -54,7 +54,7 @@ Ulrich Weigand <Ulrich.Weigand@de.ibm.com> in AsmParser question answer.
 Revision history
 ----------------
 
-Version 3.9.4, Not release yet.
+Version 3.9.4, Released August 5, 2021.
 
 Version 3.9.3, Released March 1, 2020.
   Add Appendix C: GPU compiler
