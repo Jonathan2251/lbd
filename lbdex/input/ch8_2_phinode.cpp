@@ -1,7 +1,7 @@
-// ~/llvm/release/cmake_debug_build/Debug/bin/clang -O3 -target mips-unknown-linux-gnu -c ch8_2_phinode.cpp -emit-llvm -o ch8_2_phinode.bc
-// ~/llvm/release/cmake_debug_build/Debug/bin/clang -O0 -target mips-unknown-linux-gnu -c ch8_2_phinode.cpp -emit-llvm -o ch8_2_phinode.bc
-// ~/llvm/test/cmake_debug_build/Debug/bin/llvm-dis ch8_2_phinode.bc -o -
-// ~/llvm/test/cmake_debug_build/Debug/bin/llc -march=cpu0 -mcpu=cpu032I -relocation-model=pic -filetype=asm ch8_2_phinode.bc -o -
+// ~/llvm/release/build/bin/clang -O3 -target mips-unknown-linux-gnu -c ch8_2_phinode.cpp -emit-llvm -o ch8_2_phinode.bc
+// ~/llvm/release/build/bin/clang -O0 -target mips-unknown-linux-gnu -c ch8_2_phinode.cpp -emit-llvm -o ch8_2_phinode.bc
+// ~/llvm/test/build/bin/llvm-dis ch8_2_phinode.bc -o -
+// ~/llvm/test/build/bin/llc -march=cpu0 -mcpu=cpu032I -relocation-model=pic -filetype=asm ch8_2_phinode.bc -o -
 
 /// start
 int test_phinode(int a , int b, int c)

@@ -1,5 +1,5 @@
 // clang -target mips-unknown-linux-gnu -c ch8_2_longbranch.cpp -emit-llvm -o ch8_2_longbranch.bc
-// ~/llvm/test/cmake_debug_build/Debug/bin/llc -march=cpu0 -mcpu=cpu032II -relocation-model=pic -filetype=asm -force-cpu0-long-branch ch8_2_longbranch.bc -o -
+// ~/llvm/test/build/bin/llc -march=cpu0 -mcpu=cpu032II -relocation-model=pic -filetype=asm -force-cpu0-long-branch ch8_2_longbranch.bc -o -
 
 /// start
 int test_longbranch()

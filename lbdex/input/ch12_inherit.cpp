@@ -1,7 +1,7 @@
 // clang -c ch12_inherit.cpp -emit-llvm -o ch12_inherit.bc
 // clang -c ch12_inherit.cpp -emit-llvm -DCOUT_TEST -o ch12_inherit.bc
-// ~/llvm/test/cmake_debug_build/Debug/bin/llvm-dis ch12_inherit.bc -o -
-// ~/llvm/test/cmake_debug_build/Debug/bin/llc -march=cpu0 -relocation-model=static -filetype=asm ch12_inherit.bc -o -
+// ~/llvm/test/build/bin/llvm-dis ch12_inherit.bc -o -
+// ~/llvm/test/build/bin/llc -march=cpu0 -relocation-model=static -filetype=asm ch12_inherit.bc -o -
 
 /// start
 #ifdef COUT_TEST

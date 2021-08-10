@@ -1,4 +1,4 @@
-; ~/llvm/test/cmake_debug_build/Debug/bin/llc -debug -march=cpu0 -mcpu=cpu0II -relocation-model=pic cpu0_sqrt.ll -o -
+; ~/llvm/test/build/bin/llc -debug -march=cpu0 -mcpu=cpu0II -relocation-model=pic cpu0_sqrt.ll -o -
 
 define i32 @llvm_cpu0_sqrt_test(i32 %a, i32 %b) nounwind {
 entry:

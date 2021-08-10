@@ -1,7 +1,5 @@
 // clang -target mips-unknown-linux-gnu -c ch8_1_blockaddr.cpp -emit-llvm -o ch8_1_blockaddr.bc
-// ~/llvm/test/cmake_debug_build/bin/llc -march=cpu0 -relocation-model=static -filetype=asm ch8_1_blockaddr.bc -o -
-
-// ~/llvm/test/cmake_debug_build/Debug/bin/llc -march=cpu0 -relocation-model=static -filetype=asm ch8_1_blockaddr.bc -o -
+// ~/llvm/test/build/bin/llc -march=cpu0 -relocation-model=static -filetype=asm ch8_1_blockaddr.bc -o -
 
 /// start
 int test_blockaddress(int x) {

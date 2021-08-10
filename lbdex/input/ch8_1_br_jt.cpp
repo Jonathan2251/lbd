@@ -1,10 +1,8 @@
 // clang -target mips-unknown-linux-gnu -c ch8_1_br_jt.cpp -emit-llvm -o ch8_1_br_jt.bc
-// ~/llvm/test/cmake_debug_build/bin/llc -march=cpu0 -relocation-model=pic -filetype=asm ch8_1_br_jt.bc -o -
-// ~/llvm/test/cmake_debug_build/bin/llc -march=cpu0 -relocation-model=static -filetype=asm ch8_1_br_jt.bc -o -
-// ~/llvm/test/cmake_debug_build/bin/llc -march=cpu0 -relocation-model=pic -filetype=obj ch8_1_br_jt.bc -o ch8_1_br_jt.cpu0.o
-// ~/llvm/test/cmake_debug_build/bin/llc -march=cpu0 -relocation-model=static -filetype=obj ch8_1_br_jt.bc -o ch8_1_br_jt.cpu0.o
-
-// ~/llvm/test/cmake_debug_build/Debug/bin/llc -march=cpu0 -relocation-model=pic -filetype=asm ch8_1_br_jt.bc -o -
+// ~/llvm/test/build/bin/llc -march=cpu0 -relocation-model=pic -filetype=asm ch8_1_br_jt.bc -o -
+// ~/llvm/test/build/bin/llc -march=cpu0 -relocation-model=static -filetype=asm ch8_1_br_jt.bc -o -
+// ~/llvm/test/build/bin/llc -march=cpu0 -relocation-model=pic -filetype=obj ch8_1_br_jt.bc -o ch8_1_br_jt.cpu0.o
+// ~/llvm/test/build/bin/llc -march=cpu0 -relocation-model=static -filetype=obj ch8_1_br_jt.bc -o ch8_1_br_jt.cpu0.o
 
 /// start
 

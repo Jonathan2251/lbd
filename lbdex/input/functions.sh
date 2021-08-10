@@ -16,7 +16,7 @@ prologue() {
   echo "OS =" ${OS}
 
   TOOLDIR=~/llvm/test/build/bin
-  CLANG=~/llvm/release/build/bin/clang
+  CLANG=~/llvm/test/build/bin/clang
 
   CPU=$arg1
   echo "CPU =" "${CPU}"

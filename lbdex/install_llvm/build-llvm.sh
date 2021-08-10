@@ -14,12 +14,7 @@ if ! test -d ${LLVM_DIR}; then
   cd ..
 else
   echo "${LLVM_DIR} has existed already"
-fi
-
-if [ -e /proc/cpuinfo ]; then
-    export procs=`cat /proc/cpuinfo | grep processor | wc -l`
-else
-    export procs=1
+  exit 1
 fi
 
 if ! test -d ${LLVM_RELEASE_DIR}; then
@@ -30,8 +25,8 @@ if ! test -d ${LLVM_RELEASE_DIR}; then
   pushd ${LLVM_RELEASE_DIR}/build
   OS=`uname -s`
   echo "OS =" ${OS}
-  cmake -DCMAKE_BUILD_TYPE=Debug -G "Unix Makefiles" ../llvm
-  make -j$procs
+  cmake -DCMAKE_BUILD_TYPE=Debug -DLLVM_ENABLE_PROJECTS="clang" -G "Unix Makefiles" ../llvm
+  make -j4
   popd
 fi
 

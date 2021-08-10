@@ -1,5 +1,5 @@
 // clang++ -pthread -std=c++11 -c ch12_atomics.cpp -emit-llvm -o ch12_atomics.bc
-// ~/llvm/test/cmake_debug_build/Debug/bin/llc -march=cpu0 -relocation-model=pic -filetype=asm ch12_atomics.bc -o -
+// ~/llvm/test/build/bin/llc -march=cpu0 -relocation-model=pic -filetype=asm ch12_atomics.bc -o -
 
 // Generate IRs "cmpxchg", "load atomic", "store atomic" and "atomicrmw"
 

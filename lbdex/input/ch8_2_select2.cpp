@@ -1,6 +1,5 @@
 // clang -O1 -c ch8_3_2.cpp -emit-llvm -o ch8_3_2.bc
-// ~/llvm/test/cmake_debug_build/Debug/bin/llc -march=cpu0 -mcpu=cpu032I -relocation-model=static -filetype=asm ch8_3_2.bc -o -
-// ~/llvm/test/cmake_debug_build/bin/llc -march=cpu0 -mcpu=cpu032I -relocation-model=static -filetype=asm ch8_3_2.bc -o -
+// ~/llvm/test/build/bin/llc -march=cpu0 -mcpu=cpu032I -relocation-model=static -filetype=asm ch8_3_2.bc -o -
 
 /// start
 

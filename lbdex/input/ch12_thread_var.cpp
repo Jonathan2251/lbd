@@ -1,11 +1,7 @@
 // clang -target mips-unknown-linux-gnu -c ch12_thread_var.cpp -emit-llvm -std=c++11 -o ch12_thread_var.bc
-// ~/llvm/test/cmake_debug_build/bin/llvm-dis ch12_thread_var.bc -o -
-// ~/llvm/test/cmake_debug_build/bin/llc -march=cpu0 -relocation-model=pic -filetype=asm ch12_thread_var.bc -o -
-// ~/llvm/test/cmake_debug_build/bin/llc -march=cpu0 -relocation-model=static -filetype=asm ch12_thread_var.bc -o -
-
-// ~/llvm/test/cmake_debug_build/Debug/bin/llvm-dis ch12_thread_var.bc -o -
-// ~/llvm/test/cmake_debug_build/Debug/bin/llc -march=cpu0 -relocation-model=pic -filetype=asm ch12_thread_var.bc -o -
-// ~/llvm/test/cmake_debug_build/Debug/bin/llc -march=cpu0 -relocation-model=static -filetype=asm ch12_thread_var.bc -o -
+// ~/llvm/test/build/bin/llvm-dis ch12_thread_var.bc -o -
+// ~/llvm/test/build/bin/llc -march=cpu0 -relocation-model=pic -filetype=asm ch12_thread_var.bc -o -
+// ~/llvm/test/build/bin/llc -march=cpu0 -relocation-model=static -filetype=asm ch12_thread_var.bc -o -
 
 /// start
 __thread int a = 0;

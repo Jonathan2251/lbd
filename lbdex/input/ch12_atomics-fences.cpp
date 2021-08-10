@@ -1,5 +1,5 @@
 // clang++ -pthread -std=c++11 -S ch12_atomics-fences.cpp -emit-llvm -o ch12_atomics-fences.ll
-// ~/llvm/test/cmake_debug_build/bin/llc -march=cpu0 -relocation-model=pic -filetype=asm ch12_atomics-fences.ll -o -
+// ~/llvm/test/build/bin/llc -march=cpu0 -relocation-model=pic -filetype=asm ch12_atomics-fences.ll -o -
 
 // Generate IRs "fence"
 

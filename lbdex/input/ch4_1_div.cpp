@@ -1,8 +1,6 @@
 // clang -target mips-unknown-linux-gnu -c ch4_1_div.cpp -emit-llvm -o ch4_1_div.bc
-// ~/llvm/test/cmake_debug_build/bin/llc -march=cpu0 -relocation-model=pic -filetype=asm ch4_1_div.bc -o -
-// ~/llvm/test/cmake_debug_build/bin/llc -march=cpu0 -relocation-model=pic -filetype=obj ch4_1_div.bc -o ch4_1_div.cpu0.o
-
-// ~/llvm/test/cmake_debug_build/Debug/bin/llc -march=cpu0 -relocation-model=pic -filetype=asm ch4_1_div.bc -o -
+// ~/llvm/test/build/bin/llc -march=cpu0 -relocation-model=pic -filetype=asm ch4_1_div.bc -o -
+// ~/llvm/test/build/bin/llc -march=cpu0 -relocation-model=pic -filetype=obj ch4_1_div.bc -o ch4_1_div.cpu0.o
 
 /// start
 int test_div()

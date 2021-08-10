@@ -1,4 +1,4 @@
-; ~/llvm/test/cmake_debug_build/Debug/bin/llc -debug -print-after-all -march=cpu0 -mcpu=cpu032II -relocation-model=pic cpu0_gcd_soft.ll -o -
+; ~/llvm/test/build/bin/llc -debug -print-after-all -march=cpu0 -mcpu=cpu032II -relocation-model=pic cpu0_gcd_soft.ll -o -
 
 define i32 @llvm_cpu0_gcd_soft_test(i32 %a, i32 %b) nounwind {
 entry:

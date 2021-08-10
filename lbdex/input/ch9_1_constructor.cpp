@@ -1,5 +1,5 @@
 // clang -target mips-unknown-linux-gnu -c ch9_1_constructor.cpp -emit-llvm -o ch9_1_constructor.bc
-// ~/llvm/test/cmake_debug_build/Debug/bin/llc -march=cpu0 -relocation-model=pic -filetype=asm ch9_1_constructor.bc -o -
+// ~/llvm/test/build/bin/llc -march=cpu0 -relocation-model=pic -filetype=asm ch9_1_constructor.bc -o -
 
 /// start
 extern "C" int printf(const char *format, ...);

@@ -1,7 +1,5 @@
 // clang -target mips-unknown-linux-gnu -c ch4_1_3.cpp -emit-llvm -o ch4_1_3.bc
-// ~/llvm/test/cmake_debug_build/bin/llc -march=cpu0 -relocation-model=pic -filetype=asm ch4_1_3.bc -o -
-
-// ~/llvm/test/cmake_debug_build/Debug/bin/llc -march=cpu0 -relocation-model=pic -filetype=asm ch4_1_3.bc -o -
+// ~/llvm/test/build/bin/llc -march=cpu0 -relocation-model=pic -filetype=asm ch4_1_3.bc -o -
 
 /// start
 

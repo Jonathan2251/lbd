@@ -1,5 +1,5 @@
 // clang -target mips-unknown-linux-gnu -c ch11_1.cpp -emit-llvm -o ch11_1.bc
-// ~/llvm/test/cmake_debug_build/Debug/bin/llc -march=cpu0 -relocation-model=pic -filetype=obj ch11_1.bc -o ch11_1.cpu0.o
+// ~/llvm/test/build/bin/llc -march=cpu0 -relocation-model=pic -filetype=obj ch11_1.bc -o ch11_1.cpu0.o
 
 /// start
 asm("ld	$2, 8($sp)");

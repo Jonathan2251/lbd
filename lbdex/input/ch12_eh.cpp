@@ -1,9 +1,6 @@
 // clang -c ch12_eh.cpp -emit-llvm -o ch12_eh.bc
-// ~/llvm/test/cmake_debug_build/bin/llvm-dis ch12_eh.bc -o -
-// ~/llvm/test/cmake_debug_build/bin/llc -march=cpu0 -relocation-model=static -filetype=asm ch12_eh.bc -o -
-
-// ~/llvm/test/cmake_debug_build/Debug/bin/llvm-dis ch12_eh.bc -o -
-// ~/llvm/test/cmake_debug_build/Debug/bin/llc -march=cpu0 -relocation-model=static -filetype=asm ch12_eh.bc -o -
+// ~/llvm/test/build/bin/llvm-dis ch12_eh.bc -o -
+// ~/llvm/test/build/bin/llc -march=cpu0 -relocation-model=static -filetype=asm ch12_eh.bc -o -
 
 /// start
 class Ex1 {};

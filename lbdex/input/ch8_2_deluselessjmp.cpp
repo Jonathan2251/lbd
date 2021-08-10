@@ -1,6 +1,6 @@
 // clang -target mips-unknown-linux-gnu -c ch8_2_deluselessjmp.cpp -emit-llvm -o ch8_2_deluselessjmp.bc
-// ~/llvm/test/cmake_debug_build/Debug/bin/llc -march=cpu0 -mcpu=cpu032I -relocation-model=static -filetype=asm -enable-cpu0-del-useless-jmp=false ch8_2_deluselessjmp.bc -o -
-// ~/llvm/test/cmake_debug_build/Debug/bin/llc -march=cpu0 -mcpu=cpu032I -relocation-model=static -filetype=asm -stats ch8_2_deluselessjmp.bc -o -
+// ~/llvm/test/build/bin/llc -march=cpu0 -mcpu=cpu032I -relocation-model=static -filetype=asm -enable-cpu0-del-useless-jmp=false ch8_2_deluselessjmp.bc -o -
+// ~/llvm/test/build/bin/llc -march=cpu0 -mcpu=cpu032I -relocation-model=static -filetype=asm -stats ch8_2_deluselessjmp.bc -o -
 
 /// start
 int test_DelUselessJMP()

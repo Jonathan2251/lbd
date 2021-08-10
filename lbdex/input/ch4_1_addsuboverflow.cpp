@@ -1,9 +1,6 @@
 // clang -target mips-unknown-linux-gnu -c ch4_1_addsuboverflow.cpp -emit-llvm -o ch4_1_addsuboverflow.bc
-// ~/llvm/test/cmake_debug_build/bin/llc -march=cpu0 -relocation-model=pic -filetype=asm -cpu0-enable-overflow=true ch4_1_addsuboverflow.bc -o -
-// ~/llvm/test/cmake_debug_build/bin/llc -march=cpu0 -relocation-model=pic -filetype=obj -cpu0-enable-overflow=true ch4_1_addsuboverflow.bc -o ch4_1_addsuboverflow.cpu0.o
-
-// ~/llvm/test/cmake_debug_build/Debug/bin/llc -march=cpu0 -relocation-model=pic -filetype=asm -cpu0-enable-overflow=true ch4_1_addsuboverflow.bc -o -
-// ~/llvm/test/cmake_debug_build/Debug/bin/llc -march=cpu0 -relocation-model=pic -filetype=obj -cpu0-enable-overflow=true ch4_1_addsuboverflow.bc -o ch4_1_addsuboverflow.cpu0.o
+// ~/llvm/test/build/bin/llc -march=cpu0 -relocation-model=pic -filetype=asm -cpu0-enable-overflow=true ch4_1_addsuboverflow.bc -o -
+// ~/llvm/test/build/bin/llc -march=cpu0 -relocation-model=pic -filetype=obj -cpu0-enable-overflow=true ch4_1_addsuboverflow.bc -o ch4_1_addsuboverflow.cpu0.o
 
 /// start
 #include "debug.h"

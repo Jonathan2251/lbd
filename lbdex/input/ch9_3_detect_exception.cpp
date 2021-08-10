@@ -1,5 +1,5 @@
 // clang -target mips-unknown-linux-gnu -c ch9_3_detect_exception.cpp -emit-llvm -o ch9_3_detect_exception.bc
-// ~/llvm/test/cmake_debug_build/Debug/bin/llc -march=cpu0 -mcpu=cpu032II -relocation-model=pic -filetype=asm ch9_3_detect_exception.bc -o -
+// ~/llvm/test/build/bin/llc -march=cpu0 -mcpu=cpu032II -relocation-model=pic -filetype=asm ch9_3_detect_exception.bc -o -
 
 /// start
 bool exceptionOccur = false;
