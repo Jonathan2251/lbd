@@ -255,7 +255,7 @@ Chapter3_1/CMakeLists.txt is modified with these new added \*.cpp as follows,
 
 Please take a look for Chapter3_1 code. 
 After that, building Chapter3_1 by **"#define CH  CH3_1"** in Cpu0Config.h as 
-follows, and do building with Xcode on iMac or make on linux again.
+follows, and do building with cmake and make again.
 
 .. rubric:: ~/llvm/test/llvm/lib/Target/Cpu0SetChapter.h
 .. code-block:: c++

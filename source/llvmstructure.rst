@@ -2215,13 +2215,13 @@ Next configure the Cpu0 example code to chapter2 as follows,
   #define CH       CH2
 
 
-Now, run the ``cmake`` command and Xcode to build td (the following cmake 
+Now, run the ``cmake and make`` command to build td (the following cmake 
 command is for my setting),
 
 .. code-block:: console
 
   118-165-78-230:build Jonathan$ cmake -DCMAKE_CXX_COMPILER=clang++ 
-  -DCMAKE_C_COMPILER=clang -DCMAKE_BUILD_TYPE=Debug -G "Xcode" ../llvm/
+  -DCMAKE_C_COMPILER=clang -DCMAKE_BUILD_TYPE=Debug -G "Unix Makefiles" ../llvm/
   
   -- Targeting Cpu0 
   ...
@@ -2230,6 +2230,8 @@ command is for my setting),
   -- Generating done 
   -- Build files have been written to: /Users/Jonathan/llvm/test/build
   
+  118-165-78-230:build Jonathan$ make -j4
+ 
   118-165-78-230:build Jonathan$ 
 
 After build, you can type command ``llc –version`` to find the cpu0 backend,
@@ -2266,7 +2268,7 @@ Let's build lbdex/chapters/Chapter2 code as follows,
   118-165-75-57:build Jonathan$ rm -rf *
   118-165-75-57:build Jonathan$ cmake -DCMAKE_CXX_COMPILER=clang++ 
   -DCMAKE_C_COMPILER=clang -DCMAKE_BUILD_TYPE=Debug -DLLVM_TARGETS_TO_BUILD=Cpu0 
-  -G "Xcode" ../llvm/
+  -G "Unix Makefiles" ../llvm/
   ...
   -- Targeting Cpu0
   ...
@@ -2276,8 +2278,6 @@ Let's build lbdex/chapters/Chapter2 code as follows,
 
 In order to save time, we build Cpu0 target only by option 
 -DLLVM_TARGETS_TO_BUILD=Cpu0.
-After cmake, please open Xcode and build the Xcode project file as appendix A,
-or refer appendix A to build it on linux if you work on unix/linux platform.
 After that, you can find the \*.inc files in directory 
 /Users/Jonathan/llvm/test/build/lib/Target/Cpu0 as follows,
 
@@ -2343,7 +2343,7 @@ First step, compile it with clang and get output ch3.bc as follows,
 .. code-block:: console
 
   118-165-78-230:input Jonathan$ pwd
-  /Users/Jonathan/llvm/test/lbdex/input
+  /Users/Jonathan/git/lbd/lbdex/input
   118-165-78-230:input Jonathan$ clang -target mips-unknown-linux-gnu -c 
   ch3.cpp -emit-llvm -o ch3.bc
 
