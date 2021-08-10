@@ -513,7 +513,7 @@ instructions with one Grid. Furthermore liking vector processor, gpu provides
 Vector Mask Registers to Handling IF Statements in Vector Loops as the following 
 code [#VMR]_,
 
-.. code:: c
+.. code:: text
 
   for(i=0;i<64; i=i+1)
     if (X[i] != 0)
