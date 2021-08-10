@@ -35,7 +35,8 @@
 #include "Cpu0GenInstrInfo.inc"
 #undef GET_INSTRMAP_INFO
 
-namespace llvm {
+using namespace llvm;
+
 MCCodeEmitter *llvm::createCpu0MCCodeEmitterEB(const MCInstrInfo &MCII,
                                                const MCRegisterInfo &MRI,
                                                MCContext &Ctx) {
@@ -47,7 +48,6 @@ MCCodeEmitter *llvm::createCpu0MCCodeEmitterEL(const MCInstrInfo &MCII,
                                                MCContext &Ctx) {
   return new Cpu0MCCodeEmitter(MCII, Ctx, true);
 }
-} // End of namespace llvm
 
 void Cpu0MCCodeEmitter::EmitByte(unsigned char C, raw_ostream &OS) const {
   OS << (char)C;

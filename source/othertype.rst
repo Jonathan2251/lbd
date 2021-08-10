@@ -67,8 +67,8 @@ variable, will get result as follows,
   }
   ...
 
-  118-165-66-82:input Jonathan$ /Users/Jonathan/llvm/test/cmake_
-  debug_build/Debug/bin/llc -march=cpu0 -relocation-model=pic -filetype=asm 
+  118-165-66-82:input Jonathan$ /Users/Jonathan/llvm/test/build/bin/llc
+  -march=cpu0 -relocation-model=pic -filetype=asm 
   ch7_1_localpointer.bc -o -
     ...
 	  addiu	$sp, $sp, -8
@@ -108,8 +108,8 @@ Run Chapter7_1/ with ch7_1_char_in_struct.cpp will get the following result.
 
 .. code-block:: console
   
-  118-165-64-245:input Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
-  Debug/bin/llvm-dis ch7_1_char_in_struct.bc -o -
+  118-165-64-245:input Jonathan$ /Users/Jonathan/llvm/test/build/
+  bin/llvm-dis ch7_1_char_in_struct.bc -o -
   define i32 @_Z9test_charv() #0 {
     %a = alloca i8, align 1
     %c = alloca i8, align 1
@@ -134,8 +134,8 @@ Run Chapter7_1/ with ch7_1_char_in_struct.cpp will get the following result.
 
   118-165-64-245:input Jonathan$ clang -target mips-unknown-linux-gnu -c 
   ch7_1_char_in_struct.cpp -emit-llvm -o ch7_1_char_in_struct.bc
-  118-165-64-245:input Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
-  Debug/bin/llc -march=cpu0 -relocation-model=pic -filetype=asm 
+  118-165-64-245:input Jonathan$ /Users/Jonathan/llvm/test/build/
+  bin/llc -march=cpu0 -relocation-model=pic -filetype=asm 
   ch7_1_char_in_struct.bc -o -
     ...
   # BB#0:                                 # %entry
@@ -199,8 +199,8 @@ Run Chapter7_1/ with ch7_1_char_short.cpp will get the following result.
 
 .. code-block:: console
   
-  1-160-136-236:input Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
-  Debug/bin/llvm-dis ch7_1_char_short.bc -o -
+  1-160-136-236:input Jonathan$ /Users/Jonathan/llvm/test/build/
+  bin/llvm-dis ch7_1_char_short.bc -o -
     ...
   define i32 @_Z16test_signed_charv() #0 {
     ...
@@ -235,8 +235,8 @@ Run Chapter7_1/ with ch7_1_char_short.cpp will get the following result.
   
   attributes #0 = { nounwind }
   
-  1-160-136-236:input Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
-  Debug/bin/llc -march=cpu0 -relocation-model=static -filetype=asm ch7_1_char_short.bc -o -
+  1-160-136-236:input Jonathan$ /Users/Jonathan/llvm/test/build/
+  bin/llc -march=cpu0 -relocation-model=static -filetype=asm ch7_1_char_short.bc -o -
     ...
     .globl  _Z16test_signed_charv
     ...
@@ -318,8 +318,8 @@ File ch_run_backend.cpp include the test fragment for bool as below.
 
 .. code-block:: console
 
-    118-165-64-245:input Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
-    Debug/bin/llc -march=cpu0 -relocation-model=pic -filetype=asm ch7_1_bool2.ll -o -
+    118-165-64-245:input Jonathan$ /Users/Jonathan/llvm/test/build/
+    bin/llc -march=cpu0 -relocation-model=pic -filetype=asm ch7_1_bool2.ll -o -
 
     .section .mdebug.abi32
     .previous
@@ -463,8 +463,8 @@ Run Chapter7_1 with ch7_1_longlong.cpp to get the result as follows,
 
   1-160-134-62:input Jonathan$ clang -target mips-unknown-linux-gnu -c 
   ch7_1_longlong.cpp -emit-llvm -o ch7_1_longlong.bc
-  1-160-134-62:input Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
-  Debug/bin/llc -march=cpu0 -mcpu=cpu032I -relocation-model=pic -filetype=asm 
+  1-160-134-62:input Jonathan$ /Users/Jonathan/llvm/test/build/
+  bin/llc -march=cpu0 -mcpu=cpu032I -relocation-model=pic -filetype=asm 
   ch7_1_longlong.bc -o -
     ...
   # BB#0:
@@ -617,8 +617,8 @@ incorrect asm file as follows,
 
 .. code-block:: console
 
-  1-160-134-62:input Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/bin/
-  Debug/llc -march=cpu0 -relocation-model=static -filetype=asm 
+  1-160-134-62:input Jonathan$ /Users/Jonathan/llvm/test/build/bin/
+  llc -march=cpu0 -relocation-model=static -filetype=asm 
   ch7_1_globalstructoffset.bc -o -
     ...
     lui $2, %hi(date)
@@ -636,7 +636,7 @@ Let's use debug option in llc to see what's wrong,
 .. code-block:: console
 
   jonathantekiimac:input Jonathan$ /Users/Jonathan/llvm/test/
-  cmake_debug_build/Debug/bin/llc -march=cpu0 -debug -relocation-model=static 
+  build/bin/llc -march=cpu0 -debug -relocation-model=static 
   -filetype=asm ch6_2.bc -o ch6_2.cpu0.static.s
   ...
   === main
@@ -852,7 +852,7 @@ The result as follows,
 
 .. code-block:: console
 
-  118-165-79-206:input Jonathan$ ~/llvm/test/cmake_debug_build/
+  118-165-79-206:input Jonathan$ ~/llvm/test/build/
   bin/llc -march=cpu0 -relocation-model=pic -filetype=asm ch7_1_localarrayinit.bc -o -
 	  ...
   # BB#0:                                 # %entry
@@ -896,7 +896,7 @@ either.
 
   118-165-79-206:input Jonathan$ clang -target mips-unknown-linux-gnu -c 
   ch7_1_vector.cpp -emit-llvm -o ch7_1_vector.bc
-  118-165-79-206:input Jonathan$ ~/llvm/test/cmake_debug_build/Debug/bin/
+  118-165-79-206:input Jonathan$ ~/llvm/test/build/bin/
   llvm-dis ch7_1_vector.bc -o -  
   ...
   
@@ -930,7 +930,7 @@ either.
 
 .. code-block:: console
 
-  118-165-79-206:input Jonathan$ ~/llvm/test/cmake_debug_build/Debug/bin/llc 
+  118-165-79-206:input Jonathan$ ~/llvm/test/build/bin/llc 
     -march=cpu0 -mcpu=cpu032II -relocation-model=pic -filetype=asm ch7_1_vector.bc 
     -o -
     .text

@@ -618,8 +618,8 @@ toolchain to support a new CPU.
 This chapter introduces the Cpu0 architecture, a high-level view of LLVM, and 
 how Cpu0 will be targeted in in an LLVM backend. 
 This chapter will run you through the initial steps of building the backend, 
-including initial work on the target description (td), setting up cmake and 
-LLVMBuild files, and target registration. Around 750 lines of source 
+including initial work on the target description (td), setting up cmake file, 
+and target registration. Around 750 lines of source 
 code are added by the end of this chapter.
 
 :ref:`sec-backendstructure`:

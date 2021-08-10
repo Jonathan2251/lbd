@@ -25,10 +25,10 @@
 #include "llvm/CodeGen/MachineFunctionPass.h"
 #include "llvm/CodeGen/MachineInstrBuilder.h"
 #include "llvm/CodeGen/PseudoSourceValue.h"
+#include "llvm/CodeGen/TargetInstrInfo.h"
 #include "llvm/Support/CommandLine.h"
-#include "llvm/Target/TargetInstrInfo.h"
 #include "llvm/Target/TargetMachine.h"
-#include "llvm/Target/TargetRegisterInfo.h"
+#include "llvm/CodeGen/TargetRegisterInfo.h"
 
 using namespace llvm;
 
@@ -45,7 +45,7 @@ namespace {
     Filler(TargetMachine &tm)
       : MachineFunctionPass(ID) { }
 
-    const char *getPassName() const override {
+    StringRef getPassName() const override {
       return "Cpu0 Delay Slot Filler";
     }
 

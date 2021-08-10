@@ -22,13 +22,12 @@ files="CMakeLists.txt Cpu0.h Cpu0AnalyzeImmediate.cpp Cpu0AnalyzeImmediate.h \
        Cpu0TargetMachine.cpp Cpu0TargetMachine.h \
        Cpu0TargetObjectFile.cpp Cpu0TargetObjectFile.h \
        Cpu0TargetStreamer.h \
-       LLVMBuild.txt \
        AsmParser/Cpu0AsmParser.cpp \
-       AsmParser/CMakeLists.txt AsmParser/LLVMBuild.txt \
+       AsmParser/CMakeLists.txt \
        Disassembler/Cpu0Disassembler.cpp \
-       Disassembler/CMakeLists.txt Disassembler/LLVMBuild.txt \
+       Disassembler/CMakeLists.txt \
        InstPrinter/Cpu0InstPrinter.cpp InstPrinter/Cpu0InstPrinter.h \
-       InstPrinter/CMakeLists.txt InstPrinter/LLVMBuild.txt \
+       InstPrinter/CMakeLists.txt \
        MCTargetDesc/Cpu0AsmBackend.cpp MCTargetDesc/Cpu0AsmBackend.h \
        MCTargetDesc/Cpu0BaseInfo.h MCTargetDesc/Cpu0ELFObjectWriter.cpp \
        MCTargetDesc/Cpu0FixupKinds.h \
@@ -38,9 +37,9 @@ files="CMakeLists.txt Cpu0.h Cpu0AnalyzeImmediate.cpp Cpu0AnalyzeImmediate.h \
        MCTargetDesc/Cpu0MCExpr.cpp MCTargetDesc/Cpu0MCExpr.h \
        MCTargetDesc/Cpu0MCTargetDesc.cpp MCTargetDesc/Cpu0MCTargetDesc.h \
        MCTargetDesc/Cpu0TargetStreamer.cpp \
-       MCTargetDesc/CMakeLists.txt MCTargetDesc/LLVMBuild.txt \
+       MCTargetDesc/CMakeLists.txt \
        TargetInfo/Cpu0TargetInfo.cpp \
-       TargetInfo/CMakeLists.txt TargetInfo/LLVMBuild.txt \
+       TargetInfo/CMakeLists.txt \
        Cpu0.td Cpu0Asm.td Cpu0CallingConv.td Cpu0CondMov.td Cpu0CallingConv.td \
        Cpu0InstrFormats.td Cpu0InstrInfo.td Cpu0Other.td Cpu0RegisterInfo.td \
        Cpu0RegisterInfoGPROutForAsm.td Cpu0RegisterInfoGPROutForOther.td \

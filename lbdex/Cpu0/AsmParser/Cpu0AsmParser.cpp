@@ -73,15 +73,15 @@ class Cpu0AsmParser : public MCTargetAsmParser {
 
   bool ParseRegister(unsigned &RegNo, SMLoc &StartLoc, SMLoc &EndLoc) override;
 
+  OperandMatchResultTy tryParseRegister(unsigned &RegNo, SMLoc &StartLoc,
+                                        SMLoc &EndLoc) override;
+
   bool ParseInstruction(ParseInstructionInfo &Info, StringRef Name,
                         SMLoc NameLoc, OperandVector &Operands) override;
 
-  bool parseMathOperation(StringRef Name, SMLoc NameLoc,
-                        OperandVector &Operands);
-
   bool ParseDirective(AsmToken DirectiveID) override;
 
-  Cpu0AsmParser::OperandMatchResultTy parseMemOperand(OperandVector &);
+  OperandMatchResultTy parseMemOperand(OperandVector &);
 
   bool ParseOperand(OperandVector &Operands, StringRef Mnemonic);
 
@@ -125,7 +125,7 @@ class Cpu0AsmParser : public MCTargetAsmParser {
 public:
   Cpu0AsmParser(const MCSubtargetInfo &sti, MCAsmParser &parser,
                 const MCInstrInfo &MII, const MCTargetOptions &Options)
-    : MCTargetAsmParser(Options, sti), Parser(parser) {
+    : MCTargetAsmParser(Options, sti, MII), Parser(parser) {
     // Initialize the set of available features.
     setAvailableFeatures(ComputeAvailableFeatures(getSTI().getFeatureBits()));
   }
@@ -238,7 +238,7 @@ public:
   }
 
   static std::unique_ptr<Cpu0Operand> CreateToken(StringRef Str, SMLoc S) {
-    auto Op = make_unique<Cpu0Operand>(k_Token);
+    auto Op = std::make_unique<Cpu0Operand>(k_Token);
     Op->Tok.Data = Str.data();
     Op->Tok.Length = Str.size();
     Op->StartLoc = S;
@@ -249,7 +249,7 @@ public:
   /// Internal constructor for register kinds
   static std::unique_ptr<Cpu0Operand> CreateReg(unsigned RegNum, SMLoc S, 
                                                 SMLoc E) {
-    auto Op = make_unique<Cpu0Operand>(k_Register);
+    auto Op = std::make_unique<Cpu0Operand>(k_Register);
     Op->Reg.RegNum = RegNum;
     Op->StartLoc = S;
     Op->EndLoc = E;
@@ -257,7 +257,7 @@ public:
   }
 
   static std::unique_ptr<Cpu0Operand> CreateImm(const MCExpr *Val, SMLoc S, SMLoc E) {
-    auto Op = make_unique<Cpu0Operand>(k_Immediate);
+    auto Op = std::make_unique<Cpu0Operand>(k_Immediate);
     Op->Imm.Val = Val;
     Op->StartLoc = S;
     Op->EndLoc = E;
@@ -266,7 +266,7 @@ public:
 
   static std::unique_ptr<Cpu0Operand> CreateMem(unsigned Base, const MCExpr *Off,
                                  SMLoc S, SMLoc E) {
-    auto Op = make_unique<Cpu0Operand>(k_Memory);
+    auto Op = std::make_unique<Cpu0Operand>(k_Memory);
     Op->Mem.Base = Base;
     Op->Mem.Off = Off;
     Op->StartLoc = S;
@@ -308,9 +308,9 @@ void printCpu0Operands(OperandVector &Operands) {
   for (size_t i = 0; i < Operands.size(); i++) {
     Cpu0Operand* op = static_cast<Cpu0Operand*>(&*Operands[i]);
     assert(op != nullptr);
-    DEBUG(dbgs() << "<" << *op << ">");
+    LLVM_DEBUG(dbgs() << "<" << *op << ">");
   }
-  DEBUG(dbgs() << "\n");
+  LLVM_DEBUG(dbgs() << "\n");
 }
 
 //@1 {
@@ -478,11 +478,11 @@ bool Cpu0AsmParser::MatchAndEmitInstruction(SMLoc IDLoc, unsigned &Opcode,
       SmallVector<MCInst, 4> Instructions;
       expandInstruction(Inst, IDLoc, Instructions);
       for(unsigned i =0; i < Instructions.size(); i++){
-        Out.EmitInstruction(Instructions[i], getSTI());
+        Out.emitInstruction(Instructions[i], getSTI());
       }
     } else {
         Inst.setLoc(IDLoc);
-        Out.EmitInstruction(Inst, getSTI());
+        Out.emitInstruction(Inst, getSTI());
       }
     return false;
   }
@@ -585,7 +585,7 @@ bool Cpu0AsmParser::
 
 bool Cpu0AsmParser::ParseOperand(OperandVector &Operands,
                                  StringRef Mnemonic) {
-  DEBUG(dbgs() << "ParseOperand\n");
+  LLVM_DEBUG(dbgs() << "ParseOperand\n");
   // Check if the current operand has a custom associated parser, if so, try to
   // custom parse the operand, or fallback to the general approach.
   OperandMatchResultTy ResTy = MatchOperandParserImpl(Operands, Mnemonic);
@@ -597,7 +597,7 @@ bool Cpu0AsmParser::ParseOperand(OperandVector &Operands,
   if (ResTy == MatchOperand_ParseFail)
     return true;
 
-  DEBUG(dbgs() << ".. Generic Parser\n");
+  LLVM_DEBUG(dbgs() << ".. Generic Parser\n");
 
   switch (getLexer().getKind()) {
   default:
@@ -754,6 +754,16 @@ bool Cpu0AsmParser::ParseRegister(unsigned &RegNo, SMLoc &StartLoc,
   return (RegNo == (unsigned)-1);
 }
 
+OperandMatchResultTy Cpu0AsmParser::tryParseRegister(unsigned &RegNo,
+                                                     SMLoc &StartLoc,
+                                                     SMLoc &EndLoc) {
+  StartLoc = Parser.getTok().getLoc();
+  RegNo = tryParseRegister("");
+  EndLoc = Parser.getTok().getLoc();
+  return (RegNo == (unsigned)-1) ? MatchOperand_NoMatch
+                                 : MatchOperand_Success;
+}
+
 bool Cpu0AsmParser::parseMemOffset(const MCExpr *&Res) {
 
   SMLoc S;
@@ -774,7 +784,7 @@ bool Cpu0AsmParser::parseMemOffset(const MCExpr *&Res) {
 }
 
 // eg, 12($sp) or 12(la)
-Cpu0AsmParser::OperandMatchResultTy Cpu0AsmParser::parseMemOperand(
+OperandMatchResultTy Cpu0AsmParser::parseMemOperand(
                OperandVector &Operands) {
 
   const MCExpr *IdVal = 0;
@@ -834,56 +844,6 @@ Cpu0AsmParser::OperandMatchResultTy Cpu0AsmParser::parseMemOperand(
   // and add memory operand
   Operands.push_back(Cpu0Operand::CreateMem(RegNo, IdVal, S, E));
   return MatchOperand_Success;
-}
-
-bool Cpu0AsmParser::
-parseMathOperation(StringRef Name, SMLoc NameLoc,
-                   OperandVector &Operands) {
-  // split the format
-  size_t Start = Name.find('.'), Next = Name.rfind('.');
-  StringRef Format1 = Name.slice(Start, Next);
-  // and add the first format to the operands
-  Operands.push_back(Cpu0Operand::CreateToken(Format1, NameLoc));
-  // now for the second format
-  StringRef Format2 = Name.slice(Next, StringRef::npos);
-  Operands.push_back(Cpu0Operand::CreateToken(Format2, NameLoc));
-
-  // set the format for the first register
-//  setFpFormat(Format1);
-
-  // Read the remaining operands.
-  if (getLexer().isNot(AsmToken::EndOfStatement)) {
-    // Read the first operand.
-    if (ParseOperand(Operands, Name)) {
-      SMLoc Loc = getLexer().getLoc();
-      Parser.eatToEndOfStatement();
-      return Error(Loc, "unexpected token in argument list");
-    }
-
-    if (getLexer().isNot(AsmToken::Comma)) {
-      SMLoc Loc = getLexer().getLoc();
-      Parser.eatToEndOfStatement();
-      return Error(Loc, "unexpected token in argument list");
-
-    }
-    Parser.Lex();  // Eat the comma.
-
-    // Parse and remember the operand.
-    if (ParseOperand(Operands, Name)) {
-      SMLoc Loc = getLexer().getLoc();
-      Parser.eatToEndOfStatement();
-      return Error(Loc, "unexpected token in argument list");
-    }
-  }
-
-  if (getLexer().isNot(AsmToken::EndOfStatement)) {
-    SMLoc Loc = getLexer().getLoc();
-    Parser.eatToEndOfStatement();
-    return Error(Loc, "unexpected token in argument list");
-  }
-
-  Parser.Lex(); // Consume the EndOfStatement
-  return false;
 }
 
 bool Cpu0AsmParser::

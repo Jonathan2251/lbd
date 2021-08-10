@@ -39,8 +39,8 @@ const Cpu0RegisterInfo &Cpu0SEInstrInfo::getRegisterInfo() const {
 #if CH >= CH4_1
 void Cpu0SEInstrInfo::copyPhysReg(MachineBasicBlock &MBB,
                                   MachineBasicBlock::iterator I,
-                                  const DebugLoc &DL, unsigned DestReg,
-                                  unsigned SrcReg, bool KillSrc) const {
+                                  const DebugLoc &DL, MCRegister DestReg,
+                                  MCRegister SrcReg, bool KillSrc) const {
   unsigned Opc = 0, ZeroReg = 0;
 
   if (Cpu0::CPURegsRegClass.contains(DestReg)) { // Copy to CPU Reg.
@@ -76,7 +76,7 @@ void Cpu0SEInstrInfo::copyPhysReg(MachineBasicBlock &MBB,
 #if CH >= CH3_5 //1
 void Cpu0SEInstrInfo::
 storeRegToStack(MachineBasicBlock &MBB, MachineBasicBlock::iterator I,
-                unsigned SrcReg, bool isKill, int FI,
+                Register SrcReg, bool isKill, int FI,
                 const TargetRegisterClass *RC, const TargetRegisterInfo *TRI,
                 int64_t Offset) const {
   DebugLoc DL;
@@ -92,7 +92,7 @@ storeRegToStack(MachineBasicBlock &MBB, MachineBasicBlock::iterator I,
 
 void Cpu0SEInstrInfo::
 loadRegFromStack(MachineBasicBlock &MBB, MachineBasicBlock::iterator I,
-                 unsigned DestReg, int FI, const TargetRegisterClass *RC,
+                 Register DestReg, int FI, const TargetRegisterClass *RC,
                  const TargetRegisterInfo *TRI, int64_t Offset) const {
   DebugLoc DL;
   if (I != MBB.end()) DL = I->getDebugLoc();

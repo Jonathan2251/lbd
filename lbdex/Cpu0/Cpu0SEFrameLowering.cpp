@@ -40,8 +40,7 @@ Cpu0SEFrameLowering::Cpu0SEFrameLowering(const Cpu0Subtarget &STI)
 void Cpu0SEFrameLowering::emitPrologue(MachineFunction &MF,
                                        MachineBasicBlock &MBB) const {
 #if CH >= CH3_5 //1
-  assert(&MF.front() == &MBB && "Shrink-wrapping not yet supported");
-  MachineFrameInfo *MFI    = MF.getFrameInfo();
+  MachineFrameInfo &MFI    = MF.getFrameInfo();
   Cpu0FunctionInfo *Cpu0FI = MF.getInfo<Cpu0FunctionInfo>();
 
   const Cpu0SEInstrInfo &TII =
@@ -61,27 +60,27 @@ void Cpu0SEFrameLowering::emitPrologue(MachineFunction &MF,
   const TargetRegisterClass *RC = &Cpu0::GPROutRegClass;
 
   // First, compute final stack size.
-  uint64_t StackSize = MFI->getStackSize();
+  uint64_t StackSize = MFI.getStackSize();
 
   // No need to allocate space on the stack.
-  if (StackSize == 0 && !MFI->adjustsStack()) return;
+  if (StackSize == 0 && !MFI.adjustsStack()) return;
 
   MachineModuleInfo &MMI = MF.getMMI();
   const MCRegisterInfo *MRI = MMI.getContext().getRegisterInfo();
-  MachineLocation DstML, SrcML;
 
   // Adjust stack.
   TII.adjustStackPtr(SP, -StackSize, MBB, MBBI);
 
   // emit ".cfi_def_cfa_offset StackSize"
-  unsigned CFIIndex = MMI.addFrameInst(
-      MCCFIInstruction::createDefCfaOffset(nullptr, -StackSize));
+  unsigned CFIIndex = 
+      MF.addFrameInst(
+      MCCFIInstruction::cfiDefCfaOffset(nullptr, StackSize));
   BuildMI(MBB, MBBI, dl, TII.get(TargetOpcode::CFI_INSTRUCTION))
       .addCFIIndex(CFIIndex);
 
-  const std::vector<CalleeSavedInfo> &CSI = MFI->getCalleeSavedInfo();
+  const std::vector<CalleeSavedInfo> &CSI = MFI.getCalleeSavedInfo();
 
-  if (CSI.size()) {
+  if (!CSI.empty()) {
     // Find the instruction past the last instruction that saves a callee-saved
     // register to the stack.
     for (unsigned i = 0; i < CSI.size(); ++i)
@@ -91,12 +90,12 @@ void Cpu0SEFrameLowering::emitPrologue(MachineFunction &MF,
     // directives.
     for (std::vector<CalleeSavedInfo>::const_iterator I = CSI.begin(),
            E = CSI.end(); I != E; ++I) {
-      int64_t Offset = MFI->getObjectOffset(I->getFrameIdx());
+      int64_t Offset = MFI.getObjectOffset(I->getFrameIdx());
       unsigned Reg = I->getReg();
       {
         // Reg is in CPURegs.
-        unsigned CFIIndex = MMI.addFrameInst(MCCFIInstruction::createOffset(
-            nullptr, MRI->getDwarfRegNum(Reg, 1), Offset));
+        unsigned CFIIndex = MF.addFrameInst(MCCFIInstruction::createOffset(
+            nullptr, MRI->getDwarfRegNum(Reg, true), Offset));
         BuildMI(MBB, MBBI, dl, TII.get(TargetOpcode::CFI_INSTRUCTION))
             .addCFIIndex(CFIIndex);
       }
@@ -115,9 +114,9 @@ void Cpu0SEFrameLowering::emitPrologue(MachineFunction &MF,
 
     // Emit .cfi_offset directives for eh data registers.
     for (int I = 0; I < ABI.EhDataRegSize(); ++I) {
-      int64_t Offset = MFI->getObjectOffset(Cpu0FI->getEhDataRegFI(I));
+      int64_t Offset = MFI.getObjectOffset(Cpu0FI->getEhDataRegFI(I));
       unsigned Reg = MRI->getDwarfRegNum(ABI.GetEhDataReg(I), true);
-      unsigned CFIIndex = MMI.addFrameInst(
+      unsigned CFIIndex = MF.addFrameInst(
           MCCFIInstruction::createOffset(nullptr, Reg, Offset));
       BuildMI(MBB, MBBI, dl, TII.get(TargetOpcode::CFI_INSTRUCTION))
           .addCFIIndex(CFIIndex);
@@ -137,7 +136,7 @@ void Cpu0SEFrameLowering::emitPrologue(MachineFunction &MF,
       .setMIFlag(MachineInstr::FrameSetup);
 
     // emit ".cfi_def_cfa_register $fp"
-    unsigned CFIIndex = MMI.addFrameInst(MCCFIInstruction::createDefCfaRegister(
+    unsigned CFIIndex = MF.addFrameInst(MCCFIInstruction::createDefCfaRegister(
         nullptr, MRI->getDwarfRegNum(FP, true)));
     BuildMI(MBB, MBBI, dl, TII.get(TargetOpcode::CFI_INSTRUCTION))
         .addCFIIndex(CFIIndex);
@@ -146,7 +145,7 @@ void Cpu0SEFrameLowering::emitPrologue(MachineFunction &MF,
 #ifdef ENABLE_GPRESTORE
   // Restore GP from the saved stack location
   if (Cpu0FI->needGPSaveRestore()) {
-    unsigned Offset = MFI->getObjectOffset(Cpu0FI->getGPFI());
+    unsigned Offset = MFI.getObjectOffset(Cpu0FI->getGPFI());
     BuildMI(MBB, MBBI, dl, TII.get(Cpu0::CPRESTORE)).addImm(Offset)
       .addReg(Cpu0::GP);
   }
@@ -161,8 +160,8 @@ void Cpu0SEFrameLowering::emitPrologue(MachineFunction &MF,
 void Cpu0SEFrameLowering::emitEpilogue(MachineFunction &MF,
                                  MachineBasicBlock &MBB) const {
 #if CH >= CH3_5 //2
-  MachineBasicBlock::iterator MBBI = MBB.getLastNonDebugInstr();
-  MachineFrameInfo *MFI            = MF.getFrameInfo();
+  MachineBasicBlock::iterator MBBI = MBB.getFirstTerminator();
+  MachineFrameInfo &MFI            = MF.getFrameInfo();
   Cpu0FunctionInfo *Cpu0FI = MF.getInfo<Cpu0FunctionInfo>();
 
   const Cpu0SEInstrInfo &TII =
@@ -171,7 +170,7 @@ void Cpu0SEFrameLowering::emitEpilogue(MachineFunction &MF,
       *static_cast<const Cpu0RegisterInfo *>(STI.getRegisterInfo());
 
 
-  DebugLoc dl = MBBI->getDebugLoc();
+  DebugLoc DL = MBBI != MBB.end() ? MBBI->getDebugLoc() : DebugLoc();
   Cpu0ABIInfo ABI = STI.getABI();
   unsigned SP = Cpu0::SP;
 #if CH >= CH9_3 //3
@@ -184,11 +183,11 @@ void Cpu0SEFrameLowering::emitEpilogue(MachineFunction &MF,
     // Find the first instruction that restores a callee-saved register.
     MachineBasicBlock::iterator I = MBBI;
 
-    for (unsigned i = 0; i < MFI->getCalleeSavedInfo().size(); ++i)
+    for (unsigned i = 0; i < MFI.getCalleeSavedInfo().size(); ++i)
       --I;
 
     // Insert instruction "move $sp, $fp" at this location.
-    BuildMI(MBB, I, dl, TII.get(ADDu), SP).addReg(FP).addReg(ZERO);
+    BuildMI(MBB, I, DL, TII.get(ADDu), SP).addReg(FP).addReg(ZERO);
   }
 #endif
 
@@ -198,7 +197,7 @@ void Cpu0SEFrameLowering::emitEpilogue(MachineFunction &MF,
 
     // Find first instruction that restores a callee-saved register.
     MachineBasicBlock::iterator I = MBBI;
-    for (unsigned i = 0; i < MFI->getCalleeSavedInfo().size(); ++i)
+    for (unsigned i = 0; i < MFI.getCalleeSavedInfo().size(); ++i)
       --I;
 
     // Insert instructions that restore eh data registers.
@@ -210,7 +209,7 @@ void Cpu0SEFrameLowering::emitEpilogue(MachineFunction &MF,
 #endif
 
   // Get the number of bytes from FrameInfo
-  uint64_t StackSize = MFI->getStackSize();
+  uint64_t StackSize = MFI.getStackSize();
 
   if (!StackSize)
     return;
@@ -225,7 +224,7 @@ void Cpu0SEFrameLowering::emitEpilogue(MachineFunction &MF,
 bool Cpu0SEFrameLowering::
 spillCalleeSavedRegisters(MachineBasicBlock &MBB,
                           MachineBasicBlock::iterator MI,
-                          const std::vector<CalleeSavedInfo> &CSI,
+                          ArrayRef<CalleeSavedInfo> CSI,
                           const TargetRegisterInfo *TRI) const {
   MachineFunction *MF = MBB.getParent();
   MachineBasicBlock *EntryBlock = &MF->front();
@@ -239,7 +238,7 @@ spillCalleeSavedRegisters(MachineBasicBlock &MBB,
     // is taken.
     unsigned Reg = CSI[i].getReg();
     bool IsRAAndRetAddrIsTaken = (Reg == Cpu0::LR)
-        && MF->getFrameInfo()->isReturnAddressTaken();
+        && MF->getFrameInfo().isReturnAddressTaken();
     if (!IsRAAndRetAddrIsTaken)
       EntryBlock->addLiveIn(Reg);
 
@@ -258,14 +257,14 @@ spillCalleeSavedRegisters(MachineBasicBlock &MBB,
 //@hasReservedCallFrame {
 bool
 Cpu0SEFrameLowering::hasReservedCallFrame(const MachineFunction &MF) const {
-  const MachineFrameInfo *MFI = MF.getFrameInfo();
+  const MachineFrameInfo &MFI = MF.getFrameInfo();
 
   // Reserve call frame if the size of the maximum call frame fits into 16-bit
   // immediate field and there are no variable sized objects on the stack.
   // Make sure the second register scavenger spill slot can be accessed with one
   // instruction.
-  return isInt<16>(MFI->getMaxCallFrameSize() + getStackAlignment()) &&
-    !MFI->hasVarSizedObjects();
+  return isInt<16>(MFI.getMaxCallFrameSize() + getStackAlignment()) &&
+    !MFI.hasVarSizedObjects();
 }
 //}
 #endif //#if CH >= CH3_5 //3
@@ -289,7 +288,6 @@ void Cpu0SEFrameLowering::determineCalleeSaves(MachineFunction &MF,
 //@determineCalleeSaves-body
   TargetFrameLowering::determineCalleeSaves(MF, SavedRegs, RS);
   Cpu0FunctionInfo *Cpu0FI = MF.getInfo<Cpu0FunctionInfo>();
-  MachineRegisterInfo& MRI = MF.getRegInfo();
 #if CH >= CH9_3 //5
   unsigned FP = Cpu0::FP;
 
@@ -303,7 +301,7 @@ void Cpu0SEFrameLowering::determineCalleeSaves(MachineFunction &MF,
     Cpu0FI->createEhDataRegsFI();
 #endif
 
-  if (MF.getFrameInfo()->hasCalls())
+  if (MF.getFrameInfo().hasCalls())
     setAliasRegs(MF, SavedRegs, Cpu0::LR);
 
   return;

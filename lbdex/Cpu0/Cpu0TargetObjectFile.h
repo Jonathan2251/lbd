@@ -22,22 +22,24 @@ class Cpu0TargetMachine;
     MCSection *SmallDataSection;
     MCSection *SmallBSSSection;
     const Cpu0TargetMachine *TM;
+
+#if CH >= CH6_1 //1
+    bool IsGlobalInSmallSection(const GlobalObject *GO, const TargetMachine &TM,
+                                SectionKind Kind) const;
+    bool IsGlobalInSmallSectionImpl(const GlobalObject *GO,
+                                    const TargetMachine &TM) const;
+#endif
   public:
 
     void Initialize(MCContext &Ctx, const TargetMachine &TM) override;
 
-#if CH >= CH6_1
+#if CH >= CH6_1 //2
     /// IsGlobalInSmallSection - Return true if this global address should be
     /// placed into small data/bss section.
-    bool IsGlobalInSmallSection(const GlobalValue *GV,
-                                const TargetMachine &TM, SectionKind Kind) const;
-    bool IsGlobalInSmallSection(const GlobalValue *GV,
+    bool IsGlobalInSmallSection(const GlobalObject *GV,
                                 const TargetMachine &TM) const;
-    bool IsGlobalInSmallSectionImpl(const GlobalValue *GV,
-                                    const TargetMachine &TM) const;
 
-    MCSection *SelectSectionForGlobal(const GlobalValue *GV, SectionKind Kind,
-                                      Mangler &Mang,
+    MCSection *SelectSectionForGlobal(const GlobalObject *GO, SectionKind Kind,
                                       const TargetMachine &TM) const override;
 #endif
   };

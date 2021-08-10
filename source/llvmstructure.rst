@@ -1420,7 +1420,7 @@ It can be represented by DAG list (fadd (fmul ra, rc), rb).
 For this implementation, we can assign fmadd DAG pattern to instruction td as 
 follows,
 
-.. code:: c++
+.. code:: text
 
   def FMADDS : AForm_1<59, 29,
             (ops F4RC:$FRT, F4RC:$FRA, F4RC:$FRC, F4RC:$FRB),
@@ -1433,7 +1433,7 @@ F4RC:$FRB))] is the pattern which include nodes **fmul** and **fadd**.
 
 Now, for the following basic block notation IR and llvm SSA IR code,
 
-.. code:: c++
+.. code:: text
 
   d = a * c
   e = d + b
@@ -1492,7 +1492,7 @@ Run Mips backend with above input will get the following result.
 
 .. code-block:: console
 
-  JonathantekiiMac:input Jonathan$ ~/llvm/release/cmake_debug_build/Debug/bin/llc 
+  JonathantekiiMac:input Jonathan$ ~/llvm/release/build/bin/llc 
   -O0 -march=mips -relocation-model=static -filetype=asm 
   ch9_caller_callee_save_registers.bc -o -
   	.text
@@ -1620,15 +1620,15 @@ modified. The added information include both the ID and name of machine, and
 relocation records. Chapter "ELF Support" include the relocation records 
 introduction. The following files are modified to add Cpu0 backend as follows,
 
-.. rubric:: lbdex/src/modify/src/config-ix.cmake
-.. code:: cmake
+.. rubric:: lbdex/llvm/modify/llvm/config-ix.cmake
+.. code:: text
   
   ...
   elseif (LLVM_NATIVE_ARCH MATCHES "cpu0")
     set(LLVM_NATIVE_ARCH Cpu0)
   ...
 
-.. rubric:: lbdex/src/modify/src/CMakeLists.txt
+.. rubric:: lbdex/llvm/modify/llvm/CMakeLists.txt
 .. code-block:: cmake
   
   set(LLVM_ALL_TARGETS
@@ -1637,7 +1637,7 @@ introduction. The following files are modified to add Cpu0 backend as follows,
     ...
     )
 
-.. rubric:: lbdex/src/modify/src/include/llvm/ADT/Triple.h
+.. rubric:: lbdex/llvm/modify/llvm/include/llvm/ADT/Triple.h
 .. code-block:: c++
   
   ...
@@ -1655,7 +1655,7 @@ introduction. The following files are modified to add Cpu0 backend as follows,
     ...
   }
 
-.. rubric:: lbdex/src/modify/src/include/llvm/Object/ELFObjectFile.h
+.. rubric:: lbdex/llvm/modify/llvm/include/llvm/Object/ELFObjectFile.h
 .. code-block:: c++
   
   ...
@@ -1688,7 +1688,7 @@ introduction. The following files are modified to add Cpu0 backend as follows,
     }
   }
 
-.. rubric:: lbdex/src/modify/src/include/llvm/Support/ELF.h
+.. rubric:: lbdex/llvm/modify/llvm/include/llvm/Support/ELF.h
 .. code-block:: c++
   
   enum {
@@ -1710,7 +1710,7 @@ introduction. The following files are modified to add Cpu0 backend as follows,
   };
   ...
 
-.. rubric:: lbdex/src/modify/src/lib/MC/MCSubtargetInfo.cpp
+.. rubric:: lbdex/llvm/modify/llvm/lib/MC/MCSubtargetInfo.cpp
 .. code-block:: c++
   
   bool Cpu0DisableUnreconginizedMessage = false;
@@ -1733,7 +1733,7 @@ introduction. The following files are modified to add Cpu0 backend as follows,
     ...
   }
 
-.. rubric:: lbdex/src/modify/src/lib/MC/SubtargetFeature.cpp
+.. rubric:: lbdex/llvm/modify/llvm/lib/MC/SubtargetFeature.cpp
 .. code-block:: c++
   
   extern bool Cpu0DisableUnreconginizedMessage; // For Cpu0
@@ -1783,9 +1783,9 @@ introduction. The following files are modified to add Cpu0 backend as follows,
     }
 
 .. rubric:: include/llvm/Support/ELFRelocs/Cpu0.def
-.. literalinclude:: ../lbdex/src/modify/src/include/llvm/Support/ELFRelocs/Cpu0.def
+.. literalinclude:: ../lbdex/llvm/modify/llvm/include/llvm/BinaryFormat/ELFRelocs/Cpu0.def
 
-.. rubric:: lbdex/src/modify/src/lib/Support/Triple.cpp
+.. rubric:: lbdex/llvm/modify/llvm/lib/Support/Triple.cpp
 .. code-block:: c++
   
   const char *Triple::getArchTypeName(ArchType Kind) {
@@ -1957,7 +1957,7 @@ The Cpu0InstrFormats.td is included by Cpu0InstInfo.td as follows,
 ADDiu is a instance of class ArithLogicI inherited from FL, it can be 
 expanded and get member value further as follows,
 
-.. code:: c++
+.. code:: text
 
   def ADDiu   : ArithLogicI<0x09, "addiu", add, simm16, immSExt16, CPURegs>;
   
@@ -2045,27 +2045,20 @@ as follows,
 Write cmake file
 ~~~~~~~~~~~~~~~~
 
-Target/Cpu0 directory has two files CMakeLists.txt and LLVMBuild.txt, 
+Target/Cpu0 directory has two files CMakeLists.txt, 
 contents as follows,
 
 .. rubric:: lbdex/chapters/Chapter2/CMakeLists.txt
 .. literalinclude:: ../lbdex/chapters/Chapter2/CMakeLists.txt
 
-.. rubric:: lbdex/chapters/Chapter2/LLVMBuild.txt
-.. literalinclude:: ../lbdex/chapters/Chapter2/LLVMBuild.txt
-
 
 CMakeLists.txt is the make information for cmake and # is comment.
-File LLVMBuild.txt is written in a simple variant of the INI or configuration 
-file format. 
 Comments are prefixed by **#** in both files. 
-We explain the setting for these two files in comments. 
-Please read it. 
 The "tablegen(" in above CMakeLists.txt is defined in 
 cmake/modules/TableGen.cmake as below, 
 
-.. rubric:: src/cmake/modules/TableGen.cmake
-.. code:: cmake
+.. rubric:: llvm/cmake/modules/TableGen.cmake
+.. code:: text
 
   function(tablegen project ofn)
     ...
@@ -2087,22 +2080,22 @@ cmake/modules/TableGen.cmake as below,
     ...
   endmacro()
 
-.. rubric:: src/utils/TableGen/CMakeLists.txt
+.. rubric:: llvm/utils/TableGen/CMakeLists.txt
 .. code-block:: cmake
 
   add_tablegen(llvm-tblgen LLVM
     ...
   )
 
-Above "add_tablegen" in src/utils/TableGen/CMakeLists.txt makes the 
+Above "add_tablegen" in llvm/utils/TableGen/CMakeLists.txt makes the 
 "tablegen(" written in Cpu0 CMakeLists.txt an alias of llvm-tblgen
 (${project} = LLVM and ${project}_TABLEGEN_EXE = llvm-tblgen).
 The "tablegen(", "add_public_tablegen_target(Cpu0CommonTableGen)" in 
 lbdex/chapters/Chapter2/CMakeLists.txt and the following code define a target 
 "Cpu0CommonTableGen" with it's output files "Cpu0Gen*.inc" as follows,
 
-.. rubric:: src/cmake/modules/TableGen.cmake
-.. code:: cmake
+.. rubric:: llvm/cmake/modules/TableGen.cmake
+.. code:: text
 
   function(tablegen project ofn)
     ...
@@ -2131,15 +2124,14 @@ code, but implementing based on an existed open software cannot.
 In programming, documentation cannot replace the source code totally. 
 Reading source code is a big opportunity in the open source development. 
 
-Both CMakeLists.txt and LLVMBuild.txt coexist in sub-directories 
+CMakeLists.txt exists in sub-directories 
 **MCTargetDesc** and **TargetInfo**. 
-The contents of MakeLists.txt and LLVMBuild.txt in these two directories 
+The contents of MakeLists.txt in these two directories 
 instruct llvm generating Cpu0Desc and Cpu0Info libraries, repectively. 
 After building, you will find three libraries: **libLLVMCpu0CodeGen.a**, 
 **libLLVMCpu0Desc.a** and **libLLVMCpu0Info.a** in lib/ of your build 
 directory. 
-For more details please see "Building LLVM with CMake" [#cmake]_ and 
-"LLVMBuild Guide" [#llvmbuild]_.
+For more details please see "Building LLVM with CMake" [#cmake]_.
 
 Target Registration
 ~~~~~~~~~~~~~~~~~~~
@@ -2165,9 +2157,6 @@ big endian and TheCpu0elTarget for little endian, as follows.
 .. rubric:: lbdex/chapters/Chapter2/TargetInfo/CMakeLists.txt
 .. literalinclude:: ../lbdex/Cpu0/TargetInfo/CMakeLists.txt
 
-.. rubric:: lbdex/chapters/Chapter2/TargetInfo/LLVMBuild.txt
-.. literalinclude:: ../lbdex/Cpu0/TargetInfo/LLVMBuild.txt
-
 Files Cpu0TargetMachine.cpp and MCTargetDesc/Cpu0MCTargetDesc.cpp just define 
 the empty initialize function since we register nothing for this moment.
 
@@ -2183,9 +2172,6 @@ the empty initialize function since we register nothing for this moment.
 .. rubric:: lbdex/chapters/Chapter2/MCTargetDesc/CMakeLists.txt
 .. literalinclude:: ../lbdex/chapters/Chapter2/MCTargetDesc/CMakeLists.txt
 
-.. rubric:: lbdex/chapters/Chapter2/MCTargetDesc/LLVMBuild.txt
-.. literalinclude:: ../lbdex/chapters/Chapter2/MCTargetDesc/LLVMBuild.txt
-
 
 Please see "Target Registration" [#target-reg]_ for reference.
 
@@ -2193,37 +2179,37 @@ Please see "Target Registration" [#target-reg]_ for reference.
 Build libraries and td
 ~~~~~~~~~~~~~~~~~~~~~~
 
-We set llvm source code in /Users/Jonathan/llvm/release/src and have llvm 
-release-build in /Users/Jonathan/llvm/release/cmake_release_build. 
+We set llvm source code in /Users/Jonathan/llvm/release/llvm and have llvm 
+release-build in /Users/Jonathan/llvm/release/build. 
 About how to build llvm, please refer here [#clang]_. 
-In appendix A, we made a copy from /Users/Jonathan/llvm/release/src to 
-/Users/Jonathan/llvm/test/src for working with my Cpu0 target backend.
-Sub-directories src is for source code and cmake_debug_build is for debug 
+In appendix A, we made a copy from /Users/Jonathan/llvm/release/llvm to 
+/Users/Jonathan/llvm/test/llvm for working with my Cpu0 target backend.
+Sub-directories llvm is for source code and build is for debug 
 build directory.
 
-Beside directory src/lib/Target/Cpu0, there are a couple of files modified to 
+Beside directory llvm/lib/Target/Cpu0, there are a couple of files modified to 
 support cpu0 new Target, which includes both the ID and name of machine and 
 relocation records listed in the early sub-section.
 You can update your llvm working copy and find the modified files by 
-commands, cp -rf lbdex/src/modify/src/* <yourllvm/workingcopy/sourcedir>/.
+commands, cp -rf lbdex/llvm/modify/llvm/* <yourllvm/workingcopy/sourcedir>/.
 
 .. code-block:: console
 
   118-165-78-230:test Jonathan$ pwd
   /Users/Jonathan/test
-  118-165-78-230:test Jonathan$ cp -rf lbdex/src/modify/src/* ~/llvm/test/src/.
-  118-165-78-230:test Jonathan$ grep -R "cpu0" ~/llvm/test/src/include
-  src/cmake/config-ix.cmake:elseif (LLVM_NATIVE_ARCH MATCHES "cpu0")
-  src/include/llvm/ADT/Triple.h:#undef cpu0
-  src/include/llvm/ADT/Triple.h:    cpu0,       // For Tutorial Backend Cpu0
-  src/include/llvm/ADT/Triple.h:    cpu0el,
-  src/include/llvm/Support/ELF.h:  EF_CPU0_ARCH_32R2 = 0x70000000, // cpu032r2
-  src/include/llvm/Support/ELF.h:  EF_CPU0_ARCH_64R2 = 0x80000000, // cpu064r2
+  118-165-78-230:test Jonathan$ cp -rf lbdex/llvm/modify/llvm/* ~/llvm/test/llvm/.
+  118-165-78-230:test Jonathan$ grep -R "cpu0" ~/llvm/test/llvm/include
+  llvm/cmake/config-ix.cmake:elseif (LLVM_NATIVE_ARCH MATCHES "cpu0")
+  llvm/include/llvm/ADT/Triple.h:#undef cpu0
+  llvm/include/llvm/ADT/Triple.h:    cpu0,       // For Tutorial Backend Cpu0
+  llvm/include/llvm/ADT/Triple.h:    cpu0el,
+  llvm/include/llvm/Support/ELF.h:  EF_CPU0_ARCH_32R2 = 0x70000000, // cpu032r2
+  llvm/include/llvm/Support/ELF.h:  EF_CPU0_ARCH_64R2 = 0x80000000, // cpu064r2
   ...
 
 Next configure the Cpu0 example code to chapter2 as follows,
 
-.. rubric:: ~/llvm/test/src/lib/Target/Cpu0/Cpu0SetChapter.h
+.. rubric:: ~/llvm/test/llvm/lib/Target/Cpu0/Cpu0SetChapter.h
 .. code-block:: c++
 
   #define CH       CH2
@@ -2234,24 +2220,24 @@ command is for my setting),
 
 .. code-block:: console
 
-  118-165-78-230:cmake_debug_build Jonathan$ cmake -DCMAKE_CXX_COMPILER=clang++ 
-  -DCMAKE_C_COMPILER=clang -DCMAKE_BUILD_TYPE=Debug -G "Xcode" ../src/
+  118-165-78-230:build Jonathan$ cmake -DCMAKE_CXX_COMPILER=clang++ 
+  -DCMAKE_C_COMPILER=clang -DCMAKE_BUILD_TYPE=Debug -G "Xcode" ../llvm/
   
   -- Targeting Cpu0 
   ...
   -- Targeting XCore 
   -- Configuring done 
   -- Generating done 
-  -- Build files have been written to: /Users/Jonathan/llvm/test/cmake_debug_build
+  -- Build files have been written to: /Users/Jonathan/llvm/test/build
   
-  118-165-78-230:cmake_debug_build Jonathan$ 
+  118-165-78-230:build Jonathan$ 
 
 After build, you can type command ``llc –version`` to find the cpu0 backend,
 
 .. code-block:: console
 
-  118-165-78-230:cmake_debug_build Jonathan$ /Users/Jonathan/llvm/test/
-  cmake_debug_build/Debug/bin/llc --version
+  118-165-78-230:build Jonathan$ /Users/Jonathan/llvm/test/
+  build/bin/llc --version
   LLVM (http://llvm.org/):
   ...
     Registered Targets: 
@@ -2272,30 +2258,30 @@ Let's build lbdex/chapters/Chapter2 code as follows,
 
   118-165-75-57:test Jonathan$ pwd
   /Users/Jonathan/test
-  118-165-75-57:test Jonathan$ cp -rf lbdex/Cpu0 ~/llvm/test/src/lib/Target/.
+  118-165-75-57:test Jonathan$ cp -rf lbdex/Cpu0 ~/llvm/test/llvm/lib/Target/.
 
-  118-165-75-57:test Jonathan$ cd ~/llvm/test/cmake_debug_build
-  118-165-75-57:cmake_debug_build Jonathan$ pwd
-  /Users/Jonathan/llvm/test/cmake_debug_build
-  118-165-75-57:cmake_debug_build Jonathan$ rm -rf *
-  118-165-75-57:cmake_debug_build Jonathan$ cmake -DCMAKE_CXX_COMPILER=clang++ 
+  118-165-75-57:test Jonathan$ cd ~/llvm/test/build
+  118-165-75-57:build Jonathan$ pwd
+  /Users/Jonathan/llvm/test/build
+  118-165-75-57:build Jonathan$ rm -rf *
+  118-165-75-57:build Jonathan$ cmake -DCMAKE_CXX_COMPILER=clang++ 
   -DCMAKE_C_COMPILER=clang -DCMAKE_BUILD_TYPE=Debug -DLLVM_TARGETS_TO_BUILD=Cpu0 
-  -G "Xcode" ../src/
+  -G "Xcode" ../llvm/
   ...
   -- Targeting Cpu0
   ...
   -- Configuring done
   -- Generating done
-  -- Build files have been written to: /Users/Jonathan/llvm/test/cmake_debug_build
+  -- Build files have been written to: /Users/Jonathan/llvm/test/build
 
 In order to save time, we build Cpu0 target only by option 
 -DLLVM_TARGETS_TO_BUILD=Cpu0.
 After cmake, please open Xcode and build the Xcode project file as appendix A,
 or refer appendix A to build it on linux if you work on unix/linux platform.
 After that, you can find the \*.inc files in directory 
-/Users/Jonathan/llvm/test/cmake_debug_build/lib/Target/Cpu0 as follows,
+/Users/Jonathan/llvm/test/build/lib/Target/Cpu0 as follows,
 
-.. rubric:: cmake_debug_build/lib/Target/Cpu0/Cpu0GenRegisterInfo.inc
+.. rubric:: build/lib/Target/Cpu0/Cpu0GenRegisterInfo.inc
 .. code-block:: c++
 
   namespace Cpu0 {
@@ -2327,10 +2313,10 @@ After that, you can find the \*.inc files in directory
   ...
 
 These \*.inc are generated by llvm-tblgen at directory 
-cmake_debug_build/lib/Target/Cpu0 where their input files are the Cpu0 backend 
+build/lib/Target/Cpu0 where their input files are the Cpu0 backend 
 \*.td files. 
 The llvm-tblgen is invoked by **tablegen** of 
-/Users/Jonathan/llvm/test/src/lib/Target/Cpu0/CMakeLists.txt. 
+/Users/Jonathan/llvm/test/llvm/lib/Target/Cpu0/CMakeLists.txt. 
 These \*.inc files will be included by Cpu0 backend \*.cpp or \*.h files and 
 compile into \*.o further. 
 TableGen is the important tool illustrated in the early sub-section 
@@ -2386,8 +2372,8 @@ Now, when compiling ch3.bc will get the error message as follows,
 
 .. code-block:: console
 
-  118-165-78-230:input Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
-  Debug/bin/llc -march=cpu0 -relocation-model=pic -filetype=asm ch3.bc -o 
+  118-165-78-230:input Jonathan$ /Users/Jonathan/llvm/test/build/
+  bin/llc -march=cpu0 -relocation-model=pic -filetype=asm ch3.bc -o 
   ch3.cpu0.s
   ...
   ... Assertion `target.get() && "Could not allocate target machine!"' failed 
@@ -2438,8 +2424,6 @@ the Target Registration.
     Techniques, and Tools (2nd Edition) 
 
 .. [#cmake] http://llvm.org/docs/CMake.html
-
-.. [#llvmbuild] http://llvm.org/docs/LLVMBuild.html
 
 .. [#target-reg] http://llvm.org/docs/WritingAnLLVMBackend.html#target-registration
 

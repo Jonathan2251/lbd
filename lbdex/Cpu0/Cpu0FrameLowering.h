@@ -17,7 +17,7 @@
 #if CH >= CH3_1
 
 #include "Cpu0.h"
-#include "llvm/Target/TargetFrameLowering.h"
+#include "llvm/CodeGen/TargetFrameLowering.h"
 
 namespace llvm {
   class Cpu0Subtarget;
@@ -28,7 +28,7 @@ protected:
 
 public:
   explicit Cpu0FrameLowering(const Cpu0Subtarget &sti, unsigned Alignment)
-    : TargetFrameLowering(StackGrowsDown, Alignment, 0, Alignment),
+    : TargetFrameLowering(StackGrowsDown, Align(Alignment), 0, Align(Alignment)),
       STI(sti) {
   }
 

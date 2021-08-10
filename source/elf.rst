@@ -96,7 +96,7 @@ Let's run Chapter9_3/ with ch6_1.cpp, and dump ELF header information by
 
 .. code-block:: console
 
-  [Gamma@localhost input]$ ~/llvm/test/cmake_debug_build/bin/llc -march=cpu0 
+  [Gamma@localhost input]$ ~/llvm/test/build/bin/llc -march=cpu0 
   -relocation-model=pic -filetype=obj ch6_1.bc -o ch6_1.cpu0.o
   
   [Gamma@localhost input]$ readelf -h ch6_1.cpu0.o 
@@ -121,7 +121,7 @@ Let's run Chapter9_3/ with ch6_1.cpp, and dump ELF header information by
     Section header string table index: 5
   [Gamma@localhost input]$ 
 
-  [Gamma@localhost input]$ ~/llvm/test/cmake_debug_build/bin/llc 
+  [Gamma@localhost input]$ ~/llvm/test/build/bin/llc 
   -march=mips -relocation-model=pic -filetype=obj ch6_1.bc -o ch6_1.mips.o
   
   [Gamma@localhost input]$ readelf -h ch6_1.mips.o 
@@ -202,7 +202,7 @@ Cpu0 backend translate global variable as follows,
 
   [Gamma@localhost input]$ clang -target mips-unknown-linux-gnu -c ch6_1.cpp 
   -emit-llvm -o ch6_1.bc
-  [Gamma@localhost input]$ ~/llvm/test/cmake_debug_build/
+  [Gamma@localhost input]$ ~/llvm/test/build/
   bin/llc -march=cpu0 -relocation-model=pic -filetype=asm ch6_1.bc -o ch6_1.cpu0.s
   [Gamma@localhost input]$ cat ch6_1.cpu0.s 
     .section .mdebug.abi32
@@ -229,7 +229,7 @@ Cpu0 backend translate global variable as follows,
     .size gI, 4
   
   
-  [Gamma@localhost input]$ ~/llvm/test/cmake_debug_build/
+  [Gamma@localhost input]$ ~/llvm/test/build/
   bin/llc -march=cpu0 -relocation-model=pic -filetype=obj ch6_1.bc -o ch6_1.cpu0.o
   [Gamma@localhost input]$ objdump -s ch6_1.cpu0.o
   
@@ -380,8 +380,8 @@ Let's run gobjdump and llvm-objdump commands as follows to see the differences.
 
   118-165-83-12:input Jonathan$ clang -target mips-unknown-linux-gnu -c 
   ch9_3.cpp -emit-llvm -o ch9_3.bc
-  118-165-83-10:input Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
-  Debug/bin/llc -march=cpu0 -relocation-model=pic -filetype=obj ch9_3.bc -o 
+  118-165-83-10:input Jonathan$ /Users/Jonathan/llvm/test/build/
+  bin/llc -march=cpu0 -relocation-model=pic -filetype=obj ch9_3.bc -o 
   ch9_3.cpu0.o
 
   118-165-78-12:input Jonathan$ gobjdump -t -r ch9_3.cpu0.o
@@ -405,8 +405,8 @@ Let's run gobjdump and llvm-objdump commands as follows to see the differences.
   000000e0 UNKNOWN           _Z5sum_iiz
 
 
-  118-165-83-10:input Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
-  Debug/bin/llvm-objdump -t -r ch9_3.cpu0.o
+  118-165-83-10:input Jonathan$ /Users/Jonathan/llvm/test/build/
+  bin/llvm-objdump -t -r ch9_3.cpu0.o
   
   ch9_3.cpu0.o:	file format ELF32-CPU0
 
@@ -460,7 +460,7 @@ in ELF.h as follows,
   
 
 .. rubric:: include/llvm/Support/ELFRelocs/Cpu0.def
-.. literalinclude:: ../lbdex/src/modify/src/include/llvm/Support/ELFRelocs/Cpu0.def
+.. literalinclude:: ../lbdex/llvm/modify/llvm/include/llvm/BinaryFormat/ELFRelocs/Cpu0.def
 
 .. rubric:: include/llvm/Object/ELFObjectFile.h
 .. code-block:: c++
@@ -512,11 +512,11 @@ file from elf to hex as follows,
 
   JonathantekiiMac:input Jonathan$ clang -target mips-unknown-linux-gnu -c 
   ch8_1_1.cpp -emit-llvm -o ch8_1_1.bc
-  JonathantekiiMac:input Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_
-  build/Debug/bin/llc -march=cpu0 -relocation-model=pic -filetype=obj ch8_1_1.bc 
+  JonathantekiiMac:input Jonathan$ /Users/Jonathan/llvm/test/build/
+  bin/llc -march=cpu0 -relocation-model=pic -filetype=obj ch8_1_1.bc 
   -o ch8_1_1.cpu0.o
-  JonathantekiiMac:input Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_
-  build/Debug/bin/llvm-objdump -d ch8_1_1.cpu0.o
+  JonathantekiiMac:input Jonathan$ /Users/Jonathan/llvm/test/build/
+  bin/llvm-objdump -d ch8_1_1.cpu0.o
   
   ch8_1_1.cpu0.o: file format ELF32-unknown
   
@@ -533,18 +533,10 @@ To support llvm-objdump, the following code added to Chapter10_1/
 .. literalinclude:: ../lbdex/Cpu0/CMakeLists.txt
     :start-after: #if CH >= CH10_1 2
     :end-before: #endif
+.. literalinclude:: ../lbdex/Cpu0/CMakeLists.txt
+    :start-after: #if CH >= CH10_1 3
+    :end-before: #endif
   
-.. rubric:: lbdex/chapters/Chapter10_1/LLVMBuild.txt
-.. literalinclude:: ../lbdex/Cpu0/LLVMBuild.txt
-    :start-after: [common]
-    :end-before: #if CH >= CH11_1
-.. literalinclude:: ../lbdex/Cpu0/LLVMBuild.txt
-    :start-after: #if CH >= CH10_1 1
-    :end-before: #endif
-.. literalinclude:: ../lbdex/Cpu0/LLVMBuild.txt
-    :start-after: #if CH >= CH10_1 2
-    :end-before: #endif
-
 .. rubric:: lbdex/chapters/Chapter10_1/Cpu0InstrInfo.td
 .. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td
     :start-after: //@JumpFR {
@@ -556,16 +548,13 @@ To support llvm-objdump, the following code added to Chapter10_1/
 .. rubric:: lbdex/chapters/Chapter10_1/Disassembler/CMakeLists.txt
 .. literalinclude:: ../lbdex/Cpu0/Disassembler/CMakeLists.txt
   
-.. rubric:: lbdex/chapters/Chapter10_1/Disassembler/LLVMBuild.txt
-.. literalinclude:: ../lbdex/Cpu0/Disassembler/LLVMBuild.txt
-
 .. rubric:: lbdex/chapters/Chapter10_1/Disassembler/Cpu0Disassembler.cpp
 .. literalinclude:: ../lbdex/chapters/Chapter10_1/Disassembler/Cpu0Disassembler.cpp
   
 
 As above code, it adds directory Disassembler to handle the reverse translation 
 from obj to assembly. So, add Disassembler/Cpu0Disassembler.cpp and modify 
-the CMakeList.txt and LLVMBuild.txt to build directory Disassembler, and 
+the CMakeList.txt to build directory Disassembler, and 
 enable the disassembler table generated by "has_disassembler = 1". 
 Most of code is handled by the table defined in \*.td files. 
 Not every instruction in \*.td can be disassembled without trouble even though 
@@ -600,11 +589,11 @@ the following result.
 
 .. code-block:: console
 
-  JonathantekiiMac:input Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_
-  build/Debug/bin/llc -march=cpu0 -relocation-model=pic -filetype=obj 
+  JonathantekiiMac:input Jonathan$ /Users/Jonathan/llvm/test/build/
+  bin/llc -march=cpu0 -relocation-model=pic -filetype=obj 
   ch8_1_1.bc -o ch8_1_1.cpu0.o
-  JonathantekiiMac:input Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_
-  build/Debug/bin/llvm-objdump -d ch8_1_1.cpu0.o
+  JonathantekiiMac:input Jonathan$ /Users/Jonathan/llvm/test/build/
+  bin/llvm-objdump -d ch8_1_1.cpu0.o
   
   ch8_1_1.cpu0.o:	file format ELF32-CPU0
 

@@ -21,7 +21,6 @@
 #include "llvm/CodeGen/MachineFunction.h"
 #include "llvm/CodeGen/MachineMemOperand.h"
 #include "llvm/CodeGen/PseudoSourceValue.h"
-#include "llvm/Target/TargetFrameLowering.h"
 #include "llvm/Target/TargetMachine.h"
 #include <map>
 
@@ -34,13 +33,13 @@ class Cpu0FunctionInfo : public MachineFunctionInfo {
 public:
   Cpu0FunctionInfo(MachineFunction& MF)
   : MF(MF), 
+    VarArgsFrameIndex(0), 
 #if CH >= CH3_4 //1
     SRetReturnReg(0), CallsEhReturn(false), CallsEhDwarf(false),
 #endif
 #if CH >= CH6_1 //1
     GlobalBaseReg(0),
 #endif
-    VarArgsFrameIndex(0), 
 #if CH >= CH9_1 //1
     InArgFIRange(std::make_pair(-1, 0)),
     OutArgFIRange(std::make_pair(-1, 0)), GPFI(0), DynAllocFI(0),
@@ -133,23 +132,16 @@ private:
 
   MachineFunction& MF;
 
+#if CH >= CH3_1
+    /// VarArgsFrameIndex - FrameIndex for start of varargs area.
+  int VarArgsFrameIndex;
+#endif
+
 #if CH >= CH3_4 //4
   /// SRetReturnReg - Some subtargets require that sret lowering includes
   /// returning the value of the returned struct in a register. This field
   /// holds the virtual register into which the sret argument is passed.
   unsigned SRetReturnReg;
-#endif
-
-#if CH >= CH6_1 //3
-  /// GlobalBaseReg - keeps track of the virtual register initialized for
-  /// use as the global base register. This is used for PIC in some PIC
-  /// relocation models.
-  unsigned GlobalBaseReg;
-#endif
-
-#if CH >= CH3_1
-    /// VarArgsFrameIndex - FrameIndex for start of varargs area.
-  int VarArgsFrameIndex;
 #endif
 
 #if CH >= CH3_4 //5
@@ -167,6 +159,13 @@ private:
 
   /// Frame objects for spilling eh data registers.
   int EhDataRegFI[2];
+#endif
+
+#if CH >= CH6_1 //3
+  /// GlobalBaseReg - keeps track of the virtual register initialized for
+  /// use as the global base register. This is used for PIC in some PIC
+  /// relocation models.
+  unsigned GlobalBaseReg;
 #endif
 
 #if CH >= CH9_1 //4

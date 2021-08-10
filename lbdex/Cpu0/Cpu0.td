@@ -7,19 +7,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-//===----------------------------------------------------------------------===//
-// Calling Conv, Instruction Descriptions
-//===----------------------------------------------------------------------===//
-
-include "Cpu0Schedule.td"
-include "Cpu0InstrInfo.td"
 //#if CH >= CH3_1 1
-include "Cpu0CallingConv.td"
-//#endif
-
-def Cpu0InstrInfo : InstrInfo;
-
-//#if CH >= CH3_1 2
 // Without this will have error: 'cpu032I' is not a recognized processor for 
 //  this target (ignoring processor)
 //===----------------------------------------------------------------------===//
@@ -90,11 +78,24 @@ def FeatureCpu032I     : SubtargetFeature<"cpu032I", "Cpu0ArchVersion",
 def FeatureCpu032II    : SubtargetFeature<"cpu032II", "Cpu0ArchVersion",                      
                                "Cpu032II", "Cpu032II ISA Support (slt)",
                                 [FeatureCmp, FeatureSlt, FeatureChapterAll]>;
+//#endif
 
+//===----------------------------------------------------------------------===//
+// Calling Conv, Instruction Descriptions
+//===----------------------------------------------------------------------===//
+
+include "Cpu0Schedule.td"
+include "Cpu0InstrInfo.td"
+//#if CH >= CH3_1 2
+include "Cpu0CallingConv.td"
+//#endif
+
+def Cpu0InstrInfo : InstrInfo;
 //===----------------------------------------------------------------------===//
 // Cpu0 processors supported.
 //===----------------------------------------------------------------------===//
 
+//#if CH >= CH3_1 3
 class Proc<string Name, list<SubtargetFeature> Features>
  : Processor<Name, Cpu0GenericItineraries, Features>;
 

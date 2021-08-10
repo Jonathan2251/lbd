@@ -188,7 +188,7 @@ Dump it's content by gobjdump or hexdump after as follows,
 .. code-block:: console
 
     118-165-79-206:input Jonathan$ /Users/Jonathan/llvm/test/
-    cmake_debug_build/Debug/bin/llc -march=cpu0 -mcpu=cpu032I -relocation-model=pic 
+    build/bin/llc -march=cpu0 -mcpu=cpu032I -relocation-model=pic 
     -filetype=asm ch8_1_1.bc -o -
     ...
     ld  $4, 36($fp)
@@ -206,7 +206,7 @@ Dump it's content by gobjdump or hexdump after as follows,
 .. code-block:: console
     
     118-165-79-206:input Jonathan$ /Users/Jonathan/llvm/test/
-    cmake_debug_build/Debug/bin/llc -march=cpu0 -mcpu=cpu032I -relocation-model=pic 
+    build/bin/llc -march=cpu0 -mcpu=cpu032I -relocation-model=pic 
     -filetype=obj ch8_1_1.bc -o ch8_1_1.cpu0.o
 
     118-165-79-206:input Jonathan$ hexdump ch8_1_1.cpu0.o 
@@ -254,7 +254,7 @@ cpu032II use one instruction (bne) as follws,
 .. code-block:: console
 
   JonathantekiiMac:input Jonathan$ /Users/Jonathan/llvm/test/
-  cmake_debug_build/Debug/bin/llc -march=cpu0 -mcpu=cpu032I -relocation-model=pic 
+  build/bin/llc -march=cpu0 -mcpu=cpu032I -relocation-model=pic 
   -filetype=asm ch8_1_1.bc -o -
     ...
   	cmp	$sw, $4, $3
@@ -263,7 +263,7 @@ cpu032II use one instruction (bne) as follws,
   $BB0_1:
   
   JonathantekiiMac:input Jonathan$ /Users/Jonathan/llvm/test/
-  cmake_debug_build/Debug/bin/llc -march=cpu0 -mcpu=cpu032II -relocation-model=pic 
+  build/bin/llc -march=cpu0 -mcpu=cpu032II -relocation-model=pic 
   -filetype=asm ch8_1_1.bc -o -
     ...
   	bne	$4, $zero, $BB0_2
@@ -421,7 +421,7 @@ The code of Chapter8_2 will compile the following example as follows,
 
 .. code-block:: console
 
-  118-165-78-10:input Jonathan$ ~/llvm/test/cmake_debug_build/Debug/bin/llc 
+  118-165-78-10:input Jonathan$ ~/llvm/test/build/bin/llc 
   -march=cpu0 -mcpu=cpu032II -relocation-model=pic -filetype=asm 
   -force-cpu0-long-branch ch8_2_longbranch.bc -o -
     ...
@@ -547,8 +547,8 @@ Now, let's run Chapter8_2/ with ch8_2_deluselessjmp.cpp for explanation.
 
   118-165-78-10:input Jonathan$ clang -target mips-unknown-linux-gnu 
   -c ch8_2_deluselessjmp.cpp -emit-llvm -o ch8_2_deluselessjmp.bc
-  118-165-78-10:input Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
-  Debug/bin/llc -march=cpu0 -relocation-model=static -filetype=asm -stats 
+  118-165-78-10:input Jonathan$ /Users/Jonathan/llvm/test/build/
+  bin/llc -march=cpu0 -relocation-model=static -filetype=asm -stats 
   ch8_2_deluselessjmp.bc -o -
     ...
 	  cmp	$sw, $4, $3
@@ -663,7 +663,7 @@ Run Chapter8_1 with ch8_2_select.cpp will get the following result.
 
   114-37-150-209:input Jonathan$ clang -O1 -target mips-unknown-linux-gnu 
   -c ch8_2_select.cpp -emit-llvm -o ch8_2_select.bc
-  114-37-150-209:input Jonathan$ ~/llvm/test/cmake_debug_build/Debug/bin/
+  114-37-150-209:input Jonathan$ ~/llvm/test/build/bin/
   llvm-dis ch8_2_select.bc -o -
   ...
   ; Function Attrs: nounwind uwtable
@@ -696,7 +696,7 @@ Run Chapter8_1 with ch8_2_select.cpp will get the following result.
   }
   ...
 
-  114-37-150-209:input Jonathan$ ~/llvm/test/cmake_debug_build/Debug/bin/llc 
+  114-37-150-209:input Jonathan$ ~/llvm/test/build/bin/llc 
   -march=cpu0 -mcpu=cpu032I -relocation-model=static -filetype=asm 
   ch8_2_select.bc -o -
   ...
@@ -771,7 +771,7 @@ instructions number.
 
 .. code-block:: console
 
-  114-37-150-209:input Jonathan$ ~/llvm/test/cmake_debug_build/Debug/bin/llc 
+  114-37-150-209:input Jonathan$ ~/llvm/test/build/bin/llc 
   -march=cpu0 -mcpu=cpu032I -relocation-model=static -filetype=asm ch8_2_select.bc -o -
   ...
 	.type	_Z11test_movx_1v,@function
@@ -838,7 +838,7 @@ tested now as follows,
   
   JonathantekiiMac:input Jonathan$ clang -O1 -target mips-unknown-linux-gnu 
   -c ch8_2_select_global_pic.cpp -emit-llvm -o ch8_2_select_global_pic.bc
-  JonathantekiiMac:input Jonathan$ ~/llvm/test/cmake_debug_build/Debug/bin/
+  JonathantekiiMac:input Jonathan$ ~/llvm/test/build/bin/
   llvm-dis ch8_2_select_global_pic.bc -o -
   ...
   @a1 = global i32 1, align 4
@@ -857,7 +857,7 @@ tested now as follows,
     ret i32 %.0
   }
   ...
-  JonathantekiiMac:input Jonathan$ ~/llvm/test/cmake_debug_build/Debug/bin/
+  JonathantekiiMac:input Jonathan$ ~/llvm/test/build/bin/
   llc -march=cpu0 -mcpu=cpu032I -relocation-model=pic -filetype=asm ch8_2_select_global_pic.bc -o -
     .section .mdebug.abi32
     .previous
@@ -933,12 +933,12 @@ tested now as follows,
 Phi node
 ---------
 
-Since phi (Φ) node is popular used in SSA form [#ssa-wiki]_, llvm applies 
+Since phi node is popular used in SSA form [#ssa-wiki]_, llvm applies 
 phi node in IR for optimization work either. 
 Phi node exists for "live variable analysis". An example for C is here 
 [#phi-ex]_. 
 As mentioned in wiki web site of reference above, through finding dominance 
-frontiers, compiler knows where to insert Φ functions.
+frontiers, compiler knows where to insert phi functions.
 The following input let you know the benefits of phi node as follows,
 
 .. rubric:: lbdex/input/ch8_2_phinode.cpp
@@ -949,10 +949,10 @@ Compile it with debug build clang for O3 as follows,
 
 .. code-block:: console
   
-  114-43-212-251:input Jonathan$ ~/llvm/release/cmake_debug_build/Debug/bin/clang  
+  114-43-212-251:input Jonathan$ ~/llvm/release/build/bin/clang  
   -O3 -target mips-unknown-linux-gnu -c ch8_2_phinode.cpp -emit-llvm -o 
   ch8_2_phinode.bc
-  114-43-212-251:input Jonathan$ ~/llvm/test/cmake_debug_build/Debug/bin/llvm-dis 
+  114-43-212-251:input Jonathan$ ~/llvm/test/build/bin/llvm-dis 
   ch8_2_phinode.bc -o -
   ...
   define i32 @_Z12test_phinodeiii(i32 signext %a, i32 signext %b, i32 signext %c) local_unnamed_addr #0 {
@@ -992,10 +992,10 @@ from different basic block.
   
 .. code-block:: console
   
-  114-43-212-251:input Jonathan$ ~/llvm/release/cmake_debug_build/Debug/bin/clang 
+  114-43-212-251:input Jonathan$ ~/llvm/release/build/bin/clang 
   -O0 -target mips-unknown-linux-gnu -c ch8_2_phinode.cpp -emit-llvm -o 
   ch8_2_phinode.bc
-  114-43-212-251:input Jonathan$ ~/llvm/test/cmake_debug_build/Debug/bin/llvm-dis 
+  114-43-212-251:input Jonathan$ ~/llvm/test/build/bin/llvm-dis 
   ch8_2_phinode.bc -o -
   ...
   define i32 @_Z12test_phinodeiii(i32 signext %a, i32 signext %b, i32 signext %c) #0 {

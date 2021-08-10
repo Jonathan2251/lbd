@@ -71,31 +71,29 @@ public:
     Subtarget = static_cast<Cpu0TargetMachine &>(TM).getSubtargetImpl();
   }
 
-  virtual const char *getPassName() const override {
+  StringRef getPassName() const override {
     return "Cpu0 Assembly Printer";
   }
 
   virtual bool runOnMachineFunction(MachineFunction &MF) override;
 
-//- EmitInstruction() must exists or will have run time error.
-  void EmitInstruction(const MachineInstr *MI) override;
+//- emitInstruction() must exists or will have run time error.
+  void emitInstruction(const MachineInstr *MI) override;
   void printSavedRegsBitmask(raw_ostream &O);
   void printHex32(unsigned int Value, raw_ostream &O);
   void emitFrameDirective();
   const char *getCurrentABIString() const;
-  void EmitFunctionEntryLabel() override;
-  void EmitFunctionBodyStart() override;
-  void EmitFunctionBodyEnd() override;
+  void emitFunctionEntryLabel() override;
+  void emitFunctionBodyStart() override;
+  void emitFunctionBodyEnd() override;
 #if CH >= CH11_2
   bool PrintAsmOperand(const MachineInstr *MI, unsigned OpNo,
-                       unsigned AsmVariant, const char *ExtraCode,
-                       raw_ostream &O) override;
+                       const char *ExtraCode, raw_ostream &O) override;
   bool PrintAsmMemoryOperand(const MachineInstr *MI, unsigned OpNum,
-                             unsigned AsmVariant, const char *ExtraCode,
-                             raw_ostream &O) override;
+                             const char *ExtraCode, raw_ostream &O) override;
   void printOperand(const MachineInstr *MI, int opNum, raw_ostream &O);
 #endif
-  void EmitStartOfAsmFile(Module &M) override;
+  void emitStartOfAsmFile(Module &M) override;
   void PrintDebugValueComment(const MachineInstr *MI, raw_ostream &OS);
 };
 }

@@ -49,13 +49,13 @@ void Cpu0AsmPrinter::EmitInstrWithMacroNoAT(const MachineInstr *MI) {
   MCInst TmpInst;
 
   MCInstLowering.Lower(MI, TmpInst);
-  OutStreamer->EmitRawText(StringRef("\t.set\tmacro"));
+  OutStreamer->emitRawText(StringRef("\t.set\tmacro"));
   if (Cpu0FI->getEmitNOAT())
-    OutStreamer->EmitRawText(StringRef("\t.set\tat"));
-  OutStreamer->EmitInstruction(TmpInst, getSubtargetInfo());
+    OutStreamer->emitRawText(StringRef("\t.set\tat"));
+  OutStreamer->emitInstruction(TmpInst, getSubtargetInfo());
   if (Cpu0FI->getEmitNOAT())
-    OutStreamer->EmitRawText(StringRef("\t.set\tnoat"));
-  OutStreamer->EmitRawText(StringRef("\t.set\tnomacro"));
+    OutStreamer->emitRawText(StringRef("\t.set\tnoat"));
+  OutStreamer->emitRawText(StringRef("\t.set\tnomacro"));
 }
 #endif
 #endif //#if CH >= CH9_3 //1
@@ -79,7 +79,6 @@ bool Cpu0AsmPrinter::lowerOperand(const MachineOperand &MO, MCOperand &MCOp) {
 #ifdef ENABLE_GPRESTORE
 void Cpu0AsmPrinter::emitPseudoCPRestore(MCStreamer &OutStreamer,
                                               const MachineInstr *MI) {
-  unsigned Opc = MI->getOpcode();
   SmallVector<MCInst, 4> MCInsts;
   const MachineOperand &MO = MI->getOperand(0);
   assert(MO.isImm() && "CPRESTORE's operand must be an immediate.");
@@ -93,14 +92,14 @@ void Cpu0AsmPrinter::emitPseudoCPRestore(MCStreamer &OutStreamer,
     }
     MCInst TmpInst0;
     MCInstLowering.Lower(MI, TmpInst0);
-    OutStreamer.EmitInstruction(TmpInst0, getSubtargetInfo());
+    OutStreamer.emitInstruction(TmpInst0, getSubtargetInfo());
   } else {
     // output elf
     MCInstLowering.LowerCPRESTORE(Offset, MCInsts);
 
     for (SmallVector<MCInst, 4>::iterator I = MCInsts.begin();
          I != MCInsts.end(); ++I)
-      OutStreamer.EmitInstruction(*I, getSubtargetInfo());
+      OutStreamer.emitInstruction(*I, getSubtargetInfo());
 
     return;
   }
@@ -109,8 +108,8 @@ void Cpu0AsmPrinter::emitPseudoCPRestore(MCStreamer &OutStreamer,
 #endif //#if CH >= CH9_3 //2
 
 //@EmitInstruction {
-//- EmitInstruction() must exists or will have run time error.
-void Cpu0AsmPrinter::EmitInstruction(const MachineInstr *MI) {
+//- emitInstruction() must exists or will have run time error.
+void Cpu0AsmPrinter::emitInstruction(const MachineInstr *MI) {
 //@EmitInstruction body {
   if (MI->isDebugValue()) {
     SmallString<128> Str;
@@ -146,11 +145,11 @@ void Cpu0AsmPrinter::EmitInstruction(const MachineInstr *MI) {
 #else
     if (I->isPseudo())
 #endif //#if CH >= CH8_2 //1
-      llvm_unreachable("Pseudo opcode found in EmitInstruction()");
+      llvm_unreachable("Pseudo opcode found in emitInstruction()");
 
     MCInst TmpInst0;
     MCInstLowering.Lower(&*I, TmpInst0);
-    OutStreamer->EmitInstruction(TmpInst0, getSubtargetInfo());
+    OutStreamer->emitInstruction(TmpInst0, getSubtargetInfo());
   } while ((++I != E) && I->isInsideBundle()); // Delay slot check
 }
 //@EmitInstruction }
@@ -202,11 +201,11 @@ void Cpu0AsmPrinter::printSavedRegsBitmask(raw_ostream &O) {
   int CPUTopSavedRegOff;
 
   // Set the CPU and FPU Bitmasks
-  const MachineFrameInfo *MFI = MF->getFrameInfo();
+  const MachineFrameInfo &MFI = MF->getFrameInfo();
   const TargetRegisterInfo *TRI = MF->getSubtarget().getRegisterInfo();
-  const std::vector<CalleeSavedInfo> &CSI = MFI->getCalleeSavedInfo();
+  const std::vector<CalleeSavedInfo> &CSI = MFI.getCalleeSavedInfo();
   // size of stack area to which FP callee-saved regs are saved.
-  unsigned CPURegSize = Cpu0::CPURegsRegClass.getSize();
+  unsigned CPURegSize = TRI->getRegSizeInBits(Cpu0::CPURegsRegClass) / 8;
   unsigned i = 0, e = CSI.size();
 
   // Set CPU Bitmask.
@@ -243,10 +242,10 @@ void Cpu0AsmPrinter::emitFrameDirective() {
 
   unsigned stackReg  = RI.getFrameRegister(*MF);
   unsigned returnReg = RI.getRARegister();
-  unsigned stackSize = MF->getFrameInfo()->getStackSize();
+  unsigned stackSize = MF->getFrameInfo().getStackSize();
 
   if (OutStreamer->hasRawTextSupport())
-    OutStreamer->EmitRawText("\t.frame\t$" +
+    OutStreamer->emitRawText("\t.frame\t$" +
            StringRef(Cpu0InstPrinter::getRegisterName(stackReg)).lower() +
            "," + Twine(stackSize) + ",$" +
            StringRef(Cpu0InstPrinter::getRegisterName(returnReg)).lower());
@@ -264,10 +263,10 @@ const char *Cpu0AsmPrinter::getCurrentABIString() const {
 //		.type	main,@function
 //->		.ent	main                    # @main
 //	main:
-void Cpu0AsmPrinter::EmitFunctionEntryLabel() {
+void Cpu0AsmPrinter::emitFunctionEntryLabel() {
   if (OutStreamer->hasRawTextSupport())
-    OutStreamer->EmitRawText("\t.ent\t" + Twine(CurrentFnSym->getName()));
-  OutStreamer->EmitLabel(CurrentFnSym);
+    OutStreamer->emitRawText("\t.ent\t" + Twine(CurrentFnSym->getName()));
+  OutStreamer->emitLabel(CurrentFnSym);
 }
 
 
@@ -277,7 +276,7 @@ void Cpu0AsmPrinter::EmitFunctionEntryLabel() {
 //@-> .set  nomacro
 /// EmitFunctionBodyStart - Targets can override this to emit stuff before
 /// the first basic block in the function.
-void Cpu0AsmPrinter::EmitFunctionBodyStart() {
+void Cpu0AsmPrinter::emitFunctionBodyStart() {
   MCInstLowering.Initialize(&MF->getContext());
 
   emitFrameDirective();
@@ -293,23 +292,23 @@ void Cpu0AsmPrinter::EmitFunctionBodyStart() {
     SmallString<128> Str;
     raw_svector_ostream OS(Str);
     printSavedRegsBitmask(OS);
-    OutStreamer->EmitRawText(OS.str());
-    OutStreamer->EmitRawText(StringRef("\t.set\tnoreorder"));
+    OutStreamer->emitRawText(OS.str());
+    OutStreamer->emitRawText(StringRef("\t.set\tnoreorder"));
 #if CH >= CH6_1 //2
     // Emit .cpload directive if needed.
     if (EmitCPLoad)
-      OutStreamer->EmitRawText(StringRef("\t.cpload\t$t9"));
+      OutStreamer->emitRawText(StringRef("\t.cpload\t$t9"));
 #endif
-    OutStreamer->EmitRawText(StringRef("\t.set\tnomacro"));
+    OutStreamer->emitRawText(StringRef("\t.set\tnomacro"));
     if (Cpu0FI->getEmitNOAT())
-      OutStreamer->EmitRawText(StringRef("\t.set\tnoat"));
+      OutStreamer->emitRawText(StringRef("\t.set\tnoat"));
 #if CH >= CH6_1 //3
   } else if (EmitCPLoad) {
     SmallVector<MCInst, 4> MCInsts;
     MCInstLowering.LowerCPLOAD(MCInsts);
     for (SmallVector<MCInst, 4>::iterator I = MCInsts.begin();
        I != MCInsts.end(); ++I)
-      OutStreamer->EmitInstruction(*I, getSubtargetInfo());
+      OutStreamer->emitInstruction(*I, getSubtargetInfo());
 #endif
   }
 }
@@ -319,39 +318,38 @@ void Cpu0AsmPrinter::EmitFunctionBodyStart() {
 //->	.end	main
 /// EmitFunctionBodyEnd - Targets can override this to emit stuff after
 /// the last basic block in the function.
-void Cpu0AsmPrinter::EmitFunctionBodyEnd() {
+void Cpu0AsmPrinter::emitFunctionBodyEnd() {
   // There are instruction for this macros, but they must
   // always be at the function end, and we can't emit and
   // break with BB logic.
   if (OutStreamer->hasRawTextSupport()) {
     if (Cpu0FI->getEmitNOAT())
-      OutStreamer->EmitRawText(StringRef("\t.set\tat"));
-    OutStreamer->EmitRawText(StringRef("\t.set\tmacro"));
-    OutStreamer->EmitRawText(StringRef("\t.set\treorder"));
-    OutStreamer->EmitRawText("\t.end\t" + Twine(CurrentFnSym->getName()));
+      OutStreamer->emitRawText(StringRef("\t.set\tat"));
+    OutStreamer->emitRawText(StringRef("\t.set\tmacro"));
+    OutStreamer->emitRawText(StringRef("\t.set\treorder"));
+    OutStreamer->emitRawText("\t.end\t" + Twine(CurrentFnSym->getName()));
   }
 }
 
 //	.section .mdebug.abi32
 //	.previous
-void Cpu0AsmPrinter::EmitStartOfAsmFile(Module &M) {
+void Cpu0AsmPrinter::emitStartOfAsmFile(Module &M) {
   // FIXME: Use SwitchSection.
 
   // Tell the assembler which ABI we are using
   if (OutStreamer->hasRawTextSupport())
-    OutStreamer->EmitRawText("\t.section .mdebug." +
+    OutStreamer->emitRawText("\t.section .mdebug." +
                             Twine(getCurrentABIString()));
 
   // return to previous section
   if (OutStreamer->hasRawTextSupport())
-    OutStreamer->EmitRawText(StringRef("\t.previous"));
+    OutStreamer->emitRawText(StringRef("\t.previous"));
 }
 
 #if CH >= CH11_2
 // Print out an operand for an inline asm expression.
 bool Cpu0AsmPrinter::PrintAsmOperand(const MachineInstr *MI, unsigned OpNum,
-                                     unsigned AsmVariant,const char *ExtraCode,
-                                     raw_ostream &O) {
+                                     const char *ExtraCode, raw_ostream &O) {
   // Does this asm operand have a single letter operand modifier?
   if (ExtraCode && ExtraCode[0]) {
     if (ExtraCode[1] != 0) return true; // Unknown modifier.
@@ -360,7 +358,7 @@ bool Cpu0AsmPrinter::PrintAsmOperand(const MachineInstr *MI, unsigned OpNum,
     switch (ExtraCode[0]) {
     default:
       // See if this is a generic print operand
-      return AsmPrinter::PrintAsmOperand(MI,OpNum,AsmVariant,ExtraCode,O);
+      return AsmPrinter::PrintAsmOperand(MI,OpNum, ExtraCode,O);
     case 'X': // hex const int
       if ((MO.getType()) != MachineOperand::MO_Immediate)
         return true;
@@ -400,7 +398,7 @@ bool Cpu0AsmPrinter::PrintAsmOperand(const MachineInstr *MI, unsigned OpNum,
 }
 
 bool Cpu0AsmPrinter::PrintAsmMemoryOperand(const MachineInstr *MI,
-                                           unsigned OpNum, unsigned AsmVariant,
+                                           unsigned OpNum,
                                            const char *ExtraCode,
                                            raw_ostream &O) {
   int Offset = 0;

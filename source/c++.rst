@@ -34,19 +34,19 @@ as the following will generate these exception handler IRs both on iMac and Linu
 
   JonathantekiiMac:input Jonathan$ clang -c ch12_eh.cpp -emit-llvm 
   -o ch12_eh.bc
-  JonathantekiiMac:input Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
-  Debug/bin/llvm-dis ch12_eh.bc -o -
+  JonathantekiiMac:input Jonathan$ /Users/Jonathan/llvm/test/build/
+  bin/llvm-dis ch12_eh.bc -o -
   
 .. literalinclude:: ../lbdex/output/ch12_eh.ll
 
 .. code:: console
 
-  JonathantekiiMac:input Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
-  Debug/bin/llc -march=cpu0 -relocation-model=static -filetype=asm ch12_eh.bc -o -
+  JonathantekiiMac:input Jonathan$ /Users/Jonathan/llvm/test/build/
+  bin/llc -march=cpu0 -relocation-model=static -filetype=asm ch12_eh.bc -o -
 	  .section .mdebug.abi32
 	  .previous
 	  .file	"ch12_eh.bc"
-  llc: /Users/Jonathan/llvm/test/src/lib/CodeGen/LiveVariables.cpp:133: void llvm::
+  llc: /Users/Jonathan/llvm/test/llvm/lib/CodeGen/LiveVariables.cpp:133: void llvm::
   LiveVariables::HandleVirtRegUse(unsigned int, llvm::MachineBasicBlock *, llvm
   ::MachineInstr *): Assertion `MRI->getVRegDef(reg) && "Register use before 
   def!"' failed.
@@ -63,8 +63,8 @@ exception C++ keywords. It can compile ch12_eh.bc as follows,
 
 .. code-block:: console
 
-  JonathantekiiMac:input Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
-  Debug/bin/llc -march=cpu0 -relocation-model=static -filetype=asm ch12_eh.bc -o -
+  JonathantekiiMac:input Jonathan$ /Users/Jonathan/llvm/test/build/
+  bin/llc -march=cpu0 -relocation-model=static -filetype=asm ch12_eh.bc -o -
   
 .. literalinclude:: ../lbdex/output/ch12_eh.cpu0.s
 
@@ -233,15 +233,15 @@ programming.
 
   JonathantekiiMac:input Jonathan$ clang -target mips-unknown-linux-gnu -c 
   ch12_thread_var.cpp -emit-llvm -std=c++11 -o ch12_thread_var.bc
-  JonathantekiiMac:input Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
-  Debug/bin/llvm-dis ch12_thread_var.bc -o -
+  JonathantekiiMac:input Jonathan$ /Users/Jonathan/llvm/test/build/
+  bin/llvm-dis ch12_thread_var.bc -o -
   
 .. literalinclude:: ../lbdex/output/ch12_thread_var.ll
 
 .. code-block:: console
 
-  JonathantekiiMac:input Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
-  Debug/bin/llc -march=cpu0 -relocation-model=pic -filetype=asm ch12_thread_var.bc 
+  JonathantekiiMac:input Jonathan$ /Users/Jonathan/llvm/test/build/
+  bin/llc -march=cpu0 -relocation-model=pic -filetype=asm ch12_thread_var.bc 
   -o -
   
 .. literalinclude:: ../lbdex/output/ch12_thread_var.cpu0.pic.s
@@ -257,8 +257,8 @@ follows,
 
 .. code-block:: console
 
-  JonathantekiiMac:input Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
-  Debug/bin/llc -march=cpu0 -relocation-model=static -filetype=asm 
+  JonathantekiiMac:input Jonathan$ /Users/Jonathan/llvm/test/build/
+  bin/llc -march=cpu0 -relocation-model=static -filetype=asm 
   ch12_thread_var.bc -o -
   
 .. literalinclude:: ../lbdex/output/ch12_thread_var.cpu0.static.s
@@ -274,8 +274,8 @@ no space to breathe for hack program.
 
 .. code-block:: console
 
-  JonathantekiiMac:input Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
-  Debug/bin/llc -march=mips -relocation-model=static -filetype=asm 
+  JonathantekiiMac:input Jonathan$ /Users/Jonathan/llvm/test/build/
+  bin/llc -march=mips -relocation-model=static -filetype=asm 
   ch12_thread_var.bc -o -
     ...
     lui $1, %tprel_hi(a)

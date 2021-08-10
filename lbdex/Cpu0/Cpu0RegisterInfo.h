@@ -18,7 +18,7 @@
 #if CH >= CH3_1
 
 #include "Cpu0.h"
-#include "llvm/Target/TargetRegisterInfo.h"
+#include "llvm/CodeGen/TargetRegisterInfo.h"
 
 #define GET_REGINFO_HEADER
 #include "Cpu0GenRegisterInfo.inc"
@@ -58,7 +58,7 @@ public:
                            RegScavenger *RS = nullptr) const override;
 
   /// Debug information queries.
-  unsigned getFrameRegister(const MachineFunction &MF) const override;
+  Register getFrameRegister(const MachineFunction &MF) const override;
 
   /// \brief Return GPR register class.
   virtual const TargetRegisterClass *intRegClass(unsigned Size) const = 0;

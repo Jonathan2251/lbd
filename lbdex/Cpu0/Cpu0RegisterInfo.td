@@ -33,9 +33,6 @@ class Cpu0C0Reg<bits<16> Enc, string n> : Cpu0Reg<Enc, n>;
 //@ All registers definition
 let Namespace = "Cpu0" in {
   //@ General Purpose Registers
-  // DwarfRegNum used by gcc, gdb, or a debug information
-  // ref. Target.td
-  //      https://llvm.org/docs/WritingAnLLVMBackend.html#defining-a-register (obsolete)
   def ZERO : Cpu0GPRReg<0,  "zero">, DwarfRegNum<[0]>;
   def AT   : Cpu0GPRReg<1,  "1">,    DwarfRegNum<[1]>;
   def V0   : Cpu0GPRReg<2,  "2">,    DwarfRegNum<[2]>;

@@ -23,7 +23,7 @@
 #endif
 #include "Cpu0RegisterInfo.h"
 #include "llvm/CodeGen/MachineInstrBuilder.h"
-#include "llvm/Target/TargetInstrInfo.h"
+#include "llvm/CodeGen/TargetInstrInfo.h"
 
 #define GET_INSTRINFO_HEADER
 #include "Cpu0GenInstrInfo.inc"
@@ -55,7 +55,7 @@ public:
 #if CH >= CH3_5 //2
   void storeRegToStackSlot(MachineBasicBlock &MBB,
                            MachineBasicBlock::iterator MBBI,
-                           unsigned SrcReg, bool isKill, int FrameIndex,
+                           Register SrcReg, bool isKill, int FrameIndex,
                            const TargetRegisterClass *RC,
                            const TargetRegisterInfo *TRI) const override {
     storeRegToStack(MBB, MBBI, SrcReg, isKill, FrameIndex, RC, TRI, 0);
@@ -63,7 +63,7 @@ public:
 
   void loadRegFromStackSlot(MachineBasicBlock &MBB,
                             MachineBasicBlock::iterator MBBI,
-                            unsigned DestReg, int FrameIndex,
+                            Register DestReg, int FrameIndex,
                             const TargetRegisterClass *RC,
                             const TargetRegisterInfo *TRI) const override {
     loadRegFromStack(MBB, MBBI, DestReg, FrameIndex, RC, TRI, 0);
@@ -71,14 +71,14 @@ public:
 
   virtual void storeRegToStack(MachineBasicBlock &MBB,
                                MachineBasicBlock::iterator MI,
-                               unsigned SrcReg, bool isKill, int FrameIndex,
+                               Register SrcReg, bool isKill, int FrameIndex,
                                const TargetRegisterClass *RC,
                                const TargetRegisterInfo *TRI,
                                int64_t Offset) const = 0;
 
   virtual void loadRegFromStack(MachineBasicBlock &MBB,
                                 MachineBasicBlock::iterator MI,
-                                unsigned DestReg, int FrameIndex,
+                                Register DestReg, int FrameIndex,
                                 const TargetRegisterClass *RC,
                                 const TargetRegisterInfo *TRI,
                                 int64_t Offset) const = 0;

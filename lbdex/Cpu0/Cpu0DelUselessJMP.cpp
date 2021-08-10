@@ -16,9 +16,9 @@
 
 #include "Cpu0TargetMachine.h"
 #include "llvm/CodeGen/MachineFunctionPass.h"
+#include "llvm/CodeGen/TargetInstrInfo.h"
 #include "llvm/Support/CommandLine.h"
 #include "llvm/Target/TargetMachine.h"
-#include "llvm/Target/TargetInstrInfo.h"
 #include "llvm/ADT/SmallSet.h"
 #include "llvm/ADT/Statistic.h"
 
@@ -40,12 +40,12 @@ namespace {
     DelJmp(TargetMachine &tm)
       : MachineFunctionPass(ID) { }
 
-    virtual const char *getPassName() const {
+    StringRef getPassName() const override {
       return "Cpu0 Del Useless jmp";
     }
 
     bool runOnMachineBasicBlock(MachineBasicBlock &MBB, MachineBasicBlock &MBBN);
-    bool runOnMachineFunction(MachineFunction &F) {
+    bool runOnMachineFunction(MachineFunction &F) override {
       bool Changed = false;
       if (EnableDelJmp) {
         MachineFunction::iterator FJ = F.begin();

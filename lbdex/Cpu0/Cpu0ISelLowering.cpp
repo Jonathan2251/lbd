@@ -231,7 +231,7 @@ Cpu0TargetLowering::Cpu0TargetLowering(const Cpu0TargetMachine &TM,
 
 //- Set .align 2
 // It will emit .align 2 later
-  setMinFunctionAlignment(2);
+  setMinFunctionAlignment(Align(2));
 
 #if CH >= CH9_3 //3
   setStackPointerRegisterToSaveRestore(Cpu0::SP);
@@ -940,7 +940,8 @@ SDValue Cpu0TargetLowering::lowerGlobalAddress(SDValue Op,
 
   if (!isPositionIndependent()) {
     //@ %gp_rel relocation
-    if (TLOF->IsGlobalInSmallSection(GV, getTargetMachine())) {
+    const GlobalObject *GO = GV->getBaseObject();
+    if (GO && TLOF->IsGlobalInSmallSection(GO, getTargetMachine())) {
       SDValue GA = DAG.getTargetGlobalAddress(GV, DL, MVT::i32, 0,
                                               Cpu0II::MO_GPREL);
       SDValue GPRelNode = DAG.getNode(Cpu0ISD::GPRel, DL,
@@ -957,7 +958,8 @@ SDValue Cpu0TargetLowering::lowerGlobalAddress(SDValue Op,
     return getAddrLocal(N, Ty, DAG);
 
   //@large section
-  if (!TLOF->IsGlobalInSmallSection(GV, getTargetMachine()))
+  const GlobalObject *GO = GV->getBaseObject();
+  if (GO && !TLOF->IsGlobalInSmallSection(GO, getTargetMachine()))
     return getAddrGlobalLargeGOT(
         N, Ty, DAG, Cpu0II::MO_GOT_HI16, Cpu0II::MO_GOT_LO16, 
         DAG.getEntryNode(), 
@@ -1098,8 +1100,8 @@ lowerFRAMEADDR(SDValue Op, SelectionDAG &DAG) const {
   assert((cast<ConstantSDNode>(Op.getOperand(0))->getZExtValue() == 0) &&
          "Frame address can only be determined for current frame.");
 
-  MachineFrameInfo *MFI = DAG.getMachineFunction().getFrameInfo();
-  MFI->setFrameAddressIsTaken(true);
+  MachineFrameInfo &MFI = DAG.getMachineFunction().getFrameInfo();
+  MFI.setFrameAddressIsTaken(true);
   EVT VT = Op.getValueType();
   SDLoc DL(Op);
   SDValue FrameAddr = DAG.getCopyFromReg(
@@ -1117,10 +1119,10 @@ SDValue Cpu0TargetLowering::lowerRETURNADDR(SDValue Op,
          "Return address can be determined only for current frame.");
 
   MachineFunction &MF = DAG.getMachineFunction();
-  MachineFrameInfo *MFI = MF.getFrameInfo();
+  MachineFrameInfo &MFI = MF.getFrameInfo();
   MVT VT = Op.getSimpleValueType();
   unsigned LR = Cpu0::LR;
-  MFI->setReturnAddressIsTaken(true);
+  MFI.setReturnAddressIsTaken(true);
 
   // Return LR, which contains the return address. Mark it an implicit live-in.
   unsigned Reg = MF.addLiveIn(LR, getRegClassFor(VT));
@@ -1208,7 +1210,7 @@ static bool CC_Cpu0S32(unsigned ValNo, MVT ValVT, MVT LocVT,
       LocInfo = CCValAssign::AExt;
   }
 
-  unsigned OrigAlign = ArgFlags.getOrigAlign();
+  Align OrigAlign = ArgFlags.getNonZeroOrigAlign();
   unsigned Offset = State.AllocateStack(ValVT.getSizeInBits() >> 3,
                                         OrigAlign);
   State.addLoc(CCValAssign::getMem(ValNo, ValVT, Offset, LocVT, LocInfo));
@@ -1242,7 +1244,7 @@ static bool CC_Cpu0O32(unsigned ValNo, MVT ValVT, MVT LocVT,
   // is true: function is vararg, argument is 3rd or higher, there is previous
   // argument which is not f32 or f64.
   bool AllocateFloatsInIntReg = true;
-  unsigned OrigAlign = ArgFlags.getOrigAlign();
+  Align OrigAlign = ArgFlags.getNonZeroOrigAlign();
   bool isI64 = (ValVT == MVT::i32 && OrigAlign == 8);
 
   if (ValVT == MVT::i32 || (ValVT == MVT::f32 && AllocateFloatsInIntReg)) {
@@ -1265,7 +1267,7 @@ static bool CC_Cpu0O32(unsigned ValNo, MVT ValVT, MVT LocVT,
 
   if (!Reg) {
     unsigned Offset = State.AllocateStack(ValVT.getSizeInBits() >> 3,
-                                          OrigAlign);
+                                          Align(OrigAlign));
     State.addLoc(CCValAssign::getMem(ValNo, ValVT, Offset, LocVT, LocInfo));
   } else
     State.addLoc(CCValAssign::getReg(ValNo, ValVT, Reg, LocVT, LocInfo));
@@ -1298,8 +1300,8 @@ Cpu0TargetLowering::passArgOnStack(SDValue StackPtr, unsigned Offset,
     return DAG.getStore(Chain, DL, Arg, PtrOff, MachinePointerInfo());
   }
 
-  MachineFrameInfo *MFI = DAG.getMachineFunction().getFrameInfo();
-  int FI = MFI->CreateFixedObject(Arg.getValueSizeInBits() / 8, Offset, false);
+  MachineFrameInfo &MFI = DAG.getMachineFunction().getFrameInfo();
+  int FI = MFI.CreateFixedObject(Arg.getValueSizeInBits() / 8, Offset, false);
   SDValue FIN = DAG.getFrameIndex(FI, getPointerTy(DAG.getDataLayout()));
   return DAG.getStore(Chain, DL, Arg, FIN, MachinePointerInfo(),
                       /* Alignment = */ 0, MachineMemOperand::MOVolatile);
@@ -1379,7 +1381,7 @@ Cpu0TargetLowering::LowerCall(TargetLowering::CallLoweringInfo &CLI,
   bool IsVarArg                         = CLI.IsVarArg;
 
   MachineFunction &MF = DAG.getMachineFunction();
-  MachineFrameInfo *MFI = MF.getFrameInfo();
+  MachineFrameInfo &MFI = MF.getFrameInfo();
   const TargetFrameLowering *TFL = MF.getSubtarget().getFrameLowering();
   Cpu0FunctionInfo *FuncInfo = MF.getInfo<Cpu0FunctionInfo>();
   bool IsPIC = isPositionIndependent();
@@ -1407,9 +1409,9 @@ Cpu0TargetLowering::LowerCall(TargetLowering::CallLoweringInfo &CLI,
     // If this is the first call, create a stack frame object that points to
     // a location to which .cprestore saves $gp.
     if (IsPIC && Cpu0FI->globalBaseRegFixed() && !Cpu0FI->getGPFI())
-      Cpu0FI->setGPFI(MFI->CreateFixedObject(4, 0, true));
+      Cpu0FI->setGPFI(MFI.CreateFixedObject(4, 0, true));
     if (Cpu0FI->needGPSaveRestore())
-      MFI->setObjectOffset(Cpu0FI->getGPFI(), NextStackOffset);
+      MFI.setObjectOffset(Cpu0FI->getGPFI(), NextStackOffset);
   }
 #endif
 #endif //#if CH >= CH9_3 //6
@@ -1421,7 +1423,7 @@ Cpu0TargetLowering::LowerCall(TargetLowering::CallLoweringInfo &CLI,
       isEligibleForTailCallOptimization(Cpu0CCInfo, NextStackOffset,
                                         *MF.getInfo<Cpu0FunctionInfo>());
 
-  if (!IsTailCall && CLI.CS && CLI.CS->isMustTailCall())
+  if (!IsTailCall && CLI.CB && CLI.CB->isMustTailCall())
     report_fatal_error("failed to perform tail call elimination on a call "
                        "site marked musttail");
 
@@ -1438,7 +1440,7 @@ Cpu0TargetLowering::LowerCall(TargetLowering::CallLoweringInfo &CLI,
 
   //@TailCall 2 {
   if (!IsTailCall)
-    Chain = DAG.getCALLSEQ_START(Chain, NextStackOffsetVal, DL);
+    Chain = DAG.getCALLSEQ_START(Chain, NextStackOffset, 0, DL);
   //@TailCall 2 }
 
   SDValue StackPtr =
@@ -1516,7 +1518,6 @@ Cpu0TargetLowering::LowerCall(TargetLowering::CallLoweringInfo &CLI,
   bool IsPICCall = IsPIC; // true if calls are translated to
                                          // jalr $t9
   bool GlobalOrExternal = false, InternalLinkage = false;
-  SDValue CalleeLo;
   EVT Ty = Callee.getValueType();
 
   if (GlobalAddressSDNode *G = dyn_cast<GlobalAddressSDNode>(Callee)) {
@@ -1635,7 +1636,7 @@ Cpu0TargetLowering::LowerFormalArguments(SDValue Chain,
                                           const {
 #if CH >= CH3_4
   MachineFunction &MF = DAG.getMachineFunction();
-  MachineFrameInfo *MFI = MF.getFrameInfo();
+  MachineFrameInfo &MFI = MF.getFrameInfo();
   Cpu0FunctionInfo *Cpu0FI = MF.getInfo<Cpu0FunctionInfo>();
 
   Cpu0FI->setVarArgsFrameIndex(0);
@@ -1649,8 +1650,9 @@ Cpu0TargetLowering::LowerFormalArguments(SDValue Chain,
 #endif
 
 #if CH >= CH9_1 //6
-  Function::const_arg_iterator FuncArg =
-    DAG.getMachineFunction().getFunction()->arg_begin();
+  const Function &Func = DAG.getMachineFunction().getFunction();
+  Function::const_arg_iterator FuncArg = Func.arg_begin();
+
   bool UseSoftFloat = Subtarget.abiUsesSoftFloat();
 
   Cpu0CCInfo.analyzeFormalArguments(Ins, UseSoftFloat, FuncArg);
@@ -1728,7 +1730,7 @@ Cpu0TargetLowering::LowerFormalArguments(SDValue Chain,
       assert(VA.isMemLoc());
 
       // The stack pointer offset is relative to the caller stack frame.
-      int FI = MFI->CreateFixedObject(ValVT.getSizeInBits()/8,
+      int FI = MFI.CreateFixedObject(ValVT.getSizeInBits()/8,
                                       VA.getLocMemOffset(), true);
 
       // Create load nodes to retrieve arguments from the stack
@@ -1816,7 +1818,7 @@ Cpu0TargetLowering::LowerReturn(SDValue Chain,
 
   // Analyze return values.
   Cpu0CCInfo.analyzeReturn(Outs, Subtarget.abiUsesSoftFloat(),
-                           MF.getFunction()->getReturnType());
+                           MF.getFunction().getReturnType());
 
   SDValue Flag;
   SmallVector<SDValue, 4> RetOps(1, Chain);
@@ -1842,7 +1844,7 @@ Cpu0TargetLowering::LowerReturn(SDValue Chain,
   // the sret argument into $v0 for the return. We saved the argument into
   // a virtual register in the entry block, so now we copy the value out
   // and into $v0.
-  if (MF.getFunction()->hasStructRetAttr()) {
+  if (MF.getFunction().hasStructRetAttr()) {
     Cpu0FunctionInfo *Cpu0FI = MF.getInfo<Cpu0FunctionInfo>();
     unsigned Reg = Cpu0FI->getSRetReturnReg();
 
@@ -1950,7 +1952,7 @@ parsePhysicalReg(const StringRef &C, std::string &Prefix,
 
   // Search for the first numeric character.
   StringRef::const_iterator I, B = C.begin() + 1, E = C.end() - 1;
-  I = std::find_if(B, E, std::ptr_fun(isdigit));
+  I = std::find_if(B, E, isdigit);
 
   Prefix.assign(B, I - B);
 
@@ -2005,7 +2007,7 @@ Cpu0TargetLowering::getRegForInlineAsmConstraint(const TargetRegisterInfo *TRI,
     case 'c': // register suitable for indirect jump
       if (VT == MVT::i32)
         return std::make_pair((unsigned)Cpu0::T9, &Cpu0::CPURegsRegClass);
-      assert("Unexpected type.");
+      assert(0 && "Unexpected type.");
     }
   }
 
@@ -2116,7 +2118,7 @@ void Cpu0TargetLowering::LowerAsmOperandForConstraint(SDValue Op,
 
 bool Cpu0TargetLowering::isLegalAddressingMode(const DataLayout &DL,
                                                const AddrMode &AM, Type *Ty,
-                                               unsigned AS) const {
+                                               unsigned AS, Instruction *I) const {
   // No global is ever allowed as a base.
   if (AM.BaseGV)
     return false;
@@ -2159,7 +2161,7 @@ Cpu0TargetLowering::Cpu0CC::Cpu0CC(
   Cpu0CC::SpecialCallingConvType SpecialCallingConv_)
   : CCInfo(Info), CallConv(CC), IsO32(IsO32_) {
   // Pre-allocate reserved argument area.
-  CCInfo.AllocateStack(reservedArgArea(), 1);
+  CCInfo.AllocateStack(reservedArgArea(), Align(1));
 }
 #endif
 
@@ -2197,8 +2199,7 @@ analyzeCallOperands(const SmallVectorImpl<ISD::OutputArg> &Args,
     else
 #endif
     {
-      MVT RegVT = getRegVT(ArgVT, FuncArgs[Args[I].OrigArgIndex].Ty, CallNode,
-                           IsSoftFloat);
+      MVT RegVT = getRegVT(ArgVT, IsSoftFloat);
       R = FixedFn(I, ArgVT, RegVT, CCValAssign::Full, ArgFlags, CCInfo);
     }
 
@@ -2236,7 +2237,7 @@ analyzeFormalArguments(const SmallVectorImpl<ISD::InputArg> &Args,
       continue;
     }
 
-    MVT RegVT = getRegVT(ArgVT, FuncArg->getType(), nullptr, IsSoftFloat);
+    MVT RegVT = getRegVT(ArgVT, IsSoftFloat);
 
     if (!FixedFn(I, ArgVT, RegVT, CCValAssign::Full, ArgFlags, CCInfo))
       continue;
@@ -2262,7 +2263,7 @@ analyzeReturn(const SmallVectorImpl<Ty> &RetVals, bool IsSoftFloat,
   for (unsigned I = 0, E = RetVals.size(); I < E; ++I) {
     MVT VT = RetVals[I].VT;
     ISD::ArgFlagsTy Flags = RetVals[I].Flags;
-    MVT RegVT = this->getRegVT(VT, RetTy, CallNode, IsSoftFloat);
+    MVT RegVT = this->getRegVT(VT, IsSoftFloat);
 
     if (Fn(I, VT, RegVT, CCValAssign::Full, Flags, this->CCInfo)) {
 #ifndef NDEBUG
@@ -2297,15 +2298,15 @@ void Cpu0TargetLowering::Cpu0CC::handleByValArg(unsigned ValNo, MVT ValVT,
   struct ByValArgInfo ByVal;
   unsigned RegSize = regSize();
   unsigned ByValSize = alignTo(ArgFlags.getByValSize(), RegSize);
-  unsigned Align = std::min(std::max(ArgFlags.getByValAlign(), RegSize),
-                            RegSize * 2);
+  Align Alignment = std::min(std::max(ArgFlags.getNonZeroByValAlign(), Align(RegSize)),
+                            Align(RegSize * 2));
 
   if (useRegsForByval())
-    allocateRegs(ByVal, ByValSize, Align);
+    allocateRegs(ByVal, ByValSize, Alignment.value());
 
   // Allocate space on caller's stack.
   ByVal.Address = CCInfo.AllocateStack(ByValSize - RegSize * ByVal.NumRegs,
-                                       Align);
+                                       Alignment);
   CCInfo.addLoc(CCValAssign::getMem(ValNo, ValVT, ByVal.Address, LocVT,
                                     LocInfo));
   ByValArgs.push_back(ByVal);
@@ -2370,8 +2371,7 @@ void Cpu0TargetLowering::Cpu0CC::allocateRegs(ByValArgInfo &ByVal,
 #endif
 
 #if CH >= CH3_4 //getRegVT
-MVT Cpu0TargetLowering::Cpu0CC::getRegVT(MVT VT, const Type *OrigTy,
-                                         const SDNode *CallNode,
+MVT Cpu0TargetLowering::Cpu0CC::getRegVT(MVT VT,
                                          bool IsSoftFloat) const {
   if (IsSoftFloat || IsO32)
     return VT;
@@ -2387,7 +2387,7 @@ copyByValRegs(SDValue Chain, const SDLoc &DL, std::vector<SDValue> &OutChains,
               SmallVectorImpl<SDValue> &InVals, const Argument *FuncArg,
               const Cpu0CC &CC, const ByValArgInfo &ByVal) const {
   MachineFunction &MF = DAG.getMachineFunction();
-  MachineFrameInfo *MFI = MF.getFrameInfo();
+  MachineFrameInfo &MFI = MF.getFrameInfo();
   unsigned RegAreaSize = ByVal.NumRegs * CC.regSize();
   unsigned FrameObjSize = std::max(Flags.getByValSize(), RegAreaSize);
   int FrameObjOffset;
@@ -2402,7 +2402,7 @@ copyByValRegs(SDValue Chain, const SDLoc &DL, std::vector<SDValue> &OutChains,
 
   // Create frame object.
   EVT PtrTy = getPointerTy(DAG.getDataLayout());
-  int FI = MFI->CreateFixedObject(FrameObjSize, FrameObjOffset, true);
+  int FI = MFI.CreateFixedObject(FrameObjSize, FrameObjOffset, true);
   SDValue FIN = DAG.getFrameIndex(FI, PtrTy);
   InVals.push_back(FIN);
 
@@ -2432,13 +2432,13 @@ void Cpu0TargetLowering::
 passByValArg(SDValue Chain, const SDLoc &DL,
              std::deque< std::pair<unsigned, SDValue> > &RegsToPass,
              SmallVectorImpl<SDValue> &MemOpChains, SDValue StackPtr,
-             MachineFrameInfo *MFI, SelectionDAG &DAG, SDValue Arg,
+             MachineFrameInfo &MFI, SelectionDAG &DAG, SDValue Arg,
              const Cpu0CC &CC, const ByValArgInfo &ByVal,
              const ISD::ArgFlagsTy &Flags, bool isLittle) const {
   unsigned ByValSizeInBytes = Flags.getByValSize();
   unsigned OffsetInBytes = 0; // From beginning of struct
   unsigned RegSizeInBytes = CC.regSize();
-  unsigned Alignment = std::min(Flags.getByValAlign(), RegSizeInBytes);
+  unsigned Alignment = std::min((unsigned)Flags.getNonZeroByValAlign().value(), RegSizeInBytes);
   EVT PtrTy = getPointerTy(DAG.getDataLayout()),
       RegTy = MVT::getIntegerVT(RegSizeInBytes * 8);
 
@@ -2520,7 +2520,7 @@ passByValArg(SDValue Chain, const SDLoc &DL,
                             DAG.getIntPtrConstant(ByVal.Address, DL));
   Chain = DAG.getMemcpy(Chain, DL, Dst, Src,
                         DAG.getConstant(MemCpySize, DL, PtrTy),
-                        Alignment, /*isVolatile=*/false, /*AlwaysInline=*/false,
+                        Align(Alignment), /*isVolatile=*/false, /*AlwaysInline=*/false,
                         /*isTailCall=*/false,
                         MachinePointerInfo(), MachinePointerInfo());
   MemOpChains.push_back(Chain);
@@ -2539,7 +2539,7 @@ void Cpu0TargetLowering::writeVarArgRegs(std::vector<SDValue> &OutChains,
   MVT RegTy = MVT::getIntegerVT(RegSize * 8);
   const TargetRegisterClass *RC = getRegClassFor(RegTy);
   MachineFunction &MF = DAG.getMachineFunction();
-  MachineFrameInfo *MFI = MF.getFrameInfo();
+  MachineFrameInfo &MFI = MF.getFrameInfo();
   Cpu0FunctionInfo *Cpu0FI = MF.getInfo<Cpu0FunctionInfo>();
 
   // Offset of the first variable argument from stack pointer.
@@ -2552,7 +2552,7 @@ void Cpu0TargetLowering::writeVarArgRegs(std::vector<SDValue> &OutChains,
 
   // Record the frame index of the first variable argument
   // which is a value necessary to VASTART.
-  int FI = MFI->CreateFixedObject(RegSize, VaArgOffset, true);
+  int FI = MFI.CreateFixedObject(RegSize, VaArgOffset, true);
   Cpu0FI->setVarArgsFrameIndex(FI);
 
   // Copy the integer registers that have not been used for argument passing
@@ -2562,7 +2562,7 @@ void Cpu0TargetLowering::writeVarArgRegs(std::vector<SDValue> &OutChains,
   for (unsigned I = Idx; I < NumRegs; ++I, VaArgOffset += RegSize) {
     unsigned Reg = addLiveIn(MF, ArgRegs[I], RC);
     SDValue ArgValue = DAG.getCopyFromReg(Chain, DL, Reg, RegTy);
-    FI = MFI->CreateFixedObject(RegSize, VaArgOffset, true);
+    FI = MFI.CreateFixedObject(RegSize, VaArgOffset, true);
     SDValue PtrOff = DAG.getFrameIndex(FI, getPointerTy(DAG.getDataLayout()));
     SDValue Store = DAG.getStore(Chain, DL, ArgValue, PtrOff,
                                  MachinePointerInfo());

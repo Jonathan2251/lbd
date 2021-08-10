@@ -298,8 +298,8 @@ Now, let's build Chapter4_1/ and run with input file ch4_math.ll as follows,
   
 .. code-block:: console
 
-  118-165-78-12:input Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
-  Debug/bin/llc -march=cpu0 -relocation-model=pic -filetype=asm ch4_math.ll -o -
+  118-165-78-12:input Jonathan$ /Users/Jonathan/llvm/test/build/
+  bin/llc -march=cpu0 -relocation-model=pic -filetype=asm ch4_math.ll -o -
     ...
 	  ld	$2, 0($sp)
 	  ld	$3, 4($sp)
@@ -360,8 +360,8 @@ follows,
     ...
   }
 
-  118-165-78-12:input Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
-  Debug/bin/llc -march=cpu0 -relocation-model=pic -filetype=asm 
+  118-165-78-12:input Jonathan$ /Users/Jonathan/llvm/test/build/
+  bin/llc -march=cpu0 -relocation-model=pic -filetype=asm 
   -cpu0-enable-overflow=true ch4_1_addsuboverflow.bc -o -
 	...
 	add	$3, $4, $3
@@ -429,7 +429,7 @@ result with Graphviz as follows,
 .. code-block:: console
 
   118-165-12-177:input Jonathan$ /Users/Jonathan/llvm/test/
-  cmake_debug_build/Debug/bin/llc -view-dag-combine1-dags -march=cpu0 
+  build/bin/llc -view-dag-combine1-dags -march=cpu0 
   -relocation-model=pic -filetype=asm ch4_1_mult.bc -o ch4_1_mult.cpu0.s
   Writing '/tmp/llvm_84ibpm/dag.main.dot'...  done. 
   118-165-12-177:input Jonathan$ Graphviz /tmp/llvm_84ibpm/dag.main.dot 
@@ -541,7 +541,7 @@ will get the following error message and the llvm DAGs of
 .. code-block:: console
 
   118-165-79-37:input Jonathan$ /Users/Jonathan/llvm/test/
-  cmake_debug_build/Debug/bin/llc -march=cpu0 -view-isel-dags -relocation-model=
+  build/bin/llc -march=cpu0 -view-isel-dags -relocation-model=
   pic -filetype=asm ch4_1_mult.bc -o -
   ...
   LLVM ERROR: Cannot select: 0x7fa73a02ea10: i32 = mulhs 0x7fa73a02c610, 
@@ -648,8 +648,8 @@ The following is the result of run above changes with ch4_1_mult.bc.
 
 .. code-block:: console
 
-  118-165-66-82:input Jonathan$ /Users/Jonathan/llvm/test/cmake_
-  debug_build/Debug/bin/llc -march=cpu0 -relocation-model=pic -filetype=asm 
+  118-165-66-82:input Jonathan$ /Users/Jonathan/llvm/test/build/bin/llc 
+  -march=cpu0 -relocation-model=pic -filetype=asm 
   ch4_1_mult.bc -o -
     ...
   # BB#0:                                 # %entry
@@ -810,8 +810,8 @@ llvm **“Constant Propagation Optimization”** useless in it.
 
   118-165-77-79:input Jonathan$ clang -target mips-unknown-linux-gnu -c 
   ch4_1_mod.cpp -emit-llvm -o ch4_1_mod.bc
-  118-165-77-79:input Jonathan$ /Users/Jonathan/llvm/test/cmake_
-  debug_build/Debug/bin/llc -march=cpu0 -relocation-model=pic -filetype=asm 
+  118-165-77-79:input Jonathan$ /Users/Jonathan/llvm/test/build/bin/llc 
+  -march=cpu0 -relocation-model=pic -filetype=asm 
   ch4_1_mod.bc -o -
   ...
   div $zero, $3, $2
@@ -827,8 +827,8 @@ as follows,
   ch4_1_mod.cpp -I/Applications/Xcode.app/Contents/Developer/Platforms/
   MacOSX.platform/Developer/SDKs/MacOSX10.8.sdk/usr/include/ -emit-llvm -o 
   ch4_1_mod.bc
-  118-165-83-58:input Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
-  Debug/bin/llc -march=cpu0 -relocation-model=pic -filetype=asm -debug 
+  118-165-83-58:input Jonathan$ /Users/Jonathan/llvm/test/build/
+  bin/llc -march=cpu0 -relocation-model=pic -filetype=asm -debug 
   ch4_1_mod.bc -o -
   ...
   === _Z8test_modi
@@ -1027,7 +1027,7 @@ Compile ch4_1_rotate.cpp will get Cpu0 "rol" instruction.
   
 .. code-block:: console
 
-  114-43-200-122:input Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/Debug/
+  114-43-200-122:input Jonathan$ /Users/Jonathan/llvm/test/build/
   bin/llc -march=cpu0 -relocation-model=pic -filetype=asm ch4_1_rotate.bc -o -
     ...
     rol $2, $2, 30
@@ -1146,8 +1146,8 @@ run result of bc and asm instructions for ch4_2_logic.cpp as below.
     ...
   }
   
-  114-43-204-152:input Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
-  Debug/bin/llc -march=cpu0 -mcpu=cpu032I -relocation-model=pic -filetype=asm 
+  114-43-204-152:input Jonathan$ /Users/Jonathan/llvm/test/build/
+  bin/llc -march=cpu0 -mcpu=cpu032I -relocation-model=pic -filetype=asm 
   ch4_2_logic.bc -o -
 
     .globl  _Z16test_andorxornotv
@@ -1189,8 +1189,8 @@ run result of bc and asm instructions for ch4_2_logic.cpp as below.
     xori  $2, $2, 1
     ...
 
-  114-43-204-152:input Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
-  Debug/bin/llc -march=cpu0 -mcpu=cpu032II -relocation-model=pic -filetype=asm 
+  114-43-204-152:input Jonathan$ /Users/Jonathan/llvm/test/build/
+  bin/llc -march=cpu0 -mcpu=cpu032II -relocation-model=pic -filetype=asm 
   ch4_2_logic.bc -o -
     ...
 	sltiu	$2, $2, 1
@@ -1281,8 +1281,8 @@ cmp uses $sw dedicated register.
 
   118-165-78-10:input Jonathan$ clang -target mips-unknown-linux-gnu -O2 
   -c ch4_2_slt_explain.cpp -emit-llvm -o ch4_2_slt_explain.bc
-  118-165-78-10:input Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
-  Debug/bin/llc -march=cpu0 -mcpu=cpu032I -relocation-model=static -filetype=asm 
+  118-165-78-10:input Jonathan$ /Users/Jonathan/llvm/test/build/
+  bin/llc -march=cpu0 -mcpu=cpu032I -relocation-model=static -filetype=asm 
   ch4_2_slt_explain.bc -o -
     ...
     ld  $3, 20($sp)
@@ -1296,8 +1296,8 @@ cmp uses $sw dedicated register.
     andi  $2, $sw, 1
     andi  $2, $2, 1
     ...
-  118-165-78-10:input Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
-  Debug/bin/llc -march=cpu0 -mcpu=cpu032II -relocation-model=static -filetype=asm 
+  118-165-78-10:input Jonathan$ /Users/Jonathan/llvm/test/build/
+  bin/llc -march=cpu0 -mcpu=cpu032II -relocation-model=static -filetype=asm 
   ch4_2_slt_explain.bc -o -
     ...
     ld  $2, 20($sp)

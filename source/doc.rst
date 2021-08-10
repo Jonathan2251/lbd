@@ -225,12 +225,12 @@ Then run as follows for single test case and the whole test cases on iMac.
 
   1-160-130-77:Cpu0 Jonathan$ pwd
   /Users/Jonathan/llvm/test/src/test/CodeGen/Cpu0
-  1-160-130-77:Cpu0 Jonathan$ ~/llvm/test/cmake_debug_build/Debug/bin/llvm-lit seteq.ll
+  1-160-130-77:Cpu0 Jonathan$ ~/llvm/test/build/bin/llvm-lit seteq.ll
   -- Testing: 1 tests, 1 threads --
   PASS: LLVM :: CodeGen/Cpu0/seteq.ll (1 of 1)
   Testing Time: 0.08s
     Expected Passes    : 1
-  1-160-130-77:Cpu0 Jonathan$ ~/llvm/test/cmake_debug_build/Debug/bin/llvm-lit .
+  1-160-130-77:Cpu0 Jonathan$ ~/llvm/test/build/bin/llvm-lit .
   ...
   PASS: LLVM :: CodeGen/Cpu0/zeroreg.ll
   PASS: LLVM :: CodeGen/Cpu0/tailcall.ll
@@ -243,12 +243,12 @@ Run as follows for single test case and the whole test cases on Linux.
 
   [Gamma@localhost Cpu0]$ pwd
   /home/cschen/llvm/test/src/test/CodeGen/Cpu0
-  [Gamma@localhost Cpu0]$ ~/llvm/test/cmake_debug_build/bin/llvm-lit seteq.ll
+  [Gamma@localhost Cpu0]$ ~/llvm/test/build/bin/llvm-lit seteq.ll
   -- Testing: 1 tests, 1 threads --
   PASS: LLVM :: CodeGen/Cpu0/seteq.ll (1 of 1)
   Testing Time: 0.08s
     Expected Passes    : 1
-  [Gamma@localhost Cpu0]$ ~/llvm/test/cmake_debug_build/bin/llvm-lit .
+  [Gamma@localhost Cpu0]$ ~/llvm/test/build/bin/llvm-lit .
   ...
   PASS: LLVM :: CodeGen/Cpu0/zeroreg.ll
   PASS: LLVM :: CodeGen/Cpu0/tailcall.ll

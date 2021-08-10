@@ -21,10 +21,14 @@
 #include "Cpu0Subtarget.h"
 #include "Cpu0TargetObjectFile.h"
 #endif
-#include "llvm/IR/LegacyPassManager.h"
+#include "llvm/IR/Attributes.h"
+#include "llvm/IR/Function.h"
+#include "llvm/Support/CodeGen.h"
 #include "llvm/CodeGen/Passes.h"
 #include "llvm/CodeGen/TargetPassConfig.h"
 #include "llvm/Support/TargetRegistry.h"
+#include "llvm/Target/TargetOptions.h"
+
 using namespace llvm;
 
 #define DEBUG_TYPE "cpu0"
@@ -67,9 +71,9 @@ static std::string computeDataLayout(const Triple &TT, StringRef CPU,
   return Ret;
 }
 
-static Reloc::Model getEffectiveRelocModel(CodeModel::Model CM,
+static Reloc::Model getEffectiveRelocModel(bool JIT,
                                            Optional<Reloc::Model> RM) {
-  if (!RM.hasValue() || CM == CodeModel::JITDefault)
+  if (!RM.hasValue() || JIT)
     return Reloc::Static;
   return *RM;
 }
@@ -85,13 +89,14 @@ Cpu0TargetMachine::Cpu0TargetMachine(const Target &T, const Triple &TT,
                                      StringRef CPU, StringRef FS,
                                      const TargetOptions &Options,
                                      Optional<Reloc::Model> RM,
-                                     CodeModel::Model CM, CodeGenOpt::Level OL,
+                                     Optional<CodeModel::Model> CM,
+                                     CodeGenOpt::Level OL, bool JIT,
                                      bool isLittle)
   //- Default is big endian
     : LLVMTargetMachine(T, computeDataLayout(TT, CPU, Options, isLittle), TT,
-                        CPU, FS, Options, getEffectiveRelocModel(CM, RM), CM,
-                        OL),
-      isLittle(isLittle), TLOF(make_unique<Cpu0TargetObjectFile>()),
+                        CPU, FS, Options, getEffectiveRelocModel(JIT, RM),
+                        getEffectiveCodeModel(CM, CodeModel::Small), OL),
+      isLittle(isLittle), TLOF(std::make_unique<Cpu0TargetObjectFile>()),
       ABI(Cpu0ABIInfo::computeTargetABI()),
       DefaultSubtarget(TT, CPU, FS, isLittle, *this) {
   // initAsmInfo will display features by llc -march=cpu0 -mcpu=help on 3.7 but
@@ -107,9 +112,9 @@ Cpu0ebTargetMachine::Cpu0ebTargetMachine(const Target &T, const Triple &TT,
                                          StringRef CPU, StringRef FS,
                                          const TargetOptions &Options,
                                          Optional<Reloc::Model> RM,
-                                         CodeModel::Model CM,
-                                         CodeGenOpt::Level OL)
-    : Cpu0TargetMachine(T, TT, CPU, FS, Options, RM, CM, OL, false) {}
+                                         Optional<CodeModel::Model> CM,
+                                         CodeGenOpt::Level OL, bool JIT)
+    : Cpu0TargetMachine(T, TT, CPU, FS, Options, RM, CM, OL, JIT, false) {}
 
 void Cpu0elTargetMachine::anchor() { }
 
@@ -117,21 +122,14 @@ Cpu0elTargetMachine::Cpu0elTargetMachine(const Target &T, const Triple &TT,
                                          StringRef CPU, StringRef FS,
                                          const TargetOptions &Options,
                                          Optional<Reloc::Model> RM,
-                                         CodeModel::Model CM,
-                                         CodeGenOpt::Level OL)
-    : Cpu0TargetMachine(T, TT, CPU, FS, Options, RM, CM, OL, true) {}
+                                         Optional<CodeModel::Model> CM,
+                                         CodeGenOpt::Level OL, bool JIT)
+    : Cpu0TargetMachine(T, TT, CPU, FS, Options, RM, CM, OL, JIT, true) {}
 
 const Cpu0Subtarget *
 Cpu0TargetMachine::getSubtargetImpl(const Function &F) const {
-  Attribute CPUAttr = F.getFnAttribute("target-cpu");
-  Attribute FSAttr = F.getFnAttribute("target-features");
-
-  std::string CPU = !CPUAttr.hasAttribute(Attribute::None)
-                        ? CPUAttr.getValueAsString().str()
-                        : TargetCPU;
-  std::string FS = !FSAttr.hasAttribute(Attribute::None)
-                       ? FSAttr.getValueAsString().str()
-                       : TargetFS;
+  std::string CPU = TargetCPU;
+  std::string FS = TargetFS;
 
   auto &I = SubtargetMap[CPU + FS];
   if (!I) {
@@ -139,7 +137,7 @@ Cpu0TargetMachine::getSubtargetImpl(const Function &F) const {
     // creation will depend on the TM and the code generation flags on the
     // function that reside in TargetOptions.
     resetTargetOptions(F);
-    I = llvm::make_unique<Cpu0Subtarget>(TargetTriple, CPU, FS, isLittle,
+    I = std::make_unique<Cpu0Subtarget>(TargetTriple, CPU, FS, isLittle,
                                          *this);
   }
   return I.get();
@@ -150,7 +148,7 @@ namespace {
 /// Cpu0 Code Generator Pass Configuration Options.
 class Cpu0PassConfig : public TargetPassConfig {
 public:
-  Cpu0PassConfig(Cpu0TargetMachine *TM, PassManagerBase &PM)
+  Cpu0PassConfig(Cpu0TargetMachine &TM, PassManagerBase &PM)
     : TargetPassConfig(TM, PM) {}
 
   Cpu0TargetMachine &getCpu0TargetMachine() const {
@@ -178,16 +176,13 @@ public:
 } // namespace
 
 TargetPassConfig *Cpu0TargetMachine::createPassConfig(PassManagerBase &PM) {
-  return new Cpu0PassConfig(this, PM);
+  return new Cpu0PassConfig(*this, PM);
 }
 
 #if CH >= CH12_1 //2
-// createAtomicExpandPass create fence for atomic_store() and atomic_load() 
-// in lbdex/regression-test/Cpu0
-// ref. https://www.bookstack.cn/read/LLVM-10-Reference/c024642b7b382b4b.md
 void Cpu0PassConfig::addIRPasses() {
   TargetPassConfig::addIRPasses();
-  addPass(createAtomicExpandPass(&getCpu0TargetMachine()));
+  addPass(createAtomicExpandPass());
 }
 #endif
 

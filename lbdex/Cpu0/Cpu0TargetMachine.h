@@ -21,7 +21,8 @@
 #include "Cpu0Subtarget.h"
 #include "llvm/CodeGen/Passes.h"
 #include "llvm/CodeGen/SelectionDAGISel.h"
-#include "llvm/Target/TargetFrameLowering.h"
+#include "llvm/CodeGen/TargetFrameLowering.h"
+#include "llvm/Support/CodeGen.h"
 #include "llvm/Target/TargetMachine.h"
 
 namespace llvm {
@@ -39,8 +40,8 @@ class Cpu0TargetMachine : public LLVMTargetMachine {
 public:
   Cpu0TargetMachine(const Target &T, const Triple &TT, StringRef CPU,
                     StringRef FS, const TargetOptions &Options,
-                    Optional<Reloc::Model> RM, CodeModel::Model CM,
-                    CodeGenOpt::Level OL, bool isLittle);
+                    Optional<Reloc::Model> RM, Optional<CodeModel::Model> CM,
+                    CodeGenOpt::Level OL, bool JIT, bool isLittle);
   ~Cpu0TargetMachine() override;
 
   const Cpu0Subtarget *getSubtargetImpl() const {
@@ -66,8 +67,8 @@ class Cpu0ebTargetMachine : public Cpu0TargetMachine {
 public:
   Cpu0ebTargetMachine(const Target &T, const Triple &TT, StringRef CPU,
                       StringRef FS, const TargetOptions &Options,
-                      Optional<Reloc::Model> RM, CodeModel::Model CM,
-                      CodeGenOpt::Level OL);
+                      Optional<Reloc::Model> RM, Optional<CodeModel::Model> CM,
+                      CodeGenOpt::Level OL, bool JIT);
 };
 
 /// Cpu0elTargetMachine - Cpu032 little endian target machine.
@@ -77,8 +78,8 @@ class Cpu0elTargetMachine : public Cpu0TargetMachine {
 public:
   Cpu0elTargetMachine(const Target &T, const Triple &TT, StringRef CPU,
                       StringRef FS, const TargetOptions &Options,
-                      Optional<Reloc::Model> RM, CodeModel::Model CM,
-                      CodeGenOpt::Level OL);
+                      Optional<Reloc::Model> RM, Optional<CodeModel::Model> CM,
+                      CodeGenOpt::Level OL, bool JIT);
 };
 } // End llvm namespace
 

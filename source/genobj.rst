@@ -23,10 +23,10 @@ message as follows,
 
 .. code-block:: console
 
-  [Gamma@localhost 3]$ ~/llvm/test/cmake_debug_build/bin/
+  [Gamma@localhost 3]$ ~/llvm/test/build/bin/
   llc -march=cpu0 -relocation-model=pic -filetype=obj ch4_1_math_math.bc -o 
   ch4_1_math.cpu0.o
-  ~/llvm/test/cmake_debug_build/bin/llc: target does not 
+  ~/llvm/test/build/bin/llc: target does not 
   support generation of this file type! 
 	
 Chapter5_1/ support obj file generation. 
@@ -51,7 +51,7 @@ Run with them will get the obj files as follows,
     st  $2, 28($fp)
   ...
   
-  [Gamma@localhost 3]$ ~/llvm/test/cmake_debug_build/bin/
+  [Gamma@localhost 3]$ ~/llvm/test/build/bin/
   llc -march=cpu0 -relocation-model=pic -filetype=obj ch4_1_math.bc -o 
   ch4_1_math.cpu0.o
   [Gamma@localhost input]$ objdump -s ch4_1_math.cpu0.o 
@@ -73,7 +73,7 @@ Run with them will get the obj files as follows,
    00b0 20232000 022d0000 09dd0038 3ce00000   # ..-.....8<...     
    
   [Gamma@localhost input]$ ~/llvm/test/
-  cmake_debug_build/bin/llc -march=cpu0el -relocation-model=pic -filetype=obj 
+  build/bin/llc -march=cpu0el -relocation-model=pic -filetype=obj 
   ch4_1_math.bc -o ch4_1_math.cpu0el.o 
   [Gamma@localhost input]$ objdump -s ch4_1_math.cpu0el.o 
   
@@ -267,7 +267,7 @@ information from Cpu0RegisterInfo.td as the following. My comment is after "///"
     ...
   }
 
-.. rubric:: cmake_debug_build/lib/Target/Cpu0/Cpu0GenRegisterInfo.inc
+.. rubric:: build/lib/Target/Cpu0/Cpu0GenRegisterInfo.inc
 .. code-block:: c++
   
   namespace Cpu0 {

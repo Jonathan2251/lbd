@@ -3,11 +3,7 @@ OS=`uname -s`
 echo "OS =" ${OS}
 PWD=`pwd`
 
-if [ "$OS" == "Linux" ]; then
-  TOOLDIR=~/llvm/test
-else
-  TOOLDIR=~/llvm/test
-fi
+TOOLDIR=~/llvm/test
 
 if [ -e /proc/cpuinfo ]; then
     procs=`cat /proc/cpuinfo | grep processor | wc -l`

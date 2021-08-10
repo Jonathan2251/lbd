@@ -18,10 +18,10 @@
 
 #include "Cpu0TargetMachine.h"
 #include "Cpu0MachineFunction.h"
+#include "llvm/ADT/Statistic.h"
 #include "llvm/CodeGen/MachineFunctionPass.h"
 #include "llvm/CodeGen/MachineInstrBuilder.h"
-#include "llvm/Target/TargetInstrInfo.h"
-#include "llvm/ADT/Statistic.h"
+#include "llvm/CodeGen/TargetInstrInfo.h"
 
 using namespace llvm;
 
@@ -36,18 +36,18 @@ namespace {
     Inserter(TargetMachine &tm)
       : MachineFunctionPass(ID), TM(tm) { }
 
-    virtual const char *getPassName() const {
+    StringRef getPassName() const override {
       return "Cpu0 Emit GP Restore";
     }
 
-    bool runOnMachineFunction(MachineFunction &F);
+    bool runOnMachineFunction(MachineFunction &F) override;
   };
   char Inserter::ID = 0;
 } // end of anonymous namespace
 
 bool Inserter::runOnMachineFunction(MachineFunction &F) {
   Cpu0FunctionInfo *Cpu0FI = F.getInfo<Cpu0FunctionInfo>();
-  const TargetSubtargetInfo *STI =  TM.getSubtargetImpl(*(F.getFunction()));
+  const TargetSubtargetInfo *STI =  TM.getSubtargetImpl(F.getFunction());
   const TargetInstrInfo *TII = STI->getInstrInfo();
 
   if ((TM.getRelocationModel() != Reloc::PIC_) ||

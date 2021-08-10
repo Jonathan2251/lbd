@@ -12,12 +12,12 @@
 #if CH >= CH5_1
 
 #include "Cpu0MCExpr.h"
+#include "llvm/BinaryFormat/ELF.h"
 #include "llvm/MC/MCAsmInfo.h"
 #include "llvm/MC/MCAssembler.h"
 #include "llvm/MC/MCContext.h"
 #include "llvm/MC/MCObjectStreamer.h"
 #include "llvm/MC/MCSymbolELF.h"
-#include "llvm/Support/ELF.h"
 
 using namespace llvm;
 
@@ -121,7 +121,7 @@ void Cpu0MCExpr::visitUsedExpr(MCStreamer &Streamer) const {
 }
 
 void Cpu0MCExpr::fixELFSymbolsInTLSFixups(MCAssembler &Asm) const {
-  switch (getKind()) {
+  switch ((int)getKind()) {
   case CEK_None:
   case CEK_Special:
     llvm_unreachable("CEK_None and CEK_Special are invalid");

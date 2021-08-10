@@ -30,17 +30,20 @@ class Target;
 class MCObjectWriter;
 
 class Cpu0AsmBackend : public MCAsmBackend {
-  Triple::OSType OSType;
-  bool IsLittle; // Big or little endian
+  Triple TheTriple;
 
 public:
-  Cpu0AsmBackend(const Target &T, Triple::OSType _OSType, bool IsLittle)
-      : MCAsmBackend(), OSType(_OSType), IsLittle(IsLittle) {}
+  Cpu0AsmBackend(const Target &T, const Triple &TT)
+      : MCAsmBackend(TT.isLittleEndian() ? support::little : support::big),
+        TheTriple(TT) {}
 
-  MCObjectWriter *createObjectWriter(raw_pwrite_stream &OS) const override;
+  std::unique_ptr<MCObjectTargetWriter>
+  createObjectTargetWriter() const override;
 
-  void applyFixup(const MCFixup &Fixup, char *Data, unsigned DataSize,
-                  uint64_t Value, bool IsPCRel) const override;
+  void applyFixup(const MCAssembler &Asm, const MCFixup &Fixup,
+                  const MCValue &Target, MutableArrayRef<char> Data,
+                  uint64_t Value, bool IsResolved,
+                  const MCSubtargetInfo *STI) const override;
 
   const MCFixupKindInfo &getFixupKindInfo(MCFixupKind Kind) const override;
 
@@ -55,7 +58,8 @@ public:
   /// relaxation.
   ///
   /// \param Inst - The instruction to test.
-  bool mayNeedRelaxation(const MCInst &Inst) const override {
+  bool mayNeedRelaxation(const MCInst &Inst,
+                         const MCSubtargetInfo &STI) const override {
     return false;
   }
 
@@ -69,18 +73,9 @@ public:
     return false;
   }
 
-  /// RelaxInstruction - Relax the instruction in the given fragment
-  /// to the next wider instruction.
-  ///
-  /// \param Inst - The instruction to relax, which may be the same
-  /// as the output.
-  /// \param [out] Res On return, the relaxed instruction.
-  void relaxInstruction(const MCInst &Inst, const MCSubtargetInfo &STI,
-                        MCInst &Res) const override {}
-
   /// @}
 
-  bool writeNopData(uint64_t Count, MCObjectWriter *OW) const override;
+  bool writeNopData(raw_ostream &OS, uint64_t Count) const override;
 }; // class Cpu0AsmBackend
 
 } // namespace

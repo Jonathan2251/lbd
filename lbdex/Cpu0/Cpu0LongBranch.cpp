@@ -13,6 +13,8 @@
 // FIXME: Fix pc-region jump instructions which cross 256MB segment boundaries.
 //===----------------------------------------------------------------------===//
 
+// In 9.0.0 rename MipsLongBranch.cpp to MipsBranchExpansion.cpp
+
 #include "Cpu0.h"
 
 #if CH >= CH8_2
@@ -23,12 +25,12 @@
 #include "llvm/ADT/Statistic.h"
 #include "llvm/CodeGen/MachineFunctionPass.h"
 #include "llvm/CodeGen/MachineInstrBuilder.h"
+#include "llvm/CodeGen/TargetInstrInfo.h"
+#include "llvm/CodeGen/TargetRegisterInfo.h"
 #include "llvm/IR/Function.h"
 #include "llvm/Support/CommandLine.h"
 #include "llvm/Support/MathExtras.h"
-#include "llvm/Target/TargetInstrInfo.h"
 #include "llvm/Target/TargetMachine.h"
-#include "llvm/Target/TargetRegisterInfo.h"
 
 using namespace llvm;
 
@@ -62,7 +64,7 @@ namespace {
         : MachineFunctionPass(ID), TM(tm), IsPIC(TM.isPositionIndependent()),
           ABI(static_cast<const Cpu0TargetMachine &>(TM).getABI()) {}
 
-    const char *getPassName() const override {
+    StringRef getPassName() const override {
       return "Cpu0 Long Branch";
     }
 
@@ -143,12 +145,13 @@ void Cpu0LongBranch::splitMBB(MachineBasicBlock *MBB) {
   // Insert NewMBB and fix control flow.
   MachineBasicBlock *Tgt = getTargetMBB(*FirstBr);
   NewMBB->transferSuccessors(MBB);
-  NewMBB->removeSuccessor(Tgt, true);
+  if (Tgt != getTargetMBB(*LastBr))
+    NewMBB->removeSuccessor(Tgt, true);
   MBB->addSuccessor(NewMBB);
   MBB->addSuccessor(Tgt);
   MF->insert(std::next(MachineFunction::iterator(MBB)), NewMBB);
 
-  NewMBB->splice(NewMBB->end(), MBB, (++LastBr).base(), MBB->end());
+  NewMBB->splice(NewMBB->end(), MBB, LastBr.getReverse(), MBB->end());
 }
 
 // Fill MBBInfos.
@@ -178,7 +181,7 @@ void Cpu0LongBranch::initMBBInfo() {
 
     if ((Br != End) && !Br->isIndirectBranch() &&
         (Br->isConditionalBranch() || (Br->isUnconditionalBranch() && IsPIC)))
-      MBBInfos[I].Br = &*(++Br).base();
+      MBBInfos[I].Br = &(*Br.getReverse());
   }
 }
 

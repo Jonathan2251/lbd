@@ -105,7 +105,7 @@ eliminateFrameIndex(MachineBasicBlock::iterator II, int SPAdj,
 #if CH >= CH3_5
   MachineInstr &MI = *II;
   MachineFunction &MF = *MI.getParent()->getParent();
-  MachineFrameInfo *MFI = MF.getFrameInfo();
+  MachineFrameInfo &MFI = MF.getFrameInfo();
   Cpu0FunctionInfo *Cpu0FI = MF.getInfo<Cpu0FunctionInfo>();
 
   unsigned i = 0;
@@ -115,18 +115,18 @@ eliminateFrameIndex(MachineBasicBlock::iterator II, int SPAdj,
            "Instr doesn't have FrameIndex operand!");
   }
 
-  DEBUG(errs() << "\nFunction : " << MF.getFunction()->getName() << "\n";
-        errs() << "<--------->\n" << MI);
+  LLVM_DEBUG(errs() << "\nFunction : " << MF.getFunction().getName() << "\n";
+             errs() << "<--------->\n" << MI);
 
   int FrameIndex = MI.getOperand(i).getIndex();
-  uint64_t stackSize = MF.getFrameInfo()->getStackSize();
-  int64_t spOffset = MF.getFrameInfo()->getObjectOffset(FrameIndex);
+  uint64_t stackSize = MF.getFrameInfo().getStackSize();
+  int64_t spOffset = MF.getFrameInfo().getObjectOffset(FrameIndex);
 
-  DEBUG(errs() << "FrameIndex : " << FrameIndex << "\n"
-               << "spOffset   : " << spOffset << "\n"
-               << "stackSize  : " << stackSize << "\n");
+  LLVM_DEBUG(errs() << "FrameIndex : " << FrameIndex << "\n"
+                    << "spOffset   : " << spOffset << "\n"
+                    << "stackSize  : " << stackSize << "\n");
 
-  const std::vector<CalleeSavedInfo> &CSI = MFI->getCalleeSavedInfo();
+  const std::vector<CalleeSavedInfo> &CSI = MFI.getCalleeSavedInfo();
   int MinCSFI = 0;
   int MaxCSFI = -1;
 
@@ -173,7 +173,7 @@ eliminateFrameIndex(MachineBasicBlock::iterator II, int SPAdj,
 
   Offset    += MI.getOperand(i+1).getImm();
 
-  DEBUG(errs() << "Offset     : " << Offset << "\n" << "<--------->\n");
+  LLVM_DEBUG(errs() << "Offset     : " << Offset << "\n" << "<--------->\n");
 
   // If MI is not a debug value, make sure Offset fits in the 16-bit immediate
   // field.
@@ -198,7 +198,7 @@ Cpu0RegisterInfo::trackLivenessAfterRegAlloc(const MachineFunction &MF) const {
 }
 
 // pure virtual method
-unsigned Cpu0RegisterInfo::
+Register Cpu0RegisterInfo::
 getFrameRegister(const MachineFunction &MF) const {
   const TargetFrameLowering *TFI = MF.getSubtarget().getFrameLowering();
   return TFI->hasFP(MF) ? (Cpu0::FP) :

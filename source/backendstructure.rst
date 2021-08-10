@@ -66,6 +66,9 @@ TargetMachine structure
 .. literalinclude:: ../lbdex/Cpu0/Cpu0.td
     :start-after: #if CH >= CH3_1 2
     :end-before: #endif
+.. literalinclude:: ../lbdex/Cpu0/Cpu0.td
+    :start-after: #if CH >= CH3_1 3
+    :end-before: #endif
 
 .. rubric:: lbdex/chapters/Chapter3_1/Cpu0CallingConv.td
 .. literalinclude:: ../lbdex/chapters/Chapter3_1/Cpu0CallingConv.td
@@ -146,7 +149,7 @@ TargetMachine structure
 .. rubric:: lbdex/chapters/Chapter3_1/Cpu0SERegisterInfo.cpp
 .. literalinclude:: ../lbdex/chapters/Chapter3_1/Cpu0SERegisterInfo.cpp
 
-.. rubric:: cmake_debug_build/lib/Target/Cpu0/Cpu0GenInstInfo.inc
+.. rubric:: build/lib/Target/Cpu0/Cpu0GenInstInfo.inc
 .. code-block:: c++
 
   //- Cpu0GenInstInfo.inc which generate from Cpu0InstrInfo.td 
@@ -199,7 +202,7 @@ relationship.
 Last chapter mentioned that backend class can include the TableGen generated 
 classes and inherited from it.
 All the TableGen generated classes of Cpu0 backend are in 
-cmake_debug_build/lib/Target/Cpu0/\*.inc. Through C++ inheritance mechanism,
+build/lib/Target/Cpu0/\*.inc. Through C++ inheritance mechanism,
 TableGen provides backend programmers a fexible way to use its generated
 code. Programmers have chance to override this function if they need to. 
 
@@ -224,7 +227,7 @@ Following is the code fragment from Cpu0GenInstrInfo.inc.
 Code between "#if def  GET_INSTRINFO_HEADER" and 
 "#endif // GET_INSTRINFO_HEADER”" will be extracted to Cpu0InstrInfo.h.
 
-.. rubric:: cmake_debug_build/lib/Target/Cpu0/Cpu0GenInstInfo.inc
+.. rubric:: build/lib/Target/Cpu0/Cpu0GenInstInfo.inc
 .. code-block:: c++
 
   //- Cpu0GenInstInfo.inc which generate from Cpu0InstrInfo.td 
@@ -254,15 +257,15 @@ Please take a look for Chapter3_1 code.
 After that, building Chapter3_1 by **"#define CH  CH3_1"** in Cpu0Config.h as 
 follows, and do building with Xcode on iMac or make on linux again.
 
-.. rubric:: ~/llvm/test/src/lib/Target/Cpu0SetChapter.h
+.. rubric:: ~/llvm/test/llvm/lib/Target/Cpu0SetChapter.h
 .. code-block:: c++
 
   #define CH       CH3_1
   
 .. code-block:: console
 
-  118-165-78-230:input Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
-  Debug/bin/llc -march=cpu0 -relocation-model=pic -filetype=asm ch3.bc -o 
+  118-165-78-230:input Jonathan$ /Users/Jonathan/llvm/test/build/
+  bin/llc -march=cpu0 -relocation-model=pic -filetype=asm ch3.bc -o 
   ch3.cpu0.s
   ... Assertion `AsmInfo && "MCAsmInfo not initialized. " 
   ...
@@ -286,7 +289,7 @@ display messages as follows,
 .. code-block:: console
   
   JonathantekiiMac:input Jonathan$ /Users/Jonathan/llvm/test/
-  cmake_debug_build/Debug/bin/llc -march=cpu0 -mcpu=help
+  build/bin/llc -march=cpu0 -mcpu=help
   Available CPUs for this target:
 
     cpu032I  - Select the cpu032I processor.
@@ -349,7 +352,7 @@ follows,
     :start-after: #if CH >= CH4_1 3
     :end-before: #endif
 
-.. rubric:: ~/llvm/test/src/lib/Target/Cpu0SetChapter.h
+.. rubric:: ~/llvm/test/llvm/lib/Target/Cpu0SetChapter.h
 .. code-block:: c++
 
   #define CH       CH4_1
@@ -357,7 +360,7 @@ follows,
 On the contrary, it can be disabled by define it to less than CH4_1, for 
 instance CH3_5, as follows,
 
-.. rubric:: ~/llvm/test/src/lib/Target/Cpu0SetChapter.h
+.. rubric:: ~/llvm/test/llvm/lib/Target/Cpu0SetChapter.h
 .. code-block:: c++
 
   #define CH       CH3_5
@@ -394,9 +397,6 @@ Cpu0GenAsmWrite.inc which is included by Cpu0InstPrinter.cpp as follows,
 .. rubric:: lbdex/chapters/Chapter3_2/InstPrinter/CMakeLists.txt
 .. literalinclude:: ../lbdex/chapters/Chapter3_2/InstPrinter/CMakeLists.txt
 
-.. rubric:: lbdex/chapters/Chapter3_2/InstPrinter/LLVMBuild.txt
-.. literalinclude:: ../lbdex/chapters/Chapter3_2/InstPrinter/LLVMBuild.txt
-
 Cpu0GenAsmWrite.inc has the implementations of 
 Cpu0InstPrinter::printInstruction() and Cpu0InstPrinter::getRegisterName(). 
 Both of these functions can be auto-generated from the information we defined 
@@ -413,7 +413,7 @@ It will be triggered since Cpu0InstrInfo.td
 defined **'let PrintMethod = \"printMemOperand\";'** as follows,
 
 .. rubric:: lbdex/chapters/Chapter2/Cpu0InstrInfo.td
-.. code:: c++
+.. code:: text
 
   // Address operand
   def mem : Operand<i32> {
@@ -498,11 +498,6 @@ subtarget) which defined in Chapter3_1 at this point.
 
 .. rubric:: lbdex/chapters/Chapter3_2/MCTargetDesc/CMakeLists.txt
 .. literalinclude:: ../lbdex/Cpu0/MCTargetDesc/CMakeLists.txt
-    :start-after: #if CH >= CH3_2
-    :end-before: #endif
-
-.. rubric:: lbdex/chapters/Chapter3_2/MCTargetDesc/LLVMBuild.txt
-.. literalinclude:: ../lbdex/Cpu0/MCTargetDesc/LLVMBuild.txt
     :start-after: #if CH >= CH3_2
     :end-before: #endif
 
@@ -603,10 +598,6 @@ will call getEmitNOAT().
   };
 
 
-Beyond adding these new .cpp files to CMakeLists.txt, please remember to add 
-subdirectory InstPrinter, enable asmprinter, adding libraries AsmPrinter and 
-Cpu0AsmPrinter to LLVMBuild.txt as follows,
-
 .. rubric:: lbdex/chapters/Chapter3_2/CMakeLists.txt
 .. literalinclude:: ../lbdex/Cpu0/CMakeLists.txt
     :start-after: #if CH >= CH3_2 1
@@ -623,45 +614,33 @@ Cpu0AsmPrinter to LLVMBuild.txt as follows,
 
 .. code-block:: c++
 
+    LINK_COMPONENTS
+
+    ...
+.. literalinclude:: ../lbdex/Cpu0/CMakeLists.txt
+    :start-after: #if CH >= CH3_2 3
+    :end-before: #endif
+
+.. code-block:: c++
+
     ...
     )
   ...
  
 .. literalinclude:: ../lbdex/Cpu0/CMakeLists.txt
-    :start-after: #if CH >= CH3_2 3
+    :start-after: #if CH >= CH3_2 4
     :end-before: #endif
 
-.. rubric:: lbdex/chapters/Chapter3_2/LLVMBuild.txt
-.. code-block:: c++
-
-  //  LLVMBuild.txt
-  [common] 
-  subdirectories = 
-    InstPrinter 
-    ...
-  
-  [component_0] 
-  ...
-  # Please enable asmprinter
-  has_asmprinter = 1 
-  ...
-  
-  [component_1] 
-  required_libraries = 
-                       AsmPrinter 
-                       ... 
-                       Cpu0AsmPrinter 
-                       ...
 
 Now, run Chapter3_2/Cpu0 for AsmPrinter support, will get new error message as 
 follows,
 
 .. code-block:: console
 
-  118-165-78-230:input Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
-  Debug/bin/llc -march=cpu0 -relocation-model=pic -filetype=asm ch3.bc -o 
+  118-165-78-230:input Jonathan$ /Users/Jonathan/llvm/test/build/
+  bin/llc -march=cpu0 -relocation-model=pic -filetype=asm ch3.bc -o 
   ch3.cpu0.s
-  /Users/Jonathan/llvm/test/cmake_debug_build/Debug/bin/llc: target does not 
+  /Users/Jonathan/llvm/test/build/bin/llc: target does not 
   support generation of this file type!
 
 The ``llc`` fails to compile IR code into machine code since we don't implement 
@@ -675,7 +654,7 @@ The IR DAG to machine instruction DAG transformation is introduced in the
 previous chapter. 
 Now, let's check what IR DAG nodes the file ch3.bc has. List ch3.ll as follows,
 
-.. code:: c++
+.. code:: text
 
   // ch3.ll
   define i32 @main() nounwind uwtable { 
@@ -782,7 +761,7 @@ Chapter2/Cpu0InstrInfo.td as follows,
 
 The iPTR, ComplexPattern, frameindex and SDNPWantParent defined as follows,
 
-.. rubric:: src/include/llvm/Target/TargetSelection.td
+.. rubric:: llvm/include/llvm/Target/TargetSelection.td
 .. code-block:: c++
 
   def SDNPWantParent  : SDNodeProperty;   // ComplexPattern gets the parent
@@ -806,7 +785,7 @@ The iPTR, ComplexPattern, frameindex and SDNPWantParent defined as follows,
   }
 
 
-.. rubric:: src/include/llvm/CodeGen/ValueTypes.td
+.. rubric:: llvm/include/llvm/CodeGen/ValueTypes.td
 .. code-block:: c++
 
   // Pseudo valuetype mapped to the current pointer size.
@@ -818,8 +797,8 @@ gone. The new error message for Chapter3_3 as follows,
 
 .. code-block:: console
 
-  118-165-78-230:input Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
-  Debug/bin/llc -march=cpu0 -relocation-model=pic -filetype=asm ch3.bc -o 
+  118-165-78-230:input Jonathan$ /Users/Jonathan/llvm/test/build/
+  bin/llc -march=cpu0 -relocation-model=pic -filetype=asm ch3.bc -o 
   ch3.cpu0.s
   ...
   LLVM ERROR: Cannot select: 0x24834b8: ch = Cpu0ISD::Ret 0x24832a8, 0x24833b0 [ORD=4] [ID=6]
@@ -846,7 +825,7 @@ The following code is the result of running Mips backend with ch3.cpp.
 
 .. code-block:: console
   
-  JonathantekiiMac:input Jonathan$ ~/llvm/release/cmake_debug_build/Debug/bin/llc 
+  JonathantekiiMac:input Jonathan$ ~/llvm/release/build/bin/llc 
   -march=mips -relocation-model=pic -filetype=asm ch3.bc -o -
     .text
     .abicalls
@@ -911,7 +890,7 @@ spill $ra register. This will save a lot of time if it is in a hot function.
   
   JonathantekiiMac:input Jonathan$ clang -target mips-unknown-linux-gnu -c 
   ch8_2_longbranch.cpp -emit-llvm -o ch8_2_longbranch.bc
-  JonathantekiiMac:input Jonathan$ ~/llvm/release/cmake_debug_build/Debug/bin/llc 
+  JonathantekiiMac:input Jonathan$ ~/llvm/release/build/bin/llc 
   -march=mips -relocation-model=pic -filetype=asm -force-mips-long-branch 
   ch8_2_longbranch.bc -o -
     ...
@@ -1065,7 +1044,7 @@ as follows,
   
   118-165-78-230:input Jonathan$ clang -target mips-unknown-linux-gnu -c 
   ch3.cpp -emit-llvm -o ch3.bc
-  118-165-78-230:input Jonathan$ ~/llvm/test/cmake_debug_build/Debug/bin/llvm-dis 
+  118-165-78-230:input Jonathan$ ~/llvm/test/build/bin/llvm-dis 
   ch3.bc -o -
   ...
   define i32 @main() #0 {
@@ -1074,8 +1053,8 @@ as follows,
     ret i32 0
   }
 
-  118-165-78-230:input Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
-  Debug/bin/llc -march=cpu0 -relocation-model=pic -filetype=asm ch3.bc -o -
+  118-165-78-230:input Jonathan$ /Users/Jonathan/llvm/test/build/
+  bin/llc -march=cpu0 -relocation-model=pic -filetype=asm ch3.bc -o -
     ...
     .text
     .section .mdebug.abiO32
@@ -1092,15 +1071,15 @@ However, the ch3.cpp can be run with option ``clang -O2`` as follows,
   
   118-165-78-230:input Jonathan$ clang -O2 -target mips-unknown-linux-gnu -c 
   ch3.cpp -emit-llvm -o ch3.bc
-  118-165-78-230:input Jonathan$ ~/llvm/test/cmake_debug_build/Debug/bin/llvm-dis 
+  118-165-78-230:input Jonathan$ ~/llvm/test/build/bin/llvm-dis 
   ch3.bc -o -
   ...
   define i32 @main() #0 {
     ret i32 0
   }
 
-  118-165-78-230:input Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
-  Debug/bin/llc -march=cpu0 -relocation-model=pic -filetype=asm ch3.bc -o -
+  118-165-78-230:input Jonathan$ /Users/Jonathan/llvm/test/build/
+  bin/llc -march=cpu0 -relocation-model=pic -filetype=asm ch3.bc -o -
     .text
     .section .mdebug.abiO32
     .previous
@@ -1131,8 +1110,8 @@ The DAGs which before and after instruction selection stage are shown as follows
 
   118-165-78-230:input Jonathan$ clang -O2 -target mips-unknown-linux-gnu -c 
   ch3.cpp -emit-llvm -o ch3.bc
-  118-165-78-12:input Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
-  Debug/bin/llc -march=cpu0 -relocation-model=pic -filetype=asm 
+  118-165-78-12:input Jonathan$ /Users/Jonathan/llvm/test/build/
+  bin/llc -march=cpu0 -relocation-model=pic -filetype=asm 
   -print-before-all -print-after-all ch3.bc -o -
   ...
   *** IR Dump After Module Verifier ***
@@ -1457,7 +1436,7 @@ the corresponding machine instructions as follows,
 
   118-165-78-230:input Jonathan$ clang -target mips-unknown-linux-gnu -c 
   ch3.cpp -emit-llvm -o ch3.bc
-  118-165-78-230:input Jonathan$ ~/llvm/test/cmake_debug_build/Debug/bin/llvm-dis 
+  118-165-78-230:input Jonathan$ ~/llvm/test/build/bin/llvm-dis 
   ch3.bc -o -
   ...
   define i32 @main() #0 {
@@ -1466,8 +1445,8 @@ the corresponding machine instructions as follows,
     ret i32 0
   }
   
-  118-165-78-230:input Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
-  Debug/bin/llc -march=cpu0 -relocation-model=pic -filetype=asm ch3.bc -o -
+  118-165-78-230:input Jonathan$ /Users/Jonathan/llvm/test/build/
+  bin/llc -march=cpu0 -relocation-model=pic -filetype=asm ch3.bc -o -
     ...
     .section .mdebug.abi32
     .previous
@@ -1520,7 +1499,7 @@ In emitPrologue(), it emits machine instructions to adjust sp (stack pointer
 register) for local variables. 
 For our example, it will emit the instruction,
 
-.. code:: c++
+.. code:: text
 
   addiu $sp, $sp, -8
 
@@ -1558,7 +1537,7 @@ It translates frame index to correct offset of stack pointer by
 "spOffset = MF.getFrameInfo()->getObjectOffset(FrameIndex);".
 For instance of ch3.cpp, displaying the offset calculating as follows,
 
-.. code:: c++
+.. code:: text
   
   Spilling live registers at end of block.
   BB#0: derived from LLVM BB %0
@@ -1643,7 +1622,7 @@ Cpu0SEInstrInfo.h and Cpu0InstrInfo.h it will get the belowing error.
 
 .. code-block:: console
   
-  114-43-191-19:input Jonathan$ ~/llvm/test/cmake_debug_build/Debug/bin/llc 
+  114-43-191-19:input Jonathan$ ~/llvm/test/build/bin/llc 
   -march=cpu0 -relocation-model=pic -filetype=asm ch3.bc -o -
     .text
     .section .mdebug.abiO32
@@ -2008,8 +1987,8 @@ Run Chapter3_5 with ch3_largeframe.cpp will get the following result.
 
   118-165-78-12:input Jonathan$ clang -target mips-unknown-linux-gnu -c 
   ch3_largeframe.cpp -emit-llvm -o ch3_largeframe.bc
-  118-165-78-12:input Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
-  Debug/bin/llc -march=cpu0 -relocation-model=pic -filetype=asm 
+  118-165-78-12:input Jonathan$ /Users/Jonathan/llvm/test/build/
+  bin/llc -march=cpu0 -relocation-model=pic -filetype=asm 
   ch3_largeframe.bc.bc -o -
     ...
     .section .mdebug.abiO32
@@ -2052,7 +2031,7 @@ related data operands DAGs node from other backend since the IR data nodes are
 take cared by all the backend. 
 About the data DAGs nodes, you can understand some of them through the 
 Cpu0InstrInfo.td and find them by command, 
-grep -R "<datadag>"  \`find src/include/llvm\`,
+grep -R "<datadag>"  \`find llvm/include/llvm\`,
 with spending a little more time to think or guess about it. 
 Some data DAGs we know more, some we know a little and some remains unknown but 
 it's OK for us. 
@@ -2141,8 +2120,8 @@ Summary the functions for llvm backend stages as the following table.
 
 .. code-block:: console
 
-  118-165-79-200:input Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
-  Debug/bin/llc -march=cpu0 -relocation-model=pic -filetype=asm ch3.bc 
+  118-165-79-200:input Jonathan$ /Users/Jonathan/llvm/test/build/
+  bin/llc -march=cpu0 -relocation-model=pic -filetype=asm ch3.bc 
   -debug-pass=Structure -o -
   ...
   Machine Branch Probability Analysis
@@ -2204,7 +2183,7 @@ The point is we have created a frame work for Cpu0 target machine (please
 look back the llvm backend structure class inheritance tree early in this 
 chapter). 
 Until now, we have over 3000 lines of source code with comments which include 
-files \*.cpp, \*.h, \*.td, CMakeLists.txt and LLVMBuild.txt. 
+files \*.cpp, \*.h, \*.td and CMakeLists.txt. 
 It can be counted by command ``wc `find dir -name *.cpp``` for files \*.cpp, 
 \*.h, \*.td, \*.txt. 
 LLVM front end tutorial have 700 lines of source code without comments in total. 

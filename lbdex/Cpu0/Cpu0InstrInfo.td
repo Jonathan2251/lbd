@@ -15,10 +15,6 @@
 // Cpu0 profiles and nodes
 //===----------------------------------------------------------------------===//
 
-// Reference for SDTypeProfile here:
-// https://github.com/llvm-mirror/llvm/blob/master/include/llvm/Target/TargetSelectionDAG.td
-// DAG is composed of SDNodes. SDNode, PatLeaf and SDNodeXForm are in the same link above.
-
 //#if CH >= CH2 //1
 def SDT_Cpu0Ret          : SDTypeProfile<0, 1, [SDTCisInt<0>]>;
 //#endif
@@ -109,45 +105,45 @@ def Cpu0Sync : SDNode<"Cpu0ISD::Sync", SDT_Sync, [SDNPHasChain]>;
 //===----------------------------------------------------------------------===//
 
 def Ch3_1       :     Predicate<"Subtarget->hasChapter3_1()">,
-                      AssemblerPredicate<"FeatureChapter3_1">;
+                      AssemblerPredicate<(all_of FeatureChapter3_1)>;
 def Ch3_2       :     Predicate<"Subtarget->hasChapter3_2()">,
-                      AssemblerPredicate<"FeatureChapter3_2">;
+                      AssemblerPredicate<(all_of FeatureChapter3_2)>;
 def Ch3_3       :     Predicate<"Subtarget->hasChapter3_3()">,
-                      AssemblerPredicate<"FeatureChapter3_3">;
+                      AssemblerPredicate<(all_of FeatureChapter3_3)>;
 def Ch3_4       :     Predicate<"Subtarget->hasChapter3_4()">,
-                      AssemblerPredicate<"FeatureChapter3_4">;
+                      AssemblerPredicate<(all_of FeatureChapter3_4)>;
 def Ch3_5       :     Predicate<"Subtarget->hasChapter3_5()">,
-                      AssemblerPredicate<"FeatureChapter3_5">;
+                      AssemblerPredicate<(all_of FeatureChapter3_5)>;
 def Ch4_1       :     Predicate<"Subtarget->hasChapter4_1()">,
-                      AssemblerPredicate<"FeatureChapter4_1">;
+                      AssemblerPredicate<(all_of FeatureChapter4_1)>;
 def Ch4_2       :     Predicate<"Subtarget->hasChapter4_2()">,
-                      AssemblerPredicate<"FeatureChapter4_2">;
+                      AssemblerPredicate<(all_of FeatureChapter4_2)>;
 def Ch5_1       :     Predicate<"Subtarget->hasChapter5_1()">,
-                      AssemblerPredicate<"FeatureChapter5_1">;
+                      AssemblerPredicate<(all_of FeatureChapter5_1)>;
 def Ch6_1       :     Predicate<"Subtarget->hasChapter6_1()">,
-                      AssemblerPredicate<"FeatureChapter6_1">;
+                      AssemblerPredicate<(all_of FeatureChapter6_1)>;
 def Ch7_1       :     Predicate<"Subtarget->hasChapter7_1()">,
-                      AssemblerPredicate<"FeatureChapter7_1">;
+                      AssemblerPredicate<(all_of FeatureChapter7_1)>;
 def Ch8_1       :     Predicate<"Subtarget->hasChapter8_1()">,
-                      AssemblerPredicate<"FeatureChapter8_1">;
+                      AssemblerPredicate<(all_of FeatureChapter8_1)>;
 def Ch8_2       :     Predicate<"Subtarget->hasChapter8_2()">,
-                      AssemblerPredicate<"FeatureChapter8_2">;
+                      AssemblerPredicate<(all_of FeatureChapter8_2)>;
 def Ch9_1       :     Predicate<"Subtarget->hasChapter9_1()">,
-                      AssemblerPredicate<"FeatureChapter9_1">;
+                      AssemblerPredicate<(all_of FeatureChapter9_1)>;
 def Ch9_2       :     Predicate<"Subtarget->hasChapter9_2()">,
-                      AssemblerPredicate<"FeatureChapter9_2">;
+                      AssemblerPredicate<(all_of FeatureChapter9_2)>;
 def Ch9_3       :     Predicate<"Subtarget->hasChapter9_3()">,
-                      AssemblerPredicate<"FeatureChapter9_3">;
+                      AssemblerPredicate<(all_of FeatureChapter9_3)>;
 def Ch10_1      :     Predicate<"Subtarget->hasChapter10_1()">,
-                      AssemblerPredicate<"FeatureChapter10_1">;
+                      AssemblerPredicate<(all_of FeatureChapter10_1)>;
 def Ch11_1      :     Predicate<"Subtarget->hasChapter11_1()">,
-                      AssemblerPredicate<"FeatureChapter11_1">;
+                      AssemblerPredicate<(all_of FeatureChapter11_1)>;
 def Ch11_2      :     Predicate<"Subtarget->hasChapter11_2()">,
-                      AssemblerPredicate<"FeatureChapter11_2">;
+                      AssemblerPredicate<(all_of FeatureChapter11_2)>;
 def Ch12_1      :     Predicate<"Subtarget->hasChapter12_1()">,
-                      AssemblerPredicate<"FeatureChapter12_1">;
+                      AssemblerPredicate<(all_of FeatureChapter12_1)>;
 def Ch_all      :     Predicate<"Subtarget->hasChapterAll()">,
-                      AssemblerPredicate<"FeatureChapterAll">;
+                      AssemblerPredicate<(all_of FeatureChapterAll)>;
 
 def EnableOverflow  : Predicate<"Subtarget->enableOverflow()">;
 def DisableOverflow : Predicate<"Subtarget->disableOverflow()">;
@@ -214,16 +210,13 @@ def jmptarget    : Operand<OtherVT> {
 //#if CH >= CH9_1 //5
 def calltarget  : Operand<iPTR> {
   let EncoderMethod = "getJumpTargetOpValue";
+  let OperandType = "OPERAND_PCREL";
 }
 //#endif
 
 //#if CH >= CH2 4
 // Signed Operand
 def simm16      : Operand<i32> {
-// LLVM supply the “let DecoderMethod” keyword to allow programmers implement 
-// their decode function.
-// LLVM will call these DecodeMethod when user uses Disassembler tools, such as
-// llvm-objdump -d.
   let DecoderMethod= "DecodeSimm16";
 }
 //#endif
@@ -247,17 +240,10 @@ def Cpu0MemAsmOperand : AsmOperandClass {
 //#if CH >= CH2 5
 // Address operand
 def mem : Operand<iPTR> {
-// Making llvm call function Cpu0InstPrinter::printMemOperand()
   let PrintMethod = "printMemOperand";
-// For example, ld $2, 4($sp), the mem operand is 4($sp):(ops CPURegs, simm16). 
   let MIOperandInfo = (ops CPURegs, simm16);
-// Making llvm call function getMemEncoding() when either ld or st instruction is 
-// issued in elf obj since these two instructions use mem Operand.
   let EncoderMethod = "getMemEncoding";
 //#if CH >= CH11_1 2
-// Accompany with “let ParserMatchClass = Cpu0MemAsmOperand;”, LLVM will call 
-// parseMemOperand() of Cpu0AsmParser.cpp when it meets the assembly mem operand 
-// 4($sp).
   let ParserMatchClass = Cpu0MemAsmOperand;
 //#endif //#if CH >= CH11_1 2
 }
@@ -281,7 +267,6 @@ def PtrRC : Operand<iPTR> {
 //#if CH >= CH3_5 3
 // Transformation Function - get the lower 16 bits.
 def LO16 : SDNodeXForm<imm, [{
-  // N is SDNode, getZExtValue() is N's member function
   return getImm(N, N->getZExtValue() & 0xffff);
 }]>;
 
@@ -320,9 +305,6 @@ def immZExt5 : ImmLeaf<i32, [{return Imm == (Imm & 0x1f);}]>;
 //#endif
 
 //#if CH >= CH2 7
-// As TableGen is unable to generate selection code for complex addressing modes,
-// selection of a MEMbol operand must be done manually. 
-// Reference https://opus4.kobv.de/opus4-fau/files/1108/tricore_llvm.pdf
 // Cpu0 Address Mode! SDNode frameindex could possibily be a match
 // since load and store instructions from stack used it.
 def addr : 
@@ -488,17 +470,15 @@ class StoreM<bits<8> op, string instr_asm, PatFrag OpNode, RegisterClass RC,
 }
 
 //@ 32-bit load.
-multiclass LoadM32<bits<8> op, string instr_asm, PatFrag OpNode,
-                   bit Pseudo = 0> {
-// When defm LD : LoadM32<...>, then #NAME# is LD
-// When defm LB : LoadM32<...>, then #NAME# is LB
-  def #NAME# : LoadM<op, instr_asm, OpNode, GPROut, mem, Pseudo>;
+class LoadM32<bits<8> op, string instr_asm, PatFrag OpNode,
+                   bit Pseudo = 0>
+  : LoadM<op, instr_asm, OpNode, GPROut, mem, Pseudo> {
 }
 
 // 32-bit store.
-multiclass StoreM32<bits<8> op, string instr_asm, PatFrag OpNode,
-                    bit Pseudo = 0> {
-  def #NAME# : StoreM<op, instr_asm, OpNode, CPURegs, mem, Pseudo>;
+class StoreM32<bits<8> op, string instr_asm, PatFrag OpNode,
+                    bit Pseudo = 0>
+  : StoreM<op, instr_asm, OpNode, CPURegs, mem, Pseudo> {
 }
 //#endif
 
@@ -776,9 +756,9 @@ class SCBase<bits<8> Opc, string opstring, RegisterOperand RO, Operand Mem> :
 let Predicates = [Ch9_2] in {
 // As stack alignment is always done with addiu, we need a 16-bit immediate
 let Defs = [SP], Uses = [SP] in {
-def ADJCALLSTACKDOWN : Cpu0Pseudo<(outs), (ins uimm16:$amt),
-                                  "!ADJCALLSTACKDOWN $amt",
-                                  [(callseq_start timm:$amt)]>;
+def ADJCALLSTACKDOWN : Cpu0Pseudo<(outs), (ins uimm16:$amt1, uimm16:$amt2),
+                                  "!ADJCALLSTACKDOWN $amt1",
+                                  [(callseq_start timm:$amt1, timm:$amt2)]>;
 def ADJCALLSTACKUP   : Cpu0Pseudo<(outs), (ins uimm16:$amt1, uimm16:$amt2),
                                   "!ADJCALLSTACKUP $amt1",
                                   [(callseq_end timm:$amt1, timm:$amt2)]>;
@@ -878,17 +858,17 @@ def LoadAddr32Imm : LoadAddressImm<"la", shamt, GPROut>;
 /// Load and Store Instructions
 ///  aligned
 //#if CH >= CH2 13
-defm LD     : LoadM32<0x01,  "ld",  load_a>;
-defm ST     : StoreM32<0x02, "st",  store_a>;
+def LD     : LoadM32<0x01,  "ld",  load_a>;
+def ST     : StoreM32<0x02, "st",  store_a>;
 //#endif
 //#if CH >= CH7_1 5
 let Predicates = [Ch7_1] in {
-defm LB     : LoadM32<0x03, "lb",  sextloadi8>;
-defm LBu    : LoadM32<0x04, "lbu", zextloadi8>;
-defm SB     : StoreM32<0x05, "sb", truncstorei8>;
-defm LH     : LoadM32<0x06, "lh",  sextloadi16_a>;
-defm LHu    : LoadM32<0x07, "lhu", zextloadi16_a>;
-defm SH     : StoreM32<0x08, "sh", truncstorei16_a>;
+def LB     : LoadM32<0x03, "lb",  sextloadi8>;
+def LBu    : LoadM32<0x04, "lbu", zextloadi8>;
+def SB     : StoreM32<0x05, "sb", truncstorei8>;
+def LH     : LoadM32<0x06, "lh",  sextloadi16_a>;
+def LHu    : LoadM32<0x07, "lhu", zextloadi16_a>;
+def SH     : StoreM32<0x08, "sh", truncstorei16_a>;
 }
 //#endif
 

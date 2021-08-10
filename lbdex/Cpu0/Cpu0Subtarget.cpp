@@ -63,12 +63,12 @@ extern bool FixGlobalBaseReg;
 void Cpu0Subtarget::anchor() { }
 
 //@1 {
-Cpu0Subtarget::Cpu0Subtarget(const Triple &TT, const std::string &CPU,
-                             const std::string &FS, bool little, 
+Cpu0Subtarget::Cpu0Subtarget(const Triple &TT, StringRef CPU,
+                             StringRef FS, bool little, 
                              const Cpu0TargetMachine &_TM) :
 //@1 }
   // Cpu0GenSubtargetInfo will display features by llc -march=cpu0 -mcpu=help
-  Cpu0GenSubtargetInfo(TT, CPU, FS),
+  Cpu0GenSubtargetInfo(TT, CPU, /*TuneCPU*/ CPU, FS),
   IsLittle(little), TM(_TM), TargetTriple(TT), TSInfo(),
       InstrInfo(
           Cpu0InstrInfo::create(initializeSubtargetDependencies(CPU, FS, TM))),
@@ -135,7 +135,7 @@ Cpu0Subtarget::initializeSubtargetDependencies(StringRef CPU, StringRef FS,
   }
 
   // Parse features string.
-  ParseSubtargetFeatures(CPU, FS);
+  ParseSubtargetFeatures(CPU, /*TuneCPU*/ CPU, FS);
   // Initialize scheduling itinerary for the specified CPU.
   InstrItins = getInstrItineraryForCPU(CPU);
 

@@ -64,8 +64,8 @@ DAGs and Cpu0 instructions.
 
   118-165-78-166:input Jonathan$ clang -target mips-unknown-linux-gnu -c 
   ch6_1.cpp -emit-llvm -o ch6_1.bc
-  118-165-78-166:input Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
-  Debug/bin/llc -march=cpu0 -relocation-model=static -cpu0-use-small-section=false 
+  118-165-78-166:input Jonathan$ /Users/Jonathan/llvm/test/build/
+  bin/llc -march=cpu0 -relocation-model=static -cpu0-use-small-section=false 
   -filetype=asm -debug ch6_1.bc -o -
   
   ...
@@ -125,8 +125,8 @@ DAGs and Cpu0 instructions.
 
 .. code-block:: console
 
-  118-165-78-166:input Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
-  Debug/bin/llc -march=cpu0 -relocation-model=static -cpu0-use-small-section=true 
+  118-165-78-166:input Jonathan$ /Users/Jonathan/llvm/test/build/
+  bin/llc -march=cpu0 -relocation-model=static -cpu0-use-small-section=true 
   -filetype=asm -debug ch6_1.bc -o -
   
   ...
@@ -183,8 +183,8 @@ DAGs and Cpu0 instructions.
 
 .. code-block:: console
 
-  118-165-78-166:input Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
-  Debug/bin/llc -march=cpu0 -relocation-model=pic -cpu0-use-small-section=false 
+  118-165-78-166:input Jonathan$ /Users/Jonathan/llvm/test/build/
+  bin/llc -march=cpu0 -relocation-model=pic -cpu0-use-small-section=false 
   -filetype=asm -debug ch6_1.bc -o -
     
     ...
@@ -243,8 +243,8 @@ DAGs and Cpu0 instructions.
 
 .. code-block:: console
 
-  118-165-78-166:input Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
-  Debug/bin/llc -march=cpu0 -relocation-model=pic -cpu0-use-small-section=true 
+  118-165-78-166:input Jonathan$ /Users/Jonathan/llvm/test/build/
+  bin/llc -march=cpu0 -relocation-model=pic -cpu0-use-small-section=true 
   -filetype=asm -debug ch6_1.bc -o -
   
   ...
@@ -643,7 +643,7 @@ stage "Legalized selection DAG" as below.
 
   118-165-78-166:input Jonathan$ clang -target mips-unknown-linux-gnu -c 
   ch6_1.cpp -emit-llvm -o ch6_1.bc
-  118-165-78-166:input Jonathan$ ~/llvm/test/cmake_debug_build/Debug/bin/llc 
+  118-165-78-166:input Jonathan$ ~/llvm/test/build/bin/llc 
   -march=cpu0 -relocation-model=static -cpu0-use-small-section=false 
   -filetype=asm -debug ch6_1.bc -o -
   
@@ -986,7 +986,7 @@ displayed in comments of Cpu0MCInstLower.cpp.
 .. code-block:: console
 
   118-165-76-131:input Jonathan$ /Users/Jonathan/llvm/test/
-  cmake_debug_build/Debug/bin/llc -march=cpu0 -relocation-model=pic -filetype=
+  build/bin/llc -march=cpu0 -relocation-model=pic -filetype=
   obj ch6_1.bc -o ch6_1.cpu0.o
   118-165-76-131:input Jonathan$ gobjdump -s ch6_1.cpu0.o 
 

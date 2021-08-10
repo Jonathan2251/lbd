@@ -84,18 +84,19 @@ static MCSubtargetInfo *createCpu0MCSubtargetInfo(const Triple &TT,
     if (!ArchFS.empty())
       ArchFS = ArchFS + "," + FS.str();
     else
-      ArchFS = FS;
+      ArchFS = FS.str();
   }
-  return createCpu0MCSubtargetInfoImpl(TT, CPU, ArchFS);
+  return createCpu0MCSubtargetInfoImpl(TT, CPU, /*TuneCPU*/ CPU, ArchFS);
 // createCpu0MCSubtargetInfoImpl defined in Cpu0GenSubtargetInfo.inc
 }
 
 static MCAsmInfo *createCpu0MCAsmInfo(const MCRegisterInfo &MRI,
-                                      const Triple &TT) {
+                                      const Triple &TT,
+                                      const MCTargetOptions &Options) {
   MCAsmInfo *MAI = new Cpu0MCAsmInfo(TT);
 
   unsigned SP = MRI.getDwarfRegNum(Cpu0::SP, true);
-  MCCFIInstruction Inst = MCCFIInstruction::createDefCfa(nullptr, SP, 0);
+  MCCFIInstruction Inst = MCCFIInstruction::createDefCfaRegister(nullptr, SP);
   MAI->addInitialFrameState(Inst);
 
   return MAI;
@@ -125,10 +126,13 @@ static MCInstrAnalysis *createCpu0MCInstrAnalysis(const MCInstrInfo *Info) {
 #endif
 
 #if CH >= CH5_1 //1
-static MCStreamer *createMCStreamer(const Triple &TT, MCContext &Context, 
-                                    MCAsmBackend &MAB, raw_pwrite_stream &OS, 
-                                    MCCodeEmitter *Emitter, bool RelaxAll) {
-  return createELFStreamer(Context, MAB, OS, Emitter, RelaxAll);
+static MCStreamer *createMCStreamer(const Triple &TT, MCContext &Context,
+                                    std::unique_ptr<MCAsmBackend> &&MAB,
+                                    std::unique_ptr<MCObjectWriter> &&OW,
+                                    std::unique_ptr<MCCodeEmitter> &&Emitter,
+                                    bool RelaxAll) {
+  return createELFStreamer(Context, std::move(MAB), std::move(OW),
+                           std::move(Emitter), RelaxAll);;
 }
 
 static MCTargetStreamer *createCpu0AsmTargetStreamer(MCStreamer &S,
@@ -158,6 +162,9 @@ extern "C" void LLVMInitializeCpu0TargetMC() {
 
     // Register the asm target streamer.
     TargetRegistry::RegisterAsmTargetStreamer(*T, createCpu0AsmTargetStreamer);
+
+    // Register the asm backend.
+    TargetRegistry::RegisterMCAsmBackend(*T, createCpu0AsmBackend);
 #endif
 
     // Register the MC subtarget info.
@@ -178,11 +185,6 @@ extern "C" void LLVMInitializeCpu0TargetMC() {
   TargetRegistry::RegisterMCCodeEmitter(TheCpu0elTarget,
                                         createCpu0MCCodeEmitterEL);
 
-  // Register the asm backend.
-  TargetRegistry::RegisterMCAsmBackend(TheCpu0Target,
-                                       createCpu0AsmBackendEB32);
-  TargetRegistry::RegisterMCAsmBackend(TheCpu0elTarget,
-                                       createCpu0AsmBackendEL32);
 #endif
 }
 //@2 }

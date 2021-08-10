@@ -50,8 +50,8 @@ Run Chapter10_1/ with ch11_1.cpp will get the following error message.
 
   JonathantekiiMac:input Jonathan$ clang -c ch11_1.cpp -emit-llvm -o 
   ch11_1.bc
-  JonathantekiiMac:input Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_
-  build/Debug/bin/llc -march=cpu0 -relocation-model=pic -filetype=obj ch11_1.bc 
+  JonathantekiiMac:input Jonathan$ /Users/Jonathan/llvm/test/build/bin/llc
+  -march=cpu0 -relocation-model=pic -filetype=obj ch11_1.bc 
   -o ch11_1.cpu0.o
   LLVM ERROR: Inline asm not supported by this streamer because we don't have 
   an asm parser for this target
@@ -86,7 +86,7 @@ value for Opcode ID and Operand IDs of the instruction.
 List the key functions and data structure of MatchAndEmitInstruction() and 
 encodeInstruction(), explaining in comments which begin with ///.
 
-.. rubric:: llvm/cmake_debug_build/lib/Target/Cpu0/Cpu0GenAsmMatcher.inc
+.. rubric:: llvm/build/lib/Target/Cpu0/Cpu0GenAsmMatcher.inc
 .. code-block:: c++
   
   enum InstructionConversionKind {
@@ -218,7 +218,7 @@ encodeInstruction(), explaining in comments which begin with ///.
     EmitInstruction(Binary, Size, OS);
   }
 
-.. rubric:: llvm/cmake_debug_build/lib/Target/Cpu0/Cpu0GenMCCodeEmitter.inc
+.. rubric:: llvm/build/lib/Target/Cpu0/Cpu0GenMCCodeEmitter.inc
 .. code-block:: c++
   
   uint64_t Cpu0MCCodeEmitter::getBinaryCodeForInstr(const MCInst &MI,
@@ -278,31 +278,14 @@ The Chapter11_1/ include AsmParser implementation as follows,
 .. rubric:: lbdex/chapters/Chapter11_1/AsmParser/CMakeLists.txt
 .. literalinclude:: ../lbdex/Cpu0/AsmParser/CMakeLists.txt
 
-.. rubric:: lbdex/chapters/Chapter11_1/AsmParser/LLVMBuild.txt
-.. literalinclude:: ../lbdex/Cpu0/AsmParser/LLVMBuild.txt
-
 
 The Cpu0AsmParser.cpp contains one thousand lines of code which do the assembly 
 language parsing. You can understand it with a little patience only.
-To let files in directory of AsmParser be built, modify CMakeLists.txt and 
-LLVMBuild.txt as follows,
+To let files in directory of AsmParser be built, modify CMakeLists.txt as follows,
 
 .. rubric:: lbdex/chapters/Chapter11_1/CMakeLists.txt
 .. literalinclude:: ../lbdex/Cpu0/CMakeLists.txt
     :start-after: #if CH >= CH11_1 1
-    :end-before: #endif
-
-
-  
-.. rubric:: lbdex/chapters/Chapter11_1/LLVMBuild.txt
-.. literalinclude:: ../lbdex/Cpu0/LLVMBuild.txt
-    :start-after: [common]
-    :end-before: #if CH >= CH11_1 1
-.. literalinclude:: ../lbdex/Cpu0/LLVMBuild.txt
-    :start-after: #if CH >= CH11_1 1
-    :end-before: #endif
-.. literalinclude:: ../lbdex/Cpu0/LLVMBuild.txt
-    :start-after: #if CH >= CH11_1 2
     :end-before: #endif
 
 .. rubric:: lbdex/chapters/Chapter11_1/Cpu0Asm.td
@@ -393,7 +376,7 @@ LLVM will call parseMemOperand() of Cpu0AsmParser.cpp when it meets the assembly
 **mem** operand 4($sp). With above **"let"** assignment, TableGen will generate 
 the following structure and functions in Cpu0GenAsmMatcher.inc.
 
-.. rubric:: cmake_debug_build/lib/Target/Cpu0/Cpu0GenAsmMatcher.inc
+.. rubric:: build/lib/Target/Cpu0/Cpu0GenAsmMatcher.inc
 .. code-block:: c++
   
     enum OperandMatchResultTy {
@@ -465,11 +448,11 @@ Run Chapter11_1/ with ch11_1.cpp to get the correct result as follows,
 
 .. code-block:: console
 
-  JonathantekiiMac:input Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_
-  build/Debug/bin/llc -march=cpu0 -relocation-model=pic -filetype=obj ch11_1.bc -o 
+  JonathantekiiMac:input Jonathan$ /Users/Jonathan/llvm/test/build/bin/llc
+  -march=cpu0 -relocation-model=pic -filetype=obj ch11_1.bc -o 
   ch11_1.cpu0.o
-  JonathantekiiMac:input Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_
-  build/Debug/bin/llvm-objdump -d ch11_1.cpu0.o
+  JonathantekiiMac:input Jonathan$ /Users/Jonathan/llvm/test/build/bin/
+  llvm-objdump -d ch11_1.cpu0.o
   
   ch11_1.cpu0.o:  file format ELF32-unknown
   
@@ -489,7 +472,7 @@ rather than "jeq $sw, 20").
 
 Both AsmParser and Cpu0AsmParser inherited from MCAsmParser as follows,
 
-.. rubric:: src/lib/MC/MCParser/AsmParser.cpp
+.. rubric:: llvm/lib/MC/MCParser/AsmParser.cpp
 .. code-block:: c++
 
   class AsmParser : public MCAsmParser {
@@ -500,7 +483,7 @@ Both AsmParser and Cpu0AsmParser inherited from MCAsmParser as follows,
 AsmParser will call functions ParseInstruction() and MatchAndEmitInstruction()
 of Cpu0AsmParser as follows,
 
-.. rubric:: src/lib/MC/MCParser/AsmParser.cpp
+.. rubric:: llvm/lib/MC/MCParser/AsmParser.cpp
 .. code-block:: c++
 
   bool AsmParser::parseStatement(ParseStatementInfo &Info) {
@@ -553,7 +536,7 @@ Run Chapter11_1 with ch11_2 will get the following error.
 
 .. code-block:: console
   
-  1-160-129-73:input Jonathan$ ~/llvm/test/cmake_debug_build/Debug/bin/llc 
+  1-160-129-73:input Jonathan$ ~/llvm/test/build/bin/llc 
   -march=cpu0 -relocation-model=static -filetype=asm ch11_2.bc -o -
     .section .mdebug.abi32
     .previous
@@ -640,7 +623,7 @@ Run Chapter11_2 with ch11_2.cpp will get the following result.
   1-160-129-73:input Jonathan$ clang -target mips-unknown-linux-gnu -c 
   ch11_2.cpp -emit-llvm -o ch11_2.bc
 
-  1-160-129-73:input Jonathan$ ~/llvm/test/cmake_debug_build/Debug/bin/
+  1-160-129-73:input Jonathan$ ~/llvm/test/build/bin/
   llvm-dis ch11_2.bc -o -
   ...
   target triple = "mips-unknown-linux-gnu"
@@ -804,7 +787,7 @@ Run Chapter11_2 with ch11_2.cpp will get the following result.
     ret i32 %21
   }
   ...
-  1-160-129-73:input Jonathan$ ~/llvm/test/cmake_debug_build/Debug/bin/llc 
+  1-160-129-73:input Jonathan$ ~/llvm/test/build/bin/llc 
     -march=cpu0 -relocation-model=static -filetype=asm ch11_2.bc -o -
     .section .mdebug.abi32
     .previous

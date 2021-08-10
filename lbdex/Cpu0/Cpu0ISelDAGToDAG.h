@@ -40,7 +40,7 @@ public:
       : SelectionDAGISel(TM, OL), Subtarget(nullptr) {}
 
   // Pass Name
-  const char *getPassName() const override {
+  StringRef getPassName() const override {
     return "CPU0 DAG->DAG Pattern Instruction Selection";
   }
 

@@ -1,3 +1,5 @@
+add_llvm_component_group(Cpu0)
+
 #if CH >= CH11_1 1
 set(LLVM_TARGET_DEFINITIONS Cpu0Asm.td)
 tablegen(LLVM Cpu0GenAsmMatcher.inc -gen-asm-matcher)
@@ -71,13 +73,38 @@ add_llvm_target(Cpu0CodeGen
   Cpu0SEISelDAGToDAG.cpp
 #endif
   Cpu0TargetMachine.cpp
+
+  LINK_COMPONENTS
+  Analysis
+  AsmPrinter
+  CodeGen
+  Core
+  MC
+  Cpu0Desc
+  Cpu0Info
+#if CH >= CH11_1 3
+  Cpu0AsmParser
+#endif
+#if CH >= CH3_2 3
+  Cpu0AsmPrinter
+#endif
+#if CH >= CH10_1 2
+  Cpu0Disassembler
+#endif
+  SelectionDAG
+  Support
+  Target
+  GlobalISel
+
+  ADD_TO_COMPONENT
+  Cpu0
   )
 
 # Should match with "subdirectories =  MCTargetDesc TargetInfo" in LLVMBuild.txt
-#if CH >= CH3_2 3
+#if CH >= CH3_2 4
 add_subdirectory(InstPrinter)
 #endif
-#if CH >= CH10_1 2
+#if CH >= CH10_1 3
 add_subdirectory(Disassembler)
 #endif
 add_subdirectory(TargetInfo)

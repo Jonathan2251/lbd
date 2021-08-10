@@ -26,9 +26,9 @@ using namespace llvm;
 namespace {
   class Cpu0ELFObjectWriter : public MCELFObjectTargetWriter {
   public:
-    Cpu0ELFObjectWriter(uint8_t OSABI);
+    Cpu0ELFObjectWriter(uint8_t OSABI, bool HasRelocationAddend, bool Is64);
 
-    ~Cpu0ELFObjectWriter() override;
+	~Cpu0ELFObjectWriter() = default;
 
     unsigned getRelocType(MCContext &Ctx, const MCValue &Target,
                         const MCFixup &Fixup, bool IsPCRel) const override;
@@ -37,11 +37,10 @@ namespace {
   };
 }
 
-Cpu0ELFObjectWriter::Cpu0ELFObjectWriter(uint8_t OSABI)
-  : MCELFObjectTargetWriter(/*_is64Bit=false*/ false, OSABI, ELF::EM_CPU0,
-                            /*HasRelocationAddend*/ false) {}
-
-Cpu0ELFObjectWriter::~Cpu0ELFObjectWriter() {}
+Cpu0ELFObjectWriter::Cpu0ELFObjectWriter(uint8_t OSABI,
+                                         bool HasRelocationAddend, bool Is64)
+    : MCELFObjectTargetWriter(/*Is64Bit_=false*/ Is64, OSABI, ELF::EM_CPU0,
+          /*HasRelocationAddend_ = false*/ HasRelocationAddend) {}
 
 //@GetRelocType {
 unsigned Cpu0ELFObjectWriter::getRelocType(MCContext &Ctx,
@@ -160,11 +159,13 @@ Cpu0ELFObjectWriter::needsRelocateWithSymbol(const MCSymbol &Sym,
   }
 }
 
-MCObjectWriter *llvm::createCpu0ELFObjectWriter(raw_pwrite_stream &OS,
-                                                uint8_t OSABI,
-                                                bool IsLittleEndian) {
-  MCELFObjectTargetWriter *MOTW = new Cpu0ELFObjectWriter(OSABI);
-  return createELFObjectWriter(MOTW, OS, IsLittleEndian);
+std::unique_ptr<MCObjectTargetWriter> 
+llvm::createCpu0ELFObjectWriter(const Triple &TT) {
+  uint8_t OSABI = MCELFObjectTargetWriter::getOSABI(TT.getOS());
+  bool IsN64 = false;
+  bool HasRelocationAddend = TT.isArch64Bit();
+  return std::make_unique<Cpu0ELFObjectWriter>(OSABI, HasRelocationAddend,
+                                               IsN64);
 }
 
 #endif // #if CH >= CH5_1

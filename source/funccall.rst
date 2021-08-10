@@ -57,8 +57,8 @@ See comments **"//"**.
 
   118-165-78-230:input Jonathan$ clang -target mips-unknown-linux-gnu -c 
   ch9_1.cpp -emit-llvm -o ch9_1.bc
-  118-165-78-230:input Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
-  Debug/bin/llc -march=mips -relocation-model=pic -filetype=asm ch9_1.bc -o 
+  118-165-78-230:input Jonathan$ /Users/Jonathan/llvm/test/build/
+  bin/llc -march=mips -relocation-model=pic -filetype=asm ch9_1.bc -o 
   ch9_1.mips.s
   118-165-78-230:input Jonathan$ cat ch9_1.mips.s 
     .section .mdebug.abi32
@@ -192,15 +192,15 @@ and see what happens.
 .. code-block:: console
 
   118-165-79-31:input Jonathan$ /Users/Jonathan/llvm/test/
-  cmake_debug_build/Debug/bin/llc -march=cpu0 -relocation-model=pic -filetype=asm 
+  build/bin/llc -march=cpu0 -relocation-model=pic -filetype=asm 
   ch9_1.bc -o ch9_1.cpu0.s
   Assertion failed: (InVals.size() == Ins.size() && "LowerFormalArguments didn't 
   emit the correct number of values!"), function LowerArguments, file /Users/
-  Jonathan/llvm/test/src/lib/CodeGen/SelectionDAG/
+  Jonathan/llvm/test/llvm/lib/CodeGen/SelectionDAG/
   SelectionDAGBuilder.cpp, ...
   ...
-  0.  Program arguments: /Users/Jonathan/llvm/test/cmake_debug_build/
-  Debug/bin/llc -march=cpu0 -relocation-model=pic -filetype=asm ch9_1.bc -o 
+  0.  Program arguments: /Users/Jonathan/llvm/test/build/
+  bin/llc -march=cpu0 -relocation-model=pic -filetype=asm ch9_1.bc -o 
   ch9_1.cpu0.s 
   1.  Running pass 'Function Pass Manager' on module 'ch9_1.bc'.
   2.  Running pass 'CPU0 DAG->DAG Pattern Instruction Selection' on function 
@@ -362,8 +362,8 @@ The root node at bottom is created by
   
   JonathantekiiMac:input Jonathan$ clang -O3 -target mips-unknown-linux-gnu -c 
   ch9_incoming.cpp -emit-llvm -o ch9_incoming.bc
-  JonathantekiiMac:input Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
-  Debug/bin/llvm-dis ch9_incoming.bc -o -
+  JonathantekiiMac:input Jonathan$ /Users/Jonathan/llvm/test/build/
+  bin/llvm-dis ch9_incoming.bc -o -
   ...
   define i32 @_Z5sum_iiii(i32 %x1, i32 %x2, i32 %x3) #0 {
     %1 = add nsw i32 %x2, %x1
@@ -647,15 +647,15 @@ in the following,
 .. code-block:: console
 
   118-165-79-83:input Jonathan$ /Users/Jonathan/llvm/test/
-  cmake_debug_build/Debug/bin/llc -march=cpu0 -relocation-model=pic -filetype=asm 
+  build/bin/llc -march=cpu0 -relocation-model=pic -filetype=asm 
   ch9_1.bc -o ch9_1.cpu0.s
   Assertion failed: ((CLI.IsTailCall || InVals.size() == CLI.Ins.size()) && 
   "LowerCall didn't emit the correct number of values!"), function LowerCallTo, 
-  file /Users/Jonathan/llvm/test/src/lib/CodeGen/SelectionDAG/SelectionDAGBuilder.
+  file /Users/Jonathan/llvm/test/llvm/lib/CodeGen/SelectionDAG/SelectionDAGBuilder.
   cpp, ...
   ...
-  0.  Program arguments: /Users/Jonathan/llvm/test/cmake_debug_build/
-  Debug/bin/llc -march=cpu0 -relocation-model=pic -filetype=asm ch9_1.bc -o 
+  0.  Program arguments: /Users/Jonathan/llvm/test/build/
+  bin/llc -march=cpu0 -relocation-model=pic -filetype=asm ch9_1.bc -o 
   ch9_1.cpu0.s 
   1.  Running pass 'Function Pass Manager' on module 'ch9_1.bc'.
   2.  Running pass 'CPU0 DAG->DAG Pattern Instruction Selection' on function 
@@ -828,15 +828,15 @@ The DAGs diagram can be got by llc option as follows,
   
   JonathantekiiMac:input Jonathan$ clang -O3 -target mips-unknown-linux-gnu -c 
   ch9_outgoing.cpp -emit-llvm -o ch9_outgoing.bc
-  JonathantekiiMac:input Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
-  Debug/bin/llvm-dis ch9_outgoing.bc -o -
+  JonathantekiiMac:input Jonathan$ /Users/Jonathan/llvm/test/build/
+  bin/llvm-dis ch9_outgoing.bc -o -
   ...
   define i32 @_Z10call_sum_iv() #0 {
     %1 = tail call i32 @_Z5sum_ii(i32 1)
     ret i32 %1
   }
-  JonathantekiiMac:input Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
-  Debug/bin/llc -march=cpu0 -mcpu=cpu032I -view-dag-combine1-dags -relocation-
+  JonathantekiiMac:input Jonathan$ /Users/Jonathan/llvm/test/build/
+  bin/llc -march=cpu0 -mcpu=cpu032I -view-dag-combine1-dags -relocation-
   model=static -filetype=asm ch9_outgoing.bc -o -
   	.text
   	.section .mdebug.abiS32
@@ -860,8 +860,8 @@ registers and other arguments at stack. The result as follows,
 
 .. code-block:: console
 
-  118-165-78-230:input Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
-  Debug/bin/llc -march=cpu0 -mcpu=cpu032I -cpu0-s32-calls=true 
+  118-165-78-230:input Jonathan$ /Users/Jonathan/llvm/test/build/
+  bin/llc -march=cpu0 -mcpu=cpu032I -cpu0-s32-calls=true 
   -relocation-model=pic -filetype=asm ch9_1.bc -o -
 	  .text
 	  .section .mdebug.abiS32
@@ -965,8 +965,8 @@ registers and other arguments at stack. The result as follows,
 	  .4byte	100                     # 0x64
 	  .size	gI, 4
 
-  118-165-78-230:input Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
-  Debug/bin/llc -march=cpu0 -mcpu=cpu032II -cpu0-s32-calls=false 
+  118-165-78-230:input Jonathan$ /Users/Jonathan/llvm/test/build/
+  bin/llc -march=cpu0 -mcpu=cpu032II -cpu0-s32-calls=false 
   -relocation-model=pic -filetype=asm ch9_1.bc -o -
     ...
 	  .globl	main
@@ -1049,8 +1049,8 @@ optimization.
   
   JonathantekiiMac:input Jonathan$ clang -target mips-unknown-linux-gnu -c 
   ch9_1_2.cpp -emit-llvm -o ch9_1_2.bc
-  JonathantekiiMac:input Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build
-  /Debug/bin/llc -march=cpu0 -mcpu=cpu032II -cpu0-s32-calls=true
+  JonathantekiiMac:input Jonathan$ /Users/Jonathan/llvm/test/build
+  /bin/llc -march=cpu0 -mcpu=cpu032II -cpu0-s32-calls=true
   -relocation-model=static -filetype=asm ch9_1_2.bc -o -
     .section .mdebug.abi32
     ...
@@ -1102,8 +1102,8 @@ follows,
 
 .. code-block:: console
 
-  JonathantekiiMac:input Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build
-  /Debug/bin/llc -march=cpu0 -mcpu=cpu032II -cpu0-s32-calls=true 
+  JonathantekiiMac:input Jonathan$ /Users/Jonathan/llvm/test/build
+  /bin/llc -march=cpu0 -mcpu=cpu032II -cpu0-s32-calls=true 
   -relocation-model=static -filetype=asm ch9_1_2.bc -debug -o -
   
   Initial selection DAG: BB#0 'main:entry'
@@ -1195,8 +1195,8 @@ example.
 
 .. code-block:: console
 
-  JonathantekiiMac:input Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
-  Debug/bin/llc -march=cpu0 -mcpu=cpu032I -relocation-model=pic -filetype=asm 
+  JonathantekiiMac:input Jonathan$ /Users/Jonathan/llvm/test/build/
+  bin/llc -march=cpu0 -mcpu=cpu032I -relocation-model=pic -filetype=asm 
   ch9_1_struct.bc -o -
     .section .mdebug.abi32
     .previous
@@ -1437,7 +1437,7 @@ Run Chapter9_2/ with ch9_2_tailcall.cpp will get the following result.
 
   JonathantekiiMac:input Jonathan$ clang -O1 -target mips-unknown-linux-gnu -c 
   ch9_2_tailcall.cpp -emit-llvm -o ch9_2_tailcall.bc
-  JonathantekiiMac:input Jonathan$ ~/llvm/test/cmake_debug_build/bin/
+  JonathantekiiMac:input Jonathan$ ~/llvm/test/build/bin/
   llvm-dis ch9_2_tailcall.bc -o -
   ...
   ; Function Attrs: nounwind readnone
@@ -1464,7 +1464,7 @@ Run Chapter9_2/ with ch9_2_tailcall.cpp will get the following result.
     ret i32 %1
   }
   ...
-  JonathantekiiMac:input Jonathan$ ~/llvm/test/cmake_debug_build/bin/
+  JonathantekiiMac:input Jonathan$ ~/llvm/test/build/bin/
   llc -march=cpu0 -mcpu=cpu032II -relocation-model=static -filetype=asm 
   -enable-cpu0-tail-calls ch9_2_tailcall.bc -stats -o -
 	  .text
@@ -1629,7 +1629,7 @@ than tail call as follows,
 
   JonathantekiiMac:input Jonathan$ clang -O1 -target mips-unknown-linux-gnu -c 
   ch9_2_tailcall.cpp -emit-llvm -o ch9_2_tailcall.bc
-  JonathantekiiMac:input Jonathan$ ~/llvm/test/cmake_debug_build/bin/
+  JonathantekiiMac:input Jonathan$ ~/llvm/test/build/bin/
   llvm-dis ch9_2_tailcall.bc -o -
   ...
   ; Function Attrs: nounwind readnone
@@ -1689,7 +1689,7 @@ than tail call as follows,
     ret i32 %accumulator.tr.lcssa.i
   }
   ...
-  JonathantekiiMac:input Jonathan$ ~/llvm/test/cmake_debug_build/bin/
+  JonathantekiiMac:input Jonathan$ ~/llvm/test/build/bin/
   llc -march=cpu0 -mcpu=cpu032I -relocation-model=static -filetype=asm 
   ch9_2_tailcall.bc -o -
 	  .text
@@ -1787,8 +1787,8 @@ Run Chapter9_2/ with ch9_3_vararg.cpp to get the following error,
 
   118-165-78-230:input Jonathan$ clang -target mips-unknown-linux-gnu -c 
   ch9_3_vararg.cpp -emit-llvm -o ch9_3_vararg.bc
-  118-165-78-230:input Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
-  Debug/bin/llc -march=cpu0 -relocation-model=pic -filetype=asm ch9_3_vararg.bc -o -
+  118-165-78-230:input Jonathan$ /Users/Jonathan/llvm/test/build/
+  bin/llc -march=cpu0 -relocation-model=pic -filetype=asm ch9_3_vararg.bc -o -
   ...
   LLVM ERROR: Cannot select: 0x7f8b6902fd10: ch = vastart 0x7f8b6902fa10, 
   0x7f8b6902fb10, 0x7f8b6902fc10 [ORD=9] [ID=22]
@@ -1807,8 +1807,8 @@ Run Chapter9_2 with ch9_3_alloc.cpp will get the following error.
 
   118-165-72-242:input Jonathan$ clang -target mips-unknown-linux-gnu -c 
   ch9_3_alloc.cpp -emit-llvm -o ch9_3_alloc.bc
-  118-165-72-242:input Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
-  Debug/bin/llc -march=cpu0 -mcpu=cpu032I -cpu0-s32-calls=false 
+  118-165-72-242:input Jonathan$ /Users/Jonathan/llvm/test/build/
+  bin/llc -march=cpu0 -mcpu=cpu032I -cpu0-s32-calls=false 
   -relocation-model=pic -filetype=asm ch9_3_alloc.bc -o -
   ...
   LLVM ERROR: Cannot select: 0x7ffd8b02ff10: i32,ch = dynamic_stackalloc 
@@ -1870,8 +1870,8 @@ We putting the comments in the result for explanation.
 
 .. code-block:: console
 
-  118-165-78-230:input Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
-  Debug/bin/llc -march=cpu0 -mcpu=cpu032II-cpu0-s32-calls=true
+  118-165-78-230:input Jonathan$ /Users/Jonathan/llvm/test/build/
+  bin/llc -march=cpu0 -mcpu=cpu032II-cpu0-s32-calls=true
   -relocation-model=pic -filetype=asm ch9_gprestore.bc -o -
   ...
     .cpload $t9
@@ -1933,8 +1933,8 @@ If enabling "-cpu0-no-cpload", and undefining ENABLE_GPRESTORE or enable
 
 .. code-block:: console
 
-  118-165-78-230:input Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
-  Debug/bin/llc -march=cpu0 -mcpu=cpu032II-cpu0-s32-calls=true 
+  118-165-78-230:input Jonathan$ /Users/Jonathan/llvm/test/build/
+  bin/llc -march=cpu0 -mcpu=cpu032II-cpu0-s32-calls=true 
   -relocation-model=pic -filetype=asm ch9_gprestore.bc -cpu0-no-cpload
   -cpu0-reserve-gp -o -
   ...
@@ -1979,8 +1979,8 @@ this document at this point and provides reserving $gp register as option.
 
 .. code-block:: console
 
-  118-165-78-230:input Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
-  Debug/bin/llc -march=mips -relocation-model=pic -filetype=asm ch9_gprestore.bc 
+  118-165-78-230:input Jonathan$ /Users/Jonathan/llvm/test/build/
+  bin/llc -march=mips -relocation-model=pic -filetype=asm ch9_gprestore.bc 
   -o -
   ...
   # BB#0:                                 # %entry
@@ -2110,7 +2110,7 @@ instructions.
 .. code-block:: console
 
   118-165-76-131:input Jonathan$ /Users/Jonathan/llvm/test/
-  cmake_debug_build/Debug/bin/llc -march=cpu0 -relocation-model=pic -filetype=
+  build/bin/llc -march=cpu0 -relocation-model=pic -filetype=
   obj ch9_1.bc -o ch9_1.cpu0.o
   118-165-76-131:input Jonathan$ hexdump  ch9_1.cpu0.o
   ...
@@ -2138,7 +2138,7 @@ Run ``llc -static`` will call jsub instruction instead of jalr as follows,
 .. code-block:: console
 
   118-165-76-131:input Jonathan$ /Users/Jonathan/llvm/test/
-  cmake_debug_build/Debug/bin/llc -march=cpu0 -relocation-model=static -filetype=
+  build/bin/llc -march=cpu0 -relocation-model=static -filetype=
   asm ch9_1.bc -o ch9_1.cpu0.s
   118-165-76-131:input Jonathan$ cat ch9_1.cpu0.s
   ...
@@ -2200,7 +2200,7 @@ Run Chapter9_3/ with ch9_3_vararg.cpp as well as clang option,
   118-165-76-131:input Jonathan$ clang -target mips-unknown-linux-gnu -c 
   ch9_3_vararg.cpp -emit-llvm -o ch9_3_vararg.bc
   118-165-76-131:input Jonathan$ /Users/Jonathan/llvm/test/
-  cmake_debug_build/Debug/bin/llc -march=cpu0 -mcpu=cpu032I -cpu0-s32-calls=false 
+  build/bin/llc -march=cpu0 -mcpu=cpu032I -cpu0-s32-calls=false 
   -relocation-model=pic -filetype=asm ch9_3_vararg.bc -o ch9_3_vararg.cpu0.s
   118-165-76-131:input Jonathan$ cat ch9_3_vararg.cpu0.s
     .section .mdebug.abi32
@@ -2537,8 +2537,8 @@ Run Chapter9_3 with ch9_3_alloc.cpp will get the following correct result.
   }
   ...
 
-  118-165-72-242:input Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
-  Debug/bin/llc -march=cpu0 -mcpu=cpu032I -cpu0-s32-calls=false 
+  118-165-72-242:input Jonathan$ /Users/Jonathan/llvm/test/build/
+  bin/llc -march=cpu0 -mcpu=cpu032I -cpu0-s32-calls=false 
   -relocation-model=pic -filetype=asm ch9_3_alloc.bc -o ch9_3_alloc.cpu0.s
   118-165-72-242:input Jonathan$ cat ch9_3_alloc.cpu0.s 
   ...
@@ -2718,7 +2718,7 @@ which can be tested now as follows.
   114-37-150-209:input Jonathan$ clang -O0 -target mips-unknown-linux-gnu 
   -c ch9_3_longlongshift.cpp -emit-llvm -o ch9_3_longlongshift.bc
   
-  114-37-150-209:input Jonathan$ ~/llvm/test/cmake_debug_build/Debug/bin/
+  114-37-150-209:input Jonathan$ ~/llvm/test/build/bin/
   llvm-dis ch9_3_longlongshift.bc -o -
   ...
   ; Function Attrs: nounwind
@@ -2743,7 +2743,7 @@ which can be tested now as follows.
     ret i64 %9
   }
   ...
-  114-37-150-209:input Jonathan$ ~/llvm/test/cmake_debug_build/Debug/bin/llc 
+  114-37-150-209:input Jonathan$ ~/llvm/test/build/bin/llc 
   -march=cpu0 -mcpu=cpu032I -relocation-model=static -filetype=asm 
   ch9_3_longlongshift.bc -o -
     .text
@@ -2901,7 +2901,7 @@ replace them.
     ret i32 %12
   }
 
-  JonathantekiiMac:input Jonathan$ ~/llvm/test/cmake_debug_build/Debug/bin/llc 
+  JonathantekiiMac:input Jonathan$ ~/llvm/test/build/bin/llc 
   -march=cpu0 -mcpu=cpu032I -relocation-model=static -filetype=asm 
   ch9_3_stacksave.bc -o -
   ...
@@ -2961,7 +2961,7 @@ Run with the following input to get the following result.
 
 .. code-block:: console
   
-  JonathantekiiMac:input Jonathan$ ~/llvm/test/cmake_debug_build/Debug/bin/
+  JonathantekiiMac:input Jonathan$ ~/llvm/test/build/bin/
   llvm-dis ch9_3_frame_return_addr.bc -o -
   ...
   ; Function Attrs: nounwind
@@ -2984,7 +2984,7 @@ Run with the following input to get the following result.
     ret i32 %4
   }
   
-  JonathantekiiMac:input Jonathan$ ~/llvm/test/cmake_debug_build/Debug/bin/llc 
+  JonathantekiiMac:input Jonathan$ ~/llvm/test/build/bin/llc 
   -march=cpu0 -relocation-model=static -filetype=asm ch9_3_frame_return_addr.bc 
   -o -
   	.text
@@ -3174,7 +3174,7 @@ as below.
   
   114-37-150-48:input Jonathan$ clang -target mips-unknown-linux-gnu -c 
   ch9_3_detect_exception.cpp -emit-llvm -o ch9_3_detect_exception.bc
-  114-37-150-48:input Jonathan$ ~/llvm/test/cmake_debug_build/Debug/bin/llvm-dis 
+  114-37-150-48:input Jonathan$ ~/llvm/test/build/bin/llvm-dis 
   ch9_3_detect_exception.bc -o -
   ; ModuleID = 'ch9_3_detect_exception.bc'
   target datalayout = "E-m:m-p:32:32-i8:8:32-i16:16:32-i64:64-n32-S64"
@@ -3234,7 +3234,7 @@ as below.
   attributes #3 = { "less-precise-fpmad"="false" ... }
   ...
   
-  114-37-150-48:input Jonathan$ ~/llvm/test/cmake_debug_build/Debug/bin/llc 
+  114-37-150-48:input Jonathan$ ~/llvm/test/build/bin/llc 
   -march=cpu0 -mcpu=cpu032II -relocation-model=pic -filetype=asm 
   ch9_3_detect_exception.bc -o -
     .text
@@ -3436,7 +3436,7 @@ Cpu0 supports llvm instrinsics bswap intrinsic [#bswapintrnsic]_.
   
   114-37-150-48:input Jonathan$ clang -target mips-unknown-linux-gnu -c 
   ch9_3_bswap.cpp -emit-llvm -o ch9_3_bswap.bc
-  114-37-150-48:input Jonathan$ ~/llvm/test/cmake_debug_build/Debug/bin/llvm-dis 
+  114-37-150-48:input Jonathan$ ~/llvm/test/build/bin/llvm-dis 
   ch9_3_bswap.bc -o -
   ...
   define i32 @_Z12test_bswap16v() #0 {
@@ -3471,15 +3471,15 @@ gcd(greatest common divider) instruction. This instruction explaining
 how to do it in llvm only, it is not added in Verilog Cpu0 implementation.
 The code as follows,
 
-.. rubric:: lbdex/src/modify/src/include/llvm/IR/Intrinsics.td
+.. rubric:: lbdex/llvm/modify/llvm/include/llvm/IR/Intrinsics.td
 .. code-block:: c++
 
     ...
     include "llvm/IR/IntrinsicsCpu0.td"
     ...
   
-.. rubric:: lbdex/src/modify/src/include/llvm/IR/IntrinsicsCpu0.td
-.. literalinclude:: ../lbdex/src/modify/src/include/llvm/IR/IntrinsicsCpu0.td
+.. rubric:: lbdex/llvm/modify/llvm/include/llvm/IR/IntrinsicsCpu0.td
+.. literalinclude:: ../lbdex/llvm/modify/llvm/include/llvm/IR/IntrinsicsCpu0.td
 
 .. rubric:: lbdex/chapters/Chapter9_3/Cpu0InstrInfo.td
 .. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td

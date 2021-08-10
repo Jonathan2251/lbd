@@ -95,11 +95,11 @@ const Cpu0FrameLowering *Cpu0FrameLowering::create(const Cpu0Subtarget &ST) {
 // if it needs dynamic stack realignment, if frame pointer elimination is
 // disabled, or if the frame address is taken.
 bool Cpu0FrameLowering::hasFP(const MachineFunction &MF) const {
-  const MachineFrameInfo *MFI = MF.getFrameInfo();
+  const MachineFrameInfo &MFI = MF.getFrameInfo();
   const TargetRegisterInfo *TRI = STI.getRegisterInfo();
 
   return MF.getTarget().Options.DisableFramePointerElim(MF) ||
-      MFI->hasVarSizedObjects() || MFI->isFrameAddressTaken() ||
+      MFI.hasVarSizedObjects() || MFI.isFrameAddressTaken() ||
       TRI->needsStackRealignment(MF);
 }
 

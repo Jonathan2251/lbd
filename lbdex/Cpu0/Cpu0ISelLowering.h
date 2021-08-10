@@ -26,7 +26,7 @@
 #include "llvm/CodeGen/CallingConvLower.h"
 #include "llvm/CodeGen/SelectionDAG.h"
 #include "llvm/IR/Function.h"
-#include "llvm/Target/TargetLowering.h"
+#include "llvm/CodeGen/TargetLowering.h"
 #include <deque>
 
 namespace llvm {
@@ -113,14 +113,14 @@ namespace llvm {
 #if CH >= CH12_1 //5
     /// If a physical register, this returns the register that receives the
     /// exception address on entry to an EH pad.
-    unsigned
+    Register
     getExceptionPointerRegister(const Constant *PersonalityFn) const override {
       return Cpu0::A0;
     }
 
     /// If a physical register, this returns the register that receives the
     /// exception typeid on entry to a landing pad.
-    unsigned
+    Register
     getExceptionSelectorRegister(const Constant *PersonalityFn) const override {
       return Cpu0::A1;
     }
@@ -306,8 +306,7 @@ namespace llvm {
       /// return a value. This function returns f64 if the argument is an i64
       /// value which has been generated as a result of softening an f128 value.
       /// Otherwise, it just returns VT.
-      MVT getRegVT(MVT VT, const Type *OrigTy, const SDNode *CallNode,
-                   bool IsSoftFloat) const;
+      MVT getRegVT(MVT VT, bool IsSoftFloat) const;
 
       template<typename Ty>
       void analyzeReturn(const SmallVectorImpl<Ty> &RetVals, bool IsSoftFloat,
@@ -420,7 +419,7 @@ namespace llvm {
     void passByValArg(SDValue Chain, const SDLoc &DL,
                       std::deque< std::pair<unsigned, SDValue> > &RegsToPass,
                       SmallVectorImpl<SDValue> &MemOpChains, SDValue StackPtr,
-                      MachineFrameInfo *MFI, SelectionDAG &DAG, SDValue Arg,
+                      MachineFrameInfo &MFI, SelectionDAG &DAG, SDValue Arg,
                       const Cpu0CC &CC, const ByValArgInfo &ByVal,
                       const ISD::ArgFlagsTy &Flags, bool isLittle) const;
 #endif
@@ -497,7 +496,8 @@ namespace llvm {
                                       SelectionDAG &DAG) const override;
 
     bool isLegalAddressingMode(const DataLayout &DL, const AddrMode &AM,
-                               Type *Ty, unsigned AS) const override;
+                               Type *Ty, unsigned AS,
+                               Instruction *I = nullptr) const override;
 #endif
 
 #if CH >= CH7_1 //2

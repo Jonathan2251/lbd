@@ -82,7 +82,7 @@ the latest cmake for Darwin, copy the cmake /Applications/ and set PATH as follo
 
 .. code-block:: console
   
-  114-43-208-90:cmake_release_build Jonathan$ cat ~/.profile
+  114-43-208-90:build Jonathan$ cat ~/.profile
   export PATH=$PATH:/Applications/CMake.app/Contents/bin
 
 .. stop 12/5/12 10PM (just a bookmark for me to continue from)
@@ -151,7 +151,7 @@ For example, we install the Graphviz in directory
   118-165-12-177:input Jonathan$ cat /Users/Jonathan/.profile
   export PATH=$PATH:/Applications/Xcode.app/Contents/bin:
   /Applications/Graphviz.app/Contents/MacOS/:/Users/Jonathan/llvm/release/
-  cmake_release_build/Debug/bin
+  build/bin
 
 The Graphviz information for llvm is at section "SelectionDAG Instruction 
 Selection Process" " of "The LLVM Target-Independent Code Generator" here 
@@ -209,8 +209,8 @@ need to install and build the clang with llvm as this sub-section.
 Please download LLVM latest release version 3.9 (llvm, clang) from 
 the "LLVM Download Page" [#llvm-download]_. Then extract them using 
 ``tar -xvf {llvm-3.9.0.src.tar.xz, cfe-3.9.0.src.tar.xz}``,
-and change the llvm source code root directory into src. 
-After that, move the clang source code to src/tools/clang as shown as follows. 
+and change the llvm source code root directory into llvm. 
+After that, move the clang source code to llvm/tools/clang as shown as follows. 
 The compiler-rt should not installed in iMac OS X 10.9 and Xcode 5.x. If you 
 did as clang installation web document, it will has compiler error.
 
@@ -218,16 +218,16 @@ did as clang installation web document, it will has compiler error.
 
   118-165-78-111:Downloads Jonathan$ tar -xvf cfe-3.9.0.src.tar.xz 
   118-165-78-111:Downloads Jonathan$ tar -xvf llvm-3.9.0.src.tar.xz 
-  118-165-78-111:Downloads Jonathan$ mv llvm-3.9.0.src src
-  118-165-78-111:Downloads Jonathan$ mv cfe-3.9.0.src src/tools/clang
+  118-165-78-111:Downloads Jonathan$ mv llvm-3.9.0.src llvm
+  118-165-78-111:Downloads Jonathan$ mv cfe-3.9.0.src llvm/tools/clang
   118-165-78-111:Downloads Jonathan$ pwd
   /Users/Jonathan/Downloads
   118-165-78-111:Downloads Jonathan$ ls
   cfe-3.9.0.src.tar.xz        llvm-3.9.0.src.tar.xz
   src
-  118-165-78-111:Downloads Jonathan$ ls src/tools/
+  118-165-78-111:Downloads Jonathan$ ls llvm/tools/
   CMakeLists.txt  clang       llvm-as         llvm-dis        llvm-mcmarkup 
-  llvm-readobj    llvm-stub   LLVMBuild.txt   gold            llvm-bcanalyzer 
+  llvm-readobj    llvm-stub   gold            llvm-bcanalyzer 
   llvm-dwarfdump  llvm-nm     llvm-rtdyld     lto             Makefile  
   llc             llvm-config llvm-extract    llvm-objdump    llvm-shlib 
   macho-dump      bugpoint    lli             llvm-cov        llvm-link 
@@ -235,9 +235,9 @@ did as clang installation web document, it will has compiler error.
   llvm-diff       llvm-mc     llvm-ranlib     llvm-stress
 
 
-Next, copy the LLVM source to /Users/Jonathan/llvm/release/src by executing the 
+Next, copy the LLVM source to /Users/Jonathan/llvm/release/llvm by executing the 
 terminal command 
-``cp -rf /Users/Jonathan/Downloads/src /Users/Jonathan/llvm/release/.``.
+``cp -rf /Users/Jonathan/Downloads/llvm /Users/Jonathan/llvm/release/.``.
 
 Create LLVM.xcodeproj by terminal cmake command
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -250,20 +250,20 @@ Now, will generate the LLVM.xcodeproj in this chapter.
   
   114-43-213-176:release Jonathan$ pwd
   /Users/Jonathan/llvm/release
-  114-43-213-176:release Jonathan$ mkdir cmake_release_build
-  114-43-213-176:release Jonathan$ cd cmake_release_build
-  114-43-213-176:cmake_release_build Jonathan$ cmake -DCMAKE_CXX_COMPILER=clang++ 
+  114-43-213-176:release Jonathan$ mkdir build
+  114-43-213-176:release Jonathan$ cd build
+  114-43-213-176:build Jonathan$ cmake -DCMAKE_CXX_COMPILER=clang++ 
   -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_FLAGS=-std=c++11 -DCMAKE_BUILD_TYPE=Debug 
-  -G "Xcode" ../src
+  -G "Xcode" ../llvm
   ...
-  114-43-213-176:cmake_release_build Jonathan$ ls
+  114-43-213-176:build Jonathan$ ls
   ... LLVM.xcodeproj
   
 
 Build llvm by Xcode
 ~~~~~~~~~~~~~~~~~~~
 
-Now, LLVM.xcodeproj is created. Open the cmake_release_build/LLVM.xcodeproj by 
+Now, LLVM.xcodeproj is created. Open the build/LLVM.xcodeproj by 
 Xcode and click menu **“Product – Build”** as :numref:`install-f10`.
 
 .. _install-f10:
@@ -273,13 +273,13 @@ Xcode and click menu **“Product – Build”** as :numref:`install-f10`.
   Click Build button to build LLVM.xcodeproj by Xcode
 
 After few minutes of build, the clang, llc, llvm-as, ..., can be found in 
-cmake_release_build/Debug/bin/ as follows.
+build/bin/ as follows.
 
 .. code-block:: console
 
-  118-165-78-111:cmake_release_build Jonathan$ cd Debug/bin/
+  118-165-78-111:build Jonathan$ cd bin/
   118-165-78-111:bin Jonathan$ pwd
-  /Users/Jonathan/llvm/release/cmake_release_build/Debug/bin
+  /Users/Jonathan/llvm/release/build/bin
   118-165-78-111:bin Jonathan$ ls
   ...
   clang
@@ -302,8 +302,7 @@ if you didn't add it after Xcode download.
   118-165-65-128:~ Jonathan$ cat .profile 
   export PATH=$PATH:/Applications/Xcode.app/Contents/Developer/usr/bin:/Applicatio
   ns/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/:/Ap
-  plications/Graphviz.app/Contents/MacOS/:/Users/Jonathan/llvm/release/cmake_relea
-  se_build/Debug/bin
+  plications/Graphviz.app/Contents/MacOS/:/Users/Jonathan/llvm/release/build/bin
   export WORKON_HOME=$HOME/.virtualenvs
   source /usr/local/bin/virtualenvwrapper.sh # where Homebrew places it
   export VIRTUALENVWRAPPER_VIRTUALENV_ARGS='--no-site-packages' # optional
@@ -339,19 +338,18 @@ The details of installing Cpu0 backend example code as follows,
   118-165-78-111:test Jonathan$ cp /Users/Jonathan/Downloads/
   lbdex.tar.gz .
   118-165-78-111:test Jonathan$ tar -zxvf lbdex.tar.gz
-  118-165-78-111:test Jonathan$ cp -rf lbdex/src/modify/src/* src/.
-  118-165-78-111:test Jonathan$ grep -R "Cpu0" src/include
+  118-165-78-111:test Jonathan$ cp -rf lbdex/llvm/modify/llvm/* llvm/.
+  118-165-78-111:test Jonathan$ grep -R "Cpu0" llvm/include
   ...
-  src/include/llvm/MC/MCExpr.h:    VK_Cpu0_GPREL,
-  src/include/llvm/MC/MCExpr.h:    VK_Cpu0_GOT_CALL,
-  src/include/llvm/MC/MCExpr.h:    VK_Cpu0_GOT16,
-  src/include/llvm/MC/MCExpr.h:    VK_Cpu0_GOT,
-  src/include/llvm/MC/MCExpr.h:    VK_Cpu0_ABS_HI,
-  src/include/llvm/MC/MCExpr.h:    VK_Cpu0_ABS_LO,
+  llvm/include/llvm/MC/MCExpr.h:    VK_Cpu0_GPREL,
+  llvm/include/llvm/MC/MCExpr.h:    VK_Cpu0_GOT_CALL,
+  llvm/include/llvm/MC/MCExpr.h:    VK_Cpu0_GOT16,
+  llvm/include/llvm/MC/MCExpr.h:    VK_Cpu0_GOT,
+  llvm/include/llvm/MC/MCExpr.h:    VK_Cpu0_ABS_HI,
+  llvm/include/llvm/MC/MCExpr.h:    VK_Cpu0_ABS_LO,
   ...
-  src/lib/MC/MCExpr.cpp:  case VK_Cpu0_GOT_PAGE: return "GOT_PAGE";
-  src/lib/MC/MCExpr.cpp:  case VK_Cpu0_GOT_OFST: return "GOT_OFST";
-  src/lib/Target/LLVMBuild.txt:subdirectories = ARM CellSPU CppBackend Hexagon 
+  llvm/lib/MC/MCExpr.cpp:  case VK_Cpu0_GOT_PAGE: return "GOT_PAGE";
+  llvm/lib/MC/MCExpr.cpp:  case VK_Cpu0_GOT_OFST: return "GOT_OFST";
   MBlaze MSP430 NVPTX Mips Cpu0 PowerPC Sparc X86 XCore
   118-165-78-111:test Jonathan$ 
 
@@ -362,26 +360,26 @@ Next, please copy Cpu0 example code according the following commands,
   
   118-165-78-111:test Jonathan$ pwd
   /Users/Jonathan/llvm/test
-  118-165-78-111:test Jonathan$ cp -rf lbdex/Cpu0 src/lib/Target/.
-  118-165-78-111:test Jonathan$ ls src/lib/Target/Cpu0
+  118-165-78-111:test Jonathan$ cp -rf lbdex/Cpu0 llvm/lib/Target/.
+  118-165-78-111:test Jonathan$ ls llvm/lib/Target/Cpu0
   CMakeLists.txt		Cpu0InstrInfo.td	Cpu0TargetMachine.cpp	TargetInfo
   ...
   118-165-80-55:Cpu0 Jonathan$ 
 
 
-Now, it's ready for building llvm/test/src code by command ``cmake`` as follows. 
+Now, it's ready for building llvm/test/llvm code by command ``cmake`` as follows. 
 
 .. code-block:: console
 
   118-165-78-111:test Jonathan$ pwd
   /Users/Jonathan/llvm/test
   118-165-78-111:test Jonathan$ ls
-  src
-  118-165-78-111:test Jonathan$ mkdir cmake_debug_build
-  118-165-78-111:test Jonathan$ cd cmake_debug_build/
-  118-165-78-111:cmake_debug_build Jonathan$ cmake -DCMAKE_CXX_COMPILER=clang++ 
+  llvm
+  118-165-78-111:test Jonathan$ mkdir build
+  118-165-78-111:test Jonathan$ cd build/
+  118-165-78-111:build Jonathan$ cmake -DCMAKE_CXX_COMPILER=clang++ 
   -DCMAKE_C_COMPILER=clang -DCMAKE_BUILD_TYPE=Debug -DLLVM_TARGETS_TO_BUILD=Cpu0 
-  -G "Xcode" ../src/
+  -G "Xcode" ../llvm/
   -- The C compiler identification is Clang 5.0
   -- The CXX compiler identification is Clang 5.0
   -- Check for working C compiler using: Xcode
@@ -394,8 +392,8 @@ Now, it's ready for building llvm/test/src code by command ``cmake`` as follows.
   -- Performing Test SUPPORTS_NO_C99_EXTENSIONS_FLAG - Success
   -- Configuring done
   -- Generating done
-  -- Build files have been written to: /Users/Jonathan/llvm/test/cmake_debug_build
-  118-165-78-111:cmake_debug_build Jonathan$ 
+  -- Build files have been written to: /Users/Jonathan/llvm/test/build
+  118-165-78-111:build Jonathan$ 
 
 Now, you can build this llvm build with Cpu0 backend only by Xcode.
 
@@ -411,18 +409,18 @@ debug as follows,
   /Users/Jonathan/llvm/test/lbdex/input
   118-165-65-128:input Jonathan$ clang -c ch3.cpp -emit-llvm -o ch3.bc
   118-165-65-128:input Jonathan$ /Users/Jonathan/llvm/test/
-  cmake_debug_build/Debug/bin/llc -march=cpu0 -relocation-model=pic -filetype=asm 
+  build/bin/llc -march=cpu0 -relocation-model=pic -filetype=asm 
   ch3.bc -o -
   118-165-65-128:input Jonathan$ lldb -- /Users/Jonathan/llvm/test/
-  cmake_debug_build/Debug/bin/llc -march=cpu0 -relocation-model=pic -filetype=
+  build/bin/llc -march=cpu0 -relocation-model=pic -filetype=
   asm ch3.bc -o -
-  Current executable set to '/Users/Jonathan/llvm/test/cmake_debug_build/bin/
-  Debug/llc' (x86_64).
+  Current executable set to '/Users/Jonathan/llvm/test/build/bin/
+  llc' (x86_64).
   (lldb) b Cpu0TargetInfo.cpp:19
   breakpoint set --file 'Cpu0TargetInfo.cpp' --line 19
   Breakpoint created: 1: file ='Cpu0TargetInfo.cpp', line = 19, locations = 1
   (lldb) run
-  Process 6058 launched: '/Users/Jonathan/llvm/test/cmake_debug_build/Debug/bin/
+  Process 6058 launched: '/Users/Jonathan/llvm/test/build/bin/
   llc' (x86_64)
   Process 6058 stopped
   * thread #1: tid = 0x1c03, 0x000000010077f231 llc`LLVMInitializeCpu0TargetInfo 
@@ -466,44 +464,42 @@ Install LLVM 3.9 release build on Linux
 
 First, install the llvm release build by,
 
-  1) Untar llvm source, rename llvm source with src.
+  1) Untar llvm source, rename llvm source with llvm.
   
-  2) Untar clang and move it src/tools/clang.
+  2) Untar clang and move it llvm/tools/clang.
 
 
 Next, build with cmake command, ``cmake -DCMAKE_BUILD_TYPE=Release -DCLANG_BUILD
-_EXAMPLES=ON -DLLVM_BUILD_EXAMPLES=ON -G "Unix Makefiles" ../src/``, as follows.
+_EXAMPLES=ON -DLLVM_BUILD_EXAMPLES=ON -G "Unix Makefiles" ../llvm/``, as follows.
 
 .. code-block:: console
 
-  [Gamma@localhost cmake_release_build]$ pwd
-  /home/cschen/llvm/release/cmake_release_build
-  [Gamma@localhost cmake_release_build]$ cmake -DCMAKE_BUILD_TYPE=Release 
-  -DCLANG_BUILD_EXAMPLES=ON -DLLVM_BUILD_EXAMPLES=ON -G "Unix Makefiles" ../src/
+  [Gamma@localhost build]$ pwd
+  /home/cschen/llvm/release/build
+  [Gamma@localhost build]$ cmake -DCMAKE_BUILD_TYPE=Release 
+  -DCLANG_BUILD_EXAMPLES=ON -DLLVM_BUILD_EXAMPLES=ON -G "Unix Makefiles" ../llvm/
   -- The C compiler identification is GNU 4.8.2
-  ...
-  -- Constructing LLVMBuild project information
   ...
   -- Targeting XCore
   -- Clang version: 3.9
   -- Found Subversion: /usr/bin/svn (found version "1.7.6") 
   -- Configuring done
   -- Generating done
-  -- Build files have been written to: /home/cschen/llvm/release/cmake_release_build
+  -- Build files have been written to: /home/cschen/llvm/release/build
 
 After cmake, run command ``make``, then you can get clang, llc, llvm-as, ..., 
-in cmake_release_build/bin/ after a few tens minutes of build. 
+in build/bin/ after a few tens minutes of build. 
 To speed up make process via SMP power, please check your core numbers by the 
 following command then do make the next.
 
 .. code-block:: console
 
-  [Gamma@localhost cmake_release_build]$ cat /proc/cpuinfo | grep processor | wc -l
+  [Gamma@localhost build]$ cat /proc/cpuinfo | grep processor | wc -l
   8
-  [Gamma@localhost cmake_release_build]$ make -j8 -l8
+  [Gamma@localhost build]$ make -j8 -l8
 
 Next, edit 
-/home/Gamma/.bash_profile with adding /home/cschen/llvm/release/cmake_release_build/
+/home/Gamma/.bash_profile with adding /home/cschen/llvm/release/build/
 bin to PATH to enable the clang, llc, ..., command search path, as follows,
 
 .. code-block:: console
@@ -520,14 +516,14 @@ bin to PATH to enable the clang, llc, ..., command search path, as follows,
   
   # User specific environment and startup programs
   
-  PATH=$PATH:/usr/local/sphinx/bin:~/llvm/release/cmake_release_build/bin:
+  PATH=$PATH:/usr/local/sphinx/bin:~/llvm/release/build/bin:
   ... 
   export PATH
   [Gamma@localhost ~]$ source .bash_profile
   [Gamma@localhost ~]$ $PATH
   bash: /usr/lib64/qt-3.3/bin:/usr/local/bin:/usr/bin:/bin:/usr/local/sbin:
   /usr/sbin:/usr/local/sphinx/bin:/home/Gamma/.local/bin:/home/Gamma/bin:
-  /usr/local/sphinx/bin:/home/cschen/llvm/release/cmake_release_build/bin
+  /usr/local/sphinx/bin:/home/cschen/llvm/release/build/bin
 
 
 Install Cpu0 debug build on Linux
@@ -548,20 +544,20 @@ list steps, and the corresponding commands shown as below,
 1) Enter ~/llvm/test/ and 
    get Cpu0 example code as well as the llvm 3.9.
 
-2) Make dir Cpu0 in src/lib/Target and download example code.
+2) Make dir Cpu0 in llvm/lib/Target and download example code.
 
 3) Update llvm modified source files to support cpu0 by command
-   ``cp -rf lbdex/src/modify/src/* src/.``.
+   ``cp -rf lbdex/src/modify/llvm/* llvm/.``.
 
 4) Check step 3 is effective by command ,
    ``grep -R "Cpu0" . | more```. We add the Cpu0 backend support, so check with 
    grep.
 
 5) Copy Cpu0 bakend code by command,
-   ``cp -rf lbdex/Cpu0 src/lib/Target/.``.
+   ``cp -rf lbdex/Cpu0 llvm/lib/Target/.``.
 
-6) Remove clang from ~/llvm/test/src/tools/clang, and mkdir 
-   test/cmake_debug_build. Otherwise you will waste extra time for 
+6) Remove clang from ~/llvm/test/llvm/tools/clang, and mkdir 
+   test/build. Otherwise you will waste extra time for 
    command ``make`` in Cpu0 example code build with clang.
 
 .. code-block:: console
@@ -577,19 +573,19 @@ list steps, and the corresponding commands shown as below,
   lbdex.tar.gz .
   [Gamma@localhost test]$ tar -zxvf lbdex.tar.gz
   ...
-  [Gamma@localhost test]$ cp -rf lbdex/src/modify/src/* src/.
-  [Gamma@localhost test]$ grep -R "cpu0" src/include
-  src/include//llvm/ADT/Triple.h:    cpu0,    // For Tutorial Backend Cpu0
-  src/include//llvm/MC/MCExpr.h:    VK_Cpu0_GPREL,
-  src/include//llvm/MC/MCExpr.h:    VK_Cpu0_GOT_CALL,
+  [Gamma@localhost test]$ cp -rf lbdex/src/modify/llvm/* llvm/.
+  [Gamma@localhost test]$ grep -R "cpu0" llvm/include
+  llvm/include//llvm/ADT/Triple.h:    cpu0,    // For Tutorial Backend Cpu0
+  llvm/include//llvm/MC/MCExpr.h:    VK_Cpu0_GPREL,
+  llvm/include//llvm/MC/MCExpr.h:    VK_Cpu0_GOT_CALL,
   ...
   [Gamma@localhost test]$ cp -rf lbdex/Cpu0 src/lib/Target/.
-  [Gamma@localhost test]$ ls src/lib/Target/Cpu0
+  [Gamma@localhost test]$ ls llvm/lib/Target/Cpu0
   AsmParser                 Cpu0RegisterInfoGPROutForAsm.td
   CMakeLists.txt            Cpu0RegisterInfoGPROutForOther.td
   ...
 
-Now, create directory cmake_debug_build and do cmake just like build the 
+Now, create directory build and do cmake just like build the 
 llvm/release, except we do Debug build with Cpu0 backend only, and use clang as 
 our compiler instead, as follows,
 
@@ -597,23 +593,23 @@ our compiler instead, as follows,
 
   [Gamma@localhost test]$ pwd
   /home/cschen/llvm/test
-  [Gamma@localhost test]$ mkdir cmake_debug_build
-  [Gamma@localhost test]$ cd cmake_debug_build/
-  [Gamma@localhost cmake_debug_build]$ cmake -DCMAKE_CXX_COMPILER=clang++ 
+  [Gamma@localhost test]$ mkdir build
+  [Gamma@localhost test]$ cd build/
+  [Gamma@localhost build]$ cmake -DCMAKE_CXX_COMPILER=clang++ 
   -DCMAKE_C_COMPILER=clang -DCMAKE_BUILD_TYPE=Debug -DLLVM_TARGETS_TO_BUILD=Cpu0 
-  -G "Unix Makefiles" ../src/
+  -G "Unix Makefiles" ../llvm/
   -- The C compiler identification is Clang 3.9.0
   -- The CXX compiler identification is Clang 3.9.0
-  -- Check for working C compiler: /home/cschen/llvm/release/cmake_release_build/bin/
+  -- Check for working C compiler: /home/cschen/llvm/release/build/bin/
   clang
-  -- Check for working C compiler: /home/cschen/llvm/release/cmake_release_build/bin/
+  -- Check for working C compiler: /home/cschen/llvm/release/build/bin/
   clang
    -- works
   -- Detecting C compiler ABI info
   -- Detecting C compiler ABI info - done
-  -- Check for working CXX compiler: /home/cschen/llvm/release/cmake_release_build/
+  -- Check for working CXX compiler: /home/cschen/llvm/release/build/
   bin/clang++
-  -- Check for working CXX compiler: /home/cschen/llvm/release/cmake_release_build/
+  -- Check for working CXX compiler: /home/cschen/llvm/release/build/
   bin/clang++
    -- works
   ...
@@ -621,15 +617,14 @@ our compiler instead, as follows,
   ...
   -- Configuring done
   -- Generating done
-  -- Build files have been written to: /home/cschen/llvm/test/cmake_debug
-  _build
-  [Gamma@localhost cmake_debug_build]$
+  -- Build files have been written to: /home/cschen/llvm/test/build
+  [Gamma@localhost build]$
 
 Then do make as follows,
 
 .. code-block:: console
 
-  [Gamma@localhost cmake_debug_build]$ make -j8 -l8
+  [Gamma@localhost build]$ make -j8 -l8
   Scanning dependencies of target LLVMSupport
   [ 0%] Building CXX object lib/Support/CMakeFiles/LLVMSupport.dir/APFloat.cpp.o
   [ 0%] Building CXX object lib/Support/CMakeFiles/LLVMSupport.dir/APInt.cpp.o
@@ -644,9 +639,9 @@ Then do make as follows,
   /
   TestMain.cpp.o Linking CXX static library ../../lib/libgtest_main.a
   [100%] Built target gtest_main
-  [Gamma@localhost cmake_debug_build]$
+  [Gamma@localhost build]$
 
-Since clang invoke the ~/llvm/cmake_release_build/bin/clang where 
+Since clang invoke the ~/llvm/build/bin/clang where 
 is built by ``cmake -DCMAKE_BUILD_TYPE=Release``, it is 4 times speed up more 
 than ``make`` (default use 1 thread only). But if you make with debug 
 clang build, it won't speed up too much.
@@ -663,7 +658,7 @@ Finally, try gdb as follows.
   /home/Gamma/llvm/test/lbdex/input
   [Gamma@localhost input]$ clang -c ch3.cpp -emit-llvm -o ch3.bc
   [Gamma@localhost input]$ gdb -args ~/llvm/test/
-  cmake_debug_build/bin/llc -march=cpu0 -relocation-model=pic -filetype=obj 
+  build/bin/llc -march=cpu0 -relocation-model=pic -filetype=obj 
   ch3.bc -o ch3.cpu0.o
   GNU gdb (GDB) Fedora (7.4.50.20120120-50.fc17)
   Copyright (C) 2012 Free Software Foundation, Inc.
@@ -674,19 +669,19 @@ Finally, try gdb as follows.
   This GDB was configured as "x86_64-redhat-linux-gnu".
   For bug reporting instructions, please see:
   <http://www.gnu.org/software/gdb/bugs/>...
-  Reading symbols from /home/cschen/llvm/test/cmake_debug_build/bin/llc.
+  Reading symbols from /home/cschen/llvm/test/build/bin/llc.
   ..done.
   (gdb) break Cpu0TargetInfo.cpp:19
-  Breakpoint 1 at 0xd54441: file /home/cschen/llvm/test/src/lib/Target/
+  Breakpoint 1 at 0xd54441: file /home/cschen/llvm/test/llvm/lib/Target/
   Cpu0/TargetInfo/Cpu0TargetInfo.cpp, line 19.
   (gdb) run
-  Starting program: /home/cschen/llvm/test/cmake_debug_build/bin/llc 
+  Starting program: /home/cschen/llvm/test/build/bin/llc 
   -march=cpu0 -relocation-model=pic -filetype=obj ch3.bc -o ch3.cpu0.o
   [Thread debugging using libthread_db enabled]
   Using host libthread_db library "/lib64/libthread_db.so.1".
   
   Breakpoint 1, LLVMInitializeCpu0TargetInfo ()
-    at /home/cschen/llvm/test/src/lib/Target/Cpu0/TargetInfo/Cpu0TargetInfo.cpp:20
+    at /home/cschen/llvm/test/llvm/lib/Target/Cpu0/TargetInfo/Cpu0TargetInfo.cpp:20
   19          /*HasJIT=*/true> X(TheCpu0Target, "cpu0", "Cpu0");
   (gdb) quit
   A debugging session is active.

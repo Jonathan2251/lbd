@@ -16,8 +16,8 @@ Target llvm::TheCpu0Target, llvm::TheCpu0elTarget;
 
 extern "C" void LLVMInitializeCpu0TargetInfo() {
   RegisterTarget<Triple::cpu0,
-        /*HasJIT=*/true> X(TheCpu0Target, "cpu0", "Cpu0");
+        /*HasJIT=*/true> X(TheCpu0Target, "cpu0", "CPU0 (32-bit big endian)", "Cpu0");
 
   RegisterTarget<Triple::cpu0el,
-        /*HasJIT=*/true> Y(TheCpu0elTarget, "cpu0el", "Cpu0el");
+        /*HasJIT=*/true> Y(TheCpu0elTarget, "cpu0el", "CPU0 (32-bit little endian)", "Cpu0");
 }
