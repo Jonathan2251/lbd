@@ -11,12 +11,13 @@ Authors
 -------
 
 .. figure:: ../Fig/Author_ChineseName.png
-	:align: right
+   :align: right
 
 Chen Chung-Shu
-	gamma_chen@yahoo.com.tw
+
+  gamma_chen@yahoo.com.tw
 	
-	http://jonathan2251.github.io/ws/en/index.html
+  http://jonathan2251.github.io/ws/en/index.html
 
 
 Contributors
@@ -52,7 +53,7 @@ Ulrich Weigand <Ulrich.Weigand@de.ibm.com> in AsmParser question answer.
 
 
 Build steps
-~~~~~~~~~~~~
+-----------
 
 https://github.com/Jonathan2251/lbd/blob/master/README.md
 
@@ -63,20 +64,25 @@ Revision history
 Version 12.0.1, not released yet.
 
 Version 12.0.0, Released August 11, 2021.
+
   Writing and comment.
 
 Version 3.9.4, Released August 5, 2021.
+
   Writing and comment.
 
 Version 3.9.3, Released March 1, 2020.
+
   Add Appendix C: GPU compiler
 
 Version 3.9.2, Released Feburary 17, 2020.
+
   Add section "Add specific backend intrinsic function".
   Add reasons for regression test.
   More phi node explanation.
 
 Version 3.9.1, Released May 11, 2018
+
   Fix tailcall bug.
   Fix return-vector.ll run slowly problem, bug from Cpu0ISelLowering.cpp.
   Add figure "Tblgen generate files for Cpu0 backend".
@@ -85,17 +91,21 @@ Version 3.9.1, Released May 11, 2018
   Section DSA of chapter Cpu0 architecture and LLVM structure.
 
 Version 3.9.0, Released November 22, 2016
+
   Porting to llvm 3.9.
   Correct writing.
 
 Version 3.7.4, Released December 7, 2016
+
   Change bal instruction from with delay slot to without delay slot.
 
 Version 3.7.3, Released July 20, 2016
+
   Refine code-block according sphinx lexers.
   Add search this book.
 
 Version 3.7.2, Released June 29, 2016
+
   Add Verilog delay slot simulation.
   Explain "tablegen(" in CMakeLists.txt.
   Correct typing.
@@ -103,6 +113,7 @@ Version 3.7.2, Released June 29, 2016
   Upgrade sphinx to 1.4.4.
 
 Version 3.7.1, Released November 7, 2015
+
   Remove EM_CPU0_EL.
   Add subsection Caller and callee saved registers.
   Add IR blockaddress and indirectbr support.
@@ -128,49 +139,59 @@ Version 3.7.1, Released November 7, 2015
   Rename input files.
 
 Version 3.7.0, Released September 24, 2015
+
   Porting to lld 3.7.
   Change tricore_llvm.pdf web link.
   Add C++ atomic to regression test.
 
 Version 3.6.4, Released July 15, 2015
+
   Add C++ atomic support.
 
 Version 3.6.3, Released May 25, 2015
+
   Correct typing.
 
 Version 3.6.2, Released May 3, 2015
+
   Write Appendix B.
   Split chapter Appendix B from Appendix A.
   Move some test from lbt to lbd.
   Remove warning in build Cpu0 code.
 
 Version 3.6.1, Released March 22, 2015
+
   Add Cpu0 instructions ROLV and RORV.
 
 Version 3.6.0, Released March 9, 2015
+
   Update Appendix A for llvm 3.6.
   Replace cpp with ll for appearing in document.
   Move chapter lld, optimization, library to 
   https://github.com/Jonathan2251/lbt.git.
 
 Version 3.5.9, Released February 2, 2015
+
   Fix bug of 64 bits shift.
   Fix global address error by replacing addiu with ori.
   Change encode of "cmp $sw, $3, $2" from 0x10320000 to 0x10f32000.
 
 Version 3.5.8, Released December 27, 2014
+
   Correct typing.
   Fix typing error for update lbdex/src/modify/src/ of install.rst.
   Add libsoftfloat/compiler-rt and libc/avr-libc-1.8.1.
   Add LLVM-VPO in chapter Optimization.
 
 Version 3.5.7, Released December 1, 2014
+
   Fix over 16-bits frame prologue/epilogue error from 3.5.3.
   Call convention ABI S32 is enabled by option.
   Change from ADD to ADDu in copyPhysReg() of Cpu0SEInstrInfo.cpp.
   Add asm directive .weak back which exists in 3.5.3.
 
 Version 3.5.6, Released November 18, 2014
+
   Remove SWI and IRET instructions.
   Add Cpu0SetChapter.h for ex-build-test.sh.
   Correct typing.
@@ -178,10 +199,12 @@ Version 3.5.6, Released November 18, 2014
   Add sub-section "Cpu0 backend machine ID and relocation records" of Chapter 2.
 
 Version 3.5.5, Released November 11, 2014
+
   Rename SPR to C0R.
   Add ISR simulation.
 
 Version 3.5.4, Released November 6, 2014
+
   Adjust chapter 9 sections.
   Fix .cprestore bug.
   Re-organize sections.
@@ -189,26 +212,32 @@ Version 3.5.4, Released November 6, 2014
   Add overflow control option to use ADD and SUB instructions.
 
 Version 3.5.3, Released October 29, 2014
+
   Merge Cpu0 example code into one copy and it can be config by Cpu0Config.h.
 
 Version 3.5.2, Released October 3, 2014
+
   Move R_CPU0_32 from type of non-relocation record to type ofrelocation record.
   Correct logic error for setgt of BrcondPatsSlt of Cpu0InstrInfo.td.
 
 Version 3.5.1, Released October 1, 2014
+
   Add move alias instruction for addu $reg, $zero.
   Add cpu cycles count in verilog.
   Fix ISD::SIGN_EXTEND_INREG error in other types beside i1.
   Support DAG op br_jt and DAG node JumpTable.
 
 Version 3.5.0, Released September 05, 2014
+
   Issue NOP in delay slot.
 
 Version 3.4.8, Released August 29, 2014
+
   Add reason that set endian swap in memory module.
   Add presentation files.
 
 Version 3.4.7, Released August 22, 2014
+
   Fix wrapper_pic for cmov.ll.
   Add shift operations 64 bits support.
   Fix wrapper_pic for ch8_5.cpp.
@@ -221,26 +250,31 @@ Version 3.4.7, Released August 22, 2014
   Make branch release_34_7.
 
 Version 3.4.6, Released July 26, 2014
+
   Add Chapter 15, optimization.
   Correct typing.
   Add Chapter 14, C++.
   Fix bug of generating cpu032II instruction in dynamic_linker.cpp.
 
 Version 3.4.5, Released June 30, 2014
+
   Correct typing.
 
 Version 3.4.4, Released June 24, 2014
+
   Correct typing.
   Add the reason of use SSA form.
   Move sections LLVM Code Generation Sequence, DAG and Instruction Selection 
   from Chapter 3 to Chapter 2.
 
 Version 3.4.3, Released March 31, 2014
+
   Fix Disassembly bug for GPROut register class.
   Adjust Chapters.
   Remove hand copy Table of tblgen in AsmParser.
 
 Version 3.4.2, Released February 9, 2014
+
   Add ch12_2.cpp for slt instruction explanation and fix bug in Cpu0InstrInfo.cpp.
   Correct typing.
   Move Cpu0 Status Register from Number 20 to Number 10.
@@ -250,6 +284,7 @@ Version 3.4.2, Released February 9, 2014
   Fix bug of branch pattern match in Cpu0InstrInfo.td.
 
 Version 3.4.1, Released January 18, 2014
+
   Add ch9_4.cpp to lld test.
   Fix the wrong reference in lbd/lib/Target/Cpu0 code.
   inlineasm.
@@ -257,17 +292,21 @@ Version 3.4.1, Released January 18, 2014
   Correct typing.
 
 Version 3.4.0, Released January 9, 2014
+
   Porting to llvm 3.4 release.
 
 Version 3.3.14, Released January 4, 2014
+
   lld support on iMac.
   Correct typing.
 
 Version 3.3.13, Released December 27, 2013
+
   Update section Install sphinx on install.rst.
   Add Fig/llvmstructure/cpu0_arch.odp.
 
 Version 3.3.12, Released December 25, 2013
+
   Correct typing error.
   Adjust Example Code.
   Add section Data operands DAGs of backendstructure.rst.
@@ -277,6 +316,7 @@ Version 3.3.12, Released December 25, 2013
   Add AsmParser reference web.
 
 Version 3.3.11, Released December 11, 2013
+
   Add Figure Code generation and execution flow in about.rst.
   Update backendstructure.rst.
   Correct otherinst.rst.
@@ -284,28 +324,34 @@ Version 3.3.11, Released December 11, 2013
   Correct typing error.
 
 Version 3.3.10, Released December 5, 2013
+
   Correct typing error.
   Dynamic linker in lld.rst.
   Correct errors came from old version of example code.
   lld.rst.
 
 Version 3.3.9, Released November 22, 2013
+
   Add LLD introduction and Cpu0 static linker document in lld.rst.
   Fix the plt bug in elf2hex.h for dynamic linker.
 
 Version 3.3.8, Released November 19, 2013
+
   Fix the reference file missing for make gh-page.
 
 Version 3.3.7, Released November 17, 2013
+
   lld.rst documentation.
   Add cpu032I and cpu032II in `llc -mcpu`.
   Reference only for Chapter12_2.
 
 Version 3.3.6, Released November 8, 2013
+
   Move example code from github to dropbox since the name is not work for 
   download example code.
 
 Version 3.3.5, Released November 7, 2013
+
   Split the elf2hex code from modiified llvm-objdump.cpp to elf2hex.h.
   Fix bug for tail call setting in LowerCall().
   Fix bug for LowerCPLOAD().
@@ -319,20 +365,24 @@ Version 3.3.5, Released November 7, 2013
   Change the name of example code from LLVMBackendTutorialExampleCode to lbdex.
 
 Version 3.3.4, Released September 21, 2013
+
   Fix Chapter Global variables error for LUi instructions and the material move
   to Chapter Other data type.
   Update regression test items.
 
 Version 3.3.3, Released September 20, 2013
+
   Add Chapter othertype
 
 Version 3.3.2, Released September 17, 2013
+
   Update example code.
   Fix bug sext_inreg.
   Fix llvm-objdump.cpp bug to support global variable of .data.
   Update install.rst to run on llvm 3.3.  
 
 Version 3.3.1, Released September 14, 2013
+
   Add load bool type in chapter 6.
   Fix chapter 4 error.
   Add interrupt function in cpu0i.v.
@@ -343,6 +393,7 @@ Version 3.3.1, Released September 14, 2013
   Cpu0 of lld.
 
 Version 3.3.0, Released July 13, 2013
+
   Add Table: C operator ! corresponding IR of .bc and IR of DAG and Table: C 
   operator ! corresponding IR of Type-legalized selection DAG and Cpu0 
   instructions. Add explanation in section Full support %. 
@@ -361,78 +412,112 @@ Version 3.3.0, Released July 13, 2013
   Porting to LLVM 3.3.
 
 Version 3.2.15, Released June 12, 2013
-	Porting to llvm 3.3.
-	Rewrite section Support arithmetic instructions of chapter Adding arithmetic
-	and local pointer support with the table adding.
-	Add two sentences in Preface. 
-	Add `llc -debug-pass` in section LLVM Code Generation Sequence.
-	Remove section Adjust cpu0 instructions.
-	Remove section Use cpu0 official LDI instead of ADDiu of Appendix-C.
+
+  Porting to llvm 3.3.
+  Rewrite section Support arithmetic instructions of chapter Adding arithmetic
+  and local pointer support with the table adding.
+  Add two sentences in Preface. 
+  Add `llc -debug-pass` in section LLVM Code Generation Sequence.
+  Remove section Adjust cpu0 instructions.
+  Remove section Use cpu0 official LDI instead of ADDiu of Appendix-C.
+	
 Version 3.2.14, Released May 24, 2013
-	Fix example code disappeared error.
+
+  Fix example code disappeared error.
+	
 Version 3.2.13, Released May 23, 2013
-	Add sub-section "Setup llvm-lit on iMac" of Appendix A.
-	Replace some code-block with literalinclude in \*.rst.
-	Add Fig 9 of chapter Backend structure.
-	Add section Dynamic stack allocation support of chapter Function call.
-	Fix bug of Cpu0DelUselessJMP.cpp.
-	Fix cpu0 instruction table errors.
+
+  Add sub-section "Setup llvm-lit on iMac" of Appendix A.
+  Replace some code-block with literalinclude in \*.rst.
+  Add Fig 9 of chapter Backend structure.
+  Add section Dynamic stack allocation support of chapter Function call.
+  Fix bug of Cpu0DelUselessJMP.cpp.
+  Fix cpu0 instruction table errors.
+	
 Version 3.2.12, Released March 9, 2013
-	Add section "Type of char and short int" of chapter 
-	"Global variables, structs and arrays, other type".
+
+  Add section "Type of char and short int" of chapter 
+  "Global variables, structs and arrays, other type".
+	
 Version 3.2.11, Released March 8, 2013
-	Fix bug in generate elf of chapter "Backend Optimization".
+
+  Fix bug in generate elf of chapter "Backend Optimization".
+	
 Version 3.2.10, Released February 23, 2013
-	Add chapter "Backend Optimization".
+
+  Add chapter "Backend Optimization".
+	
 Version 3.2.9, Released February 20, 2013
-	Correct the "Variable number of arguments" such as sum_i(int amount, ...) 
-	errors. 
+
+  Correct the "Variable number of arguments" such as sum_i(int amount, ...) 
+  errors. 
+	
 Version 3.2.8, Released February 20, 2013
-	Add section llvm-objdump -t -r.
+
+  Add section llvm-objdump -t -r.
+	
 Version 3.2.7, Released February 14, 2013
-	Add chapter Run backend.
-	Add Icarus Verilog tool installation in Appendix A. 
+
+  Add chapter Run backend.
+  Add Icarus Verilog tool installation in Appendix A. 
+	
 Version 3.2.6, Released February 4, 2013
-	Update CMP instruction implementation.
-	Add llvm-objdump section.
+
+  Update CMP instruction implementation.
+  Add llvm-objdump section.
+	
 Version 3.2.5, Released January 27, 2013
-	Add "LLVMBackendTutorialExampleCode/llvm3.1".
-	Add  section "Structure type support". 
-	Change reference from Figure title to Figure number.
+
+  Add "LLVMBackendTutorialExampleCode/llvm3.1".
+  Add  section "Structure type support". 
+  Change reference from Figure title to Figure number.
+
 Version 3.2.4, Released January 17, 2013
-	Update for LLVM 3.2.
-	Change title (book name) from "Write An LLVM Backend Tutorial For Cpu0" to 
-	"Tutorial: Creating an LLVM Backend for the Cpu0 Architecture".
+  Update for LLVM 3.2.
+  Change title (book name) from "Write An LLVM Backend Tutorial For Cpu0" to 
+  "Tutorial: Creating an LLVM Backend for the Cpu0 Architecture".
+
 Version 3.2.3, Released January 12, 2013
-	Add chapter "Porting to LLVM 3.2".
+
+  Add chapter "Porting to LLVM 3.2".
+
 Version 3.2.2, Released January 10, 2013
-	Add section "Full support %" and section "Verify DIV for operator %".
+
+  Add section "Full support %" and section "Verify DIV for operator %".
+
 Version 3.2.1, Released January 7, 2013
-	Add Footnote for references.
-	Reorganize chapters (Move bottom part of chapter "Global variable" to 
-	chapter "Other instruction"; Move section "Translate into obj file" to 
-	new chapter "Generate obj file". 
-	Fix errors in Fig/otherinst/2.png and Fig/otherinst/3.png. 
+
+  Add Footnote for references.
+  Reorganize chapters (Move bottom part of chapter "Global variable" to 
+  chapter "Other instruction"; Move section "Translate into obj file" to 
+  new chapter "Generate obj file". 
+  Fix errors in Fig/otherinst/2.png and Fig/otherinst/3.png. 
+
 Version 3.2.0, Released January 1, 2013
-	Add chapter Function.
-	Move Chapter "Installing LLVM and the Cpu0 example code" from beginning to 
-	Appendix A.
-	Add subsection "Install other tools on Linux".
-	Add chapter ELF.
+
+  Add chapter Function.
+  Move Chapter "Installing LLVM and the Cpu0 example code" from beginning to 
+  Appendix A.
+  Add subsection "Install other tools on Linux".
+  Add chapter ELF.
+
 Version 3.1.2, Released December 15, 2012
-	Fix section 6.1 error by add “def : Pat<(brcond RC:$cond, bb:$dst), 
-	(JNEOp (CMPOp RC:$cond, ZEROReg), bb:$dst)>;” in last pattern.
-	Modify section 5.5
-	Fix bug Cpu0InstrInfo.cpp SW to ST.
-	Correct LW to LD; LB to LDB; SB to STB.
+
+  Fix section 6.1 error by add “def : Pat<(brcond RC:$cond, bb:$dst), 
+  (JNEOp (CMPOp RC:$cond, ZEROReg), bb:$dst)>;” in last pattern.
+  Modify section 5.5
+  Fix bug Cpu0InstrInfo.cpp SW to ST.
+  Correct LW to LD; LB to LDB; SB to STB.
+
 Version 3.1.1, Released November 28, 2012
-	Add Revision history.
-	Correct ldi instruction error (replace ldi instruction with addiu from the 
-	beginning and in the all example code).
-	Move ldi instruction change from section of "Adjust cpu0 instruction and 
-	support type of local variable pointer" to Section ”CPU0 
-	processor architecture”.
-	Correct some English & typing errors.
+
+  Add Revision history.
+  Correct ldi instruction error (replace ldi instruction with addiu from the 
+  beginning and in the all example code).
+  Move ldi instruction change from section of "Adjust cpu0 instruction and 
+  support type of local variable pointer" to Section ”CPU0 
+  processor architecture”.
+  Correct some English & typing errors.
 
 Licensing
 ---------
