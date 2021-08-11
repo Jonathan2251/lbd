@@ -51,6 +51,12 @@ Akira Hatanaka <ahatanak@gmail.com> in va_arg question answer.
 Ulrich Weigand <Ulrich.Weigand@de.ibm.com> in AsmParser question answer.
 
 
+Build steps
+~~~~~~~~~~~~
+
+https://github.com/Jonathan2251/lbd/blob/master/README.md
+
+
 Revision history
 ----------------
 
