@@ -2179,6 +2179,7 @@ Please see "Target Registration" [#target-reg]_ for reference.
 Build libraries and td
 ~~~~~~~~~~~~~~~~~~~~~~
 
+Build steps https://github.com/Jonathan2251/lbd/blob/master/README.md.
 We set llvm source code in /Users/Jonathan/llvm/release/llvm and have llvm 
 release-build in /Users/Jonathan/llvm/release/build. 
 About how to build llvm, please refer here [#clang]_. 
@@ -2195,10 +2196,10 @@ commands, cp -rf lbdex/llvm/modify/llvm/* <yourllvm/workingcopy/sourcedir>/.
 
 .. code-block:: console
 
-  118-165-78-230:test Jonathan$ pwd
-  /Users/Jonathan/test
-  118-165-78-230:test Jonathan$ cp -rf lbdex/llvm/modify/llvm/* ~/llvm/test/llvm/.
-  118-165-78-230:test Jonathan$ grep -R "cpu0" ~/llvm/test/llvm/include
+  118-165-78-230:lbd Jonathan$ pwd
+  /Users/Jonathan/git/lbd
+  118-165-78-230:lbd Jonathan$ cp -rf lbdex/llvm/modify/llvm/* ~/llvm/test/llvm/.
+  118-165-78-230:lbd Jonathan$ grep -R "cpu0" ~/llvm/test/llvm/include
   llvm/cmake/config-ix.cmake:elseif (LLVM_NATIVE_ARCH MATCHES "cpu0")
   llvm/include/llvm/ADT/Triple.h:#undef cpu0
   llvm/include/llvm/ADT/Triple.h:    cpu0,       // For Tutorial Backend Cpu0
@@ -2213,6 +2214,18 @@ Next configure the Cpu0 example code to chapter2 as follows,
 .. code-block:: c++
 
   #define CH       CH2
+
+Beside configure chapter as above, I provide gen-chapters.sh that you
+can get each chapter code as follows,
+
+.. code-block:: console
+
+  118-165-78-230:lbdex Jonathan$ pwd
+  /Users/Jonathan/git/lbd/lbdex
+  118-165-78-230:lbdex Jonathan$ bash gen-chapters.sh
+  118-165-78-230:lbdex Jonathan$ ls chapters
+  Chapter10_1	Chapter11_2	Chapter2	Chapter3_2...
+  Chapter11_1	Chapter12_1	Chapter3_1	Chapter3_3...
 
 
 Now, run the ``cmake and make`` command to build td (the following cmake 

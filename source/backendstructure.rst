@@ -7,6 +7,7 @@ Backend structure
    :local:
    :depth: 4
 
+
 This chapter introduces the backend class inheritance tree and class members 
 first. 
 Next, following the backend structure, adding individual classes implementation 
@@ -267,12 +268,12 @@ follows, and do building with cmake and make again.
   118-165-78-230:input Jonathan$ /Users/Jonathan/llvm/test/build/
   bin/llc -march=cpu0 -relocation-model=pic -filetype=asm ch3.bc -o 
   ch3.cpu0.s
-  ... Assertion `AsmInfo && "MCAsmInfo not initialized. " 
+  ... Assertion failed: (MRI && "Unable to create reg info"), function initAsmInfo
   ...
 
 With Chapter3_1 implementation, the Chapter2 error message 
 "Could not allocate target machine!" has gone.
-The new error say that we have not Target AsmPrinter. 
+The new error say that we have not Target AsmPrinter and asm register info. 
 We will add it in next section.
 
 Chapter3_1 create FeatureCpu032I and FeatureCpu032II for CPU cpu032I and 
@@ -801,10 +802,9 @@ gone. The new error message for Chapter3_3 as follows,
   bin/llc -march=cpu0 -relocation-model=pic -filetype=asm ch3.bc -o 
   ch3.cpu0.s
   ...
-  LLVM ERROR: Cannot select: 0x24834b8: ch = Cpu0ISD::Ret 0x24832a8, 0x24833b0 [ORD=4] [ID=6]
-    0x24833b0: i32 = Register %LR [ID=4]
+  LLVM ERROR: Cannot select: t6: ch = Cpu0ISD::Ret t4, Register:i32 $lr
+    t5: i32 = Register $lr
   ...
-    0x7f80f182d210: i32 = Register %LR [ID=4]
 
 Above can display the error message DAG node "Cpu0ISD::Ret" because the following
 code added in Chapter3_1/Cpu0ISelLowering.cpp.

@@ -36,6 +36,12 @@ Table of Contents
    doc
    gpu
    todo
+
+
+Build steps
+-----------
+
+https://github.com/Jonathan2251/lbd/blob/master/README.md
    
 
 Book example code

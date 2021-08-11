@@ -21,8 +21,11 @@ translate the C/C++ input file into llvm IR.
 The other is the directory ~/llvm/test/ which contains our cpu0 backend 
 program and clang.
 
-After setup brew install, following the README.rst in 
-https://github.com/Jonathan2251/lbd/ to build Cpu0 backend with llvm 12.x.
+Build steps
+------------
+
+After setup brew install for iMac or install necessory packages. Build as 
+https://github.com/Jonathan2251/lbd/blob/master/README.md.
 
 
 Setting Up Your Mac
@@ -124,8 +127,8 @@ Install binutils by command ``brew install binutils`` as follows,
   gar   gelfedit  gobjcopy  granlib gsize   gstrip
 
 
-Setup env vaiable
-~~~~~~~~~~~~~~~~~
+Setup path
+~~~~~~~~~~~
 
 To access those execution files, edit .profile (if you .profile not exists, 
 please create file .profile), save .profile to /Users/Jonathan/, and enable 
