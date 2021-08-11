@@ -1,34 +1,25 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
+<!DOCTYPE html>
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html>
   <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    
-    <title>Appendix C: The concept of GPU compiler &mdash; Tutorial: Creating an LLVM Backend for the Cpu0 Architecture</title>
-    
-    <link rel="stylesheet" href="_static/haiku.css" type="text/css" />
-    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    
-    <script type="text/javascript">
-      var DOCUMENTATION_OPTIONS = {
-        URL_ROOT:    './',
-        VERSION:     '3.9.3',
-        COLLAPSE_INDEX: false,
-        FILE_SUFFIX: '.html',
-        HAS_SOURCE:  true
-      };
-    </script>
-    <script type="text/javascript" src="_static/jquery.js"></script>
-    <script type="text/javascript" src="_static/underscore.js"></script>
-    <script type="text/javascript" src="_static/doctools.js"></script>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>Appendix C: The concept of GPU compiler &#8212; Tutorial: Creating an LLVM Backend for the Cpu0 Architecture</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/haiku.css" />
+    <link rel="stylesheet" type="text/css" href="_static/graphviz.css" />
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
     <link rel="author" title="About these documents" href="about.html" />
-    <link rel="top" title="Tutorial: Creating an LLVM Backend for the Cpu0 Architecture" href="index.html" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Todo List" href="todo.html" />
     <link rel="prev" title="Appendix B: Cpu0 document and test" href="doc.html" /> 
-  </head>
-  <body role="document">
+  </head><body>
       <div class="header" role="banner"><h1 class="heading"><a href="index.html">
           <span>Tutorial: Creating an LLVM Backend for the Cpu0 Architecture</span></a></h1>
         <h2 class="heading"><span>Appendix C: The concept of GPU compiler</span></h2>
@@ -44,20 +35,20 @@
         </p>
 
       </div>
-      <div class="content">
+      <div class="content" role="main">
         
         
-  <div class="section" id="appendix-c-the-concept-of-gpu-compiler">
+  <section id="appendix-c-the-concept-of-gpu-compiler">
 <span id="sec-gpu"></span><h1>Appendix C: The concept of GPU compiler<a class="headerlink" href="#appendix-c-the-concept-of-gpu-compiler" title="Permalink to this headline">¶</a></h1>
 <div class="contents local topic" id="contents">
 <ul class="simple">
-<li><a class="reference internal" href="#d-modeling" id="id77">3D modeling</a></li>
-<li><a class="reference internal" href="#d-rendering" id="id78">3D Rendering</a></li>
-<li><a class="reference internal" href="#glsl-gl-shader-language" id="id79">GLSL (GL Shader Language)</a></li>
-<li><a class="reference internal" href="#opengl-shader-compiler" id="id80">OpenGL Shader compiler</a></li>
-<li><a class="reference internal" href="#architecture" id="id81">Architecture</a></li>
-<li><a class="reference internal" href="#general-purpose-gpu" id="id82">General purpose GPU</a></li>
-<li><a class="reference internal" href="#vulkan-and-spir-v" id="id83">Vulkan and spir-v</a></li>
+<li><p><a class="reference internal" href="#d-modeling" id="id77">3D modeling</a></p></li>
+<li><p><a class="reference internal" href="#d-rendering" id="id78">3D Rendering</a></p></li>
+<li><p><a class="reference internal" href="#glsl-gl-shader-language" id="id79">GLSL (GL Shader Language)</a></p></li>
+<li><p><a class="reference internal" href="#opengl-shader-compiler" id="id80">OpenGL Shader compiler</a></p></li>
+<li><p><a class="reference internal" href="#architecture" id="id81">Architecture</a></p></li>
+<li><p><a class="reference internal" href="#general-purpose-gpu" id="id82">General purpose GPU</a></p></li>
+<li><p><a class="reference internal" href="#vulkan-and-spir-v" id="id83">Vulkan and spir-v</a></p></li>
 </ul>
 </div>
 <p>Basicly CPU compiler is SISD (Single Instruction Single Data Architecture).
@@ -69,32 +60,36 @@ Since the 2D or 3D graphic processing provides large opportunity in parallel
 data processing, GPU hardware usually composed of thousands
 of functional units in each core(grid) in N-Vidia processors.</p>
 <p>The flow for 3D/2D graphic processing as the following diagram.</p>
-<div class="figure align-center" id="id66">
+<figure class="align-center" id="id66">
 <span id="opengl-flow"></span><a class="reference internal image-reference" href="_images/opengl_flow.png"><img alt="_images/opengl_flow.png" src="_images/opengl_flow.png" style="width: 267.0px; height: 449.0px;" /></a>
-<p class="caption"><span class="caption-number">Fig. 37 </span><span class="caption-text">OpenGL flow</span></p>
-</div>
+<figcaption>
+<p><span class="caption-number">Fig. 33 </span><span class="caption-text">OpenGL flow</span><a class="headerlink" href="#id66" title="Permalink to this image">¶</a></p>
+</figcaption>
+</figure>
 <p>The most of time for running OpenGL api is on GPU. Usually, CPU is a function
-call to GPU&#8217;s functions.
+call to GPU’s functions.
 This chapter is giving a concept for the flow above and focuses on shader compiler
 for GPU. Furthermore, explaining how GPU has taking more applications from
 CPU through GPGPU concept and related standards emerged.</p>
-<div class="section" id="d-modeling">
+<section id="d-modeling">
 <h2><a class="toc-backref" href="#id77">3D modeling</a><a class="headerlink" href="#d-modeling" title="Permalink to this headline">¶</a></h2>
 <p>Through creating 3D model with Triangles or Quads along on skin, the 3D model
-is created with polygon mesh <a class="footnote-reference" href="#polygon" id="id1">[1]</a> formed by all the vertices on the first image
+is created with polygon mesh <a class="footnote-reference brackets" href="#polygon" id="id1">1</a> formed by all the vertices on the first image
 as follows,</p>
-<div class="figure align-center" id="id67">
+<figure class="align-center" id="id67">
 <span id="modeling1"></span><a class="reference internal image-reference" href="_images/modeling1.png"><img alt="_images/modeling1.png" src="_images/modeling1.png" style="width: 688.0px; height: 393.6px;" /></a>
-<p class="caption"><span class="caption-number">Fig. 38 </span><span class="caption-text">Creating 3D model and texturing</span></p>
-</div>
-<p>After the next smooth shading <a class="footnote-reference" href="#polygon" id="id2">[1]</a>, the vertices and edge lines are covered
-with color (or remove edges), and model looks much more smooth <a class="footnote-reference" href="#shading" id="id3">[2]</a>.
+<figcaption>
+<p><span class="caption-number">Fig. 34 </span><span class="caption-text">Creating 3D model and texturing</span><a class="headerlink" href="#id67" title="Permalink to this image">¶</a></p>
+</figcaption>
+</figure>
+<p>After the next smooth shading <a class="footnote-reference brackets" href="#polygon" id="id2">1</a>, the vertices and edge lines are covered
+with color (or remove edges), and model looks much more smooth <a class="footnote-reference brackets" href="#shading" id="id3">2</a>.
 Further, after texturing (texture mapping), the model looks real more
-<a class="footnote-reference" href="#texturemapping" id="id4">[3]</a>.</p>
-<p>To get to know how animation for a 3D modeling, please look video here <a class="footnote-reference" href="#animation1" id="id5">[4]</a>.
+<a class="footnote-reference brackets" href="#texturemapping" id="id4">3</a>.</p>
+<p>To get to know how animation for a 3D modeling, please look video here <a class="footnote-reference brackets" href="#animation1" id="id5">4</a>.
 In this series of video, you find the 3D modeling tools creating Java instead of
-C/C++ code calling OpenGL api and shaders. It&#8217;s because Java can call OpenGL api
-through a wrapper library <a class="footnote-reference" href="#joglwiki" id="id6">[5]</a>.</p>
+C/C++ code calling OpenGL api and shaders. It’s because Java can call OpenGL api
+through a wrapper library <a class="footnote-reference brackets" href="#joglwiki" id="id6">5</a>.</p>
 <p>Every CAD software manufacturer such as AutoDesk and Blender has their own proprietary
 format. To solve the problem of interoperability, neutral or open source formats were
 invented as intermediate formats for converting between two proprietary formats.
@@ -102,67 +97,69 @@ Naturally, these formats have become hugely popular now.
 Two famous examples of neutral formats are STL (with a .STL extension) and COLLADA
 (with a .DAE extension). Here is the list, where the 3D file formats are marked
 with their type.</p>
-<table border="1" class="docutils" id="id68">
-<caption><span class="caption-number">Table 38 </span><span class="caption-text">3D file formats <a class="footnote-reference" href="#dfmt" id="id7">[6]</a></span><a class="headerlink" href="#id68" title="Permalink to this table">¶</a></caption>
+<table class="docutils align-default" id="id68">
+<caption><span class="caption-number">Table 38 </span><span class="caption-text">3D file formats <a class="footnote-reference brackets" href="#dfmt" id="id7">6</a></span><a class="headerlink" href="#id68" title="Permalink to this table">¶</a></caption>
 <colgroup>
-<col width="20%" />
-<col width="80%" />
+<col style="width: 20%" />
+<col style="width: 80%" />
 </colgroup>
-<thead valign="bottom">
-<tr class="row-odd"><th class="head">3D file format</th>
-<th class="head">Type</th>
+<thead>
+<tr class="row-odd"><th class="head"><p>3D file format</p></th>
+<th class="head"><p>Type</p></th>
 </tr>
 </thead>
-<tbody valign="top">
-<tr class="row-even"><td>STL</td>
-<td>Neutral</td>
+<tbody>
+<tr class="row-even"><td><p>STL</p></td>
+<td><p>Neutral</p></td>
 </tr>
-<tr class="row-odd"><td>OBJ</td>
-<td>ASCII variant is neutral, binary variant is proprietary</td>
+<tr class="row-odd"><td><p>OBJ</p></td>
+<td><p>ASCII variant is neutral, binary variant is proprietary</p></td>
 </tr>
-<tr class="row-even"><td>FBX</td>
-<td>Proprietary</td>
+<tr class="row-even"><td><p>FBX</p></td>
+<td><p>Proprietary</p></td>
 </tr>
-<tr class="row-odd"><td>COLLADA</td>
-<td>Neutral</td>
+<tr class="row-odd"><td><p>COLLADA</p></td>
+<td><p>Neutral</p></td>
 </tr>
-<tr class="row-even"><td>3DS</td>
-<td>Proprietary</td>
+<tr class="row-even"><td><p>3DS</p></td>
+<td><p>Proprietary</p></td>
 </tr>
-<tr class="row-odd"><td>IGES</td>
-<td>Neutral</td>
+<tr class="row-odd"><td><p>IGES</p></td>
+<td><p>Neutral</p></td>
 </tr>
-<tr class="row-even"><td>STEP</td>
-<td>Neutral</td>
+<tr class="row-even"><td><p>STEP</p></td>
+<td><p>Neutral</p></td>
 </tr>
-<tr class="row-odd"><td>VRML/X3D</td>
-<td>Neutral</td>
+<tr class="row-odd"><td><p>VRML/X3D</p></td>
+<td><p>Neutral</p></td>
 </tr>
 </tbody>
 </table>
-</div>
-<div class="section" id="d-rendering">
+</section>
+<section id="d-rendering">
 <h2><a class="toc-backref" href="#id78">3D Rendering</a><a class="headerlink" href="#d-rendering" title="Permalink to this headline">¶</a></h2>
 <p>3D rendering is the process of converting 3D models into 2D images on a computer
-<a class="footnote-reference" href="#drendering-wiki" id="id8">[7]</a>. The steps as the following Figure <a class="footnote-reference" href="#rendering" id="id9">[8]</a>.</p>
-<div class="figure align-center" id="id69">
-<span id="rendering-pipeline1"></span><a class="reference internal image-reference" href="_images/rendering_pipeline.png"><img alt="_images/rendering_pipeline.png" src="_images/rendering_pipeline.png" style="width: 200.8px; height: 467.2px;" /></a>
-<p class="caption"><span class="caption-number">Fig. 39 </span><span class="caption-text">Diagram of the Rendering Pipeline. The blue boxes are programmable shader stages.</span></p>
-</div>
+<a class="footnote-reference brackets" href="#drendering-wiki" id="id8">7</a>. The steps as the following Figure <a class="footnote-reference brackets" href="#rendering" id="id9">8</a>.</p>
+<figure class="align-center" id="id69">
+<span id="rendering-pipeline1"></span><a class="reference internal image-reference" href="_images/rendering_pipeline.png"><img alt="_images/rendering_pipeline.png" src="_images/rendering_pipeline.png" style="width: 200.8px; height: 467.20000000000005px;" /></a>
+<figcaption>
+<p><span class="caption-number">Fig. 35 </span><span class="caption-text">Diagram of the Rendering Pipeline. The blue boxes are programmable shader stages.</span><a class="headerlink" href="#id69" title="Permalink to this image">¶</a></p>
+</figcaption>
+</figure>
 <p>For 2D animation, the model is created by 2D only (1 face only), so it only can be
 viewed from the same face of model. If you want to display different faces of model,
 multiple 2D models need to be created and switch these 2D models from face(flame) to
-face(flame) from time to time <a class="footnote-reference" href="#danimation" id="id10">[9]</a>.</p>
-</div>
-<div class="section" id="glsl-gl-shader-language">
+face(flame) from time to time <a class="footnote-reference brackets" href="#danimation" id="id10">9</a>.</p>
+</section>
+<section id="glsl-gl-shader-language">
 <h2><a class="toc-backref" href="#id79">GLSL (GL Shader Language)</a><a class="headerlink" href="#glsl-gl-shader-language" title="Permalink to this headline">¶</a></h2>
 <p>OpenGL is a standard for designing 2D/3D animation in computer graphic.
 To do animation well, OpenGL provides a lots of api(functions) call for
-graphic processing. The 3D model construction tools such as Maya, Blender, ..., etc,
+graphic processing. The 3D model construction tools such as Maya, Blender, …, etc,
 only need to call this api to finish the 3D to 2D projecting function in computer.
 Any GPU hardware dependent code in these api provided by GPU manufacturer.
 An OpenGL program looks like the following,</p>
-<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="n">Vertex</span> <span class="n">shader</span>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="n">Vertex</span> <span class="n">shader</span>
 
 <span class="cp">#version 330 core</span>
 <span class="n">layout</span> <span class="p">(</span><span class="n">location</span> <span class="o">=</span> <span class="mi">0</span><span class="p">)</span> <span class="n">in</span> <span class="n">vec3</span> <span class="n">aPos</span><span class="p">;</span> <span class="c1">// the position variable has attribute position 0</span>
@@ -194,7 +191,7 @@ An OpenGL program looks like the following,</p>
 <span class="p">}</span>
 </pre></div>
 </div>
-<p>The last main() is programed by user obviously. Let&#8217;s explain what the first two
+<p>The last main() is programed by user obviously. Let’s explain what the first two
 main() work for.
 As you know, the OpenGL is a lots of api to let programmer display the 3D object
 into 2D computer screen explained from book of concept of computer graphic.
@@ -204,45 +201,45 @@ and GPU thirdly, finally display the color of each pixel in computer screen.
 But in order to let user/programmer add some special effect or decoration in
 coordinate for each vertex or in color for each pixel, OpenGL provides these two
 functions to do it.
-OpenGL uses fragment shader instead of pixel is : &#8220;Fragment shaders are a more
+OpenGL uses fragment shader instead of pixel is : “Fragment shaders are a more
 accurate name for the same functionality as Pixel shaders. They aren’t pixels
 yet, since the output still has to past several tests (depth, alpha, stencil)
 as well as the fact that one may be using antialiasing, which renders
-one-fragment-to-one-pixel non-true <a class="footnote-reference" href="#fragmentshader-reason" id="id11">[10]</a>.
+one-fragment-to-one-pixel non-true <a class="footnote-reference brackets" href="#fragmentshader-reason" id="id11">10</a>.
 Programmer is allowed to add their converting functions that compiler translate them
 into GPU instructions running on GPU processor. With these two shaders, new
 features have been added to allow for increased flexibility in the rendering
-pipeline at the vertex and fragment level <a class="footnote-reference" href="#shaderswiki" id="id12">[11]</a>.
-Unlike the shaders example here <a class="footnote-reference" href="#shadersex" id="id13">[12]</a>, some converting functions
+pipeline at the vertex and fragment level <a class="footnote-reference brackets" href="#shaderswiki" id="id12">11</a>.
+Unlike the shaders example here <a class="footnote-reference brackets" href="#shadersex" id="id13">12</a>, some converting functions
 for coordinate in vertex shader or for color in fragment shade are more
 complicated according the scenes of
-animation. Here is an example <a class="footnote-reference" href="#glsleffect" id="id14">[13]</a>.
-In wiki shading page <a class="footnote-reference" href="#shading" id="id15">[2]</a>, Gourand and Phong shading methods make the
+animation. Here is an example <a class="footnote-reference brackets" href="#glsleffect" id="id14">13</a>.
+In wiki shading page <a class="footnote-reference brackets" href="#shading" id="id15">2</a>, Gourand and Phong shading methods make the
 surface of object more smooth by glsl. Example glsl code of Gourand
-and Phong shading on OpenGL api are here <a class="footnote-reference" href="#smoothshadingex" id="id16">[14]</a>.
+and Phong shading on OpenGL api are here <a class="footnote-reference brackets" href="#smoothshadingex" id="id16">14</a>.
 Since the hardware of graphic card and software graphic driver can be replaced,
 the compiler is run on-line meaning driver will compile the shaders program when
-it is run at first time and kept in cache after compilation <a class="footnote-reference" href="#on-line" id="id17">[15]</a>.</p>
+it is run at first time and kept in cache after compilation <a class="footnote-reference brackets" href="#on-line" id="id17">15</a>.</p>
 <p>The shaders program is C-like syntax and can be compiled in few mini-seconds,
 add up this few mini-seconds of on-line compilation time in running OpenGL
 program is a good choice for dealing the cases of driver software or gpu
-hardware replacement <a class="footnote-reference" href="#onlinecompile" id="id18">[16]</a>.</p>
+hardware replacement <a class="footnote-reference brackets" href="#onlinecompile" id="id18">16</a>.</p>
 <p>In addition, OpenGL provides vertex buffer object (VBO) allowing
 vertex array data to be stored in high-performance graphics memory on the
-server side and promotes efficient data transfer <a class="footnote-reference" href="#vbo" id="id19">[18]</a> <a class="footnote-reference" href="#classorvbo" id="id20">[17]</a>.</p>
-</div>
-<div class="section" id="opengl-shader-compiler">
+server side and promotes efficient data transfer <a class="footnote-reference brackets" href="#vbo" id="id19">18</a> <a class="footnote-reference brackets" href="#classorvbo" id="id20">17</a>.</p>
+</section>
+<section id="opengl-shader-compiler">
 <h2><a class="toc-backref" href="#id80">OpenGL Shader compiler</a><a class="headerlink" href="#opengl-shader-compiler" title="Permalink to this headline">¶</a></h2>
-<p>OpenGL standard is here <a class="footnote-reference" href="#openglspec" id="id21">[19]</a>. The OpenGL is for desktop computer or server
-while the OpenGL ES is for embedded system <a class="footnote-reference" href="#opengleswiki" id="id22">[20]</a>. Though shaders are only
+<p>OpenGL standard is here <a class="footnote-reference brackets" href="#openglspec" id="id21">19</a>. The OpenGL is for desktop computer or server
+while the OpenGL ES is for embedded system <a class="footnote-reference brackets" href="#opengleswiki" id="id22">20</a>. Though shaders are only
 a small part of the whole OpenGL software/hardware system. It is still a large effort
 to finish the compiler implementation since there are lots of api need to be
 implemented.
-For example, there are 80 related texture APIs <a class="footnote-reference" href="#textureapi" id="id23">[21]</a>.
+For example, there are 80 related texture APIs <a class="footnote-reference brackets" href="#textureapi" id="id23">21</a>.
 This implementation can be done by generating llvm extended intrinsic functions
 from shader parser of frontend compiler as well as llvm backend converting those intrinsic
 to gpu instructions as follows,</p>
-<div class="highlight-console"><div class="highlight"><pre><span></span><span class="gp">#</span>version <span class="m">320</span> es
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">#</span>version <span class="m">320</span> es
 <span class="go">uniform sampler2D x;</span>
 <span class="go">out vec4 FragColor;</span>
 
@@ -268,115 +265,121 @@ to gpu instructions as follows,</p>
 <span class="go">    sample2d_inst $1, $2, $3 // $1: %x, $2: %uv_2d, $3: %bias</span>
 </pre></div>
 </div>
-<p>About llvm intrinsic extended function, please refer this book here <a class="footnote-reference" href="#intrinsiccpu0" id="id24">[22]</a>.</p>
-<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="n">gvec4</span> <span class="nf">texture</span><span class="p">(</span><span class="n">gsampler2D</span> <span class="n">sampler</span><span class="p">,</span> <span class="n">vec2</span> <span class="n">P</span><span class="p">,</span> <span class="p">[</span><span class="kt">float</span> <span class="n">bias</span><span class="p">]);</span>
+<p>About llvm intrinsic extended function, please refer this book here <a class="footnote-reference brackets" href="#intrinsiccpu0" id="id24">22</a>.</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="n">gvec4</span> <span class="nf">texture</span><span class="p">(</span><span class="n">gsampler2D</span> <span class="n">sampler</span><span class="p">,</span> <span class="n">vec2</span> <span class="n">P</span><span class="p">,</span> <span class="p">[</span><span class="kt">float</span> <span class="n">bias</span><span class="p">]);</span>
 </pre></div>
 </div>
-<div class="figure align-center" id="id70">
-<span id="sampling"></span><a class="reference internal image-reference" href="_images/sampling_diagram.png"><img alt="_images/sampling_diagram.png" src="_images/sampling_diagram.png" style="width: 489.6px; height: 330.0px;" /></a>
-<p class="caption"><span class="caption-number">Fig. 40 </span><span class="caption-text">Relationships between the texturing concept <a class="footnote-reference" href="#textureobject" id="id25">[23]</a>.</span></p>
-</div>
-<p>The <a class="reference internal" href="#sampling"><span class="std std-numref">Fig. 40</span></a> as above.
+<figure class="align-center" id="id70">
+<span id="sampling"></span><a class="reference internal image-reference" href="_images/sampling_diagram.png"><img alt="_images/sampling_diagram.png" src="_images/sampling_diagram.png" style="width: 489.59999999999997px; height: 330.0px;" /></a>
+<figcaption>
+<p><span class="caption-number">Fig. 36 </span><span class="caption-text">Relationships between the texturing concept <a class="footnote-reference brackets" href="#textureobject" id="id25">23</a>.</span><a class="headerlink" href="#id70" title="Permalink to this image">¶</a></p>
+</figcaption>
+</figure>
+<p>The <a class="reference internal" href="#sampling"><span class="std std-numref">Fig. 36</span></a> as above.
 The texture object is not bound directly into the shader (where the actual
-sampling takes place). Instead, it is bound to a &#8216;texture unit&#8217; whose index
+sampling takes place). Instead, it is bound to a ‘texture unit’ whose index
 is passed to the shader. So the shader reaches the texture object by going
 through the texture unit. There are usually multiple texture units available
-and the exact number depends on the capability of your graphic card <a class="footnote-reference" href="#textureobject" id="id26">[23]</a>.
+and the exact number depends on the capability of your graphic card <a class="footnote-reference brackets" href="#textureobject" id="id26">23</a>.
 A texture unit, also called a texture mapping unit (TMU) or a texture processing
 unit (TPU), is a hardware component in a GPU that does sampling operation.
 The argument sampler in texture function as above is sampler_2d index from
-&#8216;teuxture unit&#8217; for texture object <a class="footnote-reference" href="#textureobject" id="id27">[23]</a>.</p>
-<p>&#8216;sampler uniform variable&#8217;:</p>
+‘teuxture unit’ for texture object <a class="footnote-reference brackets" href="#textureobject" id="id27">23</a>.</p>
+<p>‘sampler uniform variable’:</p>
 <p>There is a group of special uniform variables for that, according to the texture
-target: &#8216;sampler1D&#8217;, &#8216;sampler2D&#8217;, &#8216;sampler3D&#8217;, &#8216;samplerCube&#8217;, etc.
-You can create as many &#8216;sampler uniform variables&#8217; as you want and assign the
+target: ‘sampler1D’, ‘sampler2D’, ‘sampler3D’, ‘samplerCube’, etc.
+You can create as many ‘sampler uniform variables’ as you want and assign the
 value of a texture unit to each one from the application.
-Whenever you call a sampling function on a &#8216;sampler uniform variable&#8217; the
-corresponding texture unit (and texture object) will be used <a class="footnote-reference" href="#textureobject" id="id28">[23]</a>.</p>
-<div class="figure align-center" id="id71">
+Whenever you call a sampling function on a ‘sampler uniform variable’ the
+corresponding texture unit (and texture object) will be used <a class="footnote-reference brackets" href="#textureobject" id="id28">23</a>.</p>
+<figure class="align-center" id="id71">
 <span id="sampling-binding"></span><img alt="_images/sampling_diagram_binding.png" src="_images/sampling_diagram_binding.png" />
-<p class="caption"><span class="caption-number">Fig. 41 </span><span class="caption-text">Binding sampler variables <a class="footnote-reference" href="#tpu" id="id29">[24]</a>.</span></p>
-</div>
-<p>As <a class="reference internal" href="#sampling-binding"><span class="std std-numref">Fig. 41</span></a>, the Java api
-gl.bindTexture binding &#8216;Texture Object&#8217; to &#8216;Texture Unit&#8217;.
-The gl.getUniformLocation and gl.uniform1i associate &#8216;Texture Unit&#8217; to
-&#8216;sampler uniform variables&#8217;.</p>
+<figcaption>
+<p><span class="caption-number">Fig. 37 </span><span class="caption-text">Binding sampler variables <a class="footnote-reference brackets" href="#tpu" id="id29">24</a>.</span><a class="headerlink" href="#id71" title="Permalink to this image">¶</a></p>
+</figcaption>
+</figure>
+<p>As <a class="reference internal" href="#sampling-binding"><span class="std std-numref">Fig. 37</span></a>, the Java api
+gl.bindTexture binding ‘Texture Object’ to ‘Texture Unit’.
+The gl.getUniformLocation and gl.uniform1i associate ‘Texture Unit’ to
+‘sampler uniform variables’.</p>
 <p>gl.uniform1i(xLoc, 1): where 1 is
-&#8216;Texture Unit 1&#8217;, 2 is &#8216;Texture Unit 2&#8217;, ..., etc <a class="footnote-reference" href="#tpu" id="id30">[24]</a>.</p>
+‘Texture Unit 1’, 2 is ‘Texture Unit 2’, …, etc <a class="footnote-reference brackets" href="#tpu" id="id30">24</a>.</p>
 <p>The following figure depicts how driver read metadata from compiled glsl obj,
-OpenGL api associate &#8216;Sample Variable&#8217; and gpu executing texture instruction.</p>
-<div class="figure align-center" id="id72">
+OpenGL api associate ‘Sample Variable’ and gpu executing texture instruction.</p>
+<figure class="align-center" id="id72">
 <span id="driversamplertable"></span><img alt="_images/driverSamplerTable.png" src="_images/driverSamplerTable.png" />
-<p class="caption"><span class="caption-number">Fig. 42 </span><span class="caption-text">Associating Sampler Variables and gpu executing texture instruction</span></p>
-</div>
+<figcaption>
+<p><span class="caption-number">Fig. 38 </span><span class="caption-text">Associating Sampler Variables and gpu executing texture instruction</span><a class="headerlink" href="#id72" title="Permalink to this image">¶</a></p>
+</figcaption>
+</figure>
 <p>Explaining the detail steps for figure above as the following.</p>
-<p>1. In order to let the &#8216;texture unit&#8217; binding by driver, frontend compiler must
-pass the metadata of &#8216;sampler uniform variable&#8217; (sampler_2d_var in this example)
-<a class="footnote-reference" href="#samplervar" id="id31">[27]</a> to backend, and backend must
-allocate the metadata of &#8216;sampler uniform variable&#8217; in the compiled
-binary file <a class="footnote-reference" href="#metadata" id="id32">[25]</a>.</p>
+<p>1. In order to let the ‘texture unit’ binding by driver, frontend compiler must
+pass the metadata of ‘sampler uniform variable’ (sampler_2d_var in this example)
+<a class="footnote-reference brackets" href="#samplervar" id="id31">27</a> to backend, and backend must
+allocate the metadata of ‘sampler uniform variable’ in the compiled
+binary file <a class="footnote-reference brackets" href="#metadata" id="id32">25</a>.</p>
 <p>2. After gpu driver executing glsl on-line compiling,
 driver read this metadata from compiled binary file and maintain a
-table of {name, SamplerType} for each &#8216;sampler uniform variable&#8217;.</p>
+table of {name, SamplerType} for each ‘sampler uniform variable’.</p>
 <ol class="arabic simple" start="3">
-<li>Api,</li>
+<li><p>Api,</p></li>
 </ol>
-<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="n">xLoc</span> <span class="o">=</span> <span class="n">gl</span><span class="p">.</span><span class="n">getUniformLocation</span><span class="p">(</span><span class="n">prog</span><span class="p">,</span> <span class="s">&quot;x&quot;</span><span class="p">);</span> <span class="c1">// prog: glsl program, xLoc</span>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="n">xLoc</span> <span class="o">=</span> <span class="n">gl</span><span class="p">.</span><span class="n">getUniformLocation</span><span class="p">(</span><span class="n">prog</span><span class="p">,</span> <span class="s">&quot;x&quot;</span><span class="p">);</span> <span class="c1">// prog: glsl program, xLoc</span>
 </pre></div>
 </div>
-<p>will get the location from the table for &#8216;sampler uniform variable&#8217; x that
+<p>will get the location from the table for ‘sampler uniform variable’ x that
 driver created and set the memory address xSlot to xLoc.</p>
 <p>SAMPLER_2D: is integer value for Sampler2D type.</p>
 <ol class="arabic simple" start="4">
-<li>Api,</li>
+<li><p>Api,</p></li>
 </ol>
-<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="n">gl</span><span class="p">.</span><span class="n">uniform1i</span><span class="p">(</span> <span class="n">xLoc</span><span class="p">,</span> <span class="mi">1</span> <span class="p">);</span>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="n">gl</span><span class="p">.</span><span class="n">uniform1i</span><span class="p">(</span> <span class="n">xLoc</span><span class="p">,</span> <span class="mi">1</span> <span class="p">);</span>
 </pre></div>
 </div>
-<p>will binding xLoc of &#8216;sampler uniform variable&#8217; x to
-&#8216;Texture Unit 1&#8217; by writing 1 to the glsl binary metadata location of
-&#8216;sampler uniform variable&#8217; x as follows,</p>
-<div class="highlight-console"><div class="highlight"><pre><span></span><span class="go">{xLoc, 1} : 1 is &#39;Texture Unit 1&#39;, xLoc is the location(memory address) of &#39;sampler uniform variable&#39; x</span>
+<p>will binding xLoc of ‘sampler uniform variable’ x to
+‘Texture Unit 1’ by writing 1 to the glsl binary metadata location of
+‘sampler uniform variable’ x as follows,</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">{xLoc, 1} : 1 is &#39;Texture Unit 1&#39;, xLoc is the location(memory address) of &#39;sampler uniform variable&#39; x</span>
 </pre></div>
 </div>
 <p>This api will set the descriptor register of gpu with this {xLoc, 1}
-information <a class="footnote-reference" href="#descriptorreg" id="id33">[28]</a>.</p>
+information <a class="footnote-reference brackets" href="#descriptorreg" id="id33">28</a>.</p>
 <ol class="arabic simple" start="5">
-<li>When executing the texture instructions from glsl binary file on gpu,</li>
+<li><p>When executing the texture instructions from glsl binary file on gpu,</p></li>
 </ol>
-<div class="highlight-console"><div class="highlight"><pre><span></span><span class="go">// gpu machine code</span>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">// gpu machine code</span>
 <span class="go">load $1, &amp;xSlot;</span>
 <span class="go">sample2d_inst $1, $2, $3 // $1: %x, $2: %uv_2d, $3: %bias</span>
 </pre></div>
 </div>
-<p>the corresponding &#8216;Texture Unit 1&#8217; on gpu will being executed through descriptor
+<p>the corresponding ‘Texture Unit 1’ on gpu will being executed through descriptor
 register of gpu {xLoc, 1} in this example since memory address xSlot includes the
 value of xLoc.</p>
 <p>For instance, Nvidia texture instruction as follow,</p>
-<div class="highlight-console"><div class="highlight"><pre><span></span><span class="go">tex.3d.v4.s32.s32  {r1,r2,r3,r4}, [tex_a, {f1,f2,f3,f4}];</span>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">tex.3d.v4.s32.s32  {r1,r2,r3,r4}, [tex_a, {f1,f2,f3,f4}];</span>
 </pre></div>
 </div>
-<p>Where tex_a is the texture memory address for &#8216;sampler uniform variable&#8217; x,
+<p>Where tex_a is the texture memory address for ‘sampler uniform variable’ x,
 and the pixel of coordinates (x,y,z) is given by (f1,f2,f3) user input.
 The f4 is skipped for 3D texture.</p>
 <p>Above tex.3d texture instruction load the calculated color of pixel (x,y.z) from
 texture image into GPRs (r1,r2,r3,r4)=(R,G,B,A).
 And fragment shader can re-calculate the color of this pixel with the color of
-this pixel at texture image <a class="footnote-reference" href="#ptxtex" id="id34">[26]</a>.</p>
+this pixel at texture image <a class="footnote-reference brackets" href="#ptxtex" id="id34">26</a>.</p>
 <p>If it is 1d texture instruction, the tex.1d as follows,</p>
-<div class="highlight-console"><div class="highlight"><pre><span></span><span class="go">tex.1d.v4.s32.f32  {r1,r2,r3,r4}, [tex_a, {f1}];</span>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">tex.1d.v4.s32.f32  {r1,r2,r3,r4}, [tex_a, {f1}];</span>
 </pre></div>
 </div>
-<p>Since &#8216;Texture Unit&#8217; is limited hardware accelerator on gpu, OpenGL
-providing api to user program for binding &#8216;Texture Unit&#8217; to &#8216;Sampler Variables&#8217;.
-As a result, user program is allowed doing load balance in using &#8216;Texture Unit&#8217;
+<p>Since ‘Texture Unit’ is limited hardware accelerator on gpu, OpenGL
+providing api to user program for binding ‘Texture Unit’ to ‘Sampler Variables’.
+As a result, user program is allowed doing load balance in using ‘Texture Unit’
 through OpenGL api without recompiling glsl.
 Fast texture sampling is one of the key requirements for good GPU performance
-<a class="footnote-reference" href="#tpu" id="id35">[24]</a>.</p>
+<a class="footnote-reference brackets" href="#tpu" id="id35">24</a>.</p>
 <p>In addition to api for binding texture, OpenGL provides glTexParameteri api to
-do Texture Wrapping <a class="footnote-reference" href="#texturewrapper" id="id36">[29]</a>.
+do Texture Wrapping <a class="footnote-reference brackets" href="#texturewrapper" id="id36">29</a>.
 Furthmore the texture instruction for some gpu may including S# T# values in operands.
-Same with associating &#8216;Sampler Variables&#8217; to &#8216;Texture Unit&#8217;, S# and T# are
+Same with associating ‘Sampler Variables’ to ‘Texture Unit’, S# and T# are
 location of memory associated to Texture Wrapping descriptor registers allowing
 user program to change Wrapping option without re-compiling glsl.</p>
 <p>Even glsl frontend compiler always expanding function call into inline function
@@ -387,56 +390,64 @@ GPU backend compiler is still a little complex than CPU backend.
 toolchain such
 as linker and gdb/lldb, of course, CPU compiler is not easier than
 GPU compiler.)</p>
-<p>Here is the software stack of 3D graphic system for OpenGL in linux <a class="footnote-reference" href="#mesawiki" id="id37">[30]</a>.
-And mesa open source website is here <a class="footnote-reference" href="#mesa" id="id38">[31]</a>.</p>
-</div>
-<div class="section" id="architecture">
+<p>Here is the software stack of 3D graphic system for OpenGL in linux <a class="footnote-reference brackets" href="#mesawiki" id="id37">30</a>.
+And mesa open source website is here <a class="footnote-reference brackets" href="#mesa" id="id38">31</a>.</p>
+</section>
+<section id="architecture">
 <h2><a class="toc-backref" href="#id81">Architecture</a><a class="headerlink" href="#architecture" title="Permalink to this headline">¶</a></h2>
-<p>The leading GPU architecture of Nvidia&#8217;s gpu is as the following
+<p>The leading GPU architecture of Nvidia’s gpu is as the following
 figures.</p>
-<div class="figure align-center" id="id73">
+<figure class="align-center" id="id73">
 <span id="grid"></span><a class="reference internal image-reference" href="_images/grid.png"><img alt="_images/grid.png" src="_images/grid.png" style="width: 560.0px; height: 688.0px;" /></a>
-<p class="caption"><span class="caption-number">Fig. 43 </span><span class="caption-text">core(grid) in Nvidia gpu (figure from book <a class="footnote-reference" href="#quantitative-grid" id="id39">[32]</a>)</span></p>
-</div>
-<div class="figure align-center" id="id74">
+<figcaption>
+<p><span class="caption-number">Fig. 39 </span><span class="caption-text">core(grid) in Nvidia gpu (figure from book <a class="footnote-reference brackets" href="#quantitative-grid" id="id39">32</a>)</span><a class="headerlink" href="#id73" title="Permalink to this image">¶</a></p>
+</figcaption>
+</figure>
+<figure class="align-center" id="id74">
 <span id="simd-processors"></span><a class="reference internal image-reference" href="_images/SIMD-processors.png"><img alt="_images/SIMD-processors.png" src="_images/SIMD-processors.png" style="width: 552.0px; height: 547.0px;" /></a>
-<p class="caption"><span class="caption-number">Fig. 44 </span><span class="caption-text">SIMD processors (figure from book <a class="footnote-reference" href="#quantitative-simd-processors" id="id40">[33]</a>)</span></p>
-</div>
-<div class="figure align-center" id="id75">
+<figcaption>
+<p><span class="caption-number">Fig. 40 </span><span class="caption-text">SIMD processors (figure from book <a class="footnote-reference brackets" href="#quantitative-simd-processors" id="id40">33</a>)</span><a class="headerlink" href="#id74" title="Permalink to this image">¶</a></p>
+</figcaption>
+</figure>
+<figure class="align-center" id="id75">
 <span id="threadslanes"></span><a class="reference internal image-reference" href="_images/threads-lanes.png"><img alt="_images/threads-lanes.png" src="_images/threads-lanes.png" style="width: 636.0px; height: 581.0px;" /></a>
-<p class="caption"><span class="caption-number">Fig. 45 </span><span class="caption-text">threads and lanes in gpu (figure from book <a class="footnote-reference" href="#quantitative-threads-lanes" id="id41">[34]</a>)</span></p>
-</div>
-<div class="figure align-center" id="id76">
-<span id="gpu-mem"></span><a class="reference internal image-reference" href="_images/memory.png"><img alt="_images/memory.png" src="_images/memory.png" style="width: 543.2px; height: 506.4px;" /></a>
-<p class="caption"><span class="caption-number">Fig. 46 </span><span class="caption-text">core(grid) in Nvidia&#8217;s gpu (figure from book <a class="footnote-reference" href="#quantitative-gpu-mem" id="id42">[35]</a>)</span></p>
-</div>
+<figcaption>
+<p><span class="caption-number">Fig. 41 </span><span class="caption-text">threads and lanes in gpu (figure from book <a class="footnote-reference brackets" href="#quantitative-threads-lanes" id="id41">34</a>)</span><a class="headerlink" href="#id75" title="Permalink to this image">¶</a></p>
+</figcaption>
+</figure>
+<figure class="align-center" id="id76">
+<span id="gpu-mem"></span><a class="reference internal image-reference" href="_images/memory.png"><img alt="_images/memory.png" src="_images/memory.png" style="width: 543.2px; height: 506.40000000000003px;" /></a>
+<figcaption>
+<p><span class="caption-number">Fig. 42 </span><span class="caption-text">core(grid) in Nvidia’s gpu (figure from book <a class="footnote-reference brackets" href="#quantitative-gpu-mem" id="id42">35</a>)</span><a class="headerlink" href="#id76" title="Permalink to this image">¶</a></p>
+</figcaption>
+</figure>
 <ul class="simple">
-<li>Grid is Vectorizable Loop <a class="footnote-reference" href="#quantitative-gpu-griddef" id="id43">[36]</a>.</li>
-<li>Each multithreaded SIMD Processor is assigned 512 elements of the vectors to work on.
-As <a class="reference internal" href="#grid"><span class="std std-numref">Fig. 43</span></a>: The hardware Thread Block Scheduler assigns Thread Blocks to
+<li><p>Grid is Vectorizable Loop <a class="footnote-reference brackets" href="#quantitative-gpu-griddef" id="id43">36</a>.</p></li>
+<li><p>Each multithreaded SIMD Processor is assigned 512 elements of the vectors to work on.
+As <a class="reference internal" href="#grid"><span class="std std-numref">Fig. 39</span></a>: The hardware Thread Block Scheduler assigns Thread Blocks to
 multithreaded SIMD Processors. Thread Block &lt;-&gt; SIMD Processor. In this 8192 elements
 of matrix multiplication A[] = B[] * C[] example, Warp is the 512 elements of
 matrix mutiplication.
 If another 512 elements of matrix addition F[] = D[] + E[] assigned in the same
-Thread Block, then another Warp for it. Warp has it&#8217;s own
+Thread Block, then another Warp for it. Warp has it’s own
 PC and TLR (Thread Level Registers). Warp may map to
 one whole function or part of function. Assume these two matrix mutiplication and
 addition instructions come from the same function. Compiler and run time may assign
-them to the same Warp or different Warps <a class="footnote-reference" href="#quantitative-gpu-warp" id="id44">[37]</a>.</li>
-<li>SIMD Processors are full processors with separate PCs and are programmed using
-threads <a class="footnote-reference" href="#quantitative-gpu-threadblock" id="id45">[38]</a>.
-As <a class="reference internal" href="#simd-processors"><span class="std std-numref">Fig. 44</span></a>, it assigns 16 Thread blocks to 16 SIMD Processors.</li>
-<li>As <a class="reference internal" href="#grid"><span class="std std-numref">Fig. 43</span></a>,
+them to the same Warp or different Warps <a class="footnote-reference brackets" href="#quantitative-gpu-warp" id="id44">37</a>.</p></li>
+<li><p>SIMD Processors are full processors with separate PCs and are programmed using
+threads <a class="footnote-reference brackets" href="#quantitative-gpu-threadblock" id="id45">38</a>.
+As <a class="reference internal" href="#simd-processors"><span class="std std-numref">Fig. 40</span></a>, it assigns 16 Thread blocks to 16 SIMD Processors.</p></li>
+<li><p>As <a class="reference internal" href="#grid"><span class="std std-numref">Fig. 39</span></a>,
 the maximum number of SIMD Threads that can execute simultaneously per Thread Block
 (SIMD Processor) is 32 for the later Fermi-generation GPUs.
-Each SIMD Thread has 32 elements run as <a class="reference internal" href="#threadslanes"><span class="std std-numref">Fig. 45</span></a> on
+Each SIMD Thread has 32 elements run as <a class="reference internal" href="#threadslanes"><span class="std std-numref">Fig. 41</span></a> on
 16 SIMD lanes (number of functional units just same
-as in vector processor). So it takes 2 clock cycles to complete <a class="footnote-reference" href="#lanes" id="id46">[39]</a>.</li>
-<li>As the following code.
-Thread Block 0 has 16 threads and each thread (warp) has it&#8217;s own PC. The The
-SIMD Thread Scheduler select threads to run as <a class="reference internal" href="#simd-processors"><span class="std std-numref">Fig. 44</span></a>.</li>
+as in vector processor). So it takes 2 clock cycles to complete <a class="footnote-reference brackets" href="#lanes" id="id46">39</a>.</p></li>
+<li><p>As the following code.
+Thread Block 0 has 16 threads and each thread (warp) has it’s own PC. The The
+SIMD Thread Scheduler select threads to run as <a class="reference internal" href="#simd-processors"><span class="std std-numref">Fig. 40</span></a>.</p></li>
 </ul>
-<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="n">Thread</span> <span class="n">Block</span> <span class="mi">0</span><span class="o">:</span>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="n">Thread</span> <span class="n">Block</span> <span class="mi">0</span><span class="o">:</span>
   <span class="n">A</span><span class="p">[</span><span class="n">i0</span><span class="p">]</span> <span class="o">=</span> <span class="n">B</span><span class="p">[</span><span class="n">i0</span><span class="p">]</span> <span class="o">*</span> <span class="n">C</span><span class="p">[</span><span class="n">i0</span><span class="p">];</span> <span class="c1">// thread 0, i0:(0..31) run in one or few SIMD instructions</span>
   <span class="n">A</span><span class="p">[</span><span class="n">i1</span><span class="p">]</span> <span class="o">=</span> <span class="n">B</span><span class="p">[</span><span class="n">i1</span><span class="p">]</span> <span class="o">*</span> <span class="n">C</span><span class="p">[</span><span class="n">i1</span><span class="p">];</span> <span class="c1">// thread 1, i1:(32..63)</span>
   <span class="p">...</span>
@@ -448,27 +459,27 @@ SIMD Thread Scheduler select threads to run as <a class="reference internal" hre
 </pre></div>
 </div>
 <ul class="simple">
-<li>Each thread handle 32 elements computing, so there are few hundred Thread
-Level Registers in a thread to support the SIMT computing.</li>
+<li><p>Each thread handle 32 elements computing, so there are few hundred Thread
+Level Registers in a thread to support the SIMT computing.</p></li>
 </ul>
-</div>
-<div class="section" id="general-purpose-gpu">
+</section>
+<section id="general-purpose-gpu">
 <h2><a class="toc-backref" href="#id82">General purpose GPU</a><a class="headerlink" href="#general-purpose-gpu" title="Permalink to this headline">¶</a></h2>
 <p>Since GLSL shaders provide a general way for writing C code in them, if applying
 a software frame work instead of OpenGL api, then the system can run some data
 parallel computation on GPU for speeding up and even get CPU and GPU executing
 simultaneously. Furthmore, any language that allows the code running on the CPU to poll
-a GPU shader for return values, can create a GPGPU framework <a class="footnote-reference" href="#gpgpuwiki" id="id47">[40]</a>.
-The following is a CUDA example to run large data in array on GPU <a class="footnote-reference" href="#cudaex" id="id48">[41]</a>
+a GPU shader for return values, can create a GPGPU framework <a class="footnote-reference brackets" href="#gpgpuwiki" id="id47">40</a>.
+The following is a CUDA example to run large data in array on GPU <a class="footnote-reference brackets" href="#cudaex" id="id48">41</a>
 as follows,</p>
-<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="n">__global__</span>
-<span class="kt">void</span> <span class="nf">saxpy</span><span class="p">(</span><span class="kt">int</span> <span class="n">n</span><span class="p">,</span> <span class="kt">float</span> <span class="n">a</span><span class="p">,</span> <span class="kt">float</span> <span class="o">*</span> <span class="n">x</span><span class="p">,</span> <span class="kt">float</span> <span class="o">*</span> <span class="n">y</span><span class="p">)</span>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="n">__global__</span>
+<span class="kt">void</span> <span class="n">saxpy</span><span class="p">(</span><span class="kt">int</span> <span class="n">n</span><span class="p">,</span> <span class="kt">float</span> <span class="n">a</span><span class="p">,</span> <span class="kt">float</span> <span class="o">*</span> <span class="n">x</span><span class="p">,</span> <span class="kt">float</span> <span class="o">*</span> <span class="n">y</span><span class="p">)</span>
 <span class="p">{</span>
   <span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="n">blockIdx</span><span class="p">.</span><span class="n">x</span><span class="o">*</span><span class="n">blockDim</span><span class="p">.</span><span class="n">x</span> <span class="o">+</span> <span class="n">threadIdx</span><span class="p">.</span><span class="n">x</span><span class="p">;</span>
   <span class="k">if</span> <span class="p">(</span><span class="n">i</span> <span class="o">&lt;</span> <span class="n">n</span><span class="p">)</span> <span class="n">y</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">a</span><span class="o">*</span><span class="n">x</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+</span> <span class="n">y</span><span class="p">[</span><span class="n">i</span><span class="p">];</span>
 <span class="p">}</span>
 
-<span class="kt">int</span> <span class="nf">main</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span>
+<span class="kt">int</span> <span class="n">main</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span>
 <span class="p">{</span>
   <span class="p">...</span>
   <span class="n">cudaMemcpy</span><span class="p">(</span><span class="n">d_x</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">N</span><span class="o">*</span><span class="k">sizeof</span><span class="p">(</span><span class="kt">float</span><span class="p">),</span> <span class="n">cudaMemcpyHostToDevice</span><span class="p">);</span>
@@ -481,9 +492,9 @@ as follows,</p>
 </div>
 <p>In the programming example saxpy() above,</p>
 <ul class="simple">
-<li>blockIdx is index of ThreadBlock</li>
-<li>threadIdx is index of SIMD Thread</li>
-<li>blockDim is the number of total Thread Blocks in a Grid</li>
+<li><p>blockIdx is index of ThreadBlock</p></li>
+<li><p>threadIdx is index of SIMD Thread</p></li>
+<li><p>blockDim is the number of total Thread Blocks in a Grid</p></li>
 </ul>
 <p>The main() run on CPU while the saxpy() run on GPU. Through
 cudaMemcpyHostToDevice and cudaMemcpyDeviceToHost, CPU can pass data in x and in y
@@ -491,406 +502,246 @@ array to GPU and get result from GPU to y array.
 Since both of these memory transfers trigger the DMA functions without CPU operation,
 it mays speed up by running both CPU/GPU with their data in their own cache
 repectively.
-After DMA memcpy from cpu&#8217;s memory to gpu&#8217;s, gpu operate the whole loop of matrix
-operation for &#8220;y[] = a*x[]+y[];&#8221;
+After DMA memcpy from cpu’s memory to gpu’s, gpu operate the whole loop of matrix
+operation for “y[] = a*x[]+y[];”
 instructions with one Grid. Furthermore liking vector processor, gpu provides
 Vector Mask Registers to Handling IF Statements in Vector Loops as the following
-code <a class="footnote-reference" href="#vmr" id="id49">[42]</a>,</p>
-<div class="code c highlight-default"><div class="highlight"><pre><span></span>for(i=0;i&lt;64; i=i+1)
+code <a class="footnote-reference brackets" href="#vmr" id="id49">42</a>,</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>for(i=0;i&lt;64; i=i+1)
   if (X[i] != 0)
     X[i] = X[i] – Y[i];
 </pre></div>
 </div>
-<div class="code asm highlight-default"><div class="highlight"><pre><span></span><span class="n">LV</span> <span class="n">V1</span><span class="p">,</span><span class="n">Rx</span>         <span class="p">;</span><span class="n">load</span> <span class="n">vector</span> <span class="n">X</span> <span class="n">into</span> <span class="n">V1</span>
-<span class="n">LV</span> <span class="n">V2</span><span class="p">,</span><span class="n">Ry</span>         <span class="p">;</span><span class="n">load</span> <span class="n">vector</span> <span class="n">Y</span>
-<span class="n">L</span><span class="o">.</span><span class="n">D</span> <span class="n">F0</span><span class="p">,</span><span class="c1">#0        ;load FP zero into F0</span>
-<span class="n">SNEVS</span><span class="o">.</span><span class="n">D</span> <span class="n">V1</span><span class="p">,</span><span class="n">F0</span>    <span class="p">;</span><span class="n">sets</span> <span class="n">VM</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="n">to</span> <span class="mi">1</span> <span class="k">if</span> <span class="n">V1</span><span class="p">(</span><span class="n">i</span><span class="p">)</span><span class="o">!=</span><span class="n">F0</span>
-<span class="n">SUBVV</span><span class="o">.</span><span class="n">D</span> <span class="n">V1</span><span class="p">,</span><span class="n">V1</span><span class="p">,</span><span class="n">V2</span> <span class="p">;</span><span class="n">subtract</span> <span class="n">under</span> <span class="n">vector</span> <span class="n">mask</span>
-<span class="n">SV</span> <span class="n">V1</span><span class="p">,</span><span class="n">Rx</span>         <span class="p">;</span><span class="n">store</span> <span class="n">the</span> <span class="n">result</span> <span class="ow">in</span> <span class="n">X</span>
+<div class="highlight-asm notranslate"><div class="highlight"><pre><span></span><span class="nf">LV</span> <span class="no">V1</span><span class="p">,</span><span class="no">Rx</span>         <span class="c1">;load vector X into V1</span>
+<span class="nf">LV</span> <span class="no">V2</span><span class="p">,</span><span class="no">Ry</span>         <span class="c1">;load vector Y</span>
+<span class="nf">L.D</span> <span class="no">F0</span><span class="p">,</span><span class="mi">#0</span>        <span class="c1">;load FP zero into F0</span>
+<span class="nf">SNEVS.D</span> <span class="no">V1</span><span class="p">,</span><span class="no">F0</span>    <span class="c1">;sets VM(i) to 1 if V1(i)!=F0</span>
+<span class="nf">SUBVV.D</span> <span class="no">V1</span><span class="p">,</span><span class="no">V1</span><span class="p">,</span><span class="no">V2</span> <span class="c1">;subtract under vector mask</span>
+<span class="nf">SV</span> <span class="no">V1</span><span class="p">,</span><span class="no">Rx</span>         <span class="c1">;store the result in X</span>
 </pre></div>
 </div>
 <p>GPU has smaller L1 cache than cpu for each core.
 DMA memcpy map the data in cpu memory to each l1 cache of core on gpu memory.
 Many gpu provides operations scatter and gather to access DRAM data for stream
-processing <a class="footnote-reference" href="#quantitative-gpu-sparse-matrix" id="id50">[43]</a> <a class="footnote-reference" href="#gpgpuwiki" id="id51">[40]</a> <a class="footnote-reference" href="#shadingl1" id="id52">[44]</a>.</p>
+processing <a class="footnote-reference brackets" href="#quantitative-gpu-sparse-matrix" id="id50">43</a> <a class="footnote-reference brackets" href="#gpgpuwiki" id="id51">40</a> <a class="footnote-reference brackets" href="#shadingl1" id="id52">44</a>.</p>
 <p>When the GPU function is dense computation in array such as MPEG4 encoder or
-deep learning for tuning weights, it mays get much speed up <a class="footnote-reference" href="#mpeg4speedup" id="id53">[45]</a>.
+deep learning for tuning weights, it mays get much speed up <a class="footnote-reference brackets" href="#mpeg4speedup" id="id53">45</a>.
 However when GPU function is matrix addition and CPU will idle for waiting
-GPU&#8217;s result. It mays slow down than doing matrix addition by CPU only.
+GPU’s result. It mays slow down than doing matrix addition by CPU only.
 Arithmetic intensity is defined as the number of operations performed per word of
 memory transferred. It is important for GPGPU applications to have high arithmetic
 intensity else the memory access latency will limit computational speedup
-<a class="footnote-reference" href="#gpgpuwiki" id="id54">[40]</a>.</p>
-<p>Wiki here <a class="footnote-reference" href="#gpuspeedup" id="id55">[46]</a> includes speedup applications for gpu as follows:</p>
+<a class="footnote-reference brackets" href="#gpgpuwiki" id="id54">40</a>.</p>
+<p>Wiki here <a class="footnote-reference brackets" href="#gpuspeedup" id="id55">46</a> includes speedup applications for gpu as follows:</p>
 <p>General Purpose Computing on GPU, has found its way into fields as diverse as
 machine learning, oil exploration, scientific image processing, linear algebra,
 statistics, 3D reconstruction and even stock options pricing determination.
-In addition, section &#8220;GPU accelerated video decoding and encoding&#8221; for video
-compressing <a class="footnote-reference" href="#gpuspeedup" id="id56">[46]</a> gives the more applications for GPU acceleration.</p>
-</div>
-<div class="section" id="vulkan-and-spir-v">
+In addition, section “GPU accelerated video decoding and encoding” for video
+compressing <a class="footnote-reference brackets" href="#gpuspeedup" id="id56">46</a> gives the more applications for GPU acceleration.</p>
+</section>
+<section id="vulkan-and-spir-v">
 <h2><a class="toc-backref" href="#id83">Vulkan and spir-v</a><a class="headerlink" href="#vulkan-and-spir-v" title="Permalink to this headline">¶</a></h2>
 <p>Though OpenGL api existed in higher level with many advantages from sections
 above, sometimes it cannot compete in efficience with direct3D providing
-lower levels api for operating memory by user program <a class="footnote-reference" href="#vulkanapiwiki" id="id57">[47]</a>.
-Vulkan api is lower level&#8217;s C/C++ api to fill the gap allowing user program to
+lower levels api for operating memory by user program <a class="footnote-reference brackets" href="#vulkanapiwiki" id="id57">47</a>.
+Vulkan api is lower level’s C/C++ api to fill the gap allowing user program to
 do these things in OpenGL to compete against Microsoft direct3D.
-Here is an example <a class="footnote-reference" href="#vulkanex" id="id58">[48]</a>. Meanwhile glsl is C-like language. The vulkan
+Here is an example <a class="footnote-reference brackets" href="#vulkanex" id="id58">48</a>. Meanwhile glsl is C-like language. The vulkan
 infrastructure provides tool to compile glsl into an Intermediate Representation
-Form (IR) called spir-v <a class="footnote-reference" href="#spirvtoolchain" id="id59">[49]</a> off-line.
+Form (IR) called spir-v <a class="footnote-reference brackets" href="#spirvtoolchain" id="id59">49</a> off-line.
 As a result, it saves part of compilation time from glsl to gpu instructions
 on-line
-since spir-v is an IR of level closing to llvm IR <a class="footnote-reference" href="#spirvwiki" id="id60">[50]</a>.
+since spir-v is an IR of level closing to llvm IR <a class="footnote-reference brackets" href="#spirvwiki" id="id60">50</a>.
 In addition, vulkan api reduces gpu drivers efforts in optimization and code
-generation <a class="footnote-reference" href="#vulkanapiwiki" id="id61">[47]</a>. These standards provide user programmer option to
+generation <a class="footnote-reference brackets" href="#vulkanapiwiki" id="id61">47</a>. These standards provide user programmer option to
 using vulkan/spir-v instead of OpenGL/glsl, and allow them pre-compiling glsl
 into spir-v off-line to saving part of on-line compilation time.</p>
 <p>With vulkan and spir-v standard, the gpu can be used in OpenCL for Parallel
-Programming of Heterogeneous Systems <a class="footnote-reference" href="#opencl" id="id62">[51]</a> <a class="footnote-reference" href="#computekernelwiki" id="id63">[52]</a>.
+Programming of Heterogeneous Systems <a class="footnote-reference brackets" href="#opencl" id="id62">51</a> <a class="footnote-reference brackets" href="#computekernelwiki" id="id63">52</a>.
 Similar with Cuda, a OpenCL example for fast Fourier transform (FFT) is here
-<a class="footnote-reference" href="#openclexfft" id="id64">[53]</a>.
+<a class="footnote-reference brackets" href="#openclexfft" id="id64">53</a>.
 Once OpenCL grows into a popular standard when more computer languages or
 framework supporting OpenCL language, GPU will take more jobs from CPU
-<a class="footnote-reference" href="#opencl-wiki-supported-lang" id="id65">[54]</a>.</p>
+<a class="footnote-reference brackets" href="#opencl-wiki-supported-lang" id="id65">54</a>.</p>
 <p>Now, you find llvm IR expanding from cpu to gpu becoming influentially more and
 more. And actually, llvm IR expanding from version 3.1 util now as I can feel.</p>
-<table class="docutils footnote" frame="void" id="polygon" rules="none">
-<colgroup><col class="label" /><col /></colgroup>
-<tbody valign="top">
-<tr><td class="label">[1]</td><td><em>(<a class="fn-backref" href="#id1">1</a>, <a class="fn-backref" href="#id2">2</a>)</em> <a class="reference external" href="https://www.quora.com/Which-one-is-better-for-3D-modeling-Quads-or-Tris">https://www.quora.com/Which-one-is-better-for-3D-modeling-Quads-or-Tris</a></td></tr>
-</tbody>
-</table>
-<table class="docutils footnote" frame="void" id="shading" rules="none">
-<colgroup><col class="label" /><col /></colgroup>
-<tbody valign="top">
-<tr><td class="label">[2]</td><td><em>(<a class="fn-backref" href="#id3">1</a>, <a class="fn-backref" href="#id15">2</a>)</em> <a class="reference external" href="https://en.wikipedia.org/wiki/Shading">https://en.wikipedia.org/wiki/Shading</a></td></tr>
-</tbody>
-</table>
-<table class="docutils footnote" frame="void" id="texturemapping" rules="none">
-<colgroup><col class="label" /><col /></colgroup>
-<tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id4">[3]</a></td><td><a class="reference external" href="https://en.wikipedia.org/wiki/Texture_mapping">https://en.wikipedia.org/wiki/Texture_mapping</a></td></tr>
-</tbody>
-</table>
-<table class="docutils footnote" frame="void" id="animation1" rules="none">
-<colgroup><col class="label" /><col /></colgroup>
-<tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id5">[4]</a></td><td><a class="reference external" href="https://www.youtube.com/watch?v=f3Cr8Yx3GGA">https://www.youtube.com/watch?v=f3Cr8Yx3GGA</a></td></tr>
-</tbody>
-</table>
-<table class="docutils footnote" frame="void" id="joglwiki" rules="none">
-<colgroup><col class="label" /><col /></colgroup>
-<tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id6">[5]</a></td><td><a class="reference external" href="https://en.wikipedia.org/wiki/Java_OpenGL">https://en.wikipedia.org/wiki/Java_OpenGL</a></td></tr>
-</tbody>
-</table>
-<table class="docutils footnote" frame="void" id="dfmt" rules="none">
-<colgroup><col class="label" /><col /></colgroup>
-<tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id7">[6]</a></td><td><a class="reference external" href="https://all3dp.com/3d-file-format-3d-files-3d-printer-3d-cad-vrml-stl-obj/">https://all3dp.com/3d-file-format-3d-files-3d-printer-3d-cad-vrml-stl-obj/</a></td></tr>
-</tbody>
-</table>
-<table class="docutils footnote" frame="void" id="drendering-wiki" rules="none">
-<colgroup><col class="label" /><col /></colgroup>
-<tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id8">[7]</a></td><td><a class="reference external" href="https://en.wikipedia.org/wiki/3D_rendering">https://en.wikipedia.org/wiki/3D_rendering</a></td></tr>
-</tbody>
-</table>
-<table class="docutils footnote" frame="void" id="rendering" rules="none">
-<colgroup><col class="label" /><col /></colgroup>
-<tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id9">[8]</a></td><td><a class="reference external" href="https://www.khronos.org/opengl/wiki/Rendering_Pipeline_Overview">https://www.khronos.org/opengl/wiki/Rendering_Pipeline_Overview</a></td></tr>
-</tbody>
-</table>
-<table class="docutils footnote" frame="void" id="danimation" rules="none">
-<colgroup><col class="label" /><col /></colgroup>
-<tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id10">[9]</a></td><td><a class="reference external" href="https://tw.video.search.yahoo.com/search/video?fr=yfp-search-sb&amp;p=2d+animation#id=12&amp;vid=46be09edf57b960ae79e9cd077eea1ea&amp;action=view">https://tw.video.search.yahoo.com/search/video?fr=yfp-search-sb&amp;p=2d+animation#id=12&amp;vid=46be09edf57b960ae79e9cd077eea1ea&amp;action=view</a></td></tr>
-</tbody>
-</table>
-<table class="docutils footnote" frame="void" id="fragmentshader-reason" rules="none">
-<colgroup><col class="label" /><col /></colgroup>
-<tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id11">[10]</a></td><td><a class="reference external" href="https://community.khronos.org/t/pixel-vs-fragment-shader/52838">https://community.khronos.org/t/pixel-vs-fragment-shader/52838</a></td></tr>
-</tbody>
-</table>
-<table class="docutils footnote" frame="void" id="shaderswiki" rules="none">
-<colgroup><col class="label" /><col /></colgroup>
-<tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id12">[11]</a></td><td><a class="reference external" href="https://en.m.wikipedia.org/wiki/OpenGL_Shading_Language">https://en.m.wikipedia.org/wiki/OpenGL_Shading_Language</a></td></tr>
-</tbody>
-</table>
-<table class="docutils footnote" frame="void" id="shadersex" rules="none">
-<colgroup><col class="label" /><col /></colgroup>
-<tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id13">[12]</a></td><td><a class="reference external" href="https://learnopengl.com/Getting-started/Shaders">https://learnopengl.com/Getting-started/Shaders</a></td></tr>
-</tbody>
-</table>
-<table class="docutils footnote" frame="void" id="glsleffect" rules="none">
-<colgroup><col class="label" /><col /></colgroup>
-<tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id14">[13]</a></td><td><a class="reference external" href="https://www.youtube.com/watch?v=LyoSSoYyfVU">https://www.youtube.com/watch?v=LyoSSoYyfVU</a> at 5:25 from beginning: combine different textures.</td></tr>
-</tbody>
-</table>
-<table class="docutils footnote" frame="void" id="smoothshadingex" rules="none">
-<colgroup><col class="label" /><col /></colgroup>
-<tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id16">[14]</a></td><td><a class="reference external" href="https://github.com/ruange/Gouraud-Shading-and-Phong-Shading">https://github.com/ruange/Gouraud-Shading-and-Phong-Shading</a></td></tr>
-</tbody>
-</table>
-<table class="docutils footnote" frame="void" id="on-line" rules="none">
-<colgroup><col class="label" /><col /></colgroup>
-<tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id17">[15]</a></td><td>Compiler and interpreter: (<a class="reference external" href="https://www.guru99.com/difference-compiler-vs-interpreter.html">https://www.guru99.com/difference-compiler-vs-interpreter.html</a>). AOT compiler: compiles before running; JIT compiler: compiles while running; interpreter: runs (reference <a class="reference external" href="https://softwareengineering.stackexchange.com/questions/246094/understanding-the-differences-traditional-interpreter-jit-compiler-jit-interp">https://softwareengineering.stackexchange.com/questions/246094/understanding-the-differences-traditional-interpreter-jit-compiler-jit-interp</a>). Both online and offline compiler are AOT compiler. User call OpenGL api to run their program and the driver call call online compiler to compile user&#8217;s shaders without user compiling their shader before running their program. When user run a CPU program of C language, he must compile C program before running the program. This is offline compiler.</td></tr>
-</tbody>
-</table>
-<table class="docutils footnote" frame="void" id="onlinecompile" rules="none">
-<colgroup><col class="label" /><col /></colgroup>
-<tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id18">[16]</a></td><td><a class="reference external" href="https://community.khronos.org/t/offline-glsl-compilation/61784">https://community.khronos.org/t/offline-glsl-compilation/61784</a></td></tr>
-</tbody>
-</table>
-<table class="docutils footnote" frame="void" id="classorvbo" rules="none">
-<colgroup><col class="label" /><col /></colgroup>
-<tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id20">[17]</a></td><td>If your models will be rigid, meaning you will not change each vertex individually, and you will render many frames with the same model, you will achieve the best performance not by storing the models in your class, but in vertex buffer objects (VBOs) <a class="reference external" href="https://gamedev.stackexchange.com/questions/19560/what-is-the-best-way-to-store-meshes-or-3d-models-in-a-class">https://gamedev.stackexchange.com/questions/19560/what-is-the-best-way-to-store-meshes-or-3d-models-in-a-class</a></td></tr>
-</tbody>
-</table>
-<table class="docutils footnote" frame="void" id="vbo" rules="none">
-<colgroup><col class="label" /><col /></colgroup>
-<tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id19">[18]</a></td><td><a class="reference external" href="http://www.songho.ca/opengl/gl_vbo.html">http://www.songho.ca/opengl/gl_vbo.html</a></td></tr>
-</tbody>
-</table>
-<table class="docutils footnote" frame="void" id="openglspec" rules="none">
-<colgroup><col class="label" /><col /></colgroup>
-<tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id21">[19]</a></td><td><a class="reference external" href="https://www.khronos.org/registry/OpenGL-Refpages/">https://www.khronos.org/registry/OpenGL-Refpages/</a></td></tr>
-</tbody>
-</table>
-<table class="docutils footnote" frame="void" id="opengleswiki" rules="none">
-<colgroup><col class="label" /><col /></colgroup>
-<tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id22">[20]</a></td><td><a class="reference external" href="https://en.wikipedia.org/wiki/OpenGL_ES">https://en.wikipedia.org/wiki/OpenGL_ES</a></td></tr>
-</tbody>
-</table>
-<table class="docutils footnote" frame="void" id="textureapi" rules="none">
-<colgroup><col class="label" /><col /></colgroup>
-<tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id23">[21]</a></td><td>All the api listed in section 8.9 of <a class="reference external" href="https://www.khronos.org/registry/OpenGL/specs/es/3.2/GLSL_ES_Specification_3.20.html#texture-functions">https://www.khronos.org/registry/OpenGL/specs/es/3.2/GLSL_ES_Specification_3.20.html#texture-functions</a></td></tr>
-</tbody>
-</table>
-<table class="docutils footnote" frame="void" id="intrinsiccpu0" rules="none">
-<colgroup><col class="label" /><col /></colgroup>
-<tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id24">[22]</a></td><td><a class="reference external" href="http://jonathan2251.github.io/lbd/funccall.html#add-specific-backend-intrinsic-function">http://jonathan2251.github.io/lbd/funccall.html#add-specific-backend-intrinsic-function</a></td></tr>
-</tbody>
-</table>
-<table class="docutils footnote" frame="void" id="textureobject" rules="none">
-<colgroup><col class="label" /><col /></colgroup>
-<tbody valign="top">
-<tr><td class="label">[23]</td><td><em>(<a class="fn-backref" href="#id25">1</a>, <a class="fn-backref" href="#id26">2</a>, <a class="fn-backref" href="#id27">3</a>, <a class="fn-backref" href="#id28">4</a>)</em> <a class="reference external" href="http://ogldev.atspace.co.uk/www/tutorial16/tutorial16.html">http://ogldev.atspace.co.uk/www/tutorial16/tutorial16.html</a></td></tr>
-</tbody>
-</table>
-<table class="docutils footnote" frame="void" id="tpu" rules="none">
-<colgroup><col class="label" /><col /></colgroup>
-<tbody valign="top">
-<tr><td class="label">[24]</td><td><em>(<a class="fn-backref" href="#id29">1</a>, <a class="fn-backref" href="#id30">2</a>, <a class="fn-backref" href="#id35">3</a>)</em> <a class="reference external" href="http://math.hws.edu/graphicsbook/c6/s4.html">http://math.hws.edu/graphicsbook/c6/s4.html</a></td></tr>
-</tbody>
-</table>
-<table class="docutils footnote" frame="void" id="metadata" rules="none">
-<colgroup><col class="label" /><col /></colgroup>
-<tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id32">[25]</a></td><td>This can be done by llvm metadata. <a class="reference external" href="http://llvm.org/docs/LangRef.html#namedmetadatastructure">http://llvm.org/docs/LangRef.html#namedmetadatastructure</a> <a class="reference external" href="http://llvm.org/docs/LangRef.html#metadata">http://llvm.org/docs/LangRef.html#metadata</a></td></tr>
-</tbody>
-</table>
-<table class="docutils footnote" frame="void" id="ptxtex" rules="none">
-<colgroup><col class="label" /><col /></colgroup>
-<tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id34">[26]</a></td><td>page 84: tex instruction, p24: texture memory <a class="reference external" href="https://www.nvidia.com/content/CUDA-ptx_isa_1.4.pdf">https://www.nvidia.com/content/CUDA-ptx_isa_1.4.pdf</a></td></tr>
-</tbody>
-</table>
-<table class="docutils footnote" frame="void" id="samplervar" rules="none">
-<colgroup><col class="label" /><col /></colgroup>
-<tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id31">[27]</a></td><td>The type of &#8216;sampler uniform variable&#8217; called &#8220;sampler variables&#8221;. <a class="reference external" href="http://math.hws.edu/graphicsbook/c6/s4.html">http://math.hws.edu/graphicsbook/c6/s4.html</a></td></tr>
-</tbody>
-</table>
-<table class="docutils footnote" frame="void" id="descriptorreg" rules="none">
-<colgroup><col class="label" /><col /></colgroup>
-<tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id33">[28]</a></td><td>When performing a texture fetch, the addresses to read pixel data from are computed by reading the GPRs that hold the texture descriptor and the GPRs that hold the texture coordinates. It&#8217;s mostly just general purpose memory fetching. <a class="reference external" href="https://www.gamedev.net/forums/topic/681503-texture-units/">https://www.gamedev.net/forums/topic/681503-texture-units/</a></td></tr>
-</tbody>
-</table>
-<table class="docutils footnote" frame="void" id="texturewrapper" rules="none">
-<colgroup><col class="label" /><col /></colgroup>
-<tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id36">[29]</a></td><td><a class="reference external" href="https://learnopengl.com/Getting-started/Textures">https://learnopengl.com/Getting-started/Textures</a></td></tr>
-</tbody>
-</table>
-<table class="docutils footnote" frame="void" id="mesawiki" rules="none">
-<colgroup><col class="label" /><col /></colgroup>
-<tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id37">[30]</a></td><td><a class="reference external" href="https://en.wikipedia.org/wiki/Mesa_(computer_graphics">https://en.wikipedia.org/wiki/Mesa_(computer_graphics</a>)</td></tr>
-</tbody>
-</table>
-<table class="docutils footnote" frame="void" id="mesa" rules="none">
-<colgroup><col class="label" /><col /></colgroup>
-<tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id38">[31]</a></td><td><a class="reference external" href="https://www.mesa3d.org/">https://www.mesa3d.org/</a></td></tr>
-</tbody>
-</table>
-<table class="docutils footnote" frame="void" id="quantitative-grid" rules="none">
-<colgroup><col class="label" /><col /></colgroup>
-<tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id39">[32]</a></td><td>Book Figure 4.13 of Computer Architecture: A Quantitative Approach 5th edition (The
-Morgan Kaufmann Series in Computer Architecture and Design)</td></tr>
-</tbody>
-</table>
-<table class="docutils footnote" frame="void" id="quantitative-simd-processors" rules="none">
-<colgroup><col class="label" /><col /></colgroup>
-<tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id40">[33]</a></td><td>Book Figure 4.15 of Computer Architecture: A Quantitative Approach 5th edition (The
-Morgan Kaufmann Series in Computer Architecture and Design)</td></tr>
-</tbody>
-</table>
-<table class="docutils footnote" frame="void" id="quantitative-threads-lanes" rules="none">
-<colgroup><col class="label" /><col /></colgroup>
-<tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id41">[34]</a></td><td>The SIMD Thread Scheduler includes a scoreboard that lets it know which threads of SIMD instructions are ready to run, and then it sends them off to a dispatch unit to be run on the multithreaded SIMD Processor. It is identical to a hardware thread scheduler in a traditional multithreaded processor (see Chapter 3), just that it is scheduling threads of SIMD instructions. Thus, GPU hardware has two levels of hardware schedulers: (1) the Thread Block Scheduler that assigns Thread Blocks (bodies of vectorized loops) to multi- threaded SIMD Processors, which ensures that thread blocks are assigned to the processors whose local memories have the corresponding data, and (2) the SIMD Thread Scheduler within a SIMD Processor, which schedules when threads of SIMD instructions should run.
+<dl class="footnote brackets">
+<dt class="label" id="polygon"><span class="brackets">1</span><span class="fn-backref">(<a href="#id1">1</a>,<a href="#id2">2</a>)</span></dt>
+<dd><p><a class="reference external" href="https://www.quora.com/Which-one-is-better-for-3D-modeling-Quads-or-Tris">https://www.quora.com/Which-one-is-better-for-3D-modeling-Quads-or-Tris</a></p>
+</dd>
+<dt class="label" id="shading"><span class="brackets">2</span><span class="fn-backref">(<a href="#id3">1</a>,<a href="#id15">2</a>)</span></dt>
+<dd><p><a class="reference external" href="https://en.wikipedia.org/wiki/Shading">https://en.wikipedia.org/wiki/Shading</a></p>
+</dd>
+<dt class="label" id="texturemapping"><span class="brackets"><a class="fn-backref" href="#id4">3</a></span></dt>
+<dd><p><a class="reference external" href="https://en.wikipedia.org/wiki/Texture_mapping">https://en.wikipedia.org/wiki/Texture_mapping</a></p>
+</dd>
+<dt class="label" id="animation1"><span class="brackets"><a class="fn-backref" href="#id5">4</a></span></dt>
+<dd><p><a class="reference external" href="https://www.youtube.com/watch?v=f3Cr8Yx3GGA">https://www.youtube.com/watch?v=f3Cr8Yx3GGA</a></p>
+</dd>
+<dt class="label" id="joglwiki"><span class="brackets"><a class="fn-backref" href="#id6">5</a></span></dt>
+<dd><p><a class="reference external" href="https://en.wikipedia.org/wiki/Java_OpenGL">https://en.wikipedia.org/wiki/Java_OpenGL</a></p>
+</dd>
+<dt class="label" id="dfmt"><span class="brackets"><a class="fn-backref" href="#id7">6</a></span></dt>
+<dd><p><a class="reference external" href="https://all3dp.com/3d-file-format-3d-files-3d-printer-3d-cad-vrml-stl-obj/">https://all3dp.com/3d-file-format-3d-files-3d-printer-3d-cad-vrml-stl-obj/</a></p>
+</dd>
+<dt class="label" id="drendering-wiki"><span class="brackets"><a class="fn-backref" href="#id8">7</a></span></dt>
+<dd><p><a class="reference external" href="https://en.wikipedia.org/wiki/3D_rendering">https://en.wikipedia.org/wiki/3D_rendering</a></p>
+</dd>
+<dt class="label" id="rendering"><span class="brackets"><a class="fn-backref" href="#id9">8</a></span></dt>
+<dd><p><a class="reference external" href="https://www.khronos.org/opengl/wiki/Rendering_Pipeline_Overview">https://www.khronos.org/opengl/wiki/Rendering_Pipeline_Overview</a></p>
+</dd>
+<dt class="label" id="danimation"><span class="brackets"><a class="fn-backref" href="#id10">9</a></span></dt>
+<dd><p><a class="reference external" href="https://tw.video.search.yahoo.com/search/video?fr=yfp-search-sb&amp;p=2d+animation#id=12&amp;vid=46be09edf57b960ae79e9cd077eea1ea&amp;action=view">https://tw.video.search.yahoo.com/search/video?fr=yfp-search-sb&amp;p=2d+animation#id=12&amp;vid=46be09edf57b960ae79e9cd077eea1ea&amp;action=view</a></p>
+</dd>
+<dt class="label" id="fragmentshader-reason"><span class="brackets"><a class="fn-backref" href="#id11">10</a></span></dt>
+<dd><p><a class="reference external" href="https://community.khronos.org/t/pixel-vs-fragment-shader/52838">https://community.khronos.org/t/pixel-vs-fragment-shader/52838</a></p>
+</dd>
+<dt class="label" id="shaderswiki"><span class="brackets"><a class="fn-backref" href="#id12">11</a></span></dt>
+<dd><p><a class="reference external" href="https://en.m.wikipedia.org/wiki/OpenGL_Shading_Language">https://en.m.wikipedia.org/wiki/OpenGL_Shading_Language</a></p>
+</dd>
+<dt class="label" id="shadersex"><span class="brackets"><a class="fn-backref" href="#id13">12</a></span></dt>
+<dd><p><a class="reference external" href="https://learnopengl.com/Getting-started/Shaders">https://learnopengl.com/Getting-started/Shaders</a></p>
+</dd>
+<dt class="label" id="glsleffect"><span class="brackets"><a class="fn-backref" href="#id14">13</a></span></dt>
+<dd><p><a class="reference external" href="https://www.youtube.com/watch?v=LyoSSoYyfVU">https://www.youtube.com/watch?v=LyoSSoYyfVU</a> at 5:25 from beginning: combine different textures.</p>
+</dd>
+<dt class="label" id="smoothshadingex"><span class="brackets"><a class="fn-backref" href="#id16">14</a></span></dt>
+<dd><p><a class="reference external" href="https://github.com/ruange/Gouraud-Shading-and-Phong-Shading">https://github.com/ruange/Gouraud-Shading-and-Phong-Shading</a></p>
+</dd>
+<dt class="label" id="on-line"><span class="brackets"><a class="fn-backref" href="#id17">15</a></span></dt>
+<dd><p>Compiler and interpreter: (<a class="reference external" href="https://www.guru99.com/difference-compiler-vs-interpreter.html">https://www.guru99.com/difference-compiler-vs-interpreter.html</a>). AOT compiler: compiles before running; JIT compiler: compiles while running; interpreter: runs (reference <a class="reference external" href="https://softwareengineering.stackexchange.com/questions/246094/understanding-the-differences-traditional-interpreter-jit-compiler-jit-interp">https://softwareengineering.stackexchange.com/questions/246094/understanding-the-differences-traditional-interpreter-jit-compiler-jit-interp</a>). Both online and offline compiler are AOT compiler. User call OpenGL api to run their program and the driver call call online compiler to compile user’s shaders without user compiling their shader before running their program. When user run a CPU program of C language, he must compile C program before running the program. This is offline compiler.</p>
+</dd>
+<dt class="label" id="onlinecompile"><span class="brackets"><a class="fn-backref" href="#id18">16</a></span></dt>
+<dd><p><a class="reference external" href="https://community.khronos.org/t/offline-glsl-compilation/61784">https://community.khronos.org/t/offline-glsl-compilation/61784</a></p>
+</dd>
+<dt class="label" id="classorvbo"><span class="brackets"><a class="fn-backref" href="#id20">17</a></span></dt>
+<dd><p>If your models will be rigid, meaning you will not change each vertex individually, and you will render many frames with the same model, you will achieve the best performance not by storing the models in your class, but in vertex buffer objects (VBOs) <a class="reference external" href="https://gamedev.stackexchange.com/questions/19560/what-is-the-best-way-to-store-meshes-or-3d-models-in-a-class">https://gamedev.stackexchange.com/questions/19560/what-is-the-best-way-to-store-meshes-or-3d-models-in-a-class</a></p>
+</dd>
+<dt class="label" id="vbo"><span class="brackets"><a class="fn-backref" href="#id19">18</a></span></dt>
+<dd><p><a class="reference external" href="http://www.songho.ca/opengl/gl_vbo.html">http://www.songho.ca/opengl/gl_vbo.html</a></p>
+</dd>
+<dt class="label" id="openglspec"><span class="brackets"><a class="fn-backref" href="#id21">19</a></span></dt>
+<dd><p><a class="reference external" href="https://www.khronos.org/registry/OpenGL-Refpages/">https://www.khronos.org/registry/OpenGL-Refpages/</a></p>
+</dd>
+<dt class="label" id="opengleswiki"><span class="brackets"><a class="fn-backref" href="#id22">20</a></span></dt>
+<dd><p><a class="reference external" href="https://en.wikipedia.org/wiki/OpenGL_ES">https://en.wikipedia.org/wiki/OpenGL_ES</a></p>
+</dd>
+<dt class="label" id="textureapi"><span class="brackets"><a class="fn-backref" href="#id23">21</a></span></dt>
+<dd><p>All the api listed in section 8.9 of <a class="reference external" href="https://www.khronos.org/registry/OpenGL/specs/es/3.2/GLSL_ES_Specification_3.20.html#texture-functions">https://www.khronos.org/registry/OpenGL/specs/es/3.2/GLSL_ES_Specification_3.20.html#texture-functions</a></p>
+</dd>
+<dt class="label" id="intrinsiccpu0"><span class="brackets"><a class="fn-backref" href="#id24">22</a></span></dt>
+<dd><p><a class="reference external" href="http://jonathan2251.github.io/lbd/funccall.html#add-specific-backend-intrinsic-function">http://jonathan2251.github.io/lbd/funccall.html#add-specific-backend-intrinsic-function</a></p>
+</dd>
+<dt class="label" id="textureobject"><span class="brackets">23</span><span class="fn-backref">(<a href="#id25">1</a>,<a href="#id26">2</a>,<a href="#id27">3</a>,<a href="#id28">4</a>)</span></dt>
+<dd><p><a class="reference external" href="http://ogldev.atspace.co.uk/www/tutorial16/tutorial16.html">http://ogldev.atspace.co.uk/www/tutorial16/tutorial16.html</a></p>
+</dd>
+<dt class="label" id="tpu"><span class="brackets">24</span><span class="fn-backref">(<a href="#id29">1</a>,<a href="#id30">2</a>,<a href="#id35">3</a>)</span></dt>
+<dd><p><a class="reference external" href="http://math.hws.edu/graphicsbook/c6/s4.html">http://math.hws.edu/graphicsbook/c6/s4.html</a></p>
+</dd>
+<dt class="label" id="metadata"><span class="brackets"><a class="fn-backref" href="#id32">25</a></span></dt>
+<dd><p>This can be done by llvm metadata. <a class="reference external" href="http://llvm.org/docs/LangRef.html#namedmetadatastructure">http://llvm.org/docs/LangRef.html#namedmetadatastructure</a> <a class="reference external" href="http://llvm.org/docs/LangRef.html#metadata">http://llvm.org/docs/LangRef.html#metadata</a></p>
+</dd>
+<dt class="label" id="ptxtex"><span class="brackets"><a class="fn-backref" href="#id34">26</a></span></dt>
+<dd><p>page 84: tex instruction, p24: texture memory <a class="reference external" href="https://www.nvidia.com/content/CUDA-ptx_isa_1.4.pdf">https://www.nvidia.com/content/CUDA-ptx_isa_1.4.pdf</a></p>
+</dd>
+<dt class="label" id="samplervar"><span class="brackets"><a class="fn-backref" href="#id31">27</a></span></dt>
+<dd><p>The type of ‘sampler uniform variable’ called “sampler variables”. <a class="reference external" href="http://math.hws.edu/graphicsbook/c6/s4.html">http://math.hws.edu/graphicsbook/c6/s4.html</a></p>
+</dd>
+<dt class="label" id="descriptorreg"><span class="brackets"><a class="fn-backref" href="#id33">28</a></span></dt>
+<dd><p>When performing a texture fetch, the addresses to read pixel data from are computed by reading the GPRs that hold the texture descriptor and the GPRs that hold the texture coordinates. It’s mostly just general purpose memory fetching. <a class="reference external" href="https://www.gamedev.net/forums/topic/681503-texture-units/">https://www.gamedev.net/forums/topic/681503-texture-units/</a></p>
+</dd>
+<dt class="label" id="texturewrapper"><span class="brackets"><a class="fn-backref" href="#id36">29</a></span></dt>
+<dd><p><a class="reference external" href="https://learnopengl.com/Getting-started/Textures">https://learnopengl.com/Getting-started/Textures</a></p>
+</dd>
+<dt class="label" id="mesawiki"><span class="brackets"><a class="fn-backref" href="#id37">30</a></span></dt>
+<dd><p><a class="reference external" href="https://en.wikipedia.org/wiki/Mesa_(computer_graphics">https://en.wikipedia.org/wiki/Mesa_(computer_graphics</a>)</p>
+</dd>
+<dt class="label" id="mesa"><span class="brackets"><a class="fn-backref" href="#id38">31</a></span></dt>
+<dd><p><a class="reference external" href="https://www.mesa3d.org/">https://www.mesa3d.org/</a></p>
+</dd>
+<dt class="label" id="quantitative-grid"><span class="brackets"><a class="fn-backref" href="#id39">32</a></span></dt>
+<dd><p>Book Figure 4.13 of Computer Architecture: A Quantitative Approach 5th edition (The
+Morgan Kaufmann Series in Computer Architecture and Design)</p>
+</dd>
+<dt class="label" id="quantitative-simd-processors"><span class="brackets"><a class="fn-backref" href="#id40">33</a></span></dt>
+<dd><p>Book Figure 4.15 of Computer Architecture: A Quantitative Approach 5th edition (The
+Morgan Kaufmann Series in Computer Architecture and Design)</p>
+</dd>
+<dt class="label" id="quantitative-threads-lanes"><span class="brackets"><a class="fn-backref" href="#id41">34</a></span></dt>
+<dd><p>The SIMD Thread Scheduler includes a scoreboard that lets it know which threads of SIMD instructions are ready to run, and then it sends them off to a dispatch unit to be run on the multithreaded SIMD Processor. It is identical to a hardware thread scheduler in a traditional multithreaded processor (see Chapter 3), just that it is scheduling threads of SIMD instructions. Thus, GPU hardware has two levels of hardware schedulers: (1) the Thread Block Scheduler that assigns Thread Blocks (bodies of vectorized loops) to multi- threaded SIMD Processors, which ensures that thread blocks are assigned to the processors whose local memories have the corresponding data, and (2) the SIMD Thread Scheduler within a SIMD Processor, which schedules when threads of SIMD instructions should run.
 Book Figure 4.14 of Computer Architecture: A Quantitative Approach 5th edition (The
-Morgan Kaufmann Series in Computer Architecture and Design)</td></tr>
-</tbody>
-</table>
-<table class="docutils footnote" frame="void" id="quantitative-gpu-mem" rules="none">
-<colgroup><col class="label" /><col /></colgroup>
-<tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id42">[35]</a></td><td>Book Figure 4.17 of Computer Architecture: A Quantitative Approach 5th edition (The
-Morgan Kaufmann Series in Computer Architecture and Design)</td></tr>
-</tbody>
-</table>
-<table class="docutils footnote" frame="void" id="quantitative-gpu-griddef" rules="none">
-<colgroup><col class="label" /><col /></colgroup>
-<tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id43">[36]</a></td><td>Book Figure 4.12 of Computer Architecture: A Quantitative Approach 5th edition (The
-Morgan Kaufmann Series in Computer Architecture and Design)</td></tr>
-</tbody>
-</table>
-<table class="docutils footnote" frame="void" id="quantitative-gpu-warp" rules="none">
-<colgroup><col class="label" /><col /></colgroup>
-<tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id44">[37]</a></td><td>Book Figure 4.14 and 4.24 of Computer Architecture: A Quantitative Approach 5th edition (The
-Morgan Kaufmann Series in Computer Architecture and Design)</td></tr>
-</tbody>
-</table>
-<table class="docutils footnote" frame="void" id="quantitative-gpu-threadblock" rules="none">
-<colgroup><col class="label" /><col /></colgroup>
-<tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id45">[38]</a></td><td>search these words from section 4.4 of A Quantitative Approach 5th edition (The
-Morgan Kaufmann Series in Computer Architecture and Design)</td></tr>
-</tbody>
-</table>
-<table class="docutils footnote" frame="void" id="lanes" rules="none">
-<colgroup><col class="label" /><col /></colgroup>
-<tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id46">[39]</a></td><td>&#8220;With Fermi, each 32-wide thread of SIMD instructions is mapped to 16 physical SIMD Lanes, so each SIMD instruction in a thread of SIMD instructions takes two clock cycles to complete&#8221; search these words from Page 296 of Computer Architecture: A Quantitative Approach 5th edition (The
-Morgan Kaufmann Series in Computer Architecture and Design).</td></tr>
-</tbody>
-</table>
-<table class="docutils footnote" frame="void" id="gpgpuwiki" rules="none">
-<colgroup><col class="label" /><col /></colgroup>
-<tbody valign="top">
-<tr><td class="label">[40]</td><td><em>(<a class="fn-backref" href="#id47">1</a>, <a class="fn-backref" href="#id51">2</a>, <a class="fn-backref" href="#id54">3</a>)</em> <a class="reference external" href="https://en.wikipedia.org/wiki/General-purpose_computing_on_graphics_processing_units">https://en.wikipedia.org/wiki/General-purpose_computing_on_graphics_processing_units</a></td></tr>
-</tbody>
-</table>
-<table class="docutils footnote" frame="void" id="cudaex" rules="none">
-<colgroup><col class="label" /><col /></colgroup>
-<tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id48">[41]</a></td><td><a class="reference external" href="https://devblogs.nvidia.com/easy-introduction-cuda-c-and-c/">https://devblogs.nvidia.com/easy-introduction-cuda-c-and-c/</a></td></tr>
-</tbody>
-</table>
-<table class="docutils footnote" frame="void" id="vmr" rules="none">
-<colgroup><col class="label" /><col /></colgroup>
-<tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id49">[42]</a></td><td>subsection Vector Mask Registers: Handling IF Statements in Vector Loops of Computer Architecture: A Quantitative Approach 5th edition (The
-Morgan Kaufmann Series in Computer Architecture and Design)</td></tr>
-</tbody>
-</table>
-<table class="docutils footnote" frame="void" id="quantitative-gpu-sparse-matrix" rules="none">
-<colgroup><col class="label" /><col /></colgroup>
-<tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id50">[43]</a></td><td>Reference &#8220;Gather-Scatter: Handling Sparse Matrices in Vector Architectures&#8221;: section 4.2 Vector Architecture of A Quantitative Approach 5th edition (The
-Morgan Kaufmann Series in Computer Architecture and Design)</td></tr>
-</tbody>
-</table>
-<table class="docutils footnote" frame="void" id="shadingl1" rules="none">
-<colgroup><col class="label" /><col /></colgroup>
-<tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id52">[44]</a></td><td>The whole chip shares a single L2 cache, but the different units will have individual L1 caches. <a class="reference external" href="https://computergraphics.stackexchange.com/questions/355/how-does-texture-cache-work-considering-multiple-shader-units">https://computergraphics.stackexchange.com/questions/355/how-does-texture-cache-work-considering-multiple-shader-units</a></td></tr>
-</tbody>
-</table>
-<table class="docutils footnote" frame="void" id="mpeg4speedup" rules="none">
-<colgroup><col class="label" /><col /></colgroup>
-<tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id53">[45]</a></td><td><a class="reference external" href="https://www.manchestervideo.com/2016/06/11/speed-h-264-encoding-budget-gpu/">https://www.manchestervideo.com/2016/06/11/speed-h-264-encoding-budget-gpu/</a></td></tr>
-</tbody>
-</table>
-<table class="docutils footnote" frame="void" id="gpuspeedup" rules="none">
-<colgroup><col class="label" /><col /></colgroup>
-<tbody valign="top">
-<tr><td class="label">[46]</td><td><em>(<a class="fn-backref" href="#id55">1</a>, <a class="fn-backref" href="#id56">2</a>)</em> <a class="reference external" href="https://en.wikipedia.org/wiki/Graphics_processing_unit">https://en.wikipedia.org/wiki/Graphics_processing_unit</a></td></tr>
-</tbody>
-</table>
-<table class="docutils footnote" frame="void" id="vulkanapiwiki" rules="none">
-<colgroup><col class="label" /><col /></colgroup>
-<tbody valign="top">
-<tr><td class="label">[47]</td><td><em>(<a class="fn-backref" href="#id57">1</a>, <a class="fn-backref" href="#id61">2</a>)</em> Vulkan offers lower overhead, more direct control over the GPU, and lower CPU usage... By allowing shader pre-compilation, application initialization speed is improved... A Vulkan driver only needs to do GPU specific optimization and code generation, resulting in easier driver maintenance... <a class="reference external" href="https://en.wikipedia.org/wiki/Vulkan_(API">https://en.wikipedia.org/wiki/Vulkan_(API</a>)</td></tr>
-</tbody>
-</table>
-<table class="docutils footnote" frame="void" id="vulkanex" rules="none">
-<colgroup><col class="label" /><col /></colgroup>
-<tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id58">[48]</a></td><td><a class="reference external" href="https://github.com/SaschaWillems/Vulkan/blob/master/examples/triangle/triangle.cpp">https://github.com/SaschaWillems/Vulkan/blob/master/examples/triangle/triangle.cpp</a></td></tr>
-</tbody>
-</table>
-<table class="docutils footnote" frame="void" id="spirvtoolchain" rules="none">
-<colgroup><col class="label" /><col /></colgroup>
-<tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id59">[49]</a></td><td>glslangValidator is the tool used to compile GLSL shaders into SPIR-V, Vulkan&#8217;s shader format. <a class="reference external" href="https://vulkan.lunarg.com/doc/view/1.0.39.1/windows/spirv_toolchain.html">https://vulkan.lunarg.com/doc/view/1.0.39.1/windows/spirv_toolchain.html</a></td></tr>
-</tbody>
-</table>
-<table class="docutils footnote" frame="void" id="spirvwiki" rules="none">
-<colgroup><col class="label" /><col /></colgroup>
-<tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id60">[50]</a></td><td>SPIR 2.0: LLVM IR version 3.4. SPIR-V 1.X: 100% Khronos defined Round-trip lossless conversion to llvm.  <a class="reference external" href="https://en.wikipedia.org/wiki/Standard_Portable_Intermediate_Representation">https://en.wikipedia.org/wiki/Standard_Portable_Intermediate_Representation</a></td></tr>
-</tbody>
-</table>
-<table class="docutils footnote" frame="void" id="opencl" rules="none">
-<colgroup><col class="label" /><col /></colgroup>
-<tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id62">[51]</a></td><td><a class="reference external" href="https://www.khronos.org/opencl/">https://www.khronos.org/opencl/</a></td></tr>
-</tbody>
-</table>
-<table class="docutils footnote" frame="void" id="computekernelwiki" rules="none">
-<colgroup><col class="label" /><col /></colgroup>
-<tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id63">[52]</a></td><td><a class="reference external" href="https://en.wikipedia.org/wiki/Compute_kernel">https://en.wikipedia.org/wiki/Compute_kernel</a></td></tr>
-</tbody>
-</table>
-<table class="docutils footnote" frame="void" id="openclexfft" rules="none">
-<colgroup><col class="label" /><col /></colgroup>
-<tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id64">[53]</a></td><td><a class="reference external" href="https://en.wikipedia.org/wiki/OpenCL">https://en.wikipedia.org/wiki/OpenCL</a></td></tr>
-</tbody>
-</table>
-<table class="docutils footnote" frame="void" id="opencl-wiki-supported-lang" rules="none">
-<colgroup><col class="label" /><col /></colgroup>
-<tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id65">[54]</a></td><td>The OpenCL standard defines host APIs for C and C++; third-party APIs exist for other programming languages and platforms such as Python,[14] Java, Perl[15] and .NET.[11]:15 <a class="reference external" href="https://en.wikipedia.org/wiki/OpenCL">https://en.wikipedia.org/wiki/OpenCL</a></td></tr>
-</tbody>
-</table>
-</div>
-</div>
+Morgan Kaufmann Series in Computer Architecture and Design)</p>
+</dd>
+<dt class="label" id="quantitative-gpu-mem"><span class="brackets"><a class="fn-backref" href="#id42">35</a></span></dt>
+<dd><p>Book Figure 4.17 of Computer Architecture: A Quantitative Approach 5th edition (The
+Morgan Kaufmann Series in Computer Architecture and Design)</p>
+</dd>
+<dt class="label" id="quantitative-gpu-griddef"><span class="brackets"><a class="fn-backref" href="#id43">36</a></span></dt>
+<dd><p>Book Figure 4.12 of Computer Architecture: A Quantitative Approach 5th edition (The
+Morgan Kaufmann Series in Computer Architecture and Design)</p>
+</dd>
+<dt class="label" id="quantitative-gpu-warp"><span class="brackets"><a class="fn-backref" href="#id44">37</a></span></dt>
+<dd><p>Book Figure 4.14 and 4.24 of Computer Architecture: A Quantitative Approach 5th edition (The
+Morgan Kaufmann Series in Computer Architecture and Design)</p>
+</dd>
+<dt class="label" id="quantitative-gpu-threadblock"><span class="brackets"><a class="fn-backref" href="#id45">38</a></span></dt>
+<dd><p>search these words from section 4.4 of A Quantitative Approach 5th edition (The
+Morgan Kaufmann Series in Computer Architecture and Design)</p>
+</dd>
+<dt class="label" id="lanes"><span class="brackets"><a class="fn-backref" href="#id46">39</a></span></dt>
+<dd><p>“With Fermi, each 32-wide thread of SIMD instructions is mapped to 16 physical SIMD Lanes, so each SIMD instruction in a thread of SIMD instructions takes two clock cycles to complete” search these words from Page 296 of Computer Architecture: A Quantitative Approach 5th edition (The
+Morgan Kaufmann Series in Computer Architecture and Design).</p>
+</dd>
+<dt class="label" id="gpgpuwiki"><span class="brackets">40</span><span class="fn-backref">(<a href="#id47">1</a>,<a href="#id51">2</a>,<a href="#id54">3</a>)</span></dt>
+<dd><p><a class="reference external" href="https://en.wikipedia.org/wiki/General-purpose_computing_on_graphics_processing_units">https://en.wikipedia.org/wiki/General-purpose_computing_on_graphics_processing_units</a></p>
+</dd>
+<dt class="label" id="cudaex"><span class="brackets"><a class="fn-backref" href="#id48">41</a></span></dt>
+<dd><p><a class="reference external" href="https://devblogs.nvidia.com/easy-introduction-cuda-c-and-c/">https://devblogs.nvidia.com/easy-introduction-cuda-c-and-c/</a></p>
+</dd>
+<dt class="label" id="vmr"><span class="brackets"><a class="fn-backref" href="#id49">42</a></span></dt>
+<dd><p>subsection Vector Mask Registers: Handling IF Statements in Vector Loops of Computer Architecture: A Quantitative Approach 5th edition (The
+Morgan Kaufmann Series in Computer Architecture and Design)</p>
+</dd>
+<dt class="label" id="quantitative-gpu-sparse-matrix"><span class="brackets"><a class="fn-backref" href="#id50">43</a></span></dt>
+<dd><p>Reference “Gather-Scatter: Handling Sparse Matrices in Vector Architectures”: section 4.2 Vector Architecture of A Quantitative Approach 5th edition (The
+Morgan Kaufmann Series in Computer Architecture and Design)</p>
+</dd>
+<dt class="label" id="shadingl1"><span class="brackets"><a class="fn-backref" href="#id52">44</a></span></dt>
+<dd><p>The whole chip shares a single L2 cache, but the different units will have individual L1 caches. <a class="reference external" href="https://computergraphics.stackexchange.com/questions/355/how-does-texture-cache-work-considering-multiple-shader-units">https://computergraphics.stackexchange.com/questions/355/how-does-texture-cache-work-considering-multiple-shader-units</a></p>
+</dd>
+<dt class="label" id="mpeg4speedup"><span class="brackets"><a class="fn-backref" href="#id53">45</a></span></dt>
+<dd><p><a class="reference external" href="https://www.manchestervideo.com/2016/06/11/speed-h-264-encoding-budget-gpu/">https://www.manchestervideo.com/2016/06/11/speed-h-264-encoding-budget-gpu/</a></p>
+</dd>
+<dt class="label" id="gpuspeedup"><span class="brackets">46</span><span class="fn-backref">(<a href="#id55">1</a>,<a href="#id56">2</a>)</span></dt>
+<dd><p><a class="reference external" href="https://en.wikipedia.org/wiki/Graphics_processing_unit">https://en.wikipedia.org/wiki/Graphics_processing_unit</a></p>
+</dd>
+<dt class="label" id="vulkanapiwiki"><span class="brackets">47</span><span class="fn-backref">(<a href="#id57">1</a>,<a href="#id61">2</a>)</span></dt>
+<dd><p>Vulkan offers lower overhead, more direct control over the GPU, and lower CPU usage… By allowing shader pre-compilation, application initialization speed is improved… A Vulkan driver only needs to do GPU specific optimization and code generation, resulting in easier driver maintenance… <a class="reference external" href="https://en.wikipedia.org/wiki/Vulkan_(API">https://en.wikipedia.org/wiki/Vulkan_(API</a>)</p>
+</dd>
+<dt class="label" id="vulkanex"><span class="brackets"><a class="fn-backref" href="#id58">48</a></span></dt>
+<dd><p><a class="reference external" href="https://github.com/SaschaWillems/Vulkan/blob/master/examples/triangle/triangle.cpp">https://github.com/SaschaWillems/Vulkan/blob/master/examples/triangle/triangle.cpp</a></p>
+</dd>
+<dt class="label" id="spirvtoolchain"><span class="brackets"><a class="fn-backref" href="#id59">49</a></span></dt>
+<dd><p>glslangValidator is the tool used to compile GLSL shaders into SPIR-V, Vulkan’s shader format. <a class="reference external" href="https://vulkan.lunarg.com/doc/view/1.0.39.1/windows/spirv_toolchain.html">https://vulkan.lunarg.com/doc/view/1.0.39.1/windows/spirv_toolchain.html</a></p>
+</dd>
+<dt class="label" id="spirvwiki"><span class="brackets"><a class="fn-backref" href="#id60">50</a></span></dt>
+<dd><p>SPIR 2.0: LLVM IR version 3.4. SPIR-V 1.X: 100% Khronos defined Round-trip lossless conversion to llvm.  <a class="reference external" href="https://en.wikipedia.org/wiki/Standard_Portable_Intermediate_Representation">https://en.wikipedia.org/wiki/Standard_Portable_Intermediate_Representation</a></p>
+</dd>
+<dt class="label" id="opencl"><span class="brackets"><a class="fn-backref" href="#id62">51</a></span></dt>
+<dd><p><a class="reference external" href="https://www.khronos.org/opencl/">https://www.khronos.org/opencl/</a></p>
+</dd>
+<dt class="label" id="computekernelwiki"><span class="brackets"><a class="fn-backref" href="#id63">52</a></span></dt>
+<dd><p><a class="reference external" href="https://en.wikipedia.org/wiki/Compute_kernel">https://en.wikipedia.org/wiki/Compute_kernel</a></p>
+</dd>
+<dt class="label" id="openclexfft"><span class="brackets"><a class="fn-backref" href="#id64">53</a></span></dt>
+<dd><p><a class="reference external" href="https://en.wikipedia.org/wiki/OpenCL">https://en.wikipedia.org/wiki/OpenCL</a></p>
+</dd>
+<dt class="label" id="opencl-wiki-supported-lang"><span class="brackets"><a class="fn-backref" href="#id65">54</a></span></dt>
+<dd><p>The OpenCL standard defines host APIs for C and C++; third-party APIs exist for other programming languages and platforms such as Python,[14] Java, Perl[15] and .NET.[11]:15 <a class="reference external" href="https://en.wikipedia.org/wiki/OpenCL">https://en.wikipedia.org/wiki/OpenCL</a></p>
+</dd>
+</dl>
+</section>
+</section>
 
 
       </div>
@@ -907,8 +758,8 @@ Morgan Kaufmann Series in Computer Architecture and Design)</td></tr>
       </div>
 
     <div class="footer" role="contentinfo">
-        &copy; Copyright 2016, Chen Chung-Shu.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.4.
+        &#169; Copyright 2016, Chen Chung-Shu.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 4.0.2.
     </div>
   </body>
 </html>

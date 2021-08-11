@@ -1,0 +1,465 @@
+.. _sec-appendix-doc:
+
+Appendix B: Cpu0 document and test
+===================================
+
+.. contents::
+   :local:
+   :depth: 4
+
+
+Cpu0 document
+---------------
+
+This section illustrates how to generate Cpu0 backend document.
+
+
+Install sphinx
+~~~~~~~~~~~~~~~
+
+LLVM and this book use sphinx to generate html document. This book uses Sphinx 
+to generate pdf and epub format of document further.
+Sphinx uses restructured text format here [#rst-ref]_ [#rst-dir]_ [#rst]_.
+The installation of Sphinx reference [#sphinx-install]_.
+About the code-block in this document, please reference [#llvm-sphinx-quick]_ 
+[#sphinx-lexers]_.
+
+On iMac or linux you can install as follows,
+
+.. code-block:: console
+
+  sudo easy_install sphinx
+
+Above installaton can generate html document but not for pdf. 
+To support pdf/latex document generated as follows,
+
+On iMac, install MacTex.pkg from here [#maxtex]_.
+
+On Linux, install texlive as follows,
+
+.. code-block:: console
+
+  sudo apt-get install texlive texlive-latex-extra
+
+or
+
+.. code-block:: console
+
+  sudo yum install texlive texlive-latex-extra
+
+On Fedora 17, the texlive-latex-extra is missing. We install the package which
+include the pdflatex instead. For instance, we install pdfjam on Fedora 17 as
+follows,
+
+
+.. code-block:: console
+
+  [root@localhost lbd]$ yum list pdfjam
+  Loaded plugins: langpacks, presto, refresh-packagekit
+  Installed Packages
+  pdfjam.noarch                        2.08-3.fc17                         @fedora
+  [root@localhost lbd]$ 
+
+Do sudo apt-get update -y; sudo apt-get install -y latexmk; if latexmk error 
+in 'make latexpdf' [#latexmk]_.
+
+On Fedora 18, the error as follows,
+
+.. code-block:: console
+
+  [root@localhost lld]$ make latexpdf
+  ...
+  LaTeX Error: File `titlesec.sty' not found
+
+Install all texlive-* (full) as follows,
+
+.. code-block:: console
+
+  [root@localhost lld]$ yum install texlive-*
+  
+
+After upgrade to iMac OS X 10.11.1, pdflatex link is missing, fix it by set in 
+.profile as follows,
+
+.. code-block:: console
+  
+  114-37-153-62:lbd Jonathan$ ls /usr/local/texlive/2012/bin/universal-darwin/pdflatex 
+  /usr/local/texlive/2012/bin/universal-darwin/pdflatex
+  114-37-153-62:lbd Jonathan$ cat ~/.profile
+  export PATH=$PATH:...:/usr/local/texlive/2012/bin/universal-darwin
+
+
+Install pip and update Sphinx version
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Install pip and upgrade Sphinx to newer version as follows,
+
+.. code-block:: console
+  
+  114-43-186-160:Downloads Jonathan$ curl -O https://bootstrap.pypa.io/get-pip.py
+  ...
+  114-43-186-160:Downloads Jonathan$ sudo python get-pip.py
+  ...
+  114-43-186-160:Downloads Jonathan$ sudo pip install Sphinx-1.4.4-py2.py3-none-any.whl
+  ...
+
+After make this document, I encounter the following error.
+
+.. code-block:: console
+  
+  114-43-186-160:test-lbt Jonathan$ make html
+  Makefile:253: warning: overriding commands for target `clean'
+  Makefile:52: warning: ignoring old commands for target `clean'
+  sphinx-build -b html -d build/doctrees   source build/html
+  Running Sphinx v1.4.4
+  loading pickled environment... not yet created
+  
+  Exception occurred:
+    File "/Library/Python/2.7/site-packages/sphinx/ext/intersphinx.py", line 148, 
+    in _strip_basic_auth
+      url_parts = parse.urlsplit(url)
+  AttributeError: 'Module_six_moves_urllib_parse' object has no attribute 'urlsplit'
+  The full traceback has been saved in /var/folders/rf/
+  8bgdgt9d6vgf5sn8h8_zycd00000gn/T/sphinx-err-HgctP4.log, if you want to report 
+  the issue to the developers.
+  Please also report this if it was a user error, so that a better error message 
+  can be provided next time.
+  A bug report can be filed in the tracker at <https://github.com/sphinx-doc/sphinx/issues>. Thanks!
+  make: *** [html] Error 1
+
+After changed /Library/Python/2.7/site-packages/sphinx/ext/intersphinx.py 
+according https://github.com/sphinx-doc/sphinx/commit/7586297d6df6fbae4b860a604422d4eddc40b32e
+I fixed the problem.
+
+Generate Cpu0 document
+~~~~~~~~~~~~~~~~~~~~~~~
+
+Cpu0 example code is added chapter by chapter.
+It can be configured to a specific chapter by change CH definition in 
+Cpu0SetChapter.h. 
+For example, the following definition configue it to chapter 2.
+
+.. rubric:: lbdex/Cpu0/Cpu0SetChapter.h
+.. code-block:: c++
+
+  #define CH       CH2
+
+To make readers easily understanding the backend structure step by step, Cpu0 
+example code can be generated with chapter by chapter through commands as follws,
+
+.. code-block:: console
+
+  118-165-12-177:lbd Jonathan$ pwd
+  /home/Jonathan/test/lbd
+  118-165-12-177:lbd Jonathan$ make genexample 
+  ...
+  118-165-12-177:lbd Jonathan$ ls lbdex/chapters/
+  Chapter10_1  Chapter2    Chapter3_4  Chapter5_1  Chapter8_2
+  Chapter11_1  Chapter3_1  Chapter3_5  Chapter6_1  Chapter9_1
+  Chapter11_2  Chapter3_2  Chapter4_1  Chapter7_1  Chapter9_2
+  Chapter12_1  Chapter3_3  Chapter4_2  Chapter8_1  Chapter9_3
+
+Beside chapters example code, above html and pdf of Cpu0 documents also include
+files \*.ll and \*.s in lbd/lbdex/output.
+  
+.. code-block:: console
+
+  JonathantekiiMac:lbd Jonathan$ ls lbdex/output/
+  ch12_eh.cpu0.s			ch12_thread_var.cpu0.pic.s	ch12_thread_var.ll
+  ch12_eh.ll			ch12_thread_var.cpu0.static.s	ch4_math.s
+  
+Then, this book html/pdf can be generated by the following commands.
+
+.. code-block:: console
+
+  118-165-12-177:lbd Jonathan$ pwd
+  /home/Jonathan/test/lbd
+  118-165-12-177:lbd Jonathan$ make html
+  ...
+  118-165-12-177:lbd Jonathan$ make latexpdf
+  ...
+
+
+About Cpu0 document
+~~~~~~~~~~~~~~~~~~~~~
+
+Since llvm have a new release version about every 6 months and every name of 
+file, function, class, variable, ..., etc, may be changed, the Cpu0 document
+maintains is an effort because it adds the code chapter by chapter.
+In order to make the document as correct and easily maintain. I use the 
+":start-after:" and ":end-before:" of restructured text format to keep the 
+document update to date. 
+For every new release, when the Cpu0 backend code is changed, the document will
+reflect the changes in most of the contents of document.
+
+In lbdex/Cpu0, the text begin from "//\@" and "\#ifdef CH > CHxx" are refered by 
+document files \*.rst.
+
+In lbdex/src/modify/src, the \*.rst refer the code by copy them directly.
+Most of references exist in llvmstructure.rst and elf.rst.
+
+The example C/C++ code in lbdex/input come from my thinking and refer the
+directory clang/test/CodeGen of clang source code release.
+
+
+Cpu0 Regression Test
+----------------------
+
+The last chapter can verify Cpu0 backend's generated code by Verilog simulator 
+for those code without global variable access.
+The chapter lld in web https://github.com/Jonathan2251/lbt.git includes
+llvm ELF linker implementation and is capable to verify those test items with 
+global variable access.
+However, LLVM has its test cases (regression test) for each backend to 
+verify your backend compiler [#test]_ without implementing any simulator or real
+hardware platform. 
+Cpu0 regression test items existed in lbdex.tar.gz example code. Untar it
+to lbdex/, and:
+
+For both iMac and Linux, copy lbdex/regression-test/Cpu0 to 
+~/llvm/test/src/test/CodeGen/Cpu0.
+
+Then run as follows for single test case and the whole test cases on iMac. 
+
+.. code-block:: console
+
+  1-160-130-77:Cpu0 Jonathan$ pwd
+  /Users/Jonathan/llvm/test/src/test/CodeGen/Cpu0
+  1-160-130-77:Cpu0 Jonathan$ ~/llvm/test/build/bin/llvm-lit seteq.ll
+  -- Testing: 1 tests, 1 threads --
+  PASS: LLVM :: CodeGen/Cpu0/seteq.ll (1 of 1)
+  Testing Time: 0.08s
+    Expected Passes    : 1
+  1-160-130-77:Cpu0 Jonathan$ ~/llvm/test/build/bin/llvm-lit .
+  ...
+  PASS: LLVM :: CodeGen/Cpu0/zeroreg.ll
+  PASS: LLVM :: CodeGen/Cpu0/tailcall.ll
+  ...
+
+
+Run as follows for single test case and the whole test cases on Linux. 
+
+.. code-block:: console
+
+  [Gamma@localhost Cpu0]$ pwd
+  /home/cschen/llvm/test/src/test/CodeGen/Cpu0
+  [Gamma@localhost Cpu0]$ ~/llvm/test/build/bin/llvm-lit seteq.ll
+  -- Testing: 1 tests, 1 threads --
+  PASS: LLVM :: CodeGen/Cpu0/seteq.ll (1 of 1)
+  Testing Time: 0.08s
+    Expected Passes    : 1
+  [Gamma@localhost Cpu0]$ ~/llvm/test/build/bin/llvm-lit .
+  ...
+  PASS: LLVM :: CodeGen/Cpu0/zeroreg.ll
+  PASS: LLVM :: CodeGen/Cpu0/tailcall.ll
+  ...
+
+Listing the chapters of this book and the related regression test items as
+follows,
+
+.. table:: Chapters
+
+  ==== ==================
+  1    about
+  2    Cpu0 architecture and LLVM structure
+  3    Backend structure
+  4    Arithmetic and logic instructions
+  5    Generating object files
+  6    Global variables
+  7    Other data type
+  8    Control flow statements
+  9    Function call
+  10   ELF Support
+  11   Assembler
+  12   C++ support
+  13   Verify backend on verilog simulator
+  ==== ==================
+
+.. table:: Regression test items for Cpu0
+
+  ===============================  =============  =======================================================  ===========
+  File                             v:pass x:fail  test ir, -> output asm                                   chapter
+  ===============================  =============  =======================================================  ===========
+  2008-06-05-Carry.ll              v                                                                       7
+  2008-07-15-InternalConstant.ll   v                                                                       6
+  2008-07-15-SmallSection.ll       v                                                                       6
+  2008-07-03-SRet.ll               v                                                                       9
+  2008-07-29-icmp.ll               v                                                                       8
+  2008-08-06-Alloca.ll             v                                                                       9
+  2008-08-01-AsmInline.ll          v                                                                       11
+  2008-08-08-ctlz.ll               v                                                                       7
+  2008-08-08-bswap.ll              v              bswap                                                    12
+  2008-10-13-LegalizerBug.ll       v                                                                       8
+  2010-11-09-Mul.ll                v                                                                       4                         
+  2010-11-09-CountLeading.ll       v                                                                       7
+  2008-11-10-xint_to_fp.ll         v                                                                       7
+  addc.ll                          v              64-bit add                                               7
+  addi.ll                          v              32-bit add, sub                                          4
+  address-mode.ll                  v              br, -> BB0_2:                                            8
+  alloca.ll                        v              alloca i8, i32 %size, dynamic allocation                 9
+  analyzebranch.ll                 v              br, -> bne, beq                                          8
+  and1.ll                          v              and                                                      4
+  asm-large-immediate.ll           v              inline asm                                               11
+  atomic-1.ll                      v              atomic                                                   12
+  atomic-2.ll                      v              atomic                                                   12
+  atomics.ll                       v              atomic                                                   12
+  atomics-index.ll                 v              atomic                                                   12
+  atomics-fence.ll                 v              atomic                                                   12
+  br-jmp.ll                        v              br, -> jmp                                               8
+  brockaddress.ll                  v              blockaddress, -> lui, ori                                8
+  cmov.ll                          v              select, -> movn, movz                                    8
+  cprestore.ll                     v              -> .cprestore                                            9
+  div.ll                           v              sdiv, -> div, mflo                                       4
+  divrem.ll                        v              sdiv, srem, udiv, urem, -> div, divu                     4
+  div_rem.ll                       v              sdiv, srem, -> div, mflo, mfhi                           4
+  divu.ll                          v              udiv, -> divu, mflo                                      4
+  divu_reml.ll                     v              udiv, urem -> div, mflo, mfhi                            4
+  double2int.ll                    v              double to int, -> %call16(__fixdfsi)                     7
+  eh-dwraf-cfa.ll                  v                                                                       9
+  eh-return32.ll                   v              Spill and reload all registers used for exception        9 
+  eh.ll                            v              c++ exception handling                                   12
+  ex2.ll                           v              c++ exception handling                                   12
+  fastcc.ll                        v              No effect in fastcc but can pass                         9
+  fneg.ll                          v              verify Cpu0 don't uses hard float instruction            7
+  fp-spill-reload.ll               v              -> st $fp, ld $fp                                        9
+  frame-address.ll                 v              addu $2, $zero, $fp                                      9
+  global-address.ll                v              global address, global variable                          6
+  global-pointer.ll                v              global register load and retore, -> .cpload, .cprestore  9
+  gprestore.ll                     v              global register retore, -> .cprestore                    9
+  helloworld.ll                    v              global register load and retore, -> .cpload, .cprestore  9
+  hf16_1.ll                        v              function call in PIC, -> ld, jalr                        9
+  i32k.ll                          v              argument of constant int passing in register             9 
+  i64arg.ll                        v              argument of constant 64-bit passing in register          9 
+  imm.ll                           v              return constant 32-bit in register                       9 
+  indirectcall.ll                  v              indirect function call                                   9
+  init-array.ll                    v              check .init                                              6
+  inlineasm_constraint.ll          v              inline asm                                               11
+  inlineasm-cnstrnt-reg.ll         v              -                                                        11
+  inlineasmmemop.ll                v              -                                                        11
+  inlineasm-operand-code.ll        v              -                                                        11
+  internalfunc.ll                  v              internal function                                        9
+  jstat.ll                         v              switch, -> JTI                                           8
+  largefr1.ll                      v              large frame                                              3
+  largeimm1.ll                     v              large immediate (32-bit, not 16-bit), -> lui, addiu      3
+  largeimmprinting.ll              v              large imm passing in register                            3
+  lb1.ll                           v              load i8*, sext i8, -> lb                                 7
+  lbu1.ll                          v              load i8*, zext i8, -> lbu                                7
+  lh1.ll                           v              load i16*, sext i16, -> lh                               7
+  lhu1.ll                          v              load i16*, zext i16, -> lhu                              7
+  llcarry.ll                       v              64-bit add sub                                           7
+  longbranch.ll                    v                                                                       8
+  machineverifier.ll               v              delay slot, (comment in machineverifier.ll)              8
+  mipslopat.ll                     v              no check output (comment in mipslopat.ll)                6
+  misha.ll                         v              miss alignment half word access                          7
+  module-asm.ll                    v              module asm                                               11
+  module-asm-cpu032II.ll           v              module asm                                               11
+  mul.ll                           v              mul                                                      4
+  mulll.ll                         v              64-bit mul                                               4
+  mulull.ll                        v              64-bit mul                                               4
+  not1.ll                          v              not 1                                                    4
+  null.ll                          v              ret i32 0, -> ret	$lr                                    3
+  o32_cc_byval.ll                  v              by value                                                 9
+  o32_cc_vararg.ll                 v              variable argument                                        9
+  private.ll                       v              private function call                                    9
+  rem.ll                           v              srem, -> div, mfhi                                       4
+  remat-immed-load.ll              v              immediate load                                           3
+  remul.ll                         v              urem, -> div, mfhi                                       4
+  return-vector-float4.ll          v              return vector, -> lui lui ...                            3
+  return-vector.ll                 v              return vector, -> ld ld ..., st st ...                   3
+  return_address.ll                v              llvm.returnaddress, -> addu	$2, $zero, $lr               9
+  rotate.ll                        v              rotl, rotr, -> rolv, rol, rorv                           4
+  sb1.ll                           v              store i8, sb                                             7
+  select.ll                        v              select, -> movn, movz                                    8
+  seleq.ll                         v              following for br with different condition                8
+  seleqk.ll                        v              -                                                        8
+  selgek.ll                        v              -                                                        8
+  selgt.ll                         v              -                                                        8
+  selle.ll                         v              -                                                        8
+  selltk.ll                        v              -                                                        8
+  selne.ll                         v              -                                                        8
+  selnek.ll                        v              -                                                        8
+  seteq.ll                         v              -                                                        8
+  seteqz.ll                        v              -                                                        8
+  setge.ll                         v              -                                                        8
+  setgek.ll                        v              -                                                        8
+  setle.ll                         v              -                                                        8
+  setlt.ll                         v              -                                                        8
+  setltk.ll                        v              -                                                        8
+  setne.ll                         v              -                                                        8
+  setuge.ll                        v              -                                                        8
+  setugt.ll                        v              -                                                        8
+  setule.ll                        v              -                                                        8
+  setult.ll                        v              -                                                        8
+  setultk.ll                       v              -                                                        8
+  sext_inreg.ll                    v              sext i1, -> shl, sra                                     4
+  shift-parts.ll                   v              64-bit shl, lshr, ashr, -> call function                 9
+  shl1.ll                          v              shl, -> shl                                              4
+  shl2.ll                          v              shl, -> shlv                                             4
+  shr1.ll                          v              shr, -> shr                                              4
+  shr2.ll                          v              shr, -> shrv                                             4
+  sitofp-selectcc-opt.ll           v              comment in sitofp-selectcc-opt.ll                        7
+  small-section-reserve-gp.ll      v              Cpu0 option -cpu0-use-small-section=true                 6
+  sra1.ll                          v              ashr, -> sra                                             4
+  sra2.ll                          v              ashr, -> srav                                            4
+  stacksave-restore.ll             v                                                                       9
+  stacksize.ll                     v              comment in stacksize.ll                                  9
+  stchar.ll                        v              load and store i16, i8                                   7
+  stldst.ll                        v              register sp spill                                        9
+  sub1.ll                          v              sub, -> addiu                                            4
+  sub2.ll                          v              sub, -> sub                                              4
+  tailcall.ll                      v              tail call                                                9
+  tls.ll                           v              ir thread_local global is for c++ "__thread int b;"      12
+  tls-alias.ll                     v              thread_local global and thread local alias               12
+  tls-models.ll                    v              ir external/internal thread_local global                 12
+  uitofp.ll                        v              integer2float, uitofp, -> jsub __floatunsisf             9
+  uli.ll                           v              unalignment init, -> sb sb ...                           6
+  unalignedload.ll                 v              unalignment init, -> sb sb ...                           6
+  vector-setcc.ll                  v                                                                       7
+  weak.ll                          v              extern_weak function, -> .weak                           9
+  xor1.ll                          v              xor, -> xor                                              4
+  zeroreg.ll                       v              check register $zero                                     4
+  ===============================  =============  =======================================================  ===========
+  
+
+These supported test cases are in lbdex/regression-test/Cpu0 which can be 
+gotten from ``tar -xf lbdex.tar.gz``.
+
+The regression test is very useful in two major reasons. First, it provides
+the llvm input, assembly output and the running command as well as options in
+the the sample input file, so all the first glimpse of documentation needed for
+end user and programmer are well written in the same test input file.
+Furthermore, it can be run to check to provide dynamic running document for 
+users. Second, once programmers change their backend compiler especially for 
+optimization, the regression test cases guard their backend has no side effect 
+or bugs for other parts of backend program. That is the name of "regression test"
+stands for. The following file include the assembly output pattern of two 
+subtargets for Cpu0 backend. Beside checking opcode, it is capable to check 
+register number. In this case, the destination register of "andi" must be the 
+first source register in the following instruction "xori" once it is specified
+to T1 at the corresponding registers of these two assembly output.
+
+.. rubric:: lbdex/regression-test/Cpu0/setule.ll
+.. literalinclude:: ../lbdex/regression-test/Cpu0/setule.ll
+
+
+
+
+.. [#sphinx-install] http://docs.geoserver.org/latest/en/docguide/install.html
+
+.. [#maxtex] http://www.tug.org/mactex/
+
+.. [#latexmk] https://zoomadmin.com/HowToInstall/UbuntuPackage/latexmk
+
+.. [#rst-ref] http://docutils.sourceforge.net/docs/ref/rst/restructuredtext.html
+
+.. [#rst-dir] http://docutils.sourceforge.net/docs/ref/rst/directives.html
+
+.. [#rst] http://docutils.sourceforge.net/rst.html
+
+.. [#llvm-sphinx-quick] http://llvm.org/docs/SphinxQuickstartTemplate.html
+
+.. [#sphinx-lexers] http://pygments.org/docs/lexers/
+
+.. [#test] http://llvm.org/docs/TestingGuide.html
+
+.. [#lbd] https://github.com/Jonathan2251/lbd.git

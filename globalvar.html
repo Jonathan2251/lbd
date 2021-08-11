@@ -1,34 +1,25 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
+<!DOCTYPE html>
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html>
   <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    
-    <title>Global variables &mdash; Tutorial: Creating an LLVM Backend for the Cpu0 Architecture</title>
-    
-    <link rel="stylesheet" href="_static/haiku.css" type="text/css" />
-    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    
-    <script type="text/javascript">
-      var DOCUMENTATION_OPTIONS = {
-        URL_ROOT:    './',
-        VERSION:     '3.9.3',
-        COLLAPSE_INDEX: false,
-        FILE_SUFFIX: '.html',
-        HAS_SOURCE:  true
-      };
-    </script>
-    <script type="text/javascript" src="_static/jquery.js"></script>
-    <script type="text/javascript" src="_static/underscore.js"></script>
-    <script type="text/javascript" src="_static/doctools.js"></script>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>Global variables &#8212; Tutorial: Creating an LLVM Backend for the Cpu0 Architecture</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/haiku.css" />
+    <link rel="stylesheet" type="text/css" href="_static/graphviz.css" />
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
     <link rel="author" title="About these documents" href="about.html" />
-    <link rel="top" title="Tutorial: Creating an LLVM Backend for the Cpu0 Architecture" href="index.html" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Other data type" href="othertype.html" />
     <link rel="prev" title="Generating object files" href="genobj.html" /> 
-  </head>
-  <body role="document">
+  </head><body>
       <div class="header" role="banner"><h1 class="heading"><a href="index.html">
           <span>Tutorial: Creating an LLVM Backend for the Cpu0 Architecture</span></a></h1>
         <h2 class="heading"><span>Global variables</span></h2>
@@ -44,26 +35,28 @@
         </p>
 
       </div>
-      <div class="content">
+      <div class="content" role="main">
         
         
-  <div class="section" id="global-variables">
+  <section id="global-variables">
 <span id="sec-globalvars"></span><h1>Global variables<a class="headerlink" href="#global-variables" title="Permalink to this headline">¶</a></h1>
 <div class="contents local topic" id="contents">
 <ul class="simple">
-<li><a class="reference internal" href="#cpu0-global-variable-options" id="id12">Cpu0 global variable options</a></li>
-<li><a class="reference internal" href="#static-mode" id="id13">Static mode</a><ul>
-<li><a class="reference internal" href="#data-or-bss" id="id14">data or bss</a></li>
-<li><a class="reference internal" href="#sdata-or-sbss" id="id15">sdata or sbss</a></li>
+<li><p><a class="reference internal" href="#cpu0-global-variable-options" id="id12">Cpu0 global variable options</a></p></li>
+<li><p><a class="reference internal" href="#static-mode" id="id13">Static mode</a></p>
+<ul>
+<li><p><a class="reference internal" href="#data-or-bss" id="id14">data or bss</a></p></li>
+<li><p><a class="reference internal" href="#sdata-or-sbss" id="id15">sdata or sbss</a></p></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#pic-mode" id="id16">pic mode</a><ul>
-<li><a class="reference internal" href="#id2" id="id17">sdata or sbss</a></li>
-<li><a class="reference internal" href="#id4" id="id18">data or bss</a></li>
+<li><p><a class="reference internal" href="#pic-mode" id="id16">pic mode</a></p>
+<ul>
+<li><p><a class="reference internal" href="#id2" id="id17">sdata or sbss</a></p></li>
+<li><p><a class="reference internal" href="#id4" id="id18">data or bss</a></p></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#global-variable-print-support" id="id19">Global variable print support</a></li>
-<li><a class="reference internal" href="#summary" id="id20">Summary</a></li>
+<li><p><a class="reference internal" href="#global-variable-print-support" id="id19">Global variable print support</a></p></li>
+<li><p><a class="reference internal" href="#summary" id="id20">Summary</a></p></li>
 </ul>
 </div>
 <p>In the last three chapters, we only access the local variables.
@@ -71,17 +64,17 @@ This chapter deals global variable access translation.</p>
 <p>The global variable DAG translation is different from the previous DAG
 translations until now we have.
 It creates IR DAG nodes at run time in backend C++ code according the
-<code class="docutils literal"><span class="pre">llc</span> <span class="pre">-relocation-model</span></code> option while the others of DAG just do IR DAG to
+<code class="docutils literal notranslate"><span class="pre">llc</span> <span class="pre">-relocation-model</span></code> option while the others of DAG just do IR DAG to
 Machine DAG translation directly according the input file of IR DAGs (except
 the Pseudo instruction RetLR used in Chapter3_4).
 Readers should focus on how to add code for creating DAG nodes at run time and
 how to define the pattern match in td for the run time created DAG nodes.
 In addition, the machine instruction printing function for global variable
 related assembly directive (macro) should be cared if your backend has it.</p>
-<p>Chapter6_1/ supports the global variable, let&#8217;s compile ch6_1.cpp with this
+<p>Chapter6_1/ supports the global variable, let’s compile ch6_1.cpp with this
 version first, then explain the code changes after that.</p>
 <p class="rubric">lbdex/input/ch6_1.cpp</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="nb">int</span> <span class="n">gStart</span> <span class="o">=</span> <span class="mi">3</span><span class="p">;</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="nb">int</span> <span class="n">gStart</span> <span class="o">=</span> <span class="mi">3</span><span class="p">;</span>
 <span class="nb">int</span> <span class="n">gI</span> <span class="o">=</span> <span class="mi">100</span><span class="p">;</span>
 <span class="nb">int</span> <span class="n">test_global</span><span class="p">()</span>
 <span class="p">{</span>
@@ -93,39 +86,39 @@ version first, then explain the code changes after that.</p>
 <span class="p">}</span>
 </pre></div>
 </div>
-<div class="highlight-console"><div class="highlight"><pre><span></span><span class="gp">118-165-78-166:input Jonathan$</span> llvm-dis ch6_1.bc -o -
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">118-165-78-166:input Jonathan$ </span>llvm-dis ch6_1.bc -o -
 <span class="go">...</span>
 <span class="go">@gStart = global i32 2, align 4</span>
 <span class="go">@gI = global i32 100, align 4</span>
 
 <span class="go">define i32 @_Z3funv() nounwind uwtable ssp {</span>
-<span class="gp">  %</span><span class="nv">1</span> <span class="o">=</span> alloca i32, align 4
-<span class="gp">  %</span><span class="nv">c</span> <span class="o">=</span> alloca i32, align 4
+<span class="gp">  %</span><span class="nv">1</span> <span class="o">=</span> alloca i32, align <span class="m">4</span>
+<span class="gp">  %</span><span class="nv">c</span> <span class="o">=</span> alloca i32, align <span class="m">4</span>
 <span class="go">  store i32 0, i32* %1</span>
 <span class="go">  store i32 0, i32* %c, align 4</span>
-<span class="gp">  %</span><span class="nv">2</span> <span class="o">=</span> load i32* @gI, align 4
+<span class="gp">  %</span><span class="nv">2</span> <span class="o">=</span> load i32* @gI, align <span class="m">4</span>
 <span class="go">  store i32 %2, i32* %c, align 4</span>
-<span class="gp">  %</span><span class="nv">3</span> <span class="o">=</span> load i32* %c, align 4
+<span class="gp">  %</span><span class="nv">3</span> <span class="o">=</span> load i32* %c, align <span class="m">4</span>
 <span class="go">  ret i32 %3</span>
 <span class="go">}</span>
 </pre></div>
 </div>
-<div class="section" id="cpu0-global-variable-options">
+<section id="cpu0-global-variable-options">
 <h2><a class="toc-backref" href="#id12">Cpu0 global variable options</a><a class="headerlink" href="#cpu0-global-variable-options" title="Permalink to this headline">¶</a></h2>
 <p>Just like Mips, Cpu0 supports both static and pic mode.
 There are two different layout of global variables for static mode which
 controlled by option cpu0-use-small-section.
 Chapter6_1/ supports the global variable translation.
-Let&#8217;s run Chapter6_1/ with ch6_1.cpp via four different options
-<code class="docutils literal"><span class="pre">llc</span>&nbsp; <span class="pre">-relocation-model=static</span> <span class="pre">-cpu0-use-small-section=false</span></code>,
-<code class="docutils literal"><span class="pre">llc</span>&nbsp; <span class="pre">-relocation-model=static</span> <span class="pre">-cpu0-use-small-section=true</span></code>,
-<code class="docutils literal"><span class="pre">llc</span>&nbsp; <span class="pre">-relocation-model=pic</span> <span class="pre">-cpu0-use-small-section=false</span></code> and
-<code class="docutils literal"><span class="pre">llc</span>&nbsp; <span class="pre">-relocation-model=pic</span> <span class="pre">-cpu0-use-small-section=true</span></code> to tracing the
+Let’s run Chapter6_1/ with ch6_1.cpp via four different options
+<code class="docutils literal notranslate"><span class="pre">llc</span>&#160; <span class="pre">-relocation-model=static</span> <span class="pre">-cpu0-use-small-section=false</span></code>,
+<code class="docutils literal notranslate"><span class="pre">llc</span>&#160; <span class="pre">-relocation-model=static</span> <span class="pre">-cpu0-use-small-section=true</span></code>,
+<code class="docutils literal notranslate"><span class="pre">llc</span>&#160; <span class="pre">-relocation-model=pic</span> <span class="pre">-cpu0-use-small-section=false</span></code> and
+<code class="docutils literal notranslate"><span class="pre">llc</span>&#160; <span class="pre">-relocation-model=pic</span> <span class="pre">-cpu0-use-small-section=true</span></code> to tracing the
 DAGs and Cpu0 instructions.</p>
-<div class="highlight-console"><div class="highlight"><pre><span></span><span class="gp">118-165-78-166:input Jonathan$</span> clang -target mips-unknown-linux-gnu -c
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">118-165-78-166:input Jonathan$ </span>clang -target mips-unknown-linux-gnu -c
 <span class="go">ch6_1.cpp -emit-llvm -o ch6_1.bc</span>
-<span class="gp">118-165-78-166:input Jonathan$</span> /Users/Jonathan/llvm/test/cmake_debug_build/
-<span class="go">Debug/bin/llc -march=cpu0 -relocation-model=static -cpu0-use-small-section=false</span>
+<span class="gp">118-165-78-166:input Jonathan$ </span>/Users/Jonathan/llvm/test/build/
+<span class="go">bin/llc -march=cpu0 -relocation-model=static -cpu0-use-small-section=false</span>
 <span class="go">-filetype=asm -debug ch6_1.bc -o -</span>
 
 <span class="go">...</span>
@@ -184,8 +177,8 @@ DAGs and Cpu0 instructions.</p>
 <span class="go">      .size   gI, 4</span>
 </pre></div>
 </div>
-<div class="highlight-console"><div class="highlight"><pre><span></span><span class="gp">118-165-78-166:input Jonathan$</span> /Users/Jonathan/llvm/test/cmake_debug_build/
-<span class="go">Debug/bin/llc -march=cpu0 -relocation-model=static -cpu0-use-small-section=true</span>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">118-165-78-166:input Jonathan$ </span>/Users/Jonathan/llvm/test/build/
+<span class="go">bin/llc -march=cpu0 -relocation-model=static -cpu0-use-small-section=true</span>
 <span class="go">-filetype=asm -debug ch6_1.bc -o -</span>
 
 <span class="go">...</span>
@@ -241,8 +234,8 @@ DAGs and Cpu0 instructions.</p>
 <span class="go">      .size   gI, 4</span>
 </pre></div>
 </div>
-<div class="highlight-console"><div class="highlight"><pre><span></span><span class="gp">118-165-78-166:input Jonathan$</span> /Users/Jonathan/llvm/test/cmake_debug_build/
-<span class="go">Debug/bin/llc -march=cpu0 -relocation-model=pic -cpu0-use-small-section=false</span>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">118-165-78-166:input Jonathan$ </span>/Users/Jonathan/llvm/test/build/
+<span class="go">bin/llc -march=cpu0 -relocation-model=pic -cpu0-use-small-section=false</span>
 <span class="go">-filetype=asm -debug ch6_1.bc -o -</span>
 
 <span class="go">  ...</span>
@@ -300,8 +293,8 @@ DAGs and Cpu0 instructions.</p>
 <span class="go">  .size gI, 4</span>
 </pre></div>
 </div>
-<div class="highlight-console"><div class="highlight"><pre><span></span><span class="gp">118-165-78-166:input Jonathan$</span> /Users/Jonathan/llvm/test/cmake_debug_build/
-<span class="go">Debug/bin/llc -march=cpu0 -relocation-model=pic -cpu0-use-small-section=true</span>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">118-165-78-166:input Jonathan$ </span>/Users/Jonathan/llvm/test/build/
+<span class="go">bin/llc -march=cpu0 -relocation-model=pic -cpu0-use-small-section=true</span>
 <span class="go">-filetype=asm -debug ch6_1.bc -o -</span>
 
 <span class="go">...</span>
@@ -365,124 +358,124 @@ DAGs and Cpu0 instructions.</p>
 </pre></div>
 </div>
 <p>Summary above information to Table: Cpu0 global variable options.</p>
-<table border="1" class="docutils" id="id9">
+<table class="docutils align-default" id="id9">
 <caption><span class="caption-number">Table 23 </span><span class="caption-text">Cpu0 global variable options</span><a class="headerlink" href="#id9" title="Permalink to this table">¶</a></caption>
 <colgroup>
-<col width="27%" />
-<col width="9%" />
-<col width="18%" />
-<col width="47%" />
+<col style="width: 27%" />
+<col style="width: 9%" />
+<col style="width: 18%" />
+<col style="width: 47%" />
 </colgroup>
-<thead valign="bottom">
-<tr class="row-odd"><th class="head">option name</th>
-<th class="head">default</th>
-<th class="head">other option value</th>
-<th class="head">discription</th>
+<thead>
+<tr class="row-odd"><th class="head"><p>option name</p></th>
+<th class="head"><p>default</p></th>
+<th class="head"><p>other option value</p></th>
+<th class="head"><p>discription</p></th>
 </tr>
 </thead>
-<tbody valign="top">
-<tr class="row-even"><td>-relocation-model</td>
-<td>pic</td>
-<td>static</td>
-<td><ul class="first last simple">
-<li>pic: Postion Independent Address</li>
-<li>static: Absolute Address</li>
+<tbody>
+<tr class="row-even"><td><p>-relocation-model</p></td>
+<td><p>pic</p></td>
+<td><p>static</p></td>
+<td><ul class="simple">
+<li><p>pic: Postion Independent Address</p></li>
+<li><p>static: Absolute Address</p></li>
 </ul>
 </td>
 </tr>
-<tr class="row-odd"><td>-cpu0-use-small-section</td>
-<td>false</td>
-<td>true</td>
-<td><ul class="first last simple">
-<li>false: .data or .bss, 32 bits addressable</li>
-<li>true: .sdata or .sbss, 16 bits addressable</li>
+<tr class="row-odd"><td><p>-cpu0-use-small-section</p></td>
+<td><p>false</p></td>
+<td><p>true</p></td>
+<td><ul class="simple">
+<li><p>false: .data or .bss, 32 bits addressable</p></li>
+<li><p>true: .sdata or .sbss, 16 bits addressable</p></li>
 </ul>
 </td>
 </tr>
 </tbody>
 </table>
-<table border="1" class="docutils" id="id10">
+<table class="colwidths-given docutils align-default" id="id10">
 <caption><span class="caption-number">Table 24 </span><span class="caption-text">Cpu0 DAGs and instructions for -relocation-model=static</span><a class="headerlink" href="#id10" title="Permalink to this table">¶</a></caption>
 <colgroup>
-<col width="33%" />
-<col width="33%" />
-<col width="33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
 </colgroup>
-<thead valign="bottom">
-<tr class="row-odd"><th class="head">option: cpu0-use-small-section</th>
-<th class="head">false</th>
-<th class="head">true</th>
+<thead>
+<tr class="row-odd"><th class="head"><p>option: cpu0-use-small-section</p></th>
+<th class="head"><p>false</p></th>
+<th class="head"><p>true</p></th>
 </tr>
 </thead>
-<tbody valign="top">
-<tr class="row-even"><td>addressing mode</td>
-<td>absolute</td>
-<td>$gp relative</td>
+<tbody>
+<tr class="row-even"><td><p>addressing mode</p></td>
+<td><p>absolute</p></td>
+<td><p>$gp relative</p></td>
 </tr>
-<tr class="row-odd"><td>addressing</td>
-<td>absolute</td>
-<td>$gp+offset</td>
+<tr class="row-odd"><td><p>addressing</p></td>
+<td><p>absolute</p></td>
+<td><p>$gp+offset</p></td>
 </tr>
-<tr class="row-even"><td>Legalized selection DAG</td>
-<td>(add Cpu0ISD::Hi&lt;gI offset Hi16&gt; Cpu0ISD::Lo&lt;gI offset Lo16&gt;)</td>
-<td>(add register %GP, Cpu0ISD::GPRel&lt;gI offset&gt;)</td>
+<tr class="row-even"><td><p>Legalized selection DAG</p></td>
+<td><p>(add Cpu0ISD::Hi&lt;gI offset Hi16&gt; Cpu0ISD::Lo&lt;gI offset Lo16&gt;)</p></td>
+<td><p>(add register %GP, Cpu0ISD::GPRel&lt;gI offset&gt;)</p></td>
 </tr>
-<tr class="row-odd"><td>Cpu0</td>
-<td>lui $2, %hi(gI); ori $2, $2, %lo(gI);</td>
-<td>ori        $2, $gp, %gp_rel(gI);</td>
+<tr class="row-odd"><td><p>Cpu0</p></td>
+<td><p>lui $2, %hi(gI); ori $2, $2, %lo(gI);</p></td>
+<td><p>ori        $2, $gp, %gp_rel(gI);</p></td>
 </tr>
-<tr class="row-even"><td>relocation records solved</td>
-<td>link time</td>
-<td>link time</td>
+<tr class="row-even"><td><p>relocation records solved</p></td>
+<td><p>link time</p></td>
+<td><p>link time</p></td>
 </tr>
 </tbody>
 </table>
 <ul class="simple">
-<li>In static, cpu0-use-small-section=true, offset between gI and .data can be calculated since the $gp is assigned at fixed address of the start of global address table.</li>
-<li>In &#8220;static, cpu0-use-small-section=false&#8221;, the gI high and low address (%hi(gI) and %lo(gI)) are translated into absolute address.</li>
+<li><p>In static, cpu0-use-small-section=true, offset between gI and .data can be calculated since the $gp is assigned at fixed address of the start of global address table.</p></li>
+<li><p>In “static, cpu0-use-small-section=false”, the gI high and low address (%hi(gI) and %lo(gI)) are translated into absolute address.</p></li>
 </ul>
-<table border="1" class="docutils" id="id11">
+<table class="colwidths-given docutils align-default" id="id11">
 <caption><span class="caption-number">Table 25 </span><span class="caption-text">Cpu0 DAGs and instructions for -relocation-model=pic</span><a class="headerlink" href="#id11" title="Permalink to this table">¶</a></caption>
 <colgroup>
-<col width="33%" />
-<col width="33%" />
-<col width="33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
 </colgroup>
-<thead valign="bottom">
-<tr class="row-odd"><th class="head">option: cpu0-use-small-section</th>
-<th class="head">false</th>
-<th class="head">true</th>
+<thead>
+<tr class="row-odd"><th class="head"><p>option: cpu0-use-small-section</p></th>
+<th class="head"><p>false</p></th>
+<th class="head"><p>true</p></th>
 </tr>
 </thead>
-<tbody valign="top">
-<tr class="row-even"><td>addressing mode</td>
-<td>$gp relative</td>
-<td>$gp relative</td>
+<tbody>
+<tr class="row-even"><td><p>addressing mode</p></td>
+<td><p>$gp relative</p></td>
+<td><p>$gp relative</p></td>
 </tr>
-<tr class="row-odd"><td>addressing</td>
-<td>$gp+offset</td>
-<td>$gp+offset</td>
+<tr class="row-odd"><td><p>addressing</p></td>
+<td><p>$gp+offset</p></td>
+<td><p>$gp+offset</p></td>
 </tr>
-<tr class="row-even"><td>Legalized selection DAG</td>
-<td>(load (Cpu0ISD::Wrapper register %GP, &lt;gI offset&gt;))</td>
-<td>(load EntryToken, (Cpu0ISD::Wrapper (add Cpu0ISD::Hi&lt;gI offset Hi16&gt;, Register %GP), Cpu0ISD::Lo&lt;gI offset Lo16&gt;))</td>
+<tr class="row-even"><td><p>Legalized selection DAG</p></td>
+<td><p>(load (Cpu0ISD::Wrapper register %GP, &lt;gI offset&gt;))</p></td>
+<td><p>(load EntryToken, (Cpu0ISD::Wrapper (add Cpu0ISD::Hi&lt;gI offset Hi16&gt;, Register %GP), Cpu0ISD::Lo&lt;gI offset Lo16&gt;))</p></td>
 </tr>
-<tr class="row-odd"><td>Cpu0</td>
-<td>ld $2, %got(gI)($gp);</td>
-<td>lui        $2, %got_hi(gI); add $2, $2, $gp; ld $2, %got_lo(gI)($2);</td>
+<tr class="row-odd"><td><p>Cpu0</p></td>
+<td><p>ld $2, %got(gI)($gp);</p></td>
+<td><p>lui        $2, %got_hi(gI); add $2, $2, $gp; ld $2, %got_lo(gI)($2);</p></td>
 </tr>
-<tr class="row-even"><td>relocation records solved</td>
-<td>link/load time</td>
-<td>link/load time</td>
+<tr class="row-even"><td><p>relocation records solved</p></td>
+<td><p>link/load time</p></td>
+<td><p>link/load time</p></td>
 </tr>
 </tbody>
 </table>
 <ul class="simple">
-<li>In pic, offset between gI and .data cannot be calculated if the function is
+<li><p>In pic, offset between gI and .data cannot be calculated if the function is
 loaded at run time (dynamic link); the offset can be calculated if use static
-link.</li>
-<li>In C, all variable names binding staticly. In C++, the overload variable or
-function are binding dynamicly.</li>
+link.</p></li>
+<li><p>In C, all variable names binding staticly. In C++, the overload variable or
+function are binding dynamicly.</p></li>
 </ul>
 <p>According book of system program, there are Absolute Addressing Mode and
 Position Independent Addressing Mode. The dynamic function must be compiled with
@@ -493,32 +486,32 @@ In this case, the register $gp is reserved to set at the start address of global
 variable area. Cpu0 uses $gp relative addressing in this mode.</p>
 <p>To support global variable, first add <strong>UseSmallSectionOpt</strong> command variable to
 Cpu0Subtarget.cpp.
-After that, user can run llc with option <code class="docutils literal"><span class="pre">llc</span> <span class="pre">-cpu0-use-small-section=false</span></code>
+After that, user can run llc with option <code class="docutils literal notranslate"><span class="pre">llc</span> <span class="pre">-cpu0-use-small-section=false</span></code>
 to specify <strong>UseSmallSectionOpt</strong> to false.
 The default of <strong>UseSmallSectionOpt</strong> is false if without specify it further.
-About the <strong>cl::opt</strong> command line variable, you can refer to here <a class="footnote-reference" href="#id6" id="id1">[1]</a> further.</p>
+About the <strong>cl::opt</strong> command line variable, you can refer to here <a class="footnote-reference brackets" href="#id6" id="id1">1</a> further.</p>
 <p class="rubric">lbdex/chapters/Chapter6_1/Cpu0Subtarget.h</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">extern</span> <span class="nb">bool</span> <span class="n">Cpu0ReserveGP</span><span class="p">;</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">extern</span> <span class="nb">bool</span> <span class="n">Cpu0ReserveGP</span><span class="p">;</span>
 <span class="n">extern</span> <span class="nb">bool</span> <span class="n">Cpu0NoCpload</span><span class="p">;</span>
 </pre></div>
 </div>
-<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">Cpu0Subtarget</span> <span class="o">:</span> <span class="k">public</span> <span class="n">Cpu0GenSubtargetInfo</span> <span class="p">{</span>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">Cpu0Subtarget</span> <span class="o">:</span> <span class="k">public</span> <span class="n">Cpu0GenSubtargetInfo</span> <span class="p">{</span>
   <span class="p">...</span>
 </pre></div>
 </div>
-<div class="highlight-default"><div class="highlight"><pre><span></span>  <span class="o">//</span> <span class="n">UseSmallSection</span> <span class="o">-</span> <span class="n">Small</span> <span class="n">section</span> <span class="ow">is</span> <span class="n">used</span><span class="o">.</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>  <span class="o">//</span> <span class="n">UseSmallSection</span> <span class="o">-</span> <span class="n">Small</span> <span class="n">section</span> <span class="ow">is</span> <span class="n">used</span><span class="o">.</span>
   <span class="nb">bool</span> <span class="n">UseSmallSection</span><span class="p">;</span>
 </pre></div>
 </div>
-<div class="highlight-default"><div class="highlight"><pre><span></span>  <span class="nb">bool</span> <span class="n">useSmallSection</span><span class="p">()</span> <span class="n">const</span> <span class="p">{</span> <span class="k">return</span> <span class="n">UseSmallSection</span><span class="p">;</span> <span class="p">}</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>  <span class="nb">bool</span> <span class="n">useSmallSection</span><span class="p">()</span> <span class="n">const</span> <span class="p">{</span> <span class="k">return</span> <span class="n">UseSmallSection</span><span class="p">;</span> <span class="p">}</span>
 </pre></div>
 </div>
-<div class="highlight-c++"><div class="highlight"><pre><span></span>  <span class="p">...</span>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span>  <span class="p">...</span>
 <span class="p">};</span>
 </pre></div>
 </div>
 <p class="rubric">lbdex/chapters/Chapter6_1/Cpu0Subtarget.cpp</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">static</span> <span class="n">cl</span><span class="p">::</span><span class="n">opt</span><span class="o">&lt;</span><span class="nb">bool</span><span class="o">&gt;</span> <span class="n">UseSmallSectionOpt</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">static</span> <span class="n">cl</span><span class="p">::</span><span class="n">opt</span><span class="o">&lt;</span><span class="nb">bool</span><span class="o">&gt;</span> <span class="n">UseSmallSectionOpt</span>
                 <span class="p">(</span><span class="s2">&quot;cpu0-use-small-section&quot;</span><span class="p">,</span> <span class="n">cl</span><span class="p">::</span><span class="n">Hidden</span><span class="p">,</span> <span class="n">cl</span><span class="p">::</span><span class="n">init</span><span class="p">(</span><span class="n">false</span><span class="p">),</span>
                  <span class="n">cl</span><span class="p">::</span><span class="n">desc</span><span class="p">(</span><span class="s2">&quot;Use small section. Only work when -relocation-model=&quot;</span>
                  <span class="s2">&quot;static. pic always not use small section.&quot;</span><span class="p">));</span>
@@ -535,18 +528,18 @@ About the <strong>cl::opt</strong> command line variable, you can refer to here 
 <span class="nb">bool</span> <span class="n">Cpu0NoCpload</span><span class="p">;</span>
 </pre></div>
 </div>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">Cpu0Subtarget</span><span class="p">::</span><span class="n">Cpu0Subtarget</span><span class="p">(</span><span class="n">const</span> <span class="n">Triple</span> <span class="o">&amp;</span><span class="n">TT</span><span class="p">,</span> <span class="n">const</span> <span class="n">std</span><span class="p">::</span><span class="n">string</span> <span class="o">&amp;</span><span class="n">CPU</span><span class="p">,</span>
-                             <span class="n">const</span> <span class="n">std</span><span class="p">::</span><span class="n">string</span> <span class="o">&amp;</span><span class="n">FS</span><span class="p">,</span> <span class="nb">bool</span> <span class="n">little</span><span class="p">,</span> 
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Cpu0Subtarget</span><span class="p">::</span><span class="n">Cpu0Subtarget</span><span class="p">(</span><span class="n">const</span> <span class="n">Triple</span> <span class="o">&amp;</span><span class="n">TT</span><span class="p">,</span> <span class="n">StringRef</span> <span class="n">CPU</span><span class="p">,</span>
+                             <span class="n">StringRef</span> <span class="n">FS</span><span class="p">,</span> <span class="nb">bool</span> <span class="n">little</span><span class="p">,</span> 
                              <span class="n">const</span> <span class="n">Cpu0TargetMachine</span> <span class="o">&amp;</span><span class="n">_TM</span><span class="p">)</span> <span class="p">:</span>
 </pre></div>
 </div>
-<div class="highlight-default"><div class="highlight"><pre><span></span>  <span class="o">//</span> <span class="n">Set</span> <span class="n">UseSmallSection</span><span class="o">.</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>  <span class="o">//</span> <span class="n">Set</span> <span class="n">UseSmallSection</span><span class="o">.</span>
   <span class="n">UseSmallSection</span> <span class="o">=</span> <span class="n">UseSmallSectionOpt</span><span class="p">;</span>
   <span class="n">Cpu0ReserveGP</span> <span class="o">=</span> <span class="n">ReserveGPOpt</span><span class="p">;</span>
   <span class="n">Cpu0NoCpload</span> <span class="o">=</span> <span class="n">NoCploadOpt</span><span class="p">;</span>
 </pre></div>
 </div>
-<div class="highlight-c++"><div class="highlight"><pre><span></span>  <span class="p">...</span>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span>  <span class="p">...</span>
 <span class="p">}</span>
 </pre></div>
 </div>
@@ -555,7 +548,7 @@ Chapter.
 Next add the following code to files Cpu0BaseInfo.h, Cpu0TargetObjectFile.h,
 Cpu0TargetObjectFile.cpp, Cpu0RegisterInfo.cpp and Cpu0ISelLowering.cpp.</p>
 <p class="rubric">lbdex/chapters/Chapter6_1/Cpu0BaseInfo.h</p>
-<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="k">enum</span> <span class="n">TOF</span> <span class="p">{</span>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="k">enum</span> <span class="nc">TOF</span> <span class="p">{</span>
   <span class="p">...</span>
   <span class="c1">/// MO_GOT16 - Represents the offset into the global offset table at which</span>
   <span class="c1">/// the address the relocation entry symbol resides during execution.</span>
@@ -566,50 +559,46 @@ Cpu0TargetObjectFile.cpp, Cpu0RegisterInfo.cpp and Cpu0ISelLowering.cpp.</p>
 </pre></div>
 </div>
 <p class="rubric">lbdex/chapters/Chapter6_1/Cpu0TargetObjectFile.h</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span>    <span class="o">///</span> <span class="n">IsGlobalInSmallSection</span> <span class="o">-</span> <span class="n">Return</span> <span class="n">true</span> <span class="k">if</span> <span class="n">this</span> <span class="k">global</span> <span class="n">address</span> <span class="n">should</span> <span class="n">be</span>
-    <span class="o">///</span> <span class="n">placed</span> <span class="n">into</span> <span class="n">small</span> <span class="n">data</span><span class="o">/</span><span class="n">bss</span> <span class="n">section</span><span class="o">.</span>
-    <span class="nb">bool</span> <span class="n">IsGlobalInSmallSection</span><span class="p">(</span><span class="n">const</span> <span class="n">GlobalValue</span> <span class="o">*</span><span class="n">GV</span><span class="p">,</span>
-                                <span class="n">const</span> <span class="n">TargetMachine</span> <span class="o">&amp;</span><span class="n">TM</span><span class="p">,</span> <span class="n">SectionKind</span> <span class="n">Kind</span><span class="p">)</span> <span class="n">const</span><span class="p">;</span>
-    <span class="nb">bool</span> <span class="n">IsGlobalInSmallSection</span><span class="p">(</span><span class="n">const</span> <span class="n">GlobalValue</span> <span class="o">*</span><span class="n">GV</span><span class="p">,</span>
-                                <span class="n">const</span> <span class="n">TargetMachine</span> <span class="o">&amp;</span><span class="n">TM</span><span class="p">)</span> <span class="n">const</span><span class="p">;</span>
-    <span class="nb">bool</span> <span class="n">IsGlobalInSmallSectionImpl</span><span class="p">(</span><span class="n">const</span> <span class="n">GlobalValue</span> <span class="o">*</span><span class="n">GV</span><span class="p">,</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>    <span class="nb">bool</span> <span class="n">IsGlobalInSmallSection</span><span class="p">(</span><span class="n">const</span> <span class="n">GlobalObject</span> <span class="o">*</span><span class="n">GO</span><span class="p">,</span> <span class="n">const</span> <span class="n">TargetMachine</span> <span class="o">&amp;</span><span class="n">TM</span><span class="p">,</span>
+                                <span class="n">SectionKind</span> <span class="n">Kind</span><span class="p">)</span> <span class="n">const</span><span class="p">;</span>
+    <span class="nb">bool</span> <span class="n">IsGlobalInSmallSectionImpl</span><span class="p">(</span><span class="n">const</span> <span class="n">GlobalObject</span> <span class="o">*</span><span class="n">GO</span><span class="p">,</span>
                                     <span class="n">const</span> <span class="n">TargetMachine</span> <span class="o">&amp;</span><span class="n">TM</span><span class="p">)</span> <span class="n">const</span><span class="p">;</span>
-
-    <span class="n">MCSection</span> <span class="o">*</span><span class="n">SelectSectionForGlobal</span><span class="p">(</span><span class="n">const</span> <span class="n">GlobalValue</span> <span class="o">*</span><span class="n">GV</span><span class="p">,</span> <span class="n">SectionKind</span> <span class="n">Kind</span><span class="p">,</span>
-                                      <span class="n">Mangler</span> <span class="o">&amp;</span><span class="n">Mang</span><span class="p">,</span>
-                                      <span class="n">const</span> <span class="n">TargetMachine</span> <span class="o">&amp;</span><span class="n">TM</span><span class="p">)</span> <span class="n">const</span> <span class="n">override</span><span class="p">;</span>
 </pre></div>
 </div>
 <p class="rubric">lbdex/chapters/Chapter6_1/Cpu0TargetObjectFile.cpp</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span>// A address must be loaded from a small section if its size is less than the
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>// A address must be loaded from a small section if its size is less than the
 // small section size threshold. Data in this section must be addressed using
 // gp_rel operator.
 static bool IsInSmallSection(uint64_t Size) {
   return Size &gt; 0 &amp;&amp; Size &lt;= SSThreshold;
 }
 
-bool Cpu0TargetObjectFile::IsGlobalInSmallSection(const GlobalValue *GV,
-                                                const TargetMachine &amp;TM) const {
-  if (GV-&gt;isDeclaration() || GV-&gt;hasAvailableExternallyLinkage())
-    return false;
+bool Cpu0TargetObjectFile::IsGlobalInSmallSection(
+    const GlobalObject *GO, const TargetMachine &amp;TM) const {
+  // We first check the case where global is a declaration, because finding
+  // section kind using getKindForGlobal() is only allowed for global
+  // definitions.
+  if (GO-&gt;isDeclaration() || GO-&gt;hasAvailableExternallyLinkage())
+    return IsGlobalInSmallSectionImpl(GO, TM);
 
-  return IsGlobalInSmallSection(GV, TM, getKindForGlobal(GV, TM));
+  return IsGlobalInSmallSection(GO, TM, getKindForGlobal(GO, TM));
 }
 
 /// IsGlobalInSmallSection - Return true if this global address should be
 /// placed into small data/bss section.
 bool Cpu0TargetObjectFile::
-IsGlobalInSmallSection(const GlobalValue *GV, const TargetMachine &amp;TM,
+IsGlobalInSmallSection(const GlobalObject *GO, const TargetMachine &amp;TM,
                        SectionKind Kind) const {
-  return (IsGlobalInSmallSectionImpl(GV, TM) &amp;&amp;
-          (Kind.isData() || Kind.isBSS() || Kind.isCommon()));
+  return IsGlobalInSmallSectionImpl(GO, TM) &amp;&amp;
+         (Kind.isData() || Kind.isBSS() || Kind.isCommon() ||
+          Kind.isReadOnly());
 }
 
 /// Return true if this global address should be placed into small data/bss
 /// section. This method does all the work, except for checking the section
 /// kind.
 bool Cpu0TargetObjectFile::
-IsGlobalInSmallSectionImpl(const GlobalValue *GV,
+IsGlobalInSmallSectionImpl(const GlobalObject *GV,
                            const TargetMachine &amp;TM) const {
   const Cpu0Subtarget &amp;Subtarget =
       *static_cast&lt;const Cpu0TargetMachine &amp;&gt;(TM).getSubtargetImpl();
@@ -630,26 +619,27 @@ IsGlobalInSmallSectionImpl(const GlobalValue *GV,
 
 
 MCSection *
-Cpu0TargetObjectFile::SelectSectionForGlobal(const GlobalValue *GV, 
-                                             SectionKind Kind, Mangler &amp;Mang,
-                                             const TargetMachine &amp;TM) const {
+Cpu0TargetObjectFile::SelectSectionForGlobal(
+    const GlobalObject *GO, SectionKind Kind, const TargetMachine &amp;TM) const {
   // TODO: Could also support &quot;weak&quot; symbols as well with &quot;.gnu.linkonce.s.*&quot;
   // sections?
 
   // Handle Small Section classification here.
-  if (Kind.isBSS() &amp;&amp; IsGlobalInSmallSection(GV, TM, Kind))
+  if (Kind.isBSS() &amp;&amp; IsGlobalInSmallSection(GO, TM, Kind))
     return SmallBSSSection;
-  if (Kind.isData() &amp;&amp; IsGlobalInSmallSection(GV, TM, Kind))
+  if (Kind.isData() &amp;&amp; IsGlobalInSmallSection(GO, TM, Kind))
+    return SmallDataSection;
+  if (Kind.isReadOnly() &amp;&amp; IsGlobalInSmallSection(GO, TM, Kind))
     return SmallDataSection;
 
   // Otherwise, we work the same as ELF.
-  return TargetLoweringObjectFileELF::SelectSectionForGlobal(GV, Kind, Mang,TM);
+  return TargetLoweringObjectFileELF::SelectSectionForGlobal(GO, Kind, TM);
 }
 
 </pre></div>
 </div>
 <p class="rubric">lbdex/chapters/Chapter6_1/Cpu0RegisterInfo.cpp</p>
-<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="n">BitVector</span> <span class="n">Cpu0RegisterInfo</span><span class="o">::</span>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="n">BitVector</span> <span class="n">Cpu0RegisterInfo</span><span class="o">::</span>
 <span class="n">getReservedRegs</span><span class="p">(</span><span class="k">const</span> <span class="n">MachineFunction</span> <span class="o">&amp;</span><span class="n">MF</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
   <span class="p">...</span>
     <span class="n">Reserved</span><span class="p">.</span><span class="n">set</span><span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">GP</span><span class="p">);</span>
@@ -658,7 +648,7 @@ Cpu0TargetObjectFile::SelectSectionForGlobal(const GlobalValue *GV,
 </pre></div>
 </div>
 <p class="rubric">lbdex/chapters/Chapter6_1/Cpu0ISelLowering.h</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span>    SDValue getGlobalReg(SelectionDAG &amp;DAG, EVT Ty) const;
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>    SDValue getGlobalReg(SelectionDAG &amp;DAG, EVT Ty) const;
 
     // This method creates the following nodes, which are necessary for
     // computing a local symbol&#39;s address:
@@ -732,7 +722,7 @@ Cpu0TargetObjectFile::SelectSectionForGlobal(const GlobalValue *GV,
 </pre></div>
 </div>
 <p class="rubric">lbdex/chapters/Chapter6_1/Cpu0ISelLowering.cpp</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">SDValue</span> <span class="n">Cpu0TargetLowering</span><span class="p">::</span><span class="n">getGlobalReg</span><span class="p">(</span><span class="n">SelectionDAG</span> <span class="o">&amp;</span><span class="n">DAG</span><span class="p">,</span> <span class="n">EVT</span> <span class="n">Ty</span><span class="p">)</span> <span class="n">const</span> <span class="p">{</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">SDValue</span> <span class="n">Cpu0TargetLowering</span><span class="p">::</span><span class="n">getGlobalReg</span><span class="p">(</span><span class="n">SelectionDAG</span> <span class="o">&amp;</span><span class="n">DAG</span><span class="p">,</span> <span class="n">EVT</span> <span class="n">Ty</span><span class="p">)</span> <span class="n">const</span> <span class="p">{</span>
   <span class="n">Cpu0FunctionInfo</span> <span class="o">*</span><span class="n">FI</span> <span class="o">=</span> <span class="n">DAG</span><span class="o">.</span><span class="n">getMachineFunction</span><span class="p">()</span><span class="o">.</span><span class="n">getInfo</span><span class="o">&lt;</span><span class="n">Cpu0FunctionInfo</span><span class="o">&gt;</span><span class="p">();</span>
   <span class="k">return</span> <span class="n">DAG</span><span class="o">.</span><span class="n">getRegister</span><span class="p">(</span><span class="n">FI</span><span class="o">-&gt;</span><span class="n">getGlobalBaseReg</span><span class="p">(),</span> <span class="n">Ty</span><span class="p">);</span>
 <span class="p">}</span>
@@ -752,34 +742,34 @@ Cpu0TargetObjectFile::SelectSectionForGlobal(const GlobalValue *GV,
 <span class="p">}</span>
 </pre></div>
 </div>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">Cpu0TargetLowering</span><span class="p">::</span><span class="n">Cpu0TargetLowering</span><span class="p">(</span><span class="n">const</span> <span class="n">Cpu0TargetMachine</span> <span class="o">&amp;</span><span class="n">TM</span><span class="p">,</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Cpu0TargetLowering</span><span class="p">::</span><span class="n">Cpu0TargetLowering</span><span class="p">(</span><span class="n">const</span> <span class="n">Cpu0TargetMachine</span> <span class="o">&amp;</span><span class="n">TM</span><span class="p">,</span>
                                        <span class="n">const</span> <span class="n">Cpu0Subtarget</span> <span class="o">&amp;</span><span class="n">STI</span><span class="p">)</span>
     <span class="p">:</span> <span class="n">TargetLowering</span><span class="p">(</span><span class="n">TM</span><span class="p">),</span> <span class="n">Subtarget</span><span class="p">(</span><span class="n">STI</span><span class="p">),</span> <span class="n">ABI</span><span class="p">(</span><span class="n">TM</span><span class="o">.</span><span class="n">getABI</span><span class="p">())</span> <span class="p">{</span>
 
 </pre></div>
 </div>
-<div class="highlight-default"><div class="highlight"><pre><span></span>  <span class="n">setOperationAction</span><span class="p">(</span><span class="n">ISD</span><span class="p">::</span><span class="n">GlobalAddress</span><span class="p">,</span>      <span class="n">MVT</span><span class="p">::</span><span class="n">i32</span><span class="p">,</span>   <span class="n">Custom</span><span class="p">);</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>  <span class="n">setOperationAction</span><span class="p">(</span><span class="n">ISD</span><span class="p">::</span><span class="n">GlobalAddress</span><span class="p">,</span>      <span class="n">MVT</span><span class="p">::</span><span class="n">i32</span><span class="p">,</span>   <span class="n">Custom</span><span class="p">);</span>
 </pre></div>
 </div>
-<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="p">}</span>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="p">}</span>
 </pre></div>
 </div>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">SDValue</span> <span class="n">Cpu0TargetLowering</span><span class="p">::</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">SDValue</span> <span class="n">Cpu0TargetLowering</span><span class="p">::</span>
 <span class="n">LowerOperation</span><span class="p">(</span><span class="n">SDValue</span> <span class="n">Op</span><span class="p">,</span> <span class="n">SelectionDAG</span> <span class="o">&amp;</span><span class="n">DAG</span><span class="p">)</span> <span class="n">const</span>
 <span class="p">{</span>
   <span class="n">switch</span> <span class="p">(</span><span class="n">Op</span><span class="o">.</span><span class="n">getOpcode</span><span class="p">())</span>
   <span class="p">{</span>
 </pre></div>
 </div>
-<div class="highlight-default"><div class="highlight"><pre><span></span>  <span class="n">case</span> <span class="n">ISD</span><span class="p">::</span><span class="n">GlobalAddress</span><span class="p">:</span>      <span class="k">return</span> <span class="n">lowerGlobalAddress</span><span class="p">(</span><span class="n">Op</span><span class="p">,</span> <span class="n">DAG</span><span class="p">);</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>  <span class="n">case</span> <span class="n">ISD</span><span class="p">::</span><span class="n">GlobalAddress</span><span class="p">:</span>      <span class="k">return</span> <span class="n">lowerGlobalAddress</span><span class="p">(</span><span class="n">Op</span><span class="p">,</span> <span class="n">DAG</span><span class="p">);</span>
 </pre></div>
 </div>
-<div class="highlight-default"><div class="highlight"><pre><span></span>  <span class="p">}</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>  <span class="p">}</span>
   <span class="k">return</span> <span class="n">SDValue</span><span class="p">();</span>
 <span class="p">}</span>
 </pre></div>
 </div>
-<div class="highlight-default"><div class="highlight"><pre><span></span>SDValue Cpu0TargetLowering::lowerGlobalAddress(SDValue Op,
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>SDValue Cpu0TargetLowering::lowerGlobalAddress(SDValue Op,
                                                SelectionDAG &amp;DAG) const {
   //@lowerGlobalAddress }
   SDLoc DL(Op);
@@ -794,7 +784,8 @@ Cpu0TargetObjectFile::SelectSectionForGlobal(const GlobalValue *GV,
 
   if (!isPositionIndependent()) {
     //@ %gp_rel relocation
-    if (TLOF-&gt;IsGlobalInSmallSection(GV, getTargetMachine())) {
+    const GlobalObject *GO = GV-&gt;getBaseObject();
+    if (GO &amp;&amp; TLOF-&gt;IsGlobalInSmallSection(GO, getTargetMachine())) {
       SDValue GA = DAG.getTargetGlobalAddress(GV, DL, MVT::i32, 0,
                                               Cpu0II::MO_GPREL);
       SDValue GPRelNode = DAG.getNode(Cpu0ISD::GPRel, DL,
@@ -811,7 +802,8 @@ Cpu0TargetObjectFile::SelectSectionForGlobal(const GlobalValue *GV,
     return getAddrLocal(N, Ty, DAG);
 
   //@large section
-  if (!TLOF-&gt;IsGlobalInSmallSection(GV, getTargetMachine()))
+  const GlobalObject *GO = GV-&gt;getBaseObject();
+  if (GO &amp;&amp; !TLOF-&gt;IsGlobalInSmallSection(GO, getTargetMachine()))
     return getAddrGlobalLargeGOT(
         N, Ty, DAG, Cpu0II::MO_GOT_HI16, Cpu0II::MO_GOT_LO16, 
         DAG.getEntryNode(), 
@@ -822,23 +814,23 @@ Cpu0TargetObjectFile::SelectSectionForGlobal(const GlobalValue *GV,
 }
 </pre></div>
 </div>
-<p>The setOperationAction(ISD::GlobalAddress, MVT::i32, Custom) tells <code class="docutils literal"><span class="pre">llc</span></code> that
+<p>The setOperationAction(ISD::GlobalAddress, MVT::i32, Custom) tells <code class="docutils literal notranslate"><span class="pre">llc</span></code> that
 we implement global address operation in C++ function
 Cpu0TargetLowering::LowerOperation(). LLVM will call this function only when
 llvm want to translate IR DAG of loading global variable into machine code.
 Although all the Custom type of IR operations set by
 setOperationAction(ISD::XXX, MVT::XXX, Custom) in construction function
 Cpu0TargetLowering() will invoke llvm to call
-Cpu0TargetLowering::LowerOperation() in stage &#8220;Legalized selection DAG&#8221;, the
+Cpu0TargetLowering::LowerOperation() in stage “Legalized selection DAG”, the
 global address access operation can be identified by checking whether the opcode
 of DAG Node is ISD::GlobalAddress or not, furthmore.</p>
 <p>Finally, add the following code in Cpu0ISelDAGToDAG.cpp and Cpu0InstrInfo.td.</p>
 <p class="rubric">lbdex/chapters/Chapter6_1/Cpu0ISelDAGToDAG.h</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span>  <span class="n">SDNode</span> <span class="o">*</span><span class="n">getGlobalBaseReg</span><span class="p">();</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>  <span class="n">SDNode</span> <span class="o">*</span><span class="n">getGlobalBaseReg</span><span class="p">();</span>
 </pre></div>
 </div>
 <p class="rubric">lbdex/chapters/Chapter6_1/Cpu0ISelDAGToDAG.cpp</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">///</span> <span class="n">getGlobalBaseReg</span> <span class="o">-</span> <span class="n">Output</span> <span class="n">the</span> <span class="n">instructions</span> <span class="n">required</span> <span class="n">to</span> <span class="n">put</span> <span class="n">the</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">///</span> <span class="n">getGlobalBaseReg</span> <span class="o">-</span> <span class="n">Output</span> <span class="n">the</span> <span class="n">instructions</span> <span class="n">required</span> <span class="n">to</span> <span class="n">put</span> <span class="n">the</span>
 <span class="o">///</span> <span class="n">GOT</span> <span class="n">address</span> <span class="n">into</span> <span class="n">a</span> <span class="n">register</span><span class="o">.</span>
 <span class="n">SDNode</span> <span class="o">*</span><span class="n">Cpu0DAGToDAGISel</span><span class="p">::</span><span class="n">getGlobalBaseReg</span><span class="p">()</span> <span class="p">{</span>
   <span class="n">unsigned</span> <span class="n">GlobalBaseReg</span> <span class="o">=</span> <span class="n">MF</span><span class="o">-&gt;</span><span class="n">getInfo</span><span class="o">&lt;</span><span class="n">Cpu0FunctionInfo</span><span class="o">&gt;</span><span class="p">()</span><span class="o">-&gt;</span><span class="n">getGlobalBaseReg</span><span class="p">();</span>
@@ -848,13 +840,13 @@ of DAG Node is ISD::GlobalAddress or not, furthmore.</p>
 <span class="p">}</span>
 </pre></div>
 </div>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">///</span> <span class="n">ComplexPattern</span> <span class="n">used</span> <span class="n">on</span> <span class="n">Cpu0InstrInfo</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">///</span> <span class="n">ComplexPattern</span> <span class="n">used</span> <span class="n">on</span> <span class="n">Cpu0InstrInfo</span>
 <span class="o">///</span> <span class="n">Used</span> <span class="n">on</span> <span class="n">Cpu0</span> <span class="n">Load</span><span class="o">/</span><span class="n">Store</span> <span class="n">instructions</span>
 <span class="nb">bool</span> <span class="n">Cpu0DAGToDAGISel</span><span class="p">::</span>
 <span class="n">SelectAddr</span><span class="p">(</span><span class="n">SDNode</span> <span class="o">*</span><span class="n">Parent</span><span class="p">,</span> <span class="n">SDValue</span> <span class="n">Addr</span><span class="p">,</span> <span class="n">SDValue</span> <span class="o">&amp;</span><span class="n">Base</span><span class="p">,</span> <span class="n">SDValue</span> <span class="o">&amp;</span><span class="n">Offset</span><span class="p">)</span> <span class="p">{</span>
 </pre></div>
 </div>
-<div class="highlight-default"><div class="highlight"><pre><span></span>  <span class="o">//</span> <span class="n">on</span> <span class="n">PIC</span> <span class="n">code</span> <span class="n">Load</span> <span class="n">GA</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>  <span class="o">//</span> <span class="n">on</span> <span class="n">PIC</span> <span class="n">code</span> <span class="n">Load</span> <span class="n">GA</span>
   <span class="k">if</span> <span class="p">(</span><span class="n">Addr</span><span class="o">.</span><span class="n">getOpcode</span><span class="p">()</span> <span class="o">==</span> <span class="n">Cpu0ISD</span><span class="p">::</span><span class="n">Wrapper</span><span class="p">)</span> <span class="p">{</span>
     <span class="n">Base</span>   <span class="o">=</span> <span class="n">Addr</span><span class="o">.</span><span class="n">getOperand</span><span class="p">(</span><span class="mi">0</span><span class="p">);</span>
     <span class="n">Offset</span> <span class="o">=</span> <span class="n">Addr</span><span class="o">.</span><span class="n">getOperand</span><span class="p">(</span><span class="mi">1</span><span class="p">);</span>
@@ -869,27 +861,27 @@ of DAG Node is ISD::GlobalAddress or not, furthmore.</p>
   <span class="p">}</span>
 </pre></div>
 </div>
-<div class="highlight-c++"><div class="highlight"><pre><span></span>  <span class="p">...</span>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span>  <span class="p">...</span>
 <span class="p">}</span>
 </pre></div>
 </div>
-<div class="highlight-default"><div class="highlight"><pre><span></span>/// Select instructions not customized! Used for
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>/// Select instructions not customized! Used for
 /// expanded, promoted and normal instructions
 void Cpu0DAGToDAGISel::Select(SDNode *Node) {
 </pre></div>
 </div>
-<div class="highlight-default"><div class="highlight"><pre><span></span>  <span class="o">//</span> <span class="n">Get</span> <span class="n">target</span> <span class="n">GOT</span> <span class="n">address</span><span class="o">.</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>  <span class="o">//</span> <span class="n">Get</span> <span class="n">target</span> <span class="n">GOT</span> <span class="n">address</span><span class="o">.</span>
   <span class="n">case</span> <span class="n">ISD</span><span class="p">::</span><span class="n">GLOBAL_OFFSET_TABLE</span><span class="p">:</span>
     <span class="n">ReplaceNode</span><span class="p">(</span><span class="n">Node</span><span class="p">,</span> <span class="n">getGlobalBaseReg</span><span class="p">());</span>
     <span class="k">return</span><span class="p">;</span>
 </pre></div>
 </div>
-<div class="highlight-c++"><div class="highlight"><pre><span></span>  <span class="p">...</span>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span>  <span class="p">...</span>
 <span class="p">}</span>
 </pre></div>
 </div>
 <p class="rubric">lbdex/chapters/Chapter6_1/Cpu0InstrInfo.td</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">//</span> <span class="n">Hi</span> <span class="ow">and</span> <span class="n">Lo</span> <span class="n">nodes</span> <span class="n">are</span> <span class="n">used</span> <span class="n">to</span> <span class="n">handle</span> <span class="k">global</span> <span class="n">addresses</span><span class="o">.</span> <span class="n">Used</span> <span class="n">on</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">//</span> <span class="n">Hi</span> <span class="ow">and</span> <span class="n">Lo</span> <span class="n">nodes</span> <span class="n">are</span> <span class="n">used</span> <span class="n">to</span> <span class="n">handle</span> <span class="k">global</span> <span class="n">addresses</span><span class="o">.</span> <span class="n">Used</span> <span class="n">on</span>
 <span class="o">//</span> <span class="n">Cpu0ISelLowering</span> <span class="n">to</span> <span class="n">lower</span> <span class="n">stuff</span> <span class="n">like</span> <span class="n">GlobalAddress</span><span class="p">,</span> <span class="n">ExternalSymbol</span>
 <span class="o">//</span> <span class="n">static</span> <span class="n">model</span><span class="o">.</span> <span class="p">(</span><span class="n">nothing</span> <span class="n">to</span> <span class="n">do</span> <span class="k">with</span> <span class="n">Cpu0</span> <span class="n">Registers</span> <span class="n">Hi</span> <span class="ow">and</span> <span class="n">Lo</span><span class="p">)</span>
 <span class="k">def</span> <span class="nf">Cpu0Hi</span>    <span class="p">:</span> <span class="n">SDNode</span><span class="o">&lt;</span><span class="s2">&quot;Cpu0ISD::Hi&quot;</span><span class="p">,</span> <span class="n">SDTIntUnaryOp</span><span class="o">&gt;</span><span class="p">;</span>
@@ -897,30 +889,30 @@ void Cpu0DAGToDAGISel::Select(SDNode *Node) {
 <span class="k">def</span> <span class="nf">Cpu0GPRel</span> <span class="p">:</span> <span class="n">SDNode</span><span class="o">&lt;</span><span class="s2">&quot;Cpu0ISD::GPRel&quot;</span><span class="p">,</span> <span class="n">SDTIntUnaryOp</span><span class="o">&gt;</span><span class="p">;</span>
 </pre></div>
 </div>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">Cpu0Wrapper</span>    <span class="p">:</span> <span class="n">SDNode</span><span class="o">&lt;</span><span class="s2">&quot;Cpu0ISD::Wrapper&quot;</span><span class="p">,</span> <span class="n">SDTIntBinOp</span><span class="o">&gt;</span><span class="p">;</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">Cpu0Wrapper</span>    <span class="p">:</span> <span class="n">SDNode</span><span class="o">&lt;</span><span class="s2">&quot;Cpu0ISD::Wrapper&quot;</span><span class="p">,</span> <span class="n">SDTIntBinOp</span><span class="o">&gt;</span><span class="p">;</span>
 </pre></div>
 </div>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">RelocPIC</span>    <span class="p">:</span>     <span class="n">Predicate</span><span class="o">&lt;</span><span class="s2">&quot;TM.getRelocationModel() == Reloc::PIC_&quot;</span><span class="o">&gt;</span><span class="p">;</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">RelocPIC</span>    <span class="p">:</span>     <span class="n">Predicate</span><span class="o">&lt;</span><span class="s2">&quot;TM.getRelocationModel() == Reloc::PIC_&quot;</span><span class="o">&gt;</span><span class="p">;</span>
 </pre></div>
 </div>
-<div class="highlight-default"><div class="highlight"><pre><span></span>// hi/lo relocs
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>// hi/lo relocs
 let Predicates = [Ch6_1] in {
 def : Pat&lt;(Cpu0Hi tglobaladdr:$in), (LUi tglobaladdr:$in)&gt;;
 }
 </pre></div>
 </div>
-<div class="highlight-default"><div class="highlight"><pre><span></span>let Predicates = [Ch6_1] in {
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>let Predicates = [Ch6_1] in {
 def : Pat&lt;(Cpu0Lo tglobaladdr:$in), (ORi ZERO, tglobaladdr:$in)&gt;;
 }
 </pre></div>
 </div>
-<div class="highlight-default"><div class="highlight"><pre><span></span>let Predicates = [Ch6_1] in {
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>let Predicates = [Ch6_1] in {
 def : Pat&lt;(add CPURegs:$hi, (Cpu0Lo tglobaladdr:$lo)),
           (ORi CPURegs:$hi, tglobaladdr:$lo)&gt;;
 }
 </pre></div>
 </div>
-<div class="highlight-default"><div class="highlight"><pre><span></span>// gp_rel relocs
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>// gp_rel relocs
 let Predicates = [Ch6_1] in {
 def : Pat&lt;(add CPURegs:$gp, (Cpu0GPRel tglobaladdr:$in)),
           (ORi CPURegs:$gp, tglobaladdr:$in)&gt;;
@@ -936,8 +928,8 @@ def : WrapperPat&lt;tglobaladdr, ORi, GPROut&gt;;
 }
 </pre></div>
 </div>
-</div>
-<div class="section" id="static-mode">
+</section>
+<section id="static-mode">
 <h2><a class="toc-backref" href="#id13">Static mode</a><a class="headerlink" href="#static-mode" title="Permalink to this headline">¶</a></h2>
 <p>From Table: Cpu0 global variable options, option cpu0-use-small-section=false
 puts the global varibale in data/bss while cpu0-use-small-section=true puts in
@@ -945,11 +937,11 @@ sdata/sbss. The sdata stands for small data area.
 Section data and sdata are areas for global variables with initial value (such
 as int gI = 100 in this example) while Section bss and sbss are areas for
 global variables without initial value (for instance, int gI;).</p>
-<div class="section" id="data-or-bss">
+<section id="data-or-bss">
 <h3><a class="toc-backref" href="#id14">data or bss</a><a class="headerlink" href="#data-or-bss" title="Permalink to this headline">¶</a></h3>
 <p>The data/bss are 32 bits addressable areas since Cpu0 is a 32 bits architecture.
 Option cpu0-use-small-section=false will generate the following instructions.</p>
-<div class="highlight-console"><div class="highlight"><pre><span></span><span class="go">  ...</span>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">  ...</span>
 <span class="go">  lui $2, %hi(gI)</span>
 <span class="go">  ori $2, $2, %lo(gI)</span>
 <span class="go">  ld  $2, 0($2)</span>
@@ -972,31 +964,31 @@ Option cpu0-use-small-section=false will generate the following instructions.</p
 </div>
 <p>As above code, it loads the high address part of gI PC relative address
 (16 bits) to register $2 and shift 16 bits.
-Now, the register $2 got it&#8217;s high part of gI absolute address.
+Now, the register $2 got it’s high part of gI absolute address.
 Next, it adds register $2 and low part of gI absolute address into $2.
 At this point, it gets the gI memory address. Finally, it gets the gI content by
-instruction &#8220;ld $2, 0($2)&#8221;.
-The <code class="docutils literal"><span class="pre">llc</span> <span class="pre">-relocation-model=static</span></code> is for absolute address mode which must be
+instruction “ld $2, 0($2)”.
+The <code class="docutils literal notranslate"><span class="pre">llc</span> <span class="pre">-relocation-model=static</span></code> is for absolute address mode which must be
 used in static link mode. The dynamic link must be encoded with Position
 Independent Addressing.
 As you can see, the PC relative address can be solved in static link (
-The offset between the address of gI and instruction &#8220;lui $2, %hi(gI)&#8221; can be
+The offset between the address of gI and instruction “lui $2, %hi(gI)” can be
 caculated). Since Cpu0 uses PC relative address coding, this program can be
 loaded to any address and run correctly there.
 If this program uses absolute address and can be loaded at a specific address
 known at link stage, the relocation record of gI variable access instruction
-such as &#8220;lui $2, %hi(gI)&#8221; and &#8220;ori      $2, $2, %lo(gI)&#8221; can be solved
+such as “lui $2, %hi(gI)” and “ori      $2, $2, %lo(gI)” can be solved
 at link time. On the other hand,
 if this program use absolute address and the loading address is known at load
 time, then this relocation record will be solved by loader at load time.</p>
 <p>IsGlobalInSmallSection() returns true or false depends on UseSmallSectionOpt.</p>
 <p>The code fragment of lowerGlobalAddress() as the following corresponding option
-<code class="docutils literal"><span class="pre">llc</span> <span class="pre">-relocation-model=static</span> <span class="pre">-cpu0-use-small-section=false</span></code> will translate
+<code class="docutils literal notranslate"><span class="pre">llc</span> <span class="pre">-relocation-model=static</span> <span class="pre">-cpu0-use-small-section=false</span></code> will translate
 DAG (GlobalAddress&lt;i32* &#64;gI&gt; 0) into
 (add Cpu0ISD::Hi&lt;gI offset Hi16&gt; Cpu0ISD::Lo&lt;gI offset Lo16&gt;) in
-stage &#8220;Legalized selection DAG&#8221; as below.</p>
+stage “Legalized selection DAG” as below.</p>
 <p class="rubric">lbdex/chapters/Chapter6_1/Cpu0ISelLowering.h</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span>    <span class="o">//</span> <span class="n">This</span> <span class="n">method</span> <span class="n">creates</span> <span class="n">the</span> <span class="n">following</span> <span class="n">nodes</span><span class="p">,</span> <span class="n">which</span> <span class="n">are</span> <span class="n">necessary</span> <span class="k">for</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>    <span class="o">//</span> <span class="n">This</span> <span class="n">method</span> <span class="n">creates</span> <span class="n">the</span> <span class="n">following</span> <span class="n">nodes</span><span class="p">,</span> <span class="n">which</span> <span class="n">are</span> <span class="n">necessary</span> <span class="k">for</span>
     <span class="o">//</span> <span class="n">computing</span> <span class="n">a</span> <span class="n">symbol</span><span class="s1">&#39;s address in non-PIC mode:</span>
     <span class="o">//</span>
     <span class="o">//</span> <span class="p">(</span><span class="n">add</span> <span class="o">%</span><span class="n">hi</span><span class="p">(</span><span class="n">sym</span><span class="p">),</span> <span class="o">%</span><span class="n">lo</span><span class="p">(</span><span class="n">sym</span><span class="p">))</span>
@@ -1012,7 +1004,7 @@ stage &#8220;Legalized selection DAG&#8221; as below.</p>
 </pre></div>
 </div>
 <p class="rubric">lbdex/chapters/Chapter6_1/Cpu0ISelLowering.cpp</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">SDValue</span> <span class="n">Cpu0TargetLowering</span><span class="p">::</span><span class="n">getTargetNode</span><span class="p">(</span><span class="n">GlobalAddressSDNode</span> <span class="o">*</span><span class="n">N</span><span class="p">,</span> <span class="n">EVT</span> <span class="n">Ty</span><span class="p">,</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">SDValue</span> <span class="n">Cpu0TargetLowering</span><span class="p">::</span><span class="n">getTargetNode</span><span class="p">(</span><span class="n">GlobalAddressSDNode</span> <span class="o">*</span><span class="n">N</span><span class="p">,</span> <span class="n">EVT</span> <span class="n">Ty</span><span class="p">,</span>
                                           <span class="n">SelectionDAG</span> <span class="o">&amp;</span><span class="n">DAG</span><span class="p">,</span>
                                           <span class="n">unsigned</span> <span class="n">Flag</span><span class="p">)</span> <span class="n">const</span> <span class="p">{</span>
   <span class="k">return</span> <span class="n">DAG</span><span class="o">.</span><span class="n">getTargetGlobalAddress</span><span class="p">(</span><span class="n">N</span><span class="o">-&gt;</span><span class="n">getGlobal</span><span class="p">(),</span> <span class="n">SDLoc</span><span class="p">(</span><span class="n">N</span><span class="p">),</span> <span class="n">Ty</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">Flag</span><span class="p">);</span>
@@ -1020,7 +1012,7 @@ stage &#8220;Legalized selection DAG&#8221; as below.</p>
 
 </pre></div>
 </div>
-<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="n">SDValue</span> <span class="n">Cpu0TargetLowering</span><span class="o">::</span><span class="n">lowerGlobalAddress</span><span class="p">(</span><span class="n">SDValue</span> <span class="n">Op</span><span class="p">,</span>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="n">SDValue</span> <span class="nf">Cpu0TargetLowering::lowerGlobalAddress</span><span class="p">(</span><span class="n">SDValue</span> <span class="n">Op</span><span class="p">,</span>
                                                <span class="n">SelectionDAG</span> <span class="o">&amp;</span><span class="n">DAG</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
   <span class="p">...</span>
   <span class="n">EVT</span> <span class="n">Ty</span> <span class="o">=</span> <span class="n">Op</span><span class="p">.</span><span class="n">getValueType</span><span class="p">();</span>
@@ -1036,9 +1028,9 @@ stage &#8220;Legalized selection DAG&#8221; as below.</p>
 <span class="p">}</span>
 </pre></div>
 </div>
-<div class="highlight-console"><div class="highlight"><pre><span></span><span class="gp">118-165-78-166:input Jonathan$</span> clang -target mips-unknown-linux-gnu -c
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">118-165-78-166:input Jonathan$ </span>clang -target mips-unknown-linux-gnu -c
 <span class="go">ch6_1.cpp -emit-llvm -o ch6_1.bc</span>
-<span class="gp">118-165-78-166:input Jonathan$</span> ~/llvm/test/cmake_debug_build/Debug/bin/llc
+<span class="gp">118-165-78-166:input Jonathan$ </span>~/llvm/test/build/bin/llc
 <span class="go">-march=cpu0 -relocation-model=static -cpu0-use-small-section=false</span>
 <span class="go">-filetype=asm -debug ch6_1.bc -o -</span>
 
@@ -1083,49 +1075,49 @@ stage &#8220;Legalized selection DAG&#8221; as below.</p>
 DAG (add Cpu0ISD::Hi&lt;gI offset Hi16&gt; Cpu0ISD::Lo&lt;gI offset Lo16&gt;) into Cpu0
 instructions as below.</p>
 <p class="rubric">lbdex/chapters/Chapter6_1/Cpu0InstrInfo.td</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">//</span> <span class="n">Hi</span> <span class="ow">and</span> <span class="n">Lo</span> <span class="n">nodes</span> <span class="n">are</span> <span class="n">used</span> <span class="n">to</span> <span class="n">handle</span> <span class="k">global</span> <span class="n">addresses</span><span class="o">.</span> <span class="n">Used</span> <span class="n">on</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">//</span> <span class="n">Hi</span> <span class="ow">and</span> <span class="n">Lo</span> <span class="n">nodes</span> <span class="n">are</span> <span class="n">used</span> <span class="n">to</span> <span class="n">handle</span> <span class="k">global</span> <span class="n">addresses</span><span class="o">.</span> <span class="n">Used</span> <span class="n">on</span>
 <span class="o">//</span> <span class="n">Cpu0ISelLowering</span> <span class="n">to</span> <span class="n">lower</span> <span class="n">stuff</span> <span class="n">like</span> <span class="n">GlobalAddress</span><span class="p">,</span> <span class="n">ExternalSymbol</span>
 <span class="o">//</span> <span class="n">static</span> <span class="n">model</span><span class="o">.</span> <span class="p">(</span><span class="n">nothing</span> <span class="n">to</span> <span class="n">do</span> <span class="k">with</span> <span class="n">Cpu0</span> <span class="n">Registers</span> <span class="n">Hi</span> <span class="ow">and</span> <span class="n">Lo</span><span class="p">)</span>
 <span class="k">def</span> <span class="nf">Cpu0Hi</span>    <span class="p">:</span> <span class="n">SDNode</span><span class="o">&lt;</span><span class="s2">&quot;Cpu0ISD::Hi&quot;</span><span class="p">,</span> <span class="n">SDTIntUnaryOp</span><span class="o">&gt;</span><span class="p">;</span>
 <span class="k">def</span> <span class="nf">Cpu0Lo</span>    <span class="p">:</span> <span class="n">SDNode</span><span class="o">&lt;</span><span class="s2">&quot;Cpu0ISD::Lo&quot;</span><span class="p">,</span> <span class="n">SDTIntUnaryOp</span><span class="o">&gt;</span><span class="p">;</span>
 </pre></div>
 </div>
-<div class="highlight-default"><div class="highlight"><pre><span></span>// hi/lo relocs
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>// hi/lo relocs
 let Predicates = [Ch6_1] in {
 def : Pat&lt;(Cpu0Hi tglobaladdr:$in), (LUi tglobaladdr:$in)&gt;;
 }
 </pre></div>
 </div>
-<div class="highlight-default"><div class="highlight"><pre><span></span>let Predicates = [Ch6_1] in {
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>let Predicates = [Ch6_1] in {
 def : Pat&lt;(Cpu0Lo tglobaladdr:$in), (ORi ZERO, tglobaladdr:$in)&gt;;
 }
 </pre></div>
 </div>
-<div class="highlight-default"><div class="highlight"><pre><span></span>let Predicates = [Ch6_1] in {
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>let Predicates = [Ch6_1] in {
 def : Pat&lt;(add CPURegs:$hi, (Cpu0Lo tglobaladdr:$lo)),
           (ORi CPURegs:$hi, tglobaladdr:$lo)&gt;;
 }
 </pre></div>
 </div>
-<div class="highlight-console"><div class="highlight"><pre><span></span><span class="go">...</span>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">...</span>
 <span class="go">lui $2, %hi(gI)</span>
 <span class="go">ori $2, $2, %lo(gI)</span>
 <span class="go">...</span>
 </pre></div>
 </div>
-<p>As above, Pat&lt;(...),(...)&gt; include two lists of DAGs.
+<p>As above, Pat&lt;(…),(…)&gt; include two lists of DAGs.
 The left is IR DAG and the right is machine instruction DAG.
-&#8220;Pat&lt;(Cpu0Hi tglobaladdr:$in), (LUi, tglobaladdr:$in)&gt;;&#8221; will
+“Pat&lt;(Cpu0Hi tglobaladdr:$in), (LUi, tglobaladdr:$in)&gt;;” will
 translate DAG (Cpu0ISD::Hi tglobaladdr) into (lui (ori ZERO, tglobaladdr), 16).
-&#8220;Pat&lt;(add CPURegs:$hi, (Cpu0Lo tglobaladdr:$lo)), (ORi CPURegs:$hi,
-tglobaladdr:$lo)&gt;;&#8221; will translate DAG (add Cpu0ISD::Hi, Cpu0ISD::Lo) into Cpu0
+“Pat&lt;(add CPURegs:$hi, (Cpu0Lo tglobaladdr:$lo)), (ORi CPURegs:$hi,
+tglobaladdr:$lo)&gt;;” will translate DAG (add Cpu0ISD::Hi, Cpu0ISD::Lo) into Cpu0
 instruction (ori Cpu0ISD::Hi, Cpu0ISD::Lo).</p>
-</div>
-<div class="section" id="sdata-or-sbss">
+</section>
+<section id="sdata-or-sbss">
 <h3><a class="toc-backref" href="#id15">sdata or sbss</a><a class="headerlink" href="#sdata-or-sbss" title="Permalink to this headline">¶</a></h3>
 <p>The sdata/sbss are 16 bits addressable areas which placed in ELF for fast access.
 Option cpu0-use-small-section=true will generate the following instructions.</p>
-<div class="highlight-console"><div class="highlight"><pre><span></span><span class="go">  ori $2, $gp, %gp_rel(gI)</span>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">  ori $2, $gp, %gp_rel(gI)</span>
 <span class="go">  ld  $2, 0($2)</span>
 <span class="go">  ...</span>
 <span class="go">  .type       gStart,@object          # @gStart</span>
@@ -1145,12 +1137,12 @@ Option cpu0-use-small-section=true will generate the following instructions.</p>
 </pre></div>
 </div>
 <p>The code fragment of lowerGlobalAddress() as the following corresponding option
-<code class="docutils literal"><span class="pre">llc</span> <span class="pre">-relocation-model=static</span> <span class="pre">-cpu0-use-small-section=true</span></code> will translate DAG
+<code class="docutils literal notranslate"><span class="pre">llc</span> <span class="pre">-relocation-model=static</span> <span class="pre">-cpu0-use-small-section=true</span></code> will translate DAG
 (GlobalAddress&lt;i32* &#64;gI&gt; 0) into
 (add register %GP Cpu0ISD::GPRel&lt;gI offset&gt;) in
-stage &#8220;Legalized selection DAG&#8221; as below.</p>
+stage “Legalized selection DAG” as below.</p>
 <p class="rubric">lbdex/chapters/Chapter6_1/Cpu0ISelLowering.cpp</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span>SDValue Cpu0TargetLowering::lowerGlobalAddress(SDValue Op,
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>SDValue Cpu0TargetLowering::lowerGlobalAddress(SDValue Op,
                                                SelectionDAG &amp;DAG) const {
   //@lowerGlobalAddress }
   SDLoc DL(Op);
@@ -1165,7 +1157,8 @@ stage &#8220;Legalized selection DAG&#8221; as below.</p>
 
   if (!isPositionIndependent()) {
     //@ %gp_rel relocation
-    if (TLOF-&gt;IsGlobalInSmallSection(GV, getTargetMachine())) {
+    const GlobalObject *GO = GV-&gt;getBaseObject();
+    if (GO &amp;&amp; TLOF-&gt;IsGlobalInSmallSection(GO, getTargetMachine())) {
       SDValue GA = DAG.getTargetGlobalAddress(GV, DL, MVT::i32, 0,
                                               Cpu0II::MO_GPREL);
       SDValue GPRelNode = DAG.getNode(Cpu0ISD::GPRel, DL,
@@ -1176,13 +1169,13 @@ stage &#8220;Legalized selection DAG&#8221; as below.</p>
 
 </pre></div>
 </div>
-<div class="highlight-c++"><div class="highlight"><pre><span></span>    <span class="p">...</span>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span>    <span class="p">...</span>
   <span class="p">}</span>
   <span class="p">...</span>
 <span class="p">}</span>
 </pre></div>
 </div>
-<div class="highlight-console"><div class="highlight"><pre><span></span><span class="go">...</span>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">...</span>
 <span class="go">Type-legalized selection DAG: BB#0 &#39;_Z3funv:entry&#39;</span>
 <span class="go">SelectionDAG has 12 nodes:</span>
 <span class="go">  ...</span>
@@ -1221,10 +1214,10 @@ stage &#8220;Legalized selection DAG&#8221; as below.</p>
 DAG (add register %GP Cpu0ISD::GPRel&lt;gI offset&gt;) into Cpu0
 instruction as below.</p>
 <p class="rubric">lbdex/chapters/Chapter6_1/Cpu0InstrInfo.td</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">Cpu0GPRel</span> <span class="p">:</span> <span class="n">SDNode</span><span class="o">&lt;</span><span class="s2">&quot;Cpu0ISD::GPRel&quot;</span><span class="p">,</span> <span class="n">SDTIntUnaryOp</span><span class="o">&gt;</span><span class="p">;</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">Cpu0GPRel</span> <span class="p">:</span> <span class="n">SDNode</span><span class="o">&lt;</span><span class="s2">&quot;Cpu0ISD::GPRel&quot;</span><span class="p">,</span> <span class="n">SDTIntUnaryOp</span><span class="o">&gt;</span><span class="p">;</span>
 </pre></div>
 </div>
-<div class="highlight-default"><div class="highlight"><pre><span></span>// gp_rel relocs
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>// gp_rel relocs
 let Predicates = [Ch6_1] in {
 def : Pat&lt;(add CPURegs:$gp, (Cpu0GPRel tglobaladdr:$in)),
           (ORi CPURegs:$gp, tglobaladdr:$in)&gt;;
@@ -1232,12 +1225,12 @@ def : Pat&lt;(add CPURegs:$gp, (Cpu0GPRel tglobaladdr:$in)),
 
 </pre></div>
 </div>
-<div class="highlight-console"><div class="highlight"><pre><span></span><span class="go">ori $2, $gp, %gp_rel(gI)</span>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">ori $2, $gp, %gp_rel(gI)</span>
 <span class="go">...</span>
 </pre></div>
 </div>
-<p>&#8220;Pat&lt;(add CPURegs:$gp, (Cpu0GPRel tglobaladdr:$in)), (ADD CPURegs:$gp, (ORi
-ZERO, tglobaladdr:$in))&gt;;&#8221; will translate (add register %GP Cpu0ISD::GPRel
+<p>“Pat&lt;(add CPURegs:$gp, (Cpu0GPRel tglobaladdr:$in)), (ADD CPURegs:$gp, (ORi
+ZERO, tglobaladdr:$in))&gt;;” will translate (add register %GP Cpu0ISD::GPRel
 tglobaladdr) into (add $gp, (ori ZERO, tglobaladdr)).</p>
 <p>In this mode, the $gp content is assigned at compile/link time, changed only at
 program be loaded, and is fixed during the program running; on the contrary,
@@ -1245,18 +1238,18 @@ when -relocation-model=pic the $gp can be changed during program running.
 For this example code, if $gp is assigned to the start address of .sdata by loader
 when program ch6_1.cpu0.s is loaded, then linker can caculate %gp_rel(gI) (=
 the relative address distance between gI and start of .sdata section).
-Which meaning this relocation record can be solved at link time, that&#8217;s why it
+Which meaning this relocation record can be solved at link time, that’s why it
 is static mode.</p>
 <p>In this mode, we reserve $gp to a specfic fixed address of the program is
 loaded. As a result, the $gp cannot be allocated as a general purpose for
 variables. The following code tells llvm never allocate $gp for variables.</p>
 <p class="rubric">lbdex/chapters/Chapter6_1/Cpu0Subtarget.cpp</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">Cpu0Subtarget</span><span class="p">::</span><span class="n">Cpu0Subtarget</span><span class="p">(</span><span class="n">const</span> <span class="n">Triple</span> <span class="o">&amp;</span><span class="n">TT</span><span class="p">,</span> <span class="n">const</span> <span class="n">std</span><span class="p">::</span><span class="n">string</span> <span class="o">&amp;</span><span class="n">CPU</span><span class="p">,</span>
-                             <span class="n">const</span> <span class="n">std</span><span class="p">::</span><span class="n">string</span> <span class="o">&amp;</span><span class="n">FS</span><span class="p">,</span> <span class="nb">bool</span> <span class="n">little</span><span class="p">,</span> 
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Cpu0Subtarget</span><span class="p">::</span><span class="n">Cpu0Subtarget</span><span class="p">(</span><span class="n">const</span> <span class="n">Triple</span> <span class="o">&amp;</span><span class="n">TT</span><span class="p">,</span> <span class="n">StringRef</span> <span class="n">CPU</span><span class="p">,</span>
+                             <span class="n">StringRef</span> <span class="n">FS</span><span class="p">,</span> <span class="nb">bool</span> <span class="n">little</span><span class="p">,</span> 
                              <span class="n">const</span> <span class="n">Cpu0TargetMachine</span> <span class="o">&amp;</span><span class="n">_TM</span><span class="p">)</span> <span class="p">:</span>
 </pre></div>
 </div>
-<div class="highlight-default"><div class="highlight"><pre><span></span>  // Set UseSmallSection.
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>  // Set UseSmallSection.
   UseSmallSection = UseSmallSectionOpt;
   Cpu0ReserveGP = ReserveGPOpt;
   Cpu0NoCpload = NoCploadOpt;
@@ -1268,16 +1261,16 @@ variables. The following code tells llvm never allocate $gp for variables.</p>
     FixGlobalBaseReg = true;
 </pre></div>
 </div>
-<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="p">}</span>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="p">}</span>
 </pre></div>
 </div>
 <p class="rubric">lbdex/chapters/Chapter6_1/Cpu0RegisterInfo.cpp</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">BitVector</span> <span class="n">Cpu0RegisterInfo</span><span class="p">::</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">BitVector</span> <span class="n">Cpu0RegisterInfo</span><span class="p">::</span>
 <span class="n">getReservedRegs</span><span class="p">(</span><span class="n">const</span> <span class="n">MachineFunction</span> <span class="o">&amp;</span><span class="n">MF</span><span class="p">)</span> <span class="n">const</span> <span class="p">{</span>
 <span class="o">//</span><span class="nd">@getReservedRegs</span> <span class="n">body</span> <span class="p">{</span>
 </pre></div>
 </div>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1">#ifdef ENABLE_GPRESTORE //1</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1">#ifdef ENABLE_GPRESTORE //1</span>
   <span class="n">const</span> <span class="n">Cpu0FunctionInfo</span> <span class="o">*</span><span class="n">Cpu0FI</span> <span class="o">=</span> <span class="n">MF</span><span class="o">.</span><span class="n">getInfo</span><span class="o">&lt;</span><span class="n">Cpu0FunctionInfo</span><span class="o">&gt;</span><span class="p">();</span>
   <span class="o">//</span> <span class="n">Reserve</span> <span class="n">GP</span> <span class="k">if</span> <span class="n">globalBaseRegFixed</span><span class="p">()</span>
   <span class="k">if</span> <span class="p">(</span><span class="n">Cpu0FI</span><span class="o">-&gt;</span><span class="n">globalBaseRegFixed</span><span class="p">())</span>
@@ -1285,19 +1278,19 @@ variables. The following code tells llvm never allocate $gp for variables.</p>
     <span class="n">Reserved</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">Cpu0</span><span class="p">::</span><span class="n">GP</span><span class="p">);</span>
 </pre></div>
 </div>
-<div class="highlight-c++"><div class="highlight"><pre><span></span>  <span class="p">...</span>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span>  <span class="p">...</span>
 <span class="p">}</span>
 </pre></div>
 </div>
-</div>
-</div>
-<div class="section" id="pic-mode">
+</section>
+</section>
+<section id="pic-mode">
 <h2><a class="toc-backref" href="#id16">pic mode</a><a class="headerlink" href="#pic-mode" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="id2">
+<section id="id2">
 <h3><a class="toc-backref" href="#id17">sdata or sbss</a><a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h3>
-<p>Option <code class="docutils literal"><span class="pre">llc</span> <span class="pre">-relocation-model=pic</span> <span class="pre">-cpu0-use-small-section=true</span></code> will
+<p>Option <code class="docutils literal notranslate"><span class="pre">llc</span> <span class="pre">-relocation-model=pic</span> <span class="pre">-cpu0-use-small-section=true</span></code> will
 generate the following instructions.</p>
-<div class="highlight-console"><div class="highlight"><pre><span></span><span class="go">  ...</span>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">  ...</span>
 <span class="go">  .set        noreorder</span>
 <span class="go">  .cpload     $6</span>
 <span class="go">  .set        nomacro</span>
@@ -1324,37 +1317,38 @@ generate the following instructions.</p>
 <p>The following code fragment of Cpu0AsmPrinter.cpp will emit <strong>.cpload</strong> asm
 pseudo instruction at function entry point as below.</p>
 <p class="rubric">lbdex/chapters/Chapter6_1/Cpu0MachineFunction.h</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">///</span> <span class="n">Cpu0FunctionInfo</span> <span class="o">-</span> <span class="n">This</span> <span class="k">class</span> <span class="nc">is</span> <span class="n">derived</span> <span class="kn">from</span> <span class="nn">MachineFunction</span> <span class="n">private</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">///</span> <span class="n">Cpu0FunctionInfo</span> <span class="o">-</span> <span class="n">This</span> <span class="k">class</span> <span class="nc">is</span> <span class="n">derived</span> <span class="kn">from</span> <span class="nn">MachineFunction</span> <span class="n">private</span>
 <span class="o">///</span> <span class="n">Cpu0</span> <span class="n">target</span><span class="o">-</span><span class="n">specific</span> <span class="n">information</span> <span class="k">for</span> <span class="n">each</span> <span class="n">MachineFunction</span><span class="o">.</span>
 <span class="k">class</span> <span class="nc">Cpu0FunctionInfo</span> <span class="p">:</span> <span class="n">public</span> <span class="n">MachineFunctionInfo</span> <span class="p">{</span>
 <span class="n">public</span><span class="p">:</span>
   <span class="n">Cpu0FunctionInfo</span><span class="p">(</span><span class="n">MachineFunction</span><span class="o">&amp;</span> <span class="n">MF</span><span class="p">)</span>
   <span class="p">:</span> <span class="n">MF</span><span class="p">(</span><span class="n">MF</span><span class="p">),</span> 
+    <span class="n">VarArgsFrameIndex</span><span class="p">(</span><span class="mi">0</span><span class="p">),</span> 
 </pre></div>
 </div>
-<div class="highlight-default"><div class="highlight"><pre><span></span>    <span class="n">GlobalBaseReg</span><span class="p">(</span><span class="mi">0</span><span class="p">),</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>    <span class="n">GlobalBaseReg</span><span class="p">(</span><span class="mi">0</span><span class="p">),</span>
 </pre></div>
 </div>
-<div class="highlight-default"><div class="highlight"><pre><span></span>  <span class="nb">bool</span> <span class="n">globalBaseRegFixed</span><span class="p">()</span> <span class="n">const</span><span class="p">;</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>  <span class="nb">bool</span> <span class="n">globalBaseRegFixed</span><span class="p">()</span> <span class="n">const</span><span class="p">;</span>
   <span class="nb">bool</span> <span class="n">globalBaseRegSet</span><span class="p">()</span> <span class="n">const</span><span class="p">;</span>
   <span class="n">unsigned</span> <span class="n">getGlobalBaseReg</span><span class="p">();</span>
 </pre></div>
 </div>
-<div class="highlight-default"><div class="highlight"><pre><span></span>  <span class="o">///</span> <span class="n">GlobalBaseReg</span> <span class="o">-</span> <span class="n">keeps</span> <span class="n">track</span> <span class="n">of</span> <span class="n">the</span> <span class="n">virtual</span> <span class="n">register</span> <span class="n">initialized</span> <span class="k">for</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>  <span class="o">///</span> <span class="n">GlobalBaseReg</span> <span class="o">-</span> <span class="n">keeps</span> <span class="n">track</span> <span class="n">of</span> <span class="n">the</span> <span class="n">virtual</span> <span class="n">register</span> <span class="n">initialized</span> <span class="k">for</span>
   <span class="o">///</span> <span class="n">use</span> <span class="k">as</span> <span class="n">the</span> <span class="k">global</span> <span class="n">base</span> <span class="n">register</span><span class="o">.</span> <span class="n">This</span> <span class="ow">is</span> <span class="n">used</span> <span class="k">for</span> <span class="n">PIC</span> <span class="ow">in</span> <span class="n">some</span> <span class="n">PIC</span>
   <span class="o">///</span> <span class="n">relocation</span> <span class="n">models</span><span class="o">.</span>
   <span class="n">unsigned</span> <span class="n">GlobalBaseReg</span><span class="p">;</span>
 </pre></div>
 </div>
-<div class="highlight-default"><div class="highlight"><pre><span></span>  int GPFI; // Index of the frame object for restoring $gp
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>  int GPFI; // Index of the frame object for restoring $gp
 </pre></div>
 </div>
-<div class="highlight-c++"><div class="highlight"><pre><span></span>  <span class="p">...</span>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span>  <span class="p">...</span>
 <span class="p">};</span>
 </pre></div>
 </div>
 <p class="rubric">lbdex/chapters/Chapter6_1/Cpu0MachineFunction.cpp</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="nb">bool</span> <span class="n">Cpu0FunctionInfo</span><span class="p">::</span><span class="n">globalBaseRegFixed</span><span class="p">()</span> <span class="n">const</span> <span class="p">{</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="nb">bool</span> <span class="n">Cpu0FunctionInfo</span><span class="p">::</span><span class="n">globalBaseRegFixed</span><span class="p">()</span> <span class="n">const</span> <span class="p">{</span>
   <span class="k">return</span> <span class="n">FixGlobalBaseReg</span><span class="p">;</span>
 <span class="p">}</span>
 
@@ -1368,35 +1362,35 @@ pseudo instruction at function entry point as below.</p>
 </pre></div>
 </div>
 <p class="rubric">lbdex/chapters/Chapter6_1/Cpu0AsmPrinter.cpp</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">///</span> <span class="n">EmitFunctionBodyStart</span> <span class="o">-</span> <span class="n">Targets</span> <span class="n">can</span> <span class="n">override</span> <span class="n">this</span> <span class="n">to</span> <span class="n">emit</span> <span class="n">stuff</span> <span class="n">before</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">///</span> <span class="n">EmitFunctionBodyStart</span> <span class="o">-</span> <span class="n">Targets</span> <span class="n">can</span> <span class="n">override</span> <span class="n">this</span> <span class="n">to</span> <span class="n">emit</span> <span class="n">stuff</span> <span class="n">before</span>
 <span class="o">///</span> <span class="n">the</span> <span class="n">first</span> <span class="n">basic</span> <span class="n">block</span> <span class="ow">in</span> <span class="n">the</span> <span class="n">function</span><span class="o">.</span>
-<span class="n">void</span> <span class="n">Cpu0AsmPrinter</span><span class="p">::</span><span class="n">EmitFunctionBodyStart</span><span class="p">()</span> <span class="p">{</span>
+<span class="n">void</span> <span class="n">Cpu0AsmPrinter</span><span class="p">::</span><span class="n">emitFunctionBodyStart</span><span class="p">()</span> <span class="p">{</span>
 </pre></div>
 </div>
-<div class="highlight-default"><div class="highlight"><pre><span></span>  <span class="nb">bool</span> <span class="n">EmitCPLoad</span> <span class="o">=</span> <span class="p">(</span><span class="n">MF</span><span class="o">-&gt;</span><span class="n">getTarget</span><span class="p">()</span><span class="o">.</span><span class="n">getRelocationModel</span><span class="p">()</span> <span class="o">==</span> <span class="n">Reloc</span><span class="p">::</span><span class="n">PIC_</span><span class="p">)</span> <span class="o">&amp;&amp;</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>  <span class="nb">bool</span> <span class="n">EmitCPLoad</span> <span class="o">=</span> <span class="p">(</span><span class="n">MF</span><span class="o">-&gt;</span><span class="n">getTarget</span><span class="p">()</span><span class="o">.</span><span class="n">getRelocationModel</span><span class="p">()</span> <span class="o">==</span> <span class="n">Reloc</span><span class="p">::</span><span class="n">PIC_</span><span class="p">)</span> <span class="o">&amp;&amp;</span>
     <span class="n">Cpu0FI</span><span class="o">-&gt;</span><span class="n">globalBaseRegSet</span><span class="p">()</span> <span class="o">&amp;&amp;</span>
     <span class="n">Cpu0FI</span><span class="o">-&gt;</span><span class="n">globalBaseRegFixed</span><span class="p">();</span>
   <span class="k">if</span> <span class="p">(</span><span class="n">Cpu0NoCpload</span><span class="p">)</span>
     <span class="n">EmitCPLoad</span> <span class="o">=</span> <span class="n">false</span><span class="p">;</span>
 </pre></div>
 </div>
-<div class="highlight-default"><div class="highlight"><pre><span></span>    <span class="o">//</span> <span class="n">Emit</span> <span class="o">.</span><span class="n">cpload</span> <span class="n">directive</span> <span class="k">if</span> <span class="n">needed</span><span class="o">.</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>    <span class="o">//</span> <span class="n">Emit</span> <span class="o">.</span><span class="n">cpload</span> <span class="n">directive</span> <span class="k">if</span> <span class="n">needed</span><span class="o">.</span>
     <span class="k">if</span> <span class="p">(</span><span class="n">EmitCPLoad</span><span class="p">)</span>
-      <span class="n">OutStreamer</span><span class="o">-&gt;</span><span class="n">EmitRawText</span><span class="p">(</span><span class="n">StringRef</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">.cpload</span><span class="se">\t</span><span class="s2">$t9&quot;</span><span class="p">));</span>
+      <span class="n">OutStreamer</span><span class="o">-&gt;</span><span class="n">emitRawText</span><span class="p">(</span><span class="n">StringRef</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">.cpload</span><span class="se">\t</span><span class="s2">$t9&quot;</span><span class="p">));</span>
 </pre></div>
 </div>
-<div class="highlight-default"><div class="highlight"><pre><span></span>  <span class="p">}</span> <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="n">EmitCPLoad</span><span class="p">)</span> <span class="p">{</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>  <span class="p">}</span> <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="n">EmitCPLoad</span><span class="p">)</span> <span class="p">{</span>
     <span class="n">SmallVector</span><span class="o">&lt;</span><span class="n">MCInst</span><span class="p">,</span> <span class="mi">4</span><span class="o">&gt;</span> <span class="n">MCInsts</span><span class="p">;</span>
     <span class="n">MCInstLowering</span><span class="o">.</span><span class="n">LowerCPLOAD</span><span class="p">(</span><span class="n">MCInsts</span><span class="p">);</span>
     <span class="k">for</span> <span class="p">(</span><span class="n">SmallVector</span><span class="o">&lt;</span><span class="n">MCInst</span><span class="p">,</span> <span class="mi">4</span><span class="o">&gt;</span><span class="p">::</span><span class="n">iterator</span> <span class="n">I</span> <span class="o">=</span> <span class="n">MCInsts</span><span class="o">.</span><span class="n">begin</span><span class="p">();</span>
        <span class="n">I</span> <span class="o">!=</span> <span class="n">MCInsts</span><span class="o">.</span><span class="n">end</span><span class="p">();</span> <span class="o">++</span><span class="n">I</span><span class="p">)</span>
-      <span class="n">OutStreamer</span><span class="o">-&gt;</span><span class="n">EmitInstruction</span><span class="p">(</span><span class="o">*</span><span class="n">I</span><span class="p">,</span> <span class="n">getSubtargetInfo</span><span class="p">());</span>
+      <span class="n">OutStreamer</span><span class="o">-&gt;</span><span class="n">emitInstruction</span><span class="p">(</span><span class="o">*</span><span class="n">I</span><span class="p">,</span> <span class="n">getSubtargetInfo</span><span class="p">());</span>
 </pre></div>
 </div>
-<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="p">}</span>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="p">}</span>
 </pre></div>
 </div>
-<div class="highlight-console"><div class="highlight"><pre><span></span><span class="go">...</span>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">...</span>
 <span class="go">.set        noreorder</span>
 <span class="go">.cpload     $6</span>
 <span class="go">.set        nomacro</span>
@@ -1408,29 +1402,29 @@ will expand to several instructions.
 Issue <strong>.cpload</strong> before <strong>.set nomacro</strong> since the <strong>.set nomacro</strong> option
 causes the assembler to print a warning message whenever
 an assembler operation generates more than one machine language instruction,
-reference Mips ABI <a class="footnote-reference" href="#id7" id="id3">[2]</a>.</p>
+reference Mips ABI <a class="footnote-reference brackets" href="#id7" id="id3">2</a>.</p>
 <p>Following code will exspand .cpload into machine instructions as below.
-&#8220;0fa00000 09aa0000 13aa6000&#8221; is the <strong>.cpload</strong> machine instructions
+“0fa00000 09aa0000 13aa6000” is the <strong>.cpload</strong> machine instructions
 displayed in comments of Cpu0MCInstLower.cpp.</p>
 <p class="rubric">lbdex/chapters/Chapter6_1/Cpu0MCInstLower.h</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">///</span> <span class="n">This</span> <span class="k">class</span> <span class="nc">is</span> <span class="n">used</span> <span class="n">to</span> <span class="n">lower</span> <span class="n">an</span> <span class="n">MachineInstr</span> <span class="n">into</span> <span class="n">an</span> <span class="n">MCInst</span><span class="o">.</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">///</span> <span class="n">This</span> <span class="k">class</span> <span class="nc">is</span> <span class="n">used</span> <span class="n">to</span> <span class="n">lower</span> <span class="n">an</span> <span class="n">MachineInstr</span> <span class="n">into</span> <span class="n">an</span> <span class="n">MCInst</span><span class="o">.</span>
 <span class="k">class</span> <span class="nc">LLVM_LIBRARY_VISIBILITY</span> <span class="n">Cpu0MCInstLower</span> <span class="p">{</span>
 </pre></div>
 </div>
-<div class="highlight-default"><div class="highlight"><pre><span></span>  <span class="n">void</span> <span class="n">LowerCPLOAD</span><span class="p">(</span><span class="n">SmallVector</span><span class="o">&lt;</span><span class="n">MCInst</span><span class="p">,</span> <span class="mi">4</span><span class="o">&gt;&amp;</span> <span class="n">MCInsts</span><span class="p">);</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>  <span class="n">void</span> <span class="n">LowerCPLOAD</span><span class="p">(</span><span class="n">SmallVector</span><span class="o">&lt;</span><span class="n">MCInst</span><span class="p">,</span> <span class="mi">4</span><span class="o">&gt;&amp;</span> <span class="n">MCInsts</span><span class="p">);</span>
 </pre></div>
 </div>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">private</span><span class="p">:</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">private</span><span class="p">:</span>
   <span class="n">MCOperand</span> <span class="n">LowerSymbolOperand</span><span class="p">(</span><span class="n">const</span> <span class="n">MachineOperand</span> <span class="o">&amp;</span><span class="n">MO</span><span class="p">,</span>
                                <span class="n">MachineOperandType</span> <span class="n">MOTy</span><span class="p">,</span> <span class="n">unsigned</span> <span class="n">Offset</span><span class="p">)</span> <span class="n">const</span><span class="p">;</span>
 </pre></div>
 </div>
-<div class="highlight-c++"><div class="highlight"><pre><span></span>  <span class="p">...</span>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span>  <span class="p">...</span>
 <span class="p">}</span>
 </pre></div>
 </div>
 <p class="rubric">lbdex/chapters/Chapter6_1/Cpu0MCInstLower.cpp</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">//</span> <span class="n">Lower</span> <span class="s2">&quot;.cpload $reg&quot;</span> <span class="n">to</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">//</span> <span class="n">Lower</span> <span class="s2">&quot;.cpload $reg&quot;</span> <span class="n">to</span>
 <span class="o">//</span>  <span class="s2">&quot;lui   $gp, </span><span class="si">%hi</span><span class="s2">(_gp_disp)&quot;</span>
 <span class="o">//</span>  <span class="s2">&quot;addiu $gp, $gp, </span><span class="si">%lo</span><span class="s2">(_gp_disp)&quot;</span>
 <span class="o">//</span>  <span class="s2">&quot;addu  $gp, $gp, $t9&quot;</span>
@@ -1454,10 +1448,10 @@ displayed in comments of Cpu0MCInstLower.cpp.</p>
 <span class="p">}</span>
 </pre></div>
 </div>
-<div class="highlight-console"><div class="highlight"><pre><span></span><span class="gp">118-165-76-131:input Jonathan$</span> /Users/Jonathan/llvm/test/
-<span class="go">cmake_debug_build/Debug/bin/llc -march=cpu0 -relocation-model=pic -filetype=</span>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">118-165-76-131:input Jonathan$ </span>/Users/Jonathan/llvm/test/
+<span class="go">build/bin/llc -march=cpu0 -relocation-model=pic -filetype=</span>
 <span class="go">obj ch6_1.bc -o ch6_1.cpu0.o</span>
-<span class="gp">118-165-76-131:input Jonathan$</span> gobjdump -s ch6_1.cpu0.o
+<span class="gp">118-165-76-131:input Jonathan$ </span>gobjdump -s ch6_1.cpu0.o
 
 <span class="go">ch6_1.cpu0.o:     file format elf32-big</span>
 
@@ -1465,7 +1459,7 @@ displayed in comments of Cpu0MCInstLower.cpp.</p>
 <span class="go"> 0000 0fa00000 0daa0000 13aa6000  ...</span>
 <span class="go">...</span>
 
-<span class="gp">118-165-76-131:input Jonathan$</span> gobjdump -tr ch6_1.cpu0.o
+<span class="gp">118-165-76-131:input Jonathan$ </span>gobjdump -tr ch6_1.cpu0.o
 <span class="go">...</span>
 <span class="go">RELOCATION RECORDS FOR [.text]:</span>
 <span class="go">OFFSET   TYPE              VALUE</span>
@@ -1475,13 +1469,13 @@ displayed in comments of Cpu0MCInstLower.cpp.</p>
 </pre></div>
 </div>
 <div class="admonition note">
-<p class="first admonition-title">Note</p>
+<p class="admonition-title">Note</p>
 <p>// <strong>Mips ABI: _gp_disp</strong>
 After calculating the gp, a function allocates the local stack space and saves
 the gp on the stack, so it can be restored after subsequent function calls.
 In other words, the gp is a caller saved register.</p>
-<p>...</p>
-<p class="last">_gp_disp represents the offset between the beginning of the function and the
+<p>…</p>
+<p>_gp_disp represents the offset between the beginning of the function and the
 global offset table.
 Various optimizations are possible in this code example and the others that
 follow.
@@ -1490,25 +1484,25 @@ function that is strictly local to an object module.</p>
 </div>
 <p>The _gp_disp as above is a relocation record, it means both the machine
 instructions 0da00000 (offset 0) and 0daa0000 (offset 8) which equal to assembly
-&#8220;ori $gp, $zero, %hi(_gp_disp)&#8221; and assembly &#8220;ori $gp, $gp, %lo(_gp_disp)&#8221;,
+“ori $gp, $zero, %hi(_gp_disp)” and assembly “ori $gp, $gp, %lo(_gp_disp)”,
 respectively, are relocated records depend on _gp_disp.
 The loader or OS can caculate _gp_disp by (x - start address of .data)
 when load the dynamic function into memory x, and adjusts these two
 instructions offet correctly.
 Since shared function is loaded when this function is called, the relocation
-record &#8220;ld $2, %got(gI)($gp)&#8221; cannot be resolved in link time.
+record “ld $2, %got(gI)($gp)” cannot be resolved in link time.
 In spite of the reloation record is solved on load time, the name binding
 is static, since linker deliver the memory address to loader, and loader can solve
 this just by caculate the offset directly. The memory reference bind with
 the offset of _gp_disp at link time.
 The ELF relocation records will be introduced in Chapter ELF Support.
-So, don&#8217;t worry if you don&#8217;t quite understand it at this point.</p>
+So, don’t worry if you don’t quite understand it at this point.</p>
 <p>The code fragment of lowerGlobalAddress() as the following corresponding option
-<code class="docutils literal"><span class="pre">llc</span> <span class="pre">-relocation-model=pic</span></code> will translate DAG (GlobalAddress&lt;i32* &#64;gI&gt; 0) into
+<code class="docutils literal notranslate"><span class="pre">llc</span> <span class="pre">-relocation-model=pic</span></code> will translate DAG (GlobalAddress&lt;i32* &#64;gI&gt; 0) into
 (load EntryToken, (Cpu0ISD::Wrapper Register %GP, TargetGlobalAddress&lt;i32* &#64;gI&gt; 0))
-in stage &#8220;Legalized selection DAG&#8221; as below.</p>
+in stage “Legalized selection DAG” as below.</p>
 <p class="rubric">lbdex/chapters/Chapter6_1/Cpu0ISelLowering.h</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span>    // This method creates the following nodes, which are necessary for
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>    // This method creates the following nodes, which are necessary for
     // computing a global symbol&#39;s address:
     //
     // (load (wrapper $gp, %got(sym)))
@@ -1524,16 +1518,17 @@ in stage &#8220;Legalized selection DAG&#8221; as below.</p>
 </pre></div>
 </div>
 <p class="rubric">lbdex/chapters/Chapter6_1/Cpu0ISelLowering.cpp</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">SDValue</span> <span class="n">Cpu0TargetLowering</span><span class="p">::</span><span class="n">lowerGlobalAddress</span><span class="p">(</span><span class="n">SDValue</span> <span class="n">Op</span><span class="p">,</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">SDValue</span> <span class="n">Cpu0TargetLowering</span><span class="p">::</span><span class="n">lowerGlobalAddress</span><span class="p">(</span><span class="n">SDValue</span> <span class="n">Op</span><span class="p">,</span>
                                                <span class="n">SelectionDAG</span> <span class="o">&amp;</span><span class="n">DAG</span><span class="p">)</span> <span class="n">const</span> <span class="p">{</span>
 </pre></div>
 </div>
-<div class="highlight-default"><div class="highlight"><pre><span></span>  <span class="n">EVT</span> <span class="n">Ty</span> <span class="o">=</span> <span class="n">Op</span><span class="o">.</span><span class="n">getValueType</span><span class="p">();</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>  <span class="n">EVT</span> <span class="n">Ty</span> <span class="o">=</span> <span class="n">Op</span><span class="o">.</span><span class="n">getValueType</span><span class="p">();</span>
   <span class="n">GlobalAddressSDNode</span> <span class="o">*</span><span class="n">N</span> <span class="o">=</span> <span class="n">cast</span><span class="o">&lt;</span><span class="n">GlobalAddressSDNode</span><span class="o">&gt;</span><span class="p">(</span><span class="n">Op</span><span class="p">);</span>
   <span class="n">const</span> <span class="n">GlobalValue</span> <span class="o">*</span><span class="n">GV</span> <span class="o">=</span> <span class="n">N</span><span class="o">-&gt;</span><span class="n">getGlobal</span><span class="p">();</span>
 </pre></div>
 </div>
-<div class="highlight-default"><div class="highlight"><pre><span></span>    <span class="k">if</span> <span class="p">(</span><span class="n">TLOF</span><span class="o">-&gt;</span><span class="n">IsGlobalInSmallSection</span><span class="p">(</span><span class="n">GV</span><span class="p">,</span> <span class="n">getTargetMachine</span><span class="p">()))</span> <span class="p">{</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>    <span class="n">const</span> <span class="n">GlobalObject</span> <span class="o">*</span><span class="n">GO</span> <span class="o">=</span> <span class="n">GV</span><span class="o">-&gt;</span><span class="n">getBaseObject</span><span class="p">();</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">GO</span> <span class="o">&amp;&amp;</span> <span class="n">TLOF</span><span class="o">-&gt;</span><span class="n">IsGlobalInSmallSection</span><span class="p">(</span><span class="n">GO</span><span class="p">,</span> <span class="n">getTargetMachine</span><span class="p">()))</span> <span class="p">{</span>
       <span class="n">SDValue</span> <span class="n">GA</span> <span class="o">=</span> <span class="n">DAG</span><span class="o">.</span><span class="n">getTargetGlobalAddress</span><span class="p">(</span><span class="n">GV</span><span class="p">,</span> <span class="n">DL</span><span class="p">,</span> <span class="n">MVT</span><span class="p">::</span><span class="n">i32</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span>
                                               <span class="n">Cpu0II</span><span class="p">::</span><span class="n">MO_GPREL</span><span class="p">);</span>
       <span class="n">SDValue</span> <span class="n">GPRelNode</span> <span class="o">=</span> <span class="n">DAG</span><span class="o">.</span><span class="n">getNode</span><span class="p">(</span><span class="n">Cpu0ISD</span><span class="p">::</span><span class="n">GPRel</span><span class="p">,</span> <span class="n">DL</span><span class="p">,</span>
@@ -1544,18 +1539,18 @@ in stage &#8220;Legalized selection DAG&#8221; as below.</p>
 
 </pre></div>
 </div>
-<div class="highlight-c++"><div class="highlight"><pre><span></span>  <span class="p">...</span>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span>  <span class="p">...</span>
 <span class="p">}</span>
 </pre></div>
 </div>
 <p class="rubric">lbdex/chapters/Chapter6_1/Cpu0ISelDAGToDAG.cpp</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">///</span> <span class="n">ComplexPattern</span> <span class="n">used</span> <span class="n">on</span> <span class="n">Cpu0InstrInfo</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">///</span> <span class="n">ComplexPattern</span> <span class="n">used</span> <span class="n">on</span> <span class="n">Cpu0InstrInfo</span>
 <span class="o">///</span> <span class="n">Used</span> <span class="n">on</span> <span class="n">Cpu0</span> <span class="n">Load</span><span class="o">/</span><span class="n">Store</span> <span class="n">instructions</span>
 <span class="nb">bool</span> <span class="n">Cpu0DAGToDAGISel</span><span class="p">::</span>
 <span class="n">SelectAddr</span><span class="p">(</span><span class="n">SDNode</span> <span class="o">*</span><span class="n">Parent</span><span class="p">,</span> <span class="n">SDValue</span> <span class="n">Addr</span><span class="p">,</span> <span class="n">SDValue</span> <span class="o">&amp;</span><span class="n">Base</span><span class="p">,</span> <span class="n">SDValue</span> <span class="o">&amp;</span><span class="n">Offset</span><span class="p">)</span> <span class="p">{</span>
 </pre></div>
 </div>
-<div class="highlight-default"><div class="highlight"><pre><span></span>  <span class="o">//</span> <span class="n">on</span> <span class="n">PIC</span> <span class="n">code</span> <span class="n">Load</span> <span class="n">GA</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>  <span class="o">//</span> <span class="n">on</span> <span class="n">PIC</span> <span class="n">code</span> <span class="n">Load</span> <span class="n">GA</span>
   <span class="k">if</span> <span class="p">(</span><span class="n">Addr</span><span class="o">.</span><span class="n">getOpcode</span><span class="p">()</span> <span class="o">==</span> <span class="n">Cpu0ISD</span><span class="p">::</span><span class="n">Wrapper</span><span class="p">)</span> <span class="p">{</span>
     <span class="n">Base</span>   <span class="o">=</span> <span class="n">Addr</span><span class="o">.</span><span class="n">getOperand</span><span class="p">(</span><span class="mi">0</span><span class="p">);</span>
     <span class="n">Offset</span> <span class="o">=</span> <span class="n">Addr</span><span class="o">.</span><span class="n">getOperand</span><span class="p">(</span><span class="mi">1</span><span class="p">);</span>
@@ -1564,11 +1559,11 @@ in stage &#8220;Legalized selection DAG&#8221; as below.</p>
 
 </pre></div>
 </div>
-<div class="highlight-c++"><div class="highlight"><pre><span></span>  <span class="p">...</span>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span>  <span class="p">...</span>
 <span class="p">}</span>
 </pre></div>
 </div>
-<div class="highlight-console"><div class="highlight"><pre><span></span><span class="go">...</span>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">...</span>
 <span class="go">Type-legalized selection DAG: BB#0 &#39;_Z3funv:entry&#39;</span>
 <span class="go">SelectionDAG has 12 nodes:</span>
 <span class="go">  ...</span>
@@ -1609,37 +1604,37 @@ in stage &#8220;Legalized selection DAG&#8221; as below.</p>
 <p>Finally, the pattern Cpu0 instruction <strong>ld</strong> defined before in Cpu0InstrInfo.td
 will translate DAG (load EntryToken, (Cpu0ISD::Wrapper Register %GP,
 TargetGlobalAddress&lt;i32* &#64;gI&gt; 0)) into Cpu0 instruction as follows,</p>
-<div class="highlight-console"><div class="highlight"><pre><span></span><span class="go">...</span>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">...</span>
 <span class="go">ld  $2, %got(gI)($gp)</span>
 <span class="go">...</span>
 </pre></div>
 </div>
-<p>Remind in pic mode, Cpu0 uses &#8221;.cpload&#8221; and &#8220;ld $2, %got(gI)($gp)&#8221; to access
+<p>Remind in pic mode, Cpu0 uses “.cpload” and “ld $2, %got(gI)($gp)” to access
 global variable as Mips. It takes 4 instructions in both Cpu0 and Mips.
-The cost came from we didn&#8217;t assume that register $gp is always assigned to
+The cost came from we didn’t assume that register $gp is always assigned to
 address .sdata and fixed there. Even we reserve $gp in this function, the $gp
 register can be changed at other functions. In last sub-section, the $gp is
 assumed to preserved at any function. If $gp is fixed during the run time, then
-&#8221;.cpload&#8221; can be removed here and have only one instruction cost in global
-variable access. The advantage of &#8221;.cpload&#8221; removing come from losing one
+“.cpload” can be removed here and have only one instruction cost in global
+variable access. The advantage of “.cpload” removing come from losing one
 general purpose register $gp which can be allocated for variables.
-In last sub-section, .sdata mode, we use &#8221;.cpload&#8221; removing since it is
+In last sub-section, .sdata mode, we use “.cpload” removing since it is
 static link.
 In pic mode, the dynamic loading takes too much time.
-Romove &#8221;.cpload&#8221; with the cost of losing one general purpose register at all
+Romove “.cpload” with the cost of losing one general purpose register at all
 functions is not deserved here.
-The relocation records of &#8221;.cpload&#8221; from <code class="docutils literal"><span class="pre">llc</span> <span class="pre">-relocation-model=pic</span></code> can also
+The relocation records of “.cpload” from <code class="docutils literal notranslate"><span class="pre">llc</span> <span class="pre">-relocation-model=pic</span></code> can also
 be solved in link stage if we want to link this function by static link.</p>
-</div>
-<div class="section" id="id4">
+</section>
+<section id="id4">
 <h3><a class="toc-backref" href="#id18">data or bss</a><a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h3>
 <p>The code fragment of lowerGlobalAddress() as the following corresponding option
-<code class="docutils literal"><span class="pre">llc</span> <span class="pre">-relocation-model=pic</span></code> will translate DAG (GlobalAddress&lt;i32* &#64;gI&gt; 0) into
+<code class="docutils literal notranslate"><span class="pre">llc</span> <span class="pre">-relocation-model=pic</span></code> will translate DAG (GlobalAddress&lt;i32* &#64;gI&gt; 0) into
 (load EntryToken, (Cpu0ISD::Wrapper (add Cpu0ISD::Hi&lt;gI offset Hi16&gt;, Register %GP),
 TargetGlobalAddress&lt;i32* &#64;gI&gt; 0))
-in stage &#8220;Legalized selection DAG&#8221; as below.</p>
+in stage “Legalized selection DAG” as below.</p>
 <p class="rubric">lbdex/chapters/Chapter6_1/Cpu0ISelLowering.h</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span>    // This method creates the following nodes, which are necessary for
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>    // This method creates the following nodes, which are necessary for
     // computing a global symbol&#39;s address in large-GOT mode:
     //
     // (load (wrapper (add %hi(sym), $gp), %lo(sym)))
@@ -1659,16 +1654,17 @@ in stage &#8220;Legalized selection DAG&#8221; as below.</p>
 </pre></div>
 </div>
 <p class="rubric">lbdex/chapters/Chapter6_1/Cpu0ISelLowering.cpp</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">SDValue</span> <span class="n">Cpu0TargetLowering</span><span class="p">::</span><span class="n">lowerGlobalAddress</span><span class="p">(</span><span class="n">SDValue</span> <span class="n">Op</span><span class="p">,</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">SDValue</span> <span class="n">Cpu0TargetLowering</span><span class="p">::</span><span class="n">lowerGlobalAddress</span><span class="p">(</span><span class="n">SDValue</span> <span class="n">Op</span><span class="p">,</span>
                                                <span class="n">SelectionDAG</span> <span class="o">&amp;</span><span class="n">DAG</span><span class="p">)</span> <span class="n">const</span> <span class="p">{</span>
 </pre></div>
 </div>
-<div class="highlight-default"><div class="highlight"><pre><span></span>  <span class="n">EVT</span> <span class="n">Ty</span> <span class="o">=</span> <span class="n">Op</span><span class="o">.</span><span class="n">getValueType</span><span class="p">();</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>  <span class="n">EVT</span> <span class="n">Ty</span> <span class="o">=</span> <span class="n">Op</span><span class="o">.</span><span class="n">getValueType</span><span class="p">();</span>
   <span class="n">GlobalAddressSDNode</span> <span class="o">*</span><span class="n">N</span> <span class="o">=</span> <span class="n">cast</span><span class="o">&lt;</span><span class="n">GlobalAddressSDNode</span><span class="o">&gt;</span><span class="p">(</span><span class="n">Op</span><span class="p">);</span>
   <span class="n">const</span> <span class="n">GlobalValue</span> <span class="o">*</span><span class="n">GV</span> <span class="o">=</span> <span class="n">N</span><span class="o">-&gt;</span><span class="n">getGlobal</span><span class="p">();</span>
 </pre></div>
 </div>
-<div class="highlight-default"><div class="highlight"><pre><span></span>  if (!TLOF-&gt;IsGlobalInSmallSection(GV, getTargetMachine()))
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>  const GlobalObject *GO = GV-&gt;getBaseObject();
+  if (GO &amp;&amp; !TLOF-&gt;IsGlobalInSmallSection(GO, getTargetMachine()))
     return getAddrGlobalLargeGOT(
         N, Ty, DAG, Cpu0II::MO_GOT_HI16, Cpu0II::MO_GOT_LO16, 
         DAG.getEntryNode(), 
@@ -1679,7 +1675,7 @@ in stage &#8220;Legalized selection DAG&#8221; as below.</p>
 }
 </pre></div>
 </div>
-<div class="highlight-console"><div class="highlight"><pre><span></span><span class="go">...</span>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">...</span>
 <span class="go">Type-legalized selection DAG: BB#0 &#39;_Z3funv:&#39;</span>
 <span class="go">SelectionDAG has 10 nodes:</span>
 <span class="go">  ...</span>
@@ -1726,9 +1722,9 @@ in stage &#8220;Legalized selection DAG&#8221; as below.</p>
 will translate DAG (load EntryToken, (Cpu0ISD::Wrapper (add Cpu0ISD::Hi&lt;gI
 offset Hi16&gt;, Register %GP), Cpu0ISD::Lo&lt;gI offset Lo16&gt;)) into Cpu0
 instructions as below.</p>
-<div class="highlight-console"><div class="highlight"><pre><span></span><span class="go">...</span>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">...</span>
 <span class="go">ori $2, $zero, %got_hi(gI)</span>
-<span class="gp">shl $</span>2, <span class="nv">$2</span>, 16
+<span class="gp">shl $</span><span class="m">2</span>, <span class="nv">$2</span>, <span class="m">16</span>
 <span class="go">add $2, $2, $gp</span>
 <span class="go">ld  $2, %got_lo(gI)($2)</span>
 <span class="go">...</span>
@@ -1739,10 +1735,10 @@ ch8_2_select_global_pic.cpp.
 Since ch8_2_select_global_pic.cpp uses llvm IR <strong>select</strong>, it cannot be run at
 this point. It will be run in later Chapter Control flow statements.</p>
 <p class="rubric">lbdex/chapters/Chapter6_1/Cpu0InstrInfo.td</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">Cpu0Wrapper</span>    <span class="p">:</span> <span class="n">SDNode</span><span class="o">&lt;</span><span class="s2">&quot;Cpu0ISD::Wrapper&quot;</span><span class="p">,</span> <span class="n">SDTIntBinOp</span><span class="o">&gt;</span><span class="p">;</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">Cpu0Wrapper</span>    <span class="p">:</span> <span class="n">SDNode</span><span class="o">&lt;</span><span class="s2">&quot;Cpu0ISD::Wrapper&quot;</span><span class="p">,</span> <span class="n">SDTIntBinOp</span><span class="o">&gt;</span><span class="p">;</span>
 </pre></div>
 </div>
-<div class="highlight-default"><div class="highlight"><pre><span></span>let Predicates = [Ch6_1] in {
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>let Predicates = [Ch6_1] in {
 class WrapperPat&lt;SDNode node, Instruction ORiOp, RegisterClass RC&gt;:
       Pat&lt;(Cpu0Wrapper RC:$gp, node:$in),
               (ORiOp RC:$gp, node:$in)&gt;;
@@ -1752,7 +1748,7 @@ def : WrapperPat&lt;tglobaladdr, ORi, GPROut&gt;;
 </pre></div>
 </div>
 <p class="rubric">lbdex/input/ch8_2_select_global_pic.cpp</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">volatile</span> <span class="nb">int</span> <span class="n">a1</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">volatile</span> <span class="nb">int</span> <span class="n">a1</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
 <span class="n">volatile</span> <span class="nb">int</span> <span class="n">b1</span> <span class="o">=</span> <span class="mi">2</span><span class="p">;</span>
 
 <span class="nb">int</span> <span class="n">gI1</span> <span class="o">=</span> <span class="mi">100</span><span class="p">;</span>
@@ -1767,15 +1763,15 @@ def : WrapperPat&lt;tglobaladdr, ORi, GPROut&gt;;
 <span class="p">}</span>
 </pre></div>
 </div>
-</div>
-</div>
-<div class="section" id="global-variable-print-support">
+</section>
+</section>
+<section id="global-variable-print-support">
 <h2><a class="toc-backref" href="#id19">Global variable print support</a><a class="headerlink" href="#global-variable-print-support" title="Permalink to this headline">¶</a></h2>
 <p>Above code is for global address DAG translation.
 Next, add the following code to Cpu0MCInstLower.cpp and
 Cpu0ISelLowering.cpp for global variable printing operand function.</p>
 <p class="rubric">lbdex/chapters/Chapter6_1/Cpu0MCInstLower.cpp</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">MCOperand</span> <span class="n">Cpu0MCInstLower</span><span class="p">::</span><span class="n">LowerSymbolOperand</span><span class="p">(</span><span class="n">const</span> <span class="n">MachineOperand</span> <span class="o">&amp;</span><span class="n">MO</span><span class="p">,</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">MCOperand</span> <span class="n">Cpu0MCInstLower</span><span class="p">::</span><span class="n">LowerSymbolOperand</span><span class="p">(</span><span class="n">const</span> <span class="n">MachineOperand</span> <span class="o">&amp;</span><span class="n">MO</span><span class="p">,</span>
                                               <span class="n">MachineOperandType</span> <span class="n">MOTy</span><span class="p">,</span>
                                               <span class="n">unsigned</span> <span class="n">Offset</span><span class="p">)</span> <span class="n">const</span> <span class="p">{</span>
   <span class="n">MCSymbolRefExpr</span><span class="p">::</span><span class="n">VariantKind</span> <span class="n">Kind</span> <span class="o">=</span> <span class="n">MCSymbolRefExpr</span><span class="p">::</span><span class="n">VK_None</span><span class="p">;</span>
@@ -1839,19 +1835,19 @@ Cpu0ISelLowering.cpp for global variable printing operand function.</p>
 <span class="p">}</span>
 </pre></div>
 </div>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">MCOperand</span> <span class="n">Cpu0MCInstLower</span><span class="p">::</span><span class="n">LowerOperand</span><span class="p">(</span><span class="n">const</span> <span class="n">MachineOperand</span><span class="o">&amp;</span> <span class="n">MO</span><span class="p">,</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">MCOperand</span> <span class="n">Cpu0MCInstLower</span><span class="p">::</span><span class="n">LowerOperand</span><span class="p">(</span><span class="n">const</span> <span class="n">MachineOperand</span><span class="o">&amp;</span> <span class="n">MO</span><span class="p">,</span>
                                         <span class="n">unsigned</span> <span class="n">offset</span><span class="p">)</span> <span class="n">const</span> <span class="p">{</span>
   <span class="n">MachineOperandType</span> <span class="n">MOTy</span> <span class="o">=</span> <span class="n">MO</span><span class="o">.</span><span class="n">getType</span><span class="p">();</span>
 
   <span class="n">switch</span> <span class="p">(</span><span class="n">MOTy</span><span class="p">)</span> <span class="p">{</span>
 </pre></div>
 </div>
-<div class="highlight-default"><div class="highlight"><pre><span></span>  <span class="n">case</span> <span class="n">MachineOperand</span><span class="p">::</span><span class="n">MO_GlobalAddress</span><span class="p">:</span>
-<span class="o">//</span><span class="nd">@1</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>  <span class="n">case</span> <span class="n">MachineOperand</span><span class="p">::</span><span class="n">MO_GlobalAddress</span><span class="p">:</span>
+<span class="o">//@</span><span class="mi">1</span>
     <span class="k">return</span> <span class="n">LowerSymbolOperand</span><span class="p">(</span><span class="n">MO</span><span class="p">,</span> <span class="n">MOTy</span><span class="p">,</span> <span class="n">offset</span><span class="p">);</span>
 </pre></div>
 </div>
-<div class="highlight-c++"><div class="highlight"><pre><span></span>  <span class="p">...</span>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span>  <span class="p">...</span>
   <span class="p">}</span>
 <span class="p">...</span>
 <span class="p">}</span>
@@ -1859,10 +1855,10 @@ Cpu0ISelLowering.cpp for global variable printing operand function.</p>
 </div>
 <p>The Cpu0MCExpr::printImpl() of Cpu0InstPrinter.cpp in last chapter is
 for global variable printing operand function too.</p>
-<p>The following function is for <code class="docutils literal"><span class="pre">llc</span> <span class="pre">-debug</span></code> this chapter DAG node name printing.
+<p>The following function is for <code class="docutils literal notranslate"><span class="pre">llc</span> <span class="pre">-debug</span></code> this chapter DAG node name printing.
 It is added at Chapter3_1 already.</p>
 <p class="rubric">lbdex/chapters/Chapter3_1/Cpu0ISelLowering.cpp</p>
-<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="k">const</span> <span class="kt">char</span> <span class="o">*</span><span class="n">Cpu0TargetLowering</span><span class="o">::</span><span class="n">getTargetNodeName</span><span class="p">(</span><span class="kt">unsigned</span> <span class="n">Opcode</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="k">const</span> <span class="kt">char</span> <span class="o">*</span><span class="nf">Cpu0TargetLowering::getTargetNodeName</span><span class="p">(</span><span class="kt">unsigned</span> <span class="n">Opcode</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
   <span class="k">switch</span> <span class="p">(</span><span class="n">Opcode</span><span class="p">)</span> <span class="p">{</span>
   <span class="p">..</span>
   <span class="k">case</span> <span class="n">Cpu0ISD</span><span class="o">::</span><span class="nl">GPRel</span><span class="p">:</span>             <span class="k">return</span> <span class="s">&quot;Cpu0ISD::GPRel&quot;</span><span class="p">;</span>
@@ -1874,8 +1870,8 @@ It is added at Chapter3_1 already.</p>
 </pre></div>
 </div>
 <p>OS is the output stream which output to the assembly file.</p>
-</div>
-<div class="section" id="summary">
+</section>
+<section id="summary">
 <h2><a class="toc-backref" href="#id20">Summary</a><a class="headerlink" href="#summary" title="Permalink to this headline">¶</a></h2>
 <p>The global variable Instruction Selection for DAG translation is not like the
 ordinary IR node translation, it has static (absolute address) and pic mode.
@@ -1890,7 +1886,7 @@ By setting the pattern Pat&lt;&gt; in Cpu0InstrInfo.td, the llvm can apply the
 compiler mechanism, pattern match, in the Instruction Selection stage.</p>
 <p>There are three types for setXXXAction(), Promote, Expand and Custom.
 Except Custom, the other two maybe no need to coding.
-Here <a class="footnote-reference" href="#id8" id="id5">[3]</a> is the references.</p>
+Here <a class="footnote-reference brackets" href="#id8" id="id5">3</a> is the references.</p>
 <p>As shown in this chapter, the global variable can be laid in
 .sdata/.sbss by option -cpu0-use-small-section=true.
 It is possible that the variables of small data section (16 bits
@@ -1900,7 +1896,7 @@ As the result, the toolchain user need to reconsider which global variables
 should be moved from .sdata/.sbss to .data/.bss by set option
 -cpu0-use-small-section=false in Makefile as follows,</p>
 <p class="rubric">Makefile</p>
-<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="cp"># Set the global variables declared in a.cpp to .data/.bss</span>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="cp"># Set the global variables declared in a.cpp to .data/.bss</span>
 <span class="n">llc</span>  <span class="o">-</span><span class="n">march</span><span class="o">=</span><span class="n">cpu0</span> <span class="o">-</span><span class="n">relocation</span><span class="o">-</span><span class="n">model</span><span class="o">=</span><span class="k">static</span> <span class="o">-</span><span class="n">cpu0</span><span class="o">-</span><span class="n">use</span><span class="o">-</span><span class="n">small</span><span class="o">-</span><span class="n">section</span><span class="o">=</span><span class="nb">false</span> \
 <span class="o">-</span><span class="n">filetype</span><span class="o">=</span><span class="n">obj</span> <span class="n">a</span><span class="p">.</span><span class="n">bc</span> <span class="o">-</span><span class="n">o</span> <span class="n">a</span><span class="p">.</span><span class="n">cpu0</span><span class="p">.</span><span class="n">o</span>
 <span class="cp"># Set the global variables declared in b.cpp to .sdata/.sbss</span>
@@ -1908,28 +1904,21 @@ should be moved from .sdata/.sbss to .data/.bss by set option
 <span class="o">-</span><span class="n">filetype</span><span class="o">=</span><span class="n">obj</span> <span class="n">b</span><span class="p">.</span><span class="n">bc</span> <span class="o">-</span><span class="n">o</span> <span class="n">b</span><span class="p">.</span><span class="n">cpu0</span><span class="p">.</span><span class="n">o</span>
 </pre></div>
 </div>
-<p>The rule for global variables allocation is &#8220;set the small and frequent
-variables in small 16 addressable area&#8221;.</p>
-<table class="docutils footnote" frame="void" id="id6" rules="none">
-<colgroup><col class="label" /><col /></colgroup>
-<tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id1">[1]</a></td><td><a class="reference external" href="http://llvm.org/docs/CommandLine.html">http://llvm.org/docs/CommandLine.html</a></td></tr>
-</tbody>
-</table>
-<table class="docutils footnote" frame="void" id="id7" rules="none">
-<colgroup><col class="label" /><col /></colgroup>
-<tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id3">[2]</a></td><td><a class="reference external" href="http://www.linux-mips.org/pub/linux/mips/doc/ABI/mipsabi.pdf">http://www.linux-mips.org/pub/linux/mips/doc/ABI/mipsabi.pdf</a></td></tr>
-</tbody>
-</table>
-<table class="docutils footnote" frame="void" id="id8" rules="none">
-<colgroup><col class="label" /><col /></colgroup>
-<tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id5">[3]</a></td><td><a class="reference external" href="http://llvm.org/docs/WritingAnLLVMBackend.html#the-selectiondag-legalize-phase">http://llvm.org/docs/WritingAnLLVMBackend.html#the-selectiondag-legalize-phase</a></td></tr>
-</tbody>
-</table>
-</div>
-</div>
+<p>The rule for global variables allocation is “set the small and frequent
+variables in small 16 addressable area”.</p>
+<dl class="footnote brackets">
+<dt class="label" id="id6"><span class="brackets"><a class="fn-backref" href="#id1">1</a></span></dt>
+<dd><p><a class="reference external" href="http://llvm.org/docs/CommandLine.html">http://llvm.org/docs/CommandLine.html</a></p>
+</dd>
+<dt class="label" id="id7"><span class="brackets"><a class="fn-backref" href="#id3">2</a></span></dt>
+<dd><p><a class="reference external" href="http://www.linux-mips.org/pub/linux/mips/doc/ABI/mipsabi.pdf">http://www.linux-mips.org/pub/linux/mips/doc/ABI/mipsabi.pdf</a></p>
+</dd>
+<dt class="label" id="id8"><span class="brackets"><a class="fn-backref" href="#id5">3</a></span></dt>
+<dd><p><a class="reference external" href="http://llvm.org/docs/WritingAnLLVMBackend.html#the-selectiondag-legalize-phase">http://llvm.org/docs/WritingAnLLVMBackend.html#the-selectiondag-legalize-phase</a></p>
+</dd>
+</dl>
+</section>
+</section>
 
 
       </div>
@@ -1946,8 +1935,8 @@ variables in small 16 addressable area&#8221;.</p>
       </div>
 
     <div class="footer" role="contentinfo">
-        &copy; Copyright 2016, Chen Chung-Shu.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.4.
+        &#169; Copyright 2016, Chen Chung-Shu.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 4.0.2.
     </div>
   </body>
 </html>

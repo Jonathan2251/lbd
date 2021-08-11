@@ -1,34 +1,25 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
+<!DOCTYPE html>
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html>
   <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    
-    <title>Verify backend on Verilog simulator &mdash; Tutorial: Creating an LLVM Backend for the Cpu0 Architecture</title>
-    
-    <link rel="stylesheet" href="_static/haiku.css" type="text/css" />
-    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    
-    <script type="text/javascript">
-      var DOCUMENTATION_OPTIONS = {
-        URL_ROOT:    './',
-        VERSION:     '3.9.3',
-        COLLAPSE_INDEX: false,
-        FILE_SUFFIX: '.html',
-        HAS_SOURCE:  true
-      };
-    </script>
-    <script type="text/javascript" src="_static/jquery.js"></script>
-    <script type="text/javascript" src="_static/underscore.js"></script>
-    <script type="text/javascript" src="_static/doctools.js"></script>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>Verify backend on Verilog simulator &#8212; Tutorial: Creating an LLVM Backend for the Cpu0 Architecture</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/haiku.css" />
+    <link rel="stylesheet" type="text/css" href="_static/graphviz.css" />
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
     <link rel="author" title="About these documents" href="about.html" />
-    <link rel="top" title="Tutorial: Creating an LLVM Backend for the Cpu0 Architecture" href="index.html" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Appendix A: Getting Started: Installing LLVM and the Cpu0 example code" href="install.html" />
-    <link rel="prev" title="C++ support" href="c++.html" /> 
-  </head>
-  <body role="document">
+    <link rel="prev" title="C++ support" href="c%2B%2B.html" /> 
+  </head><body>
       <div class="header" role="banner"><h1 class="heading"><a href="index.html">
           <span>Tutorial: Creating an LLVM Backend for the Cpu0 Architecture</span></a></h1>
         <h2 class="heading"><span>Verify backend on Verilog simulator</span></h2>
@@ -36,7 +27,7 @@
       <div class="topnav" role="navigation" aria-label="top navigation">
       
         <p>
-        «&#160;&#160;<a href="c++.html">C++ support</a>
+        «&#160;&#160;<a href="c%2B%2B.html">C++ support</a>
         &#160;&#160;::&#160;&#160;
         <a class="uplink" href="index.html">Contents</a>
         &#160;&#160;::&#160;&#160;
@@ -44,22 +35,22 @@
         </p>
 
       </div>
-      <div class="content">
+      <div class="content" role="main">
         
         
-  <div class="section" id="verify-backend-on-verilog-simulator">
+  <section id="verify-backend-on-verilog-simulator">
 <span id="sec-verilog"></span><h1>Verify backend on Verilog simulator<a class="headerlink" href="#verify-backend-on-verilog-simulator" title="Permalink to this headline">¶</a></h1>
 <div class="contents local topic" id="contents">
 <ul class="simple">
-<li><a class="reference internal" href="#create-verilog-simulator-of-cpu0" id="id8">Create verilog simulator of Cpu0</a></li>
-<li><a class="reference internal" href="#verify-backend" id="id9">Verify backend</a></li>
-<li><a class="reference internal" href="#other-llvm-based-tools-for-cpu0-processor" id="id10">Other llvm based tools for Cpu0 processor</a></li>
+<li><p><a class="reference internal" href="#create-verilog-simulator-of-cpu0" id="id8">Create verilog simulator of Cpu0</a></p></li>
+<li><p><a class="reference internal" href="#verify-backend" id="id9">Verify backend</a></p></li>
+<li><p><a class="reference internal" href="#other-llvm-based-tools-for-cpu0-processor" id="id10">Other llvm based tools for Cpu0 processor</a></p></li>
 </ul>
 </div>
 <p>Until now, we have an llvm backend to compile C or assembly as the white part of
 the following figure. If without global variable, the elf obj can be
-dumped to hex file via <code class="docutils literal"><span class="pre">llvm-objdump</span> <span class="pre">-d</span></code> which finished in Chapter ELF Support.</p>
-<img src="_images/graphviz-682b4a0f11a44d4630a4410e7cfba0b948e335eb.png" alt="digraph G {
+dumped to hex file via <code class="docutils literal notranslate"><span class="pre">llvm-objdump</span> <span class="pre">-d</span></code> which finished in Chapter ELF Support.</p>
+<div class="graphviz"><img src="_images/graphviz-00fb829f5101e41c988df69aac68285e3bdffcfd.png" alt="digraph G {
   rankdir=LR;
   &quot;Verilog machine&quot; [style=filled, color=gray];
   &quot;clang&quot; -&gt; &quot;llc&quot; [label=&quot;IR&quot;];
@@ -68,24 +59,24 @@ dumped to hex file via <code class="docutils literal"><span class="pre">llvm-obj
   &quot;llvm-objdump -d&quot; -&gt; &quot;Verilog machine&quot; [label=&quot;hex&quot;];
   
   label = &quot;Figure: Cpu0 backend without linker&quot;;
-}" />
+}" class="graphviz" /></div>
 <p>This chapter will implement Cpu0 instructions by Verilog language as the gray
 part of above figure.
 With this Verilog machine, we can run this hex program on the Cpu0 Verilog
 machine on PC and see the Cpu0 instructions execution result.</p>
-<div class="section" id="create-verilog-simulator-of-cpu0">
+<section id="create-verilog-simulator-of-cpu0">
 <h2><a class="toc-backref" href="#id8">Create verilog simulator of Cpu0</a><a class="headerlink" href="#create-verilog-simulator-of-cpu0" title="Permalink to this headline">¶</a></h2>
 <p>Verilog language is an IEEE standard in IC design. There are a lot of books and
-documents for this language. Free documents exist in Web sites <a class="footnote-reference" href="#free-doc1" id="id1">[1]</a>
-<a class="footnote-reference" href="#free-doc2" id="id2">[2]</a> <a class="footnote-reference" href="#free-doc3" id="id3">[3]</a> <a class="footnote-reference" href="#free-doc4" id="id4">[4]</a> <a class="footnote-reference" href="#free-doc5" id="id5">[5]</a>.
+documents for this language. Free documents exist in Web sites <a class="footnote-reference brackets" href="#free-doc1" id="id1">1</a>
+<a class="footnote-reference brackets" href="#free-doc2" id="id2">2</a> <a class="footnote-reference brackets" href="#free-doc3" id="id3">3</a> <a class="footnote-reference brackets" href="#free-doc4" id="id4">4</a> <a class="footnote-reference brackets" href="#free-doc5" id="id5">5</a>.
 Verilog also called as Verilog HDL but not VHDL.
 VHDL is the same purpose language which compete against Verilog.
-About VHDL reference here <a class="footnote-reference" href="#vhdl" id="id6">[6]</a>.
+About VHDL reference here <a class="footnote-reference brackets" href="#vhdl" id="id6">6</a>.
 Example code, lbdex/verilog/cpu0.v, is the Cpu0 design in Verilog.
 In Appendix A, we have downloaded and installed Icarus Verilog tool both on
 iMac and Linux. The cpu0.v is a simple design
 with only few hundreds lines of code totally.
-This implementation hasn&#8217;t the pipeline features, but through implement
+This implementation hasn’t the pipeline features, but through implement
 the delay slot simulation (SIMULATE_DELAY_SLOT part of code), the exact pipeline
 machine cycles can be calculated.</p>
 <p>Verilog is a C like language in syntex and
@@ -96,16 +87,16 @@ reading it.
 There are two type of I/O according computer architecture.
 One is memory mapped I/O, the other is instruction I/O.
 Cpu0 uses memory mapped I/O where memory address 0x80000 as the output port.
-When meet the instruction <strong>&#8220;st $ra, cx($rb)&#8221;</strong>, where cx($rb) is
+When meet the instruction <strong>“st $ra, cx($rb)”</strong>, where cx($rb) is
 0x80000, Cpu0 displays the content as follows,</p>
-<div class="highlight-verilog"><div class="highlight"><pre><span></span><span class="no">ST</span> <span class="o">:</span> <span class="k">begin</span>
+<div class="highlight-verilog notranslate"><div class="highlight"><pre><span></span><span class="n">ST</span> <span class="o">:</span> <span class="k">begin</span>
   <span class="p">...</span>
-  <span class="k">if</span> <span class="p">(</span><span class="no">R</span><span class="p">[</span><span class="n">b</span><span class="p">]</span><span class="o">+</span><span class="n">c16</span> <span class="o">==</span> <span class="no">`IOADDR</span><span class="p">)</span> <span class="k">begin</span>
-    <span class="n">outw</span><span class="p">(</span><span class="no">R</span><span class="p">[</span><span class="n">a</span><span class="p">]);</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">R</span><span class="p">[</span><span class="n">b</span><span class="p">]</span><span class="o">+</span><span class="n">c16</span> <span class="o">==</span> <span class="no">`IOADDR</span><span class="p">)</span> <span class="k">begin</span>
+    <span class="n">outw</span><span class="p">(</span><span class="n">R</span><span class="p">[</span><span class="n">a</span><span class="p">]);</span>
 </pre></div>
 </div>
 <p class="rubric">lbdex/verilog/cpu0.v</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span>`define SIMULATE_DELAY_SLOT
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>`define SIMULATE_DELAY_SLOT
 `define MEMSIZE   &#39;h80000
 `define MEMEMPTY   8&#39;hFF
 `define NULL       8&#39;h00
@@ -677,7 +668,7 @@ endmodule
 </pre></div>
 </div>
 <p class="rubric">lbdex/verilog/Makefile</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span>#TRACE=-D TRACE
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>#TRACE=-D TRACE
 all:
 	iverilog ${TRACE} -o cpu0Is cpu0.v 
 	iverilog ${TRACE} -D CPU0II -o cpu0IIs cpu0.v 
@@ -694,7 +685,7 @@ and cpu module both have a wire connectting each other.
 The endian information stored in ROM of memory module, and memory module send
 the information when it is up according the following code,</p>
 <p class="rubric">lbdex/verilog/cpu0.v</p>
-<div class="highlight-console"><div class="highlight"><pre><span></span><span class="go">assign cfg = mconfig[0][0:0];</span>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">assign cfg = mconfig[0][0:0];</span>
 <span class="go">...</span>
 <span class="go">wire cfg;</span>
 
@@ -709,19 +700,19 @@ the information when it is up according the following code,</p>
 <p>Instead of setting endian tranfer in memory module, the endian transfer can
 also be set in CPU module, and memory moudle always return with big endian.
 I am not an professional engineer in FPGA/CPU hardware design.
-But according book &#8220;Computer
-Architecture: A Quantitative Approach&#8221;, some operations may have no tolerance
+But according book “Computer
+Architecture: A Quantitative Approach”, some operations may have no tolerance
 in time of execution stage. Any endian swap will make the clock cycle time
 longer and affect the CPU performance. So, I set the endian transfer in memory
 module. In system with bus, it will be set in bus system I think.</p>
-</div>
-<div class="section" id="verify-backend">
+</section>
+<section id="verify-backend">
 <h2><a class="toc-backref" href="#id9">Verify backend</a><a class="headerlink" href="#verify-backend" title="Permalink to this headline">¶</a></h2>
-<p>Now let&#8217;s compile ch_run_backend.cpp as below. Since code size grows up from
+<p>Now let’s compile ch_run_backend.cpp as below. Since code size grows up from
 low to high address and stack grows up from high to low address. $sp is set
 at 0x7fffc because assuming cpu0.v uses 0x80000 bytes of memory.</p>
 <p class="rubric">lbdex/input/start.h</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1">#define SET_SW \</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1">#define SET_SW \</span>
 <span class="n">asm</span><span class="p">(</span><span class="s2">&quot;andi $sw, $zero, 0&quot;</span><span class="p">);</span> \
 <span class="n">asm</span><span class="p">(</span><span class="s2">&quot;ori  $sw, $sw, 0x1e00&quot;</span><span class="p">);</span> <span class="o">//</span> <span class="n">enable</span> <span class="nb">all</span> <span class="n">interrupts</span>
 
@@ -742,7 +733,7 @@ at 0x7fffc because assuming cpu0.v uses 0x80000 bytes of memory.</p>
 </pre></div>
 </div>
 <p class="rubric">lbdex/input/boot.cpp</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>
 <span class="c1">#include &quot;start.h&quot;</span>
 
 <span class="o">//</span> <span class="n">boot</span><span class="p">:</span>
@@ -768,7 +759,7 @@ at 0x7fffc because assuming cpu0.v uses 0x80000 bytes of memory.</p>
 </pre></div>
 </div>
 <p class="rubric">lbdex/input/print.h</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1">#ifndef _PRINT_H_</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1">#ifndef _PRINT_H_</span>
 <span class="c1">#define _PRINT_H_</span>
 
 <span class="c1">#define OUT_MEM 0x80000</span>
@@ -781,7 +772,7 @@ at 0x7fffc because assuming cpu0.v uses 0x80000 bytes of memory.</p>
 </pre></div>
 </div>
 <p class="rubric">lbdex/input/print.cpp</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1">#include &quot;print.h&quot;</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1">#include &quot;print.h&quot;</span>
 <span class="c1">#include &quot;itoa.cpp&quot;</span>
 
 <span class="o">//</span> <span class="n">For</span> <span class="n">memory</span> <span class="n">IO</span>
@@ -818,7 +809,7 @@ at 0x7fffc because assuming cpu0.v uses 0x80000 bytes of memory.</p>
 </pre></div>
 </div>
 <p class="rubric">lbdex/input/ch_nolld.h</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>
 <span class="c1">#include &quot;debug.h&quot;</span>
 <span class="c1">#include &quot;boot.cpp&quot;</span>
 
@@ -828,7 +819,7 @@ at 0x7fffc because assuming cpu0.v uses 0x80000 bytes of memory.</p>
 </pre></div>
 </div>
 <p class="rubric">lbdex/input/ch_nolld.cpp</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1">#define TEST_ROXV</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1">#define TEST_ROXV</span>
 <span class="c1">#define RUN_ON_VERILOG</span>
 
 <span class="c1">#include &quot;print.cpp&quot;</span>
@@ -969,7 +960,7 @@ at 0x7fffc because assuming cpu0.v uses 0x80000 bytes of memory.</p>
 </pre></div>
 </div>
 <p class="rubric">lbdex/input/ch_run_backend.cpp</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>
 <span class="c1">#include &quot;ch_nolld.h&quot;</span>
 
 <span class="nb">int</span> <span class="n">main</span><span class="p">()</span>
@@ -984,7 +975,7 @@ at 0x7fffc because assuming cpu0.v uses 0x80000 bytes of memory.</p>
 </pre></div>
 </div>
 <p class="rubric">lbdex/input/functions.sh</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span>prologue() {
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>prologue() {
   if [ $argNum == 0 ]; then
     echo &quot;useage: bash $sh_name cpu_type endian&quot;
     echo &quot;  cpu_type: cpu032I or cpu032II&quot;
@@ -1001,13 +992,8 @@ at 0x7fffc because assuming cpu0.v uses 0x80000 bytes of memory.</p>
   OS=`uname -s`
   echo &quot;OS =&quot; ${OS}
 
-  if [ &quot;$OS&quot; == &quot;Linux&quot; ]; then
-    TOOLDIR=~/llvm/test/cmake_debug_build/bin
-    CLANG=~/llvm/3.9.0/release/cmake_debug_build/bin/clang
-  else
-    TOOLDIR=~/llvm/test/cmake_debug_build/Debug/bin
-    CLANG=~/llvm/3.9.0/release/cmake_debug_build/Debug/bin/clang
-  fi
+  TOOLDIR=~/llvm/test/build/bin
+  CLANG=~/llvm/test/build/bin/clang
 
   CPU=$arg1
   echo &quot;CPU =&quot; &quot;${CPU}&quot;
@@ -1056,7 +1042,7 @@ epilogue() {
 </pre></div>
 </div>
 <p class="rubric">lbdex/input/build-run_backend.sh</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span>#!/usr/bin/env bash
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>#!/usr/bin/env bash
 
 source functions.sh
 
@@ -1087,7 +1073,7 @@ echo &quot;${TOOLDIR}/llc -march=cpu0${endian} -mcpu=${CPU} -relocation-model=st
 ${TOOLDIR}/llc -march=cpu0${endian} -mcpu=${CPU} -relocation-model=static \
 -filetype=obj -enable-cpu0-tail-calls ch_run_backend.bc -o ch_run_backend.cpu0.o
 # print must at the same line, otherwise it will spilt into 2 lines
-${TOOLDIR}/llvm-objdump -section=.text -d ch_run_backend.cpu0.o | tail -n +8| awk \
+${TOOLDIR}/llvm-objdump --section=.text -d ch_run_backend.cpu0.o | tail -n +8| awk \
 &#39;{print &quot;/* &quot; $1 &quot; */\t&quot; $2 &quot; &quot; $3 &quot; &quot; $4 &quot; &quot; $5 &quot;\t/* &quot; $6&quot;\t&quot; $7&quot; &quot; $8&quot; &quot; $9&quot; &quot; $10 &quot;\t*/&quot;}&#39; \
  &gt; ../verilog/cpu0.hex
 
@@ -1102,21 +1088,21 @@ cat ../verilog/cpu0.config
 <p>To run program without linker implementation at this point, the boot.cpp must be
 set at the beginning of code, and the main() of ch_run_backend.cpp comes
 immediately after it.
-Let&#8217;s run Chapter11_2/ with <code class="docutils literal"><span class="pre">llvm-objdump</span> <span class="pre">-d</span></code> for input file
+Let’s run Chapter11_2/ with <code class="docutils literal notranslate"><span class="pre">llvm-objdump</span> <span class="pre">-d</span></code> for input file
 ch_run_backend.cpp to generate the hex file via build-run_bacekend.sh, then
 feed hex file to cpu0Is Verilog simulator to get the output result as below.
 Remind ch_run_backend.cpp have to be compiled with option
-<code class="docutils literal"><span class="pre">clang</span> <span class="pre">-target</span> <span class="pre">mips-unknown-linux-gnu</span></code> since the example code
+<code class="docutils literal notranslate"><span class="pre">clang</span> <span class="pre">-target</span> <span class="pre">mips-unknown-linux-gnu</span></code> since the example code
 ch9_3_vararg.cpp which uses the vararg needs to be compiled with this option.
 Other example codes have no differences between this option and default option.</p>
-<div class="highlight-console"><div class="highlight"><pre><span></span><span class="gp">JonathantekiiMac:input Jonathan$</span> <span class="nb">pwd</span>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">JonathantekiiMac:input Jonathan$ </span><span class="nb">pwd</span>
 <span class="go">/Users/Jonathan/llvm/test/lbdex/input</span>
-<span class="gp">JonathantekiiMac:input Jonathan$</span> bash build-run_backend.sh cpu032I be
-<span class="gp">JonathantekiiMac:input Jonathan$</span> <span class="nb">cd</span> ../verilog <span class="nb">cd</span> ../verilog
-<span class="gp">JonathantekiiMac:input Jonathan$</span> <span class="nb">pwd</span>
+<span class="gp">JonathantekiiMac:input Jonathan$ </span>bash build-run_backend.sh cpu032I be
+<span class="gp">JonathantekiiMac:input Jonathan$ </span><span class="nb">cd</span> ../verilog <span class="nb">cd</span> ../verilog
+<span class="gp">JonathantekiiMac:input Jonathan$ </span><span class="nb">pwd</span>
 <span class="go">/Users/Jonathan/llvm/test/lbdex/verilog</span>
-<span class="gp">JonathantekiiMac:verilog Jonathan$</span> make
-<span class="gp">JonathantekiiMac:verilog Jonathan$</span> ./cpu0Is
+<span class="gp">JonathantekiiMac:verilog Jonathan$ </span>make
+<span class="gp">JonathantekiiMac:verilog Jonathan$ </span>./cpu0Is
 <span class="go">WARNING: cpu0Is.v:386: $readmemh(cpu0.hex): Not enough words in the file for the</span>
 <span class="go">taskInterrupt(001)</span>
 <span class="go">74</span>
@@ -1150,31 +1136,31 @@ Other example codes have no differences between this option and default option.<
 <span class="go">total cpu cycles = 50645</span>
 <span class="go">RET to PC &lt; 0, finished!</span>
 
-<span class="gp">JonathantekiiMac:input Jonathan$</span> bash build-run_backend.sh cpu032II be
-<span class="gp">JonathantekiiMac:input Jonathan$</span> <span class="nb">cd</span> ../verilog
-<span class="gp">JonathantekiiMac:verilog Jonathan$</span> ./cpu0IIs
+<span class="gp">JonathantekiiMac:input Jonathan$ </span>bash build-run_backend.sh cpu032II be
+<span class="gp">JonathantekiiMac:input Jonathan$ </span><span class="nb">cd</span> ../verilog
+<span class="gp">JonathantekiiMac:verilog Jonathan$ </span>./cpu0IIs
 <span class="go">...</span>
 <span class="go">total cpu cycles = 48335</span>
 <span class="go">RET to PC &lt; 0, finished!</span>
 </pre></div>
 </div>
-<p>The &#8220;total cpu cycles&#8221; is calculated in this verilog simualtor so that the
+<p>The “total cpu cycles” is calculated in this verilog simualtor so that the
 backend compiler and CPU performance can be reviewed.
 Only the CPU cycles are counted in this implemenation since I/O
 cycles time is unknown.
-As explained in chapter &#8220;Control flow statements&#8221;, cpu032II which uses
+As explained in chapter “Control flow statements”, cpu032II which uses
 instructions slt and beq
 has better performance than cmp and jeq in cpu032I.
-Instructions &#8220;jmp&#8221; has no delay slot so it is better used in dynamic linker
+Instructions “jmp” has no delay slot so it is better used in dynamic linker
 implementation.</p>
 <p>You can trace the memory binary code and destination
 register changed at every instruction execution by unmark TRACE in Makefile as
 below,</p>
 <p class="rubric">lbdex/verilog/Makefile</p>
-<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="n">TRACE</span><span class="o">=-</span><span class="n">D</span> <span class="n">TRACE</span>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="n">TRACE</span><span class="o">=-</span><span class="n">D</span> <span class="n">TRACE</span>
 </pre></div>
 </div>
-<div class="highlight-console"><div class="highlight"><pre><span></span><span class="gp">JonathantekiiMac:raw Jonathan$</span> ./cpu0Is
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">JonathantekiiMac:raw Jonathan$ </span>./cpu0Is
 <span class="go">WARNING: cpu0.v:386: $readmemh(cpu0.hex): Not enough words in the file for the</span>
 <span class="go">requested range [0:28671].</span>
 <span class="go">00000000: 2600000c</span>
@@ -1202,32 +1188,32 @@ print the variable with print_integer().</p>
 real FPGA device (but I never do it).
 The real output hardware
 interface/port is hardware output device dependent, such as RS232, speaker,
-LED, .... You should implement the I/O interface/port when you want to program
+LED, …. You should implement the I/O interface/port when you want to program
 FPGA and wire I/O device to the I/O port.
 Through running the compiled code on Verilog simulator, Cpu0 backend compiled
 result and CPU cycles are verified and calculated.
 Currently, this Cpu0 Verilog program is not a pipeline architecture, but
 according the instruction set it can be implemented as a pipeline model.
-The cycle time of Cpu0 pipeline model is more than 1/5 of &#8220;total cpu cycles&#8221;
+The cycle time of Cpu0 pipeline model is more than 1/5 of “total cpu cycles”
 displayed as above since there are dependences exist between instructions.
 Though the Verilog simulator is slow in running the whole system program and
 not include the cycles counting in cache and I/O, it is a simple and easy way
 to verify your idea about CPU design at early stage with small program pattern.
 The overall system simulator is complex to create. Even wiki web site here
-<a class="footnote-reference" href="#wiki-sim" id="id7">[7]</a> include tools for creating the simulator, it needs a lot of effort.</p>
+<a class="footnote-reference brackets" href="#wiki-sim" id="id7">7</a> include tools for creating the simulator, it needs a lot of effort.</p>
 <p>To generate cpu032I as well as little endian code, you can run with the
 following command. File build-run_backend.sh write the endian information to
 ../verilog/cpu0.config as below.</p>
-<div class="highlight-console"><div class="highlight"><pre><span></span><span class="gp">JonathantekiiMac:input Jonathan$</span> bash build-run_backend.sh cpu032I le
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">JonathantekiiMac:input Jonathan$ </span>bash build-run_backend.sh cpu032I le
 </pre></div>
 </div>
 <p class="rubric">../verilog/cpu0.config</p>
-<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="mi">1</span>   <span class="cm">/* 0: big endian, 1: little endian */</span>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="mi">1</span>   <span class="cm">/* 0: big endian, 1: little endian */</span>
 </pre></div>
 </div>
 <p>The following files test more features.</p>
 <p class="rubric">lbdex/input/ch_nolld2.h</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>
 <span class="c1">#include &quot;debug.h&quot;</span>
 <span class="c1">#include &quot;boot.cpp&quot;</span>
 
@@ -1237,7 +1223,7 @@ following command. File build-run_backend.sh write the endian information to
 </pre></div>
 </div>
 <p class="rubric">lbdex/input/ch_nolld2.cpp</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>
 <span class="c1">#include &quot;print.cpp&quot;</span>
 
 <span class="c1">#include &quot;ch9_3_alloc.cpp&quot;</span>
@@ -1256,7 +1242,7 @@ following command. File build-run_backend.sh write the endian information to
 </pre></div>
 </div>
 <p class="rubric">lbdex/input/ch_run_backend2.cpp</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>
 <span class="c1">#include &quot;ch_nolld2.h&quot;</span>
 
 <span class="nb">int</span> <span class="n">main</span><span class="p">()</span>
@@ -1271,7 +1257,7 @@ following command. File build-run_backend.sh write the endian information to
 </pre></div>
 </div>
 <p class="rubric">lbdex/input/build-run_backend2.sh</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span>#!/usr/bin/env bash
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>#!/usr/bin/env bash
 
 source functions.sh
 
@@ -1288,7 +1274,7 @@ echo ${DEFFLAGS}
 
 prologue;
 
-clang ${DEFFLAGS} -c ch_run_backend2.cpp \
+${CLANG} ${DEFFLAGS} -c ch_run_backend2.cpp \
 -emit-llvm -o ch_run_backend2.bc
 ${TOOLDIR}/llc -march=cpu0${endian} -mcpu=${CPU} -relocation-model=static \
 -filetype=obj ch_run_backend2.bc -o ch_run_backend2.cpu0.o
@@ -1304,72 +1290,53 @@ fi
 cat ../verilog/cpu0.config
 </pre></div>
 </div>
-<div class="highlight-console"><div class="highlight"><pre><span></span><span class="gp">JonathantekiiMac:input Jonathan$</span> bash build-run_backend.sh cpu032II le
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">JonathantekiiMac:input Jonathan$ </span>bash build-run_backend.sh cpu032II le
 <span class="go">...</span>
-<span class="gp">JonathantekiiMac:input Jonathan$</span> <span class="nb">cd</span> ../verilog
-<span class="gp">JonathantekiiMac:verilog Jonathan$</span> ./cpu0IIs
+<span class="gp">JonathantekiiMac:input Jonathan$ </span><span class="nb">cd</span> ../verilog
+<span class="gp">JonathantekiiMac:verilog Jonathan$ </span>./cpu0IIs
 <span class="go">...</span>
 <span class="go">31</span>
 <span class="go">...</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="other-llvm-based-tools-for-cpu0-processor">
+</section>
+<section id="other-llvm-based-tools-for-cpu0-processor">
 <h2><a class="toc-backref" href="#id10">Other llvm based tools for Cpu0 processor</a><a class="headerlink" href="#other-llvm-based-tools-for-cpu0-processor" title="Permalink to this headline">¶</a></h2>
 <p>You can find the Cpu0 ELF linker implementation based on lld which is the
 llvm official linker project, as well as elf2hex which modified from llvm-objdump
 driver at web: <a class="reference external" href="http://jonathan2251.github.io/lbt/index.html">http://jonathan2251.github.io/lbt/index.html</a>.</p>
-<table class="docutils footnote" frame="void" id="free-doc1" rules="none">
-<colgroup><col class="label" /><col /></colgroup>
-<tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id1">[1]</a></td><td><a class="reference external" href="http://ccckmit.wikidot.com/ve:main">http://ccckmit.wikidot.com/ve:main</a></td></tr>
-</tbody>
-</table>
-<table class="docutils footnote" frame="void" id="free-doc2" rules="none">
-<colgroup><col class="label" /><col /></colgroup>
-<tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id2">[2]</a></td><td><a class="reference external" href="http://www.ece.umd.edu/courses/enee359a/">http://www.ece.umd.edu/courses/enee359a/</a></td></tr>
-</tbody>
-</table>
-<table class="docutils footnote" frame="void" id="free-doc3" rules="none">
-<colgroup><col class="label" /><col /></colgroup>
-<tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id3">[3]</a></td><td><a class="reference external" href="http://www.ece.umd.edu/courses/enee359a/verilog_tutorial.pdf">http://www.ece.umd.edu/courses/enee359a/verilog_tutorial.pdf</a></td></tr>
-</tbody>
-</table>
-<table class="docutils footnote" frame="void" id="free-doc4" rules="none">
-<colgroup><col class="label" /><col /></colgroup>
-<tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id4">[4]</a></td><td><a class="reference external" href="http://d1.amobbs.com/bbs_upload782111/files_33/ourdev_585395BQ8J9A.pdf">http://d1.amobbs.com/bbs_upload782111/files_33/ourdev_585395BQ8J9A.pdf</a></td></tr>
-</tbody>
-</table>
-<table class="docutils footnote" frame="void" id="free-doc5" rules="none">
-<colgroup><col class="label" /><col /></colgroup>
-<tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id5">[5]</a></td><td><a class="reference external" href="http://en.wikipedia.org/wiki/Verilog">http://en.wikipedia.org/wiki/Verilog</a></td></tr>
-</tbody>
-</table>
-<table class="docutils footnote" frame="void" id="vhdl" rules="none">
-<colgroup><col class="label" /><col /></colgroup>
-<tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id6">[6]</a></td><td><a class="reference external" href="http://en.wikipedia.org/wiki/VHDL">http://en.wikipedia.org/wiki/VHDL</a></td></tr>
-</tbody>
-</table>
-<table class="docutils footnote" frame="void" id="wiki-sim" rules="none">
-<colgroup><col class="label" /><col /></colgroup>
-<tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id7">[7]</a></td><td><a class="reference external" href="https://en.wikipedia.org/wiki/Computer_architecture_simulator">https://en.wikipedia.org/wiki/Computer_architecture_simulator</a></td></tr>
-</tbody>
-</table>
-</div>
-</div>
+<dl class="footnote brackets">
+<dt class="label" id="free-doc1"><span class="brackets"><a class="fn-backref" href="#id1">1</a></span></dt>
+<dd><p><a class="reference external" href="http://ccckmit.wikidot.com/ve:main">http://ccckmit.wikidot.com/ve:main</a></p>
+</dd>
+<dt class="label" id="free-doc2"><span class="brackets"><a class="fn-backref" href="#id2">2</a></span></dt>
+<dd><p><a class="reference external" href="http://www.ece.umd.edu/courses/enee359a/">http://www.ece.umd.edu/courses/enee359a/</a></p>
+</dd>
+<dt class="label" id="free-doc3"><span class="brackets"><a class="fn-backref" href="#id3">3</a></span></dt>
+<dd><p><a class="reference external" href="http://www.ece.umd.edu/courses/enee359a/verilog_tutorial.pdf">http://www.ece.umd.edu/courses/enee359a/verilog_tutorial.pdf</a></p>
+</dd>
+<dt class="label" id="free-doc4"><span class="brackets"><a class="fn-backref" href="#id4">4</a></span></dt>
+<dd><p><a class="reference external" href="http://d1.amobbs.com/bbs_upload782111/files_33/ourdev_585395BQ8J9A.pdf">http://d1.amobbs.com/bbs_upload782111/files_33/ourdev_585395BQ8J9A.pdf</a></p>
+</dd>
+<dt class="label" id="free-doc5"><span class="brackets"><a class="fn-backref" href="#id5">5</a></span></dt>
+<dd><p><a class="reference external" href="http://en.wikipedia.org/wiki/Verilog">http://en.wikipedia.org/wiki/Verilog</a></p>
+</dd>
+<dt class="label" id="vhdl"><span class="brackets"><a class="fn-backref" href="#id6">6</a></span></dt>
+<dd><p><a class="reference external" href="http://en.wikipedia.org/wiki/VHDL">http://en.wikipedia.org/wiki/VHDL</a></p>
+</dd>
+<dt class="label" id="wiki-sim"><span class="brackets"><a class="fn-backref" href="#id7">7</a></span></dt>
+<dd><p><a class="reference external" href="https://en.wikipedia.org/wiki/Computer_architecture_simulator">https://en.wikipedia.org/wiki/Computer_architecture_simulator</a></p>
+</dd>
+</dl>
+</section>
+</section>
 
 
       </div>
       <div class="bottomnav" role="navigation" aria-label="bottom navigation">
       
         <p>
-        «&#160;&#160;<a href="c++.html">C++ support</a>
+        «&#160;&#160;<a href="c%2B%2B.html">C++ support</a>
         &#160;&#160;::&#160;&#160;
         <a class="uplink" href="index.html">Contents</a>
         &#160;&#160;::&#160;&#160;
@@ -1379,8 +1346,8 @@ driver at web: <a class="reference external" href="http://jonathan2251.github.io
       </div>
 
     <div class="footer" role="contentinfo">
-        &copy; Copyright 2016, Chen Chung-Shu.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.4.
+        &#169; Copyright 2016, Chen Chung-Shu.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 4.0.2.
     </div>
   </body>
 </html>
