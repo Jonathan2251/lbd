@@ -54,6 +54,9 @@ Ulrich Weigand <Ulrich.Weigand@de.ibm.com> in AsmParser question answer.
 Revision history
 ----------------
 
+Version 12.0.0, Released August 11, 2021.
+  Writing and comment.
+
 Version 3.9.4, Released August 5, 2021.
   Writing and comment.
 
