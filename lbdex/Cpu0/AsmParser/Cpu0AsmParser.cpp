@@ -765,9 +765,6 @@ OperandMatchResultTy Cpu0AsmParser::tryParseRegister(unsigned &RegNo,
 }
 
 bool Cpu0AsmParser::parseMemOffset(const MCExpr *&Res) {
-
-  SMLoc S;
-
   switch(getLexer().getKind()) {
   default:
     return true;
