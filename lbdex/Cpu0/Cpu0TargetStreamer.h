@@ -26,6 +26,8 @@ public:
 
 // This part is for ascii assembly output
 class Cpu0TargetAsmStreamer : public Cpu0TargetStreamer {
+  formatted_raw_ostream &OS;
+
 public:
   Cpu0TargetAsmStreamer(MCStreamer &S, formatted_raw_ostream &OS);
 };
