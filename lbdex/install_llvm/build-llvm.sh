@@ -4,9 +4,6 @@ LLVM_DIR=~/llvm
 LLVM_RELEASE_DIR=${LLVM_DIR}/release
 LLVM_TEST_DIR=${LLVM_DIR}/test
 
-if ! test -d ${LLVM_DIR}; then
-  mkdir ${LLVM_DIR}
-fi
 pushd ${LLVM_DIR}
 
 if ! test -d ${LLVM_DIR}/llvm-project; then

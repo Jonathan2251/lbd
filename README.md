@@ -14,6 +14,14 @@ BUILD steps:
 
 $ pwd
 
+/Users/Jonathan/
+
+$ mkdir llvm
+
+$ cd git
+
+$ pwd
+
 $ /Users/Jonathan/git
 
 $ git clone https://github.com/Jonathan2251/lbd
