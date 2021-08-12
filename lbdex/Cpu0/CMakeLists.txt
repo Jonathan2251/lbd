@@ -82,7 +82,7 @@ add_llvm_target(Cpu0CodeGen
   MC
   Cpu0Desc
   Cpu0Info
-#if CH >= CH11_1 3
+#if CH >= CH11_1 2
   Cpu0AsmParser
 #endif
 #if CH >= CH3_2 3
@@ -109,6 +109,6 @@ add_subdirectory(Disassembler)
 #endif
 add_subdirectory(TargetInfo)
 add_subdirectory(MCTargetDesc)
-#if CH >= CH11_1 2
+#if CH >= CH11_1 3
 add_subdirectory(AsmParser)
 #endif
