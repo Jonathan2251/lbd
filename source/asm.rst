@@ -287,8 +287,10 @@ To let files in directory of AsmParser be built, modify CMakeLists.txt as follow
 .. literalinclude:: ../lbdex/Cpu0/CMakeLists.txt
     :start-after: #if CH >= CH11_1 1
     :end-before: #endif
+.. literalinclude:: ../lbdex/Cpu0/CMakeLists.txt
     :start-after: #if CH >= CH11_1 2
     :end-before: #endif
+.. literalinclude:: ../lbdex/Cpu0/CMakeLists.txt
     :start-after: #if CH >= CH11_1 3
     :end-before: #endif
 
