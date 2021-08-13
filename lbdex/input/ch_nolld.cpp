@@ -101,11 +101,11 @@ int test_nolld()
   print_integer((int)b); // 16777222
   if ((int)(b) != 16777222) pass = false;
   a = test_cmplt_short();
-  print_integer(a); // a = 2
-  if (a != 2) pass = false;
+  print_integer(a); // a = -3
+  if (a != -3) pass = false;
   a = test_cmplt_long();
-  print_integer(a); // a = 4
-  if (a != 4) pass = false;
+  print_integer(a); // a = -4
+  if (a != -4) pass = false;
   a = test_control1();
   print_integer(a);	// a = 51
   if (a != 51) pass = false;
