@@ -10,11 +10,11 @@ Control flow statements
 This chapter illustrates the corresponding IR for control flow statements, such as 
 **“if else”**, **“while”** and **“for”** loop statements in C, and how to 
 translate these control flow statements of llvm IR into Cpu0 instructions in 
-section I. In section "Cpu0 backend Optimization: Remove useless JMP", 
+section I. In `section Remove useless JMP`_, 
 an optimization pass of control flow for backend is introduced. 
 It's a simple tutorial program to let readers know how to add a 
 backend optimization pass and program it. 
-Section "Conditional instruction", include the conditional 
+`section Conditional instruction`_, include the conditional 
 instructions handling since clang will generate specific IRs, select and 
 select_cc, to support the backend optimiation in control flow statement.
 
@@ -1112,6 +1112,14 @@ other portable devices. The following book is good which I am reading now.
 
 ARM System Developer's Guide: Designing and Optimizing System Software 
 (The Morgan Kaufmann Series in Computer Architecture and Design).
+
+
+.. _section Remove useless JMP:
+  http://jonathan2251.github.io/lbd/ctrlflow.html#cpu0-backend-optimization-remove-useless-jmp
+
+
+.. _section Conditional instruction:
+  http://jonathan2251.github.io/lbd/ctrlflow.html#conditional-instruction
 
 
 .. [#cache-speed] On a platform with cache and DRAM, the cache miss costs 
