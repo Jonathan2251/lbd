@@ -14,9 +14,47 @@ section I. In `section Remove useless JMP`_,
 an optimization pass of control flow for backend is introduced. 
 It's a simple tutorial program to let readers know how to add a 
 backend optimization pass and program it. 
-`section Conditional instruction`_, include the conditional 
-instructions handling since clang will generate specific IRs, select and 
+`section Conditional instruction`_, includes the Conditional 
+Instructions Handling since clang will generate specific IRs, select and 
 select_cc, to support the backend optimiation in control flow statement.
+
+Pipeline architecture
+---------------------
+
+.. _ctrl_pipeline:
+.. figure:: ../Fig/ctrlflow/5_stage_pipeline.png
+  :width: 1932 px
+  :height: 792 px
+  :scale: 50 %
+  :align: center
+
+  5 stages of pipeline
+
+- IF: Instruction fetch cycle; ID: Instruction decode/register fetch cycle; 
+  EX: Execution/effective address cycle; MEM: Memory access; WB: Write-back cycle.
+
+
+.. _ctrlflow-cache_banks:
+.. figure:: ../Fig/ctrlflow/cache_banks.png
+  :width: 1540 px
+  :height: 506 px
+  :scale: 50 %
+  :align: center
+
+  Interleaved cache banks
+
+.. _ctrl-super_pipeline:
+.. figure:: ../Fig/ctrlflow/super_pipeline.png
+  :width: 1894 px
+  :height: 984 px
+  :scale: 50 %
+  :align: center
+
+  Super pipeline
+
+
+With cache banks as :numref:`ctrlflow-cache_banks`, :numref:`ctrl-super_pipeline` 
+and superscalar (multi-issues) pipeline archtecture are emerged.
 
 
 Control flow statement
