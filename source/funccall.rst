@@ -2910,7 +2910,7 @@ Function related Intrinsics support
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 I think these llvm instinsic IRs are for the implementation of exception handle
-[#excepthandle]_ [#returnaddr]. With these IRs, programmer can record the
+[#excepthandle]_ [#returnaddr]_. With these IRs, programmer can record the
 frame address and return address to be used in implementing program of 
 exception handler by C++ as the example below. In order to support these llvm
 intrinsic IRs, the following code added to Cpu0 backend.
@@ -3097,6 +3097,44 @@ loading from stack slot rather than uses register directly.
 
 eh.return intrinsic
 ++++++++++++++++++++
+
+Considering the following code,
+
+.. rubric:: unwind example
+.. code-block:: c++
+
+  int func() {
+    if (...) {
+      throw std::bad_alloc();
+    }
+  }
+  
+  int A() {
+    try {
+      func();
+    }
+    catch(...) {
+      ...
+    }
+  }
+  
+  int B() {
+    try {
+      func();
+      A();
+    }
+    catch(...) {
+      ...
+    }
+  }
+
+When B() -> call func() -> exception, unwind frame to B and handle over to
+B's execption handler; when B() -> call A() -> call func() -> exception,
+unwind frame to A and handle over to A's exception handler.
+
+__builtin_eh_return (offset, handler), which adjusts the stack by offset and then
+jumps to the handler. __builtin_eh_return is used in GCC unwinder (libgcc), but not
+in LLVM unwinder (libunwind) [#ehreturn]_.
 
 Beside lowerRETURNADDR() in Cpu0ISelLowering, the following code is for 
 eh.return supporting only, and it can run with input ch9_3_detect_exception.cpp 
@@ -3534,6 +3572,8 @@ and more when the frontend doesn't add any new IR for a new language.
 .. [#excepthandle] http://llvm.org/docs/ExceptionHandling.html#overview
 
 .. [#returnaddr] http://llvm.org/docs/LangRef.html#llvm-returnaddress-intrinsic
+
+.. [#ehreturn] https://llvm.org/docs/ExceptionHandling.html#exception-handling-support-on-the-target
 
 .. [#cpu0lld] http://jonathan2251.github.io/lbt/lld.html
 
