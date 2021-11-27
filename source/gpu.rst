@@ -553,6 +553,22 @@ In addition, section "GPU accelerated video decoding and encoding" for video
 compressing [#gpuspeedup]_ gives the more applications for GPU acceleration.
 
 
+.. table:: The differences for speedup in architecture of CPU and GPU
+
+  ============  ========================  =========
+  Item          CPU                       GPU
+  ============  ========================  =========
+  Application   Non-data parallel         Data parallel
+  Architecture  SISD, small vector        Large SIMD
+  Cache         Smaller and faster        Larger and slower
+  ILP           Pipeline                  Pipeline
+   -            Superscalar, SMT          SIMT
+   -            Super-pipeline
+  Branch        Conditional-instructions  Mask & conditional-instructions
+  ============  ========================  =========
+                             
+
+
 Vulkan and spir-v
 -----------------
 

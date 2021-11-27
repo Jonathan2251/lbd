@@ -53,8 +53,9 @@ Pipeline architecture
   Super pipeline
 
 
-With cache banks as :numref:`ctrlflow-cache_banks`, :numref:`ctrl-super_pipeline` 
-and superscalar (multi-issues) pipeline archtecture are emerged.
+With cache banks as :numref:`ctrlflow-cache_banks`, super-pipeline as 
+:numref:`ctrl-super_pipeline` and superscalar (multi-issues pipeline) 
+archtecture are emerged.
 
 
 Control flow statement
