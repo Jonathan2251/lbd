@@ -7,7 +7,7 @@ LLVM_TEST_DIR=${LLVM_DIR}/test
 pushd ${LLVM_DIR}
 
 if ! test -d ${LLVM_DIR}/llvm-project; then
-  git clone https://github.com/llvm/llvm-project.git
+  git clone git://github.com/llvm/llvm-project.git
   cd llvm-project
   git checkout -b 12.x origin/release/12.x
   git checkout e8a397203c67adbeae04763ce25c6a5ae76af52c
