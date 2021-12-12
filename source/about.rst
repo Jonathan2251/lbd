@@ -689,8 +689,8 @@ The top part of :numref:`about-f1` is the work flow and software package
 of a computer program be generated and executed. IR stands for Intermediate 
 Representation. 
 The middle part is this book's work flow. Except clang, the other blocks need to 
-be extended for a new backend development (Many backend extending clang too, but
-Cpu0 backend has not this need at this point). 
+be extended for a new backend development (Cpu0 backend extending clang too, however
+Cpu0 backend uses Mips ABI and can use Mips-clang). 
 This book implement the yellow boxes part. The green parts of this figure, lld 
 and elf2hex for Cpu0 backend, can be found on 
 http://jonathan2251.github.io/lbt/index.html.
