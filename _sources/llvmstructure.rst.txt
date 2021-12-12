@@ -795,7 +795,8 @@ language or a specific target machine.
 On the other hand, it has to serve both well: it has to be designed to be easy 
 for a front end to generate and be expressive enough to allow important 
 optimizations to be performed for real targets.
-  
+
+
 
 LLVM's Target Description Files: .td
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -1273,6 +1274,26 @@ Now, the data dependences only exist on t[i] between "t[i] = g(a[i])" and
 order, and it provides many parallel processing opportunities for multi-core 
 (SMP) and heterogeneous processors. For instance, g(x) is run on GPU and f(x)
 is run on CPU.
+
+
+More about llvm
+~~~~~~~~~~~~~~~~
+
+Both llvm-ir and glimps of gcc low level ir are SSA form. 
+LLVM IR originally designed to be fully reusable across arbitrary tools besides 
+compiler itself. GCC community never had desire to enable any tools besides 
+compiler (Richard Stallman resisted attempts to make IR more reusable to prevent 
+third-party commercial tools from reusing GCC's frontends). Thus GIMPLE 
+(GCC's IR) was never considered to be more than an implementation detail, in 
+particular it doesn't provide a full description of compiled program (e.g. it 
+lacks program's call graph, type definitions, stack offsets and alias 
+information) [#llvm-ir-vs-gimple]_. 
+
+User uses null pointer to guard code is correct. Undef is only happened in 
+compiler optimization [#null_pointer_ex]_. 
+However when user forget to bind null pointer in guarding code directly or 
+indirectly, compiler such as llvm and gcc may treat null pointer as undef and 
+optimzation out [#null_pointer]_.
 
 
 DAG (Directed Acyclic Graph)
@@ -2432,6 +2453,20 @@ the Target Registration.
 
 .. [#dragonbooks-10.2.3] Refer section 10.2.3 of book Compilers: Principles, 
     Techniques, and Tools (2nd Edition) 
+
+.. [#llvm-ir-vs-gimple] https://stackoverflow.com/questions/40799696/how-is-gcc-ir-different-from-llvm-ir/40802063
+
+.. [#null_pointer_ex] https://github.com/Jonathan2251/note/blob/master/null_pointer.cpp is an example.
+
+.. [#null_pointer]
+    Dereferencing a NULL Pointer: 
+    contrary to popular belief, dereferencing a null pointer in C is undefined. 
+    It is not defined to trap, and if you mmap a page at 0, it is not defined to access that page. 
+    This falls out of the rules that forbid dereferencing wild pointers and the use of NULL as a sentinel,
+    from http://blog.llvm.org/2011/05/what-every-c-programmer-should-know.html.
+    As link, https://blog.llvm.org/2011/05/what-every-c-programmer-should-know_14.html.
+    In this case, the developer forgot to call "set", did not crash with a null pointer dereference, 
+    and their code broke when someone else did a debug build.
 
 .. [#dragonbooks-8.5] Refer section 8.5 of book Compilers: Principles, 
     Techniques, and Tools (2nd Edition) 
