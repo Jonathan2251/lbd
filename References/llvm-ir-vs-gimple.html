@@ -1,0 +1,1983 @@
+<!DOCTYPE html>
+
+
+    <html itemscope itemtype="https://schema.org/QAPage" class="html__responsive ">
+
+    <head>
+
+        <title>compilation - How is GCC IR different from LLVM IR? - Stack Overflow</title>
+        <link rel="shortcut icon" href="https://cdn.sstatic.net/Sites/stackoverflow/Img/favicon.ico?v=ec617d715196">
+        <link rel="apple-touch-icon" href="https://cdn.sstatic.net/Sites/stackoverflow/Img/apple-touch-icon.png?v=c78bd457575a">
+        <link rel="image_src" href="https://cdn.sstatic.net/Sites/stackoverflow/Img/apple-touch-icon.png?v=c78bd457575a"> 
+        <link rel="search" type="application/opensearchdescription+xml" title="Stack Overflow" href="/opensearch.xml">
+        <link rel="canonical" href="https://stackoverflow.com/questions/40799696/how-is-gcc-ir-different-from-llvm-ir" />
+        <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0, minimum-scale=1.0">
+        <meta property="og:type" content= "website" />
+        <meta property="og:url" content="https://stackoverflow.com/questions/40799696/how-is-gcc-ir-different-from-llvm-ir"/>
+        <meta property="og:site_name" content="Stack Overflow" />
+        <meta property="og:image" itemprop="image primaryImageOfPage" content="https://cdn.sstatic.net/Sites/stackoverflow/Img/apple-touch-icon@2.png?v=73d79a89bded" />
+        <meta name="twitter:card" content="summary"/>
+        <meta name="twitter:domain" content="stackoverflow.com"/>
+        <meta name="twitter:title" property="og:title" itemprop="name" content="How is GCC IR different from LLVM IR?" />
+        <meta name="twitter:description" property="og:description" itemprop="description" content="Why do people prefer LLVM IR, and how exactly is it different from the GCC IR? Is target dependency a factor here?&#xA;&#xA;I&#x27;m a complete newbie to compilers, and wasn&#x27;t able to find anything relevant even " />
+    <script id="webpack-public-path" type="text/uri-list">https://cdn.sstatic.net/</script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+    <script async src="https://cdn.sstatic.net/Js/third-party/stacks/stacks.min.js?v=587378ef592b"></script>
+    <script src="https://cdn.sstatic.net/Js/stub.en.js?v=17e20b4b4731"></script>
+    
+    <link rel="stylesheet" type="text/css" href="https://cdn.sstatic.net/Shared/stacks.css?v=15473555f232">
+    <link rel="stylesheet" type="text/css" href="https://cdn.sstatic.net/Sites/stackoverflow/primary.css?v=de9fb8b74f61">
+
+
+    
+            <link rel="alternate" type="application/atom+xml" title="Feed for question &#x27;How is GCC IR different from LLVM IR?&#x27;" href="/feeds/question/40799696">
+            <meta name="twitter:app:country" content="US" />
+            <meta name="twitter:app:name:iphone" content="Stack Exchange iOS" />
+            <meta name="twitter:app:id:iphone" content="871299723" />
+            <meta name="twitter:app:url:iphone" content="se-zaphod://stackoverflow.com/questions/40799696/how-is-gcc-ir-different-from-llvm-ir/40802063" />
+            <meta name="twitter:app:name:ipad" content="Stack Exchange iOS" />
+            <meta name="twitter:app:id:ipad" content="871299723" />
+            <meta name="twitter:app:url:ipad" content="se-zaphod://stackoverflow.com/questions/40799696/how-is-gcc-ir-different-from-llvm-ir/40802063" />
+            <meta name="twitter:app:name:googleplay" content="Stack Exchange Android">
+            <meta name="twitter:app:url:googleplay" content="https://stackoverflow.com/questions/40799696/how-is-gcc-ir-different-from-llvm-ir/40802063">
+            <meta name="twitter:app:id:googleplay" content="com.stackexchange.marvin">
+        <script>
+            StackExchange.ready(function () {
+
+                    StackExchange.using("snippets", function () {
+                        StackExchange.snippets.initSnippetRenderer();
+                    });
+                    
+                StackExchange.using("postValidation", function () {
+                    StackExchange.postValidation.initOnBlurAndSubmit($('#post-form'), 2, 'answer');
+                });
+
+
+                StackExchange.question.init({showAnswerHelp:true,totalCommentCount:1,shownCommentCount:1,enableTables:true,questionId:40799696});
+
+                styleCode();
+
+                    StackExchange.realtime.subscribeToQuestion('1', '40799696');
+                    StackExchange.using("gps", function () { StackExchange.gps.trackOutboundClicks('#content', '.js-post-body'); });
+
+
+
+
+            });
+        </script>
+
+        
+        
+        
+        <link rel="stylesheet" type="text/css" href="https://cdn.sstatic.net/Shared/Channels/channels.css?v=47a5e0f03c81">
+        
+        
+        
+
+
+    <script>
+        StackExchange.init({"locale":"en","serverTime":1639285838,"routeName":"Questions/Show","stackAuthUrl":"https://stackauth.com","networkMetaHostname":"meta.stackexchange.com","site":{"name":"Stack Overflow","description":"Q&A for professional and enthusiast programmers","isNoticesTabEnabled":true,"enableNewTagCreationWarning":true,"insertSpaceAfterNameTabCompletion":false,"id":1,"cookieDomain":".stackoverflow.com","childUrl":"https://meta.stackoverflow.com","negativeVoteScoreFloor":null,"enableSocialMediaInSharePopup":true,"protocol":"https"},"timingsGuid":"046b3d13-2b2c-4bda-9893-6eeccb8613d4","timingsInfo":"N+48FV56XyBm8KOTuxzM2wzF5uNnuOaNK1EHtdTin5jqrUAEIjYOqK7sjNwWQZfmkbRIt59b9ETbxJrUqx1Uhiu95fzLr2uJ8i2uM+il41B8l2amVMANCDbcL8yDdmZufFDTTaCoXzT4cRO80I3QHFe6oFQt4J178hNrSA328/DL+QUznu/RsRJzD0YCc6FwQofmTGbswLIDXSGIU/ptaMNdi92VqlalRBDgFxLJ9UMQAPqbofFdJ+uLzJNzf9Ag5S22TzkkjSKiG1tPBaCpIl6EYPryjiuLYgHJc3WzZtA=","user":{"fkey":"6aa9aa444afe2e7e38d4e52c023b42eb6ae51a4aa8b84f2db7413942cbc17cc8","tid":"835f518b-ba34-e7cf-9d62-13de21537e7a","rep":0,"isAnonymous":true,"isAnonymousNetworkWide":true,"ab":{"satisfaction_survey_anon":{"v":"anon","g":2}}},"events":{"postType":{"question":1},"postEditionSection":{"title":1,"body":2,"tags":3}},"story":{"minCompleteBodyLength":75,"likedTagsMaxLength":300,"dislikedTagsMaxLength":300},"jobPreferences":{"maxNumDeveloperRoles":2,"maxNumIndustries":4},"svgIconPath":"https://cdn.sstatic.net/Img/stacks-icons","svgIconHash":"d9a8a2f90b12"}, {"userProfile":{"openGraphAPIKey":"4a307e43-b625-49bb-af15-ffadf2bda017"},"userMessaging":{"showNewFeatureNotice":true},"tags":{},"subscriptions":{"defaultBasicMaxTrueUpSeats":250,"defaultFreemiumMaxTrueUpSeats":50,"defaultMaxTrueUpSeats":1000},"snippets":{"renderDomain":"stacksnippets.net","snippetsEnabled":true},"site":{"allowImageUploads":true,"enableImgurHttps":true,"enableUserHovercards":true,"forceHttpsImages":true,"styleCode":true},"questions":{"enableDeleteVoteRetraction":true,"enableQuestionTitleLengthLiveWarning":true,"maxTitleSize":150,"questionTitleLengthStartLiveWarningChars":50},"intercom":{"appId":"inf0secd","hostBaseUrl":"https://stacksnippets.net"},"paths":{},"monitoring":{"clientTimingsAbsoluteTimeout":30000,"clientTimingsDebounceTimeout":1000},"mentions":{"maxNumUsersInDropdown":50},"markdown":{"enableTables":true},"legal":{"oneTrustConfigId":"c3d9f1e3-55f3-4eba-b268-46cee4c6789c"},"flags":{"allowRetractingCommentFlags":true,"allowRetractingFlags":true},"elections":{"opaVoteResultsBaseUrl":"https://www.opavote.com/results/"},"comments":{},"accounts":{"currentPasswordRequiredForChangingStackIdPassword":true}});
+        StackExchange.using.setCacheBreakers({"js/adops.en.js":"6da43f5e0a84","js/ask.en.js":"7ff9a9068fd6","js/begin-edit-event.en.js":"dd955babf04d","js/copy-transpiled.en.js":"51a328039b9e","js/cm.en.js":"75dcb3984aa6","js/events.en.js":"716b95b6374c","js/explore-qlist.en.js":"2b1f34938b8b","js/full-anon.en.js":"70f6560d9b2d","js/full.en.js":"3ffc71953b78","js/help.en.js":"2b4af0ad5c0c","js/highlightjs-loader.en.js":"0026055c3561","js/inline-tag-editing.en.js":"c0cbc31e5702","js/keyboard-shortcuts.en.js":"5ffcb8f50446","js/markdown-it-loader.en.js":"dfad6619ffdd","js/modElections.en.js":"5114e9d6e1cf","js/mobile.en.js":"320aa423a438","js/moderator.en.js":"e83e4187e0ec","js/postCollections-transpiled.en.js":"4b407fb73054","js/post-validation.en.js":"569f8b05c015","js/question-editor.en.js":"","js/review-v2-transpiled.en.js":"b7e059a9fe83","js/revisions.en.js":"839f528889ff","js/stacks-editor.en.js":"04f5018456af","js/tageditor.en.js":"825c9597ce2d","js/tageditornew.en.js":"5215bc97928a","js/tagsuggestions.en.js":"1bcff7d98f97","js/unlimited-transpiled.en.js":"7ed67670b600","js/wmd.en.js":"4689e82c85e7","js/snippet-javascript-codemirror.en.js":"209508902bf4"});
+        StackExchange.using("gps", function() {
+             StackExchange.gps.init(true);
+        });
+    </script>
+    <noscript id="noscript-css"><style>body,.top-bar{margin-top:1.9em}</style></noscript>
+    </head>
+    <body class="question-page unified-theme">
+    <div id="notify-container"></div>
+    <div id="custom-header"></div>
+        
+<header class="top-bar js-top-bar top-bar__network">
+    <div class="wmx12 mx-auto d-flex ai-center h100" role="menubar">
+        <div class="-main flex--item">
+                <a href="#" class="left-sidebar-toggle p0 ai-center jc-center js-left-sidebar-toggle" role="menuitem" aria-haspopup="true" aria-controls="left-sidebar" aria-expanded="false"><span class="ps-relative"></span></a>
+                <div class="topbar-dialog leftnav-dialog js-leftnav-dialog dno">
+                    <div class="left-sidebar js-unpinned-left-sidebar" data-can-be="left-sidebar" data-is-here-when="sm"></div>
+                </div>
+                    <a href="https://stackoverflow.com" class="-logo js-gps-track"
+                        data-gps-track="top_nav.click({is_current:false, location:2, destination:8})">
+                        <span class="-img _glyph">Stack Overflow</span>
+                    </a>
+
+
+
+        </div>
+
+            <ol class="list-reset d-flex gs4" role="presentation">
+
+                    <li class="flex--item md:d-none">
+                        <a href="/company" class="-marketing-link js-gps-track"
+                           data-gps-track="top_nav.products.click({location:2, destination:7})"
+                            data-ga="[&quot;top navigation&quot;,&quot;about menu click&quot;,null,null,null]">About</a>
+                    </li>
+
+                <li class="flex--item">
+                    <a href="#"
+                        class="-marketing-link js-gps-track js-products-menu"
+                        aria-controls="products-popover"
+                        data-controller="s-popover"
+                        data-action="s-popover#toggle"
+                        data-s-popover-placement="bottom"
+                        data-s-popover-toggle-class="is-selected"
+                        data-gps-track="top_nav.products.click({location:2, destination:1})"
+                        data-ga="[&quot;top navigation&quot;,&quot;products menu click&quot;,null,null,null]">
+                        Products
+                    </a>
+                </li>
+
+                    <li class="flex--item md:d-none">
+                        <a href="/teams" class="-marketing-link js-gps-track"
+                           data-gps-track="top_nav.products.click({location:2, destination:7})"
+                            data-ga="[&quot;top navigation&quot;,&quot;learn more - teams&quot;,null,null,null]">For Teams</a>
+                    </li>
+            </ol>
+            <div class="s-popover ws2 mtn2 p0"
+                    id="products-popover"
+                    role="menu"
+                    aria-hidden="true">
+                <div class="s-popover--arrow"></div>
+                <ol class="list-reset s-anchors s-anchors__inherit">
+                    <li class="m6">
+                        <a href="/questions" class="bar-sm p6 d-block h:bg-black-100 js-gps-track"
+                           data-gps-track="top_nav.products.click({location:2, destination:2})"
+                           data-ga="[&quot;top navigation&quot;,&quot;public qa submenu click&quot;,null,null,null]">
+                            <span class="fs-body1 d-block">Stack Overflow</span>
+                            <span class="fs-caption d-block fc-light">Public questions &amp; answers</span>
+                        </a>
+                    </li>
+                    <li class="m6">
+                        <a href="/teams" class="bar-sm p6 d-block h:bg-black-100 js-gps-track"
+                           data-gps-track="top_nav.products.click({location:2, destination:3})"
+                           data-ga="[&quot;top navigation&quot;,&quot;teams submenu click&quot;,null,null,null]">
+                            <span class="fs-body1 d-block">Stack Overflow for Teams</span>
+                            <span class="fs-caption d-block fc-light">Where developers &amp; technologists share private knowledge with coworkers</span>
+                        </a>
+                    </li>
+                    <li class="m6">
+                        <a href="/jobs?so_source=ProductsMenu&so_medium=StackOverflow" class="bar-sm p6 d-block h:bg-black-100 js-gps-track"
+                            data-gps-track="top_nav.products.click({location:2, destination:9})"
+                            data-ga="[&quot;top navigation&quot;,&quot;jobs submenu click&quot;,null,null,null]">
+                            <span class="fs-body1 d-block">Jobs</span>
+                            <span class="fs-caption d-block fc-light">Programming &amp; related technical career opportunities</span>
+                        </a>
+                    </li>
+                    <li class="m6">
+                        <a href="https://stackoverflow.com/talent" class="bar-sm p6 d-block h:bg-black-100 js-gps-track"
+                           data-gps-track="top_nav.products.click({location:2, destination:5})"
+                           data-ga="[&quot;top navigation&quot;,&quot;talent submenu click&quot;,null,null,null]">
+                            <span class="fs-body1 d-block">Talent</span>
+                            <span class="fs-caption d-block fc-light">Recruit tech talent &amp; build your employer brand</span>
+                        </a>
+                    </li>
+                    <li class="m6">
+                        <a href="https://stackoverflow.com/advertising" class="bar-sm p6 d-block h:bg-black-100 js-gps-track"
+                           data-gps-track="top_nav.products.click({location:2, destination:6})"
+                           data-ga="[&quot;top navigation&quot;,&quot;advertising submenu click&quot;,null,null,null]">
+                            <span class="fs-body1 d-block">Advertising</span>
+                            <span class="fs-caption d-block fc-light">Reach developers &amp; technologists worldwide</span>
+                        </a>
+                    </li>
+                    <li class="bg-black-025 bt bc-black-075 py6 px6 bbr-md">
+                        <a href="/company" class="fc-light d-block py6 px6 h:fc-black-800 js-gps-track"
+                            data-gps-track="top_nav.products.click({location:2, destination:7})"
+                            data-ga="[&quot;top navigation&quot;,&quot;about submenu click&quot;,null,null,null]">About the company</a>
+                    </li>
+                </ol>
+            </div>
+
+            <form id="search" role="search" action=/search class="flex--item fl-grow1 searchbar px12 js-searchbar " autocomplete="off">
+                    <div class="ps-relative">
+                        <input name="q"
+                               type="text"
+                               placeholder="Search&#x2026;"
+                               value=""
+                               autocomplete="off"
+                               maxlength="240"
+                               class="s-input s-input__search js-search-field "
+                               aria-label="Search"
+                               aria-controls="top-search" 
+                               data-controller="s-popover"
+                               data-action="focus->s-popover#show"
+                               data-s-popover-placement="bottom-start"/>
+                        <svg aria-hidden="true" class="s-input-icon s-input-icon__search svg-icon iconSearch" width="18" height="18" viewBox="0 0 18 18"><path d="m18 16.5-5.14-5.18h-.35a7 7 0 10-1.19 1.19v.35L16.5 18l1.5-1.5ZM12 7A5 5 0 112 7a5 5 0 0110 0Z"/></svg>
+                        <div class="s-popover p0 wmx100 wmn4 sm:wmn-initial js-top-search-popover" id="top-search" role="menu">
+    <div class="s-popover--arrow"></div>
+    <div class="js-spinner p24 d-flex ai-center jc-center d-none">
+        <div class="s-spinner s-spinner__sm fc-orange-400">
+            <div class="v-visible-sr">Loading&#x2026;</div>
+        </div>
+    </div>
+
+    <span class="v-visible-sr js-screen-reader-info"></span>
+    <div class="js-ac-results overflow-y-auto hmx3 d-none"></div>
+
+    <div class="js-search-hints" aria-describedby="Tips for searching"></div>
+</div>
+                    </div>
+            </form>
+        
+        
+
+<ol class="overflow-x-auto ml-auto -secondary d-flex ai-center list-reset h100 user-logged-out" role="presentation">
+        <li class="-item searchbar-trigger"><a href="#" class="-link js-searchbar-trigger" role="button" aria-label="Search" aria-haspopup="true" aria-controls="search" title="Click to show search"><svg aria-hidden="true" class="svg-icon iconSearch" width="18" height="18" viewBox="0 0 18 18"><path d="m18 16.5-5.14-5.18h-.35a7 7 0 10-1.19 1.19v.35L16.5 18l1.5-1.5ZM12 7A5 5 0 112 7a5 5 0 0110 0Z"/></svg></a></li>
+
+            <li class="-ctas">
+                            <a href="https://stackoverflow.com/users/login?ssrc=head&returnurl=https%3a%2f%2fstackoverflow.com%2fquestions%2f40799696%2fhow-is-gcc-ir-different-from-llvm-ir%2f40802063" class="login-link s-btn s-btn__filled py8 js-gps-track" rel="nofollow"
+                               data-gps-track="login.click" data-ga="[&quot;top navigation&quot;,&quot;login button click&quot;,null,null,null]">Log in</a>
+                            <a href="https://stackoverflow.com/users/signup?ssrc=head&returnurl=%2fusers%2fstory%2fcurrent" class="login-link s-btn s-btn__primary py8" rel="nofollow" data-ga="[&quot;sign up&quot;,&quot;Sign Up Navigation&quot;,&quot;Header&quot;,null,null]">Sign up</a>
+
+            </li>
+
+    <li class="js-topbar-dialog-corral" role="presentation">
+            
+
+    <div class="topbar-dialog siteSwitcher-dialog dno" role="menu">
+        <div class="header fw-wrap">
+            <h3 class="flex--item">
+                <a href="https://stackoverflow.com">current community</a>
+            </h3>
+            <div class="flex--item fl1">
+                <div class="ai-center d-flex jc-end">
+                    <button
+                        class="js-close-button s-btn s-btn__muted p0 ml8 d-none sm:d-block"
+                        type="button"
+                        aria-label="Close"
+                    >
+                        <svg aria-hidden="true" class="svg-icon iconClear" width="18" height="18" viewBox="0 0 18 18"><path d="M15 4.41 13.59 3 9 7.59 4.41 3 3 4.41 7.59 9 3 13.59 4.41 15 9 10.41 13.59 15 15 13.59 10.41 9 15 4.41Z"/></svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div class="modal-content bg-powder-050 current-site-container">
+            <ul class="current-site ">
+                    <li class="d-flex">
+                            <div class="fl1">
+                <a href="https://stackoverflow.com"
+       class="current-site-link site-link js-gps-track d-flex gs8 gsx"
+       data-id="1"
+       data-gps-track="site_switcher.click({ item_type:3 })">
+        <div class="favicon favicon-stackoverflow site-icon flex--item" title="Stack Overflow"></div>
+        <span class="flex--item fl1">
+            Stack Overflow
+        </span>
+    </a>
+
+    </div>
+    <div class="related-links">
+            <a href="https://stackoverflow.com/help" class="js-gps-track" data-gps-track="site_switcher.click({ item_type:14 })">help</a>
+            <a href="https://chat.stackoverflow.com/?tab=site&amp;host=stackoverflow.com" class="js-gps-track" data-gps-track="site_switcher.click({ item_type:6 })">chat</a>
+    </div>
+
+                    </li>
+                    <li class="related-site d-flex">
+                            <div class="L-shaped-icon-container">
+        <span class="L-shaped-icon"></span>
+    </div>
+
+                            <a href="https://meta.stackoverflow.com"
+       class=" site-link js-gps-track d-flex gs8 gsx"
+       data-id="552"
+       data-gps-track="site.switch({ target_site:552, item_type:3 }),site_switcher.click({ item_type:4 })">
+        <div class="favicon favicon-stackoverflowmeta site-icon flex--item" title="Meta Stack Overflow"></div>
+        <span class="flex--item fl1">
+            Meta Stack Overflow
+        </span>
+    </a>
+
+                    </li>
+            </ul>
+        </div>
+
+        <div class="header" id="your-communities-header">
+            <h3>
+your communities            </h3>
+
+        </div>
+        <div class="modal-content" id="your-communities-section">
+
+                <div class="call-to-login">
+<a href="https://stackoverflow.com/users/signup?ssrc=site_switcher&amp;returnurl=%2fusers%2fstory%2fcurrent" class="login-link js-gps-track" data-gps-track="site_switcher.click({ item_type:10 })">Sign up</a> or <a href="https://stackoverflow.com/users/login?ssrc=site_switcher&amp;returnurl=https%3a%2f%2fstackoverflow.com%2fquestions%2f40799696%2fhow-is-gcc-ir-different-from-llvm-ir%2f40802063" class="login-link js-gps-track" data-gps-track="site_switcher.click({ item_type:11 })">log in</a> to customize your list.                </div>
+        </div>
+
+        <div class="header">
+            <h3><a href="https://stackexchange.com/sites">more stack exchange communities</a>
+            </h3>
+            <a href="https://stackoverflow.blog" class="float-right">company blog</a>
+        </div>
+        <div class="modal-content">
+                <div class="child-content"></div>
+        </div>        
+    </div>
+
+    </li>
+</ol>
+
+    </div>
+</header>
+
+    <script>
+        StackExchange.ready(function () { StackExchange.topbar.init(); });
+        StackExchange.scrollPadding.setPaddingTop(50, 10); 
+    </script>
+
+
+                
+    <div id="announcement-banner" class="js-announcement-banner bg-blue-500 fc-white ff-sans fs-body2 py2"
+         data-cookie="notice-ssb" data-expire-date="1647753038327" data-is-site-sat="true">
+        <div class="d-flex jc-space-between wmx12 mx-auto px16 py8">
+            <div class="flex--item mr12">
+                How are we doing? Please help us improve Stack Overflow. <a target="_blank"
+                   class="s-link js-link js-gps-track fw-bold fc-blue-500 bg-white bar-sm py2 px6" href="https://stackoverflow.com/survey/site-satisfaction/redirect">Take our short survey</a>
+            </div>
+            <a class="flex--item fc-white js-dismiss js-gps-track" href="#" title="dismiss"><svg aria-hidden="true" class="m0 svg-icon iconClear" width="18" height="18" viewBox="0 0 18 18"><path d="M15 4.41 13.59 3 9 7.59 4.41 3 3 4.41 7.59 9 3 13.59 4.41 15 9 10.41 13.59 15 15 13.59 10.41 9 15 4.41Z"/></svg></a>
+        </div>
+    </div>
+    <script>
+        StackExchange.ready(function () {
+            StackExchange.Notice.announcementBannerInit();
+        });
+    </script>
+
+
+            
+
+        
+    
+<div class="bg-black-025 bs-sm bt bc-black-100 ps-fixed l0 r0 b0 z-nav js-dismissable-hero" data-campaign-name="stk">
+    <div class="d-flex wmx12 mx-auto px8 py12 jc-space-between ai-center lg:pl24 lg:pr24 md:fd-column sm:fd-row sm:ai-center">
+        <div class="flex--item fs-body2 fl1 mr16 md:mr0 md:mb12 sm:mb0 sm:mr16">
+            <p class="mb0"><strong>Join Stack Overflow</strong> to learn, share knowledge, and build your career.</p>
+        </div>
+
+        <div id="openid-buttons" class="d-flex gs8 gsx ai-center sm:jc-space-between">
+            <a class="flex--item s-btn s-btn__filled ws-nowrap" href="/users/signup?ssrc=hero&returnurl=https%3a%2f%2fstackoverflow.com%2fquestions%2f40799696%2fhow-is-gcc-ir-different-from-llvm-ir%2f40802063" rel="nofollow" data-ga="[&quot;sign up&quot;,&quot;Sign Up Navigation&quot;,&quot;Question Hero&quot;,null,null]">
+                    <span class="sm:d-none">Sign up with email</span>
+                    <span class="d-none sm:d-inline">Sign up</span>
+                
+            </a>
+                <button class="flex--item ws-nowrap s-btn s-btn__icon s-btn__google ta-center js-major-provider sm:d-none" data-provider='google' data-oauthserver='https://accounts.google.com/o/oauth2/auth' data-oauthversion='2.0' data-ga="[&quot;sign up&quot;,&quot;Sign Up Started - Google&quot;,&quot;Question Hero&quot;,null,null]">
+                    <svg aria-hidden="true" class="native svg-icon iconGoogle" width="18" height="18" viewBox="0 0 18 18"><path d="M16.51 8H8.98v3h4.3c-.18 1-.74 1.48-1.6 2.04v2.01h2.6a7.8 7.8 0 002.38-5.88c0-.57-.05-.66-.15-1.18Z" fill="#4285F4"/><path d="M8.98 17c2.16 0 3.97-.72 5.3-1.94l-2.6-2a4.8 4.8 0 01-7.18-2.54H1.83v2.07A8 8 0 008.98 17Z" fill="#34A853"/><path d="M4.5 10.52a4.8 4.8 0 010-3.04V5.41H1.83a8 8 0 000 7.18l2.67-2.07Z" fill="#FBBC05"/><path d="M8.98 4.18c1.17 0 2.23.4 3.06 1.2l2.3-2.3A8 8 0 001.83 5.4L4.5 7.49a4.77 4.77 0 014.48-3.3Z" fill="#EA4335"/></svg>
+                    Sign up with Google
+                </button>
+                <button class="flex--item ws-nowrap s-btn s-btn__icon s-btn__github ta-center js-major-provider sm:d-none" data-provider='github' data-oauthserver='https://github.com/login/oauth/authorize' data-oauthversion='2.0' data-ga="[&quot;sign up&quot;,&quot;Sign Up Started - GitHub&quot;,&quot;Question Hero&quot;,null,null]">
+                    <svg aria-hidden="true" class="svg-icon iconGitHub" width="18" height="18" viewBox="0 0 18 18"><path d="M9 1a8 8 0 00-2.53 15.59c.4.07.55-.17.55-.38l-.01-1.49c-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82a7.42 7.42 0 014 0c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48l-.01 2.2c0 .21.15.46.55.38A8.01 8.01 0 009 1Z" fill="#010101"/></svg>
+                    Sign up with GitHub
+                </button>
+                <button class="flex--item ws-nowrap s-btn s-btn__icon s-btn__facebook ta-center js-major-provider sm:d-none" data-provider='facebook' data-oauthserver='https://www.facebook.com/v2.0/dialog/oauth' data-oauthversion='2.0' data-ga="[&quot;sign up&quot;,&quot;Sign Up Started - Facebook&quot;,&quot;Question Hero&quot;,null,null]">
+                    <svg aria-hidden="true" class="svg-icon iconFacebook" width="18" height="18" viewBox="0 0 18 18"><path d="M3 1a2 2 0 00-2 2v12c0 1.1.9 2 2 2h12a2 2 0 002-2V3a2 2 0 00-2-2H3Zm6.55 16v-6.2H7.46V8.4h2.09V6.61c0-2.07 1.26-3.2 3.1-3.2.88 0 1.64.07 1.87.1v2.16h-1.29c-1 0-1.19.48-1.19 1.18V8.4h2.39l-.31 2.42h-2.08V17h-2.5Z" fill="#4167B2"/></svg>
+                    Sign up with Facebook
+                </button>
+                <button class="flex--item s-btn s-btn__muted s-btn__icon px8 js-dismiss" title="Dismiss"><svg aria-hidden="true" class="svg-icon iconClear" width="18" height="18" viewBox="0 0 18 18"><path d="M15 4.41 13.59 3 9 7.59 4.41 3 3 4.41 7.59 9 3 13.59 4.41 15 9 10.41 13.59 15 15 13.59 10.41 9 15 4.41Z"/></svg></button>
+        </div>
+
+        <form id="login-form" action="/users/signup?ssrc=hero&returnurl=https%3a%2f%2fstackoverflow.com%2fquestions%2f40799696%2fhow-is-gcc-ir-different-from-llvm-ir%2f40802063" method="POST">
+
+            <input type="hidden" name="fkey" value="6aa9aa444afe2e7e38d4e52c023b42eb6ae51a4aa8b84f2db7413942cbc17cc8">
+
+            <input type="hidden" name="ssrc" value="" />
+
+            <input type="hidden" id="oauth_version" name="oauth_version" />
+            <input type="hidden" id="oauth_server" name="oauth_server" />
+
+            <div id="se-login-fields">
+                <input type="hidden" name="legalLinksShown" value="0" />
+            </div>
+        </form>
+        <script>
+            StackExchange.ready(function () {
+                StackExchange.InlineAuth.init();
+            })
+        </script>
+    </div>
+</div>
+
+<script>
+    StackExchange.ready(function () {
+        StackExchange.Hero.init("stk", "a");
+
+        var location = 0;
+        if ($("body").hasClass("questions-page")) {
+            location = 1;
+        } else if ($("body").hasClass("question-page")) {
+            location = 1;
+        } else if ($("body").hasClass("faq-page")) {
+            location = 5;
+        } else if ($("body").hasClass("home-page")) {
+            location = 3;
+        }
+
+        $('.js-cta-button').click(function () {
+            StackExchange.using("gps", function () {
+                StackExchange.gps.track("hero.action", { hero_action_type: 'cta', location: location }, true);
+            });
+        });
+
+        // TODO: we should review the class names and whatnot in use here. Older heroes use id selectors, the newer
+        // sticky question hero on SO has a .js-dismiss class instead, but it's apparently not used anywhere... 
+        // It's not great. Ideally we'd have a set of classes in the partials above that would correspond to 
+        // the behaviours we want here in a more clear way. 
+
+        // sticky question-page hero at the bottom of the page on SO
+        $('.js-dismiss').on('click', function () {
+            StackExchange.using("gps", function () {
+                StackExchange.gps.track("hero.action", { hero_action_type: "close", location: location }, true);
+            });
+            StackExchange.Hero.dismiss();
+            $(".js-dismissable-hero").fadeOut("fast");
+        });
+    });
+</script>
+
+
+
+    <div class="container">
+            
+
+
+<div id="left-sidebar" data-is-here-when="md lg" class="left-sidebar js-pinned-left-sidebar ps-relative">
+    <div class="left-sidebar--sticky-container js-sticky-leftnav">
+        <nav role="navigation">
+            <ol class="nav-links">
+        <li class="">
+            <a
+               href="/"
+               class="pl8 js-gps-track nav-links--link"
+               
+               data-gps-track="top_nav.click({is_current:false, location:2, destination:8})" 
+               aria-controls="" data-controller="" data-s-popover-placement="right"
+               data-s-popover-auto-show="true" data-s-popover-hide-on-outside-click="never">
+                    <div class="d-flex ai-center">
+                        <div class="flex--item truncate">
+                            Home
+                        </div>
+                    </div>
+            </a>
+        </li>
+                <li>
+                    <ol class="nav-links">
+                            <li class="fs-fine tt-uppercase ml8 mt16 mb4 fc-light">Public</li>
+
+        <li class=" youarehere">
+            <a id="nav-questions"
+               href="/questions"
+               class="pl8 js-gps-track nav-links--link -link__with-icon"
+               
+               data-gps-track="top_nav.click({is_current:true, location:2, destination:1})" 
+               aria-controls="" data-controller="" data-s-popover-placement="right"
+               data-s-popover-auto-show="true" data-s-popover-hide-on-outside-click="never">
+<svg aria-hidden="true" class="svg-icon iconGlobe" width="18" height="18" viewBox="0 0 18 18"><path d="M9 1C4.64 1 1 4.64 1 9c0 4.36 3.64 8 8 8 4.36 0 8-3.64 8-8 0-4.36-3.64-8-8-8ZM8 15.32a6.46 6.46 0 01-4.3-2.74 6.46 6.46 0 01-.93-5.01L7 11.68v.8c0 .88.12 1.32 1 1.32v1.52Zm5.72-2c-.2-.66-1-1.32-1.72-1.32h-1v-2c0-.44-.56-1-1-1H6V7h1c.44 0 1-.56 1-1V5h2c.88 0 1.4-.72 1.4-1.6v-.33a6.45 6.45 0 013.83 4.51 6.45 6.45 0 01-1.51 5.73v.01Z"/></svg>                    <span class="-link--channel-name">Questions</span>
+            </a>
+        </li>
+                        
+
+        <li class="">
+            <a id="nav-tags"
+               href="/tags"
+               class=" js-gps-track nav-links--link"
+               
+               data-gps-track="top_nav.click({is_current:false, location:2, destination:2})" 
+               aria-controls="" data-controller="" data-s-popover-placement="right"
+               data-s-popover-auto-show="true" data-s-popover-hide-on-outside-click="never">
+                    <div class="d-flex ai-center">
+                        <div class="flex--item truncate">
+                            Tags
+                        </div>
+                    </div>
+            </a>
+        </li>
+        <li class="">
+            <a id="nav-users"
+               href="/users"
+               class=" js-gps-track nav-links--link"
+               
+               data-gps-track="top_nav.click({is_current:false, location:2, destination:3})" 
+               aria-controls="" data-controller="" data-s-popover-placement="right"
+               data-s-popover-auto-show="true" data-s-popover-hide-on-outside-click="never">
+                    <div class="d-flex ai-center">
+                        <div class="flex--item truncate">
+                            Users
+                        </div>
+                    </div>
+            </a>
+        </li>
+                            <li class="d-flex ml8 mt16 mb4 jc-space-between">
+                                <div class="flex--item tt-uppercase tt-uppercase fs-fine fc-light">Collectives</div>
+                                <div class="flex--item fs-fine fc-light">
+                                    <a href="javascript:void(0)" class="s-link s-link__inherit mr8 js-gps-track"
+                                       role="button"
+                                       aria-controls="popover-discover-collectives"
+                                       data-controller="s-popover"
+                                       data-action="s-popover#toggle"
+                                       data-s-popover-placement="top"
+                                       data-s-popover-toggle-class="is-selected"
+                                       data-gps-track="top_nav.click({is_current:false, location:2, destination:17})">
+                                        <svg aria-hidden="true" class="svg-icon iconInfoSm" width="14" height="14" viewBox="0 0 14 14"><path d="M7 1a6 6 0 110 12A6 6 0 017 1Zm1 10V6H6v5h2Zm0-6V3H6v2h2Z"/></svg>
+                                    </a>
+                                </div>
+                            </li>
+        <li class="">
+            <a id="nav-collective-discover"
+               href="/collectives"
+               class="pl8 ai-center js-gps-track nav-links--link -link__with-icon"
+               
+               data-gps-track="top_nav.click({is_current:false, location:2, destination:18})" 
+               aria-controls="" data-controller="" data-s-popover-placement="right"
+               data-s-popover-auto-show="true" data-s-popover-hide-on-outside-click="never">
+<svg aria-hidden="true" class="mt-auto fc-orange-400 svg-icon iconStarVerified" width="18" height="18" viewBox="0 0 18 18"><path d="M9.86.89a1.14 1.14 0 00-1.72 0l-.5.58c-.3.35-.79.48-1.23.33l-.72-.25a1.14 1.14 0 00-1.49.85l-.14.76c-.1.45-.45.8-.9.9l-.76.14c-.67.14-1.08.83-.85 1.49l.25.72c.15.44.02.92-.33 1.23l-.58.5a1.14 1.14 0 000 1.72l.58.5c.35.3.48.79.33 1.23l-.25.72c-.23.66.18 1.35.85 1.49l.76.14c.45.1.8.45.9.9l.14.76c.14.67.83 1.08 1.49.85l.72-.25c.44-.15.92-.02 1.23.33l.5.58c.46.52 1.26.52 1.72 0l.5-.58c.3-.35.79-.48 1.23-.33l.72.25c.66.23 1.35-.18 1.49-.85l.14-.76c.1-.45.45-.8.9-.9l.76-.14c.67-.14 1.08-.83.85-1.49l-.25-.72c-.15-.44-.02-.92.33-1.23l.58-.5c.52-.46.52-1.26 0-1.72l-.58-.5c-.35-.3-.48-.79-.33-1.23l.25-.72a1.14 1.14 0 00-.85-1.49l-.76-.14c-.45-.1-.8-.45-.9-.9l-.14-.76a1.14 1.14 0 00-1.49-.85l-.72.25c-.44.15-.92.02-1.23-.33l-.5-.58Zm-.49 2.67L10.6 6.6c.05.15.19.24.34.25l3.26.22c.36.03.5.48.23.71l-2.5 2.1a.4.4 0 00-.14.4l.8 3.16a.4.4 0 01-.6.44L9.2 12.13a.4.4 0 00-.42 0l-2.77 1.74a.4.4 0 01-.6-.44l.8-3.16a.4.4 0 00-.13-.4l-2.5-2.1a.4.4 0 01.22-.7l3.26-.23a.4.4 0 00.34-.25l1.22-3.03a.4.4 0 01.74 0Z"/></svg>                    <span class="-link--channel-name">Explore Collectives</span>
+            </a>
+        </li>
+                            <li class="fs-fine tt-uppercase ml8 mt16 mb4 fc-light">Find a Job</li>
+        <li class="">
+            <a id="nav-jobs"
+               href="/jobs?so_medium=StackOverflow&amp;so_source=SiteNav"
+               class=" js-gps-track nav-links--link"
+               
+               data-gps-track="top_nav.click({is_current:false, location:2, destination:6})" 
+               aria-controls="" data-controller="" data-s-popover-placement="right"
+               data-s-popover-auto-show="true" data-s-popover-hide-on-outside-click="never">
+                    <div class="d-flex ai-center">
+                        <div class="flex--item truncate">
+                            Jobs
+                        </div>
+                    </div>
+            </a>
+        </li>
+        <li class="">
+            <a id="nav-companies"
+               href="/jobs/companies?so_medium=StackOverflow&amp;so_source=SiteNav"
+               class=" js-gps-track nav-links--link"
+               
+               data-gps-track="top_nav.click({is_current:false, location:2, destination:12})" 
+               aria-controls="" data-controller="" data-s-popover-placement="right"
+               data-s-popover-auto-show="true" data-s-popover-hide-on-outside-click="never">
+                    <div class="d-flex ai-center">
+                        <div class="flex--item truncate">
+                            Companies
+                        </div>
+                    </div>
+            </a>
+        </li>
+                    </ol>
+                </li>
+                    <li>
+                        <ol class="nav-links">
+                                    
+
+<div class="js-freemium-cta ps-relative">
+
+    <div class="fs-fine tt-uppercase ml8 mt16 mb8 fc-light">Teams</div>
+
+    <div class="bt bl bb bc-black-075 p12 pb6 fc-black-600 blr-sm overflow-hidden">
+        <strong class="fc-black-750 mb6">Stack Overflow for Teams</strong>
+        – Collaborate and share knowledge with a private group.
+        
+        <img class="wmx100 mx-auto my8 h-auto d-block" width="139" height="114" src="https://cdn.sstatic.net/Img/teams/teams-illo-free-sidebar-promo.svg?v=47faa659a05e" alt="">
+
+        <a href="https://stackoverflow.com/teams/create/free?utm_source=so-owned&amp;utm_medium=side-bar&amp;utm_campaign=campaign-38&amp;utm_content=cta" 
+           class="w100 s-btn s-btn__primary s-btn__xs js-gps-track"
+           data-gps-track="teams.create.left-sidenav.click({ Action: 6 })"
+           data-ga="[&quot;teams left navigation - anonymous&quot;,&quot;left nav free cta&quot;,&quot;stackoverflow.com/teams/create/free&quot;,null,null]">Create a free Team</a>
+        <a href="https://stackoverflow.com/teams" 
+           class="w100 s-btn s-btn__muted s-btn__xs js-gps-track"
+           data-gps-track="teams.create.left-sidenav.click({ Action: 5 })"
+           data-ga="[&quot;teams left navigation - anonymous&quot;,&quot;left nav free cta&quot;,&quot;stackoverflow.com/teams&quot;,null,null]">What is Teams?</a>
+    </div>
+</div>
+
+                                <li class="d-flex ai-center jc-space-between ml8 mt24 mb4 js-create-team-cta d-none">
+                                    <div class="flex--item tt-uppercase fs-fine fc-light">Teams</div>
+                                    <div class="flex--item">
+                                        <a href="javascript:void(0)" class="s-link p12 fc-black-500 h:fc-black-800 js-gps-track"
+                                            role="button"
+                                            aria-controls="popover-teams-create-cta"
+                                            data-controller="s-popover"
+                                            data-action="s-popover#toggle"
+                                            data-s-popover-placement="bottom-start"
+                                            data-s-popover-toggle-class="is-selected"
+                                            data-gps-track="teams.create.left-sidenav.click({ Action: ShowInfo })"
+                                            data-ga="[&quot;teams left navigation - anonymous&quot;,&quot;left nav show teams info&quot;,null,null,null]">
+                                            <svg aria-hidden="true" class="svg-icon iconInfoSm" width="14" height="14" viewBox="0 0 14 14"><path d="M7 1a6 6 0 110 12A6 6 0 017 1Zm1 10V6H6v5h2Zm0-6V3H6v2h2Z"/></svg>
+                                        </a>
+
+                                    </div>
+                                </li>
+                                <li class="ps-relative js-create-team-cta d-none">
+                                    <a href="https://stackoverflow.com/teams/create/free?utm_source=so-owned&amp;utm_medium=side-bar&amp;utm_campaign=campaign-38&amp;utm_content=cta"
+                                       class="pl8 js-gps-track nav-links--link"
+                                       title="Stack Overflow for Teams is a private, secure spot for your organization's questions and answers."
+                                       data-gps-track="teams.create.left-sidenav.click({ Action: FreemiumTeamsCreateClick })"
+                                       data-ga="[&quot;teams left navigation - anonymous&quot;,&quot;left nav team click&quot;,&quot;stackoverflow.com/teams/create/free&quot;,null,null]">
+                                        <div class="d-flex ai-center">
+                                            <div class="flex--item s-avatar va-middle bg-orange-400">
+                                                <div class="s-avatar--letter mtn1">
+                                                    <svg aria-hidden="true" class="svg-icon iconBriefcaseSm" width="14" height="14" viewBox="0 0 14 14"><path d="M4 3a1 1 0 011-1h4a1 1 0 011 1v1h.5c.83 0 1.5.67 1.5 1.5v5c0 .83-.67 1.5-1.5 1.5h-7A1.5 1.5 0 012 10.5v-5C2 4.67 2.67 4 3.5 4H4V3Zm5 1V3H5v1h4Z"/></svg>
+                                                </div>
+                                                <svg aria-hidden="true" class="native s-avatar--badge svg-icon iconShieldXSm" width="9" height="10" viewBox="0 0 9 10"><path d="M0 1.84 4.5 0 9 1.84v3.17C9 7.53 6.3 10 4.5 10 2.7 10 0 7.53 0 5.01V1.84Z" fill="var(--white)"/><path d="M1 2.5 4.5 1 8 2.5v2.51C8 7.34 5.34 9 4.5 9 3.65 9 1 7.34 1 5.01V2.5Zm2.98 3.02L3.2 7h2.6l-.78-1.48a.4.4 0 01.15-.38c.34-.24.73-.7.73-1.14 0-.71-.5-1.23-1.41-1.23-.92 0-1.39.52-1.39 1.23 0 .44.4.9.73 1.14.12.08.18.23.15.38Z" fill="var(--black-500)"/></svg>
+                                            </div>
+                                            <div class="flex--item pl6">
+                                                Create free Team
+                                            </div>
+                                        </div>
+                                    </a>
+                                </li>
+                        </ol>
+                    </li>
+            </ol>
+        </nav>
+    </div>
+
+        <div class="s-popover ws2" id="popover-discover-collectives" role="menu" aria-hidden="true">
+            <div class="s-popover--arrow"></div>
+            <div>
+                <svg aria-hidden="true" class="fc-orange-500 float-right ml24 svg-spot spotCollective" width="48" height="48" viewBox="0 0 48 48"><path d="M25.5 7a2.5 2.5 0 100-5 2.5 2.5 0 0 0 0 5zM14 18.25c0-.69.56-1.25 1.25-1.25h22.5c.69 0 1.25.56 1.25 1.25V37.5a1 1 0 01-1.6.8l-4.07-3.05a1.25 1.25 0 00-.75-.25H15.25c-.69 0-1.25-.56-1.25-1.25v-15.5zM7 24.5a2.5 2.5 0 11-5 0 2.5 2.5 0 0 1 5 0zM25.5 48a2.5 2.5 0 100-5 2.5 2.5 0 0 0 0 5zM48 24.5a2.5 2.5 0 11-5 0 2.5 2.5 0 0 1 5 0z" opacity=".2"/><path d="M21 3.5a3.5 3.5 0 117 0 3.5 3.5 0 0 1-7 0zM24.5 2a1.5 1.5 0 100 3 1.5 1.5 0 0 0 0-3zM0 23.5a3.5 3.5 0 117 0 3.5 3.5 0 0 1-7 0zM3.5 22a1.5 1.5 0 100 3 1.5 1.5 0 0 0 0-3zM21 44.5a3.5 3.5 0 117 0 3.5 3.5 0 0 1-7 0zm3.5-1.5a1.5 1.5 0 100 3 1.5 1.5 0 0 0 0-3zm20-23a3.5 3.5 0 100 7 3.5 3.5 0 0 0 0-7zM43 23.5a1.5 1.5 0 113 0 1.5 1.5 0 0 1-3 0zm-23.23-3.14a1 1 0 01-.13 1.4l-2.08 1.74 2.08 1.73a1 1 0 11-1.28 1.54l-2.42-2.02a1.63 1.63 0 010-2.5l2.42-2.02a1 1 0 011.4.13zm7.59 1.41a1 1 0 111.28-1.54l2.42 2.02c.78.65.78 1.85 0 2.5l-2.42 2.02a1 1 0 11-1.28-1.54l2.08-1.73-2.08-1.73zM24.12 18a1 1 0 01.87 1.12l-1 8a1 1 0 11-1.98-.24l1-8a1 1 0 011.11-.87zm-11.87-5C11.01 13 10 14 10 15.25v15.5c0 1.24 1 2.25 2.25 2.25h17.33c.06 0 .11.02.15.05l4.07 3.05a2 2 0 003.2-1.6V15.25c0-1.24-1-2.25-2.25-2.25h-22.5zM12 15.25c0-.14.11-.25.25-.25h22.5c.14 0 .25.11.25.25V34.5l-4.07-3.05a2.2 2.2 0 00-1.35-.45H12.25a.25.25 0 01-.25-.25v-15.5zm7.24-10.68a1 1 0 10-.48-1.94A22.04 22.04 0 002.91 17.7a1 1 0 101.92.58 20.04 20.04 0 0 1 14.4-13.72zm11.05-1.66a1 1 0 00-.58 1.92c6.45 1.92 11.54 7 13.46 13.46a1 1 0 101.92-.58 22.05 22.05 0 0 0-14.8-14.8zM4.57 28.76a1 1 0 00-1.94.48 22.03 22.03 0 0 0 16.13 16.13 1 1 0 1 0 .48-1.94A20.03 20.03 0 014.57 28.76zm40.8.48a1 1 0 10-1.94-.48 20.04 20.04 0 0 1-13.72 14.41 1 1 0 0 0 .58 1.92 22.04 22.04 0 0 0 15.08-15.85z"/></svg>
+                <div class="pt4 fw-bold">Collectives on Stack Overflow</div>
+                <p class="my16 fs-caption fc-medium">Find centralized, trusted content and collaborate around the technologies you use most.</p>
+                <a href="/collectives"
+                   class="js-gps-track s-btn s-btn__primary s-btn__xs"
+                   data-gps-track="top_nav.click({is_current:false, location:2, destination:18})">
+                    Learn more
+                </a>
+            </div>
+        </div>
+
+
+        <div class="s-popover"
+             id="popover-teams-create-cta"
+             role="menu"
+             aria-hidden="true">
+            <div class="s-popover--arrow"></div>
+
+            <div class="ps-relative overflow-hidden">
+                <p class="mb2"><strong>Teams</strong></p>
+                <p class="mb12 fs-caption fc-black-400">Q&amp;A for work</p>
+                <p class="mb12 fs-caption fc-medium">Connect and share knowledge within a single location that is structured and easy to search.</p>
+                <a href="https://stackoverflow.com/teams"
+                   class="js-gps-track s-btn s-btn__primary s-btn__xs"
+                   data-gps-track="teams.create.left-sidenav.click({ Action: CtaClick })"
+                   data-ga="[&quot;teams left navigation - anonymous&quot;,&quot;left nav cta&quot;,&quot;stackoverflow.com/teams&quot;,null,null]">
+                    Learn more
+                </a>
+            </div>
+
+            <div class="ps-absolute t8 r8">
+                <svg aria-hidden="true" class="fc-orange-500 svg-spot spotPeople" width="48" height="48" viewBox="0 0 48 48"><path d="M13.5 28a4.5 4.5 0 100-9 4.5 4.5 0 0 0 0 9zM7 30a1 1 0 011-1h11a1 1 0 011 1v5h11v-5a1 1 0 011-1h12a1 1 0 011 1v10a2 2 0 01-2 2H33v5a1 1 0 01-1 1H20a1 1 0 01-1-1v-5H8a1 1 0 01-1-1V30zm25-6.5a4.5 4.5 0 109 0 4.5 4.5 0 0 0-9 0zM24.5 34a4.5 4.5 0 100-9 4.5 4.5 0 0 0 0 9z" opacity=".2"/><path d="M16.4 26.08A6 6 0 107.53 26C5.64 26.06 4 27.52 4 29.45V40a1 1 0 001 1h9a1 1 0 100-2h-4v-7a1 1 0 10-2 0v7H6v-9.55c0-.73.67-1.45 1.64-1.45H16a1 1 0 00.4-1.92zM12 18a4 4 0 110 8 4 4 0 0 1 0-8zm16.47 14a6 6 0 10-8.94 0A3.6 3.6 0 0016 35.5V46a1 1 0 001 1h14a1 1 0 001-1V35.5c0-1.94-1.64-3.42-3.53-3.5zM20 28a4 4 0 118 0 4 4 0 0 1-8 0zm-.3 6h8.6c1 0 1.7.75 1.7 1.5V45h-2v-7a1 1 0 10-2 0v7h-4v-7a1 1 0 10-2 0v7h-2v-9.5c0-.75.7-1.5 1.7-1.5zM42 22c0 1.54-.58 2.94-1.53 4A3.5 3.5 0 0144 29.45V40a1 1 0 01-1 1h-9a1 1 0 110-2h4v-7a1 1 0 112 0v7h2v-9.55A1.5 1.5 0 0040.48 28H32a1 1 0 01-.4-1.92A6 6 0 1142 22zm-2 0a4 4 0 10-8 0 4 4 0 0 0 8 0z"/><path d="M17 10a1 1 0 011-1h12a1 1 0 110 2H18a1 1 0 01-1-1zm1-5a1 1 0 100 2h12a1 1 0 100-2H18zm-4-4a1 1 0 00-1 1v12a1 1 0 001 1h5.09l4.2 4.2a1 1 0 001.46-.04l3.7-4.16H34a1 1 0 001-1V2a1 1 0 00-1-1H14zm1 12V3h18v10h-5a1 1 0 00-.75.34l-3.3 3.7-3.74-3.75a1 1 0 00-.71-.29H15z" opacity=".35"/></svg>
+            </div>
+        </div>
+
+        <div class="js-notice-sidebar-popover d-none ps-fixed b32 l8 sm:d-none ws2 s-card bar-md bs-sm h:bs-lg baw0 bt btw3 bc-orange-400 p0"
+             data-cookie="notice-ssb" data-expire-date="1647753038327" data-is-site-sat="true">
+            <a href="https://stackoverflow.com/survey/site-satisfaction/redirect/?source=sidebar" title="Take our short survey" target="_blank"
+               class="js-link d-flex ai-center c-pointer fc-medium h:fc-black-900 pr2 pl4 py12">
+                <div class="flex--item ml4 mr8">
+                    <img src="https://cdn.sstatic.net/Img/survey-cta.svg?v=171e02557b0d" width="49" />
+                </div>
+                <div class="flex--item fs-body2">
+                    <div class="fw-bold mb2">How are we doing?</div>
+                    <div class="s-link">Take our short survey</div>
+                </div>
+            </a>
+            <button aria-label="dismiss" class="ps-absolute s-btn s-btn__unset t2 r2 p2 z-banner js-dismiss fc-black-400 h:fc-black-900" role="button">
+                <svg aria-hidden="true" class="svg-icon iconClearSm" width="14" height="14" viewBox="0 0 14 14"><path d="M12 3.41 10.59 2 7 5.59 3.41 2 2 3.41 5.59 7 2 10.59 3.41 12 7 8.41 10.59 12 12 10.59 8.41 7 12 3.41Z"/></svg>
+            </button>
+        </div>
+        <script>
+            StackExchange.ready(function () {
+                StackExchange.Notice.sidebarPopoverInit();
+            });
+        </script>
+</div>
+
+
+
+
+        <div id="content" class="snippet-hidden">
+
+            
+<div itemprop="mainEntity" itemscope itemtype="https://schema.org/Question">
+    <link itemprop="image" href="https://cdn.sstatic.net/Sites/stackoverflow/Img/apple-touch-icon.png?v=c78bd457575a">
+
+    <div class="inner-content clearfix">
+
+        
+
+            <div id="question-header" class="d-flex sm:fd-column">
+                        <h1 itemprop="name" class="fs-headline1 ow-break-word mb8 flex--item fl1"><a href="/questions/40799696/how-is-gcc-ir-different-from-llvm-ir" class="question-hyperlink">How is GCC IR different from LLVM IR?</a></h1>
+                <div class="ml12 aside-cta flex--item print:d-none sm:ml0 sm:mb12 sm:order-first sm:as-end">
+                        <a href="/questions/ask" class="ws-nowrap s-btn s-btn__primary">
+        Ask Question
+    </a>
+
+                </div>
+            </div>
+            <div class="d-flex fw-wrap pb8 mb16 bb bc-black-075">
+                    <div class="flex--item ws-nowrap mr16 mb8" title="2016-11-25 07:25:49Z">
+                        <span class="fc-light mr2">Asked</span>
+                        <time itemprop="dateCreated" datetime="2016-11-25T07:25:49">5 years ago</time>
+                    </div>
+                    <div class="flex--item ws-nowrap mr16 mb8">
+                        <span class="fc-light mr2">Active</span>
+                        <a href="?lastactivity" class="s-link s-link__inherit" title="2021-05-08 09:24:34Z">7 months ago</a>
+                    </div>
+                    <div class="flex--item ws-nowrap mb8" title="Viewed 4,524 times">
+                        <span class="fc-light mr2">Viewed</span>
+                        5k times
+                    </div>
+            </div>
+            <div id="mainbar" role="main" aria-label="question and answers">
+
+                
+<div class="question" data-questionid="40799696" data-position-on-page="0" data-score="22"  id="question">
+    <style>
+    </style>
+<div class="js-zone-container zone-container-sidebar">
+    <div id="clc-tlb" class="everyonelovesstackoverflow everyoneloves__top-leaderboard everyoneloves__leaderboard"></div>
+    <div class="js-report-ad-button-container " style="width: 728px"></div>
+</div>
+
+    <div class="post-layout">
+        <div class="votecell post-layout--left">
+            <div class="js-voting-container d-flex jc-center fd-column ai-stretch gs4 fc-black-200" data-post-id="40799696">
+        <button class="js-vote-up-btn flex--item s-btn s-btn__unset c-pointer "
+                data-controller="s-tooltip"
+                data-s-tooltip-placement="right"
+                title="This question shows research effort; it is useful and clear"
+                aria-pressed="false"
+                aria-label="Up vote"
+                data-selected-classes="fc-theme-primary"
+                data-unselected-classes="">
+            <svg aria-hidden="true" class="svg-icon iconArrowUpLg" width="36" height="36" viewBox="0 0 36 36"><path d="M2 26h32L18 10 2 26Z"/></svg>
+        </button>
+        <div class="js-vote-count flex--item d-flex fd-column ai-center fc-black-500 fs-title"
+             itemprop="upvoteCount"
+             data-value="22">
+            22
+        </div>
+        <button class="js-vote-down-btn flex--item s-btn s-btn__unset c-pointer "
+                data-controller="s-tooltip"
+                data-s-tooltip-placement="right"
+                title="This question does not show any research effort; it is unclear or not useful"
+                aria-pressed="false"
+                aria-label="Down vote"
+                data-selected-classes="fc-theme-primary"
+                data-unselected-classes="">
+            <svg aria-hidden="true" class="svg-icon iconArrowDownLg" width="36" height="36" viewBox="0 0 36 36"><path d="M2 10h32L18 26 2 10Z"/></svg>
+        </button>
+
+        <button class="js-bookmark-btn s-btn s-btn__unset c-pointer py4 js-gps-track" 
+                data-controller="s-tooltip" data-s-tooltip-placement="right" title="Bookmark this question."
+                aria-pressed="false" aria-label="Bookmark (4)" data-selected-classes="fc-yellow-600"
+                data-gps-track="post.click({ item: 1, priv: 0, post_type: 1 })">
+            <svg aria-hidden="true" class="svg-icon iconBookmark" width="18" height="18" viewBox="0 0 18 18"><path d="M6 1a2 2 0 00-2 2v14l5-4 5 4V3a2 2 0 00-2-2H6Zm3.9 3.83h2.9l-2.35 1.7.9 2.77L9 7.59l-2.35 1.7.9-2.76-2.35-1.7h2.9L9 2.06l.9 2.77Z"/></svg>
+            <div class="js-bookmark-count mt4" data-value="4">4</div>
+        </button>
+    
+
+    
+        <a class="js-post-issue flex--item s-btn s-btn__unset c-pointer py6 mx-auto" href="/posts/40799696/timeline" data-shortcut="T" data-ks-title="timeline" data-controller="s-tooltip" data-s-tooltip-placement="right" title="Show activity on this post." aria-label="Timeline"><svg aria-hidden="true" class="mln2 mr0 svg-icon iconHistory" width="19" height="18" viewBox="0 0 19 18"><path d="M3 9a8 8 0 113.73 6.77L8.2 14.3A6 6 0 105 9l3.01-.01-4 4-4-4h3L3 9Zm7-4h1.01L11 9.36l3.22 2.1-.6.93L10 10V5Z"/></svg></a>
+
+</div>
+
+        </div>
+
+        
+
+<div class="postcell post-layout--right">
+    
+    <div class="s-prose js-post-body" itemprop="text">
+                
+<p>Why do people prefer LLVM IR, and how exactly is it different from the GCC IR? Is target dependency a factor here?</p>
+
+<p>I'm a complete newbie to compilers, and wasn't able to find anything relevant even after many hours of searching for an answer. Any insights would be helpful.</p>
+    </div>
+
+        <div class="mt24 mb12">
+            <div class="post-taglist d-flex gs4 gsy fd-column">
+                <div class="d-flex ps-relative">
+                    <a href="/questions/tagged/gcc" class="post-tag" title="show questions tagged &#39;gcc&#39;" rel="tag">gcc</a> <a href="/questions/tagged/compilation" class="post-tag" title="show questions tagged &#39;compilation&#39;" rel="tag">compilation</a> <a href="/questions/tagged/compiler-construction" class="post-tag" title="show questions tagged &#39;compiler-construction&#39;" rel="tag">compiler-construction</a> <a href="/questions/tagged/llvm-ir" class="post-tag" title="show questions tagged &#39;llvm-ir&#39;" rel="tag">llvm-ir</a> 
+                </div>
+            </div>
+        </div>
+
+    <div class="mb0 ">
+        <div class="mt16 d-flex gs8 gsy fw-wrap jc-end ai-start pt4 mb16">
+            <div class="flex--item mr16 fl1 w96">
+                
+
+
+<div class="js-post-menu pt2" data-post-id="40799696">
+    <div class="d-flex gs8 s-anchors s-anchors__muted fw-wrap">
+
+            <div class="flex--item">
+                <a href="/q/40799696"
+                   rel="nofollow"
+                   itemprop="url"
+                   class="js-share-link js-gps-track"
+                   title="Short permalink to this question"
+                   data-gps-track="post.click({ item: 2, priv: 0, post_type: 1 })"
+                   data-controller="se-share-sheet"
+                   data-se-share-sheet-title="Share a link to this question"
+                   data-se-share-sheet-subtitle=""
+                   data-se-share-sheet-post-type="question"
+                   data-se-share-sheet-social="facebook twitter devto"
+                   data-se-share-sheet-location="1"
+                   data-se-share-sheet-license-url="https%3a%2f%2fcreativecommons.org%2flicenses%2fby-sa%2f3.0%2f"
+                   data-se-share-sheet-license-name="CC BY-SA 3.0"
+                   data-s-popover-placement="bottom-start">Share</a>
+            </div>
+
+
+                    <div class="flex--item">
+                        <a href="/posts/40799696/edit" class="js-suggest-edit-post js-gps-track" data-gps-track="post.click({ item: 6, priv: 0, post_type: 1 })" title="">Improve this question</a>
+                    </div>
+
+            <div class="flex--item">
+                <button type="button"
+                        id="btnFollowPost-40799696" class="s-btn s-btn__link js-follow-post js-follow-question js-gps-track"
+                        data-gps-track="post.click({ item: 14, priv: 0, post_type: 1 })"
+                        data-controller="s-tooltip " data-s-tooltip-placement="bottom"
+                        data-s-popover-placement="bottom" aria-controls=""
+                        title="Follow this question to receive notifications">
+                    Follow
+                </button>
+            </div>
+
+
+
+
+
+
+    </div>
+    <div class="js-menu-popup-container"></div>
+</div>
+            </div>
+
+                <div class="post-signature flex--item">
+<div class="user-info user-hover">
+    <div class="user-action-time">
+        <a href="/posts/40799696/revisions" title="show all edits to this post"
+                         class="js-gps-track"
+                         data-gps-track="post.click({ item: 4, priv: 0, post_type: 1 })">edited <span title="2016-11-26 16:50:48Z" class="relativetime">Nov 26 '16 at 16:50</span></a>
+    </div>
+    <div class="user-gravatar32">
+        <a href="/users/366904/cody-gray"><div class="gravatar-wrapper-32"><img src="https://www.gravatar.com/avatar/d6fb1085928ee50debdb0a287f6e9503?s=64&amp;d=identicon&amp;r=PG" alt="" width="32" height="32" class="bar-sm"></div></a>
+    </div>
+    <div class="user-details">
+        <a href="/users/366904/cody-gray">Cody Gray</a><span class="mod-flair mtn2" title="Moderator">&#9830;</span>
+        <div class="-flair">
+            <span class="reputation-score" title="reputation score 226,989" dir="ltr">227k</span><span title="48 gold badges" aria-hidden="true"><span class="badge1"></span><span class="badgecount">48</span></span><span class="v-visible-sr">48 gold badges</span><span title="471 silver badges" aria-hidden="true"><span class="badge2"></span><span class="badgecount">471</span></span><span class="v-visible-sr">471 silver badges</span><span title="549 bronze badges" aria-hidden="true"><span class="badge3"></span><span class="badgecount">549</span></span><span class="v-visible-sr">549 bronze badges</span>
+        </div>
+    </div>
+</div>
+                </div>
+            <div class="post-signature owner flex--item">
+                <div class="user-info user-hover">
+    <div class="user-action-time">
+        asked <span title="2016-11-25 07:25:49Z" class="relativetime">Nov 25 '16 at 7:25</span>
+    </div>
+    <div class="user-gravatar32">
+        <a href="/users/7074123/lost-wanderer"><div class="gravatar-wrapper-32"><img src="https://www.gravatar.com/avatar/2b13a958ed9950384d2815c2cb4ca097?s=64&amp;d=identicon&amp;r=PG&amp;f=1" alt="" width="32" height="32" class="bar-sm"></div></a>
+    </div>
+    <div class="user-details" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <a href="/users/7074123/lost-wanderer">lost_wanderer</a><span class="d-none" itemprop="name">lost_wanderer</span>
+        <div class="-flair">
+            <span class="reputation-score" title="reputation score " dir="ltr">321</span><span title="3 silver badges" aria-hidden="true"><span class="badge2"></span><span class="badgecount">3</span></span><span class="v-visible-sr">3 silver badges</span><span title="8 bronze badges" aria-hidden="true"><span class="badge3"></span><span class="badgecount">8</span></span><span class="v-visible-sr">8 bronze badges</span>
+        </div>
+    </div>
+</div>
+
+
+            </div>
+        </div>
+    </div>
+    
+</div>
+
+
+
+
+            <span class="d-none" itemprop="commentCount">1</span> 
+    <div class="post-layout--right js-post-comments-component">
+        <div id="comments-40799696" class="comments js-comments-container bt bc-black-075 mt12 " data-post-id="40799696" data-min-length="15">
+            <ul class="comments-list js-comments-list"
+                    data-remaining-comments-count="0"
+                    data-canpost="false"
+                    data-cansee="true"
+                    data-comments-unavailable="false"
+                    data-addlink-disabled="true">
+
+                        <li id="comment-68925760" class="comment js-comment " data-comment-id="68925760" data-comment-owner-id="293147" data-comment-score="5">
+        <div class="js-comment-actions comment-actions">
+            <div class="comment-score js-comment-edit-hide">
+                    <span title="number of &#x27;useful comment&#x27; votes received"
+                            class="warm">5</span>
+            </div>
+        </div>
+        <div class="comment-text  js-comment-text-and-form">
+            <div class="comment-body js-comment-edit-hide">
+                
+                <span class="comment-copy">The biggest practical difference is that for LLVM there is a modular API available. And for GCC, developers made everything they could to make sure such an API cannot be exposed. That&#39;s why LLVM is a go to solution if you want an IR to plug in.</span>
+                
+              <div class="d-inline-flex ai-center">
+&ndash;&nbsp;<a href="/users/293147/sk-logic"
+                            title="9,209 reputation"
+                            class="comment-user">SK-logic</a>
+                </div>
+                <span class="comment-date" dir="ltr"><span title="2016-11-28 22:25:43Z, License: CC BY-SA 3.0" class="relativetime-clean">Nov 28 '16 at 22:25</span></span>
+            </div>
+        </div>
+    </li>
+
+            </ul>
+	    </div>
+
+        <div id="comments-link-40799696" data-rep=50 data-anon=true>
+                    <a class="js-add-link comments-link disabled-link" title="Use comments to ask for more information or suggest improvements. Avoid answering questions in comments."  href="#" role="button">Add a comment</a>
+                <span class="js-link-separator dno">&nbsp;|&nbsp;</span>
+            <a class="js-show-link comments-link dno" title="Expand to show all comments on this post" href=# onclick="" role="button"></a>
+        </div>         
+    </div>
+    </div>
+</div>
+
+
+
+                <div id="answers">
+
+                    <a name="tab-top"></a>
+                    <div id="answers-header">
+                        <div class="answers-subheader d-flex ai-center mb8">
+                            <div class="flex--item fl1">
+                                <h2 class="mb0" data-answercount="1">
+                                        1 Answer
+                                    <span style="display:none;" itemprop="answerCount">1</span>
+                                </h2>
+                            </div>
+                            <div class="flex--item">
+                                <div class=" d-flex s-btn-group js-filter-btn">
+        <a class="flex--item s-btn s-btn__muted s-btn__outlined" href="/questions/40799696/how-is-gcc-ir-different-from-llvm-ir?answertab=active#tab-top" data-nav-xhref="" title="Answers with the latest activity first" data-value="active" data-shortcut="A">
+            Active</a>
+        <a class="flex--item s-btn s-btn__muted s-btn__outlined" href="/questions/40799696/how-is-gcc-ir-different-from-llvm-ir?answertab=oldest#tab-top" data-nav-xhref="" title="Answers in the order they were provided" data-value="oldest" data-shortcut="O">
+            Oldest</a>
+        <a class="youarehere is-selected flex--item s-btn s-btn__muted s-btn__outlined" href="/questions/40799696/how-is-gcc-ir-different-from-llvm-ir?answertab=votes#tab-top" data-nav-xhref="" title="Answers with the highest score first" data-value="votes" data-shortcut="V">
+            Votes</a>
+</div>
+
+                            </div>
+                        </div>
+                            
+                    </div>
+
+
+                                          
+<a name="40802063"></a>
+<div id="answer-40802063" class="answer js-answer" data-answerid="40802063" data-score="33" data-position-on-page="1" data-highest-scored="1" data-question-has-accepted-highest-score="0"  itemprop="acceptedAnswer" itemscope itemtype="https://schema.org/Answer">
+    <div class="post-layout">
+        <div class="votecell post-layout--left">
+            <div class="js-voting-container d-flex jc-center fd-column ai-stretch gs4 fc-black-200" data-post-id="40802063">
+        <button class="js-vote-up-btn flex--item s-btn s-btn__unset c-pointer "
+                data-controller="s-tooltip"
+                data-s-tooltip-placement="right"
+                title="This answer is useful"
+                aria-pressed="false"
+                aria-label="Up vote"
+                data-selected-classes="fc-theme-primary"
+                data-unselected-classes="">
+            <svg aria-hidden="true" class="svg-icon iconArrowUpLg" width="36" height="36" viewBox="0 0 36 36"><path d="M2 26h32L18 10 2 26Z"/></svg>
+        </button>
+        <div class="js-vote-count flex--item d-flex fd-column ai-center fc-black-500 fs-title"
+             itemprop="upvoteCount"
+             data-value="33">
+            33
+        </div>
+        <button class="js-vote-down-btn flex--item s-btn s-btn__unset c-pointer "
+                data-controller="s-tooltip"
+                data-s-tooltip-placement="right"
+                title="This answer is not useful"
+                aria-pressed="false"
+                aria-label="Down vote"
+                data-selected-classes="fc-theme-primary"
+                data-unselected-classes="">
+            <svg aria-hidden="true" class="svg-icon iconArrowDownLg" width="36" height="36" viewBox="0 0 36 36"><path d="M2 10h32L18 26 2 10Z"/></svg>
+        </button>
+
+    
+            <div class="js-accepted-answer-indicator flex--item fc-green-500 py6 mtn8 d-none" data-s-tooltip-placement="right" title="Loading when this answer was accepted&#x2026;" tabindex="0" role="note" aria-label="Accepted">
+                <div class="ta-center">
+                    <svg aria-hidden="true" class="svg-icon iconCheckmarkLg" width="36" height="36" viewBox="0 0 36 36"><path d="m6 14 8 8L30 6v8L14 30l-8-8v-8Z"/></svg>
+                </div>
+            </div>
+
+    
+        <a class="js-post-issue flex--item s-btn s-btn__unset c-pointer py6 mx-auto" href="/posts/40802063/timeline" data-shortcut="T" data-ks-title="timeline" data-controller="s-tooltip" data-s-tooltip-placement="right" title="Show activity on this post." aria-label="Timeline"><svg aria-hidden="true" class="mln2 mr0 svg-icon iconHistory" width="19" height="18" viewBox="0 0 19 18"><path d="M3 9a8 8 0 113.73 6.77L8.2 14.3A6 6 0 105 9l3.01-.01-4 4-4-4h3L3 9Zm7-4h1.01L11 9.36l3.22 2.1-.6.93L10 10V5Z"/></svg></a>
+
+</div>
+
+        </div>
+
+        
+
+<div class="answercell post-layout--right">
+    
+    <div class="s-prose js-post-body" itemprop="text">
+<p>Firstly, as this answer touches on complex and sensitive topics I want to make <strong>few disclaimers</strong>:</p>
+<ul>
+<li>I assume your question is about <strong>middle-end IRs</strong> of LLVM and GCC (as the term &quot;LLVM IR&quot; applies only to middle-end). Discussion of differences of back-end IRs (LLVM MachineIR and GCC RTL) and related codegen tools (LLVM Tablegen and GCC Machine Description) is an interesting and important topic but would make the answer several times larger.</li>
+<li>I left out library-based design of LLVM vs monolithic design of GCC as this is separate from IR per se (although related).</li>
+<li>I enjoy hacking on both GCC and LLVM and I do not put one ahead of other. LLVM is what it is because people could learn from things that GCC had wrong back in 2000-s (and which have been significantly improved since then).</li>
+<li>I'm happy to improve this answer so please post comments if you think that something is imprecise or missing.</li>
+</ul>
+<p>The most important fact is that LLVM IR and GCC IR (called GIMPLE) are not that different in their core - both are standard control-flow graphs of basic blocks, each block being a linear sequence of 2 inputs, 1 output instructions (so called &quot;three-address code&quot;) which have been converted to <a href="https://en.wikipedia.org/wiki/Static_single_assignment_form" rel="noreferrer">SSA form</a>. Most production compilers have been using this design since 1990-s.</p>
+<p>Main advantages of LLVM IR are that it's less tightly bound to compiler implementation, more formally defined and has nicer C++ API. This allows for easier processing, transformation and analysis, which makes it IR of choice these days, both for compiler and for other related tools.</p>
+<p>I expand on benefits of LLVM IR in subchapters below.</p>
+<h1>Standalone IR</h1>
+<p>LLVM IR originally designed to be fully reusable across arbitrary tools besides compiler itself. The <a href="http://llvm.org/pubs/2004-01-30-CGO-LLVM.pdf" rel="noreferrer">original intent</a> was to use it for multi-stage optimization: IR would be consequently optimized by ahead-of-time compiler, link-time optimizer and JIT compiler at runtime. This didn't work out but reusability had other important implications, most noticeably it allowed easy integration of other types of tools (static analyzers, instrumenters, etc.).</p>
+<p>GCC community never had desire to enable any tools besides compiler (Richard Stallman resisted attempts to make IR more reusable to prevent third-party commercial tools from reusing GCC's frontends). Thus GIMPLE (GCC's IR) was never considered to be more than an implementation detail, in particular it doesn't provide a full description of compiled program (e.g. it lacks program's call graph, type definitions, stack offsets and alias information).</p>
+<h1>Flexible pipeline</h1>
+<p>The idea of reusability and making IR a standalone entity led to an important design consequence in LLVM: compilation passes can be run in any order which prevents complex inter-pass dependencies (all dependencies have to be made explicit via analysis passes) and enables easier experimentation with compilation pipeline e.g.</p>
+<ul>
+<li>running strict IR verification checks after each pass</li>
+<li><a href="https://llvm.org/docs/Bugpoint.html" rel="noreferrer">bisecting pipeline</a> to find a minimal subset of passes which cause compiler crash</li>
+<li>fuzzing order of passes</li>
+</ul>
+<h1>Better unit-testing support</h1>
+<p>Standalone IR allows LLVM to use IR-level unit tests which allows easy testing of optimization/analysis corner-cases. This is much harder to achieve through C/C++ snippets (as in GCC testsuite) and even when you manage, the generated IR will most likely change significantly in future versions of the compiler and the corner case that your test was intended for will no longer be covered.</p>
+<h1>Simple link-time optimization</h1>
+<p>Standalone IR enables easy <a href="http://llvm.org/docs/CommandGuide/llvm-link.html" rel="noreferrer">combination of IR from separate translation units</a> with a follow-up (whole program) optimization. This is not a complete replacement for link-time optimization (as it does not deal with scalability issues which arise in production software) but is often good enough for smaller programs (e.g. in embedded development or research projects).</p>
+<h1>Stricter IR definition</h1>
+<p>Although <a href="https://lists.llvm.org/pipermail/llvm-dev/2016-October/106182.html" rel="noreferrer">criticized by academia</a>, LLVM IR has a much stricter <a href="https://llvm.org/docs/LangRef.html" rel="noreferrer">semantics</a> compared to <a href="https://gcc.gnu.org/onlinedocs/gcc-4.8.2/gccint/GIMPLE.html#GIMPLE" rel="noreferrer">GIMPLE</a>. This simplifies implementation of various static analyzers e.g. <a href="https://llvm.org/doxygen/Verifier_8h_source.html" rel="noreferrer">IR Verifier</a>.</p>
+<h1>No intermediate IRs</h1>
+<p>LLVM IR is generated directly by the frontend (Clang, llgo, etc.) and preserved throughout the whole middle-end. This means that all tools, optimizations and internal APIs only need to operate on single IR. The same is not true for GCC - even GIMPLE has three distinct variants:</p>
+<ul>
+<li>high GIMPLE (includes lexical scopes, high-level control-flow constructs, etc.)</li>
+<li>pre-SSA low GIMPLE</li>
+<li>final SSA GIMPLE and also GCC frontends typically generate intermediate GENERIC IR instead of GIMPLE.</li>
+</ul>
+<h1>Simpler IR</h1>
+<p>Compared to GIMPLE, LLVM IR was deliberately made simpler by reducing number of cases which IR consumers need to consider. I've added several examples below.</p>
+<h2>Explicit control-flow</h2>
+<p>All basic blocks in LLVM IR program have to end with explicit control-flow opcode (branch, goto, etc.). Implicit control flow (i.e. fallthrough) is not allowed.</p>
+<h2>Explicit stack allocations</h2>
+<p>In LLVM IR virtual registers do not have memory. Stack allocations are represented by dedicated <code>alloca</code> operations. This simplifies working with stack variables e.g. equivalent of GCC's <code>ADDR_EXPR</code> is not needed.</p>
+<h2>Explicit indexing operations</h2>
+<p>Contrary to GIMPLE which has plethora of opcodes for memory references (INDIRECT_REF, MEM_REF, ARRAY_REF, COMPONENT_REF, etc.), LLVM IR has only plain load and store opcodes and all complex arithmetic is moved to dedicated structured indexing opcode, <a href="https://llvm.org/docs/GetElementPtr.html" rel="noreferrer">getelementptr</a>.</p>
+<h1>Garbage collection support</h1>
+<p>LLVM IR provides <a href="https://llvm.org/docs/GarbageCollection.html" rel="noreferrer">dedicated pseudo-instructions</a> for garbage-collected languages.</p>
+<h1>Higher-level implementation language</h1>
+<p>While C++ may not be the best programming language, it definitely allows to write much simpler (and in many case more functional) system code,
+especially with post-C++11 changes (LLVM aggressively adopts new Standards). Following LLVM, GCC has also adopted C++ but majority of the codebase is still written in C style.</p>
+<p>There are too many instances where C++ enables a simpler code so I'll just name a few.</p>
+<h2>Explicit hierarchy</h2>
+<p>The hierarchy of operators in LLVM is implemented via standard inheritance and <a href="https://llvm.org/docs/HowToSetUpLLVMStyleRTTI.html" rel="noreferrer">template-based custom RTTI</a>. On the other hand GCC achieves the same via old-style inheritance-via-aggregation</p>
+<pre><code>// Base class which all operators aggregate
+struct GTY(()) tree_base {
+  ENUM_BITFIELD(tree_code) code : 16;
+
+  unsigned side_effects_flag : 1;
+  unsigned constant_flag : 1;
+  unsigned addressable_flag : 1;
+
+  ...  // Many more fields
+};
+
+// Typed operators add type to base data
+struct GTY(()) tree_typed {
+  struct tree_base base;
+  tree type;
+};
+
+// Constants add integer value to typed node data
+struct GTY(()) tree_int_cst {
+  struct tree_typed typed;
+  HOST_WIDE_INT val[1];
+};
+
+// Complex numbers add real and imaginary components to typed data
+struct GTY(()) tree_complex {
+  struct tree_typed typed;
+  tree real;
+  tree imag;
+};
+
+// Many more operators follow
+...
+
+</code></pre>
+<p>and tagged union paradigms:</p>
+<pre><code>union GTY ((ptr_alias (union lang_tree_node),
+            desc (&quot;tree_node_structure (&amp;%h)&quot;), variable_size)) tree_node {
+  struct tree_base GTY ((tag (&quot;TS_BASE&quot;))) base;
+  struct tree_typed GTY ((tag (&quot;TS_TYPED&quot;))) typed;
+  struct tree_int_cst GTY ((tag (&quot;TS_INT_CST&quot;))) int_cst;
+  struct tree_complex GTY ((tag (&quot;TS_COMPLEX&quot;))) complex;
+</code></pre>
+<p>All GCC operator APIs use the base <code>tree</code> type which is accessed via <a href="https://en.wikipedia.org/wiki/Interface_bloat" rel="noreferrer">fat</a> macro interface (<code>DECL_NAME</code>, <code>TREE_IMAGPART</code>, etc.). Interface is only verified at runtime (and only if GCC was configured with <code>--enable-checking</code>) and does not allow static checking.</p>
+<h2>More concise APIs</h2>
+<p>LLVM generally provides simpler APIs for pattern matching IR in optimizers. For example checking that instruction is an addition with constant in GCC looks like</p>
+<pre><code>  if (gimple_assign_p (stmt)
+      &amp;&amp; gimple_assign_rhs_code (stmt) == PLUS_EXPR
+      &amp;&amp; TREE_CODE (gimple_assign_rhs2 (stmt)) == INTEGER_CST)
+    {
+      ...
+</code></pre>
+<p>and in LLVM:</p>
+<pre><code>  if (auto BO = dyn_cast&lt;BinaryOperator&gt;(V))
+  if (BO-&gt;getOpcode() == Instruction::Add
+      &amp;&amp; isa&lt;ConstantInt&gt;(BO-&gt;getOperand(1))
+    {
+</code></pre>
+<h2>Arbitrary-precision arithmetic</h2>
+<p>Due to C++ support for overloading, LLVM can uses arbitrary-precision ints for all computations whereas GCC still uses physical integers (<code>HOST_WIDE_INT</code> type, which is 32-bit on 32-bit hosts):</p>
+<pre><code>  if (!tree_fits_shwi_p (arg1))
+    return false;
+
+  *exponent = tree_to_shwi (arg1);
+</code></pre>
+<p>As shown in the example this can lead to missed optimizations.</p>
+<p>GCC has got an equivalent of <code>APInt</code>s few years ago but the majority of the codebase still uses <code>HOST_WIDE_INT</code>.</p>
+    </div>
+    <div class="mt24">
+        <div class="d-flex fw-wrap ai-start jc-end gs8 gsy">
+            <time itemprop="dateCreated" datetime="2016-11-25T09:52:47"></time>
+            <div class="flex--item mr16" style="flex: 1 1 100px;">
+                
+
+
+<div class="js-post-menu pt2" data-post-id="40802063">
+    <div class="d-flex gs8 s-anchors s-anchors__muted fw-wrap">
+
+            <div class="flex--item">
+                <a href="/a/40802063"
+                   rel="nofollow"
+                   itemprop="url"
+                   class="js-share-link js-gps-track"
+                   title="Short permalink to this answer"
+                   data-gps-track="post.click({ item: 2, priv: 0, post_type: 2 })"
+                   data-controller="se-share-sheet"
+                   data-se-share-sheet-title="Share a link to this answer"
+                   data-se-share-sheet-subtitle=""
+                   data-se-share-sheet-post-type="answer"
+                   data-se-share-sheet-social="facebook twitter devto"
+                   data-se-share-sheet-location="2"
+                   data-se-share-sheet-license-url="https%3a%2f%2fcreativecommons.org%2flicenses%2fby-sa%2f4.0%2f"
+                   data-se-share-sheet-license-name="CC BY-SA 4.0"
+                   data-s-popover-placement="bottom-start">Share</a>
+            </div>
+
+
+                    <div class="flex--item">
+                        <a href="/posts/40802063/edit" class="js-suggest-edit-post js-gps-track" data-gps-track="post.click({ item: 6, priv: 0, post_type: 2 })" title="">Improve this answer</a>
+                    </div>
+
+            <div class="flex--item">
+                <button type="button"
+                        id="btnFollowPost-40802063" class="s-btn s-btn__link js-follow-post js-follow-answer js-gps-track"
+                        data-gps-track="post.click({ item: 14, priv: 0, post_type: 2 })"
+                        data-controller="s-tooltip " data-s-tooltip-placement="bottom"
+                        data-s-popover-placement="bottom" aria-controls=""
+                        title="Follow this answer to receive notifications">
+                    Follow
+                </button>
+            </div>
+
+
+
+
+
+
+    </div>
+    <div class="js-menu-popup-container"></div>
+</div>
+            </div>
+            <div class="post-signature flex--item fl0">
+<div class="user-info ">
+    <div class="user-action-time">
+        <a href="/posts/40802063/revisions" title="show all edits to this post"
+                         class="js-gps-track"
+                         data-gps-track="post.click({ item: 4, priv: 0, post_type: 2 })">edited <span title="2021-05-08 09:24:34Z" class="relativetime">May 8 at 9:24</span></a>
+    </div>
+    <div class="user-gravatar32">
+        
+    </div>
+    <div class="user-details">
+        
+        <div class="-flair">
+            
+        </div>
+    </div>
+</div>
+            </div>
+
+
+            <div class="post-signature flex--item fl0">
+                <div class="user-info ">
+    <div class="user-action-time">
+        answered <span title="2016-11-25 09:52:47Z" class="relativetime">Nov 25 '16 at 9:52</span>
+    </div>
+    <div class="user-gravatar32">
+        <a href="/users/2170527/yugr"><div class="gravatar-wrapper-32"><img src="https://www.gravatar.com/avatar/64f36e49ac8529003cf57c003746388b?s=64&amp;d=identicon&amp;r=PG" alt="" width="32" height="32" class="bar-sm"></div></a>
+    </div>
+    <div class="user-details" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <a href="/users/2170527/yugr">yugr</a><span class="d-none" itemprop="name">yugr</span>
+        <div class="-flair">
+            <span class="reputation-score" title="reputation score 15,017" dir="ltr">15k</span><span title="3 gold badges" aria-hidden="true"><span class="badge1"></span><span class="badgecount">3</span></span><span class="v-visible-sr">3 gold badges</span><span title="39 silver badges" aria-hidden="true"><span class="badge2"></span><span class="badgecount">39</span></span><span class="v-visible-sr">39 silver badges</span><span title="76 bronze badges" aria-hidden="true"><span class="badge3"></span><span class="badgecount">76</span></span><span class="v-visible-sr">76 bronze badges</span>
+        </div>
+    </div>
+</div>
+
+
+            </div>
+        </div>
+        
+    
+    </div>
+    
+</div>
+
+
+
+
+            <span class="d-none" itemprop="commentCount">0</span> 
+    <div class="post-layout--right js-post-comments-component">
+        <div id="comments-40802063" class="comments js-comments-container bt bc-black-075 mt12  dno" data-post-id="40802063" data-min-length="15">
+            <ul class="comments-list js-comments-list"
+                    data-remaining-comments-count="0"
+                    data-canpost="false"
+                    data-cansee="true"
+                    data-comments-unavailable="false"
+                    data-addlink-disabled="true">
+
+            </ul>
+	    </div>
+
+        <div id="comments-link-40802063" data-rep=50 data-anon=true>
+                    <a class="js-add-link comments-link disabled-link" title="Use comments to ask for more information or suggest improvements. Avoid comments like &#x201C;&#x2B;1&#x201D; or &#x201C;thanks&#x201D;."  href="#" role="button">Add a comment</a>
+                <span class="js-link-separator dno">&nbsp;|&nbsp;</span>
+            <a class="js-show-link comments-link dno" title="Expand to show all comments on this post" href=# onclick="" role="button"></a>
+        </div>         
+    </div>
+    </div>
+</div>
+
+                        <a name='new-answer'></a>
+                            <form id="post-form" action="/questions/40799696/answer/submit" method="post" class="js-add-answer-component post-form">
+                                <input type="hidden" id="post-id" value="40799696" />
+                                <input type="hidden" id="qualityBanWarningShown" name="qualityBanWarningShown" value="false" />
+                                <input type="hidden" name="referrer" value="" />
+                                <h2 class="space">
+                                    Your Answer
+                                </h2>
+                                    
+
+    <script>
+        StackExchange.ifUsing("editor", function () {
+            StackExchange.using("externalEditor", function () {
+                StackExchange.using("snippets", function () {
+                    StackExchange.snippets.init();
+                });
+            });
+        }, "code-snippets");
+    </script>
+
+
+<script>
+    StackExchange.ready(function() {
+        var channelOptions = {
+            tags: "".split(" "),
+            id: "1"
+        };
+        initTagRenderer("".split(" "), "".split(" "), channelOptions);
+
+        StackExchange.using("externalEditor", function() {
+            // Have to fire editor after snippets, if snippets enabled
+            if (StackExchange.settings.snippets.snippetsEnabled) {
+                StackExchange.using("snippets", function() {
+                    createEditor();
+                });
+            }
+            else {
+                createEditor();
+            }
+        });
+
+        function createEditor() {
+            StackExchange.prepareEditor({
+                useStacksEditor: false,
+                heartbeatType: 'answer',
+                autoActivateHeartbeat: false,
+                convertImagesToLinks: true,
+                noModals: true,
+                showLowRepImageUploadWarning: true,
+                reputationToPostImages: 10,
+                bindNavPrevention: true,
+                postfix: "",
+                imageUploader: {
+                    brandingHtml: "Powered by \u003ca href=\"https://imgur.com/\"\u003e\u003csvg class=\"svg-icon\" width=\"50\" height=\"18\" viewBox=\"0 0 50 18\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\"\u003e\u003cpath d=\"M46.1709 9.17788C46.1709 8.26454 46.2665 7.94324 47.1084 7.58816C47.4091 7.46349 47.7169 7.36433 48.0099 7.26993C48.9099 6.97997 49.672 6.73443 49.672 5.93063C49.672 5.22043 48.9832 4.61182 48.1414 4.61182C47.4335 4.61182 46.7256 4.91628 46.0943 5.50789C45.7307 4.9328 45.2525 4.66231 44.6595 4.66231C43.6264 4.66231 43.1481 5.28821 43.1481 6.59048V11.9512C43.1481 13.2535 43.6264 13.8962 44.6595 13.8962C45.6924 13.8962 46.1709 13.2535 46.1709 11.9512V9.17788Z\"/\u003e\u003cpath d=\"M32.492 10.1419C32.492 12.6954 34.1182 14.0484 37.0451 14.0484C39.9723 14.0484 41.5985 12.6954 41.5985 10.1419V6.59049C41.5985 5.28821 41.1394 4.66232 40.1061 4.66232C39.0732 4.66232 38.5948 5.28821 38.5948 6.59049V9.60062C38.5948 10.8521 38.2696 11.5455 37.0451 11.5455C35.8209 11.5455 35.4954 10.8521 35.4954 9.60062V6.59049C35.4954 5.28821 35.0173 4.66232 34.0034 4.66232C32.9703 4.66232 32.492 5.28821 32.492 6.59049V10.1419Z\" /\u003e\u003cpath fill-rule=\"evenodd\" clip-rule=\"evenodd\" d=\"M25.6622 17.6335C27.8049 17.6335 29.3739 16.9402 30.2537 15.6379C30.8468 14.7755 30.9615 13.5579 30.9615 11.9512V6.59049C30.9615 5.28821 30.4833 4.66231 29.4502 4.66231C28.9913 4.66231 28.4555 4.94978 28.1109 5.50789C27.499 4.86533 26.7335 4.56087 25.7005 4.56087C23.1369 4.56087 21.0134 6.57349 21.0134 9.27932C21.0134 11.9852 23.003 13.913 25.3754 13.913C26.5612 13.913 27.4607 13.4902 28.1109 12.6616C28.1109 12.7229 28.1161 12.7799 28.121 12.8346C28.1256 12.8854 28.1301 12.9342 28.1301 12.983C28.1301 14.4373 27.2502 15.2321 25.777 15.2321C24.8349 15.2321 24.1352 14.9821 23.5661 14.7787C23.176 14.6393 22.8472 14.5218 22.5437 14.5218C21.7977 14.5218 21.2429 15.0123 21.2429 15.6887C21.2429 16.7375 22.9072 17.6335 25.6622 17.6335ZM24.1317 9.27932C24.1317 7.94324 24.9928 7.09766 26.1024 7.09766C27.2119 7.09766 28.0918 7.94324 28.0918 9.27932C28.0918 10.6321 27.2311 11.5116 26.1024 11.5116C24.9737 11.5116 24.1317 10.6491 24.1317 9.27932Z\"/\u003e\u003cpath d=\"M16.8045 11.9512C16.8045 13.2535 17.2637 13.8962 18.2965 13.8962C19.3298 13.8962 19.8079 13.2535 19.8079 11.9512V8.12928C19.8079 5.82936 18.4879 4.62866 16.4027 4.62866C15.1594 4.62866 14.279 4.98375 13.3609 5.88013C12.653 5.05154 11.6581 4.62866 10.3573 4.62866C9.34336 4.62866 8.57809 4.89931 7.9466 5.5079C7.58314 4.9328 7.10506 4.66232 6.51203 4.66232C5.47873 4.66232 5.00066 5.28821 5.00066 6.59049V11.9512C5.00066 13.2535 5.47873 13.8962 6.51203 13.8962C7.54479 13.8962 8.0232 13.2535 8.0232 11.9512V8.90741C8.0232 7.58817 8.44431 6.91179 9.53458 6.91179C10.5104 6.91179 10.893 7.58817 10.893 8.94108V11.9512C10.893 13.2535 11.3711 13.8962 12.4044 13.8962C13.4375 13.8962 13.9157 13.2535 13.9157 11.9512V8.90741C13.9157 7.58817 14.3365 6.91179 15.4269 6.91179C16.4027 6.91179 16.8045 7.58817 16.8045 8.94108V11.9512Z\"/\u003e\u003cpath d=\"M3.31675 6.59049C3.31675 5.28821 2.83866 4.66232 1.82471 4.66232C0.791758 4.66232 0.313354 5.28821 0.313354 6.59049V11.9512C0.313354 13.2535 0.791758 13.8962 1.82471 13.8962C2.85798 13.8962 3.31675 13.2535 3.31675 11.9512V6.59049Z\" /\u003e\u003cpath d=\"M1.87209 0.400291C0.843612 0.400291 0 1.1159 0 1.98861C0 2.87869 0.822846 3.57676 1.87209 3.57676C2.90056 3.57676 3.7234 2.87869 3.7234 1.98861C3.7234 1.1159 2.90056 0.400291 1.87209 0.400291Z\" fill=\"#1BB76E\"/\u003e\u003c/svg\u003e\u003c/a\u003e",
+                    contentPolicyHtml: "User contributions licensed under \u003ca href=\"https://stackoverflow.com/help/licensing\"\u003ecc by-sa\u003c/a\u003e \u003ca href=\"https://stackoverflow.com/legal/content-policy\"\u003e(content policy)\u003c/a\u003e",
+                    allowUrls: true
+                },
+                onDemand: true,
+                discardSelector: ".discard-answer"
+                ,immediatelyShowMarkdownHelp:true,enableTables:true,enableSnippets:true
+            });
+                    }
+    });
+</script>
+<div id="post-editor" class="post-editor js-post-editor">
+
+
+        <div class="ps-relative">
+            <div class="wmd-container mb8">
+                <div id="wmd-button-bar" class="wmd-button-bar btr-sm"></div>
+                <div class="js-stacks-validation">
+                    <div class="ps-relative">
+                        <textarea id="wmd-input"
+                                  name="post-text"
+                                  class="wmd-input s-input bar0 js-post-body-field"
+                                  data-post-type-id="2"
+                                  cols="92" rows="15"
+                                  tabindex="101"
+                                  data-min-length=""></textarea>
+                    </div>
+                    <div class="s-input-message mt4 d-none js-stacks-validation-message"></div>
+                </div>
+            </div>
+        </div>
+
+    <aside class="d-flex ai-start jc-space-between js-answer-help s-notice s-notice__warning pb0 pr4 pt4 mb8 d-none" role="status" aria-hidden="true">
+    <div class="flex--item pt8">
+        <p>Thanks for contributing an answer to Stack Overflow!</p><ul><li>Please be sure to <em>answer the question</em>. Provide details and share your research!</li></ul><p>But <em>avoid</em> …</p><ul><li>Asking for help, clarification, or responding to other answers.</li><li>Making statements based on opinion; back them up with references or personal experience.</li></ul><p>To learn more, see our <a href="/help/how-to-answer">tips on writing great answers</a>.</p>
+    </div>
+    <button class="flex--item js-answer-help-close-btn s-btn s-btn__muted fc-dark">
+        <svg aria-hidden="true" class="svg-icon iconClear" width="18" height="18" viewBox="0 0 18 18"><path d="M15 4.41 13.59 3 9 7.59 4.41 3 3 4.41 7.59 9 3 13.59 4.41 15 9 10.41 13.59 15 15 13.59 10.41 9 15 4.41Z"/></svg>
+    </button>
+</aside>
+
+
+
+    <div>
+        <div id="draft-saved" class="fc-success h24" style="display:none;">Draft saved</div>
+        <div id="draft-discarded" class="fc-error h24" style="display:none;">Draft discarded</div>
+    </div>
+
+
+            <div id="wmd-preview" class="s-prose mb16 wmd-preview js-wmd-preview"></div>
+            <div></div>
+
+        <div class="edit-block">
+            <input id="fkey" name="fkey" type="hidden" value="6aa9aa444afe2e7e38d4e52c023b42eb6ae51a4aa8b84f2db7413942cbc17cc8">
+            <input id="author" name="author" type="text">
+        </div>
+
+</div>
+
+
+                                <div class="ps-relative">
+                                                <div class="form-item dno new-post-login p0 my16">
+                <div class="d-flex gs16 md:fd-column new-login-form">
+                    <div class="d-flex fd-column w50 md:w-auto gsy gs8 jc-space-between new-login-left">
+                        <h3 class="flex--item fs-title">Sign up or <a id="login-link" href="/users/login?ssrc=question_page&returnurl=https%3a%2f%2fstackoverflow.com%2fquestions%2f40799696%2fhow-is-gcc-ir-different-from-llvm-ir%23new-answer">log in</a></h3>
+                        <script>
+                            StackExchange.ready(function () {
+                                StackExchange.helpers.onClickDraftSave('#login-link');
+                            });
+                        </script>
+                        <div class="flex--item s-btn s-btn__muted s-btn__outlined s-btn__icon google-login" data-ga="[&quot;sign up&quot;,&quot;Sign Up Started - Google&quot;,&quot;New Post&quot;,null,null]">
+                            <svg aria-hidden="true" class="native svg-icon iconGoogle" width="18" height="18" viewBox="0 0 18 18"><path d="M16.51 8H8.98v3h4.3c-.18 1-.74 1.48-1.6 2.04v2.01h2.6a7.8 7.8 0 002.38-5.88c0-.57-.05-.66-.15-1.18Z" fill="#4285F4"/><path d="M8.98 17c2.16 0 3.97-.72 5.3-1.94l-2.6-2a4.8 4.8 0 01-7.18-2.54H1.83v2.07A8 8 0 008.98 17Z" fill="#34A853"/><path d="M4.5 10.52a4.8 4.8 0 010-3.04V5.41H1.83a8 8 0 000 7.18l2.67-2.07Z" fill="#FBBC05"/><path d="M8.98 4.18c1.17 0 2.23.4 3.06 1.2l2.3-2.3A8 8 0 001.83 5.4L4.5 7.49a4.77 4.77 0 014.48-3.3Z" fill="#EA4335"/></svg> Sign up using Google
+                        </div>
+                        <div class="flex--item s-btn s-btn__muted s-btn__icon facebook-login" data-ga="[&quot;sign up&quot;,&quot;Sign Up Started - Facebook&quot;,&quot;New Post&quot;,null,null]">
+                            <svg aria-hidden="true" class="svg-icon iconFacebook" width="18" height="18" viewBox="0 0 18 18"><path d="M3 1a2 2 0 00-2 2v12c0 1.1.9 2 2 2h12a2 2 0 002-2V3a2 2 0 00-2-2H3Zm6.55 16v-6.2H7.46V8.4h2.09V6.61c0-2.07 1.26-3.2 3.1-3.2.88 0 1.64.07 1.87.1v2.16h-1.29c-1 0-1.19.48-1.19 1.18V8.4h2.39l-.31 2.42h-2.08V17h-2.5Z" fill="#4167B2"/></svg> Sign up using Facebook
+                        </div>
+                        <div class="flex--item s-btn s-btn__muted s-btn__outlined s-btn__icon stackexchange-login" data-ga="[&quot;sign up&quot;,&quot;Sign Up Navigation&quot;,&quot;New Post&quot;,null,null]">
+                            <svg aria-hidden="true" class="native svg-icon iconLogoGlyphXSm" width="18" height="18" viewBox="0 0 18 18"><path d="M14 16v-5h2v7H2v-7h2v5h10Z" fill="#BCBBBB"/><path d="m12.09.72-1.21.9 4.5 6.07 1.22-.9L12.09.71ZM5 15h8v-2H5v2Zm9.15-5.87L8.35 4.3l.96-1.16 5.8 4.83-.96 1.16Zm-7.7-1.47 6.85 3.19.63-1.37-6.85-3.2-.63 1.38Zm6.53 5L5.4 11.39l.38-1.67 7.42 1.48-.22 1.46Z" fill="#F48024"/></svg> Sign up using Email and Password
+                        </div>
+                    </div>
+                    <input type="hidden" name="use-facebook" class="use-facebook" value="false" />
+                    <input type="hidden" name="use-google" class="use-google" value="false" />
+                    <button type="button" class="d-none js-submit-openid">Submit</button>
+                    <div class="d-flex gsy gs8 fd-column w50 md:w-auto new-login-right form-item p0">
+                                <h3 class="flex--item fs-title">Post as a guest</h3>
+            <div class="flex--item">
+                <div class="d-flex gs4 gsy fd-column">
+                    <label class="s-label" for="display-name">Name</label>
+                    <div class="d-flex ps-relative">
+                        <input class="s-input" id="display-name" name="display-name" maxlength="30" type="text" value="" tabindex="105" placeholder="" />
+                    </div>
+                </div>
+            </div>
+            <div class="flex--item">
+                <div class="d-flex gs4 gsy fd-column">
+                    <div class="flex--item">
+                        <div class="d-flex gs2 gsy fd-column">
+                            <label class="flex--item s-label" for="m-address">Email</label>
+                            <p class="flex--item s-description">Required, but never shown</p>
+                        </div>
+                    </div>
+                    <div class="d-flex ps-relative">
+                        <input class="s-input js-post-email-field" id="m-address" name="m-address" type="text" value="" size="40" tabindex="106" placeholder="" />
+                    </div>
+                </div>
+            </div>
+
+                    </div>
+                </div>
+            </div>
+            <script>
+                StackExchange.ready(
+                    function () {
+                        StackExchange.openid.initPostLogin('.new-post-login', 'https%3a%2f%2fstackoverflow.com%2fquestions%2f40799696%2fhow-is-gcc-ir-different-from-llvm-ir%23new-answer', 'question_page');
+                    }
+                );
+            </script>
+            <noscript>
+                        <h3 class="flex--item fs-title">Post as a guest</h3>
+            <div class="flex--item">
+                <div class="d-flex gs4 gsy fd-column">
+                    <label class="s-label" for="display-name">Name</label>
+                    <div class="d-flex ps-relative">
+                        <input class="s-input" id="display-name" name="display-name" maxlength="30" type="text" value="" tabindex="105" placeholder="" />
+                    </div>
+                </div>
+            </div>
+            <div class="flex--item">
+                <div class="d-flex gs4 gsy fd-column">
+                    <div class="flex--item">
+                        <div class="d-flex gs2 gsy fd-column">
+                            <label class="flex--item s-label" for="m-address">Email</label>
+                            <p class="flex--item s-description">Required, but never shown</p>
+                        </div>
+                    </div>
+                    <div class="d-flex ps-relative">
+                        <input class="s-input js-post-email-field" id="m-address" name="m-address" type="text" value="" size="40" tabindex="106" placeholder="" />
+                    </div>
+                </div>
+            </div>
+
+            </noscript>
+
+                                </div>
+
+                                    <div class="form-submit cbt d-flex gsx gs4">
+                                        <button id="submit-button" class="flex--item s-btn s-btn__primary s-btn__icon" type="submit" tabindex="120" autocomplete="off">
+Post Your Answer                                        </button>
+                                        <button class="flex--item s-btn s-btn__danger discard-answer dno">
+                                            Discard
+                                        </button>
+                                            <p class="privacy-policy-agreement">
+                                                By clicking “Post Your Answer”, you agree to our <a href='https://stackoverflow.com/legal/terms-of-service/public' name='tos' target='_blank' class='-link'>terms of service</a>, <a href='https://stackoverflow.com/legal/privacy-policy' name='privacy' target='_blank' class='-link'>privacy policy</a> and <a href='https://stackoverflow.com/legal/cookie-policy' name='cookie' target='_blank' class='-link'>cookie policy</a><input type="hidden" name="legalLinksShown" value="1" />
+                                            </p>
+                                    </div>
+                                    <div class="js-general-error general-error cbt d-none"></div>
+                            </form>
+
+
+                            <h2 class="bottom-notice" data-loc="1">
+Not the answer you&#x27;re looking for? Browse other questions tagged <a href="/questions/tagged/gcc" class="post-tag" title="show questions tagged &#39;gcc&#39;" rel="tag">gcc</a> <a href="/questions/tagged/compilation" class="post-tag" title="show questions tagged &#39;compilation&#39;" rel="tag">compilation</a> <a href="/questions/tagged/compiler-construction" class="post-tag" title="show questions tagged &#39;compiler-construction&#39;" rel="tag">compiler-construction</a> <a href="/questions/tagged/llvm-ir" class="post-tag" title="show questions tagged &#39;llvm-ir&#39;" rel="tag">llvm-ir</a>  or <a href="/questions/ask">ask your own question</a>.                            </h2>
+                </div>
+            </div>
+            <div id="sidebar" class="show-votes" role="complementary" aria-label="sidebar">
+                    
+
+                
+<div class="s-sidebarwidget s-sidebarwidget__yellow s-anchors s-anchors__grayscale mb16" data-tracker="cb=1">
+    <ul class="d-block p0 m0">
+                    <div class="s-sidebarwidget--header s-sidebarwidget__small-bold-text fc-light d:fc-black-900 bb bbw1">
+                        The Overflow Blog
+                    </div>
+        <li class="s-sidebarwidget--item d-flex px16">
+            <div class="flex--item1 fl-shrink0">
+<svg aria-hidden="true" class="va-text-top svg-icon iconPencilSm" width="14" height="14" viewBox="0 0 14 14"><path d="m11.1 1.71 1.13 1.12c.2.2.2.51 0 .71L11.1 4.7 9.21 2.86l1.17-1.15c.2-.2.51-.2.71 0ZM2 10.12l6.37-6.43 1.88 1.88L3.88 12H2v-1.88Z"/></svg>            </div>
+            <div class="flex--item wmn0 ow-break-word">
+                <a href="https://stackoverflow.blog/2021/12/09/smashing-bugs-to-set-a-world-record-aws-bugbust/" class="js-gps-track" data-ga="[&quot;community bulletin board&quot;,&quot;The Overflow Blog&quot;,&quot;https://stackoverflow.blog/2021/12/09/smashing-bugs-to-set-a-world-record-aws-bugbust/&quot;,null,null]" data-gps-track="communitybulletin.click({ priority: 1, position: 0 })">Smashing bugs to set a world record: AWS BugBust</a>
+            </div>
+        </li>
+        <li class="s-sidebarwidget--item d-flex px16">
+            <div class="flex--item1 fl-shrink0">
+<svg aria-hidden="true" class="va-text-top svg-icon iconPencilSm" width="14" height="14" viewBox="0 0 14 14"><path d="m11.1 1.71 1.13 1.12c.2.2.2.51 0 .71L11.1 4.7 9.21 2.86l1.17-1.15c.2-.2.51-.2.71 0ZM2 10.12l6.37-6.43 1.88 1.88L3.88 12H2v-1.88Z"/></svg>            </div>
+            <div class="flex--item wmn0 ow-break-word">
+                <a href="https://stackoverflow.blog/2021/12/10/podcast-399-zero-to-mvp-without-provisioning-a-database/" class="js-gps-track" data-ga="[&quot;community bulletin board&quot;,&quot;The Overflow Blog&quot;,&quot;https://stackoverflow.blog/2021/12/10/podcast-399-zero-to-mvp-without-provisioning-a-database/&quot;,null,null]" data-gps-track="communitybulletin.click({ priority: 1, position: 1 })">Podcast 399: Zero to MVP without provisioning a database</a>
+            </div>
+        </li>
+                    <div class="s-sidebarwidget--header s-sidebarwidget__small-bold-text fc-light d:fc-black-900 bb bbw1">
+                        Featured on Meta
+                    </div>
+        <li class="s-sidebarwidget--item d-flex px16">
+            <div class="flex--item1 fl-shrink0">
+<div class="favicon favicon-stackexchangemeta" title="Meta Stack Exchange"></div>            </div>
+            <div class="flex--item wmn0 ow-break-word">
+                <a href="https://meta.stackexchange.com/questions/372007/reducing-the-weight-of-our-footer" class="js-gps-track" data-ga="[&quot;community bulletin board&quot;,&quot;Featured on Meta&quot;,&quot;https://meta.stackexchange.com/questions/372007/reducing-the-weight-of-our-footer&quot;,null,null]" data-gps-track="communitybulletin.click({ priority: 3, position: 2 })">Reducing the weight of our footer</a>
+            </div>
+        </li>
+        <li class="s-sidebarwidget--item d-flex px16">
+            <div class="flex--item1 fl-shrink0">
+<div class="favicon favicon-stackexchangemeta" title="Meta Stack Exchange"></div>            </div>
+            <div class="flex--item wmn0 ow-break-word">
+                <a href="https://meta.stackexchange.com/questions/372049/new-responsive-activity-page" class="js-gps-track" data-ga="[&quot;community bulletin board&quot;,&quot;Featured on Meta&quot;,&quot;https://meta.stackexchange.com/questions/372049/new-responsive-activity-page&quot;,null,null]" data-gps-track="communitybulletin.click({ priority: 3, position: 3 })">New responsive Activity page</a>
+            </div>
+        </li>
+        <li class="s-sidebarwidget--item d-flex px16">
+            <div class="flex--item1 fl-shrink0">
+<div class="favicon favicon-stackoverflowmeta" title="Meta Stack Overflow"></div>            </div>
+            <div class="flex--item wmn0 ow-break-word">
+                <a href="https://meta.stackoverflow.com/questions/413357/community-input-needed-the-rules-for-collectives-articles" class="js-gps-track" data-ga="[&quot;community bulletin board&quot;,&quot;Featured on Meta&quot;,&quot;https://meta.stackoverflow.com/questions/413357/community-input-needed-the-rules-for-collectives-articles&quot;,null,null]" data-gps-track="communitybulletin.click({ priority: 6, position: 4 })">Community input needed: The rules for collectives articles</a>
+            </div>
+        </li>
+        <li class="s-sidebarwidget--item d-flex px16">
+            <div class="flex--item1 fl-shrink0">
+<div class="favicon favicon-stackoverflowmeta" title="Meta Stack Overflow"></div>            </div>
+            <div class="flex--item wmn0 ow-break-word">
+                <a href="https://meta.stackoverflow.com/questions/413615/a-b-testing-on-the-ask-page" class="js-gps-track" data-ga="[&quot;community bulletin board&quot;,&quot;Featured on Meta&quot;,&quot;https://meta.stackoverflow.com/questions/413615/a-b-testing-on-the-ask-page&quot;,null,null]" data-gps-track="communitybulletin.click({ priority: 6, position: 5 })">A/B testing on the Ask page</a>
+            </div>
+        </li>
+    </ul>
+</div>
+
+
+<div class="js-zone-container zone-container-sidebar">
+    <div id="clc-tsb" class="everyonelovesstackoverflow everyoneloves__top-sidebar"></div>
+    <div class="js-report-ad-button-container " style="width: 300px"></div>
+</div>
+<div id="hireme"></div>                    
+
+                    <div class="module sidebar-related">
+                        <h4 id="h-related">Related</h4>
+                        <div class="related js-gps-related-questions" data-tracker="rq=1">
+                                <div class="spacer">
+                                    <a href="/q/45135" title="Vote score (upvotes - downvotes)">
+                                        <div class="answer-votes large">522</div>
+                                    </a>
+                                    <a href="/questions/45135/why-does-the-order-in-which-libraries-are-linked-sometimes-cause-errors-in-gcc" class="question-hyperlink">Why does the order in which libraries are linked sometimes cause errors in GCC?</a>
+                                </div>
+                                <div class="spacer">
+                                    <a href="/q/59670" title="Vote score (upvotes - downvotes)">
+                                        <div class="answer-votes answered-accepted large">422</div>
+                                    </a>
+                                    <a href="/questions/59670/how-to-get-rid-of-deprecated-conversion-from-string-constant-to-char-warnin" class="question-hyperlink">How to get rid of `deprecated conversion from string constant to ‘char*’` warnings in GCC?</a>
+                                </div>
+                                <div class="spacer">
+                                    <a href="/q/137038" title="Vote score (upvotes - downvotes)">
+                                        <div class="answer-votes answered-accepted large">454</div>
+                                    </a>
+                                    <a href="/questions/137038/how-do-you-get-assembler-output-from-c-c-source-in-gcc" class="question-hyperlink">How do you get assembler output from C/C++ source in gcc?</a>
+                                </div>
+                                <div class="spacer">
+                                    <a href="/q/172587" title="Vote score (upvotes - downvotes)">
+                                        <div class="answer-votes answered-accepted extra-large">1026</div>
+                                    </a>
+                                    <a href="/questions/172587/what-is-the-difference-between-g-and-gcc" class="question-hyperlink">What is the difference between g++ and gcc?</a>
+                                </div>
+                                <div class="spacer">
+                                    <a href="/q/187990" title="Vote score (upvotes - downvotes)">
+                                        <div class="answer-votes default">39</div>
+                                    </a>
+                                    <a href="/questions/187990/why-does-gcc-windows-depend-on-cygwin" class="question-hyperlink">Why does GCC-Windows depend on cygwin?</a>
+                                </div>
+                                <div class="spacer">
+                                    <a href="/q/834748" title="Vote score (upvotes - downvotes)">
+                                        <div class="answer-votes answered-accepted large">418</div>
+                                    </a>
+                                    <a href="/questions/834748/gcc-makefile-error-no-rule-to-make-target" class="question-hyperlink">gcc makefile error: &quot;No rule to make target ...&quot;</a>
+                                </div>
+                                <div class="spacer">
+                                    <a href="/q/2354725" title="Vote score (upvotes - downvotes)">
+                                        <div class="answer-votes answered-accepted large">521</div>
+                                    </a>
+                                    <a href="/questions/2354725/what-exactly-is-llvm" class="question-hyperlink">What exactly is LLVM?</a>
+                                </div>
+                                <div class="spacer">
+                                    <a href="/q/5311515" title="Vote score (upvotes - downvotes)">
+                                        <div class="answer-votes answered-accepted large">515</div>
+                                    </a>
+                                    <a href="/questions/5311515/gcc-fpic-option" class="question-hyperlink">GCC -fPIC option</a>
+                                </div>
+                                <div class="spacer">
+                                    <a href="/q/6430448" title="Vote score (upvotes - downvotes)">
+                                        <div class="answer-votes answered-accepted extra-large">2227</div>
+                                    </a>
+                                    <a href="/questions/6430448/why-doesnt-gcc-optimize-aaaaaa-to-aaaaaa" class="question-hyperlink">Why doesn&#39;t GCC optimize a*a*a*a*a*a to (a*a*a)*(a*a*a)?</a>
+                                </div>
+                        </div>
+                    </div>
+
+                <div id="hot-network-questions" class="module tex2jax_ignore">
+    <h4>
+        <a href="https://stackexchange.com/questions?tab=hot"
+           class="js-gps-track s-link s-link__inherit" 
+           data-gps-track="posts_hot_network.click({ item_type:1, location:11 })">
+            Hot Network Questions
+        </a>
+    </h4>
+    <ul>
+            <li >
+                <div class="favicon favicon-codereview" title="Code Review Stack Exchange"></div><a href="https://codereview.stackexchange.com/questions/270907/event-dispatching-system" class="js-gps-track question-hyperlink mb0" data-gps-track="site.switch({ item_type:11, target_site:196 }); posts_hot_network.click({ item_type:2, location:11 })">
+                    Event Dispatching System
+                </a>
+
+            </li>
+            <li >
+                <div class="favicon favicon-scifi" title="Science Fiction &amp; Fantasy Stack Exchange"></div><a href="https://scifi.stackexchange.com/questions/257047/how-was-this-shot-of-river-tam-on-the-ceiling-managed-in-serenity" class="js-gps-track question-hyperlink mb0" data-gps-track="site.switch({ item_type:11, target_site:186 }); posts_hot_network.click({ item_type:2, location:11 })">
+                    How was this shot of River Tam on the ceiling managed in Serenity?
+                </a>
+
+            </li>
+            <li >
+                <div class="favicon favicon-workplace" title="The Workplace Stack Exchange"></div><a href="https://workplace.stackexchange.com/questions/180474/employer-wants-to-change-salary-after-i-signed-contract" class="js-gps-track question-hyperlink mb0" data-gps-track="site.switch({ item_type:11, target_site:423 }); posts_hot_network.click({ item_type:2, location:11 })">
+                    Employer wants to change salary after I signed contract
+                </a>
+
+            </li>
+            <li >
+                <div class="favicon favicon-academia" title="Academia Stack Exchange"></div><a href="https://academia.stackexchange.com/questions/179005/authorship-of-a-student-who-published-separately-without-permission" class="js-gps-track question-hyperlink mb0" data-gps-track="site.switch({ item_type:11, target_site:415 }); posts_hot_network.click({ item_type:2, location:11 })">
+                    Authorship of a student who published separately without permission
+                </a>
+
+            </li>
+            <li >
+                <div class="favicon favicon-worldbuilding" title="Worldbuilding Stack Exchange"></div><a href="https://worldbuilding.stackexchange.com/questions/218927/why-didnt-the-military-give-t-rex-clones-a-bigger-more-powerful-arms" class="js-gps-track question-hyperlink mb0" data-gps-track="site.switch({ item_type:11, target_site:579 }); posts_hot_network.click({ item_type:2, location:11 })">
+                    Why didn&#x27;t the military give T-rex clones a bigger more powerful arms?
+                </a>
+
+            </li>
+            <li class="dno js-hidden">
+                <div class="favicon favicon-worldbuilding" title="Worldbuilding Stack Exchange"></div><a href="https://worldbuilding.stackexchange.com/questions/219007/what-types-of-enemies-would-a-two-handed-sledge-hammer-be-useful-against-in-a-me" class="js-gps-track question-hyperlink mb0" data-gps-track="site.switch({ item_type:11, target_site:579 }); posts_hot_network.click({ item_type:2, location:11 })">
+                    What types of enemies would a two-handed sledge hammer be useful against in a medieval fantasy setting?
+                </a>
+
+            </li>
+            <li class="dno js-hidden">
+                <div class="favicon favicon-unix" title="Unix &amp; Linux Stack Exchange"></div><a href="https://unix.stackexchange.com/questions/681033/using-echo-to-create-a-new-empty-file-isnt-creating-an-empty-file" class="js-gps-track question-hyperlink mb0" data-gps-track="site.switch({ item_type:11, target_site:106 }); posts_hot_network.click({ item_type:2, location:11 })">
+                    Using echo &quot;&quot; to create a new empty file isn&#x27;t creating an empty file
+                </a>
+
+            </li>
+            <li class="dno js-hidden">
+                <div class="favicon favicon-astronomy" title="Astronomy Stack Exchange"></div><a href="https://astronomy.stackexchange.com/questions/47762/what-rotational-speed-would-mercury-need-to-have-to-achieve-a-temperature-comfor" class="js-gps-track question-hyperlink mb0" data-gps-track="site.switch({ item_type:11, target_site:514 }); posts_hot_network.click({ item_type:2, location:11 })">
+                    What rotational speed would Mercury need to have to achieve a temperature comfortable for humans
+                </a>
+
+            </li>
+            <li class="dno js-hidden">
+                <div class="favicon favicon-crypto" title="Cryptography Stack Exchange"></div><a href="https://crypto.stackexchange.com/questions/96544/is-encrypting-every-number-separately-using-rsa-secure" class="js-gps-track question-hyperlink mb0" data-gps-track="site.switch({ item_type:11, target_site:281 }); posts_hot_network.click({ item_type:2, location:11 })">
+                    Is encrypting every number separately using RSA secure?
+                </a>
+
+            </li>
+            <li class="dno js-hidden">
+                <div class="favicon favicon-german" title="German Language Stack Exchange"></div><a href="https://german.stackexchange.com/questions/68025/whats-the-meaning-of-man-wei%c3%9f-halt-gef%c3%bchlt-nichts" class="js-gps-track question-hyperlink mb0" data-gps-track="site.switch({ item_type:11, target_site:253 }); posts_hot_network.click({ item_type:2, location:11 })">
+                    What&#x27;s the meaning of &quot;Man wei&#xDF; halt gef&#xFC;hlt nichts&quot;?
+                </a>
+
+            </li>
+            <li class="dno js-hidden">
+                <div class="favicon favicon-tex" title="TeX - LaTeX Stack Exchange"></div><a href="https://tex.stackexchange.com/questions/625746/filling-grid-points-intersected-by-a-circle" class="js-gps-track question-hyperlink mb0" data-gps-track="site.switch({ item_type:11, target_site:85 }); posts_hot_network.click({ item_type:2, location:11 })">
+                    Filling Grid Points Intersected by a Circle
+                </a>
+
+            </li>
+            <li class="dno js-hidden">
+                <div class="favicon favicon-codereview" title="Code Review Stack Exchange"></div><a href="https://codereview.stackexchange.com/questions/270901/get-data-from-nfo-file-with-functions-python" class="js-gps-track question-hyperlink mb0" data-gps-track="site.switch({ item_type:11, target_site:196 }); posts_hot_network.click({ item_type:2, location:11 })">
+                    Get data from nfo file with functions Python
+                </a>
+
+            </li>
+            <li class="dno js-hidden">
+                <div class="favicon favicon-ell" title="English Language Learners Stack Exchange"></div><a href="https://ell.stackexchange.com/questions/303767/alternate-word-for-very-inaccurate-plan" class="js-gps-track question-hyperlink mb0" data-gps-track="site.switch({ item_type:11, target_site:481 }); posts_hot_network.click({ item_type:2, location:11 })">
+                    Alternate word for &quot;very inaccurate plan&quot;
+                </a>
+
+            </li>
+            <li class="dno js-hidden">
+                <div class="favicon favicon-money" title="Personal Finance &amp; Money Stack Exchange"></div><a href="https://money.stackexchange.com/questions/146790/how-can-i-avoid-overdraft-fees-while-moving-all-of-my-funds-to-a-new-bank" class="js-gps-track question-hyperlink mb0" data-gps-track="site.switch({ item_type:11, target_site:93 }); posts_hot_network.click({ item_type:2, location:11 })">
+                    How can I avoid overdraft fees while moving all of my funds to a new bank?
+                </a>
+
+            </li>
+            <li class="dno js-hidden">
+                <div class="favicon favicon-ell" title="English Language Learners Stack Exchange"></div><a href="https://ell.stackexchange.com/questions/303932/is-there-a-difference-between-spectacles-and-glasses-is-there-a-us-uk-engli" class="js-gps-track question-hyperlink mb0" data-gps-track="site.switch({ item_type:11, target_site:481 }); posts_hot_network.click({ item_type:2, location:11 })">
+                    Is there a difference between &quot;spectacles&quot; and &quot;glasses&quot;? Is there a US-UK English difference or is it just preference for one word over other?
+                </a>
+
+            </li>
+            <li class="dno js-hidden">
+                <div class="favicon favicon-diy" title="Home Improvement Stack Exchange"></div><a href="https://diy.stackexchange.com/questions/239798/how-to-reduce-heat-lost-to-attic-through-attic-door" class="js-gps-track question-hyperlink mb0" data-gps-track="site.switch({ item_type:11, target_site:73 }); posts_hot_network.click({ item_type:2, location:11 })">
+                    how to reduce heat lost to attic through attic door
+                </a>
+
+            </li>
+            <li class="dno js-hidden">
+                <div class="favicon favicon-parenting" title="Parenting Stack Exchange"></div><a href="https://parenting.stackexchange.com/questions/42189/4-year-old-fights-the-school-routine" class="js-gps-track question-hyperlink mb0" data-gps-track="site.switch({ item_type:11, target_site:228 }); posts_hot_network.click({ item_type:2, location:11 })">
+                    4-Year Old Fights the School Routine
+                </a>
+
+            </li>
+            <li class="dno js-hidden">
+                <div class="favicon favicon-workplace" title="The Workplace Stack Exchange"></div><a href="https://workplace.stackexchange.com/questions/180496/how-do-i-leave-a-company-on-good-terms-if-my-project-manager-views-leaving-the-c" class="js-gps-track question-hyperlink mb0" data-gps-track="site.switch({ item_type:11, target_site:423 }); posts_hot_network.click({ item_type:2, location:11 })">
+                    How do I leave a company on good terms if my project manager views leaving the company as a form of betrayal?
+                </a>
+
+            </li>
+            <li class="dno js-hidden">
+                <div class="favicon favicon-askubuntu" title="Ask Ubuntu"></div><a href="https://askubuntu.com/questions/1380288/cant-uninstall-edge" class="js-gps-track question-hyperlink mb0" data-gps-track="site.switch({ item_type:11, target_site:89 }); posts_hot_network.click({ item_type:2, location:11 })">
+                    Can&#x27;t uninstall Edge
+                </a>
+
+            </li>
+            <li class="dno js-hidden">
+                <div class="favicon favicon-codegolf" title="Code Golf Stack Exchange"></div><a href="https://codegolf.stackexchange.com/questions/238353/aocg2021-day-11-garbageful-streams" class="js-gps-track question-hyperlink mb0" data-gps-track="site.switch({ item_type:11, target_site:200 }); posts_hot_network.click({ item_type:2, location:11 })">
+                    AoCG2021 Day 11: Garbageful streams
+                </a>
+
+            </li>
+            <li class="dno js-hidden">
+                <div class="favicon favicon-bitcoin" title="Bitcoin Stack Exchange"></div><a href="https://bitcoin.stackexchange.com/questions/111193/where-is-the-btc-price-stored" class="js-gps-track question-hyperlink mb0" data-gps-track="site.switch({ item_type:11, target_site:308 }); posts_hot_network.click({ item_type:2, location:11 })">
+                    Where is the BTC price &quot;stored&quot;?
+                </a>
+
+            </li>
+            <li class="dno js-hidden">
+                <div class="favicon favicon-academia" title="Academia Stack Exchange"></div><a href="https://academia.stackexchange.com/questions/178945/my-advisor-wants-me-to-quit-the-program-what-should-i-do" class="js-gps-track question-hyperlink mb0" data-gps-track="site.switch({ item_type:11, target_site:415 }); posts_hot_network.click({ item_type:2, location:11 })">
+                    My advisor wants me to quit the program. What should I do?
+                </a>
+
+            </li>
+            <li class="dno js-hidden">
+                <div class="favicon favicon-law" title="Law Stack Exchange"></div><a href="https://law.stackexchange.com/questions/75224/if-a-person-punches-my-wife-and-i-am-right-there-do-i-have-a-right-to-punch-tha" class="js-gps-track question-hyperlink mb0" data-gps-track="site.switch({ item_type:11, target_site:617 }); posts_hot_network.click({ item_type:2, location:11 })">
+                    If a person punches my wife and I am right there, do I have a right to punch that person, or use a singular subduing technique in response?
+                </a>
+
+            </li>
+            <li class="dno js-hidden">
+                <div class="favicon favicon-codegolf" title="Code Golf Stack Exchange"></div><a href="https://codegolf.stackexchange.com/questions/238258/aocg2021-day-9-spiral-memory-stress-test" class="js-gps-track question-hyperlink mb0" data-gps-track="site.switch({ item_type:11, target_site:200 }); posts_hot_network.click({ item_type:2, location:11 })">
+                    AoCG2021 Day 9: Spiral memory stress test
+                </a>
+
+            </li>
+    </ul>
+
+        <a href="#" 
+           class="show-more js-show-more js-gps-track" 
+           data-gps-track="posts_hot_network.click({ item_type:3, location:11 })">
+            more hot questions
+        </a>
+</div>
+
+                            <div id="feed-link" class="js-feed-link">
+        <a href="/feeds/question/40799696" title="Feed of this question and its answers">
+            <svg aria-hidden="true" class="fc-orange-400 svg-icon iconRss" width="18" height="18" viewBox="0 0 18 18"><path d="M1 3c0-1.1.9-2 2-2h12c1.09 0 2 .91 2 2v12c0 1.09-.91 2-2 2H3c-1.09 0-2-.91-2-2V3Zm14.5 12C15.5 8.1 9.9 2.5 3 2.5V5a10 10 0 0110 10h2.5Zm-5 0A7.5 7.5 0 003 7.5V10a5 5 0 015 5h2.5Zm-5 0A2.5 2.5 0 003 12.5V15h2.5Z"/></svg>
+            Question feed
+        </a>
+    </div>
+    <aside class="s-modal js-feed-link-modal" tabindex="-1" role="dialog" aria-labelledby="feed-modal-title" aria-describedby="feed-modal-description" aria-hidden="true">
+        <div class="s-modal--dialog js-modal-dialog wmx4" role="document"  data-controller="se-draggable">
+            <h1 class="s-modal--header fw-bold js-first-tabbable" id="feed-modal-title" data-se-draggable-target="handle" tabindex="0">
+                Subscribe to RSS
+            </h1>
+            <div class="d-flex gs4 gsy fd-column">
+                <div class="flex--item">
+                    <label class="d-block s-label c-default" for="feed-url">
+                        Question feed
+                        <p class="s-description mt2" id="feed-modal-description">To subscribe to this RSS feed, copy and paste this URL into your RSS reader.</p>
+                    </label>
+                </div>
+                <div class="d-flex ps-relative">
+                    <input class="s-input" type="text" name="feed-url" id="feed-url" readonly="readonly" value="https://stackoverflow.com/feeds/question/40799696" />
+                    <svg aria-hidden="true" class="s-input-icon fc-orange-400 svg-icon iconRss" width="18" height="18" viewBox="0 0 18 18"><path d="M1 3c0-1.1.9-2 2-2h12c1.09 0 2 .91 2 2v12c0 1.09-.91 2-2 2H3c-1.09 0-2-.91-2-2V3Zm14.5 12C15.5 8.1 9.9 2.5 3 2.5V5a10 10 0 0110 10h2.5Zm-5 0A7.5 7.5 0 003 7.5V10a5 5 0 015 5h2.5Zm-5 0A2.5 2.5 0 003 12.5V15h2.5Z"/></svg>
+                </div>
+            </div>
+            <a class="s-modal--close s-btn s-btn__muted js-modal-close js-last-tabbable" href="#" aria-label="Close">
+                <svg aria-hidden="true" class="svg-icon iconClearSm" width="14" height="14" viewBox="0 0 14 14"><path d="M12 3.41 10.59 2 7 5.59 3.41 2 2 3.41 5.59 7 2 10.59 3.41 12 7 8.41 10.59 12 12 10.59 8.41 7 12 3.41Z"/></svg>
+            </a>
+        </div>
+    </aside>
+
+            </div>
+    </div>
+<script>StackExchange.ready(function(){$.get('/posts/40799696/ivc/5f25');});</script>
+<noscript><div><img src="/posts/40799696/ivc/5f25" class="dno" alt="" width="0" height="0"></div></noscript><div style="display:none" id="js-codeblock-lang">lang-c</div></div>
+
+
+        </div>
+    </div>
+
+        
+<script>;(()=>{"use strict";function j(a){return"string"==typeof a?document.getElementById(a):a}function k(a){return!!(a=j(a))&&"none"===getComputedStyle(a).display}function e(a){return!k(a)}function n(a){return!!a}function i(a){return /^\s*$/.test(j(a).innerHTML)}function a(a){var b=a.style;b.height=b.maxHeight=b.minHeight="auto",b.display="none"}function c(a){var b=a.style;b.height=b.maxHeight=b.minHeight="auto",b.display="none",[].forEach.call(a.children,c)}function l(a){var b=a.style;b.height=b.maxHeight=b.minHeight="auto",b.removeProperty("display")}function q(a,b){var c;return function(){return a&&(c=a.call(b||this,arguments),a=null),c}}function o(a){var b=document.createElement("script");b.src=a,document.body.appendChild(b)}function r(a,b){return a.push=function(a){return b(),delete this.push,this.push(a)},a}function x(){return"undefined"!=typeof googletag&&!!googletag.apiReady}function m(){var a;x()||(window.googletag={cmd:(a=g,r([],a))})}function b(a){var b=a.split("_")[0],c=u.ids[b],d=u.slots[c];return"function"==typeof d&&(d=d(b)),{path:"/248424177/"+h+"/"+c+"/"+p,sizes:d,zone:c}}function d(f){try{Array.isArray(clc.dfp.slotsRenderedEvents)||(clc.dfp.slotsRenderedEvents=[]),clc.dfp.slotsRenderedEvents.push(f);var g=f.slot.getSlotElementId(),e=[];g||e.push("id=0");var h=document.getElementById(g);if(g&&!h?e.push("el=0"):h.hasAttribute("data-clc-stalled")&&e.push("st=1"),0!==e.length)return void v(e.join("&"));var j=b(g),k=(j.path,j.sizes,j.zone);if(clc.collapse&&clc.collapse[k]&&f.isEmpty)return h.id,c(h),void h.setAttribute("data-clc-ready","true");if(h.id,f.lineItemId,-1!==z.dh.indexOf(f.lineItemId))c(h);else if(f.lineItemId){h.setAttribute("data-clc-prefilled","true");var m=h.parentElement;if(m.classList.contains("js-zone-container")){switch(a(m),h.id,m.querySelectorAll(".js-report-ad-button-container")[0].style.height="24px",g){case"dfp-tlb":case"dfp-tag":m.classList.add("mb8");break;case"dfp-mlb":case"dfp-smlb":case"dfp-bmlb":m.classList.add("my8");break;case"dfp-isb":m.classList.add("mt24");break;case"dfp-m-aq":m.classList.add("my12"),m.classList.add("mx-auto");}l(m),l(h)}else l(h);"dfp-msb"==g&&c(document.getElementById("hireme"))}h.setAttribute("data-clc-ready","true")}catch(a){var n=document.querySelector("#dfp-tsb, #dfp-isb, #clc-tsb");n&&n.setAttribute("data-clc-ready","true"),v("e=1")}}function s(d,f){"dfp-isb"===d&&f.setTargeting("Sidebar",["Inline"]),"dfp-tsb"===d&&f.setTargeting("Sidebar",["Right"]);var e=b(d),g=e.path,h=e.sizes;e.zone,JSON.stringify(h);var a=googletag.defineSlot(g,h,d);a.addService(f);var c=d.split("_");if("clc-cpa"==c[0]&&c[1]){var i=c[1];a.setTargeting("talent-company-id",i)}}window.clc=window.clc||{};var z=function(a,b){for(var c in b)a[c]=b[c];return a}({"lib":"https://cdn.sstatic.net/clc/clc.min.js?v=9fb71081b5c6","style":"https://cdn.sstatic.net/clc/styles/clc.min.css?v=86ebc1aa2ac9","u":"https://clc.stackoverflow.com/markup.js","wa":true,"kt":2000,"tto":true,"h":"clc.stackoverflow.com","allowed":"^(((talent\\.)?stackoverflow)|(blog\\.codinghorror)|(serverfault|askubuntu)|([^\\.]+\\.stackexchange))\\.com$","wv":true,"al":false,"dh":[5171832659],"abd":true},clc.options||{}),t=q(function(){o(z.lib)});window.clc=window.clc||{},clc.cmd=clc.cmd||[];var f=clc.cmd;Array.isArray(clc.cmd)&&(0<clc.cmd.length?t():r(clc.cmd,t));var g=q(function(){z.targeting_consent||void 0===z.targeting_consent?o("https://securepubads.g.doubleclick.net/tag/js/gpt.js"):o("https://pagead2.googlesyndication.com/tag/js/gpt.js")}),p=/^\/tags\//.test(location.pathname)||/^\/questions\/tagged\//.test(location.pathname)?"tag-pages":/^\/$/.test(location.pathname)||/^\/home/.test(location.pathname)?"home-page":"question-pages",h=location.hostname,u={slots:{lb:[[728,90]],mlb:[[728,90]],smlb:[[728,90]],bmlb:[[728,90]],sb:function(a){return"dfp-tsb"===a?[[300,250],[300,600]]:[[300,250]]},"tag-sponsorship":[[730,135]],"mobile-below-question":[[320,50],[300,250]],msb:[[300,250],[300,600]],"talent-conversion-tracking":[[1,1]]},ids:{"dfp-tlb":"lb","dfp-mlb":"mlb","dfp-smlb":"smlb","dfp-bmlb":"bmlb","dfp-tsb":"sb","dfp-isb":"sb","dfp-tag":"tag-sponsorship","dfp-msb":"msb","dfp-m-aq":"mobile-below-question","clc-tlb":"lb","clc-mlb":"mlb","clc-tsb":"sb","clc-cpa":"talent-conversion-tracking"}},v=function(a){new Image().src="https://"+z.h+"/stalled.gif?"+a};window.clc=window.clc||{},clc.options=z,clc.cmd=f,clc.dfp={load:function b(l){void 0===l&&(l=Object.keys(u.ids).filter(function(a){return"clc-cpa"!=a}));var o=["dfp-mlb","dfp-smlb"];if(!x())return m(),void googletag.cmd.push(function(){return b(l)});var q=function(a){var b=a.map(j).filter(n);return{eligible:b.filter(i).filter(e),ineligible:b.filter(k)}}(l),r=q.eligible,f=q.ineligible;if(r.forEach(function(b){a(b)}),f.forEach(c),0!==r.length){var g;z.abd&&((g=document.createElement("div")).className="adsbox",g.id="clc-abd",g.style.position="absolute",g.style.pointerEvents="none",g.innerHTML="&nbsp;",document.body.appendChild(g));var p=googletag.pubads().getSlots().filter(function(a){return 0<=l.indexOf(a.getSlotElementId())});googletag.destroySlots(p);var h=googletag.pubads();z.sf&&(h.setForceSafeFrame(!0),h.setSafeFrameConfig({allowOverlayExpansion:!0,allowPushExpansion:!0,sandbox:!0})),void 0!==z.targeting_consent&&(z.targeting_consent,h.setRequestNonPersonalizedAds(z.targeting_consent?0:1),z.targeting_consent||h.setPrivacySettings({limitedAds:!0})),z.ll||h.enableSingleRequest(),window.clc=window.clc||{},clc.sreEvent||(h.addEventListener("slotRenderEnded",d),clc.sreEvent=!0),function(a){var b=window.clc&&clc.dfp&&clc.dfp.targeting||{};"SystemDefault"===b.ProductVariant&&(window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches?b.ProductVariant="Dark":b.ProductVariant="Light"),Object.keys(b).forEach(function(c){b[c],a.setTargeting(c,b[c])})}(h);var t=r.filter(function(a){return!z.ll||0>o.indexOf(a.id)}),v=r.filter(function(a){return!!z.ll&&0<=o.indexOf(a.id)});t.forEach(function(a){a.id,s(a.id,h),a.setAttribute("data-dfp-zone","true")}),googletag.enableServices(),t.forEach(function(a){a.id,googletag.display(a.id)}),z.ll&&(h.enableLazyLoad({fetchMarginPercent:0,renderMarginPercent:0}),v.forEach(function(a){a.id,s(a.id,h),a.setAttribute("data-clc-prefilled","true")}),v.forEach(function(a){a.id,googletag.display(a.id)}))}}},z.al&&f.push(function(){return clc.load()}),m()})();</script><script>
+    var clc = clc || {};
+    clc.collapse = { sb: !0, 'tag-sponsorship': !0, lb: !0, mlb: !0, smlb: !0, bmlb: !0, 'mobile-below-question': !0 };
+    clc.options = clc.options || {};
+    clc.options.sf = !0;
+    clc.options.hb = !1;
+    clc.options.ll = !0;
+    clc.options.targeting_consent = !0;
+    clc.options.performance_consent = !0;
+        clc.cmd = clc.cmd || [];
+        clc.cmd.push(function () { window.clc_request='AyFCf7wtvdkIAAAAANCNbgICAAAAAgAAAAABLwAAAHxnY2N8Y29tcGlsYXRpb258Y29tcGlsZXItY29uc3RydWN0aW9ufGxsdm0taXJ8AHfWWQHGtbIER8s'; clc.load(); });
+        StackExchange.ready(function () { googletag.cmd.push(function () { StackExchange.ads.init(googletag, '/ads/report-ad', 'Report this ad') }) });
+</script>
+
+            <footer id="footer" class="site-footer js-footer" role="contentinfo">
+        <div class="site-footer--container">
+                <div class="site-footer--logo">
+                    
+                    <a href="https://stackoverflow.com"><svg aria-hidden="true" class="native svg-icon iconLogoGlyphMd" width="32" height="37" viewBox="0 0 32 37"><path d="M26 33v-9h4v13H0V24h4v9h22Z" fill="#BCBBBB"/><path d="m21.5 0-2.7 2 9.9 13.3 2.7-2L21.5 0ZM26 18.4 13.3 7.8l2.1-2.5 12.7 10.6-2.1 2.5ZM9.1 15.2l15 7 1.4-3-15-7-1.4 3Zm14 10.79.68-2.95-16.1-3.35L7 23l16.1 2.99ZM23 30H7v-3h16v3Z" fill="#F48024"/></svg></a>
+                </div>
+            <nav class="site-footer--nav">
+                    <div class="site-footer--col">
+                        <h5 class="-title"><a href="https://stackoverflow.com" class="js-gps-track" data-gps-track="footer.click({ location: 2, link: 15})">Stack Overflow</a></h5>
+                        <ul class="-list js-primary-footer-links">
+                            <li><a href="/questions" class="js-gps-track -link" data-gps-track="footer.click({ location: 2, link: 16})">Questions</a></li>
+                                <li><a href="https://stackoverflow.com/jobs" class="js-gps-track -link" data-gps-track="footer.click({ location: 2, link: 17})">Jobs</a></li>
+                                <li><a href="https://stackoverflow.com/jobs/directory/developer-jobs" class="js-gps-track -link" data-gps-track="footer.click({ location: 2, link: 11})">Developer Jobs Directory</a></li>
+                                    <li><a href="https://stackoverflow.com/jobs/salary" class="js-gps-track -link" data-gps-track="footer.click({ location: 2, link: 28})">Salary Calculator</a></li>
+                                <li><a href="/help" class="js-gps-track -link" data-gps-track="footer.click({ location: 2, link: 3 })">Help</a></li>
+                                <li><a onclick='StackExchange.switchMobile("on")' class="js-gps-track -link" data-gps-track="footer.click({ location: 2, link: 12 })">Mobile</a></li>
+                        </ul>
+                    </div>
+                    <div class="site-footer--col">
+                        <h5 class="-title"><a href="https://stackoverflowbusiness.com" class="js-gps-track" data-gps-track="footer.click({ location: 2, link: 19 })">Products</a></h5>
+                        <ul class="-list">
+                            <li><a href="https://stackoverflow.com/teams" class="js-gps-track -link" 
+                                                 data-ga="[&quot;teams traffic&quot;,&quot;footer - site nav&quot;,&quot;stackoverflow.com/teams&quot;,null,{&quot;dimension4&quot;:&quot;teams&quot;}]"
+                                                 data-gps-track="footer.click({ location: 2, link: 29 })">Teams</a></li>
+                            <li><a href="https://stackoverflow.com/talent" class="js-gps-track -link" data-gps-track="footer.click({ location: 2, link: 20 })">Talent</a></li>
+                            <li><a href="https://stackoverflow.com/advertising" class="js-gps-track -link" data-gps-track="footer.click({ location: 2, link: 21 })">Advertising</a></li>
+                            <li><a href="https://stackoverflowsolutions.com/explore-teams" class="js-gps-track -link" data-gps-track="footer.click({ location: 2, link: 22 })">Enterprise</a></li>
+                        </ul>
+                    </div>
+                <div class="site-footer--col">
+                    <h5 class="-title"><a class="js-gps-track" data-gps-track="footer.click({ location: 2, link: 1 })" href="https://stackoverflow.com/company">Company</a></h5>
+                    <ul class="-list">
+                            <li><a class="js-gps-track -link" data-gps-track="footer.click({ location: 2, link: 1 })" href="https://stackoverflow.com/company">About</a></li>
+                        <li><a class="js-gps-track -link" data-gps-track="footer.click({ location: 2, link: 27 })" href="https://stackoverflow.com/company/press">Press</a></li>
+                            <li><a class="js-gps-track -link" data-gps-track="footer.click({ location: 2, link: 9 })" href="https://stackoverflow.com/company/work-here">Work Here</a></li>
+                        <li><a class="js-gps-track -link" data-gps-track="footer.click({ location: 2, link: 7 })" href="https://stackoverflow.com/legal">Legal</a></li>
+                        <li><a class="js-gps-track -link" data-gps-track="footer.click({ location: 2, link: 8 })" href="https://stackoverflow.com/legal/privacy-policy">Privacy Policy</a></li>
+                        <li><a class="js-gps-track -link" data-gps-track="footer.click({ location: 2, link: 37 })" href="https://stackoverflow.com/legal/terms-of-service">Terms of Service</a></li>
+                            <li><a class="js-gps-track -link" data-gps-track="footer.click({ location: 2, link: 13 })" href="https://stackoverflow.com/company/contact">Contact Us</a></li>
+                            <li class="" id="consent-footer-link"><a class="js-gps-track -link js-cookie-settings" data-gps-track="footer.click({ location: 2, link: 38 })" href="#" data-consent-popup-loader="footer">Cookie Settings</a></li>
+                        <li><a class="js-gps-track -link" data-gps-track="footer.click({ location: 2, link: 39 })" href="https://stackoverflow.com/legal/cookie-policy">Cookie Policy</a></li>
+                    </ul>
+                </div>
+                <div class="site-footer--col site-footer--categories-nav">
+                    <div>
+                        <h5 class="-title"><a href="https://stackexchange.com" data-gps-track="footer.click({ location: 2, link: 30 })">Stack Exchange Network</a></h5>
+                        <ul class="-list">
+                            <li>
+                                <a href="https://stackexchange.com/sites#technology" class="-link js-gps-track" data-gps-track="footer.click({ location: 2, link: 24 })">
+                                    Technology
+                                </a>
+                            </li>
+                            <li>
+                                <a href="https://stackexchange.com/sites#culturerecreation" class="-link js-gps-track" data-gps-track="footer.click({ location: 2, link: 24 })">
+                                    Culture &amp; recreation
+                                </a>
+                            </li>
+                            <li>
+                                <a href="https://stackexchange.com/sites#lifearts" class="-link js-gps-track" data-gps-track="footer.click({ location: 2, link: 24 })">
+                                    Life &amp; arts
+                                </a>
+                            </li>
+                            <li>
+                                <a href="https://stackexchange.com/sites#science" class="-link js-gps-track" data-gps-track="footer.click({ location: 2, link: 24 })">
+                                    Science
+                                </a>
+                            </li>
+                            <li>
+                                <a href="https://stackexchange.com/sites#professional" class="-link js-gps-track" data-gps-track="footer.click({ location: 2, link: 24 })">
+                                    Professional
+                                </a>
+                            </li>
+                            <li>
+                                <a href="https://stackexchange.com/sites#business" class="-link js-gps-track" data-gps-track="footer.click({ location: 2, link: 24 })">
+                                    Business
+                                </a>
+                            </li>
+
+                            <li class="mt16 md:mt0">
+                                <a href="https://api.stackexchange.com/" class="-link js-gps-track" data-gps-track="footer.click({ location: 2, link: 24 })">
+                                    API
+                                </a>
+                            </li>
+
+                            <li>
+                                <a href="https://data.stackexchange.com/" class="-link js-gps-track" data-gps-track="footer.click({ location: 2, link: 24 })">
+                                    Data
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </nav>
+            <div class="site-footer--copyright fs-fine md:mt24">
+                <ul class="-list -social md:mb8">
+                    <li><a class="js-gps-track -link" data-gps-track="footer.click({ location: 2, link:4 })" href="https://stackoverflow.blog?blb=1">Blog</a></li>
+                    <li><a href="https://www.facebook.com/officialstackoverflow/" class="-link js-gps-track" data-gps-track="footer.click({ location: 2, link: 31 })">Facebook</a></li>
+                    <li><a href="https://twitter.com/stackoverflow" class="-link js-gps-track" data-gps-track="footer.click({ location: 2, link: 32 })">Twitter</a></li>
+                    <li><a href="https://linkedin.com/company/stack-overflow" class="-link js-gps-track" data-gps-track="footer.click({ location: 2, link: 33 })">LinkedIn</a></li>
+                    <li><a href="https://www.instagram.com/thestackoverflow" class="-link js-gps-track" data-gps-track="footer.click({ location: 2, link: 36 })">Instagram</a></li>
+                </ul>
+
+                <p class="md:mb0">
+site design / logo &#169; 2021 Stack Exchange Inc; user contributions licensed under <a href="https://stackoverflow.com/help/licensing">cc by-sa</a>.                    <span id="svnrev">rev&nbsp;2021.12.10.40971</span>
+                </p>
+            </div>
+        </div>
+
+    </footer>
+
+            <script>StackExchange.ready(function () { StackExchange.responsiveness.addSwitcher(); })</script>
+    <noscript>
+        <div id="noscript-warning">Stack Overflow works best with JavaScript enabled
+            <img src="https://sb.scorecardresearch.com/p?c1=2&amp;c2=17440561&amp;cv=3.6.0&amp;cj=1" alt="">
+        </div>
+    </noscript>
+
+        <script>
+(function(i, s, o, g, r, a, m) {
+                i['GoogleAnalyticsObject'] = r; i[r] = i[r] || function() { (i[r].q = i[r].q || []).push(arguments) }, i[r].l = 1 * new Date(); a = s.createElement(o),
+                m = s.getElementsByTagName(o)[0]; a.async = 1; a.src = g; m.parentNode.insertBefore(a, m);
+            })(window, document, 'script', 'https://www.google-analytics.com/analytics.js', 'ga');
+
+            StackExchange.ready(function () {
+
+                StackExchange.ga.init({
+                    autoLink: ["stackoverflow.blog","info.stackoverflowsolutions.com","stackoverflowsolutions.com"],
+                    sendTitles: true,
+                    tracker: window.ga,
+                    trackingCodes: [
+                        'UA-108242619-1'
+                    ],
+                        checkDimension: 'dimension42'
+                });
+
+
+
+                    StackExchange.ga.setDimension('dimension2', '|gcc|compilation|compiler-construction|llvm-ir|');
+
+
+                    StackExchange.ga.setDimension('dimension3', 'Questions/Show');
+
+
+                StackExchange.ga.setDimension('dimension7', "1639285838.1718247773");
+
+                StackExchange.ga.trackPageView();
+            });
+            
+            var _comscore = _comscore || [];
+            _comscore.push({ c1: "2", c2: "17440561" });
+            (function() {
+                var s = document.createElement("script"), el = document.getElementsByTagName("script")[0]; s.async = true;
+                s.src = "https://sb.scorecardresearch.com/cs/17440561/beacon.js";
+                el.parentNode.insertBefore(s, el);
+            })();
+                </script>
+
+        
+    <div id="onetrust-consent-sdk" class="d-none"></div>
+    <div id="onetrust-banner-sdk" data-controller="s-modal"></div>
+    <div id="ot-pc-content" class="d-none"></div>
+    <div id="onetrust-style" class="d-none">&nbsp;</div>
+    <div class="d-none js-consent-banner-version" data-consent-banner-version="baseline"></div>
+
+    
+    </body>
+    </html>
