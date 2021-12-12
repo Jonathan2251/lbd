@@ -42,17 +42,17 @@
 <span id="sec-elf"></span><h1>ELF Support<a class="headerlink" href="#elf-support" title="Permalink to this headline">¶</a></h1>
 <div class="contents local topic" id="contents">
 <ul class="simple">
-<li><p><a class="reference internal" href="#elf-format" id="id14">ELF format</a></p>
+<li><p><a class="reference internal" href="#elf-format" id="id7">ELF format</a></p>
 <ul>
-<li><p><a class="reference internal" href="#elf-header-and-section-header-table" id="id15">ELF header and Section header table</a></p></li>
-<li><p><a class="reference internal" href="#relocation-record" id="id16">Relocation Record</a></p></li>
-<li><p><a class="reference internal" href="#cpu0-elf-related-files" id="id17">Cpu0 ELF related files</a></p></li>
+<li><p><a class="reference internal" href="#elf-header-and-section-header-table" id="id8">ELF header and Section header table</a></p></li>
+<li><p><a class="reference internal" href="#relocation-record" id="id9">Relocation Record</a></p></li>
+<li><p><a class="reference internal" href="#cpu0-elf-related-files" id="id10">Cpu0 ELF related files</a></p></li>
 </ul>
 </li>
-<li><p><a class="reference internal" href="#llvm-objdump" id="id18">llvm-objdump</a></p>
+<li><p><a class="reference internal" href="#llvm-objdump" id="id11">llvm-objdump</a></p>
 <ul>
-<li><p><a class="reference internal" href="#llvm-objdump-t-r" id="id19">llvm-objdump -t -r</a></p></li>
-<li><p><a class="reference internal" href="#llvm-objdump-d" id="id20">llvm-objdump -d</a></p></li>
+<li><p><a class="reference internal" href="#llvm-objdump-t-r" id="id12">llvm-objdump -t -r</a></p></li>
+<li><p><a class="reference internal" href="#llvm-objdump-d" id="id13">llvm-objdump -d</a></p></li>
 </ul>
 </li>
 </ul>
@@ -65,35 +65,19 @@ and later in the Tool Interface Standard, it was quickly accepted among
 different vendors of Unixsystems.
 In 1999 it was chosen as the standard binary file format for Unix and
 Unix-like systems on x86 by the x86open project.
-Please reference <a class="footnote-reference brackets" href="#id7" id="id1">1</a>.</p>
+Please reference <a class="footnote-reference brackets" href="#wiki-elf" id="id1">1</a>.</p>
 <p>The binary encode of Cpu0 instruction set in obj has been checked in the
 previous chapters.
 But we didn’t dig into the ELF file format like elf header and relocation
 record at that time.
-This chapter will use the binutils which has been installed in
-“sub-section Install other tools on iMac” of Appendix A: “Installing LLVM”
-<a class="footnote-reference brackets" href="#id8" id="id2">2</a> to check the generated cpu0 ELF file.
-You will learn the objdump, readelf, …, tools and understand the ELF file
+You will learn the llvm-objdump, llvm-readelf, …, tools and understand the
+ELF file
 format itself through using these tools to analyze the cpu0 generated obj in
-this chapter.
-LLVM has the llvm-objdump tool which like objdump. We will make cpu0 support
-llvm-objdump tool further in this chapter.
-The binutils is a cross compiler tool chains include a couple of CPU ELF dump
-function support.
-Linux platform has binutils already and no need to install it further.
-The reason we use Linux binutils in this chapter just because my iMac will
-display Chinese text.
-The iMac corresponding binutils have no problem except it add g in command name
-and and display with your area language instead of pure English on iMac.
-For example, when using gobjdump instead of objdump, I have the result of
-Chinese language unicode display instead of pure English on my iMac.</p>
-<p>The binutils tool we use is not a part of llvm tools, but it’s a powerful tool
-in ELF analysis.
-This chapter introduce the tool to readers since we think it is a valuable
+this chapter.</p>
+<p>This chapter introduces the tool to readers since we think it is a valuable
 knowledge in this popular ELF format and the ELF binutils analysis tool.
-An LLVM compiler engineer has the responsibility to make sure his backend
-has generated a right obj since the obj is needed to be handled by linker or
-loader later.
+An LLVM compiler engineer has the responsibility to make sure that his backend
+generate a correct obj.
 With this tool, you can verify your generated ELF format.</p>
 <p>The cpu0 author has published a “System Software” book which introduces the
 topics
@@ -102,38 +86,37 @@ demonstrates how to use binutils and gcc to analysis ELF through the example
 code in his book.
 It’s a Chinese book of “System Software” in concept and practice.
 This book does the real analysis through binutils.
-The “System Software” <a class="footnote-reference brackets" href="#id9" id="id3">3</a> written by Beck is a famous book in concept of
-telling readers what about the compiler output, what about the linker output,
-what about the loader output, and how they work together.
-But it covers the concept only.
+The “System Software” <a class="footnote-reference brackets" href="#beck" id="id2">2</a> written by Beck is a famous book in concept
+telling readers what the compiler output about, what the linker output about,
+what the loader output about, and how they work together in concept.
 You can reference it to understand how the <strong>“Relocation Record”</strong> works if you
 need to refresh or learning this knowledge for this chapter.</p>
-<p><a class="footnote-reference brackets" href="#id10" id="id4">4</a>, <a class="footnote-reference brackets" href="#id11" id="id5">5</a>, <a class="footnote-reference brackets" href="#id12" id="id6">6</a> are the Chinese documents available from the cpu0 author on
-web site.</p>
+<p><a class="footnote-reference brackets" href="#lk-out" id="id3">3</a>, <a class="footnote-reference brackets" href="#lk-obj" id="id4">4</a>, <a class="footnote-reference brackets" href="#lk-elf" id="id5">5</a> are the Chinese documents available from the
+cpu0 author on web site.</p>
 <section id="elf-format">
-<h2><a class="toc-backref" href="#id14">ELF format</a><a class="headerlink" href="#elf-format" title="Permalink to this headline">¶</a></h2>
+<h2><a class="toc-backref" href="#id7">ELF format</a><a class="headerlink" href="#elf-format" title="Permalink to this headline">¶</a></h2>
 <p>ELF is a format used in both obj and executable file.
-So, there are two views in it as <a class="reference internal" href="#elf-f1"><span class="std std-numref">Fig. 29</span></a>.</p>
-<figure class="align-center" id="id13">
+So, there are two views in it as <a class="reference internal" href="#elf-f1"><span class="std std-numref">Fig. 32</span></a>.</p>
+<figure class="align-center" id="id6">
 <span id="elf-f1"></span><a class="reference internal image-reference" href="_images/12.png"><img alt="_images/12.png" src="_images/12.png" style="width: 213.0px; height: 320.0px;" /></a>
 <figcaption>
-<p><span class="caption-number">Fig. 29 </span><span class="caption-text">ELF file format overview</span><a class="headerlink" href="#id13" title="Permalink to this image">¶</a></p>
+<p><span class="caption-number">Fig. 32 </span><span class="caption-text">ELF file format overview</span><a class="headerlink" href="#id6" title="Permalink to this image">¶</a></p>
 </figcaption>
 </figure>
-<p>As <a class="reference internal" href="#elf-f1"><span class="std std-numref">Fig. 29</span></a>, the “Section header table” include sections .text,
+<p>As <a class="reference internal" href="#elf-f1"><span class="std std-numref">Fig. 32</span></a>, the “Section header table” include sections .text,
 .rodata, …, .data which are sections layout for code, read only data, …,
 and read/write data, respectively.
 “Program header table” include segments for run time code and data.
 The definition of segments is the run time layout for code and data while
 sections is the link time layout for code and data.</p>
 <section id="elf-header-and-section-header-table">
-<h3><a class="toc-backref" href="#id15">ELF header and Section header table</a><a class="headerlink" href="#elf-header-and-section-header-table" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id8">ELF header and Section header table</a><a class="headerlink" href="#elf-header-and-section-header-table" title="Permalink to this headline">¶</a></h3>
 <p>Let’s run Chapter9_3/ with ch6_1.cpp, and dump ELF header information by
-<code class="docutils literal notranslate"><span class="pre">readelf</span> <span class="pre">-h</span></code> to see what information the ELF header contains.</p>
+<code class="docutils literal notranslate"><span class="pre">llvm-readelf</span> <span class="pre">-h</span></code> to see what information the ELF header contains.</p>
 <div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">[Gamma@localhost input]$ </span>~/llvm/test/build/bin/llc -march<span class="o">=</span>cpu0
 <span class="go">-relocation-model=pic -filetype=obj ch6_1.bc -o ch6_1.cpu0.o</span>
 
-<span class="gp">[Gamma@localhost input]$ </span>readelf -h ch6_1.cpu0.o
+<span class="gp">[Gamma@localhost input]$ </span>llvm-readelf -h ch6_1.cpu0.o
 <span class="go">  Magic:   7f 45 4c 46 01 02 01 03 00 00 00 00 00 00 00 00</span>
 <span class="go">  Class:                             ELF32</span>
 <span class="go">  Data:                              2&#39;s complement, big endian</span>
@@ -158,7 +141,7 @@ sections is the link time layout for code and data.</p>
 <span class="gp">[Gamma@localhost input]$ </span>~/llvm/test/build/bin/llc
 <span class="go">-march=mips -relocation-model=pic -filetype=obj ch6_1.bc -o ch6_1.mips.o</span>
 
-<span class="gp">[Gamma@localhost input]$ </span>readelf -h ch6_1.mips.o
+<span class="gp">[Gamma@localhost input]$ </span>llvm-readelf -h ch6_1.mips.o
 <span class="go">ELF Header:</span>
 <span class="go">  Magic:   7f 45 4c 46 01 02 01 03 00 00 00 00 00 00 00 00</span>
 <span class="go">  Class:                             ELF32</span>
@@ -185,9 +168,9 @@ sections is the link time layout for code and data.</p>
 <p>As above ELF header display, it contains information of magic number, version,
 ABI, …, . The Machine field of cpu0 is unknown while mips is known as
 MIPSR3000.
-It is unknown because cpu0 is not a popular CPU recognized by utility readelf.
+It is unknown because cpu0 is not a popular CPU recognized by utility llvm-readelf.
 Let’s check ELF segments information as follows,</p>
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">[Gamma@localhost input]$ </span>readelf -l ch6_1.cpu0.o
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">[Gamma@localhost input]$ </span>llvm-readelf -l ch6_1.cpu0.o
 
 <span class="go">There are no program headers in this file.</span>
 <span class="gp">[Gamma@localhost input]$</span>
@@ -198,7 +181,7 @@ execution.
 So, the segments is empty.
 Check ELF sections information as follows.
 Every section contains offset and size information.</p>
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">[Gamma@localhost input]$ </span>readelf -S ch6_1.cpu0.o
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">[Gamma@localhost input]$ </span>llvm-readelf -S ch6_1.cpu0.o
 <span class="go">There are 10 section headers, starting at offset 0xd4:</span>
 
 <span class="go">Section Headers:</span>
@@ -222,7 +205,7 @@ Every section contains offset and size information.</p>
 </div>
 </section>
 <section id="relocation-record">
-<h3><a class="toc-backref" href="#id16">Relocation Record</a><a class="headerlink" href="#relocation-record" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id9">Relocation Record</a><a class="headerlink" href="#relocation-record" title="Permalink to this headline">¶</a></h3>
 <p>Cpu0 backend translate global variable as follows,</p>
 <div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">[Gamma@localhost input]$ </span>clang -target mips-unknown-linux-gnu -c ch6_1.cpp
 <span class="go">-emit-llvm -o ch6_1.bc</span>
@@ -255,7 +238,7 @@ Every section contains offset and size information.</p>
 
 <span class="gp">[Gamma@localhost input]$ </span>~/llvm/test/build/
 <span class="go">bin/llc -march=cpu0 -relocation-model=pic -filetype=obj ch6_1.bc -o ch6_1.cpu0.o</span>
-<span class="gp">[Gamma@localhost input]$ </span>objdump -s ch6_1.cpu0.o
+<span class="gp">[Gamma@localhost input]$ </span>llvm-objdump -s ch6_1.cpu0.o
 
 <span class="go">ch6_1.cpu0.o:     file format elf32-big</span>
 
@@ -267,7 +250,7 @@ Every section contains offset and size information.</p>
 <span class="go"> ...</span>
 <span class="gp">[Gamma@localhost input]$ </span>Jonathan$
 
-<span class="gp">[Gamma@localhost input]$ </span>readelf -tr ch6_1.cpu0.o
+<span class="gp">[Gamma@localhost input]$ </span>llvm-readelf -tr ch6_1.cpu0.o
 <span class="go">There are 8 section headers, starting at offset 0xb0:</span>
 
 <span class="go">Section Headers:</span>
@@ -307,7 +290,7 @@ Every section contains offset and size information.</p>
 <span class="go">00000028  00000617 unrecognized: 17      00000004   gI</span>
 
 
-<span class="gp">[Gamma@localhost input]$ </span>readelf -tr ch6_1.mips.o
+<span class="gp">[Gamma@localhost input]$ </span>llvm-readelf -tr ch6_1.mips.o
 <span class="go">There are 9 section headers, starting at offset 0xc8:</span>
 
 <span class="go">Section Headers:</span>
@@ -368,7 +351,7 @@ loads this obj into memory, loader will know the _gp_disp value at run time and
 will update these two offset relocation records to the correct offset value.
 You can check if the cpu0 of %hi(_gp_disp) and %lo(_gp_disp) are correct by
 above mips Relocation Records of R_MIPS_HI(_gp_disp) and  R_MIPS_LO(_gp_disp)
-even though the cpu0 is not a CPU recognized by readelf utilitly.
+even though the cpu0 is not a CPU recognized by llvm-readelf utilitly.
 The instruction <strong>“ld $2, %got(gI)($gp)”</strong> is same since we don’t know what the
 address of .data section variable will load to.
 So, Cpu0 translate the address to 0 and made a relocation record on 0x00000020
@@ -377,7 +360,7 @@ Linker or Loader will change this address when this program is
 linked or loaded depends on the program is static link or dynamic link.</p>
 </section>
 <section id="cpu0-elf-related-files">
-<h3><a class="toc-backref" href="#id17">Cpu0 ELF related files</a><a class="headerlink" href="#cpu0-elf-related-files" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id10">Cpu0 ELF related files</a><a class="headerlink" href="#cpu0-elf-related-files" title="Permalink to this headline">¶</a></h3>
 <p>Files Cpu0ELFObjectWrite.cpp and Cpu0MC*.cpp are the files take care the obj
 format.
 Most obj code translation about specific instructions are defined by
@@ -387,19 +370,20 @@ automatically.</p>
 </section>
 </section>
 <section id="llvm-objdump">
-<h2><a class="toc-backref" href="#id18">llvm-objdump</a><a class="headerlink" href="#llvm-objdump" title="Permalink to this headline">¶</a></h2>
+<h2><a class="toc-backref" href="#id11">llvm-objdump</a><a class="headerlink" href="#llvm-objdump" title="Permalink to this headline">¶</a></h2>
 <section id="llvm-objdump-t-r">
-<h3><a class="toc-backref" href="#id19">llvm-objdump -t -r</a><a class="headerlink" href="#llvm-objdump-t-r" title="Permalink to this headline">¶</a></h3>
-<p>In iMac, <code class="docutils literal notranslate"><span class="pre">gobjdump</span> <span class="pre">-tr</span></code> can display the information of relocation records
-like <code class="docutils literal notranslate"><span class="pre">readelf</span> <span class="pre">-tr</span></code>. LLVM tool llvm-objdump is the same tool as objdump.
-Let’s run gobjdump and llvm-objdump commands as follows to see the differences.</p>
+<h3><a class="toc-backref" href="#id12">llvm-objdump -t -r</a><a class="headerlink" href="#llvm-objdump-t-r" title="Permalink to this headline">¶</a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">llvm-objdump</span> <span class="pre">-tr</span></code> can display the information of relocation records
+like <code class="docutils literal notranslate"><span class="pre">llvm-readelf</span> <span class="pre">-tr</span></code>.
+Let’s run llvm-objdump with and without Cpu0 backend commands as follows to
+see the differences.</p>
 <div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">118-165-83-12:input Jonathan$ </span>clang -target mips-unknown-linux-gnu -c
 <span class="go">ch9_3.cpp -emit-llvm -o ch9_3.bc</span>
 <span class="gp">118-165-83-10:input Jonathan$ </span>/Users/Jonathan/llvm/test/build/
 <span class="go">bin/llc -march=cpu0 -relocation-model=pic -filetype=obj ch9_3.bc -o</span>
 <span class="go">ch9_3.cpu0.o</span>
 
-<span class="gp">118-165-78-12:input Jonathan$ </span>gobjdump -t -r ch9_3.cpu0.o
+<span class="gp">118-165-78-12:input Jonathan$ </span>objdump -t -r ch9_3.cpu0.o
 
 <span class="go">ch9_3.cpu0.o:     file format elf32-big</span>
 
@@ -445,28 +429,28 @@ well while the objdump cannot since we add the relocation records information
 in ELF.h as follows,</p>
 <p class="rubric">include/llvm/support/ELF.h</p>
 <div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="c1">// Machine architectures</span>
-<span class="k">enum</span> <span class="p">{</span>
-  <span class="p">...</span>
-  <span class="n">EM_CPU0</span>          <span class="o">=</span> <span class="mi">998</span><span class="p">,</span> <span class="c1">// Document LLVM Backend Tutorial Cpu0</span>
-  <span class="n">EM_CPU0_LE</span>       <span class="o">=</span> <span class="mi">999</span>  <span class="c1">// EM_CPU0_LE: little endian; EM_CPU0: big endian</span>
-<span class="p">}</span>
+<span class="k">enum</span> <span class="p">{</span><span class="w"></span>
+<span class="w">  </span><span class="p">...</span><span class="w"></span>
+<span class="w">  </span><span class="n">EM_CPU0</span><span class="w">          </span><span class="o">=</span><span class="w"> </span><span class="mi">998</span><span class="p">,</span><span class="w"> </span><span class="c1">// Document LLVM Backend Tutorial Cpu0</span>
+<span class="w">  </span><span class="n">EM_CPU0_LE</span><span class="w">       </span><span class="o">=</span><span class="w"> </span><span class="mi">999</span><span class="w">  </span><span class="c1">// EM_CPU0_LE: little endian; EM_CPU0: big endian</span>
+<span class="p">}</span><span class="w"></span>
 </pre></div>
 </div>
 <p class="rubric">lib/object/ELF.cpp</p>
-<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="p">...</span>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="p">...</span><span class="w"></span>
 
-<span class="n">StringRef</span> <span class="n">getELFRelocationTypeName</span><span class="p">(</span><span class="kt">uint32_t</span> <span class="n">Machine</span><span class="p">,</span> <span class="kt">uint32_t</span> <span class="n">Type</span><span class="p">)</span> <span class="p">{</span>
-  <span class="k">switch</span> <span class="p">(</span><span class="n">Machine</span><span class="p">)</span> <span class="p">{</span>
-  <span class="p">...</span>
-  <span class="k">case</span> <span class="n">ELF</span><span class="o">::</span><span class="nl">EM_CPU0</span><span class="p">:</span>
-    <span class="k">switch</span> <span class="p">(</span><span class="n">Type</span><span class="p">)</span> <span class="p">{</span>
-<span class="cp">#include</span> <span class="cpf">&quot;llvm/Support/ELFRelocs/Cpu0.def&quot;</span><span class="cp"></span>
-    <span class="k">default</span><span class="o">:</span>
-      <span class="k">break</span><span class="p">;</span>
-    <span class="p">}</span>
-    <span class="k">break</span><span class="p">;</span>
-  <span class="p">...</span>
-  <span class="p">}</span>
+<span class="n">StringRef</span><span class="w"> </span><span class="n">getELFRelocationTypeName</span><span class="p">(</span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">Machine</span><span class="p">,</span><span class="w"> </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">Type</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">  </span><span class="k">switch</span><span class="w"> </span><span class="p">(</span><span class="n">Machine</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">  </span><span class="p">...</span><span class="w"></span>
+<span class="w">  </span><span class="k">case</span><span class="w"> </span><span class="n">ELF</span><span class="o">::</span><span class="nl">EM_CPU0</span><span class="p">:</span><span class="w"></span>
+<span class="w">    </span><span class="k">switch</span><span class="w"> </span><span class="p">(</span><span class="n">Type</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;llvm/Support/ELFRelocs/Cpu0.def&quot;</span><span class="cp"></span>
+<span class="w">    </span><span class="k">default</span><span class="o">:</span><span class="w"></span>
+<span class="w">      </span><span class="k">break</span><span class="p">;</span><span class="w"></span>
+<span class="w">    </span><span class="p">}</span><span class="w"></span>
+<span class="w">    </span><span class="k">break</span><span class="p">;</span><span class="w"></span>
+<span class="w">  </span><span class="p">...</span><span class="w"></span>
+<span class="w">  </span><span class="p">}</span><span class="w"></span>
 </pre></div>
 </div>
 <p class="rubric">include/llvm/Support/ELFRelocs/Cpu0.def</p>
@@ -502,45 +486,45 @@ in ELF.h as follows,</p>
 </pre></div>
 </div>
 <p class="rubric">include/llvm/Object/ELFObjectFile.h</p>
-<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="k">template</span><span class="o">&lt;</span><span class="n">support</span><span class="o">::</span><span class="n">endianness</span> <span class="n">target_endianness</span><span class="p">,</span> <span class="kt">bool</span> <span class="n">is64Bits</span><span class="o">&gt;</span>
-<span class="n">error_code</span> <span class="n">ELFObjectFile</span><span class="o">&lt;</span><span class="n">target_endianness</span><span class="p">,</span> <span class="n">is64Bits</span><span class="o">&gt;</span>
-            <span class="o">::</span><span class="n">getRelocationValueString</span><span class="p">(</span><span class="n">DataRefImpl</span> <span class="n">Rel</span><span class="p">,</span>
-                      <span class="n">SmallVectorImpl</span><span class="o">&lt;</span><span class="kt">char</span><span class="o">&gt;</span> <span class="o">&amp;</span><span class="n">Result</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
-  <span class="p">...</span>
-  <span class="k">case</span> <span class="n">ELF</span><span class="o">::</span><span class="nl">EM_CPU0</span><span class="p">:</span>  <span class="c1">// llvm-objdump -t -r</span>
-  <span class="n">res</span> <span class="o">=</span> <span class="n">symname</span><span class="p">;</span>
-  <span class="k">break</span><span class="p">;</span>
-  <span class="p">...</span>
-<span class="p">}</span>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="k">template</span><span class="o">&lt;</span><span class="n">support</span><span class="o">::</span><span class="n">endianness</span><span class="w"> </span><span class="n">target_endianness</span><span class="p">,</span><span class="w"> </span><span class="kt">bool</span><span class="w"> </span><span class="n">is64Bits</span><span class="o">&gt;</span><span class="w"></span>
+<span class="n">error_code</span><span class="w"> </span><span class="n">ELFObjectFile</span><span class="o">&lt;</span><span class="n">target_endianness</span><span class="p">,</span><span class="w"> </span><span class="n">is64Bits</span><span class="o">&gt;</span><span class="w"></span>
+<span class="w">            </span><span class="o">::</span><span class="n">getRelocationValueString</span><span class="p">(</span><span class="n">DataRefImpl</span><span class="w"> </span><span class="n">Rel</span><span class="p">,</span><span class="w"></span>
+<span class="w">                      </span><span class="n">SmallVectorImpl</span><span class="o">&lt;</span><span class="kt">char</span><span class="o">&gt;</span><span class="w"> </span><span class="o">&amp;</span><span class="n">Result</span><span class="p">)</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">  </span><span class="p">...</span><span class="w"></span>
+<span class="w">  </span><span class="k">case</span><span class="w"> </span><span class="n">ELF</span><span class="o">::</span><span class="nl">EM_CPU0</span><span class="p">:</span><span class="w">  </span><span class="c1">// llvm-objdump -t -r</span>
+<span class="w">  </span><span class="n">res</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">symname</span><span class="p">;</span><span class="w"></span>
+<span class="w">  </span><span class="k">break</span><span class="p">;</span><span class="w"></span>
+<span class="w">  </span><span class="p">...</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
 
-<span class="k">template</span><span class="o">&lt;</span><span class="n">support</span><span class="o">::</span><span class="n">endianness</span> <span class="n">target_endianness</span><span class="p">,</span> <span class="kt">bool</span> <span class="n">is64Bits</span><span class="o">&gt;</span>
-<span class="n">StringRef</span> <span class="n">ELFObjectFile</span><span class="o">&lt;</span><span class="n">target_endianness</span><span class="p">,</span> <span class="n">is64Bits</span><span class="o">&gt;</span>
-             <span class="o">::</span><span class="n">getFileFormatName</span><span class="p">()</span> <span class="k">const</span> <span class="p">{</span>
-  <span class="k">switch</span><span class="p">(</span><span class="n">Header</span><span class="o">-&gt;</span><span class="n">e_ident</span><span class="p">[</span><span class="n">ELF</span><span class="o">::</span><span class="n">EI_CLASS</span><span class="p">])</span> <span class="p">{</span>
-  <span class="k">case</span> <span class="n">ELF</span><span class="o">::</span><span class="nl">ELFCLASS32</span><span class="p">:</span>
-  <span class="k">switch</span><span class="p">(</span><span class="n">Header</span><span class="o">-&gt;</span><span class="n">e_machine</span><span class="p">)</span> <span class="p">{</span>
-  <span class="p">...</span>
-  <span class="k">case</span> <span class="n">ELF</span><span class="o">::</span><span class="nl">EM_CPU0</span><span class="p">:</span>  <span class="c1">// llvm-objdump -t -r</span>
-    <span class="k">return</span> <span class="s">&quot;ELF32-CPU0&quot;</span><span class="p">;</span>
-  <span class="p">...</span>
-<span class="p">}</span>
+<span class="k">template</span><span class="o">&lt;</span><span class="n">support</span><span class="o">::</span><span class="n">endianness</span><span class="w"> </span><span class="n">target_endianness</span><span class="p">,</span><span class="w"> </span><span class="kt">bool</span><span class="w"> </span><span class="n">is64Bits</span><span class="o">&gt;</span><span class="w"></span>
+<span class="n">StringRef</span><span class="w"> </span><span class="n">ELFObjectFile</span><span class="o">&lt;</span><span class="n">target_endianness</span><span class="p">,</span><span class="w"> </span><span class="n">is64Bits</span><span class="o">&gt;</span><span class="w"></span>
+<span class="w">             </span><span class="o">::</span><span class="n">getFileFormatName</span><span class="p">()</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">  </span><span class="k">switch</span><span class="p">(</span><span class="n">Header</span><span class="o">-&gt;</span><span class="n">e_ident</span><span class="p">[</span><span class="n">ELF</span><span class="o">::</span><span class="n">EI_CLASS</span><span class="p">])</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">  </span><span class="k">case</span><span class="w"> </span><span class="n">ELF</span><span class="o">::</span><span class="nl">ELFCLASS32</span><span class="p">:</span><span class="w"></span>
+<span class="w">  </span><span class="k">switch</span><span class="p">(</span><span class="n">Header</span><span class="o">-&gt;</span><span class="n">e_machine</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">  </span><span class="p">...</span><span class="w"></span>
+<span class="w">  </span><span class="k">case</span><span class="w"> </span><span class="n">ELF</span><span class="o">::</span><span class="nl">EM_CPU0</span><span class="p">:</span><span class="w">  </span><span class="c1">// llvm-objdump -t -r</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="s">&quot;ELF32-CPU0&quot;</span><span class="p">;</span><span class="w"></span>
+<span class="w">  </span><span class="p">...</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
 
-<span class="k">template</span><span class="o">&lt;</span><span class="n">support</span><span class="o">::</span><span class="n">endianness</span> <span class="n">target_endianness</span><span class="p">,</span> <span class="kt">bool</span> <span class="n">is64Bits</span><span class="o">&gt;</span>
-<span class="kt">unsigned</span> <span class="n">ELFObjectFile</span><span class="o">&lt;</span><span class="n">target_endianness</span><span class="p">,</span> <span class="n">is64Bits</span><span class="o">&gt;::</span><span class="n">getArch</span><span class="p">()</span> <span class="k">const</span> <span class="p">{</span>
-  <span class="k">switch</span><span class="p">(</span><span class="n">Header</span><span class="o">-&gt;</span><span class="n">e_machine</span><span class="p">)</span> <span class="p">{</span>
-  <span class="p">...</span>
-  <span class="k">case</span> <span class="n">ELF</span><span class="o">::</span><span class="nl">EM_CPU0</span><span class="p">:</span>  <span class="c1">// llvm-objdump -t -r</span>
-  <span class="k">return</span> <span class="p">(</span><span class="n">target_endianness</span> <span class="o">==</span> <span class="n">support</span><span class="o">::</span><span class="n">little</span><span class="p">)</span> <span class="o">?</span>
-       <span class="n">Triple</span><span class="o">::</span><span class="nl">cpu0el</span> <span class="p">:</span> <span class="n">Triple</span><span class="o">::</span><span class="n">cpu0</span><span class="p">;</span>
-  <span class="p">...</span>
-<span class="p">}</span>
+<span class="k">template</span><span class="o">&lt;</span><span class="n">support</span><span class="o">::</span><span class="n">endianness</span><span class="w"> </span><span class="n">target_endianness</span><span class="p">,</span><span class="w"> </span><span class="kt">bool</span><span class="w"> </span><span class="n">is64Bits</span><span class="o">&gt;</span><span class="w"></span>
+<span class="kt">unsigned</span><span class="w"> </span><span class="n">ELFObjectFile</span><span class="o">&lt;</span><span class="n">target_endianness</span><span class="p">,</span><span class="w"> </span><span class="n">is64Bits</span><span class="o">&gt;::</span><span class="n">getArch</span><span class="p">()</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">  </span><span class="k">switch</span><span class="p">(</span><span class="n">Header</span><span class="o">-&gt;</span><span class="n">e_machine</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">  </span><span class="p">...</span><span class="w"></span>
+<span class="w">  </span><span class="k">case</span><span class="w"> </span><span class="n">ELF</span><span class="o">::</span><span class="nl">EM_CPU0</span><span class="p">:</span><span class="w">  </span><span class="c1">// llvm-objdump -t -r</span>
+<span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="p">(</span><span class="n">target_endianness</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">support</span><span class="o">::</span><span class="n">little</span><span class="p">)</span><span class="w"> </span><span class="o">?</span><span class="w"></span>
+<span class="w">       </span><span class="n">Triple</span><span class="o">::</span><span class="nl">cpu0el</span> <span class="p">:</span><span class="w"> </span><span class="n">Triple</span><span class="o">::</span><span class="n">cpu0</span><span class="p">;</span><span class="w"></span>
+<span class="w">  </span><span class="p">...</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
 </pre></div>
 </div>
 <p>In addition to <code class="docutils literal notranslate"><span class="pre">llvm-objdump</span> <span class="pre">-t</span> <span class="pre">-r</span></code>, the <code class="docutils literal notranslate"><span class="pre">llvm-readobj</span> <span class="pre">-h</span></code> can display the
-Cpu0 elf header information with above EM_CPU0 defined.</p>
+Cpu0 elf header information with EM_CPU0 defined above.</p>
 </section>
 <section id="llvm-objdump-d">
-<h3><a class="toc-backref" href="#id20">llvm-objdump -d</a><a class="headerlink" href="#llvm-objdump-d" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id13">llvm-objdump -d</a><a class="headerlink" href="#llvm-objdump-d" title="Permalink to this headline">¶</a></h3>
 <p>Run the last Chapter example code with command <code class="docutils literal notranslate"><span class="pre">llvm-objdump</span> <span class="pre">-d</span></code> for dumping
 file from elf to hex as follows,</p>
 <div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">JonathantekiiMac:input Jonathan$ </span>clang -target mips-unknown-linux-gnu -c
@@ -956,7 +940,7 @@ Cpu0Disassembler.cpp and tell the llvm-tblgen by writing
 ISD node of Cpu0InstrInfo.td.
 LLVM will call these DecodeMethod when user uses Disassembler tools, such
 as <code class="docutils literal notranslate"><span class="pre">llvm-objdump</span> <span class="pre">-d</span></code>.</p>
-<p>Finally cpu032II include all cpu032I instruction set and adds some instrucitons.
+<p>Finally cpu032II includes all cpu032I instruction set and adds some instrucitons.
 When <code class="docutils literal notranslate"><span class="pre">llvm-objdump</span> <span class="pre">-d</span></code> is invoked, function selectCpu0ArchFeature() as
 the following will be called through createCpu0MCSubtargetInfo().
 The llvm-objdump cannot set cpu option like llc as <code class="docutils literal notranslate"><span class="pre">llc</span> <span class="pre">-mcpu=cpu032I</span></code>,
@@ -1008,23 +992,20 @@ the following result.</p>
 </pre></div>
 </div>
 <dl class="footnote brackets">
-<dt class="label" id="id7"><span class="brackets"><a class="fn-backref" href="#id1">1</a></span></dt>
+<dt class="label" id="wiki-elf"><span class="brackets"><a class="fn-backref" href="#id1">1</a></span></dt>
 <dd><p><a class="reference external" href="http://en.wikipedia.org/wiki/Executable_and_Linkable_Format">http://en.wikipedia.org/wiki/Executable_and_Linkable_Format</a></p>
 </dd>
-<dt class="label" id="id8"><span class="brackets"><a class="fn-backref" href="#id2">2</a></span></dt>
-<dd><p><a class="reference external" href="http://jonathan2251.github.io/lbd/install.html#install-other-tools-on-imac">http://jonathan2251.github.io/lbd/install.html#install-other-tools-on-imac</a></p>
-</dd>
-<dt class="label" id="id9"><span class="brackets"><a class="fn-backref" href="#id3">3</a></span></dt>
+<dt class="label" id="beck"><span class="brackets"><a class="fn-backref" href="#id2">2</a></span></dt>
 <dd><p>Leland Beck, System Software: An Introduction to Systems Programming.</p>
 </dd>
-<dt class="label" id="id10"><span class="brackets"><a class="fn-backref" href="#id4">4</a></span></dt>
+<dt class="label" id="lk-out"><span class="brackets"><a class="fn-backref" href="#id3">3</a></span></dt>
 <dd><p><a class="reference external" href="http://ccckmit.wikidot.com/lk:aout">http://ccckmit.wikidot.com/lk:aout</a></p>
 </dd>
-<dt class="label" id="id11"><span class="brackets"><a class="fn-backref" href="#id5">5</a></span></dt>
+<dt class="label" id="lk-obj"><span class="brackets"><a class="fn-backref" href="#id4">4</a></span></dt>
 <dd><p><a class="reference external" href="http://ccckmit.wikidot.com/lk:objfile">http://ccckmit.wikidot.com/lk:objfile</a></p>
 </dd>
-<dt class="label" id="id12"><span class="brackets"><a class="fn-backref" href="#id6">6</a></span></dt>
-<dd><p><a class="reference external" href="http://ccckmit.wikidot.com/lk:elf">http://ccckmit.wikidot.com/lk:elf</a></p>
+<dt class="label" id="lk-elf"><span class="brackets"><a class="fn-backref" href="#id5">5</a></span></dt>
+<dd><p><a class="reference external" href="http://ccckmit.wikidot.com/lk:elffile">http://ccckmit.wikidot.com/lk:elffile</a></p>
 </dd>
 </dl>
 </section>
@@ -1047,7 +1028,7 @@ the following result.</p>
 
     <div class="footer" role="contentinfo">
         &#169; Copyright 2016, Chen Chung-Shu.
-      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 4.0.2.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 4.3.1.
     </div>
   </body>
 </html>

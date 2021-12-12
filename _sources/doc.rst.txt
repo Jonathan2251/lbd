@@ -17,23 +17,32 @@ This section illustrates how to generate Cpu0 backend document.
 Install sphinx
 ~~~~~~~~~~~~~~~
 
-LLVM and this book use sphinx to generate html document. This book uses Sphinx 
+LLVM and this book use Sphinx to generate html document. This book uses Sphinx 
 to generate pdf and epub format of document further.
 Sphinx uses restructured text format here [#rst-ref]_ [#rst-dir]_ [#rst]_.
 The installation of Sphinx reference [#sphinx-install]_.
 About the code-block in this document, please reference [#llvm-sphinx-quick]_ 
 [#sphinx-lexers]_.
 
-On iMac or linux you can install as follows,
+On iMac you can install as follows,
+
+.. code-block:: console
+
+  brew install sphinx-doc
+  echo 'export PATH="/opt/homebrew/opt/sphinx-doc/bin:$PATH"' >> ~/.zshrc
+  % source ~/.zshrc 
+
+On Linux install it as follows,
+
 
 .. code-block:: console
 
   sudo easy_install sphinx
 
-Above installaton can generate html document but not for pdf. 
-To support pdf/latex document generated as follows,
+Above installaton for making html document but not for pdf. 
+The following installation for making pdf/latex document.
 
-On iMac, install MacTex.pkg from here [#maxtex]_.
+On iMac, install MacTex.pkg from here [#maxtex]_ and restart computer.
 
 On Linux, install texlive as follows,
 
@@ -195,7 +204,7 @@ reflect the changes in most of the contents of document.
 In lbdex/Cpu0, the text begin from "//\@" and "\#ifdef CH > CHxx" are refered by 
 document files \*.rst.
 
-In lbdex/src/modify/src, the \*.rst refer the code by copy them directly.
+In lbdex/llvm/modify/llvm, the \*.rst refer the code by copy them directly.
 Most of references exist in llvmstructure.rst and elf.rst.
 
 The example C/C++ code in lbdex/input come from my thinking and refer the
@@ -208,7 +217,7 @@ Cpu0 Regression Test
 The last chapter can verify Cpu0 backend's generated code by Verilog simulator 
 for those code without global variable access.
 The chapter lld in web https://github.com/Jonathan2251/lbt.git includes
-llvm ELF linker implementation and is capable to verify those test items with 
+llvm ELF linker implementation and is capable of verifying those test items with 
 global variable access.
 However, LLVM has its test cases (regression test) for each backend to 
 verify your backend compiler [#test]_ without implementing any simulator or real
@@ -217,14 +226,14 @@ Cpu0 regression test items existed in lbdex.tar.gz example code. Untar it
 to lbdex/, and:
 
 For both iMac and Linux, copy lbdex/regression-test/Cpu0 to 
-~/llvm/test/src/test/CodeGen/Cpu0.
+~/llvm/test/llvm/test/CodeGen/Cpu0.
 
-Then run as follows for single test case and the whole test cases on iMac. 
+Then run as follows for both of single and all test cases on iMac. 
 
 .. code-block:: console
 
   1-160-130-77:Cpu0 Jonathan$ pwd
-  /Users/Jonathan/llvm/test/src/test/CodeGen/Cpu0
+  /Users/Jonathan/llvm/test/llvm/test/CodeGen/Cpu0
   1-160-130-77:Cpu0 Jonathan$ ~/llvm/test/build/bin/llvm-lit seteq.ll
   -- Testing: 1 tests, 1 threads --
   PASS: LLVM :: CodeGen/Cpu0/seteq.ll (1 of 1)
@@ -237,12 +246,12 @@ Then run as follows for single test case and the whole test cases on iMac.
   ...
 
 
-Run as follows for single test case and the whole test cases on Linux. 
+Run as follows for test on Linux. 
 
 .. code-block:: console
 
   [Gamma@localhost Cpu0]$ pwd
-  /home/cschen/llvm/test/src/test/CodeGen/Cpu0
+  /home/cschen/llvm/test/llvm/test/CodeGen/Cpu0
   [Gamma@localhost Cpu0]$ ~/llvm/test/build/bin/llvm-lit seteq.ll
   -- Testing: 1 tests, 1 threads --
   PASS: LLVM :: CodeGen/Cpu0/seteq.ll (1 of 1)
@@ -424,15 +433,14 @@ follows,
 These supported test cases are in lbdex/regression-test/Cpu0 which can be 
 gotten from ``tar -xf lbdex.tar.gz``.
 
-The regression test is very useful in two major reasons. First, it provides
+The regression test is useful in two major reasons. First, it provides
 the llvm input, assembly output and the running command as well as options in
 the the sample input file, so all the first glimpse of documentation needed for
-end user and programmer are well written in the same test input file.
-Furthermore, it can be run to check to provide dynamic running document for 
-users. Second, once programmers change their backend compiler especially for 
-optimization, the regression test cases guard their backend has no side effect 
-or bugs for other parts of backend program. That is the name of "regression test"
-stands for. The following file include the assembly output pattern of two 
+both end user and programmer are well written in the same test input file.
+Second, once programmers change their backend compiler especially for 
+optimization, the regression testing may fail for some side effect 
+or bugs from this new change. That is the name of "regression test"
+stands for. The following file includes the assembly output pattern of two 
 subtargets for Cpu0 backend. Beside checking opcode, it is capable to check 
 register number. In this case, the destination register of "andi" must be the 
 first source register in the following instruction "xori" once it is specified
@@ -462,4 +470,3 @@ to T1 at the corresponding registers of these two assembly output.
 
 .. [#test] http://llvm.org/docs/TestingGuide.html
 
-.. [#lbd] https://github.com/Jonathan2251/lbd.git

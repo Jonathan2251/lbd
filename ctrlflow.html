@@ -42,27 +42,56 @@
 <span id="sec-controlflow"></span><h1>Control flow statements<a class="headerlink" href="#control-flow-statements" title="Permalink to this headline">¶</a></h1>
 <div class="contents local topic" id="contents">
 <ul class="simple">
-<li><p><a class="reference internal" href="#control-flow-statement" id="id13">Control flow statement</a></p></li>
-<li><p><a class="reference internal" href="#long-branch-support" id="id14">Long branch support</a></p></li>
-<li><p><a class="reference internal" href="#cpu0-backend-optimization-remove-useless-jmp" id="id15">Cpu0 backend Optimization: Remove useless JMP</a></p></li>
-<li><p><a class="reference internal" href="#fill-branch-delay-slot" id="id16">Fill Branch Delay Slot</a></p></li>
-<li><p><a class="reference internal" href="#conditional-instruction" id="id17">Conditional instruction</a></p></li>
-<li><p><a class="reference internal" href="#phi-node" id="id18">Phi node</a></p></li>
-<li><p><a class="reference internal" href="#risc-cpu-knowledge" id="id19">RISC CPU knowledge</a></p></li>
+<li><p><a class="reference internal" href="#pipeline-architecture" id="id16">Pipeline architecture</a></p></li>
+<li><p><a class="reference internal" href="#control-flow-statement" id="id17">Control flow statement</a></p></li>
+<li><p><a class="reference internal" href="#long-branch-support" id="id18">Long branch support</a></p></li>
+<li><p><a class="reference internal" href="#cpu0-backend-optimization-remove-useless-jmp" id="id19">Cpu0 backend Optimization: Remove useless JMP</a></p></li>
+<li><p><a class="reference internal" href="#fill-branch-delay-slot" id="id20">Fill Branch Delay Slot</a></p></li>
+<li><p><a class="reference internal" href="#conditional-instruction" id="id21">Conditional instruction</a></p></li>
+<li><p><a class="reference internal" href="#phi-node" id="id22">Phi node</a></p></li>
+<li><p><a class="reference internal" href="#risc-cpu-knowledge" id="id23">RISC CPU knowledge</a></p></li>
 </ul>
 </div>
 <p>This chapter illustrates the corresponding IR for control flow statements, such as
 <strong>“if else”</strong>, <strong>“while”</strong> and <strong>“for”</strong> loop statements in C, and how to
 translate these control flow statements of llvm IR into Cpu0 instructions in
-section I. In section “Cpu0 backend Optimization: Remove useless JMP”,
+section I. In <a class="reference external" href="http://jonathan2251.github.io/lbd/ctrlflow.html#cpu0-backend-optimization-remove-useless-jmp">section Remove useless JMP</a>,
 an optimization pass of control flow for backend is introduced.
 It’s a simple tutorial program to let readers know how to add a
 backend optimization pass and program it.
-Section “Conditional instruction”, include the conditional
-instructions handling since clang will generate specific IRs, select and
+<a class="reference external" href="http://jonathan2251.github.io/lbd/ctrlflow.html#conditional-instruction">section Conditional instruction</a>, includes the Conditional
+Instructions Handling since clang will generate specific IRs, select and
 select_cc, to support the backend optimiation in control flow statement.</p>
+<section id="pipeline-architecture">
+<h2><a class="toc-backref" href="#id16">Pipeline architecture</a><a class="headerlink" href="#pipeline-architecture" title="Permalink to this headline">¶</a></h2>
+<figure class="align-center" id="id10">
+<span id="ctrl-pipeline"></span><a class="reference internal image-reference" href="_images/5_stage_pipeline.png"><img alt="_images/5_stage_pipeline.png" src="_images/5_stage_pipeline.png" style="width: 966.0px; height: 396.0px;" /></a>
+<figcaption>
+<p><span class="caption-number">Fig. 23 </span><span class="caption-text">5 stages of pipeline</span><a class="headerlink" href="#id10" title="Permalink to this image">¶</a></p>
+</figcaption>
+</figure>
+<ul class="simple">
+<li><p>IF: Instruction fetch cycle; ID: Instruction decode/register fetch cycle;
+EX: Execution/effective address cycle; MEM: Memory access; WB: Write-back cycle.</p></li>
+</ul>
+<figure class="align-center" id="id11">
+<span id="ctrlflow-cache-banks"></span><a class="reference internal image-reference" href="_images/cache_banks.png"><img alt="_images/cache_banks.png" src="_images/cache_banks.png" style="width: 770.0px; height: 253.0px;" /></a>
+<figcaption>
+<p><span class="caption-number">Fig. 24 </span><span class="caption-text">Interleaved cache banks</span><a class="headerlink" href="#id11" title="Permalink to this image">¶</a></p>
+</figcaption>
+</figure>
+<figure class="align-center" id="id12">
+<span id="ctrl-super-pipeline"></span><a class="reference internal image-reference" href="_images/super_pipeline.png"><img alt="_images/super_pipeline.png" src="_images/super_pipeline.png" style="width: 947.0px; height: 492.0px;" /></a>
+<figcaption>
+<p><span class="caption-number">Fig. 25 </span><span class="caption-text">Super pipeline</span><a class="headerlink" href="#id12" title="Permalink to this image">¶</a></p>
+</figcaption>
+</figure>
+<p>With cache banks as <a class="reference internal" href="#ctrlflow-cache-banks"><span class="std std-numref">Fig. 24</span></a>, super-pipeline as
+<a class="reference internal" href="#ctrl-super-pipeline"><span class="std std-numref">Fig. 25</span></a> and superscalar (multi-issues pipeline)
+archtecture are emerged.</p>
+</section>
 <section id="control-flow-statement">
-<h2><a class="toc-backref" href="#id13">Control flow statement</a><a class="headerlink" href="#control-flow-statement" title="Permalink to this headline">¶</a></h2>
+<h2><a class="toc-backref" href="#id17">Control flow statement</a><a class="headerlink" href="#control-flow-statement" title="Permalink to this headline">¶</a></h2>
 <p>Run ch8_1_1.cpp with clang will get result as follows,</p>
 <p class="rubric">lbdex/input/ch8_1_1.cpp</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="nb">int</span> <span class="n">test_ifctrl</span><span class="p">()</span>
@@ -142,17 +171,17 @@ To solve this chained IR to machine instructions translation, we define the
 following pattern,</p>
 <p class="rubric">lbdex/chapters/Chapter8_1/Cpu0InstrInfo.td</p>
 <div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="c1">// brcond patterns</span>
-<span class="n">multiclass</span> <span class="n">BrcondPatsCmp</span><span class="o">&lt;</span><span class="n">RegisterClass</span> <span class="n">RC</span><span class="p">,</span> <span class="n">Instruction</span> <span class="n">JEQOp</span><span class="p">,</span> <span class="n">Instruction</span> <span class="n">JNEOp</span><span class="p">,</span>
-  <span class="n">Instruction</span> <span class="n">JLTOp</span><span class="p">,</span> <span class="n">Instruction</span> <span class="n">JGTOp</span><span class="p">,</span> <span class="n">Instruction</span> <span class="n">JLEOp</span><span class="p">,</span> <span class="n">Instruction</span> <span class="n">JGEOp</span><span class="p">,</span>
-  <span class="n">Instruction</span> <span class="n">CMPOp</span><span class="o">&gt;</span> <span class="p">{</span>
-<span class="p">...</span>
-<span class="nl">def</span> <span class="p">:</span> <span class="n">Pat</span><span class="o">&lt;</span><span class="p">(</span><span class="n">brcond</span> <span class="p">(</span><span class="n">i32</span> <span class="p">(</span><span class="n">setne</span> <span class="nl">RC</span><span class="p">:</span><span class="n">$lhs</span><span class="p">,</span> <span class="nl">RC</span><span class="p">:</span><span class="n">$rhs</span><span class="p">)),</span> <span class="nl">bb</span><span class="p">:</span><span class="n">$dst</span><span class="p">),</span>
-          <span class="p">(</span><span class="n">JNEOp</span> <span class="p">(</span><span class="n">CMPOp</span> <span class="nl">RC</span><span class="p">:</span><span class="n">$lhs</span><span class="p">,</span> <span class="nl">RC</span><span class="p">:</span><span class="n">$rhs</span><span class="p">),</span> <span class="nl">bb</span><span class="p">:</span><span class="n">$dst</span><span class="p">)</span><span class="o">&gt;</span><span class="p">;</span>
-<span class="p">...</span>
-<span class="nl">def</span> <span class="p">:</span> <span class="n">Pat</span><span class="o">&lt;</span><span class="p">(</span><span class="n">brcond</span> <span class="nl">RC</span><span class="p">:</span><span class="n">$cond</span><span class="p">,</span> <span class="nl">bb</span><span class="p">:</span><span class="n">$dst</span><span class="p">),</span>
-          <span class="p">(</span><span class="n">JNEOp</span> <span class="p">(</span><span class="n">CMPOp</span> <span class="nl">RC</span><span class="p">:</span><span class="n">$cond</span><span class="p">,</span> <span class="n">ZEROReg</span><span class="p">),</span> <span class="nl">bb</span><span class="p">:</span><span class="n">$dst</span><span class="p">)</span><span class="o">&gt;</span><span class="p">;</span>
-<span class="p">...</span>
-<span class="p">}</span>
+<span class="n">multiclass</span><span class="w"> </span><span class="n">BrcondPatsCmp</span><span class="o">&lt;</span><span class="n">RegisterClass</span><span class="w"> </span><span class="n">RC</span><span class="p">,</span><span class="w"> </span><span class="n">Instruction</span><span class="w"> </span><span class="n">JEQOp</span><span class="p">,</span><span class="w"> </span><span class="n">Instruction</span><span class="w"> </span><span class="n">JNEOp</span><span class="p">,</span><span class="w"></span>
+<span class="w">  </span><span class="n">Instruction</span><span class="w"> </span><span class="n">JLTOp</span><span class="p">,</span><span class="w"> </span><span class="n">Instruction</span><span class="w"> </span><span class="n">JGTOp</span><span class="p">,</span><span class="w"> </span><span class="n">Instruction</span><span class="w"> </span><span class="n">JLEOp</span><span class="p">,</span><span class="w"> </span><span class="n">Instruction</span><span class="w"> </span><span class="n">JGEOp</span><span class="p">,</span><span class="w"></span>
+<span class="w">  </span><span class="n">Instruction</span><span class="w"> </span><span class="n">CMPOp</span><span class="o">&gt;</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="p">...</span><span class="w"></span>
+<span class="nl">def</span> <span class="p">:</span><span class="w"> </span><span class="n">Pat</span><span class="o">&lt;</span><span class="p">(</span><span class="n">brcond</span><span class="w"> </span><span class="p">(</span><span class="n">i32</span><span class="w"> </span><span class="p">(</span><span class="n">setne</span><span class="w"> </span><span class="nl">RC</span><span class="p">:</span><span class="n">$lhs</span><span class="p">,</span><span class="w"> </span><span class="nl">RC</span><span class="p">:</span><span class="n">$rhs</span><span class="p">)),</span><span class="w"> </span><span class="nl">bb</span><span class="p">:</span><span class="n">$dst</span><span class="p">),</span><span class="w"></span>
+<span class="w">          </span><span class="p">(</span><span class="n">JNEOp</span><span class="w"> </span><span class="p">(</span><span class="n">CMPOp</span><span class="w"> </span><span class="nl">RC</span><span class="p">:</span><span class="n">$lhs</span><span class="p">,</span><span class="w"> </span><span class="nl">RC</span><span class="p">:</span><span class="n">$rhs</span><span class="p">),</span><span class="w"> </span><span class="nl">bb</span><span class="p">:</span><span class="n">$dst</span><span class="p">)</span><span class="o">&gt;</span><span class="p">;</span><span class="w"></span>
+<span class="p">...</span><span class="w"></span>
+<span class="nl">def</span> <span class="p">:</span><span class="w"> </span><span class="n">Pat</span><span class="o">&lt;</span><span class="p">(</span><span class="n">brcond</span><span class="w"> </span><span class="nl">RC</span><span class="p">:</span><span class="n">$cond</span><span class="p">,</span><span class="w"> </span><span class="nl">bb</span><span class="p">:</span><span class="n">$dst</span><span class="p">),</span><span class="w"></span>
+<span class="w">          </span><span class="p">(</span><span class="n">JNEOp</span><span class="w"> </span><span class="p">(</span><span class="n">CMPOp</span><span class="w"> </span><span class="nl">RC</span><span class="p">:</span><span class="n">$cond</span><span class="p">,</span><span class="w"> </span><span class="n">ZEROReg</span><span class="p">),</span><span class="w"> </span><span class="nl">bb</span><span class="p">:</span><span class="n">$dst</span><span class="p">)</span><span class="o">&gt;</span><span class="p">;</span><span class="w"></span>
+<span class="p">...</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
 </pre></div>
 </div>
 <p>Since the aboved BrcondPats pattern uses RC (Register Class) as operand, the
@@ -176,13 +205,13 @@ The last pattern (brcond RC:$cond, bb:$dst) means branch to $dst
 if $cond != 0. So we set the corresponding translation to
 (JNEOp (CMPOp RC:$cond, ZEROReg), bb:$dst).</p>
 <p>The CMP instruction will set the result to register SW, and then JNE check the
-condition based on SW status as <a class="reference internal" href="#ctrlflow-f1"><span class="std std-numref">Fig. 23</span></a>.
+condition based on SW status as <a class="reference internal" href="#ctrlflow-f1"><span class="std std-numref">Fig. 26</span></a>.
 Since SW belongs to a different register class, it will be
 correct even an instruction is inserted between CMP and JNE as follows,</p>
-<figure class="align-center" id="id10">
+<figure class="align-center" id="id13">
 <span id="ctrlflow-f1"></span><a class="reference internal image-reference" href="_images/11.png"><img alt="_images/11.png" src="_images/11.png" style="width: 223.0px; height: 232.5px;" /></a>
 <figcaption>
-<p><span class="caption-number">Fig. 23 </span><span class="caption-text">JNE (CMP $r2, $r3),</span><a class="headerlink" href="#id10" title="Permalink to this image">¶</a></p>
+<p><span class="caption-number">Fig. 26 </span><span class="caption-text">JNE (CMP $r2, $r3),</span><a class="headerlink" href="#id13" title="Permalink to this image">¶</a></p>
 </figcaption>
 </figure>
 <div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">cmp %2, %3</span>
@@ -342,8 +371,8 @@ The ch8_1_blockaddr.cpp is for <strong>blockaddress</strong> and <strong>indirec
 You can run with them if you like to test more.</p>
 <p>List the control flow statements of C, IR, DAG and Cpu0 instructions as the
 following table.</p>
-<table class="docutils align-default" id="id11">
-<caption><span class="caption-number">Table 28 </span><span class="caption-text">Control flow statements of C, IR, DAG and Cpu0 instructions</span><a class="headerlink" href="#id11" title="Permalink to this table">¶</a></caption>
+<table class="docutils align-default" id="id14">
+<caption><span class="caption-number">Table 28 </span><span class="caption-text">Control flow statements of C, IR, DAG and Cpu0 instructions</span><a class="headerlink" href="#id14" title="Permalink to this table">¶</a></caption>
 <colgroup>
 <col style="width: 23%" />
 <col style="width: 77%" />
@@ -374,7 +403,7 @@ following table.</p>
 </table>
 </section>
 <section id="long-branch-support">
-<h2><a class="toc-backref" href="#id14">Long branch support</a><a class="headerlink" href="#long-branch-support" title="Permalink to this headline">¶</a></h2>
+<h2><a class="toc-backref" href="#id18">Long branch support</a><a class="headerlink" href="#long-branch-support" title="Permalink to this headline">¶</a></h2>
 <p>As last section, cpu032II uses beq and bne to improve performance but the jump
 offset reduces from 24 bits to 16 bits. If program exists more than 16 bits,
 cpu032II will fail to generate code. Mips backend has solution and Cpu0 hire
@@ -398,8 +427,8 @@ the solution from it.</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>  <span class="k">if</span> <span class="p">(</span><span class="n">Opcode</span> <span class="o">==</span> <span class="n">Cpu0</span><span class="p">::</span><span class="n">JMP</span> <span class="o">||</span> <span class="n">Opcode</span> <span class="o">==</span> <span class="n">Cpu0</span><span class="p">::</span><span class="n">BAL</span><span class="p">)</span>
 </pre></div>
 </div>
-<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span>  <span class="p">...</span>
-<span class="p">}</span>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="w">  </span><span class="p">...</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
 </pre></div>
 </div>
 <p class="rubric">lbdex/chapters/Chapter8_2/Cpu0AsmPrinter.h</p>
@@ -414,8 +443,8 @@ the solution from it.</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>    if (I-&gt;isPseudo() &amp;&amp; !isLongBranchPseudo(I-&gt;getOpcode()))
 </pre></div>
 </div>
-<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span>  <span class="p">...</span>
-<span class="p">}</span>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="w">  </span><span class="p">...</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
 </pre></div>
 </div>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="nb">bool</span> <span class="n">Cpu0AsmPrinter</span><span class="p">::</span><span class="n">isLongBranchPseudo</span><span class="p">(</span><span class="nb">int</span> <span class="n">Opcode</span><span class="p">)</span> <span class="n">const</span> <span class="p">{</span>
@@ -951,15 +980,15 @@ bool Cpu0MCInstLower::lowerLongBranch(const MachineInstr *MI,
 }
 </pre></div>
 </div>
-<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="kt">void</span> <span class="nf">Cpu0MCInstLower::Lower</span><span class="p">(</span><span class="k">const</span> <span class="n">MachineInstr</span> <span class="o">*</span><span class="n">MI</span><span class="p">,</span> <span class="n">MCInst</span> <span class="o">&amp;</span><span class="n">OutMI</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="kt">void</span><span class="w"> </span><span class="nf">Cpu0MCInstLower::Lower</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">MachineInstr</span><span class="w"> </span><span class="o">*</span><span class="n">MI</span><span class="p">,</span><span class="w"> </span><span class="n">MCInst</span><span class="w"> </span><span class="o">&amp;</span><span class="n">OutMI</span><span class="p">)</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
 </pre></div>
 </div>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>  <span class="k">if</span> <span class="p">(</span><span class="n">lowerLongBranch</span><span class="p">(</span><span class="n">MI</span><span class="p">,</span> <span class="n">OutMI</span><span class="p">))</span>
     <span class="k">return</span><span class="p">;</span>
 </pre></div>
 </div>
-<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span>  <span class="p">...</span>
-<span class="p">}</span>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="w">  </span><span class="p">...</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
 </pre></div>
 </div>
 <p class="rubric">lbdex/chapters/Chapter8_2/Cpu0SEInstrInfo.h</p>
@@ -1071,7 +1100,7 @@ bool Cpu0MCInstLower::lowerLongBranch(const MachineInstr *MI,
 </div>
 </section>
 <section id="cpu0-backend-optimization-remove-useless-jmp">
-<h2><a class="toc-backref" href="#id15">Cpu0 backend Optimization: Remove useless JMP</a><a class="headerlink" href="#cpu0-backend-optimization-remove-useless-jmp" title="Permalink to this headline">¶</a></h2>
+<h2><a class="toc-backref" href="#id19">Cpu0 backend Optimization: Remove useless JMP</a><a class="headerlink" href="#cpu0-backend-optimization-remove-useless-jmp" title="Permalink to this headline">¶</a></h2>
 <p>LLVM uses functional pass both in code generation and optimization.
 Following the 3 tiers of compiler architecture, LLVM do most optimization in
 middle tier of LLVM IR, SSA form.
@@ -1107,7 +1136,7 @@ codes as follows,</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>  <span class="n">addPass</span><span class="p">(</span><span class="n">createCpu0DelJmpPass</span><span class="p">(</span><span class="n">TM</span><span class="p">));</span>
 </pre></div>
 </div>
-<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="p">}</span>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="p">}</span><span class="w"></span>
 </pre></div>
 </div>
 <p class="rubric">lbdex/chapters/Chapter8_2/Cpu0DelUselessJMP.cpp</p>
@@ -1281,7 +1310,7 @@ If you run with ch8_1_1.cpp, you will find 10 jmp instructions are deleted from
 <a class="footnote-reference brackets" href="#cache-speed" id="id1">1</a>.</p>
 </section>
 <section id="fill-branch-delay-slot">
-<h2><a class="toc-backref" href="#id16">Fill Branch Delay Slot</a><a class="headerlink" href="#fill-branch-delay-slot" title="Permalink to this headline">¶</a></h2>
+<h2><a class="toc-backref" href="#id20">Fill Branch Delay Slot</a><a class="headerlink" href="#fill-branch-delay-slot" title="Permalink to this headline">¶</a></h2>
 <p>Cpu0 instruction set is designed to be a classical RISC pipeline machine.
 Classical RISC machine has many perfect features <a class="footnote-reference brackets" href="#quantitative" id="id2">3</a> <a class="footnote-reference brackets" href="#wiki-pipeline" id="id3">4</a>.
 I change Cpu0 backend to a 5 stages of classical RISC pipeline machine with
@@ -1313,7 +1342,7 @@ Following code added in Chapter8_2 for NOP fill in Branch Delay Slot.</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>  <span class="n">addPass</span><span class="p">(</span><span class="n">createCpu0DelaySlotFillerPass</span><span class="p">(</span><span class="n">TM</span><span class="p">));</span>
 </pre></div>
 </div>
-<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="p">}</span>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="p">}</span><span class="w"></span>
 </pre></div>
 </div>
 <p class="rubric">lbdex/chapters/Chapter8_2/Cpu0DelaySlotFiller.cpp</p>
@@ -1456,7 +1485,7 @@ But for some reasons, it changed in llvm at some later version and you need doin
 “bundle” in order to keep block label unchanged at later llvm phase.</p>
 </section>
 <section id="conditional-instruction">
-<h2><a class="toc-backref" href="#id17">Conditional instruction</a><a class="headerlink" href="#conditional-instruction" title="Permalink to this headline">¶</a></h2>
+<h2><a class="toc-backref" href="#id21">Conditional instruction</a><a class="headerlink" href="#conditional-instruction" title="Permalink to this headline">¶</a></h2>
 <p class="rubric">lbdex/input/ch8_2_select.cpp</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>
 // The following files will generate IR select even compile with clang -O0.
@@ -1635,7 +1664,7 @@ defm : MovnPats&lt;CPURegs, CPURegs, MOVN_I_I, XOR&gt;;
   <span class="n">setOperationAction</span><span class="p">(</span><span class="n">ISD</span><span class="p">::</span><span class="n">SELECT_CC</span><span class="p">,</span>         <span class="n">MVT</span><span class="p">::</span><span class="n">Other</span><span class="p">,</span> <span class="n">Expand</span><span class="p">);</span>
 </pre></div>
 </div>
-<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="p">}</span>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="p">}</span><span class="w"></span>
 </pre></div>
 </div>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">SDValue</span> <span class="n">Cpu0TargetLowering</span><span class="p">::</span>
@@ -1648,9 +1677,9 @@ defm : MovnPats&lt;CPURegs, CPURegs, MOVN_I_I, XOR&gt;;
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>  <span class="n">case</span> <span class="n">ISD</span><span class="p">::</span><span class="n">SELECT</span><span class="p">:</span>             <span class="k">return</span> <span class="n">lowerSELECT</span><span class="p">(</span><span class="n">Op</span><span class="p">,</span> <span class="n">DAG</span><span class="p">);</span>
 </pre></div>
 </div>
-<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span>  <span class="p">}</span>
-  <span class="p">...</span>
-<span class="p">}</span>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="w">  </span><span class="p">}</span><span class="w"></span>
+<span class="w">  </span><span class="p">...</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
 </pre></div>
 </div>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">SDValue</span> <span class="n">Cpu0TargetLowering</span><span class="p">::</span>
@@ -1737,8 +1766,8 @@ they are professional.</p>
 </div>
 <p>List the conditional statements of C, IR, DAG and Cpu0 instructions as the
 following table.</p>
-<table class="docutils align-default" id="id12">
-<caption><span class="caption-number">Table 29 </span><span class="caption-text">Conditional statements of C, IR, DAG and Cpu0 instructions</span><a class="headerlink" href="#id12" title="Permalink to this table">¶</a></caption>
+<table class="docutils align-default" id="id15">
+<caption><span class="caption-number">Table 29 </span><span class="caption-text">Conditional statements of C, IR, DAG and Cpu0 instructions</span><a class="headerlink" href="#id15" title="Permalink to this table">¶</a></caption>
 <colgroup>
 <col style="width: 23%" />
 <col style="width: 77%" />
@@ -1878,7 +1907,7 @@ tested now as follows,</p>
 </div>
 </section>
 <section id="phi-node">
-<h2><a class="toc-backref" href="#id18">Phi node</a><a class="headerlink" href="#phi-node" title="Permalink to this headline">¶</a></h2>
+<h2><a class="toc-backref" href="#id22">Phi node</a><a class="headerlink" href="#phi-node" title="Permalink to this headline">¶</a></h2>
 <p>Since phi node is popular used in SSA form <a class="footnote-reference brackets" href="#ssa-wiki" id="id6">5</a>, llvm applies
 phi node in IR for optimization work either.
 Phi node exists for “live variable analysis”. An example for C is here
@@ -2035,7 +2064,7 @@ here <a class="footnote-reference brackets" href="#phi-book" id="id8">7</a> for 
 dominator tree analysis if you have this book.</p>
 </section>
 <section id="risc-cpu-knowledge">
-<h2><a class="toc-backref" href="#id19">RISC CPU knowledge</a><a class="headerlink" href="#risc-cpu-knowledge" title="Permalink to this headline">¶</a></h2>
+<h2><a class="toc-backref" href="#id23">RISC CPU knowledge</a><a class="headerlink" href="#risc-cpu-knowledge" title="Permalink to this headline">¶</a></h2>
 <p>As mentioned in the previous section, Cpu0 is a RISC
 (Reduced Instruction Set
 Computer) CPU with 5 stages of pipeline.
@@ -2111,7 +2140,7 @@ Techniques, and Tools (2nd Edition)</p>
 
     <div class="footer" role="contentinfo">
         &#169; Copyright 2016, Chen Chung-Shu.
-      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 4.0.2.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 4.3.1.
     </div>
   </body>
 </html>

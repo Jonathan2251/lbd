@@ -116,7 +116,7 @@ and here <a class="footnote-reference brackets" href="#cpu0-english" id="id3">2<
 R15), co-processor registers (like Mips), and other special registers. Its
 structure is illustrated in <a class="reference internal" href="#llvmstructure-f1"><span class="std std-numref">Fig. 3</span></a> below.</p>
 <figure class="align-center" id="id33">
-<span id="llvmstructure-f1"></span><a class="reference internal image-reference" href="_images/16.png"><img alt="_images/16.png" src="_images/16.png" style="width: 608px; height: 360px;" /></a>
+<span id="llvmstructure-f1"></span><a class="reference internal image-reference" href="_images/14.png"><img alt="_images/14.png" src="_images/14.png" style="width: 608px; height: 360px;" /></a>
 <figcaption>
 <p><span class="caption-number">Fig. 3 </span><span class="caption-text">Architectural block diagram of the Cpu0 processor</span><a class="headerlink" href="#id33" title="Permalink to this image">¶</a></p>
 </figcaption>
@@ -934,14 +934,14 @@ To make this concrete, here is a simple example of a .ll file:</p>
 </div>
 <div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="c1">// Above LLVM IR corresponds to this C code, which provides two different ways to</span>
 <span class="c1">//  add integers:</span>
-<span class="kt">unsigned</span> <span class="nf">add1</span><span class="p">(</span><span class="kt">unsigned</span> <span class="n">a</span><span class="p">,</span> <span class="kt">unsigned</span> <span class="n">b</span><span class="p">)</span> <span class="p">{</span>
-  <span class="k">return</span> <span class="n">a</span><span class="o">+</span><span class="n">b</span><span class="p">;</span>
-<span class="p">}</span>
+<span class="kt">unsigned</span><span class="w"> </span><span class="nf">add1</span><span class="p">(</span><span class="kt">unsigned</span><span class="w"> </span><span class="n">a</span><span class="p">,</span><span class="w"> </span><span class="kt">unsigned</span><span class="w"> </span><span class="n">b</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="n">a</span><span class="o">+</span><span class="n">b</span><span class="p">;</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
 <span class="c1">// Perhaps not the most efficient way to add two numbers.</span>
-<span class="kt">unsigned</span> <span class="nf">add2</span><span class="p">(</span><span class="kt">unsigned</span> <span class="n">a</span><span class="p">,</span> <span class="kt">unsigned</span> <span class="n">b</span><span class="p">)</span> <span class="p">{</span>
-  <span class="k">if</span> <span class="p">(</span><span class="n">a</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span> <span class="k">return</span> <span class="n">b</span><span class="p">;</span>
-  <span class="k">return</span> <span class="n">add2</span><span class="p">(</span><span class="n">a</span><span class="mi">-1</span><span class="p">,</span> <span class="n">b</span><span class="o">+</span><span class="mi">1</span><span class="p">);</span>
-<span class="p">}</span>
+<span class="kt">unsigned</span><span class="w"> </span><span class="nf">add2</span><span class="p">(</span><span class="kt">unsigned</span><span class="w"> </span><span class="n">a</span><span class="p">,</span><span class="w"> </span><span class="kt">unsigned</span><span class="w"> </span><span class="n">b</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">a</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="k">return</span><span class="w"> </span><span class="n">b</span><span class="p">;</span><span class="w"></span>
+<span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="n">add2</span><span class="p">(</span><span class="n">a</span><span class="mi">-1</span><span class="p">,</span><span class="w"> </span><span class="n">b</span><span class="o">+</span><span class="mi">1</span><span class="p">);</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
 </pre></div>
 </div>
 <p>As you can see from this example, LLVM IR is a low-level RISC-like virtual
@@ -1001,9 +1001,9 @@ build up the different pieces of their target.
 For example, the x86 back end defines a register class that holds all of its
 32-bit registers named “GR32” (in the .td files, target specific definitions
 are all caps) like this:</p>
-<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="n">def</span> <span class="nl">GR32</span> <span class="p">:</span> <span class="n">RegisterClass</span><span class="o">&lt;</span><span class="p">[</span><span class="n">i32</span><span class="p">],</span> <span class="mi">32</span><span class="p">,</span>
-  <span class="p">[</span><span class="n">EAX</span><span class="p">,</span> <span class="n">ECX</span><span class="p">,</span> <span class="n">EDX</span><span class="p">,</span> <span class="n">ESI</span><span class="p">,</span> <span class="n">EDI</span><span class="p">,</span> <span class="n">EBX</span><span class="p">,</span> <span class="n">EBP</span><span class="p">,</span> <span class="n">ESP</span><span class="p">,</span>
-   <span class="n">R8D</span><span class="p">,</span> <span class="n">R9D</span><span class="p">,</span> <span class="n">R10D</span><span class="p">,</span> <span class="n">R11D</span><span class="p">,</span> <span class="n">R14D</span><span class="p">,</span> <span class="n">R15D</span><span class="p">,</span> <span class="n">R12D</span><span class="p">,</span> <span class="n">R13D</span><span class="p">]</span><span class="o">&gt;</span> <span class="p">{</span> <span class="p">...</span> <span class="p">}</span>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="n">def</span><span class="w"> </span><span class="nl">GR32</span> <span class="p">:</span><span class="w"> </span><span class="n">RegisterClass</span><span class="o">&lt;</span><span class="p">[</span><span class="n">i32</span><span class="p">],</span><span class="w"> </span><span class="mi">32</span><span class="p">,</span><span class="w"></span>
+<span class="w">  </span><span class="p">[</span><span class="n">EAX</span><span class="p">,</span><span class="w"> </span><span class="n">ECX</span><span class="p">,</span><span class="w"> </span><span class="n">EDX</span><span class="p">,</span><span class="w"> </span><span class="n">ESI</span><span class="p">,</span><span class="w"> </span><span class="n">EDI</span><span class="p">,</span><span class="w"> </span><span class="n">EBX</span><span class="p">,</span><span class="w"> </span><span class="n">EBP</span><span class="p">,</span><span class="w"> </span><span class="n">ESP</span><span class="p">,</span><span class="w"></span>
+<span class="w">   </span><span class="n">R8D</span><span class="p">,</span><span class="w"> </span><span class="n">R9D</span><span class="p">,</span><span class="w"> </span><span class="n">R10D</span><span class="p">,</span><span class="w"> </span><span class="n">R11D</span><span class="p">,</span><span class="w"> </span><span class="n">R14D</span><span class="p">,</span><span class="w"> </span><span class="n">R15D</span><span class="p">,</span><span class="w"> </span><span class="n">R12D</span><span class="p">,</span><span class="w"> </span><span class="n">R13D</span><span class="p">]</span><span class="o">&gt;</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="p">...</span><span class="w"> </span><span class="p">}</span><span class="w"></span>
 </pre></div>
 </div>
 <p>The language used in .td files are Target(Hardware) Description Language that
@@ -1346,10 +1346,10 @@ version <a class="footnote-reference brackets" href="#dragonbooks-10-2-3" id="id
 </div>
 <p>For the source program as above, the following are the SSA form in source code
 level and llvm IR level respectively.</p>
-<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="mi">1000</span><span class="p">;</span> <span class="n">i</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
-  <span class="n">t</span> <span class="o">=</span> <span class="n">g</span><span class="p">(</span><span class="n">a</span><span class="p">[</span><span class="n">i</span><span class="p">]);</span>
-  <span class="n">b</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">f</span><span class="p">(</span><span class="n">t</span><span class="p">);</span>
-<span class="p">}</span>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="mi">1000</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="o">++</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">  </span><span class="n">t</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">g</span><span class="p">(</span><span class="n">a</span><span class="p">[</span><span class="n">i</span><span class="p">]);</span><span class="w"></span>
+<span class="w">  </span><span class="n">b</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">f</span><span class="p">(</span><span class="n">t</span><span class="p">);</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
 </pre></div>
 </div>
 <div class="highlight-llvm notranslate"><div class="highlight"><pre><span></span>  <span class="nv">%pi</span> <span class="p">=</span> <span class="k">alloca</span> <span class="kt">i32</span>
@@ -1368,10 +1368,10 @@ level and llvm IR level respectively.</p>
 </pre></div>
 </div>
 <p>The following is the DSA (Dynamic Single Assignment) form.</p>
-<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="mi">1000</span><span class="p">;</span> <span class="n">i</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
-  <span class="n">t</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">g</span><span class="p">(</span><span class="n">a</span><span class="p">[</span><span class="n">i</span><span class="p">]);</span>
-  <span class="n">b</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">f</span><span class="p">(</span><span class="n">t</span><span class="p">[</span><span class="n">i</span><span class="p">]);</span>
-<span class="p">}</span>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="mi">1000</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="o">++</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">  </span><span class="n">t</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">g</span><span class="p">(</span><span class="n">a</span><span class="p">[</span><span class="n">i</span><span class="p">]);</span><span class="w"></span>
+<span class="w">  </span><span class="n">b</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">f</span><span class="p">(</span><span class="n">t</span><span class="p">[</span><span class="n">i</span><span class="p">]);</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
 </pre></div>
 </div>
 <div class="highlight-llvm notranslate"><div class="highlight"><pre><span></span>  <span class="nv">%pi</span> <span class="p">=</span> <span class="k">alloca</span> <span class="kt">i32</span>
@@ -1400,13 +1400,13 @@ Besides, as you see, the llvm ir lose the for loop information already though
 it can be reconstructed by extra analysis. So, in this book and almost every
 paper in compiler discuss with this high-to-low premise, otherwise it’s talking
 about reverse engineering in assembler or compiler.</p>
-<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="mi">1000</span><span class="p">;</span> <span class="n">i</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
-  <span class="n">t</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">g</span><span class="p">(</span><span class="n">a</span><span class="p">[</span><span class="n">i</span><span class="p">]);</span>
-<span class="p">}</span>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="mi">1000</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="o">++</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">  </span><span class="n">t</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">g</span><span class="p">(</span><span class="n">a</span><span class="p">[</span><span class="n">i</span><span class="p">]);</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
 
-<span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="mi">1000</span><span class="p">;</span> <span class="n">i</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
-  <span class="n">b</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">f</span><span class="p">(</span><span class="n">t</span><span class="p">[</span><span class="n">i</span><span class="p">]);</span>
-<span class="p">}</span>
+<span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="mi">1000</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="o">++</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">  </span><span class="n">b</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">f</span><span class="p">(</span><span class="n">t</span><span class="p">[</span><span class="n">i</span><span class="p">]);</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
 </pre></div>
 </div>
 <div class="highlight-llvm notranslate"><div class="highlight"><pre><span></span>  <span class="nv">%pi</span> <span class="p">=</span> <span class="k">alloca</span> <span class="kt">i32</span>
@@ -1576,7 +1576,7 @@ DAG nodes <strong>load</strong> and <strong>store</strong>. Notice that the $rb 
 <a class="reference internal" href="#llvmstructure-f13"><span class="std std-numref">Fig. 13</span></a> is virtual register name (not machine register).
 The detail for <a class="reference internal" href="#llvmstructure-f13"><span class="std std-numref">Fig. 13</span></a> depicted after it.</p>
 <figure class="align-center" id="id50">
-<span id="llvmstructure-f13"></span><a class="reference internal image-reference" href="_images/132.png"><img alt="_images/132.png" src="_images/132.png" style="width: 514.4px; height: 336.8px;" /></a>
+<span id="llvmstructure-f13"></span><a class="reference internal image-reference" href="_images/131.png"><img alt="_images/131.png" src="_images/131.png" style="width: 514.4px; height: 336.8px;" /></a>
 <figcaption>
 <p><span class="caption-number">Fig. 13 </span><span class="caption-text">Pattern match for ADDiu instruction and IR node add</span><a class="headerlink" href="#id50" title="Permalink to this image">¶</a></p>
 </figcaption>
@@ -1838,141 +1838,141 @@ elseif (LLVM_NATIVE_ARCH MATCHES &quot;cpu0&quot;)
 </pre></div>
 </div>
 <p class="rubric">lbdex/llvm/modify/llvm/include/llvm/ADT/Triple.h</p>
-<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="p">...</span>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="p">...</span><span class="w"></span>
 <span class="cp">#undef mips</span>
 <span class="cp">#undef cpu0</span>
-<span class="p">...</span>
-<span class="k">class</span> <span class="nc">Triple</span> <span class="p">{</span>
-<span class="k">public</span><span class="o">:</span>
-  <span class="k">enum</span> <span class="nc">ArchType</span> <span class="p">{</span>
-    <span class="p">...</span>
-    <span class="n">cpu0</span><span class="p">,</span>       <span class="c1">// For Tutorial Backend Cpu0</span>
-    <span class="n">cpu0el</span><span class="p">,</span>
-    <span class="p">...</span>
-  <span class="p">};</span>
-  <span class="p">...</span>
-<span class="p">}</span>
+<span class="p">...</span><span class="w"></span>
+<span class="k">class</span> <span class="nc">Triple</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="k">public</span><span class="o">:</span><span class="w"></span>
+<span class="w">  </span><span class="k">enum</span> <span class="nc">ArchType</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="p">...</span><span class="w"></span>
+<span class="w">    </span><span class="n">cpu0</span><span class="p">,</span><span class="w">       </span><span class="c1">// For Tutorial Backend Cpu0</span>
+<span class="w">    </span><span class="n">cpu0el</span><span class="p">,</span><span class="w"></span>
+<span class="w">    </span><span class="p">...</span><span class="w"></span>
+<span class="w">  </span><span class="p">};</span><span class="w"></span>
+<span class="w">  </span><span class="p">...</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
 </pre></div>
 </div>
 <p class="rubric">lbdex/llvm/modify/llvm/include/llvm/Object/ELFObjectFile.h</p>
-<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="p">...</span>
-<span class="k">template</span> <span class="o">&lt;</span><span class="k">class</span> <span class="nc">ELFT</span><span class="o">&gt;</span>
-<span class="n">StringRef</span> <span class="n">ELFObjectFile</span><span class="o">&lt;</span><span class="n">ELFT</span><span class="o">&gt;::</span><span class="n">getFileFormatName</span><span class="p">()</span> <span class="k">const</span> <span class="p">{</span>
-  <span class="k">switch</span> <span class="p">(</span><span class="n">EF</span><span class="p">.</span><span class="n">getHeader</span><span class="p">()</span><span class="o">-&gt;</span><span class="n">e_ident</span><span class="p">[</span><span class="n">ELF</span><span class="o">::</span><span class="n">EI_CLASS</span><span class="p">])</span> <span class="p">{</span>
-  <span class="k">case</span> <span class="n">ELF</span><span class="o">::</span><span class="nl">ELFCLASS32</span><span class="p">:</span>
-    <span class="k">switch</span> <span class="p">(</span><span class="n">EF</span><span class="p">.</span><span class="n">getHeader</span><span class="p">()</span><span class="o">-&gt;</span><span class="n">e_machine</span><span class="p">)</span> <span class="p">{</span>
-    <span class="p">...</span>
-    <span class="k">case</span> <span class="n">ELF</span><span class="o">::</span><span class="nl">EM_CPU0</span><span class="p">:</span>        <span class="c1">// llvm-objdump -t -r</span>
-      <span class="k">return</span> <span class="s">&quot;ELF32-cpu0&quot;</span><span class="p">;</span>
-    <span class="p">...</span>
-  <span class="p">}</span>
-  <span class="p">...</span>
-<span class="p">}</span>
-<span class="p">...</span>
-<span class="k">template</span> <span class="o">&lt;</span><span class="k">class</span> <span class="nc">ELFT</span><span class="o">&gt;</span>
-<span class="kt">unsigned</span> <span class="n">ELFObjectFile</span><span class="o">&lt;</span><span class="n">ELFT</span><span class="o">&gt;::</span><span class="n">getArch</span><span class="p">()</span> <span class="k">const</span> <span class="p">{</span>
-  <span class="kt">bool</span> <span class="n">IsLittleEndian</span> <span class="o">=</span> <span class="n">ELFT</span><span class="o">::</span><span class="n">TargetEndianness</span> <span class="o">==</span> <span class="n">support</span><span class="o">::</span><span class="n">little</span><span class="p">;</span>
-  <span class="k">switch</span> <span class="p">(</span><span class="n">EF</span><span class="p">.</span><span class="n">getHeader</span><span class="p">()</span><span class="o">-&gt;</span><span class="n">e_machine</span><span class="p">)</span> <span class="p">{</span>
-  <span class="p">...</span>
-  <span class="k">case</span> <span class="n">ELF</span><span class="o">::</span><span class="nl">EM_CPU0</span><span class="p">:</span>  <span class="c1">// llvm-objdump -t -r</span>
-    <span class="k">switch</span> <span class="p">(</span><span class="n">EF</span><span class="p">.</span><span class="n">getHeader</span><span class="p">()</span><span class="o">-&gt;</span><span class="n">e_ident</span><span class="p">[</span><span class="n">ELF</span><span class="o">::</span><span class="n">EI_CLASS</span><span class="p">])</span> <span class="p">{</span>
-    <span class="k">case</span> <span class="n">ELF</span><span class="o">::</span><span class="nl">ELFCLASS32</span><span class="p">:</span>
-    <span class="k">return</span> <span class="n">IsLittleEndian</span> <span class="o">?</span> <span class="n">Triple</span><span class="o">::</span><span class="nl">cpu0el</span> <span class="p">:</span> <span class="n">Triple</span><span class="o">::</span><span class="n">cpu0</span><span class="p">;</span>
-    <span class="k">default</span><span class="o">:</span>
-      <span class="n">report_fatal_error</span><span class="p">(</span><span class="s">&quot;Invalid ELFCLASS!&quot;</span><span class="p">);</span>
-    <span class="p">}</span>
-  <span class="p">...</span>
-  <span class="p">}</span>
-<span class="p">}</span>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="p">...</span><span class="w"></span>
+<span class="k">template</span><span class="w"> </span><span class="o">&lt;</span><span class="k">class</span> <span class="nc">ELFT</span><span class="o">&gt;</span><span class="w"></span>
+<span class="n">StringRef</span><span class="w"> </span><span class="n">ELFObjectFile</span><span class="o">&lt;</span><span class="n">ELFT</span><span class="o">&gt;::</span><span class="n">getFileFormatName</span><span class="p">()</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">  </span><span class="k">switch</span><span class="w"> </span><span class="p">(</span><span class="n">EF</span><span class="p">.</span><span class="n">getHeader</span><span class="p">()</span><span class="o">-&gt;</span><span class="n">e_ident</span><span class="p">[</span><span class="n">ELF</span><span class="o">::</span><span class="n">EI_CLASS</span><span class="p">])</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">  </span><span class="k">case</span><span class="w"> </span><span class="n">ELF</span><span class="o">::</span><span class="nl">ELFCLASS32</span><span class="p">:</span><span class="w"></span>
+<span class="w">    </span><span class="k">switch</span><span class="w"> </span><span class="p">(</span><span class="n">EF</span><span class="p">.</span><span class="n">getHeader</span><span class="p">()</span><span class="o">-&gt;</span><span class="n">e_machine</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="p">...</span><span class="w"></span>
+<span class="w">    </span><span class="k">case</span><span class="w"> </span><span class="n">ELF</span><span class="o">::</span><span class="nl">EM_CPU0</span><span class="p">:</span><span class="w">        </span><span class="c1">// llvm-objdump -t -r</span>
+<span class="w">      </span><span class="k">return</span><span class="w"> </span><span class="s">&quot;ELF32-cpu0&quot;</span><span class="p">;</span><span class="w"></span>
+<span class="w">    </span><span class="p">...</span><span class="w"></span>
+<span class="w">  </span><span class="p">}</span><span class="w"></span>
+<span class="w">  </span><span class="p">...</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
+<span class="p">...</span><span class="w"></span>
+<span class="k">template</span><span class="w"> </span><span class="o">&lt;</span><span class="k">class</span> <span class="nc">ELFT</span><span class="o">&gt;</span><span class="w"></span>
+<span class="kt">unsigned</span><span class="w"> </span><span class="n">ELFObjectFile</span><span class="o">&lt;</span><span class="n">ELFT</span><span class="o">&gt;::</span><span class="n">getArch</span><span class="p">()</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">  </span><span class="kt">bool</span><span class="w"> </span><span class="n">IsLittleEndian</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ELFT</span><span class="o">::</span><span class="n">TargetEndianness</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">support</span><span class="o">::</span><span class="n">little</span><span class="p">;</span><span class="w"></span>
+<span class="w">  </span><span class="k">switch</span><span class="w"> </span><span class="p">(</span><span class="n">EF</span><span class="p">.</span><span class="n">getHeader</span><span class="p">()</span><span class="o">-&gt;</span><span class="n">e_machine</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">  </span><span class="p">...</span><span class="w"></span>
+<span class="w">  </span><span class="k">case</span><span class="w"> </span><span class="n">ELF</span><span class="o">::</span><span class="nl">EM_CPU0</span><span class="p">:</span><span class="w">  </span><span class="c1">// llvm-objdump -t -r</span>
+<span class="w">    </span><span class="k">switch</span><span class="w"> </span><span class="p">(</span><span class="n">EF</span><span class="p">.</span><span class="n">getHeader</span><span class="p">()</span><span class="o">-&gt;</span><span class="n">e_ident</span><span class="p">[</span><span class="n">ELF</span><span class="o">::</span><span class="n">EI_CLASS</span><span class="p">])</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="k">case</span><span class="w"> </span><span class="n">ELF</span><span class="o">::</span><span class="nl">ELFCLASS32</span><span class="p">:</span><span class="w"></span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">IsLittleEndian</span><span class="w"> </span><span class="o">?</span><span class="w"> </span><span class="n">Triple</span><span class="o">::</span><span class="nl">cpu0el</span> <span class="p">:</span><span class="w"> </span><span class="n">Triple</span><span class="o">::</span><span class="n">cpu0</span><span class="p">;</span><span class="w"></span>
+<span class="w">    </span><span class="k">default</span><span class="o">:</span><span class="w"></span>
+<span class="w">      </span><span class="n">report_fatal_error</span><span class="p">(</span><span class="s">&quot;Invalid ELFCLASS!&quot;</span><span class="p">);</span><span class="w"></span>
+<span class="w">    </span><span class="p">}</span><span class="w"></span>
+<span class="w">  </span><span class="p">...</span><span class="w"></span>
+<span class="w">  </span><span class="p">}</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
 </pre></div>
 </div>
 <p class="rubric">lbdex/llvm/modify/llvm/include/llvm/Support/ELF.h</p>
-<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="k">enum</span> <span class="p">{</span>
-  <span class="p">...</span>
-  <span class="n">EM_CPU0</span>          <span class="o">=</span> <span class="mi">999</span>  <span class="c1">// Document LLVM Backend Tutorial Cpu0</span>
-<span class="p">};</span>
-<span class="p">...</span>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="k">enum</span> <span class="p">{</span><span class="w"></span>
+<span class="w">  </span><span class="p">...</span><span class="w"></span>
+<span class="w">  </span><span class="n">EM_CPU0</span><span class="w">          </span><span class="o">=</span><span class="w"> </span><span class="mi">999</span><span class="w">  </span><span class="c1">// Document LLVM Backend Tutorial Cpu0</span>
+<span class="p">};</span><span class="w"></span>
+<span class="p">...</span><span class="w"></span>
 <span class="c1">// Cpu0 Specific e_flags</span>
-<span class="k">enum</span> <span class="p">{</span>
-  <span class="n">EF_CPU0_NOREORDER</span> <span class="o">=</span> <span class="mh">0x00000001</span><span class="p">,</span> <span class="c1">// Don&#39;t reorder instructions</span>
-  <span class="n">EF_CPU0_PIC</span>       <span class="o">=</span> <span class="mh">0x00000002</span><span class="p">,</span> <span class="c1">// Position independent code</span>
-  <span class="n">EF_CPU0_ARCH_32</span>   <span class="o">=</span> <span class="mh">0x50000000</span><span class="p">,</span> <span class="c1">// CPU032 instruction set per linux not elf.h</span>
-  <span class="n">EF_CPU0_ARCH</span>      <span class="o">=</span> <span class="mh">0xf0000000</span>  <span class="c1">// Mask for applying EF_CPU0_ARCH_ variant</span>
-<span class="p">};</span>
+<span class="k">enum</span> <span class="p">{</span><span class="w"></span>
+<span class="w">  </span><span class="n">EF_CPU0_NOREORDER</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mh">0x00000001</span><span class="p">,</span><span class="w"> </span><span class="c1">// Don&#39;t reorder instructions</span>
+<span class="w">  </span><span class="n">EF_CPU0_PIC</span><span class="w">       </span><span class="o">=</span><span class="w"> </span><span class="mh">0x00000002</span><span class="p">,</span><span class="w"> </span><span class="c1">// Position independent code</span>
+<span class="w">  </span><span class="n">EF_CPU0_ARCH_32</span><span class="w">   </span><span class="o">=</span><span class="w"> </span><span class="mh">0x50000000</span><span class="p">,</span><span class="w"> </span><span class="c1">// CPU032 instruction set per linux not elf.h</span>
+<span class="w">  </span><span class="n">EF_CPU0_ARCH</span><span class="w">      </span><span class="o">=</span><span class="w"> </span><span class="mh">0xf0000000</span><span class="w">  </span><span class="c1">// Mask for applying EF_CPU0_ARCH_ variant</span>
+<span class="p">};</span><span class="w"></span>
 
 <span class="c1">// ELF Relocation types for Mips</span>
-<span class="k">enum</span> <span class="p">{</span>
-<span class="cp">#include</span> <span class="cpf">&quot;ELFRelocs/Cpu0.def&quot;</span><span class="cp"></span>
-<span class="p">};</span>
-<span class="p">...</span>
+<span class="k">enum</span> <span class="p">{</span><span class="w"></span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;ELFRelocs/Cpu0.def&quot;</span><span class="cp"></span>
+<span class="p">};</span><span class="w"></span>
+<span class="p">...</span><span class="w"></span>
 </pre></div>
 </div>
 <p class="rubric">lbdex/llvm/modify/llvm/lib/MC/MCSubtargetInfo.cpp</p>
-<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="kt">bool</span> <span class="n">Cpu0DisableUnreconginizedMessage</span> <span class="o">=</span> <span class="nb">false</span><span class="p">;</span>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="kt">bool</span><span class="w"> </span><span class="n">Cpu0DisableUnreconginizedMessage</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">false</span><span class="p">;</span><span class="w"></span>
 
-<span class="kt">void</span> <span class="nf">MCSubtargetInfo::InitMCProcessorInfo</span><span class="p">(</span><span class="n">StringRef</span> <span class="n">CPU</span><span class="p">,</span> <span class="n">StringRef</span> <span class="n">FS</span><span class="p">)</span> <span class="p">{</span>
-  <span class="cp">#if 1 </span><span class="c1">// Disable reconginized processor message. For Cpu0</span>
-  <span class="k">if</span> <span class="p">(</span><span class="n">TargetTriple</span><span class="p">.</span><span class="n">getArch</span><span class="p">()</span> <span class="o">==</span> <span class="n">llvm</span><span class="o">::</span><span class="n">Triple</span><span class="o">::</span><span class="n">cpu0</span> <span class="o">||</span>
-      <span class="n">TargetTriple</span><span class="p">.</span><span class="n">getArch</span><span class="p">()</span> <span class="o">==</span> <span class="n">llvm</span><span class="o">::</span><span class="n">Triple</span><span class="o">::</span><span class="n">cpu0el</span><span class="p">)</span>
-    <span class="n">Cpu0DisableUnreconginizedMessage</span> <span class="o">=</span> <span class="nb">true</span><span class="p">;</span>
-  <span class="cp">#endif</span>
-  <span class="p">...</span>
-<span class="p">}</span>
-<span class="p">...</span>
-<span class="k">const</span> <span class="n">MCSchedModel</span> <span class="o">&amp;</span><span class="n">MCSubtargetInfo</span><span class="o">::</span><span class="n">getSchedModelForCPU</span><span class="p">(</span><span class="n">StringRef</span> <span class="n">CPU</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
-  <span class="p">...</span>
-    <span class="cp">#if 1 </span><span class="c1">// Disable reconginized processor message. For Cpu0</span>
-    <span class="k">if</span> <span class="p">(</span><span class="n">TargetTriple</span><span class="p">.</span><span class="n">getArch</span><span class="p">()</span> <span class="o">!=</span> <span class="n">llvm</span><span class="o">::</span><span class="n">Triple</span><span class="o">::</span><span class="n">cpu0</span> <span class="o">&amp;&amp;</span>
-        <span class="n">TargetTriple</span><span class="p">.</span><span class="n">getArch</span><span class="p">()</span> <span class="o">!=</span> <span class="n">llvm</span><span class="o">::</span><span class="n">Triple</span><span class="o">::</span><span class="n">cpu0el</span><span class="p">)</span>
-    <span class="cp">#endif</span>
-  <span class="p">...</span>
-<span class="p">}</span>
+<span class="kt">void</span><span class="w"> </span><span class="nf">MCSubtargetInfo::InitMCProcessorInfo</span><span class="p">(</span><span class="n">StringRef</span><span class="w"> </span><span class="n">CPU</span><span class="p">,</span><span class="w"> </span><span class="n">StringRef</span><span class="w"> </span><span class="n">FS</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">  </span><span class="cp">#if 1 </span><span class="c1">// Disable reconginized processor message. For Cpu0</span>
+<span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">TargetTriple</span><span class="p">.</span><span class="n">getArch</span><span class="p">()</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">llvm</span><span class="o">::</span><span class="n">Triple</span><span class="o">::</span><span class="n">cpu0</span><span class="w"> </span><span class="o">||</span><span class="w"></span>
+<span class="w">      </span><span class="n">TargetTriple</span><span class="p">.</span><span class="n">getArch</span><span class="p">()</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">llvm</span><span class="o">::</span><span class="n">Triple</span><span class="o">::</span><span class="n">cpu0el</span><span class="p">)</span><span class="w"></span>
+<span class="w">    </span><span class="n">Cpu0DisableUnreconginizedMessage</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">true</span><span class="p">;</span><span class="w"></span>
+<span class="w">  </span><span class="cp">#endif</span>
+<span class="w">  </span><span class="p">...</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
+<span class="p">...</span><span class="w"></span>
+<span class="k">const</span><span class="w"> </span><span class="n">MCSchedModel</span><span class="w"> </span><span class="o">&amp;</span><span class="n">MCSubtargetInfo</span><span class="o">::</span><span class="n">getSchedModelForCPU</span><span class="p">(</span><span class="n">StringRef</span><span class="w"> </span><span class="n">CPU</span><span class="p">)</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">  </span><span class="p">...</span><span class="w"></span>
+<span class="w">    </span><span class="cp">#if 1 </span><span class="c1">// Disable reconginized processor message. For Cpu0</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">TargetTriple</span><span class="p">.</span><span class="n">getArch</span><span class="p">()</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="n">llvm</span><span class="o">::</span><span class="n">Triple</span><span class="o">::</span><span class="n">cpu0</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"></span>
+<span class="w">        </span><span class="n">TargetTriple</span><span class="p">.</span><span class="n">getArch</span><span class="p">()</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="n">llvm</span><span class="o">::</span><span class="n">Triple</span><span class="o">::</span><span class="n">cpu0el</span><span class="p">)</span><span class="w"></span>
+<span class="w">    </span><span class="cp">#endif</span>
+<span class="w">  </span><span class="p">...</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
 </pre></div>
 </div>
 <p class="rubric">lbdex/llvm/modify/llvm/lib/MC/SubtargetFeature.cpp</p>
-<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="k">extern</span> <span class="kt">bool</span> <span class="n">Cpu0DisableUnreconginizedMessage</span><span class="p">;</span> <span class="c1">// For Cpu0</span>
-<span class="p">...</span>
-<span class="n">FeatureBitset</span>
-<span class="n">SubtargetFeatures</span><span class="o">::</span><span class="n">ToggleFeature</span><span class="p">(</span><span class="n">FeatureBitset</span> <span class="n">Bits</span><span class="p">,</span> <span class="n">StringRef</span> <span class="n">Feature</span><span class="p">,</span>
-                                 <span class="n">ArrayRef</span><span class="o">&lt;</span><span class="n">SubtargetFeatureKV</span><span class="o">&gt;</span> <span class="n">FeatureTable</span><span class="p">)</span> <span class="p">{</span>
-  <span class="p">...</span>
-    <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">Cpu0DisableUnreconginizedMessage</span><span class="p">)</span> <span class="c1">// For Cpu0</span>
-  <span class="p">...</span>
-<span class="p">}</span>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="k">extern</span><span class="w"> </span><span class="kt">bool</span><span class="w"> </span><span class="n">Cpu0DisableUnreconginizedMessage</span><span class="p">;</span><span class="w"> </span><span class="c1">// For Cpu0</span>
+<span class="p">...</span><span class="w"></span>
+<span class="n">FeatureBitset</span><span class="w"></span>
+<span class="n">SubtargetFeatures</span><span class="o">::</span><span class="n">ToggleFeature</span><span class="p">(</span><span class="n">FeatureBitset</span><span class="w"> </span><span class="n">Bits</span><span class="p">,</span><span class="w"> </span><span class="n">StringRef</span><span class="w"> </span><span class="n">Feature</span><span class="p">,</span><span class="w"></span>
+<span class="w">                                 </span><span class="n">ArrayRef</span><span class="o">&lt;</span><span class="n">SubtargetFeatureKV</span><span class="o">&gt;</span><span class="w"> </span><span class="n">FeatureTable</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">  </span><span class="p">...</span><span class="w"></span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="o">!</span><span class="n">Cpu0DisableUnreconginizedMessage</span><span class="p">)</span><span class="w"> </span><span class="c1">// For Cpu0</span>
+<span class="w">  </span><span class="p">...</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
 
-<span class="n">FeatureBitset</span>
-<span class="n">SubtargetFeatures</span><span class="o">::</span><span class="n">ApplyFeatureFlag</span><span class="p">(</span><span class="n">FeatureBitset</span> <span class="n">Bits</span><span class="p">,</span> <span class="n">StringRef</span> <span class="n">Feature</span><span class="p">,</span>
-                                    <span class="n">ArrayRef</span><span class="o">&lt;</span><span class="n">SubtargetFeatureKV</span><span class="o">&gt;</span> <span class="n">FeatureTable</span><span class="p">)</span> <span class="p">{</span>
-  <span class="p">...</span>
-    <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">Cpu0DisableUnreconginizedMessage</span><span class="p">)</span> <span class="c1">// For Cpu0</span>
-  <span class="p">...</span>
-<span class="p">}</span>
+<span class="n">FeatureBitset</span><span class="w"></span>
+<span class="n">SubtargetFeatures</span><span class="o">::</span><span class="n">ApplyFeatureFlag</span><span class="p">(</span><span class="n">FeatureBitset</span><span class="w"> </span><span class="n">Bits</span><span class="p">,</span><span class="w"> </span><span class="n">StringRef</span><span class="w"> </span><span class="n">Feature</span><span class="p">,</span><span class="w"></span>
+<span class="w">                                    </span><span class="n">ArrayRef</span><span class="o">&lt;</span><span class="n">SubtargetFeatureKV</span><span class="o">&gt;</span><span class="w"> </span><span class="n">FeatureTable</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">  </span><span class="p">...</span><span class="w"></span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="o">!</span><span class="n">Cpu0DisableUnreconginizedMessage</span><span class="p">)</span><span class="w"> </span><span class="c1">// For Cpu0</span>
+<span class="w">  </span><span class="p">...</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
 
-<span class="n">FeatureBitset</span>
-<span class="n">SubtargetFeatures</span><span class="o">::</span><span class="n">getFeatureBits</span><span class="p">(</span><span class="n">StringRef</span> <span class="n">CPU</span><span class="p">,</span>
-                                  <span class="n">ArrayRef</span><span class="o">&lt;</span><span class="n">SubtargetFeatureKV</span><span class="o">&gt;</span> <span class="n">CPUTable</span><span class="p">,</span>
-                                  <span class="n">ArrayRef</span><span class="o">&lt;</span><span class="n">SubtargetFeatureKV</span><span class="o">&gt;</span> <span class="n">FeatureTable</span><span class="p">)</span> <span class="p">{</span>
-  <span class="p">...</span>
-    <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">Cpu0DisableUnreconginizedMessage</span><span class="p">)</span> <span class="c1">// For Cpu0</span>
-  <span class="p">...</span>
-<span class="p">}</span>
+<span class="n">FeatureBitset</span><span class="w"></span>
+<span class="n">SubtargetFeatures</span><span class="o">::</span><span class="n">getFeatureBits</span><span class="p">(</span><span class="n">StringRef</span><span class="w"> </span><span class="n">CPU</span><span class="p">,</span><span class="w"></span>
+<span class="w">                                  </span><span class="n">ArrayRef</span><span class="o">&lt;</span><span class="n">SubtargetFeatureKV</span><span class="o">&gt;</span><span class="w"> </span><span class="n">CPUTable</span><span class="p">,</span><span class="w"></span>
+<span class="w">                                  </span><span class="n">ArrayRef</span><span class="o">&lt;</span><span class="n">SubtargetFeatureKV</span><span class="o">&gt;</span><span class="w"> </span><span class="n">FeatureTable</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">  </span><span class="p">...</span><span class="w"></span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="o">!</span><span class="n">Cpu0DisableUnreconginizedMessage</span><span class="p">)</span><span class="w"> </span><span class="c1">// For Cpu0</span>
+<span class="w">  </span><span class="p">...</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
 </pre></div>
 </div>
 <p class="rubric">lib/object/ELF.cpp</p>
-<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="p">...</span>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="p">...</span><span class="w"></span>
 
-<span class="n">StringRef</span> <span class="n">getELFRelocationTypeName</span><span class="p">(</span><span class="kt">uint32_t</span> <span class="n">Machine</span><span class="p">,</span> <span class="kt">uint32_t</span> <span class="n">Type</span><span class="p">)</span> <span class="p">{</span>
-  <span class="k">switch</span> <span class="p">(</span><span class="n">Machine</span><span class="p">)</span> <span class="p">{</span>
-  <span class="p">...</span>
-  <span class="k">case</span> <span class="n">ELF</span><span class="o">::</span><span class="nl">EM_CPU0</span><span class="p">:</span>
-    <span class="k">switch</span> <span class="p">(</span><span class="n">Type</span><span class="p">)</span> <span class="p">{</span>
-<span class="cp">#include</span> <span class="cpf">&quot;llvm/Support/ELFRelocs/Cpu0.def&quot;</span><span class="cp"></span>
-    <span class="k">default</span><span class="o">:</span>
-      <span class="k">break</span><span class="p">;</span>
-    <span class="p">}</span>
-    <span class="k">break</span><span class="p">;</span>
-  <span class="p">...</span>
-  <span class="p">}</span>
+<span class="n">StringRef</span><span class="w"> </span><span class="n">getELFRelocationTypeName</span><span class="p">(</span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">Machine</span><span class="p">,</span><span class="w"> </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">Type</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">  </span><span class="k">switch</span><span class="w"> </span><span class="p">(</span><span class="n">Machine</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">  </span><span class="p">...</span><span class="w"></span>
+<span class="w">  </span><span class="k">case</span><span class="w"> </span><span class="n">ELF</span><span class="o">::</span><span class="nl">EM_CPU0</span><span class="p">:</span><span class="w"></span>
+<span class="w">    </span><span class="k">switch</span><span class="w"> </span><span class="p">(</span><span class="n">Type</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;llvm/Support/ELFRelocs/Cpu0.def&quot;</span><span class="cp"></span>
+<span class="w">    </span><span class="k">default</span><span class="o">:</span><span class="w"></span>
+<span class="w">      </span><span class="k">break</span><span class="p">;</span><span class="w"></span>
+<span class="w">    </span><span class="p">}</span><span class="w"></span>
+<span class="w">    </span><span class="k">break</span><span class="p">;</span><span class="w"></span>
+<span class="w">  </span><span class="p">...</span><span class="w"></span>
+<span class="w">  </span><span class="p">}</span><span class="w"></span>
 </pre></div>
 </div>
 <p class="rubric">include/llvm/Support/ELFRelocs/Cpu0.def</p>
@@ -2008,68 +2008,68 @@ elseif (LLVM_NATIVE_ARCH MATCHES &quot;cpu0&quot;)
 </pre></div>
 </div>
 <p class="rubric">lbdex/llvm/modify/llvm/lib/Support/Triple.cpp</p>
-<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="k">const</span> <span class="kt">char</span> <span class="o">*</span><span class="nf">Triple::getArchTypeName</span><span class="p">(</span><span class="n">ArchType</span> <span class="n">Kind</span><span class="p">)</span> <span class="p">{</span>
-  <span class="k">switch</span> <span class="p">(</span><span class="n">Kind</span><span class="p">)</span> <span class="p">{</span>
-  <span class="p">...</span>
-  <span class="k">case</span> <span class="nl">cpu0</span><span class="p">:</span>        <span class="k">return</span> <span class="s">&quot;cpu0&quot;</span><span class="p">;</span>
-  <span class="k">case</span> <span class="nl">cpu0el</span><span class="p">:</span>      <span class="k">return</span> <span class="s">&quot;cpu0el&quot;</span><span class="p">;</span>
-  <span class="p">...</span>
-  <span class="p">}</span>
-<span class="p">}</span>
-<span class="p">...</span>
-<span class="k">const</span> <span class="kt">char</span> <span class="o">*</span><span class="n">Triple</span><span class="o">::</span><span class="n">getArchTypePrefix</span><span class="p">(</span><span class="n">ArchType</span> <span class="n">Kind</span><span class="p">)</span> <span class="p">{</span>
-  <span class="k">switch</span> <span class="p">(</span><span class="n">Kind</span><span class="p">)</span> <span class="p">{</span>
-  <span class="p">...</span>
-  <span class="k">case</span> <span class="nl">cpu0</span><span class="p">:</span>
-  <span class="k">case</span> <span class="nl">cpu0el</span><span class="p">:</span>      <span class="k">return</span> <span class="s">&quot;cpu0&quot;</span><span class="p">;</span>
-  <span class="p">...</span>
-<span class="p">}</span>
-<span class="p">...</span>
-<span class="n">Triple</span><span class="o">::</span><span class="n">ArchType</span> <span class="n">Triple</span><span class="o">::</span><span class="n">getArchTypeForLLVMName</span><span class="p">(</span><span class="n">StringRef</span> <span class="n">Name</span><span class="p">)</span> <span class="p">{</span>
-  <span class="k">return</span> <span class="n">StringSwitch</span><span class="o">&lt;</span><span class="n">Triple</span><span class="o">::</span><span class="n">ArchType</span><span class="o">&gt;</span><span class="p">(</span><span class="n">Name</span><span class="p">)</span>
-    <span class="p">...</span>
-    <span class="p">.</span><span class="n">Case</span><span class="p">(</span><span class="s">&quot;cpu0&quot;</span><span class="p">,</span> <span class="n">cpu0</span><span class="p">)</span>
-    <span class="p">.</span><span class="n">Case</span><span class="p">(</span><span class="s">&quot;cpu0el&quot;</span><span class="p">,</span> <span class="n">cpu0el</span><span class="p">)</span>
-    <span class="p">...</span>
-<span class="p">}</span>
-<span class="p">...</span>
-<span class="k">static</span> <span class="n">Triple</span><span class="o">::</span><span class="n">ArchType</span> <span class="n">parseArch</span><span class="p">(</span><span class="n">StringRef</span> <span class="n">ArchName</span><span class="p">)</span> <span class="p">{</span>
-  <span class="k">return</span> <span class="n">StringSwitch</span><span class="o">&lt;</span><span class="n">Triple</span><span class="o">::</span><span class="n">ArchType</span><span class="o">&gt;</span><span class="p">(</span><span class="n">ArchName</span><span class="p">)</span>
-    <span class="p">...</span>
-    <span class="p">.</span><span class="n">Cases</span><span class="p">(</span><span class="s">&quot;cpu0&quot;</span><span class="p">,</span> <span class="s">&quot;cpu0eb&quot;</span><span class="p">,</span> <span class="s">&quot;cpu0allegrex&quot;</span><span class="p">,</span> <span class="n">Triple</span><span class="o">::</span><span class="n">cpu0</span><span class="p">)</span>
-    <span class="p">.</span><span class="n">Cases</span><span class="p">(</span><span class="s">&quot;cpu0el&quot;</span><span class="p">,</span> <span class="s">&quot;cpu0allegrexel&quot;</span><span class="p">,</span> <span class="n">Triple</span><span class="o">::</span><span class="n">cpu0el</span><span class="p">)</span>
-    <span class="p">...</span>
-<span class="p">}</span>
-<span class="p">...</span>
-<span class="k">static</span> <span class="n">Triple</span><span class="o">::</span><span class="n">ObjectFormatType</span> <span class="n">getDefaultFormat</span><span class="p">(</span><span class="k">const</span> <span class="n">Triple</span> <span class="o">&amp;</span><span class="n">T</span><span class="p">)</span> <span class="p">{</span>
-  <span class="p">...</span>
-  <span class="k">case</span> <span class="n">Triple</span><span class="o">::</span><span class="nl">cpu0</span><span class="p">:</span>
-  <span class="k">case</span> <span class="n">Triple</span><span class="o">::</span><span class="nl">cpu0el</span><span class="p">:</span>
-  <span class="p">...</span>
-<span class="p">}</span>
-<span class="p">...</span>
-<span class="k">static</span> <span class="kt">unsigned</span> <span class="n">getArchPointerBitWidth</span><span class="p">(</span><span class="n">llvm</span><span class="o">::</span><span class="n">Triple</span><span class="o">::</span><span class="n">ArchType</span> <span class="n">Arch</span><span class="p">)</span> <span class="p">{</span>
-  <span class="k">switch</span> <span class="p">(</span><span class="n">Arch</span><span class="p">)</span> <span class="p">{</span>
-  <span class="p">...</span>
-  <span class="k">case</span> <span class="n">llvm</span><span class="o">::</span><span class="n">Triple</span><span class="o">::</span><span class="nl">cpu0</span><span class="p">:</span>
-  <span class="k">case</span> <span class="n">llvm</span><span class="o">::</span><span class="n">Triple</span><span class="o">::</span><span class="nl">cpu0el</span><span class="p">:</span>
-  <span class="p">...</span>
-    <span class="k">return</span> <span class="mi">32</span><span class="p">;</span>
-  <span class="p">}</span>
-<span class="p">}</span>
-<span class="p">...</span>
-<span class="n">Triple</span> <span class="n">Triple</span><span class="o">::</span><span class="n">get32BitArchVariant</span><span class="p">()</span> <span class="k">const</span> <span class="p">{</span>
-  <span class="n">Triple</span> <span class="nf">T</span><span class="p">(</span><span class="o">*</span><span class="k">this</span><span class="p">);</span>
-  <span class="k">switch</span> <span class="p">(</span><span class="n">getArch</span><span class="p">())</span> <span class="p">{</span>
-  <span class="p">...</span>
-  <span class="k">case</span> <span class="n">Triple</span><span class="o">::</span><span class="nl">cpu0</span><span class="p">:</span>
-  <span class="k">case</span> <span class="n">Triple</span><span class="o">::</span><span class="nl">cpu0el</span><span class="p">:</span>
-  <span class="p">...</span>
-    <span class="c1">// Already 32-bit.</span>
-    <span class="k">break</span><span class="p">;</span>
-  <span class="p">}</span>
-  <span class="k">return</span> <span class="n">T</span><span class="p">;</span>
-<span class="p">}</span>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="o">*</span><span class="nf">Triple::getArchTypeName</span><span class="p">(</span><span class="n">ArchType</span><span class="w"> </span><span class="n">Kind</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">  </span><span class="k">switch</span><span class="w"> </span><span class="p">(</span><span class="n">Kind</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">  </span><span class="p">...</span><span class="w"></span>
+<span class="w">  </span><span class="k">case</span><span class="w"> </span><span class="nl">cpu0</span><span class="p">:</span><span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="s">&quot;cpu0&quot;</span><span class="p">;</span><span class="w"></span>
+<span class="w">  </span><span class="k">case</span><span class="w"> </span><span class="nl">cpu0el</span><span class="p">:</span><span class="w">      </span><span class="k">return</span><span class="w"> </span><span class="s">&quot;cpu0el&quot;</span><span class="p">;</span><span class="w"></span>
+<span class="w">  </span><span class="p">...</span><span class="w"></span>
+<span class="w">  </span><span class="p">}</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
+<span class="p">...</span><span class="w"></span>
+<span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="o">*</span><span class="n">Triple</span><span class="o">::</span><span class="n">getArchTypePrefix</span><span class="p">(</span><span class="n">ArchType</span><span class="w"> </span><span class="n">Kind</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">  </span><span class="k">switch</span><span class="w"> </span><span class="p">(</span><span class="n">Kind</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">  </span><span class="p">...</span><span class="w"></span>
+<span class="w">  </span><span class="k">case</span><span class="w"> </span><span class="nl">cpu0</span><span class="p">:</span><span class="w"></span>
+<span class="w">  </span><span class="k">case</span><span class="w"> </span><span class="nl">cpu0el</span><span class="p">:</span><span class="w">      </span><span class="k">return</span><span class="w"> </span><span class="s">&quot;cpu0&quot;</span><span class="p">;</span><span class="w"></span>
+<span class="w">  </span><span class="p">...</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
+<span class="p">...</span><span class="w"></span>
+<span class="n">Triple</span><span class="o">::</span><span class="n">ArchType</span><span class="w"> </span><span class="n">Triple</span><span class="o">::</span><span class="n">getArchTypeForLLVMName</span><span class="p">(</span><span class="n">StringRef</span><span class="w"> </span><span class="n">Name</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="n">StringSwitch</span><span class="o">&lt;</span><span class="n">Triple</span><span class="o">::</span><span class="n">ArchType</span><span class="o">&gt;</span><span class="p">(</span><span class="n">Name</span><span class="p">)</span><span class="w"></span>
+<span class="w">    </span><span class="p">...</span><span class="w"></span>
+<span class="w">    </span><span class="p">.</span><span class="n">Case</span><span class="p">(</span><span class="s">&quot;cpu0&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">cpu0</span><span class="p">)</span><span class="w"></span>
+<span class="w">    </span><span class="p">.</span><span class="n">Case</span><span class="p">(</span><span class="s">&quot;cpu0el&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">cpu0el</span><span class="p">)</span><span class="w"></span>
+<span class="w">    </span><span class="p">...</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
+<span class="p">...</span><span class="w"></span>
+<span class="k">static</span><span class="w"> </span><span class="n">Triple</span><span class="o">::</span><span class="n">ArchType</span><span class="w"> </span><span class="n">parseArch</span><span class="p">(</span><span class="n">StringRef</span><span class="w"> </span><span class="n">ArchName</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="n">StringSwitch</span><span class="o">&lt;</span><span class="n">Triple</span><span class="o">::</span><span class="n">ArchType</span><span class="o">&gt;</span><span class="p">(</span><span class="n">ArchName</span><span class="p">)</span><span class="w"></span>
+<span class="w">    </span><span class="p">...</span><span class="w"></span>
+<span class="w">    </span><span class="p">.</span><span class="n">Cases</span><span class="p">(</span><span class="s">&quot;cpu0&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;cpu0eb&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;cpu0allegrex&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">Triple</span><span class="o">::</span><span class="n">cpu0</span><span class="p">)</span><span class="w"></span>
+<span class="w">    </span><span class="p">.</span><span class="n">Cases</span><span class="p">(</span><span class="s">&quot;cpu0el&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;cpu0allegrexel&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">Triple</span><span class="o">::</span><span class="n">cpu0el</span><span class="p">)</span><span class="w"></span>
+<span class="w">    </span><span class="p">...</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
+<span class="p">...</span><span class="w"></span>
+<span class="k">static</span><span class="w"> </span><span class="n">Triple</span><span class="o">::</span><span class="n">ObjectFormatType</span><span class="w"> </span><span class="n">getDefaultFormat</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">Triple</span><span class="w"> </span><span class="o">&amp;</span><span class="n">T</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">  </span><span class="p">...</span><span class="w"></span>
+<span class="w">  </span><span class="k">case</span><span class="w"> </span><span class="n">Triple</span><span class="o">::</span><span class="nl">cpu0</span><span class="p">:</span><span class="w"></span>
+<span class="w">  </span><span class="k">case</span><span class="w"> </span><span class="n">Triple</span><span class="o">::</span><span class="nl">cpu0el</span><span class="p">:</span><span class="w"></span>
+<span class="w">  </span><span class="p">...</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
+<span class="p">...</span><span class="w"></span>
+<span class="k">static</span><span class="w"> </span><span class="kt">unsigned</span><span class="w"> </span><span class="n">getArchPointerBitWidth</span><span class="p">(</span><span class="n">llvm</span><span class="o">::</span><span class="n">Triple</span><span class="o">::</span><span class="n">ArchType</span><span class="w"> </span><span class="n">Arch</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">  </span><span class="k">switch</span><span class="w"> </span><span class="p">(</span><span class="n">Arch</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">  </span><span class="p">...</span><span class="w"></span>
+<span class="w">  </span><span class="k">case</span><span class="w"> </span><span class="n">llvm</span><span class="o">::</span><span class="n">Triple</span><span class="o">::</span><span class="nl">cpu0</span><span class="p">:</span><span class="w"></span>
+<span class="w">  </span><span class="k">case</span><span class="w"> </span><span class="n">llvm</span><span class="o">::</span><span class="n">Triple</span><span class="o">::</span><span class="nl">cpu0el</span><span class="p">:</span><span class="w"></span>
+<span class="w">  </span><span class="p">...</span><span class="w"></span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="mi">32</span><span class="p">;</span><span class="w"></span>
+<span class="w">  </span><span class="p">}</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
+<span class="p">...</span><span class="w"></span>
+<span class="n">Triple</span><span class="w"> </span><span class="n">Triple</span><span class="o">::</span><span class="n">get32BitArchVariant</span><span class="p">()</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">  </span><span class="n">Triple</span><span class="w"> </span><span class="nf">T</span><span class="p">(</span><span class="o">*</span><span class="k">this</span><span class="p">);</span><span class="w"></span>
+<span class="w">  </span><span class="k">switch</span><span class="w"> </span><span class="p">(</span><span class="n">getArch</span><span class="p">())</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">  </span><span class="p">...</span><span class="w"></span>
+<span class="w">  </span><span class="k">case</span><span class="w"> </span><span class="n">Triple</span><span class="o">::</span><span class="nl">cpu0</span><span class="p">:</span><span class="w"></span>
+<span class="w">  </span><span class="k">case</span><span class="w"> </span><span class="n">Triple</span><span class="o">::</span><span class="nl">cpu0el</span><span class="p">:</span><span class="w"></span>
+<span class="w">  </span><span class="p">...</span><span class="w"></span>
+<span class="w">    </span><span class="c1">// Already 32-bit.</span>
+<span class="w">    </span><span class="k">break</span><span class="p">;</span><span class="w"></span>
+<span class="w">  </span><span class="p">}</span><span class="w"></span>
+<span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="n">T</span><span class="p">;</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
 </pre></div>
 </div>
 </section>
@@ -2220,10 +2220,10 @@ allocation stage.</p>
 <p>In C++, class typically provides a structure to lay out some data and functions,
 while definitions are used to allocate memory for specific instances of a class.
 For example:</p>
-<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">Date</span> <span class="p">{</span>  <span class="c1">// declare Date</span>
-  <span class="kt">int</span> <span class="n">year</span><span class="p">,</span> <span class="n">month</span><span class="p">,</span> <span class="n">day</span><span class="p">;</span>
-<span class="p">};</span>
-<span class="n">Date</span> <span class="n">birthday</span><span class="p">;</span>  <span class="c1">// define birthday, an instance of Date</span>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">Date</span><span class="w"> </span><span class="p">{</span><span class="w">  </span><span class="c1">// declare Date</span>
+<span class="w">  </span><span class="kt">int</span><span class="w"> </span><span class="n">year</span><span class="p">,</span><span class="w"> </span><span class="n">month</span><span class="p">,</span><span class="w"> </span><span class="n">day</span><span class="p">;</span><span class="w"></span>
+<span class="p">};</span><span class="w"></span>
+<span class="n">Date</span><span class="w"> </span><span class="n">birthday</span><span class="p">;</span><span class="w">  </span><span class="c1">// define birthday, an instance of Date</span>
 </pre></div>
 </div>
 <p>The class <strong>Date</strong> has the members <strong>year</strong>, <strong>month</strong>, and <strong>day</strong>, but
@@ -2245,7 +2245,7 @@ number automatically.</p>
 <p>The <strong>def</strong> keyword is used to create instances of class.
 In the following line, the ZERO register is defined as a member of the
 <strong>Cpu0GPRReg</strong> class:</p>
-<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="n">def</span> <span class="nl">ZERO</span> <span class="p">:</span> <span class="n">Cpu0GPRReg</span><span class="o">&lt;</span> <span class="mi">0</span><span class="p">,</span> <span class="s">&quot;ZERO&quot;</span><span class="o">&gt;</span><span class="p">,</span> <span class="n">DwarfRegNum</span><span class="o">&lt;</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="n">def</span><span class="w"> </span><span class="nl">ZERO</span> <span class="p">:</span><span class="w"> </span><span class="n">Cpu0GPRReg</span><span class="o">&lt;</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;ZERO&quot;</span><span class="o">&gt;</span><span class="p">,</span><span class="w"> </span><span class="n">DwarfRegNum</span><span class="o">&lt;</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span><span class="w"></span>
 </pre></div>
 </div>
 <p>The <strong>def ZERO</strong> indicates the name of this register.  <strong>&lt;0, “ZERO”&gt;</strong> are the
@@ -3208,33 +3208,33 @@ sub-section “Target Registration” <a class="footnote-reference brackets" hre
 After that, you can find the *.inc files in directory
 /Users/Jonathan/llvm/test/build/lib/Target/Cpu0 as follows,</p>
 <p class="rubric">build/lib/Target/Cpu0/Cpu0GenRegisterInfo.inc</p>
-<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="k">namespace</span> <span class="nn">Cpu0</span> <span class="p">{</span>
-<span class="k">enum</span> <span class="p">{</span>
-  <span class="n">NoRegister</span><span class="p">,</span>
-  <span class="n">AT</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
-  <span class="n">EPC</span> <span class="o">=</span> <span class="mi">2</span><span class="p">,</span>
-  <span class="n">FP</span> <span class="o">=</span> <span class="mi">3</span><span class="p">,</span>
-  <span class="n">GP</span> <span class="o">=</span> <span class="mi">4</span><span class="p">,</span>
-  <span class="n">HI</span> <span class="o">=</span> <span class="mi">5</span><span class="p">,</span>
-  <span class="n">LO</span> <span class="o">=</span> <span class="mi">6</span><span class="p">,</span>
-  <span class="n">LR</span> <span class="o">=</span> <span class="mi">7</span><span class="p">,</span>
-  <span class="n">PC</span> <span class="o">=</span> <span class="mi">8</span><span class="p">,</span>
-  <span class="n">SP</span> <span class="o">=</span> <span class="mi">9</span><span class="p">,</span>
-  <span class="n">SW</span> <span class="o">=</span> <span class="mi">10</span><span class="p">,</span>
-  <span class="n">ZERO</span> <span class="o">=</span> <span class="mi">11</span><span class="p">,</span>
-  <span class="n">A0</span> <span class="o">=</span> <span class="mi">12</span><span class="p">,</span>
-  <span class="n">A1</span> <span class="o">=</span> <span class="mi">13</span><span class="p">,</span>
-  <span class="n">S0</span> <span class="o">=</span> <span class="mi">14</span><span class="p">,</span>
-  <span class="n">S1</span> <span class="o">=</span> <span class="mi">15</span><span class="p">,</span>
-  <span class="n">T0</span> <span class="o">=</span> <span class="mi">16</span><span class="p">,</span>
-  <span class="n">T1</span> <span class="o">=</span> <span class="mi">17</span><span class="p">,</span>
-  <span class="n">T9</span> <span class="o">=</span> <span class="mi">18</span><span class="p">,</span>
-  <span class="n">V0</span> <span class="o">=</span> <span class="mi">19</span><span class="p">,</span>
-  <span class="n">V1</span> <span class="o">=</span> <span class="mi">20</span><span class="p">,</span>
-  <span class="n">NUM_TARGET_REGS</span>     <span class="c1">// 21</span>
-<span class="p">};</span>
-<span class="p">}</span>
-<span class="p">...</span>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="k">namespace</span><span class="w"> </span><span class="nn">Cpu0</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="k">enum</span> <span class="p">{</span><span class="w"></span>
+<span class="w">  </span><span class="n">NoRegister</span><span class="p">,</span><span class="w"></span>
+<span class="w">  </span><span class="n">AT</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"></span>
+<span class="w">  </span><span class="n">EPC</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span><span class="w"></span>
+<span class="w">  </span><span class="n">FP</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">3</span><span class="p">,</span><span class="w"></span>
+<span class="w">  </span><span class="n">GP</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">4</span><span class="p">,</span><span class="w"></span>
+<span class="w">  </span><span class="n">HI</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">5</span><span class="p">,</span><span class="w"></span>
+<span class="w">  </span><span class="n">LO</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">6</span><span class="p">,</span><span class="w"></span>
+<span class="w">  </span><span class="n">LR</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">7</span><span class="p">,</span><span class="w"></span>
+<span class="w">  </span><span class="n">PC</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">8</span><span class="p">,</span><span class="w"></span>
+<span class="w">  </span><span class="n">SP</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">9</span><span class="p">,</span><span class="w"></span>
+<span class="w">  </span><span class="n">SW</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">10</span><span class="p">,</span><span class="w"></span>
+<span class="w">  </span><span class="n">ZERO</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">11</span><span class="p">,</span><span class="w"></span>
+<span class="w">  </span><span class="n">A0</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">12</span><span class="p">,</span><span class="w"></span>
+<span class="w">  </span><span class="n">A1</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">13</span><span class="p">,</span><span class="w"></span>
+<span class="w">  </span><span class="n">S0</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">14</span><span class="p">,</span><span class="w"></span>
+<span class="w">  </span><span class="n">S1</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">15</span><span class="p">,</span><span class="w"></span>
+<span class="w">  </span><span class="n">T0</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">16</span><span class="p">,</span><span class="w"></span>
+<span class="w">  </span><span class="n">T1</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">17</span><span class="p">,</span><span class="w"></span>
+<span class="w">  </span><span class="n">T9</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">18</span><span class="p">,</span><span class="w"></span>
+<span class="w">  </span><span class="n">V0</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">19</span><span class="p">,</span><span class="w"></span>
+<span class="w">  </span><span class="n">V1</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">20</span><span class="p">,</span><span class="w"></span>
+<span class="w">  </span><span class="n">NUM_TARGET_REGS</span><span class="w">     </span><span class="c1">// 21</span>
+<span class="p">};</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
+<span class="p">...</span><span class="w"></span>
 </pre></div>
 </div>
 <p>These *.inc are generated by llvm-tblgen at directory
@@ -3396,7 +3396,7 @@ Techniques, and Tools (2nd Edition)</p>
 
     <div class="footer" role="contentinfo">
         &#169; Copyright 2016, Chen Chung-Shu.
-      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 4.0.2.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 4.3.1.
     </div>
   </body>
 </html>

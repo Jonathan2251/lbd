@@ -51,7 +51,8 @@ as the following will generate these exception handler IRs both on iMac and Linu
   ::MachineInstr *): Assertion `MRI->getVRegDef(reg) && "Register use before 
   def!"' failed.
 
-
+A description for the C++ exception table formats can be found here 
+[#itanium-exception]_.
 About the IRs of LLVM exception handling, please reference here [#exception]_.
 Chapter12_1 supports the llvm IRs of corresponding **try** and **catch** 
 exception C++ keywords. It can compile ch12_eh.bc as follows,
@@ -531,6 +532,8 @@ options "clang++ -pthread -std=c++11".
 
 
 .. [#exception] http://llvm.org/docs/ExceptionHandling.html
+
+.. [#itanium-exception] http://itanium-cxx-abi.github.io/cxx-abi/exceptions.pdf
 
 .. [#thread-wiki] http://en.wikipedia.org/wiki/Thread-local_storage
 

@@ -15,37 +15,21 @@ and later in the Tool Interface Standard, it was quickly accepted among
 different vendors of Unixsystems. 
 In 1999 it was chosen as the standard binary file format for Unix and 
 Unix-like systems on x86 by the x86open project. 
-Please reference [#]_.
+Please reference [#wiki-elf]_.
 
 The binary encode of Cpu0 instruction set in obj has been checked in the 
 previous chapters. 
 But we didn't dig into the ELF file format like elf header and relocation 
 record at that time. 
-This chapter will use the binutils which has been installed in 
-"sub-section Install other tools on iMac" of Appendix A: “Installing LLVM” 
-[#]_ to check the generated cpu0 ELF file. 
-You will learn the objdump, readelf, ..., tools and understand the ELF file 
+You will learn the llvm-objdump, llvm-readelf, ..., tools and understand the 
+ELF file 
 format itself through using these tools to analyze the cpu0 generated obj in 
 this chapter. 
-LLVM has the llvm-objdump tool which like objdump. We will make cpu0 support 
-llvm-objdump tool further in this chapter. 
-The binutils is a cross compiler tool chains include a couple of CPU ELF dump 
-function support. 
-Linux platform has binutils already and no need to install it further.
-The reason we use Linux binutils in this chapter just because my iMac will 
-display Chinese text. 
-The iMac corresponding binutils have no problem except it add g in command name 
-and and display with your area language instead of pure English on iMac. 
-For example, when using gobjdump instead of objdump, I have the result of 
-Chinese language unicode display instead of pure English on my iMac.
 
-The binutils tool we use is not a part of llvm tools, but it's a powerful tool 
-in ELF analysis. 
-This chapter introduce the tool to readers since we think it is a valuable 
+This chapter introduces the tool to readers since we think it is a valuable 
 knowledge in this popular ELF format and the ELF binutils analysis tool. 
-An LLVM compiler engineer has the responsibility to make sure his backend 
-has generated a right obj since the obj is needed to be handled by linker or 
-loader later. 
+An LLVM compiler engineer has the responsibility to make sure that his backend 
+generate a correct obj. 
 With this tool, you can verify your generated ELF format.
  
 The cpu0 author has published a “System Software” book which introduces the 
@@ -55,15 +39,14 @@ demonstrates how to use binutils and gcc to analysis ELF through the example
 code in his book. 
 It's a Chinese book of “System Software” in concept and practice. 
 This book does the real analysis through binutils. 
-The “System Software” [#]_ written by Beck is a famous book in concept of 
-telling readers what about the compiler output, what about the linker output, 
-what about the loader output, and how they work together. 
-But it covers the concept only. 
+The “System Software” [#beck]_ written by Beck is a famous book in concept  
+telling readers what the compiler output about, what the linker output about, 
+what the loader output about, and how they work together in concept. 
 You can reference it to understand how the **“Relocation Record”** works if you 
 need to refresh or learning this knowledge for this chapter.
 
-[#]_, [#]_, [#]_ are the Chinese documents available from the cpu0 author on 
-web site.
+[#lk-out]_, [#lk-obj]_, [#lk-elf]_ are the Chinese documents available from the 
+cpu0 author on web site.
 
 
 ELF format
@@ -92,14 +75,14 @@ ELF header and Section header table
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Let's run Chapter9_3/ with ch6_1.cpp, and dump ELF header information by 
-``readelf -h`` to see what information the ELF header contains.
+``llvm-readelf -h`` to see what information the ELF header contains.
 
 .. code-block:: console
 
   [Gamma@localhost input]$ ~/llvm/test/build/bin/llc -march=cpu0 
   -relocation-model=pic -filetype=obj ch6_1.bc -o ch6_1.cpu0.o
   
-  [Gamma@localhost input]$ readelf -h ch6_1.cpu0.o 
+  [Gamma@localhost input]$ llvm-readelf -h ch6_1.cpu0.o 
     Magic:   7f 45 4c 46 01 02 01 03 00 00 00 00 00 00 00 00 
     Class:                             ELF32
     Data:                              2's complement, big endian
@@ -124,7 +107,7 @@ Let's run Chapter9_3/ with ch6_1.cpp, and dump ELF header information by
   [Gamma@localhost input]$ ~/llvm/test/build/bin/llc 
   -march=mips -relocation-model=pic -filetype=obj ch6_1.bc -o ch6_1.mips.o
   
-  [Gamma@localhost input]$ readelf -h ch6_1.mips.o 
+  [Gamma@localhost input]$ llvm-readelf -h ch6_1.mips.o 
   ELF Header:
     Magic:   7f 45 4c 46 01 02 01 03 00 00 00 00 00 00 00 00 
     Class:                             ELF32
@@ -151,12 +134,12 @@ Let's run Chapter9_3/ with ch6_1.cpp, and dump ELF header information by
 As above ELF header display, it contains information of magic number, version, 
 ABI, ..., . The Machine field of cpu0 is unknown while mips is known as 
 MIPSR3000. 
-It is unknown because cpu0 is not a popular CPU recognized by utility readelf. 
+It is unknown because cpu0 is not a popular CPU recognized by utility llvm-readelf. 
 Let's check ELF segments information as follows,
 
 .. code-block:: console
 
-  [Gamma@localhost input]$ readelf -l ch6_1.cpu0.o 
+  [Gamma@localhost input]$ llvm-readelf -l ch6_1.cpu0.o 
   
   There are no program headers in this file.
   [Gamma@localhost input]$ 
@@ -170,7 +153,7 @@ Every section contains offset and size information.
 
 .. code-block:: console
 
-  [Gamma@localhost input]$ readelf -S ch6_1.cpu0.o 
+  [Gamma@localhost input]$ llvm-readelf -S ch6_1.cpu0.o 
   There are 10 section headers, starting at offset 0xd4:
   
   Section Headers:
@@ -231,7 +214,7 @@ Cpu0 backend translate global variable as follows,
   
   [Gamma@localhost input]$ ~/llvm/test/build/
   bin/llc -march=cpu0 -relocation-model=pic -filetype=obj ch6_1.bc -o ch6_1.cpu0.o
-  [Gamma@localhost input]$ objdump -s ch6_1.cpu0.o
+  [Gamma@localhost input]$ llvm-objdump -s ch6_1.cpu0.o
   
   ch6_1.cpu0.o:     file format elf32-big
   
@@ -243,7 +226,7 @@ Cpu0 backend translate global variable as follows,
    ...
   [Gamma@localhost input]$ Jonathan$ 
   
-  [Gamma@localhost input]$ readelf -tr ch6_1.cpu0.o 
+  [Gamma@localhost input]$ llvm-readelf -tr ch6_1.cpu0.o 
   There are 8 section headers, starting at offset 0xb0:
 
   Section Headers:
@@ -283,7 +266,7 @@ Cpu0 backend translate global variable as follows,
   00000028  00000617 unrecognized: 17      00000004   gI
 
   
-  [Gamma@localhost input]$ readelf -tr ch6_1.mips.o 
+  [Gamma@localhost input]$ llvm-readelf -tr ch6_1.mips.o 
   There are 9 section headers, starting at offset 0xc8:
 
   Section Headers:
@@ -346,7 +329,7 @@ loads this obj into memory, loader will know the _gp_disp value at run time and
 will update these two offset relocation records to the correct offset value. 
 You can check if the cpu0 of %hi(_gp_disp) and %lo(_gp_disp) are correct by 
 above mips Relocation Records of R_MIPS_HI(_gp_disp) and  R_MIPS_LO(_gp_disp) 
-even though the cpu0 is not a CPU recognized by readelf utilitly. 
+even though the cpu0 is not a CPU recognized by llvm-readelf utilitly. 
 The instruction **“ld $2, %got(gI)($gp)”** is same since we don't know what the 
 address of .data section variable will load to. 
 So, Cpu0 translate the address to 0 and made a relocation record on 0x00000020 
@@ -372,9 +355,10 @@ llvm-objdump
 llvm-objdump -t -r
 ~~~~~~~~~~~~~~~~~~
 
-In iMac, ``gobjdump -tr`` can display the information of relocation records 
-like ``readelf -tr``. LLVM tool llvm-objdump is the same tool as objdump. 
-Let's run gobjdump and llvm-objdump commands as follows to see the differences. 
+``llvm-objdump -tr`` can display the information of relocation records 
+like ``llvm-readelf -tr``. 
+Let's run llvm-objdump with and without Cpu0 backend commands as follows to 
+see the differences. 
 
 .. code-block:: console
 
@@ -384,7 +368,7 @@ Let's run gobjdump and llvm-objdump commands as follows to see the differences.
   bin/llc -march=cpu0 -relocation-model=pic -filetype=obj ch9_3.bc -o 
   ch9_3.cpu0.o
 
-  118-165-78-12:input Jonathan$ gobjdump -t -r ch9_3.cpu0.o
+  118-165-78-12:input Jonathan$ objdump -t -r ch9_3.cpu0.o
   
   ch9_3.cpu0.o:     file format elf32-big
 
@@ -499,7 +483,7 @@ in ELF.h as follows,
   }
 
 In addition to ``llvm-objdump -t -r``, the ``llvm-readobj -h`` can display the 
-Cpu0 elf header information with above EM_CPU0 defined.
+Cpu0 elf header information with EM_CPU0 defined above.
 
 
 llvm-objdump -d
@@ -569,7 +553,7 @@ ISD node of Cpu0InstrInfo.td.
 LLVM will call these DecodeMethod when user uses Disassembler tools, such  
 as ``llvm-objdump -d``.
 
-Finally cpu032II include all cpu032I instruction set and adds some instrucitons. 
+Finally cpu032II includes all cpu032I instruction set and adds some instrucitons. 
 When ``llvm-objdump -d`` is invoked, function selectCpu0ArchFeature() as 
 the following will be called through createCpu0MCSubtargetInfo(). 
 The llvm-objdump cannot set cpu option like llc as ``llc -mcpu=cpu032I``,
@@ -613,15 +597,13 @@ the following result.
 	http://jonathan2251.github.io/lbd/funccall.html#handle-gp-register-in-pic-addressing-mode
 
 
-.. [#] http://en.wikipedia.org/wiki/Executable_and_Linkable_Format
+.. [#wiki-elf] http://en.wikipedia.org/wiki/Executable_and_Linkable_Format
 
-.. [#] http://jonathan2251.github.io/lbd/install.html#install-other-tools-on-imac
+.. [#beck] Leland Beck, System Software: An Introduction to Systems Programming. 
 
-.. [#] Leland Beck, System Software: An Introduction to Systems Programming. 
+.. [#lk-out] http://ccckmit.wikidot.com/lk:aout
 
-.. [#] http://ccckmit.wikidot.com/lk:aout
+.. [#lk-obj] http://ccckmit.wikidot.com/lk:objfile
 
-.. [#] http://ccckmit.wikidot.com/lk:objfile
-
-.. [#] http://ccckmit.wikidot.com/lk:elf
+.. [#lk-elf] http://ccckmit.wikidot.com/lk:elffile
 
