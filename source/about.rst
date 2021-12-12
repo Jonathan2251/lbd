@@ -65,7 +65,10 @@ Version 12.0.2, not released yet.
 
 Version 12.0.1, Released December 12, 2021.
 
-  Update chapter Appendix A
+  Section: More about llvm.
+  Table: The differences for speedup in architecture of CPU and GPU.
+  Pipeline diagram and exception handling link.
+  Update chapter Appendix A.
 
 Version 12.0.0, Released August 11, 2021.
 
