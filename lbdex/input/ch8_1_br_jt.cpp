@@ -16,7 +16,7 @@ typedef unsigned char *Address;
 typedef enum {FALSE=0, TRUE=1} Boolean;
 unsigned char sBuffer[4] = {0x35, 0x35, 0x00, 0x00};
 
-Boolean test_ctrl2()
+int test_ctrl2()
 {
   Boolean Result = FALSE;
   Byte Comparator = sBuffer[1];
@@ -49,6 +49,6 @@ Boolean test_ctrl2()
         Result = TRUE;
       break;
   }
-  return Result;
+  return (int)Result;
 }
 
