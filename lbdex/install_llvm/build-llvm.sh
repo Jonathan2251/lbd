@@ -25,9 +25,12 @@ if ! test -d ${LLVM_RELEASE_DIR}; then
   pushd ${LLVM_RELEASE_DIR}/build
   OS=`uname -s`
   echo "OS =" ${OS}
-  cmake -DCMAKE_BUILD_TYPE=Debug -DLLVM_ENABLE_PROJECTS="clang" -DLLVM_PARALLEL_COMPILE_JOBS=4 -DLLVM_PARALLEL_LINK_JOBS=1 -G "Ninja" ../llvm
+  cmake -DCMAKE_BUILD_TYPE=Debug -DLLVM_ENABLE_PROJECTS="clang" \
+  -DLLVM_PARALLEL_COMPILE_JOBS=4 -DLLVM_PARALLEL_LINK_JOBS=1 -G "Ninja" ../llvm
   ninja
   popd
 fi
 
 popd
+echo "Please remember to add ${LLVM_RELEASE_DIR}/bin to variable \${PATH} to your \
+  environment for clang++, clang."
