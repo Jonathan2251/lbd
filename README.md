@@ -14,7 +14,7 @@ BUILD steps:
 
 $ pwd
 
-/Users/Jonathan/
+$ $HOME  // HOME directory
 
 $ mkdir llvm
 
@@ -22,7 +22,7 @@ $ cd git
 
 $ pwd
 
-$ /Users/Jonathan/git
+$ $HOME/git
 
 $ git clone https://github.com/Jonathan2251/lbd
 
@@ -30,10 +30,14 @@ $ cd lbd/lbdex/install_llvm
 
 $ bash build-llvm.sh
 
+# Please remember to add ${LLVM_RELEASE_DIR}/bin to variable ${PATH} to your
+# environment for clang++, clang. Reference last line of 
+# lbd/lbdex/install_llvm/build-llvm.sh
+
 $ cd ..
 
 $ pwd
 
-$ /Users/Jonathan/git/lbd/lbdex
+$ $HOME/git/lbd/lbdex
 
 $ bash build-cpu0.sh
