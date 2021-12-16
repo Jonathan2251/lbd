@@ -4,18 +4,18 @@
 ; CHECK: .cprestore
 ; CHECK: .set macro
 
-;%struct.S = type { [16384 x i32] }
-%struct.S = type { i32 }
+%struct.S = type { [16384 x i32] }
+;%struct.S = type { i32 }
 
-declare void @foo1(%struct.S* byval align 8 %s)
+;declare void @foo1(%struct.S* byval align 8 %s(%struct.S))
 
 define void @foo2() nounwind {
 entry:
-;  %s = alloca %struct.S, align 4
-;  call void @foo1(%struct.S* byval %s)
-  %s = alloca %struct.S, align 8
-  call void @foo1(%struct.S* byval align 8 %s)
+  %s = alloca %struct.S, align 4
+  call void @foo1(%struct.S* byval(%struct.S) %s)
+;  %s = alloca %struct.S, align 8
+;  call void @foo1(%struct.S* byval align 8 (%struct.S)%s)
   ret void
 }
 
-;declare void @foo1(%struct.S* byval)
+declare void @foo1(%struct.S* byval(%struct.S))

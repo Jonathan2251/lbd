@@ -25,10 +25,8 @@ entry:
 ; PIC-1: ori  $[[R1:[0-9]+|t9]], $[[R0]], %lo(s1)
 ; PIC-1: ld  ${{[0-9]+|t9}}, 0($[[R1]])
 ; PIC-1: ld  $gp
-; PIC-1: lui $[[R0:[0-9]+|t9]], %got_hi(g1)
-; PIC-1: addu  $[[R1:[0-9]+|t9]], $[[R0]], $gp
-; PIC-1: ld  $[[R2:[0-9]+|t9]], %got_lo(g1)($[[R1]])
-; PIC-1: ld  ${{[0-9]+|t9}}, 0($[[R2]])
+; PIC-1: ld $[[R0:[0-9]+|t9]], %got(g1)
+; PIC-1: ld  ${{[0-9]+|t9}}, 0($[[R0]])
 ; PIC-1: ld $[[R0:[0-9]+|t9]], %got(gV)($gp)
 ; PIC-1: ld  ${{[0-9]+|t9}}, 0($[[R0]])
 ; STATIC-0: lui $[[R0:[0-9]+|t9]], %hi(s1)
@@ -39,8 +37,7 @@ entry:
 ; STATIC-0: ld  ${{[0-9]+|t9}}, 0($[[R3]])
 ; STATIC-1: ori  $[[R0:[0-9]+|t9]], $gp, %gp_rel(s1)
 ; STATIC-1: ld  ${{[0-9]+|t9}}, 0($[[R0]])
-; STATIC-1: lui $[[R0:[0-9]+|t9]], %hi(g1)
-; STATIC-1: ori  $[[R1:[0-9]+|t9]], $[[R0]], %lo(g1)
+; STATIC-1: ori  $[[R1:[0-9]+|t9]], $gp, %gp_rel(g1)
 ; STATIC-1: ld  ${{[0-9]+|t9}}, 0($[[R1]])
 ; STATIC-1: ori  $[[R0:[0-9]+|t9]], $gp, %gp_rel(gV)
 ; STATIC-1: ld  ${{[0-9]+|t9}}, 0($[[R0]])

@@ -1,4 +1,4 @@
-; RUN: llc  < %s -march=cpu0   | FileCheck %s
+; RUN: llc  < %s -march=cpu0 -no-integrated-as | FileCheck %s
 
 ; CHECK: ld	$2, 8($sp)
 ; CHECK: st	$0, 4($sp)

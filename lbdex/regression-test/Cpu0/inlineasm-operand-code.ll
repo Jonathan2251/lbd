@@ -1,6 +1,6 @@
 ; Positive test for inline register constraints
 ;
-; RUN: llc -march=cpu0el < %s  | FileCheck -check-prefix=CHECK_LITTLE_32 %s
+; RUN: llc -march=cpu0el -no-integrated-as < %s  | FileCheck -check-prefix=CHECK_LITTLE_32 %s
 
 %union.u_tag = type { i64 }
 %struct.anon = type { i32, i32 }

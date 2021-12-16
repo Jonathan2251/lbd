@@ -120,7 +120,7 @@ entry:
 
 @gs1 = external global %struct.S
 
-declare i32 @callee9(%struct.S* byval)
+declare i32 @callee9(%struct.S* byval(%struct.S))
 
 define i32 @caller9_0() nounwind {
 entry:
@@ -137,7 +137,7 @@ entry:
 ; STATIC32: jsub
 ; STATIC32: .end caller9_1
 
-  %call = tail call i32 @callee9(%struct.S* byval @gs1) nounwind
+  %call = tail call i32 @callee9(%struct.S* byval(%struct.S) @gs1) nounwind
   ret i32 %call
 }
 
@@ -152,7 +152,7 @@ entry:
   ret i32 %call
 }
 
-declare i32 @callee11(%struct.S* byval)
+declare i32 @callee11(%struct.S* byval(%struct.S))
 
 define i32 @caller11() nounwind noinline {
 entry:
@@ -161,7 +161,7 @@ entry:
 ; STATIC32: .ent caller11
 ; STATIC32: jsub
 
-  %call = tail call i32 @callee11(%struct.S* byval @gs1) nounwind
+  %call = tail call i32 @callee11(%struct.S* byval(%struct.S) @gs1) nounwind
   ret i32 %call
 }
 
@@ -169,7 +169,7 @@ declare i32 @callee12()
 
 declare void @llvm.memcpy.p0i8.p0i8.i32(i8* nocapture, i8* nocapture, i32, i32, i1) nounwind
 
-define i32 @caller12(%struct.S* nocapture byval %a0) nounwind {
+define i32 @caller12(%struct.S* nocapture byval(%struct.S) %a0) nounwind {
 entry:
 ; PIC32: .ent caller12
 ; PIC32: jalr

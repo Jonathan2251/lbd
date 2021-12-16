@@ -31,17 +31,17 @@ entry:
 ; CHECK: ld  $t9, %call16(callee1)($gp)
 ; CHECK: jalr $t9
   %agg.tmp10 = alloca %struct.S3, align 4
-  call void @callee1(float 2.000000e+01, %struct.S1* byval bitcast (%0* @f1.s1 to %struct.S1*)) nounwind
-  call void @callee2(%struct.S2* byval @f1.s2) nounwind
+  call void @callee1(float 2.000000e+01, %struct.S1* byval(%struct.S1) bitcast (%0* @f1.s1 to %struct.S1*)) nounwind
+  call void @callee2(%struct.S2* byval(%struct.S2) @f1.s2) nounwind
   %tmp11 = getelementptr inbounds %struct.S3, %struct.S3* %agg.tmp10, i32 0, i32 0
   store i8 11, i8* %tmp11, align 4
-  call void @callee3(float 2.100000e+01, %struct.S3* byval %agg.tmp10, %struct.S1* byval bitcast (%0* @f1.s1 to %struct.S1*)) nounwind
+  call void @callee3(float 2.100000e+01, %struct.S3* byval(%struct.S3) %agg.tmp10, %struct.S1* byval(%struct.S1) bitcast (%0* @f1.s1 to %struct.S1*)) nounwind
   ret void
 }
 
-declare void @callee1(float, %struct.S1* byval)
+declare void @callee1(float, %struct.S1* byval(%struct.S1))
 
-declare void @callee2(%struct.S2* byval)
+declare void @callee2(%struct.S2* byval(%struct.S2))
 
-declare void @callee3(float, %struct.S3* byval, %struct.S1* byval)
+declare void @callee3(float, %struct.S3* byval(%struct.S3), %struct.S1* byval(%struct.S1))
 

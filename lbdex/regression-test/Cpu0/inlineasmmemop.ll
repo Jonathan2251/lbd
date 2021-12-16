@@ -1,4 +1,4 @@
-; RUN: llc -march=cpu0 -relocation-model=pic < %s | FileCheck %s
+; RUN: llc -march=cpu0 -relocation-model=pic -no-integrated-as < %s | FileCheck %s
 
 ; Simple memory
 @g1 = external global i32

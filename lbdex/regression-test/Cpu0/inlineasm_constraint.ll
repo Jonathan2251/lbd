@@ -1,4 +1,4 @@
-; RUN: llc -march=cpu0 < %s | FileCheck %s
+; RUN: llc -march=cpu0 -no-integrated-as < %s | FileCheck %s
 
 define i32 @main() nounwind {
 entry:

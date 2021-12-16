@@ -29,11 +29,11 @@ entry:
 ; CHECK: sb  ${{[0-9]+|t9}}, 0($sp)
 ; CHECK: jalr
 
-  tail call void @foo2(%struct.S1* byval getelementptr inbounds (%struct.S2, %struct.S2* @s2, i32 0, i32 1)) nounwind
-  tail call void @foo4(%struct.S4* byval @s4) nounwind
+  tail call void @foo2(%struct.S1* byval(%struct.S1) getelementptr inbounds (%struct.S2, %struct.S2* @s2, i32 0, i32 1)) nounwind
+  tail call void @foo4(%struct.S4* byval(%struct.S4) @s4) nounwind
   ret void
 }
 
-declare void @foo2(%struct.S1* byval)
+declare void @foo2(%struct.S1* byval(%struct.S1))
 
-declare void @foo4(%struct.S4* byval)
+declare void @foo4(%struct.S4* byval(%struct.S4))

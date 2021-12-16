@@ -29,12 +29,11 @@ entry:
 
 ; CHECK: va1:
 ; CHECK: addiu   $sp, $sp, -16
-; CHECK: st      $5, 20($sp)
-; CHECK: st      $4, 12($sp)
 ; CHECK: addiu	 $[[R0:[0-9]+|t9]], $sp, 20
-; CHECK: st      $[[R0]], 8($sp)
 ; CHECK: addiu	 $[[R1:[0-9]+|t9]], $[[R0:[0-9]+|t9]], 4
 ; CHECK: st      $[[R1]], 8($sp)
+; CHECK: st      $5, 20($sp)
+; CHECK: st      $5, 4($sp)
 }
 
 ; check whether the variable double argument will be accessed from the 8-byte
@@ -57,8 +56,8 @@ entry:
 
 ; CHECK: va2:
 ; CHECK: addiu   $sp, $sp, -16
-; CHECK: st      $5, 20($sp)
 ; CHECK: st      $4, 12($sp)
+; CHECK: st      $5, 20($sp)
 ; CHECK: addiu   $[[R0:[0-9]+|t9]], $sp, 20
 ; CHECK: addiu   $[[R1:[0-9]+|t9]], $[[R0]], 7
 ; CHECK: addiu   $[[R2:[0-9]+|t9]], $zero, -8

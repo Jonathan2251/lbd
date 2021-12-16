@@ -7,6 +7,8 @@
 @m = global i32 10, align 4
 @r1 = common global i32 0, align 4
 @r2 = common global i32 0, align 4
+@r3 = common global i32 0, align 4
+@.str = private unnamed_addr constant [22 x i8] c"1 = %i\0A1 = %i\0A0 = %i\0A\00", align 1
 
 define void @test() nounwind {
 entry:
