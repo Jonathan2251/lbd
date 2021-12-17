@@ -62,6 +62,13 @@ public:
 
   /// \brief Return GPR register class.
   virtual const TargetRegisterClass *intRegClass(unsigned Size) const = 0;
+
+#if CH >= CH9_3 //4
+private:
+  virtual void eliminateFI(MachineBasicBlock::iterator II, unsigned OpNo,
+                           int FrameIndex, int FrameReg, uint64_t StackSize,
+                           int64_t SPOffset, bool &IsKill) const = 0;
+#endif //#if CH >= CH9_3 //4
 };
 
 } // end namespace llvm
