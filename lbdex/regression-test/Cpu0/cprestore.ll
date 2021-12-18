@@ -4,8 +4,7 @@
 ; CHECK: .cprestore
 ; CHECK: .set macro
 
-%struct.S = type { [16384 x i32] }
-;%struct.S = type { i32 }
+%struct.S = type { [1024 x i32] }
 
 ;declare void @foo1(%struct.S* byval align 8 %s(%struct.S))
 

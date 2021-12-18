@@ -13,23 +13,6 @@ entry:
 ; CHECK:        addu    $2,  $zero, $fp
 }
 
-
-define i8* @f2() nounwind {
-entry:
-  %x = alloca [65536 x i8], align 1
-  %0 = call i8* @llvm.eh.dwarf.cfa(i32 0)
-  ret i8* %0
-
-; check stack size (65536 + 8)
-; CHECK:        lui     $[[R0:[a-z0-9]+]], 65535
-; CHECK:        addiu   $[[R0]], $[[R0]], -8
-; CHECK:        addu    $sp, $sp, $[[R0]]
-
-; check return value ($sp + stack size)
-; CHECK:        addu    $2,  $zero, $fp
-}
-
-
 define i32 @f3() nounwind {
 entry:
   %x = alloca [32 x i8], align 1
