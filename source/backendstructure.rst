@@ -1820,8 +1820,11 @@ Large stack
 
 At this point, we have translated the very simple main() function with 
 "return 0;" single instruction. 
-The Cpu0AnalyzeImmediate.cpp and the Cpu0InstrInfo.td instructions defined in 
+Though Cpu0AnalyzeImmediate.cpp and the Cpu0InstrInfo.td instructions defined in 
 Chapter3_5 as the following, which take care the 32 bits stack size adjustments.
+However the CH9_3, dynamic-stack-allocation-support bring instruction "move $fp, $sp"
+that make it complicated in coding against the tutoral purpose of Cpu0. 
+[#nolargeframe]_
 
 .. rubric:: lbdex/chapters/Chapter3_5/CMakeLists.txt
 .. code-block:: c++
@@ -2205,3 +2208,4 @@ as 123.
 
 .. [#registration] http://jonathan2251.github.io/lbd/llvmstructure.html#target-registration
 
+.. [#nolargeframe] http://jonathan2251.github.io/lbd/funccall.html#dynamic-stack-allocation-support

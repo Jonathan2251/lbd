@@ -348,9 +348,6 @@ follows,
   inlineasm-operand-code.ll        v              -                                                        11
   internalfunc.ll                  v              internal function                                        9
   jstat.ll                         v              switch, -> JTI                                           8
-  largefr1.ll                      v              large frame                                              3
-  largeimm1.ll                     v              large immediate (32-bit, not 16-bit), -> lui, addiu      3
-  largeimmprinting.ll              v              large imm passing in register                            3
   lb1.ll                           v              load i8*, sext i8, -> lb                                 7
   lbu1.ll                          v              load i8*, zext i8, -> lbu                                7
   lh1.ll                           v              load i16*, sext i16, -> lh                               7

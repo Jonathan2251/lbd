@@ -61,7 +61,11 @@ https://github.com/Jonathan2251/lbd/blob/master/README.md
 Revision history
 ----------------
 
-Version 12.0.2, not released yet.
+Version 12.0.3, not released yet.
+
+Version 12.0.2, Released December 18, 2021.
+
+  Remove regression test cases for large frame of not supporting.
 
 Version 12.0.1, Released December 12, 2021.
 

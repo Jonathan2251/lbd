@@ -178,6 +178,15 @@ eliminateFrameIndex(MachineBasicBlock::iterator II, int SPAdj,
   // If MI is not a debug value, make sure Offset fits in the 16-bit immediate
   // field.
   if (!MI.isDebugValue() && !isInt<16>(Offset)) {
+    errs() << "!!!ERROR!!! Not support large frame over 16-bit at this point.\n"
+           << "Though CH3_5 support it."
+           << "Reference: "
+               "http://jonathan2251.github.io/lbd/backendstructure.html#large-stack\n"
+           << "However the CH9_3, dynamic-stack-allocation-support bring instruction "
+              "move $fp, $sp that make it complicated in coding against the tutoral "
+              "purpose of Cpu0.\n"
+           << "Reference: "
+               "http://jonathan2251.github.io/lbd/funccall.html#dynamic-stack-allocation-support\n";
     assert(0 && "(!MI.isDebugValue() && !isInt<16>(Offset))");
   }
 
