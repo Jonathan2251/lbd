@@ -17,9 +17,8 @@ entry:
 ; PIC:   jalr    $t9
 ; PIC:   ld      $2, 0($2)
 
-; STATIC:   lui     $[[R0:[0-9]+|t9]], %tp_hi(t1)
-; STATIC:   ori   $[[R1:[0-9]+|t9]], $[[R0]], %tp_lo(t1)
-; STATIC:   ld      $2, 0($[[R1]])
+; STATIC:   ld     $[[R0:[0-9]+|t9]], %gottprel(t1)($gp)
+; STATIC:   ld      $2, 0($[[R0]])
 }
 
 
