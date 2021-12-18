@@ -175,11 +175,13 @@ eliminateFrameIndex(MachineBasicBlock::iterator II, int SPAdj,
 
   LLVM_DEBUG(errs() << "Offset     : " << Offset << "\n" << "<--------->\n");
 
-  bool IsKill = false;
-#if CH >= CH9_3 //4
-  eliminateFI(MI, FIOperandNum, FrameIndex, FrameReg, stackSize, Offset, IsKill);
-#endif //#if CH >= CH9_3 //4
-  MI.getOperand(i).ChangeToRegister(FrameReg, false, IsKill);
+  // If MI is not a debug value, make sure Offset fits in the 16-bit immediate
+  // field.
+  if (!MI.isDebugValue() && !isInt<16>(Offset)) {
+    assert(0 && "(!MI.isDebugValue() && !isInt<16>(Offset))");
+  }
+
+  MI.getOperand(i).ChangeToRegister(FrameReg, false);
   MI.getOperand(i+1).ChangeToImmediate(Offset);
 #endif // #if CH >= CH3_5
 }

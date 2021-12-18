@@ -28,13 +28,6 @@ public:
   Cpu0SERegisterInfo(const Cpu0Subtarget &Subtarget);
 
   const TargetRegisterClass *intRegClass(unsigned Size) const override;
-
-#if CH >= CH9_3 //4
-private:
-  void eliminateFI(MachineBasicBlock::iterator II, unsigned OpNo,
-                   int FrameIndex, int FrameReg, uint64_t StackSize,
-                   int64_t SPOffset, bool &IsKill) const override;
-#endif //#if CH >= CH9_3 //4
 };
 
 } // end namespace llvm
