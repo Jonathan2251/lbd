@@ -19,23 +19,26 @@ LLVM_RELEASE_DIR=${LLVM_DIR}/release
 # brew install tcl-tk
 
 build() {
-  sed -i 's/^add_subdirectory(XRay)/#add_subdirectory(XRay)/g' test-suite/MicroBenchmarks/CMakeLists.txt
+  sed 's/^add_subdirectory(XRay)/#add_subdirectory(XRay)/g' test-suite/MicroBenchmarks/CMakeLists.txt
+  rm -rf test-suite-build
   mkdir test-suite-build
   cd test-suite-build
-  cmake -DCMAKE_C_COMPILER=clang -C../test-suite/cmake/caches/O3.cmake -DCMAKE_C_FLAGS=-fPIE -DCMAKE_CXX_FLAGS=-fPIE ../test-suite
+  cmake -DCMAKE_C_COMPILER=${LLVM_RELEASE_DIR}/build/bin/clang -C../test-suite/cmake/caches/O3.cmake -DCMAKE_C_FLAGS=-fPIE -DCMAKE_CXX_FLAGS=-fPIE -DTEST_SUITE_COLLECT_CODE_SIZE=OFF ../test-suite
   make
 }
 
 if ! test -d ${LLVM_TEST_SUITE_DIR}; then
   pushd ${LLVM_SRC_DIR}
   git clone https://github.com/llvm/llvm-test-suite.git test-suite
+  cd test-suite
+  git checkout -b 12.x origin/release/12.x
   popd
   pushd ${LLVM_RELEASE_DIR}
   ln -s ../llvm-project/test-suite test-suite
   build;
 else
-#  pushd ${LLVM_RELEASE_DIR}
-#  build;
+  pushd ${LLVM_RELEASE_DIR}
+  build;
   echo "${LLVM_TEST_SUITE_DIR} has existed already"
   exit 1
 fi
