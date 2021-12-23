@@ -23,7 +23,7 @@ build() {
   rm -rf test-suite-build
   mkdir test-suite-build
   cd test-suite-build
-  cmake -DCMAKE_C_COMPILER=${LLVM_RELEASE_DIR}/build/bin/clang -C../test-suite/cmake/caches/O3.cmake -DCMAKE_C_FLAGS=-fPIE -DCMAKE_CXX_FLAGS=-fPIE -DTEST_SUITE_COLLECT_CODE_SIZE=OFF ../test-suite
+  cmake -DCMAKE_C_COMPILER=${LLVM_RELEASE_DIR}/build/bin/clang -C../test-suite/cmake/caches/O3.cmake -DCMAKE_C_FLAGS=-fPIE -DCMAKE_CXX_FLAGS=-fPIE ../test-suite
   make
 }
 
