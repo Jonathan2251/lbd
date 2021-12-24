@@ -19,11 +19,8 @@ LLVM_RELEASE_DIR=${LLVM_DIR}/release
 # brew install tcl-tk
 
 build() {
-  sed 's/^add_subdirectory(XRay)/#add_subdirectory(XRay)/g' test-suite/MicroBenchmarks/CMakeLists.txt
-  rm -rf test-suite-build
-  mkdir test-suite-build
   cd test-suite-build
-  cmake -DCMAKE_C_COMPILER=${LLVM_RELEASE_DIR}/build/bin/clang -C../test-suite/cmake/caches/O3.cmake -DCMAKE_C_FLAGS=-fPIE -DCMAKE_CXX_FLAGS=-fPIE ../test-suite
+  cmake -DCMAKE_C_COMPILER=${LLVM_RELEASE_DIR}/build/bin/clang -DLLVM_ENABLE_PROJECTS="compiler-rt" C../test-suite/cmake/caches/O3.cmake -DCMAKE_C_FLAGS=-fPIE -DCMAKE_CXX_FLAGS=-fPIE ../test-suite
   make
 }
 
@@ -35,6 +32,9 @@ if ! test -d ${LLVM_TEST_SUITE_DIR}; then
   popd
   pushd ${LLVM_RELEASE_DIR}
   ln -s ../llvm-project/test-suite test-suite
+#  sed 's/^add_subdirectory(XRay)/#add_subdirectory(XRay)/g' test-suite/MicroBenchmarks/CMakeLists.txt
+  rm -rf test-suite-build
+  mkdir test-suite-build
   build;
 else
   pushd ${LLVM_RELEASE_DIR}

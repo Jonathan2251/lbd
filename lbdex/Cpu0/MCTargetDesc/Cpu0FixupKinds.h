@@ -38,6 +38,7 @@ namespace Cpu0 {
     // 16 bit fixup for GP offest resulting in - R_CPU0_GPREL16.
     fixup_Cpu0_GPREL16,
 
+    // GOT (Global Offset Table)
     // Symbol fixup resulting in - R_CPU0_GOT16.
     fixup_Cpu0_GOT,
 

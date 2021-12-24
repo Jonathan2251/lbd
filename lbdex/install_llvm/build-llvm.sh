@@ -21,11 +21,13 @@ if ! test -d ${LLVM_RELEASE_DIR}; then
   mkdir ${LLVM_RELEASE_DIR}
   cp -rf llvm-project/clang ${LLVM_RELEASE_DIR}
   cp -rf llvm-project/llvm ${LLVM_RELEASE_DIR}
+# build compiler-rt for llvm-test-suite
+  cp -rf llvm-project/compiler-rt ${LLVM_RELEASE_DIR}
   mkdir ${LLVM_RELEASE_DIR}/build
   pushd ${LLVM_RELEASE_DIR}/build
   OS=`uname -s`
   echo "OS =" ${OS}
-  cmake -DCMAKE_BUILD_TYPE=Debug -DLLVM_ENABLE_PROJECTS="clang" \
+  cmake -DCMAKE_BUILD_TYPE=Debug -DLLVM_ENABLE_PROJECTS="clang;compiler-rt" \
   -DLLVM_PARALLEL_COMPILE_JOBS=4 -DLLVM_PARALLEL_LINK_JOBS=1 -G "Ninja" ../llvm
   ninja
   popd
