@@ -158,7 +158,7 @@ Other example codes have no differences between this option and default option.
   JonathantekiiMac:verilog Jonathan$ ./cpu0Is
   WARNING: cpu0Is.v:386: $readmemh(cpu0.hex): Not enough words in the file for the 
   taskInterrupt(001)
-  74
+  68
   7
   0
   0
@@ -172,15 +172,15 @@ Other example codes have no differences between this option and default option.
   -32766
   32770
   393307
-  16777222
-  2
+  16777218
+  3
   4
   51
   2
+  3
+  1
   2147483647
   -2147483648
-  7
-  120
   15
   5
   0
