@@ -1,3 +1,5 @@
+// https://www.francisz.cn/download/IEEE_Standard_1800-2012%20SystemVerilog.pdf
+
 `define SIMULATE_DELAY_SLOT
 `define MEMSIZE   'h80000
 `define MEMEMPTY   8'hFF
@@ -292,15 +294,12 @@ module cpu0(input clock, reset, input [2:0] itype, output reg [2:0] tick,
       XORi:  regSet(a, Rb^uc16);             // XORi Ra,Rb,c16; Ra<=(Rb xor c16)
       LUi:   regSet(a, uc16<<16);
       SHL:   regSet(a, Rb<<c5);     // Shift Left; SHL Ra,Rb,Cx; Ra<=(Rb << Cx)
-      SRA:   regSet(a, (Rb&'h80000000)|(Rb>>c5)); 
-                                // Shift Right with signed bit fill;
-                                // SHR Ra,Rb,Cx; Ra<=(Rb&0x80000000)|(Rb>>Cx)
+      SRA:   regSet(a, (Rb>>>c5));  // Shift Right with signed bit fill;
+        // https://stackoverflow.com/questions/39911655/how-to-synthesize-hardware-for-sra-instruction
       SHR:   regSet(a, Rb>>c5);     // Shift Right with 0 fill; 
                                     // SHR Ra,Rb,Cx; Ra<=(Rb >> Cx)
       SHLV:  regSet(a, Rb<<Rc);     // Shift Left; SHLV Ra,Rb,Rc; Ra<=(Rb << Rc)
-      SRAV:  regSet(a, (Rb&'h80000000)|(Rb>>Rc)); 
-                                // Shift Right with signed bit fill;
-                                // SHRV Ra,Rb,Rc; Ra<=(Rb&0x80000000)|(Rb>>Rc)
+      SRAV:  regSet(a, (Rb>>>Rc));  // Shift Right with signed bit fill;
       SHRV:  regSet(a, Rb>>Rc);     // Shift Right with 0 fill; 
                                     // SHRV Ra,Rb,Rc; Ra<=(Rb >> Rc)
       ROL:   regSet(a, (Rb<<c5)|(Rb>>(32-c5)));     // Rotate Left;

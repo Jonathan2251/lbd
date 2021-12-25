@@ -282,9 +282,7 @@ It's fine since 2G is out of 32 bits signed integer range (-2G ~ 2G-1).
 For the overflow case, no way to keep the correct result in register. So, any 
 value in register is OK. You can check that **lshr** satisfy x = x*2, for all 
 x << 1 and the x result is not out of range, no matter operand x is signed 
-or unsigned integer.
-
-Micorsoft implementation references here [#msdn]_.
+or unsigned integer [#arithmetic-shift]_.
 
 The ‘ashr‘ Instruction" reference here [#ashr]_, ‘lshr‘ reference here [#lshr]_.
 
@@ -1378,7 +1376,7 @@ this chapter and spend 4xx lines of source code.
 
 .. [#instrstage] http://llvm.org/docs/doxygen/html/structllvm_1_1InstrStage.html
 
-.. [#msdn] http://msdn.microsoft.com/en-us/library/336xbhcz%28v=vs.80%29.aspx
+.. [#arithmetic-shift] https://open4tech.com/logical-vs-arithmetic-shift
 
 .. [#ashr] http://llvm.org/docs/LangRef.html#ashr-instruction
 

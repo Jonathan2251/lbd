@@ -14,6 +14,8 @@ long long test_longlong()
   long long e = a * b;   // e = 0x00000005,00000002
   long long f = (long long)a1 * (long long)b1; // f = 0x00060050,01000000
 
-  return (c+d+e+f); // (0x0006005b,01000006) = (393307,16777222)
+  long long g = ((-7 * 8) + 1) >> 4; // g = -55/16=-3.4375=-4
+
+  return (c+d+e+f+g); // (0x0006005b,01000002) = (393307,16777218)
 }
 
