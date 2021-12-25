@@ -58,7 +58,7 @@ int test_nolld()
 
   a = test_math();
   print_integer(a);  // a = 68
-  if (a != 74) pass = false;
+  if (a != 68) pass = false;
   a = test_rotate();
   print_integer(a);  // a = 7
   if (a != 7) pass = false;
@@ -99,7 +99,7 @@ int test_nolld()
   print_integer((int)(b >> 32)); // 393307
   if ((int)(b >> 32) != 393307) pass = false;
   print_integer((int)b); // 16777218
-  if ((int)(b) != 16777222) pass = false;
+  if ((int)(b) != 16777218) pass = false;
   a = test_cmplt_short();
   print_integer(a); // a = -3
   if (a != -3) pass = false;

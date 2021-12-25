@@ -16,7 +16,8 @@ long long test_longlong_shift1()
   c = (b >> a);  // cc = 0x1
   d = (b << a);  // cc = 0x120
 
-  return (c+d); // 0x121 = 289
+  long long e = 0x7FFFFFFFFFFFFFFLL >> 63;
+  return (c+d+e); // 0x121 = 289
 }
 
 long long test_longlong_shift2()

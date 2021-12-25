@@ -330,9 +330,9 @@ module cpu0(input clock, reset, input [2:0] itype, output reg [2:0] tick,
    `ifdef CPU0II
       // set
       SLT:   if (Rb < Rc) R[a]=1; else R[a]=0;
-      SLTu:  if (Rb < Rc) R[a]=1; else R[a]=0;
+      SLTu:  if (URb < URc) R[a]=1; else R[a]=0;
       SLTi:  if (Rb < c16) R[a]=1; else R[a]=0;
-      SLTiu: if (Rb < c16) R[a]=1; else R[a]=0;
+      SLTiu: if (URb < uc16) R[a]=1; else R[a]=0;
       // Branch Instructions
       BEQ:   if (Ra==Rb) PCSet(`PC+c16);
       BNE:   if (Ra!=Rb) PCSet(`PC+c16);
