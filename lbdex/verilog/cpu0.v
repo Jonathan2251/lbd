@@ -244,11 +244,11 @@ module cpu0(input clock, reset, input [2:0] itype, output reg [2:0] tick,
       // LB Ra,[Rb+Cx]; Ra<=(byte)[Rb+Cx]
       LB:    memReadStart(Rb+c16, `BYTE);
       // LBu Ra,[Rb+Cx]; Ra<=(byte)[Rb+Cx]
-      LBu:   memReadStart(URb+uc16, `BYTE);
+      LBu:   memReadStart(Rb+c16, `BYTE);
       // SB Ra,[Rb+Cx]; Ra=>(byte)[Rb+Cx]
       SB:    memWriteStart(Rb+c16, Ra, `BYTE);
       LH:    memReadStart(Rb+c16, `INT16); // LH Ra,[Rb+Cx]; Ra<=(2bytes)[Rb+Cx]
-      LHu:   memReadStart(URb+uc16, `INT16); // LHu Ra,[Rb+Cx]; Ra<=(2bytes)[Rb+Cx]
+      LHu:   memReadStart(Rb+c16, `INT16); // LHu Ra,[Rb+Cx]; Ra<=(2bytes)[Rb+Cx]
       // SH Ra,[Rb+Cx]; Ra=>(2bytes)[Rb+Cx]
       SH:    memWriteStart(Rb+c16, Ra, `INT16);
       // Conditional move
@@ -257,12 +257,12 @@ module cpu0(input clock, reset, input [2:0] itype, output reg [2:0] tick,
       // Mathematic 
       ADDiu: regSet(a, Rb+c16);                   // ADDiu Ra, Rb+Cx; Ra<=Rb+Cx
       CMP:   begin `N=(Rb-Rc<0);`Z=(Rb-Rc==0); end // CMP Rb, Rc; SW=(Rb >=< Rc)
-      ADDu:  regSet(a, URb+URc);               // ADDu Ra,Rb,Rc; Ra<=Rb+Rc
+      ADDu:  regSet(a, Rb+Rc);               // ADDu Ra,Rb,Rc; Ra<=Rb+Rc
       ADD:   begin regSet(a, Rb+Rc); if (a < Rb) `V = 1; else `V = 0; 
         if (`V) begin `I0 = 1; `I = 1; end
       end
                                              // ADD Ra,Rb,Rc; Ra<=Rb+Rc
-      SUBu:  regSet(a, URb-URc);               // SUBu Ra,Rb,Rc; Ra<=Rb-Rc
+      SUBu:  regSet(a, Rb-Rc);               // SUBu Ra,Rb,Rc; Ra<=Rb-Rc
       SUB:   begin regSet(a, Rb-Rc); if (Rb < 0 && Rc > 0 && a >= 0) 
              `V = 1; else `V =0; 
         if (`V) begin `I0 = 1; `I = 1; end
