@@ -17,10 +17,11 @@ LLVM_RELEASE_DIR=${LLVM_DIR}/release
 # sudo apt-get install tcl tk tcl-dev tk-dev
 # On macos,
 # brew install tcl-tk
+# ${LLVM_RELEASE_DIR}/build: build with clang and compiler-rt, -DLLVM_ENABLE_PROJECTS="clang;compiler-rt" --> ref. https://github.com/Jonathan2251/lbd/blob/master/lbdex/install_llvm/build-llvm.sh
 
 build() {
   cd test-suite-build
-  cmake -DCMAKE_C_COMPILER=${LLVM_RELEASE_DIR}/build/bin/clang -DLLVM_ENABLE_PROJECTS="compiler-rt" C../test-suite/cmake/caches/O3.cmake -DCMAKE_C_FLAGS=-fPIE -DCMAKE_CXX_FLAGS=-fPIE ../test-suite
+  cmake -DCMAKE_C_COMPILER=${LLVM_RELEASE_DIR}/build/bin/clang -C../test-suite/cmake/caches/O3.cmake -DCMAKE_C_FLAGS=-fPIE -DCMAKE_CXX_FLAGS=-fPIE ../test-suite
   make
 }
 
