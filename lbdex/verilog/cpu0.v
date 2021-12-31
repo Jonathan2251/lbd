@@ -64,12 +64,14 @@ module cpu0(input clock, reset, input [2:0] itype, output reg [2:0] tick,
   // Instruction Opcode 
   parameter [7:0] NOP=8'h00,LD=8'h01,ST=8'h02,LB=8'h03,LBu=8'h04,SB=8'h05,
   LH=8'h06,LHu=8'h07,SH=8'h08,ADDiu=8'h09,MOVZ=8'h0A,MOVN=8'h0B,ANDi=8'h0C,
-  ORi=8'h0D,XORi=8'h0E,LUi=8'h0F,
-  CMP=8'h10,
+  ORi=8'h0D,XORi=8'h0E,
+  LUi=8'h10,
   ADDu=8'h11,SUBu=8'h12,ADD=8'h13,SUB=8'h14,CLZ=8'h15,CLO=8'h16,MUL=8'h17,
   AND=8'h18,OR=8'h19,XOR=8'h1A,
   ROL=8'h1B,ROR=8'h1C,SRA=8'h1D,SHL=8'h1E,SHR=8'h1F,
   SRAV=8'h20,SHLV=8'h21,SHRV=8'h22,ROLV=8'h23,RORV=8'h24,
+  CMP=8'h25,
+  NOR=8'h2A,
 `ifdef CPU0II
   SLTi=8'h26,SLTiu=8'h27, SLT=8'h28,SLTu=8'h29,
   BEQ=8'h37,BNE=8'h38,
@@ -291,6 +293,7 @@ module cpu0(input clock, reset, input [2:0] itype, output reg [2:0] tick,
       OR:    regSet(a, Rb|Rc);               // OR Ra,Rb,Rc; Ra<=(Rb or Rc)
       ORi:   regSet(a, Rb|uc16);             // ORi Ra,Rb,c16; Ra<=(Rb or c16)
       XOR:   regSet(a, Rb^Rc);               // XOR Ra,Rb,Rc; Ra<=(Rb xor Rc)
+      NOR:   regSet(a, ~(Rb|Rc));            // NOR Ra,Rb,Rc; Ra<=(Rb nor Rc)
       XORi:  regSet(a, Rb^uc16);             // XORi Ra,Rb,c16; Ra<=(Rb xor c16)
       LUi:   regSet(a, uc16<<16);
       SHL:   regSet(a, Rb<<c5);     // Shift Left; SHL Ra,Rb,Cx; Ra<=(Rb << Cx)

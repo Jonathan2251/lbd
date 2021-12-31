@@ -4,7 +4,7 @@
 
 
 /// start
-int test_andorxornot()
+int test_andorxornotcomplement()
 {
   int a = 5;
   int b = 3;
@@ -14,7 +14,7 @@ int test_andorxornot()
   d = (a | b);  // d = 7
   e = (a ^ b);  // e = 6
   b = !a;       // b = 0
-  g = ~f;
+  g = ~f;       // 1's complement, ~0=(-1)=0xffffffff
   
   return (c+d+e+b+g); // 13
 }

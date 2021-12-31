@@ -1051,6 +1051,9 @@ run result of bc and asm instructions for ch4_2_logic.cpp as below.
     :start-after: //#if CH >= CH4_2 1
     :end-before: //#endif
 .. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td
+    :start-after: //#if CH >= CH4_2 10
+    :end-before: //#endif
+.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td
     :start-after: //#if CH >= CH4_2 2
     :end-before: //#endif
 .. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td

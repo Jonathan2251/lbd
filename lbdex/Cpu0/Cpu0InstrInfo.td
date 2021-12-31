@@ -399,6 +399,17 @@ class ArithLogicI<bits<8> op, string instr_asm, SDNode OpNode,
 }
 //#endif
 
+//#if CH >= CH4_2 10
+//  Logical
+class LogicNOR<bits<8> op, string instr_asm, RegisterClass RC>:
+  FA<op, (outs RC:$ra), (ins RC:$rb, RC:$rc),
+     !strconcat(instr_asm, "\t$ra, $rb, $rc"),
+     [(set RC:$ra, (not (or RC:$rb, RC:$rc)))], IIAlu> {
+  let shamt = 0;
+  let isCommutable = 1;
+}
+//#endif
+
 //#if CH >= CH3_5 6
 let Predicates = [Ch3_5] in {
 // Shifts
@@ -915,7 +926,7 @@ def XORi    : ArithLogicI<0x0e, "xori", xor, uimm16, immZExt16, CPURegs>;
 //#endif
 //#if CH >= CH3_5 9
 let Predicates = [Ch3_5] in {
-def LUi     : LoadUpper<0x0f, "lui", GPROut, uimm16>;
+def LUi     : LoadUpper<0x10, "lui", GPROut, uimm16>;
 }
 //#endif
 
@@ -923,7 +934,7 @@ def LUi     : LoadUpper<0x0f, "lui", GPROut, uimm16>;
 //#if CH >= CH4_2 5
 let Predicates = [Ch4_2] in {
 let Predicates = [HasCmp] in {
-def CMP     : CmpInstr<0x10, "cmp", IIAlu, CPURegs, SR, 0>;
+def CMP     : CmpInstr<0x25, "cmp", IIAlu, CPURegs, SR, 0>;
 }
 }
 //#endif
@@ -951,6 +962,7 @@ let Predicates = [Ch4_2] in {
 def AND     : ArithLogicR<0x18, "and", and, IIAlu, CPURegs, 1>;
 def OR      : ArithLogicR<0x19, "or", or, IIAlu, CPURegs, 1>;
 def XOR     : ArithLogicR<0x1a, "xor", xor, IIAlu, CPURegs, 1>;
+def NOR     : LogicNOR<0x2a, "nor", CPURegs>;
 }
 //#endif
 
@@ -1270,8 +1282,8 @@ def : WrapperPat<tglobaltlsaddr, ORi, CPURegs>;
 //#if CH >= CH4_2 8
 let Predicates = [Ch4_2] in {
 def : Pat<(not CPURegs:$in),
-// 1: in == 0; 0: in != 0
-          (XORi CPURegs:$in, 1)>;
+// 1's complement of in, ex. not(0xf000000f) == 0x0ffffff0
+          (NOR CPURegs:$in, ZERO)>;
 }
 //#endif
 

@@ -165,7 +165,7 @@ Other example codes have no differences between this option and default option.
   253
   3
   1
-  14
+  13
   3
   -126
   130

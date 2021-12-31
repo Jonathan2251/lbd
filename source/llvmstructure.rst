@@ -275,6 +275,12 @@ The following table details the cpu032I instruction set:
     - XOR Ra, Rb, Rc
     - Ra <= Rb ^ Rc
   * - A
+    - NOR
+    - 2A
+    - Bitwise boolean nor
+    - NOR Ra, Rb, Rc
+    - Ra <= Rb nor Rc
+  * - A
     - ROL
     - 1B
     - Rotate left

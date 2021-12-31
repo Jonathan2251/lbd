@@ -77,7 +77,7 @@ int test_nolld()
   a = (int)test_load_bool();
   print_integer(a);  // a = 1
   if (a != 1) pass = false;
-  a = test_andorxornot();
+  a = test_andorxornotcomplement();
   print_integer(a); // a = 14
   if (a != 14) pass = false;
   a = test_setxx();
