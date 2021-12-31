@@ -8,14 +8,15 @@ int test_andorxornot()
 {
   int a = 5;
   int b = 3;
-  int c = 0, d = 0, e = 0;
+  int c = 0, d = 0, e = 0, f = 0, g = 0;
 
   c = (a & b);  // c = 1
   d = (a | b);  // d = 7
   e = (a ^ b);  // e = 6
   b = !a;       // b = 0
+  g = ~f;
   
-  return (c+d+e+b); // 14
+  return (c+d+e+b+g); // 13
 }
 
 int test_setxx()
