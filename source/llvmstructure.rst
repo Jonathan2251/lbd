@@ -1292,7 +1292,8 @@ GCC document is here [#gnu]_ .
   ======================  ============================  =============
   frontend                clang                         gcc-frontend [#gcc-frontend]_
   ======================  ============================  =============
-  C/C++                   parsing                       parsing
+  LANGUAGE                C/C++                         C/C++
+  parsing                 parsing                       parsing
   AST                     clang-AST                     GENERIC [#generic]_
   optimization & codgen   clang-backend                 gimplifier
   IR                      LLVM IR                       GIMPLE [#gimple]_
@@ -1304,9 +1305,9 @@ GCC document is here [#gnu]_ .
   backend                 llvm                          gcc
   ======================  ============================  =============
   IR                      LLVM IR                       GIMPLE
-            -             optimziation & pass           optimization & plugins
-            -             DAG                           RTL [#rtl]_
-            -             tblgen for td                 codgen for md [#md]_
+  transfer                optimziation & pass           optimization & plugins
+  DAG                     DAG                           RTL [#rtl]_
+  codgen                  tblgen for td                 codgen for md [#md]_
   ======================  ============================  =============
 
 Both LLVM IR and GIMPLE are SSA form. 
