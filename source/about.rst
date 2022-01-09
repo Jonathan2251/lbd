@@ -61,7 +61,14 @@ https://github.com/Jonathan2251/lbd/blob/master/README.md
 Revision history
 ----------------
 
-Version 12.0.3, not released yet.
+Version 12.0.4, not released yet.
+
+Version 12.0.3, Released January 9, 2022.
+
+  Expand memory size of cpu0.v to 0x1000000, 24-bit. 
+  Section LLVM vs GCC in structure.
+  Add NOR instruction.
+  Fix bug of SLTu SLTiu, SRA and SRAV in verilog code.
 
 Version 12.0.2, Released December 18, 2021.
 
