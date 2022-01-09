@@ -6,7 +6,7 @@
 // For memory IO
 void print_char(const char c)
 {
-  char *p = (char*)OUT_MEM;
+  char *p = (char*)IOADDR;
   *p = c;
 
   return;
