@@ -545,7 +545,7 @@ following meaning.</p>
 defined for lshr instruction (We don’t know why it doesn’t use ashr and lshr as
 the IR node name directly). Summary as the Table: C operator &gt;&gt; implementation.</p>
 <table class="docutils align-default" id="id10">
-<caption><span class="caption-number">Table 16 </span><span class="caption-text">C operator &gt;&gt; implementation</span><a class="headerlink" href="#id10" title="Permalink to this table">¶</a></caption>
+<caption><span class="caption-number">Table 18 </span><span class="caption-text">C operator &gt;&gt; implementation</span><a class="headerlink" href="#id10" title="Permalink to this table">¶</a></caption>
 <colgroup>
 <col style="width: 40%" />
 <col style="width: 22%" />
@@ -604,7 +604,7 @@ unsigned value (such as 4G-2). So, in order to satisfy this definition in
 both signed and unsigned integers of x, we need these two instructions,
 <strong>lshr</strong> and <strong>ashr</strong>.</p>
 <table class="docutils align-default" id="id11">
-<caption><span class="caption-number">Table 17 </span><span class="caption-text">C operator &lt;&lt; implementation</span><a class="headerlink" href="#id11" title="Permalink to this table">¶</a></caption>
+<caption><span class="caption-number">Table 19 </span><span class="caption-text">C operator &lt;&lt; implementation</span><a class="headerlink" href="#id11" title="Permalink to this table">¶</a></caption>
 <colgroup>
 <col style="width: 64%" />
 <col style="width: 36%" />
@@ -648,8 +648,7 @@ It’s fine since 2G is out of 32 bits signed integer range (-2G ~ 2G-1).
 For the overflow case, no way to keep the correct result in register. So, any
 value in register is OK. You can check that <strong>lshr</strong> satisfy x = x*2, for all
 x &lt;&lt; 1 and the x result is not out of range, no matter operand x is signed
-or unsigned integer.</p>
-<p>Micorsoft implementation references here <a class="footnote-reference brackets" href="#msdn" id="id2">2</a>.</p>
+or unsigned integer <a class="footnote-reference brackets" href="#arithmetic-shift" id="id2">2</a>.</p>
 <p>The ‘ashr‘ Instruction” reference here <a class="footnote-reference brackets" href="#ashr" id="id3">3</a>, ‘lshr‘ reference here <a class="footnote-reference brackets" href="#lshr" id="id4">4</a>.</p>
 <p>The srav, shlv and shrv are for two virtual input registers instructions while
 the sra, … are for 1 virtual input registers and 1 constant input operands.</p>
@@ -726,6 +725,7 @@ It will generate corresponding llvm IR instructions,
   <span class="nb">int</span> <span class="n">b</span> <span class="o">=</span> <span class="mi">2</span><span class="p">;</span>
   <span class="n">unsigned</span> <span class="nb">int</span> <span class="n">a1</span> <span class="o">=</span> <span class="o">-</span><span class="mi">5</span><span class="p">;</span>
   <span class="nb">int</span> <span class="n">c</span><span class="p">,</span> <span class="n">d</span><span class="p">,</span> <span class="n">e</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">g</span><span class="p">,</span> <span class="n">h</span><span class="p">,</span> <span class="n">i</span><span class="p">;</span>
+  <span class="nb">int</span> <span class="n">j</span><span class="p">;</span>
   <span class="n">unsigned</span> <span class="nb">int</span> <span class="n">f1</span><span class="p">,</span> <span class="n">g1</span><span class="p">,</span> <span class="n">h1</span><span class="p">,</span> <span class="n">i1</span><span class="p">;</span>
 
   <span class="n">c</span> <span class="o">=</span> <span class="n">a</span> <span class="o">+</span> <span class="n">b</span><span class="p">;</span>      <span class="o">//</span> <span class="n">c</span> <span class="o">=</span> <span class="mi">7</span>
@@ -739,9 +739,10 @@ It will generate corresponding llvm IR instructions,
   <span class="n">h1</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span> <span class="o">&lt;&lt;</span> <span class="n">b</span><span class="p">);</span>  <span class="o">//</span> <span class="n">h1</span> <span class="o">=</span> <span class="mh">0x04</span>
   <span class="n">i</span> <span class="o">=</span> <span class="p">(</span><span class="mh">0x80</span> <span class="o">&gt;&gt;</span> <span class="n">a</span><span class="p">);</span> <span class="o">//</span> <span class="n">i</span> <span class="o">=</span> <span class="mh">0x04</span>
   <span class="n">i1</span> <span class="o">=</span> <span class="p">(</span><span class="n">b</span> <span class="o">&gt;&gt;</span> <span class="n">a</span><span class="p">);</span>  <span class="o">//</span> <span class="n">i1</span> <span class="o">=</span> <span class="mh">0x0</span>
+  <span class="n">j</span> <span class="o">=</span> <span class="p">(</span><span class="o">-</span><span class="mi">24</span> <span class="o">&gt;&gt;</span> <span class="mi">2</span><span class="p">);</span>  <span class="o">//</span> <span class="n">j</span> <span class="o">=</span> <span class="o">-</span><span class="mi">6</span>
 
-  <span class="k">return</span> <span class="p">(</span><span class="n">c</span><span class="o">+</span><span class="n">d</span><span class="o">+</span><span class="n">e</span><span class="o">+</span><span class="n">f</span><span class="o">+</span><span class="nb">int</span><span class="p">(</span><span class="n">f1</span><span class="p">)</span><span class="o">+</span><span class="n">g</span><span class="o">+</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span><span class="n">g1</span><span class="o">+</span><span class="n">h</span><span class="o">+</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span><span class="n">h1</span><span class="o">+</span><span class="n">i</span><span class="o">+</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span><span class="n">i1</span><span class="p">);</span>
-<span class="o">//</span> <span class="mi">7</span><span class="o">+</span><span class="mi">3</span><span class="o">+</span><span class="mi">10</span><span class="o">+</span><span class="mi">20</span><span class="o">-</span><span class="mi">10</span><span class="o">+</span><span class="mi">1</span><span class="o">+</span><span class="mi">3</span><span class="o">+</span><span class="mi">32</span><span class="o">+</span><span class="mi">4</span><span class="o">+</span><span class="mi">4</span><span class="o">+</span><span class="mi">0</span> <span class="o">=</span> <span class="mi">74</span>
+  <span class="k">return</span> <span class="p">(</span><span class="n">c</span><span class="o">+</span><span class="n">d</span><span class="o">+</span><span class="n">e</span><span class="o">+</span><span class="n">f</span><span class="o">+</span><span class="nb">int</span><span class="p">(</span><span class="n">f1</span><span class="p">)</span><span class="o">+</span><span class="n">g</span><span class="o">+</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span><span class="n">g1</span><span class="o">+</span><span class="n">h</span><span class="o">+</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span><span class="n">h1</span><span class="o">+</span><span class="n">i</span><span class="o">+</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span><span class="n">i1</span><span class="o">+</span><span class="n">j</span><span class="p">);</span>
+<span class="o">//</span> <span class="mi">7</span><span class="o">+</span><span class="mi">3</span><span class="o">+</span><span class="mi">10</span><span class="o">+</span><span class="mi">20</span><span class="o">-</span><span class="mi">10</span><span class="o">+</span><span class="mi">1</span><span class="o">+</span><span class="mi">3</span><span class="o">+</span><span class="mi">32</span><span class="o">+</span><span class="mi">4</span><span class="o">+</span><span class="mi">4</span><span class="o">+</span><span class="mi">0</span><span class="o">-</span><span class="mi">6</span> <span class="o">=</span> <span class="mi">68</span>
 <span class="p">}</span>
 
 </pre></div>
@@ -1325,7 +1326,7 @@ legalized selection DAG”.</p></li>
 <p>Summary as Table: Stages for C operator % and Table: Functions handle the DAG
 translation and pattern match for C operator %.</p>
 <table class="docutils align-default" id="id16">
-<caption><span class="caption-number">Table 18 </span><span class="caption-text">Stages for C operator %</span><a class="headerlink" href="#id16" title="Permalink to this table">¶</a></caption>
+<caption><span class="caption-number">Table 20 </span><span class="caption-text">Stages for C operator %</span><a class="headerlink" href="#id16" title="Permalink to this table">¶</a></caption>
 <colgroup>
 <col style="width: 40%" />
 <col style="width: 60%" />
@@ -1351,7 +1352,7 @@ translation and pattern match for C operator %.</p>
 </tbody>
 </table>
 <table class="docutils align-default" id="id17">
-<caption><span class="caption-number">Table 19 </span><span class="caption-text">Functions handle the DAG translation and pattern match for C operator %</span><a class="headerlink" href="#id17" title="Permalink to this table">¶</a></caption>
+<caption><span class="caption-number">Table 21 </span><span class="caption-text">Functions handle the DAG translation and pattern match for C operator %</span><a class="headerlink" href="#id17" title="Permalink to this table">¶</a></caption>
 <colgroup>
 <col style="width: 43%" />
 <col style="width: 57%" />
@@ -1490,6 +1491,16 @@ class CmpInstr&lt;bits&lt;8&gt; op, string instr_asm,
 }
 </pre></div>
 </div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>//  Logical
+class LogicNOR&lt;bits&lt;8&gt; op, string instr_asm, RegisterClass RC&gt;:
+  FA&lt;op, (outs RC:$ra), (ins RC:$rb, RC:$rc),
+     !strconcat(instr_asm, &quot;\t$ra, $rb, $rc&quot;),
+     [(set RC:$ra, (not (or RC:$rb, RC:$rc)))], IIAlu&gt; {
+  let shamt = 0;
+  let isCommutable = 1;
+}
+</pre></div>
+</div>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>// SetCC
 let Predicates = [Ch4_2] in {
 class SetCC_R&lt;bits&lt;8&gt; op, string instr_asm, PatFrag cond_op,
@@ -1523,7 +1534,7 @@ class SetCC_I&lt;bits&lt;8&gt; op, string instr_asm, PatFrag cond_op, Operand Od
 </div>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">let</span> <span class="n">Predicates</span> <span class="o">=</span> <span class="p">[</span><span class="n">Ch4_2</span><span class="p">]</span> <span class="ow">in</span> <span class="p">{</span>
 <span class="n">let</span> <span class="n">Predicates</span> <span class="o">=</span> <span class="p">[</span><span class="n">HasCmp</span><span class="p">]</span> <span class="ow">in</span> <span class="p">{</span>
-<span class="k">def</span> <span class="nf">CMP</span>     <span class="p">:</span> <span class="n">CmpInstr</span><span class="o">&lt;</span><span class="mh">0x10</span><span class="p">,</span> <span class="s2">&quot;cmp&quot;</span><span class="p">,</span> <span class="n">IIAlu</span><span class="p">,</span> <span class="n">CPURegs</span><span class="p">,</span> <span class="n">SR</span><span class="p">,</span> <span class="mi">0</span><span class="o">&gt;</span><span class="p">;</span>
+<span class="k">def</span> <span class="nf">CMP</span>     <span class="p">:</span> <span class="n">CmpInstr</span><span class="o">&lt;</span><span class="mh">0x25</span><span class="p">,</span> <span class="s2">&quot;cmp&quot;</span><span class="p">,</span> <span class="n">IIAlu</span><span class="p">,</span> <span class="n">CPURegs</span><span class="p">,</span> <span class="n">SR</span><span class="p">,</span> <span class="mi">0</span><span class="o">&gt;</span><span class="p">;</span>
 <span class="p">}</span>
 <span class="p">}</span>
 </pre></div>
@@ -1532,6 +1543,7 @@ class SetCC_I&lt;bits&lt;8&gt; op, string instr_asm, PatFrag cond_op, Operand Od
 <span class="k">def</span> <span class="nf">AND</span>     <span class="p">:</span> <span class="n">ArithLogicR</span><span class="o">&lt;</span><span class="mh">0x18</span><span class="p">,</span> <span class="s2">&quot;and&quot;</span><span class="p">,</span> <span class="ow">and</span><span class="p">,</span> <span class="n">IIAlu</span><span class="p">,</span> <span class="n">CPURegs</span><span class="p">,</span> <span class="mi">1</span><span class="o">&gt;</span><span class="p">;</span>
 <span class="k">def</span> <span class="nf">OR</span>      <span class="p">:</span> <span class="n">ArithLogicR</span><span class="o">&lt;</span><span class="mh">0x19</span><span class="p">,</span> <span class="s2">&quot;or&quot;</span><span class="p">,</span> <span class="ow">or</span><span class="p">,</span> <span class="n">IIAlu</span><span class="p">,</span> <span class="n">CPURegs</span><span class="p">,</span> <span class="mi">1</span><span class="o">&gt;</span><span class="p">;</span>
 <span class="k">def</span> <span class="nf">XOR</span>     <span class="p">:</span> <span class="n">ArithLogicR</span><span class="o">&lt;</span><span class="mh">0x1a</span><span class="p">,</span> <span class="s2">&quot;xor&quot;</span><span class="p">,</span> <span class="n">xor</span><span class="p">,</span> <span class="n">IIAlu</span><span class="p">,</span> <span class="n">CPURegs</span><span class="p">,</span> <span class="mi">1</span><span class="o">&gt;</span><span class="p">;</span>
+<span class="k">def</span> <span class="nf">NOR</span>     <span class="p">:</span> <span class="n">LogicNOR</span><span class="o">&lt;</span><span class="mh">0x2a</span><span class="p">,</span> <span class="s2">&quot;nor&quot;</span><span class="p">,</span> <span class="n">CPURegs</span><span class="o">&gt;</span><span class="p">;</span>
 <span class="p">}</span>
 </pre></div>
 </div>
@@ -1547,8 +1559,8 @@ class SetCC_I&lt;bits&lt;8&gt; op, string instr_asm, PatFrag cond_op, Operand Od
 </div>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>let Predicates = [Ch4_2] in {
 def : Pat&lt;(not CPURegs:$in),
-// 1: in == 0; 0: in != 0
-          (XORi CPURegs:$in, 1)&gt;;
+// 1&#39;s complement of in, ex. not(0xf000000f) == 0x0ffffff0
+          (NOR CPURegs:$in, ZERO)&gt;;
 }
 </pre></div>
 </div>
@@ -1687,18 +1699,19 @@ defm : SetgePatsCmp&lt;CPURegs&gt;;
 </pre></div>
 </div>
 <p class="rubric">lbdex/input/ch4_2_logic.cpp</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>int test_andorxornot()
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>int test_andorxornotcomplement()
 {
   int a = 5;
   int b = 3;
-  int c = 0, d = 0, e = 0;
+  int c = 0, d = 0, e = 0, f = 0, g = 0;
 
   c = (a &amp; b);  // c = 1
   d = (a | b);  // d = 7
   e = (a ^ b);  // e = 6
   b = !a;       // b = 0
+  g = ~f;       // 1&#39;s complement, ~0=(-1)=0xffffffff
   
-  return (c+d+e+b); // 14
+  return (c+d+e+b+g); // 13
 }
 
 int test_setxx()
@@ -1822,7 +1835,7 @@ int test_setxx()
 </pre></div>
 </div>
 <table class="docutils align-default" id="id18">
-<caption><span class="caption-number">Table 20 </span><span class="caption-text">Logic operators for cpu032I</span><a class="headerlink" href="#id18" title="Permalink to this table">¶</a></caption>
+<caption><span class="caption-number">Table 22 </span><span class="caption-text">Logic operators for cpu032I</span><a class="headerlink" href="#id18" title="Permalink to this table">¶</a></caption>
 <colgroup>
 <col style="width: 10%" />
 <col style="width: 32%" />
@@ -1986,7 +1999,7 @@ int test_setxx()
 </tbody>
 </table>
 <table class="docutils align-default" id="id19">
-<caption><span class="caption-number">Table 21 </span><span class="caption-text">Logic operators for cpu032II</span><a class="headerlink" href="#id19" title="Permalink to this table">¶</a></caption>
+<caption><span class="caption-number">Table 23 </span><span class="caption-text">Logic operators for cpu032II</span><a class="headerlink" href="#id19" title="Permalink to this table">¶</a></caption>
 <colgroup>
 <col style="width: 10%" />
 <col style="width: 32%" />
@@ -2226,7 +2239,7 @@ instructions implemented in this chapter in Table: Chapter 4 mathmetic
 operators. There are over 20 operators totally in mathmetic and logic support in
 this chapter and spend 4xx lines of source code.</p>
 <table class="docutils align-default" id="id20">
-<caption><span class="caption-number">Table 22 </span><span class="caption-text">Chapter 4 mathmetic operators</span><a class="headerlink" href="#id20" title="Permalink to this table">¶</a></caption>
+<caption><span class="caption-number">Table 24 </span><span class="caption-text">Chapter 4 mathmetic operators</span><a class="headerlink" href="#id20" title="Permalink to this table">¶</a></caption>
 <colgroup>
 <col style="width: 15%" />
 <col style="width: 30%" />
@@ -2354,8 +2367,8 @@ this chapter and spend 4xx lines of source code.</p>
 <dt class="label" id="instrstage"><span class="brackets"><a class="fn-backref" href="#id1">1</a></span></dt>
 <dd><p><a class="reference external" href="http://llvm.org/docs/doxygen/html/structllvm_1_1InstrStage.html">http://llvm.org/docs/doxygen/html/structllvm_1_1InstrStage.html</a></p>
 </dd>
-<dt class="label" id="msdn"><span class="brackets"><a class="fn-backref" href="#id2">2</a></span></dt>
-<dd><p><a class="reference external" href="http://msdn.microsoft.com/en-us/library/336xbhcz%28v=vs.80%29.aspx">http://msdn.microsoft.com/en-us/library/336xbhcz%28v=vs.80%29.aspx</a></p>
+<dt class="label" id="arithmetic-shift"><span class="brackets"><a class="fn-backref" href="#id2">2</a></span></dt>
+<dd><p><a class="reference external" href="https://open4tech.com/logical-vs-arithmetic-shift">https://open4tech.com/logical-vs-arithmetic-shift</a></p>
 </dd>
 <dt class="label" id="ashr"><span class="brackets"><a class="fn-backref" href="#id3">3</a></span></dt>
 <dd><p><a class="reference external" href="http://llvm.org/docs/LangRef.html#ashr-instruction">http://llvm.org/docs/LangRef.html#ashr-instruction</a></p>

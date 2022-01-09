@@ -275,6 +275,12 @@ The following table details the cpu032I instruction set:
     - XOR Ra, Rb, Rc
     - Ra <= Rb ^ Rc
   * - A
+    - NOR
+    - 2A
+    - Bitwise boolean nor
+    - NOR Ra, Rb, Rc
+    - Ra <= Rb nor Rc
+  * - A
     - ROL
     - 1B
     - Rotate left
@@ -1276,18 +1282,46 @@ order, and it provides many parallel processing opportunities for multi-core
 is run on CPU.
 
 
-More about llvm
-~~~~~~~~~~~~~~~~
+LLVM vs GCC in structure
+~~~~~~~~~~~~~~~~~~~~~~~~
 
-Both llvm-ir and glimps of gcc low level ir are SSA form. 
+GCC document is here [#gnu]_ .
+
+.. table:: clang vs gcc-frontend
+
+  ======================  ============================  =============
+  frontend                clang                         gcc-frontend [#gcc-frontend]_
+  ======================  ============================  =============
+  LANGUAGE                C/C++                         C/C++
+  parsing                 parsing                       parsing
+  AST                     clang-AST                     GENERIC [#generic]_
+  optimization & codgen   clang-backend                 gimplifier
+  IR                      LLVM IR                       GIMPLE [#gimple]_
+  ======================  ============================  =============
+
+.. table:: llvm vs gcc (kernal and target/backend)
+
+  ======================  ============================  =============
+  backend                 llvm                          gcc
+  ======================  ============================  =============
+  IR                      LLVM IR                       GIMPLE
+  transfer                optimziation & pass           optimization & plugins
+  DAG                     DAG                           RTL [#rtl]_
+  codgen                  tblgen for td                 codgen for md [#md]_
+  ======================  ============================  =============
+
+Both LLVM IR and GIMPLE are SSA form. 
 LLVM IR originally designed to be fully reusable across arbitrary tools besides 
 compiler itself. GCC community never had desire to enable any tools besides 
 compiler (Richard Stallman resisted attempts to make IR more reusable to prevent 
-third-party commercial tools from reusing GCC's frontends). Thus GIMPLE 
+third-party commercial tools from reusing GCC's frontends). Thus GIMPLE
 (GCC's IR) was never considered to be more than an implementation detail, in 
 particular it doesn't provide a full description of compiled program (e.g. it 
 lacks program's call graph, type definitions, stack offsets and alias 
 information) [#llvm-ir-vs-gimple]_. 
+
+LLVM blog
+~~~~~~~~~
 
 User uses null pointer to guard code is correct. Undef is only happened in 
 compiler optimization [#null_pointer_ex]_. 
@@ -2435,7 +2469,7 @@ the Target Registration.
 
 .. [#cond-note] Conditions include the following comparisons: >, >=, ==, !=, <=, <. SW is actually set by the subtraction of the two register operands, and the flags indicate which conditions are present.
 
-.. [#sra-note] Rb '>> Cx, Rb '>> Rc: Shift with signed bit remain. It's equal to ((Rb&'h80000000)|Rb>>Cx) or ((Rb&'h80000000)|Rb>>Rc).
+.. [#sra-note] Rb '>> Cx, Rb '>> Rc: Shift with signed bit remain.
 
 .. [#call-note] jsub cx is direct call for 24 bits value of cx while jalr $rb is indirect call for 32 bits value of register $rb.
 
@@ -2453,6 +2487,18 @@ the Target Registration.
 
 .. [#dragonbooks-10.2.3] Refer section 10.2.3 of book Compilers: Principles, 
     Techniques, and Tools (2nd Edition) 
+
+.. [#gnu] https://en.wikipedia.org/wiki/GNU_Compiler_Collection
+
+.. [#gcc-frontend] https://en.wikipedia.org/wiki/GNU_Compiler_Collection#Front_ends
+
+.. [#generic] https://gcc.gnu.org/onlinedocs/gccint/GENERIC.html
+
+.. [#gimple] https://gcc.gnu.org/onlinedocs/gccint/GIMPLE.html
+
+.. [#rtl] https://gcc.gnu.org/onlinedocs/gccint/RTL.html
+
+.. [#md] https://gcc.gnu.org/onlinedocs/gccint/Machine-Desc.html#Machine-Desc
 
 .. [#llvm-ir-vs-gimple] https://stackoverflow.com/questions/40799696/how-is-gcc-ir-different-from-llvm-ir/40802063
 

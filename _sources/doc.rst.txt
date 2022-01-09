@@ -228,7 +228,8 @@ to lbdex/, and:
 For both iMac and Linux, copy lbdex/regression-test/Cpu0 to 
 ~/llvm/test/llvm/test/CodeGen/Cpu0.
 
-Then run as follows for both of single and all test cases on iMac. 
+Then run as follows for both of single and all test cases on iMac.
+The **llvm-lit -a** can display executing command.
 
 .. code-block:: console
 
