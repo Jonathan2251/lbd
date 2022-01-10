@@ -78,8 +78,8 @@ int test_nolld()
   print_integer(a);  // a = 1
   if (a != 1) pass = false;
   a = test_andorxornotcomplement();
-  print_integer(a); // a = 14
-  if (a != 14) pass = false;
+  print_integer(a); // a = 13
+  if (a != 13) pass = false;
   a = test_setxx();
   print_integer(a); // a = 3
   if (a != 3) pass = false;
