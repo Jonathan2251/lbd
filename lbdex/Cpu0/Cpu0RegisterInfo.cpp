@@ -74,6 +74,11 @@ getReservedRegs(const MachineFunction &MF) const {
   for (unsigned I = 0; I < array_lengthof(ReservedCPURegs); ++I)
     Reserved.set(ReservedCPURegs[I]);
 
+  if (!Subtarget.isCpu032I()) {
+    // only cpu032I uses JEQ $sw that cannot reserve SW, others have to reserve SW
+    Reserved.set(Cpu0::SW); 
+  }
+
 #if CH >= CH9_3 //2
   // Reserve FP if this function should have a dedicated frame pointer register.
   if (MF.getSubtarget().getFrameLowering()->hasFP(MF)) {
