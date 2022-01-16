@@ -19,6 +19,7 @@
 #include "ch8_1_ctrl.cpp"
 #include "ch8_2_deluselessjmp.cpp"
 #include "ch8_2_select.cpp"
+#include "ch9_1_longlong.cpp"
 #include "ch9_3_vararg.cpp"
 #include "ch9_3_stacksave.cpp"
 #include "ch9_3_bswap.cpp"
@@ -120,9 +121,17 @@ int test_nolld()
   if (a != 1) pass = false;
   print_integer(2147483647); // test mod % (mult) from itoa.cpp
   print_integer(-2147483648); // test mod % (multu) from itoa.cpp
+  a = test_sum_longlong();
+  print_integer(a); // a = 9
+  if (a != 9) pass = false;
   a = test_vararg();
+  print_integer(a); // a = 13
+  if (a != 13) pass = false;
+#if 0
+  a = test_template();
   print_integer(a); // a = 15
   if (a != 15) pass = false;
+#endif
   a = test_stacksaverestore(100);
   print_integer(a); // a = 5
   if (a != 5) pass = false;
