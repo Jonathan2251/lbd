@@ -67,17 +67,12 @@ BitVector Cpu0RegisterInfo::
 getReservedRegs(const MachineFunction &MF) const {
 //@getReservedRegs body {
   static const uint16_t ReservedCPURegs[] = {
-    Cpu0::ZERO, Cpu0::AT, Cpu0::SP, Cpu0::LR, Cpu0::PC
+    Cpu0::ZERO, Cpu0::AT, Cpu0::SP, Cpu0::LR, /*Cpu0::SW, */Cpu0::PC
   };
   BitVector Reserved(getNumRegs());
 
   for (unsigned I = 0; I < array_lengthof(ReservedCPURegs); ++I)
     Reserved.set(ReservedCPURegs[I]);
-
-  if (!Subtarget.isCpu032I()) {
-    // only cpu032I uses JEQ $sw that cannot reserve SW, others have to reserve SW
-    Reserved.set(Cpu0::SW); 
-  }
 
 #if CH >= CH9_3 //2
   // Reserve FP if this function should have a dedicated frame pointer register.

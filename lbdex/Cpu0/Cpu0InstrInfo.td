@@ -241,7 +241,7 @@ def Cpu0MemAsmOperand : AsmOperandClass {
 // Address operand
 def mem : Operand<iPTR> {
   let PrintMethod = "printMemOperand";
-  let MIOperandInfo = (ops CPURegs, simm16);
+  let MIOperandInfo = (ops GPROut, simm16);
   let EncoderMethod = "getMemEncoding";
 //#if CH >= CH11_1 2
   let ParserMatchClass = Cpu0MemAsmOperand;
@@ -252,7 +252,7 @@ def mem : Operand<iPTR> {
 //#if CH >= CH7_1 1
 def mem_ea : Operand<iPTR> {
   let PrintMethod = "printMemOperandEA";
-  let MIOperandInfo = (ops CPURegs, simm16);
+  let MIOperandInfo = (ops GPROut, simm16);
   let EncoderMethod = "getMemEncoding";
 }
 //#endif
@@ -489,7 +489,7 @@ class LoadM32<bits<8> op, string instr_asm, PatFrag OpNode,
 // 32-bit store.
 class StoreM32<bits<8> op, string instr_asm, PatFrag OpNode,
                     bit Pseudo = 0>
-  : StoreM<op, instr_asm, OpNode, CPURegs, mem, Pseudo> {
+  : StoreM<op, instr_asm, OpNode, GPROut, mem, Pseudo> {
 }
 //#endif
 
