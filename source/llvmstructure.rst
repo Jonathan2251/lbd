@@ -281,23 +281,23 @@ The following table details the cpu032I instruction set:
     - XOR Ra, Rb, Rc
     - Ra <= Rb ^ Rc
   * - A
-    - ROL
+    - NOR
     - 1B
+    - Bitwise boolean nor
+    - NOR Ra, Rb, Rc
+    - Ra <= Rb nor Rc
+  * - A
+    - ROL
+    - 1C
     - Rotate left
     - ROL Ra, Rb, Cx
     - Ra <= Rb rol Cx
   * - A
     - ROR
-    - 1C
+    - 1D
     - Rotate right
     - ROR Ra, Rb, Cx
     - Ra <= Rb ror Cx
-  * - A
-    - SRA
-    - 1D
-    - Shift right
-    - SRA Ra, Rb, Cx
-    - Ra <= Rb '>> Cx [#sra-note]_
   * - A
     - SHL
     - 1E
@@ -311,47 +311,53 @@ The following table details the cpu032I instruction set:
     - SHR Ra, Rb, Cx
     - Ra <= Rb >> Cx
   * - A
-    - SRAV
+    - SRA
     - 20
+    - Shift right
+    - SRA Ra, Rb, Cx
+    - Ra <= Rb '>> Cx [#sra-note]_
+  * - A
+    - SRAV
+    - 21
     - Shift right
     - SRAV Ra, Rb, Rc
     - Ra <= Rb '>> Rc [#sra-note]_
   * - A
     - SHLV
-    - 21
+    - 22
     - Shift left
     - SHLV Ra, Rb, Rc
     - Ra <= Rb << Rc
   * - A
     - SHRV
-    - 22
+    - 23
     - Shift right
     - SHRV Ra, Rb, Rc
     - Ra <= Rb >> Rc
   * - A
     - ROL
-    - 23
+    - 24
     - Rotate left
     - ROL Ra, Rb, Rc
     - Ra <= Rb rol Rc
   * - A
     - ROR
-    - 24
+    - 25
     - Rotate right
     - ROR Ra, Rb, Rc
     - Ra <= Rb ror Rc
   * - A
     - CMP
-    - 25
+    - 2A
     - Compare
     - CMP Ra, Rb
     - SW <= (Ra cond Rb) [#cond-note]_
   * - A
-    - NOR
-    - 2A
-    - Bitwise boolean nor
-    - NOR Ra, Rb, Rc
-    - Ra <= Rb nor Rc
+    - CMPu
+    - 2B
+    - Compare
+    - CMPu Ra, Rb
+    - SW <= (Ra cond Rb) [#cond-note]_
   * - J
     - JEQ
     - 30
@@ -401,6 +407,12 @@ The following table details the cpu032I instruction set:
     - JALR Rb
     - LR <= PC; PC <= Rb [#call-note]_
   * - J
+    - BAL
+    - 3A
+    - Branch and link
+    - BAL Cx
+    - LR <= PC; PC <= PC + Cx
+  * - J
     - JSUB
     - 3B
     - Jump to subroutine
@@ -412,12 +424,6 @@ The following table details the cpu032I instruction set:
     - Return from subroutine
     - JR $1 or RET LR
     - PC <= LR [#jr-note]_
-  * - A
-    - CMPu
-    - 40
-    - Compare
-    - CMPu Ra, Rb
-    - SW <= (Ra cond Rb) [#cond-note]_
   * - A
     - MULT
     - 41
@@ -534,12 +540,6 @@ The following table details the cpu032II instruction set added:
     - Branch if not equal
     - BNE Ra, Rb, Cx
     - if (Ra!=Rb), PC <= PC + Cx
-  * - J
-    - BAL
-    - 3A
-    - Branch and link
-    - BAL Cx
-    - LR <= PC; PC <= PC + Cx
 
 .. note:: **Cpu0 unsigned instructions**
 

@@ -926,7 +926,7 @@ def XORi    : ArithLogicI<0x0e, "xori", xor, uimm16, immZExt16, CPURegs>;
 //#endif
 //#if CH >= CH3_5 9
 let Predicates = [Ch3_5] in {
-def LUi     : LoadUpper<0x10, "lui", GPROut, uimm16>;
+def LUi     : LoadUpper<0x0F, "lui", GPROut, uimm16>;
 }
 //#endif
 
@@ -934,8 +934,8 @@ def LUi     : LoadUpper<0x10, "lui", GPROut, uimm16>;
 //#if CH >= CH4_2 5
 let Predicates = [Ch4_2] in {
 let Predicates = [HasCmp] in {
-def CMP     : CmpInstr<0x25, "cmp", IIAlu, CPURegs, SR, 0>;
-def CMPu    : CmpInstr<0x40, "cmpu", IIAlu, CPURegs, SR, 0>;
+def CMP     : CmpInstr<0x2A, "cmp", IIAlu, CPURegs, SR, 0>;
+def CMPu    : CmpInstr<0x2B, "cmpu", IIAlu, CPURegs, SR, 0>;
 }
 }
 //#endif
@@ -963,7 +963,7 @@ let Predicates = [Ch4_2] in {
 def AND     : ArithLogicR<0x18, "and", and, IIAlu, CPURegs, 1>;
 def OR      : ArithLogicR<0x19, "or", or, IIAlu, CPURegs, 1>;
 def XOR     : ArithLogicR<0x1a, "xor", xor, IIAlu, CPURegs, 1>;
-def NOR     : LogicNOR<0x2a, "nor", CPURegs>;
+def NOR     : LogicNOR<0x1b, "nor", CPURegs>;
 }
 //#endif
 
@@ -971,9 +971,8 @@ def NOR     : LogicNOR<0x2a, "nor", CPURegs>;
 //#if CH >= CH4_1 6
 let Predicates = [Ch4_1] in {
 // sra is IR node for ashr llvm IR instruction of .bc
-def ROL     : shift_rotate_imm32<0x1b, 0x01, "rol", rotl>;
-def ROR     : shift_rotate_imm32<0x1c, 0x01, "ror", rotr>;
-def SRA     : shift_rotate_imm32<0x1d, 0x00, "sra", sra>;
+def ROL     : shift_rotate_imm32<0x1c, 0x01, "rol", rotl>;
+def ROR     : shift_rotate_imm32<0x1d, 0x01, "ror", rotr>;
 }
 //#endif
 //#if CH >= CH3_5 11
@@ -985,11 +984,12 @@ def SHL     : shift_rotate_imm32<0x1e, 0x00, "shl", shl>;
 let Predicates = [Ch4_1] in {
 // srl is IR node for lshr llvm IR instruction of .bc
 def SHR     : shift_rotate_imm32<0x1f, 0x00, "shr", srl>;
-def SRAV    : shift_rotate_reg<0x20, 0x00, "srav", sra, CPURegs>;
-def SHLV    : shift_rotate_reg<0x21, 0x00, "shlv", shl, CPURegs>;
-def SHRV    : shift_rotate_reg<0x22, 0x00, "shrv", srl, CPURegs>;
-def ROLV    : shift_rotate_reg<0x23, 0x01, "rolv", rotl, CPURegs>;
-def RORV    : shift_rotate_reg<0x24, 0x01, "rorv", rotr, CPURegs>;
+def SRA     : shift_rotate_imm32<0x20, 0x00, "sra", sra>;
+def SRAV    : shift_rotate_reg<0x21, 0x00, "srav", sra, CPURegs>;
+def SHLV    : shift_rotate_reg<0x22, 0x00, "shlv", shl, CPURegs>;
+def SHRV    : shift_rotate_reg<0x23, 0x00, "shrv", srl, CPURegs>;
+def ROLV    : shift_rotate_reg<0x24, 0x01, "rolv", rotl, CPURegs>;
+def RORV    : shift_rotate_reg<0x25, 0x01, "rorv", rotr, CPURegs>;
 }
 //#endif
 
