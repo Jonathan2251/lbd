@@ -72,6 +72,7 @@ module cpu0(input clock, reset, input [2:0] itype, output reg [2:0] tick,
   ROL=8'h1B,ROR=8'h1C,SRA=8'h1D,SHL=8'h1E,SHR=8'h1F,
   SRAV=8'h20,SHLV=8'h21,SHRV=8'h22,ROLV=8'h23,RORV=8'h24,
   CMP=8'h25,
+  CMPu=8'h40,
   NOR=8'h2A,
 `ifdef CPU0II
   SLTi=8'h26,SLTiu=8'h27, SLT=8'h28,SLTu=8'h29,
@@ -260,6 +261,10 @@ module cpu0(input clock, reset, input [2:0] itype, output reg [2:0] tick,
       // Mathematic 
       ADDiu: regSet(a, Rb+c16);                   // ADDiu Ra, Rb+Cx; Ra<=Rb+Cx
       CMP:   begin `N=(Rb-Rc<0);`Z=(Rb-Rc==0); end // CMP Rb, Rc; SW=(Rb >=< Rc)
+      CMPu:  begin 
+        if (URb < URc) `N=1; else `N=0; 
+       `Z=(URb-URc==0); 
+      end // CMPu URb, URc; SW=(URb >=< URc)
       ADDu:  regSet(a, Rb+Rc);               // ADDu Ra,Rb,Rc; Ra<=Rb+Rc
       ADD:   begin regSet(a, Rb+Rc); if (a < Rb) `V = 1; else `V = 0; 
         if (`V) begin `I0 = 1; `I = 1; end

@@ -127,7 +127,7 @@ Cpu0Subtarget::initializeSubtargetDependencies(StringRef CPU, StringRef FS,
     HasSlt = false;
   }
   else if (isCpu032II()) {
-    HasCmp = true;
+    HasCmp = false;
     HasSlt = true;
   }
   else {

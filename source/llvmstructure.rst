@@ -221,12 +221,6 @@ The following table details the cpu032I instruction set:
     - LUi Ra, Cx
     - Ra <= (Cx << 16)
   * - A
-    - CMP
-    - 10
-    - Compare
-    - CMP Ra, Rb
-    - SW <= (Ra cond Rb) [#cond-note]_
-  * - A
     - ADDu
     - 11
     - Add unsigned
@@ -251,6 +245,18 @@ The following table details the cpu032I instruction set:
     - SUB Ra, Rb, Rc
     - Ra <= Rb - Rc [#u-note]_
   * - A
+    - CLZ
+    - 15
+    - Count Leading Zero
+    - CLZ Ra, Rb
+    - Ra <= bits of leading zero on Rb
+  * - A
+    - CLO
+    - 16
+    - Count Leading One
+    - CLO Ra, Rb
+    - Ra <= bits of leading one on Rb
+  * - A
     - MUL
     - 17
     - Multiply
@@ -274,12 +280,6 @@ The following table details the cpu032I instruction set:
     - Bitwise exclusive or
     - XOR Ra, Rb, Rc
     - Ra <= Rb ^ Rc
-  * - A
-    - NOR
-    - 2A
-    - Bitwise boolean nor
-    - NOR Ra, Rb, Rc
-    - Ra <= Rb nor Rc
   * - A
     - ROL
     - 1B
@@ -340,6 +340,18 @@ The following table details the cpu032I instruction set:
     - Rotate right
     - ROR Ra, Rb, Rc
     - Ra <= Rb ror Rc
+  * - A
+    - CMP
+    - 25
+    - Compare
+    - CMP Ra, Rb
+    - SW <= (Ra cond Rb) [#cond-note]_
+  * - A
+    - NOR
+    - 2A
+    - Bitwise boolean nor
+    - NOR Ra, Rb, Rc
+    - Ra <= Rb nor Rc
   * - J
     - JEQ
     - 30
@@ -400,6 +412,12 @@ The following table details the cpu032I instruction set:
     - Return from subroutine
     - JR $1 or RET LR
     - PC <= LR [#jr-note]_
+  * - A
+    - CMPu
+    - 40
+    - Compare
+    - CMPu Ra, Rb
+    - SW <= (Ra cond Rb) [#cond-note]_
   * - A
     - MULT
     - 41
@@ -2467,7 +2485,7 @@ the Target Registration.
 
 .. [#u-note] The only difference between ADDu instruction and the ADD instruction is that the ADDU instruction never causes an Integer Overflow exception. SUBu and SUB is similar.
 
-.. [#cond-note] Conditions include the following comparisons: >, >=, ==, !=, <=, <. SW is actually set by the subtraction of the two register operands, and the flags indicate which conditions are present.
+.. [#cond-note] CMP is signed-compare while CMPu is unsigned. Conditions include the following comparisons: >, >=, ==, !=, <=, <. SW is actually set by the subtraction of the two register operands, and the flags indicate which conditions are present.
 
 .. [#sra-note] Rb '>> Cx, Rb '>> Rc: Shift with signed bit remain.
 

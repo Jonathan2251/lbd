@@ -935,6 +935,7 @@ def LUi     : LoadUpper<0x10, "lui", GPROut, uimm16>;
 let Predicates = [Ch4_2] in {
 let Predicates = [HasCmp] in {
 def CMP     : CmpInstr<0x25, "cmp", IIAlu, CPURegs, SR, 0>;
+def CMPu    : CmpInstr<0x40, "cmpu", IIAlu, CPURegs, SR, 0>;
 }
 }
 //#endif
@@ -1302,31 +1303,31 @@ let Predicates = [Ch8_1] in {
 // brcond for cmp instruction
 multiclass BrcondPatsCmp<RegisterClass RC, Instruction JEQOp, Instruction JNEOp, 
 Instruction JLTOp, Instruction JGTOp, Instruction JLEOp, Instruction JGEOp, 
-Instruction CMPOp, Register ZEROReg> {
+Instruction CMPOp, Instruction CMPuOp, Register ZEROReg> {
 def : Pat<(brcond (i32 (seteq RC:$lhs, RC:$rhs)), bb:$dst),
           (JEQOp (CMPOp RC:$lhs, RC:$rhs), bb:$dst)>;
 def : Pat<(brcond (i32 (setueq RC:$lhs, RC:$rhs)), bb:$dst),
-          (JEQOp (CMPOp RC:$lhs, RC:$rhs), bb:$dst)>;
+          (JEQOp (CMPuOp RC:$lhs, RC:$rhs), bb:$dst)>;
 def : Pat<(brcond (i32 (setne RC:$lhs, RC:$rhs)), bb:$dst),
           (JNEOp (CMPOp RC:$lhs, RC:$rhs), bb:$dst)>;
 def : Pat<(brcond (i32 (setune RC:$lhs, RC:$rhs)), bb:$dst),
-          (JNEOp (CMPOp RC:$lhs, RC:$rhs), bb:$dst)>;
+          (JNEOp (CMPuOp RC:$lhs, RC:$rhs), bb:$dst)>;
 def : Pat<(brcond (i32 (setlt RC:$lhs, RC:$rhs)), bb:$dst),
           (JLTOp (CMPOp RC:$lhs, RC:$rhs), bb:$dst)>;
 def : Pat<(brcond (i32 (setult RC:$lhs, RC:$rhs)), bb:$dst),
-          (JLTOp (CMPOp RC:$lhs, RC:$rhs), bb:$dst)>;
+          (JLTOp (CMPuOp RC:$lhs, RC:$rhs), bb:$dst)>;
 def : Pat<(brcond (i32 (setgt RC:$lhs, RC:$rhs)), bb:$dst),
           (JGTOp (CMPOp RC:$lhs, RC:$rhs), bb:$dst)>;
 def : Pat<(brcond (i32 (setugt RC:$lhs, RC:$rhs)), bb:$dst),
-          (JGTOp (CMPOp RC:$lhs, RC:$rhs), bb:$dst)>;
+          (JGTOp (CMPuOp RC:$lhs, RC:$rhs), bb:$dst)>;
 def : Pat<(brcond (i32 (setle RC:$lhs, RC:$rhs)), bb:$dst),
           (JLEOp (CMPOp RC:$lhs, RC:$rhs), bb:$dst)>;
 def : Pat<(brcond (i32 (setule RC:$lhs, RC:$rhs)), bb:$dst),
-          (JLEOp (CMPOp RC:$lhs, RC:$rhs), bb:$dst)>;
+          (JLEOp (CMPuOp RC:$lhs, RC:$rhs), bb:$dst)>;
 def : Pat<(brcond (i32 (setge RC:$lhs, RC:$rhs)), bb:$dst),
           (JGEOp (CMPOp RC:$lhs, RC:$rhs), bb:$dst)>;
 def : Pat<(brcond (i32 (setuge RC:$lhs, RC:$rhs)), bb:$dst),
-          (JGEOp (CMPOp RC:$lhs, RC:$rhs), bb:$dst)>;
+          (JGEOp (CMPuOp RC:$lhs, RC:$rhs), bb:$dst)>;
 
 def : Pat<(brcond RC:$cond, bb:$dst),
           (JNEOp (CMPOp RC:$cond, ZEROReg), bb:$dst)>;
@@ -1375,7 +1376,7 @@ defm : BrcondPatsSlt<CPURegs, BEQ, BNE, SLT, SLTu, SLTi, SLTiu, ZERO>;
 }
 
 let Predicates = [HasCmp] in {
-defm : BrcondPatsCmp<CPURegs, JEQ, JNE, JLT, JGT, JLE, JGE, CMP, ZERO>;
+defm : BrcondPatsCmp<CPURegs, JEQ, JNE, JLT, JGT, JLE, JGE, CMP, CMPu, ZERO>;
 }
 
 } // let Predicates = [Ch8_1]
@@ -1403,7 +1404,7 @@ multiclass SetltPatsCmp<RegisterClass RC> {
 // 2 more instructions as follows,
 //          (XORi (ANDi (SHR (CMP RC:$lhs, RC:$rhs), (LUi 0x8000), 31), 1), 1)>;
   def : Pat<(setult RC:$lhs, RC:$rhs),
-            (ANDi (CMP RC:$lhs, RC:$rhs), 1)>;
+            (ANDi (CMPu RC:$lhs, RC:$rhs), 1)>;
 }
 
 // a <= b
@@ -1421,7 +1422,7 @@ multiclass SetgtPatsCmp<RegisterClass RC> {
 // a > b is equal to b < a is equal to setlt(b, a)
             (ANDi (CMP RC:$rhs, RC:$lhs), 1)>;
   def : Pat<(setugt RC:$lhs, RC:$rhs),
-            (ANDi (CMP RC:$rhs, RC:$lhs), 1)>;
+            (ANDi (CMPu RC:$rhs, RC:$lhs), 1)>;
 }
 
 // a >= b
@@ -1430,7 +1431,7 @@ multiclass SetgePatsCmp<RegisterClass RC> {
 // a >= b is equal to b <= a
             (XORi (ANDi (CMP RC:$lhs, RC:$rhs), 1), 1)>;
   def : Pat<(setuge RC:$lhs, RC:$rhs),
-            (XORi (ANDi (CMP RC:$lhs, RC:$rhs), 1), 1)>;
+            (XORi (ANDi (CMPu RC:$lhs, RC:$rhs), 1), 1)>;
 }
 
 // setcc for slt instruction
