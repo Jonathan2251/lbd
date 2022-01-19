@@ -72,7 +72,7 @@ static unsigned adjustFixupValue(const MCFixup &Fixup, uint64_t Value,
   case Cpu0::fixup_Cpu0_GOT_HI16:
 #endif
     // Get the higher 16-bits. Also add 1 if bit 15 is 1.
-    Value = ((Value + 0x8000) >> 16) & 0xffff;
+    Value = (Value >> 16) & 0xffff;
     break;
   }
 
