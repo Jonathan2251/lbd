@@ -260,7 +260,10 @@ module cpu0(input clock, reset, input [2:0] itype, output reg [2:0] tick,
       MOVN:  if (Rc!=0) regSet(a, Rb);             // move if Rc not equal to 0
       // Mathematic 
       ADDiu: regSet(a, Rb+c16);                   // ADDiu Ra, Rb+Cx; Ra<=Rb+Cx
-      CMP:   begin `N=(Rb-Rc<0);`Z=(Rb-Rc==0); end // CMP Rb, Rc; SW=(Rb >=< Rc)
+      CMP:  begin 
+        if (Rb < Rc) `N=1; else `N=0; 
+       `Z=(Rb-Rc==0); 
+      end // CMP Rb, Rc; SW=(Rb >=< Rc)
       CMPu:  begin 
         if (URb < URc) `N=1; else `N=0; 
        `Z=(URb-URc==0); 
