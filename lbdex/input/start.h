@@ -1,4 +1,24 @@
+
 /// start
+
+#ifndef _START_H_
+#define _START_H_
+
+// defined in cpu0.v
+// cpu032I memory limit, jsub:24-bit
+#define IOADDR 0x1000000
+
+// $sp begin at mem less than IOADDR
+#if 1
+#define INIT_SP \
+  asm("addiu $sp, $zero, 0x0000"); \
+  asm("lui $sp, 0xff");
+#else
+#define INIT_SP \
+  asm("lui $sp, 0x7"); \
+  asm("addiu $sp, $sp, 0xfffc");
+#endif
+
 #define SET_SW \
 asm("andi $sw, $zero, 0"); \
 asm("ori  $sw, $sw, 0x1e00"); // enable all interrupts
@@ -17,3 +37,4 @@ asm("ori  $sw, $sw, 0x1e00"); // enable all interrupts
   SET_SW;                     \
   asm("addiu $fp, $zero, 0");
 
+#endif

@@ -16,8 +16,7 @@
   asm("addiu $gp, $ZERO, 0");
   asm("addiu $lr, $ZERO, -1");
   
-  asm("lui $sp, 0x7");
-  asm("addiu $sp, $sp, 0xfffc");
+  INIT_SP;
   asm("mfc0 $3, $pc");
   asm("addiu $3, $3, 0x8"); // Assume main() entry point is at the next next 
                              // instruction.
