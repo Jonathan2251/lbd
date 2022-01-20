@@ -41,10 +41,10 @@ long long sum_ll(long long amount, ...)
   return sum; 
 }
 
-int test_vararg()
+int test_va_arg()
 {
   int a = sum_i(6, 0, 1, 2, 3, 4, 5);
   long long b = sum_ll(6LL, 0LL, 1LL, 2LL, 3LL, -4LL, -5LL);
 	
-  return a+(int)b; // 13
+  return a+(int)b; // 12
 }

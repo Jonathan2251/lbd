@@ -28,12 +28,12 @@ int test_template()
 {
   int a = (int)(sum<int>(6, 0, 1, 2, 3, 4, 5));
 	
-  return a;
+  return a; // 15
 }
 
 long long test_template_ll()
 {
-  long long a = (long long)(sum<long long>(6LL, 0LL, 1LL, 2LL, 3LL, 4LL, 5LL));
+  long long a = (long long)(sum<long long>(6LL, 0LL, 1LL, 2LL, -3LL, 4LL, -5LL));
 
-  return a;
+  return a; // -1
 }

@@ -124,14 +124,9 @@ int test_nolld()
   a = test_sum_longlong();
   print_integer(a); // a = 9
   if (a != 9) pass = false;
-  a = test_vararg();
-  print_integer(a); // a = 13
-  if (a != 13) pass = false;
-#if 0
-  a = test_template();
-  print_integer(a); // a = 15
-  if (a != 15) pass = false;
-#endif
+  a = test_va_arg();
+  print_integer(a); // a = 12
+  if (a != 12) pass = false;
   a = test_stacksaverestore(100);
   print_integer(a); // a = 5
   if (a != 5) pass = false;
