@@ -30,3 +30,10 @@ int test_template()
 	
   return a;
 }
+
+long long test_template_ll()
+{
+  long long a = (long long)(sum<long long>(6LL, 0LL, 1LL, 2LL, 3LL, 4LL, 5LL));
+
+  return a;
+}
