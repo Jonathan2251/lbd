@@ -5,7 +5,7 @@
 `define MEMSIZE   'h1000000
 `define MEMEMPTY   8'hFF
 `define NULL       8'h00
-`define IOADDR    'h1000000  // IO mapping address
+`define IOADDR    'hff000000  // IO mapping address
 
 // Operand width
 `define INT32 2'b11     // 32 bits

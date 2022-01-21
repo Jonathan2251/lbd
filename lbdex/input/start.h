@@ -5,8 +5,7 @@
 #define _START_H_
 
 // defined in cpu0.v
-// cpu032I memory limit, jsub:24-bit
-#define IOADDR 0x1000000
+#define IOADDR 0xff000000
 
 // $sp begin at mem less than IOADDR
 #if 1
