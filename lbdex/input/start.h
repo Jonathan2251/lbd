@@ -4,19 +4,7 @@
 #ifndef _START_H_
 #define _START_H_
 
-// defined in cpu0.v
-#define IOADDR 0xff000000
-
-// $sp begin at mem less than IOADDR
-#if 1
-#define INIT_SP \
-  asm("addiu $sp, $zero, 0x0000"); \
-  asm("lui $sp, 0xff");
-#else
-#define INIT_SP \
-  asm("lui $sp, 0x7"); \
-  asm("addiu $sp, $sp, 0xfffc");
-#endif
+#include "config.h"
 
 #define SET_SW \
 asm("andi $sw, $zero, 0"); \

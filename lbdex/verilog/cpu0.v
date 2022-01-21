@@ -1,11 +1,14 @@
 // https://www.francisz.cn/download/IEEE_Standard_1800-2012%20SystemVerilog.pdf
 
+// configuable value below
 `define SIMULATE_DELAY_SLOT
 // cpu032I memory limit, jsub:24-bit
 `define MEMSIZE   'h1000000
 `define MEMEMPTY   8'hFF
 `define NULL       8'h00
 `define IOADDR    'hff000000  // IO mapping address
+`define TIMEOUT   #3000000000
+
 
 // Operand width
 `define INT32 2'b11     // 32 bits
@@ -572,7 +575,7 @@ module main;
   begin
     clock = 0;
     itype = `RESET;
-    #300000000 $finish;
+    `TIMEOUT $finish;
   end
 
   always #10 clock=clock+1;
