@@ -61,7 +61,12 @@ https://github.com/Jonathan2251/lbd/blob/master/README.md
 Revision history
 ----------------
 
-Version 12.0.4, not released yet.
+Version 12.0.5, not released yet.
+
+Version 12.0.4, Released January 22, 2022.
+
+  Fix bug: add CMPu, store uses GPROut register to exclude SW registe and 
+  Relocation Record: R_CPU0_HI16/fixup_Cpu0_HI16.
 
 Version 12.0.3, Released January 9, 2022.
 
