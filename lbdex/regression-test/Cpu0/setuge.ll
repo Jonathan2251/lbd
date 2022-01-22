@@ -16,11 +16,11 @@ entry:
   %cmp = icmp uge i32 %0, %1
   %conv = zext i1 %cmp to i32
   store i32 %conv, i32* @r1, align 4
-; cpu032I:  cmp	$sw, ${{[0-9]+|t9}}, ${{[0-9]+|t9}}
-; cpu032I:  andi	$[[T1:[0-9]+|t9]], $sw, 1
-; cpu032I:  xori	${{[0-9]+|t9}}, $[[T1]], 1
-; cpu032II:  sltu	$[[T0:[0-9]+|t9]], ${{[0-9]+|t9}}, ${{[0-9]+|t9}}
-; cpu032II:  xori	${{[0-9]+|t9}}, $[[T0]], 1
+; cpu032I:  cmpu $sw, ${{[0-9]+|t9}}, ${{[0-9]+|t9}}
+; cpu032I:  andi $[[T1:[0-9]+|t9]], $sw, 1
+; cpu032I:  xori ${{[0-9]+|t9}}, $[[T1]], 1
+; cpu032II:  sltu $[[T0:[0-9]+|t9]], ${{[0-9]+|t9}}, ${{[0-9]+|t9}}
+; cpu032II:  xori ${{[0-9]+|t9}}, $[[T0]], 1
   %2 = load i32, i32* @m, align 4
   %cmp1 = icmp uge i32 %0, %2
   %conv2 = zext i1 %cmp1 to i32

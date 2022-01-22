@@ -5,7 +5,7 @@ define void @f(i64 %l, i64* nocapture %p) nounwind {
 entry:
 ; CHECK: lui ${{[0-9]+|t9}}, 37035
 ; CHECK: ori ${{[0-9]+|t9}}, ${{[0-9]+|t9}}, 52719
-; CHECK: cmp $sw,  ${{[0-9]+|t9}}, ${{[0-9]+|t9}}
+; CHECK: cmpu $sw,  ${{[0-9]+|t9}}, ${{[0-9]+|t9}}
 ; CHECK: andi ${{[0-9]+|t9}}, $sw, 1
 ; CHECK: lui ${{[0-9]+|t9}}, 4660
 ; CHECK: ori ${{[0-9]+|t9}}, ${{[0-9]+|t9}}, 22136
