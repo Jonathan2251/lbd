@@ -89,21 +89,24 @@ One is memory mapped I/O, the other is instruction I/O.
 Cpu0 uses memory mapped I/O where memory address 0x80000 as the output port.
 When meet the instruction <strong>“st $ra, cx($rb)”</strong>, where cx($rb) is
 0x80000, Cpu0 displays the content as follows,</p>
-<div class="highlight-verilog notranslate"><div class="highlight"><pre><span></span><span class="n">ST</span> <span class="o">:</span> <span class="k">begin</span>
-  <span class="p">...</span>
-  <span class="k">if</span> <span class="p">(</span><span class="n">R</span><span class="p">[</span><span class="n">b</span><span class="p">]</span><span class="o">+</span><span class="n">c16</span> <span class="o">==</span> <span class="no">`IOADDR</span><span class="p">)</span> <span class="k">begin</span>
-    <span class="n">outw</span><span class="p">(</span><span class="n">R</span><span class="p">[</span><span class="n">a</span><span class="p">]);</span>
+<div class="highlight-verilog notranslate"><div class="highlight"><pre><span></span><span class="n">ST</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="k">begin</span><span class="w"></span>
+<span class="w">  </span><span class="p">...</span><span class="w"></span>
+<span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">R</span><span class="p">[</span><span class="n">b</span><span class="p">]</span><span class="o">+</span><span class="n">c16</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="no">`IOADDR</span><span class="p">)</span><span class="w"> </span><span class="k">begin</span><span class="w"></span>
+<span class="w">    </span><span class="n">outw</span><span class="p">(</span><span class="n">R</span><span class="p">[</span><span class="n">a</span><span class="p">]);</span><span class="w"></span>
 </pre></div>
 </div>
 <p class="rubric">lbdex/verilog/cpu0.v</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>// https://www.francisz.cn/download/IEEE_Standard_1800-2012%20SystemVerilog.pdf
 
+// configuable value below
 `define SIMULATE_DELAY_SLOT
 // cpu032I memory limit, jsub:24-bit
 `define MEMSIZE   &#39;h1000000
 `define MEMEMPTY   8&#39;hFF
 `define NULL       8&#39;h00
-`define IOADDR    &#39;h1000000  // IO mapping address
+`define IOADDR    &#39;hff000000  // IO mapping address
+`define TIMEOUT   #3000000000
+
 
 // Operand width
 `define INT32 2&#39;b11     // 32 bits
@@ -163,20 +166,21 @@ module cpu0(input clock, reset, input [2:0] itype, output reg [2:0] tick,
   // Instruction Opcode 
   parameter [7:0] NOP=8&#39;h00,LD=8&#39;h01,ST=8&#39;h02,LB=8&#39;h03,LBu=8&#39;h04,SB=8&#39;h05,
   LH=8&#39;h06,LHu=8&#39;h07,SH=8&#39;h08,ADDiu=8&#39;h09,MOVZ=8&#39;h0A,MOVN=8&#39;h0B,ANDi=8&#39;h0C,
-  ORi=8&#39;h0D,XORi=8&#39;h0E,
-  LUi=8&#39;h10,
+  ORi=8&#39;h0D,XORi=8&#39;h0E,LUi=8&#39;h0F,
   ADDu=8&#39;h11,SUBu=8&#39;h12,ADD=8&#39;h13,SUB=8&#39;h14,CLZ=8&#39;h15,CLO=8&#39;h16,MUL=8&#39;h17,
-  AND=8&#39;h18,OR=8&#39;h19,XOR=8&#39;h1A,
-  ROL=8&#39;h1B,ROR=8&#39;h1C,SRA=8&#39;h1D,SHL=8&#39;h1E,SHR=8&#39;h1F,
-  SRAV=8&#39;h20,SHLV=8&#39;h21,SHRV=8&#39;h22,ROLV=8&#39;h23,RORV=8&#39;h24,
-  CMP=8&#39;h25,
-  NOR=8&#39;h2A,
+  AND=8&#39;h18,OR=8&#39;h19,XOR=8&#39;h1A,NOR=8&#39;h1B,
+  ROL=8&#39;h1C,ROR=8&#39;h1D,SHL=8&#39;h1E,SHR=8&#39;h1F,
+  SRA=8&#39;h20,SRAV=8&#39;h21,SHLV=8&#39;h22,SHRV=8&#39;h23,ROLV=8&#39;h24,RORV=8&#39;h25,
 `ifdef CPU0II
   SLTi=8&#39;h26,SLTiu=8&#39;h27, SLT=8&#39;h28,SLTu=8&#39;h29,
-  BEQ=8&#39;h37,BNE=8&#39;h38,
 `endif
+  CMP=8&#39;h2A,
+  CMPu=8&#39;h2B,
   JEQ=8&#39;h30,JNE=8&#39;h31,JLT=8&#39;h32,JGT=8&#39;h33,JLE=8&#39;h34,JGE=8&#39;h35,
   JMP=8&#39;h36,
+`ifdef CPU0II
+  BEQ=8&#39;h37,BNE=8&#39;h38,
+`endif
   JALR=8&#39;h39,BAL=8&#39;h3A,JSUB=8&#39;h3B,RET=8&#39;h3C,
   MULT=8&#39;h41,MULTu=8&#39;h42,DIV=8&#39;h43,DIVu=8&#39;h44,
   MFHI=8&#39;h46,MFLO=8&#39;h47,MTHI=8&#39;h48,MTLO=8&#39;h49,
@@ -357,7 +361,14 @@ module cpu0(input clock, reset, input [2:0] itype, output reg [2:0] tick,
       MOVN:  if (Rc!=0) regSet(a, Rb);             // move if Rc not equal to 0
       // Mathematic 
       ADDiu: regSet(a, Rb+c16);                   // ADDiu Ra, Rb+Cx; Ra&lt;=Rb+Cx
-      CMP:   begin `N=(Rb-Rc&lt;0);`Z=(Rb-Rc==0); end // CMP Rb, Rc; SW=(Rb &gt;=&lt; Rc)
+      CMP:  begin 
+        if (Rb &lt; Rc) `N=1; else `N=0; 
+       `Z=(Rb-Rc==0); 
+      end // CMP Rb, Rc; SW=(Rb &gt;=&lt; Rc)
+      CMPu:  begin 
+        if (URb &lt; URc) `N=1; else `N=0; 
+       `Z=(URb-URc==0); 
+      end // CMPu URb, URc; SW=(URb &gt;=&lt; URc)
       ADDu:  regSet(a, Rb+Rc);               // ADDu Ra,Rb,Rc; Ra&lt;=Rb+Rc
       ADD:   begin regSet(a, Rb+Rc); if (a &lt; Rb) `V = 1; else `V = 0; 
         if (`V) begin `I0 = 1; `I = 1; end
@@ -662,7 +673,7 @@ module main;
   begin
     clock = 0;
     itype = `RESET;
-    #300000000 $finish;
+    `TIMEOUT $finish;
   end
 
   always #10 clock=clock+1;
@@ -715,7 +726,13 @@ module. In system with bus, it will be set in bus system I think.</p>
 low to high address and stack grows up from high to low address. $sp is set
 at 0x7fffc because assuming cpu0.v uses 0x80000 bytes of memory.</p>
 <p class="rubric">lbdex/input/start.h</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1">#define SET_SW \</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>
+<span class="c1">#ifndef _START_H_</span>
+<span class="c1">#define _START_H_</span>
+
+<span class="c1">#include &quot;config.h&quot;</span>
+
+<span class="c1">#define SET_SW \</span>
 <span class="n">asm</span><span class="p">(</span><span class="s2">&quot;andi $sw, $zero, 0&quot;</span><span class="p">);</span> \
 <span class="n">asm</span><span class="p">(</span><span class="s2">&quot;ori  $sw, $sw, 0x1e00&quot;</span><span class="p">);</span> <span class="o">//</span> <span class="n">enable</span> <span class="nb">all</span> <span class="n">interrupts</span>
 
@@ -733,6 +750,7 @@ at 0x7fffc because assuming cpu0.v uses 0x80000 bytes of memory.</p>
   <span class="n">SET_SW</span><span class="p">;</span>                     \
   <span class="n">asm</span><span class="p">(</span><span class="s2">&quot;addiu $fp, $zero, 0&quot;</span><span class="p">);</span>
 
+<span class="c1">#endif</span>
 </pre></div>
 </div>
 <p class="rubric">lbdex/input/boot.cpp</p>
@@ -752,8 +770,7 @@ at 0x7fffc because assuming cpu0.v uses 0x80000 bytes of memory.</p>
   <span class="n">asm</span><span class="p">(</span><span class="s2">&quot;addiu $gp, $ZERO, 0&quot;</span><span class="p">);</span>
   <span class="n">asm</span><span class="p">(</span><span class="s2">&quot;addiu $lr, $ZERO, -1&quot;</span><span class="p">);</span>
   
-  <span class="n">asm</span><span class="p">(</span><span class="s2">&quot;lui $sp, 0x7&quot;</span><span class="p">);</span>
-  <span class="n">asm</span><span class="p">(</span><span class="s2">&quot;addiu $sp, $sp, 0xfffc&quot;</span><span class="p">);</span>
+  <span class="n">INIT_SP</span><span class="p">;</span>
   <span class="n">asm</span><span class="p">(</span><span class="s2">&quot;mfc0 $3, $pc&quot;</span><span class="p">);</span>
   <span class="n">asm</span><span class="p">(</span><span class="s2">&quot;addiu $3, $3, 0x8&quot;</span><span class="p">);</span> <span class="o">//</span> <span class="n">Assume</span> <span class="n">main</span><span class="p">()</span> <span class="n">entry</span> <span class="n">point</span> <span class="ow">is</span> <span class="n">at</span> <span class="n">the</span> <span class="nb">next</span> <span class="nb">next</span> 
                              <span class="o">//</span> <span class="n">instruction</span><span class="o">.</span>
@@ -765,7 +782,7 @@ at 0x7fffc because assuming cpu0.v uses 0x80000 bytes of memory.</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1">#ifndef _PRINT_H_</span>
 <span class="c1">#define _PRINT_H_</span>
 
-<span class="c1">#define IOADDR 0x1000000</span>
+<span class="c1">#include &quot;start.h&quot;</span>
 
 <span class="n">void</span> <span class="n">print_char</span><span class="p">(</span><span class="n">const</span> <span class="n">char</span> <span class="n">c</span><span class="p">);</span>
 <span class="n">void</span> <span class="n">dump_mem</span><span class="p">(</span><span class="n">unsigned</span> <span class="n">char</span> <span class="o">*</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span> <span class="n">n</span><span class="p">);</span>
@@ -841,6 +858,7 @@ at 0x7fffc because assuming cpu0.v uses 0x80000 bytes of memory.</p>
 <span class="c1">#include &quot;ch8_1_ctrl.cpp&quot;</span>
 <span class="c1">#include &quot;ch8_2_deluselessjmp.cpp&quot;</span>
 <span class="c1">#include &quot;ch8_2_select.cpp&quot;</span>
+<span class="c1">#include &quot;ch9_1_longlong.cpp&quot;</span>
 <span class="c1">#include &quot;ch9_3_vararg.cpp&quot;</span>
 <span class="c1">#include &quot;ch9_3_stacksave.cpp&quot;</span>
 <span class="c1">#include &quot;ch9_3_bswap.cpp&quot;</span>
@@ -900,8 +918,8 @@ at 0x7fffc because assuming cpu0.v uses 0x80000 bytes of memory.</p>
   <span class="n">print_integer</span><span class="p">(</span><span class="n">a</span><span class="p">);</span>  <span class="o">//</span> <span class="n">a</span> <span class="o">=</span> <span class="mi">1</span>
   <span class="k">if</span> <span class="p">(</span><span class="n">a</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">)</span> <span class="k">pass</span> <span class="o">=</span> <span class="n">false</span><span class="p">;</span>
   <span class="n">a</span> <span class="o">=</span> <span class="n">test_andorxornotcomplement</span><span class="p">();</span>
-  <span class="n">print_integer</span><span class="p">(</span><span class="n">a</span><span class="p">);</span> <span class="o">//</span> <span class="n">a</span> <span class="o">=</span> <span class="mi">14</span>
-  <span class="k">if</span> <span class="p">(</span><span class="n">a</span> <span class="o">!=</span> <span class="mi">14</span><span class="p">)</span> <span class="k">pass</span> <span class="o">=</span> <span class="n">false</span><span class="p">;</span>
+  <span class="n">print_integer</span><span class="p">(</span><span class="n">a</span><span class="p">);</span> <span class="o">//</span> <span class="n">a</span> <span class="o">=</span> <span class="mi">13</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">a</span> <span class="o">!=</span> <span class="mi">13</span><span class="p">)</span> <span class="k">pass</span> <span class="o">=</span> <span class="n">false</span><span class="p">;</span>
   <span class="n">a</span> <span class="o">=</span> <span class="n">test_setxx</span><span class="p">();</span>
   <span class="n">print_integer</span><span class="p">(</span><span class="n">a</span><span class="p">);</span> <span class="o">//</span> <span class="n">a</span> <span class="o">=</span> <span class="mi">3</span>
   <span class="k">if</span> <span class="p">(</span><span class="n">a</span> <span class="o">!=</span> <span class="mi">3</span><span class="p">)</span> <span class="k">pass</span> <span class="o">=</span> <span class="n">false</span><span class="p">;</span>
@@ -942,9 +960,12 @@ at 0x7fffc because assuming cpu0.v uses 0x80000 bytes of memory.</p>
   <span class="k">if</span> <span class="p">(</span><span class="n">a</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">)</span> <span class="k">pass</span> <span class="o">=</span> <span class="n">false</span><span class="p">;</span>
   <span class="n">print_integer</span><span class="p">(</span><span class="mi">2147483647</span><span class="p">);</span> <span class="o">//</span> <span class="n">test</span> <span class="n">mod</span> <span class="o">%</span> <span class="p">(</span><span class="n">mult</span><span class="p">)</span> <span class="kn">from</span> <span class="nn">itoa.cpp</span>
   <span class="n">print_integer</span><span class="p">(</span><span class="o">-</span><span class="mi">2147483648</span><span class="p">);</span> <span class="o">//</span> <span class="n">test</span> <span class="n">mod</span> <span class="o">%</span> <span class="p">(</span><span class="n">multu</span><span class="p">)</span> <span class="kn">from</span> <span class="nn">itoa.cpp</span>
-  <span class="n">a</span> <span class="o">=</span> <span class="n">test_vararg</span><span class="p">();</span>
-  <span class="n">print_integer</span><span class="p">(</span><span class="n">a</span><span class="p">);</span> <span class="o">//</span> <span class="n">a</span> <span class="o">=</span> <span class="mi">15</span>
-  <span class="k">if</span> <span class="p">(</span><span class="n">a</span> <span class="o">!=</span> <span class="mi">15</span><span class="p">)</span> <span class="k">pass</span> <span class="o">=</span> <span class="n">false</span><span class="p">;</span>
+  <span class="n">a</span> <span class="o">=</span> <span class="n">test_sum_longlong</span><span class="p">();</span>
+  <span class="n">print_integer</span><span class="p">(</span><span class="n">a</span><span class="p">);</span> <span class="o">//</span> <span class="n">a</span> <span class="o">=</span> <span class="mi">9</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">a</span> <span class="o">!=</span> <span class="mi">9</span><span class="p">)</span> <span class="k">pass</span> <span class="o">=</span> <span class="n">false</span><span class="p">;</span>
+  <span class="n">a</span> <span class="o">=</span> <span class="n">test_va_arg</span><span class="p">();</span>
+  <span class="n">print_integer</span><span class="p">(</span><span class="n">a</span><span class="p">);</span> <span class="o">//</span> <span class="n">a</span> <span class="o">=</span> <span class="mi">12</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">a</span> <span class="o">!=</span> <span class="mi">12</span><span class="p">)</span> <span class="k">pass</span> <span class="o">=</span> <span class="n">false</span><span class="p">;</span>
   <span class="n">a</span> <span class="o">=</span> <span class="n">test_stacksaverestore</span><span class="p">(</span><span class="mi">100</span><span class="p">);</span>
   <span class="n">print_integer</span><span class="p">(</span><span class="n">a</span><span class="p">);</span> <span class="o">//</span> <span class="n">a</span> <span class="o">=</span> <span class="mi">5</span>
   <span class="k">if</span> <span class="p">(</span><span class="n">a</span> <span class="o">!=</span> <span class="mi">5</span><span class="p">)</span> <span class="k">pass</span> <span class="o">=</span> <span class="n">false</span><span class="p">;</span>
@@ -1350,7 +1371,7 @@ driver at web: <a class="reference external" href="http://jonathan2251.github.io
 
     <div class="footer" role="contentinfo">
         &#169; Copyright 2016, Chen Chung-Shu.
-      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 4.3.1.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 4.4.0.
     </div>
   </body>
 </html>
