@@ -43,7 +43,10 @@ Cpu0 Processor Architecture Details
 -----------------------------------
 
 This section is based on materials available here [#cpu0-chinese]_ (Chinese)
-and here [#cpu0-english]_ (English).
+and here [#cpu0-english]_ (English). However, I changed some ISA from original
+Cpu0 for designing a simple integer operational CPU and llvm backend. This is
+my intention for writing this book that I want to know what a simple and robotic
+CPU ISA and llvm backend can be.
 
 Brief introduction
 ~~~~~~~~~~~~~~~~~~
