@@ -550,6 +550,30 @@ http://llvm.org/docs/DeveloperPolicy.html#license
 Motivation
 -----------
 
+My intention for writing this book is that I am curious about what a simple and 
+robotic CPU ISA and SW toolchains of llvm based can be.
+
+.. table:: Number of lines around in source code (include space-line and comments) for Cpu0
+
+  ======================  ===============
+  Components              Number of lines
+  ======================  ===============
+  llvm                    15,000
+  llvm-objdump            8
+  elf2hex                 765
+  verilog                 600
+  lld                     140
+  clang                   500
+  compiler-rt's builtin   34 (abort.c)
+  ----------------------  ---------------
+  total                   17,047
+  ======================  ===============
+  
+
+- Though llvm backend's source code can be ported from other backend, it still
+  includes a lot of thinking for doing it and not quite easily.
+
+
 We all learned computer knowledge from school through the concept of book.
 The concept is an effective way to know the big view. 
 But once getting into develop a real complicated system, we often feel the 

@@ -567,7 +567,9 @@ application.
 
 In order to support float point library (part of compiler-rt) 
 [#lbt-compiler-rt]_, the following code are added to support instructions clz 
-and clo.
+and clo. Though clz and clo instructions are implemented in compiler-rt.
+However these two instructions are integer operations and will get better
+speed up in float point application.
 
 .. rubric:: lbdex/chapters/Chapter7_1/Cpu0InstrInfo.td
 .. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td
