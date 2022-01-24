@@ -566,7 +566,7 @@ robotic CPU ISA and SW toolchains of llvm based can be.
   clang                   500
   compiler-rt's builtin   5 (abort.c)
   ----------------------  ---------------
-  total                   17,047
+  total                   17,018
   ======================  ===============
   
 
