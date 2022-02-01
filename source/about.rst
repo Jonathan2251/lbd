@@ -61,7 +61,11 @@ https://github.com/Jonathan2251/lbd/blob/master/README.md
 Revision history
 ----------------
 
-Version 12.0.5, not released yet.
+Version 12.0.6, not released yet.
+
+Version 12.0.5, Released February 1, 2022.
+
+  Fix regression test.
 
 Version 12.0.4, Released January 22, 2022.
 
