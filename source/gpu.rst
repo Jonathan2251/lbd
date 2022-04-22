@@ -416,52 +416,6 @@ figures.
   core(grid) in Nvidia's gpu (figure from book [#Quantitative-gpu-mem]_)
 
 
-- Grid is Vectorizable Loop [#Quantitative-gpu-griddef]_.
-
-- Each multithreaded SIMD Processor is assigned 512 elements of the vectors to work on.
-  As :numref:`grid`: The hardware Thread Block Scheduler assigns Thread Blocks to 
-  multithreaded SIMD Processors. Thread Block <-> SIMD Processor. In this 8192 elements
-  of matrix multiplication A[] = B[] * C[] example, Warp is the 512 elements of 
-  matrix mutiplication.
-  If another 512 elements of matrix addition F[] = D[] + E[] assigned in the same 
-  Thread Block, then another Warp for it. Warp has it's own
-  PC and TLR (Thread Level Registers). Warp may map to
-  one whole function or part of function. Assume these two matrix mutiplication and 
-  addition instructions come from the same function. Compiler and run time may assign
-  them to the same Warp or different Warps [#Quantitative-gpu-warp]_.
-
-- SIMD Processors are full processors with separate PCs and are programmed using
-  threads [#Quantitative-gpu-threadblock]_. 
-  As :numref:`simd-processors`, it assigns 16 Thread blocks to 16 SIMD Processors.
-  
-- As :numref:`grid`, 
-  the maximum number of SIMD Threads that can execute simultaneously per Thread Block 
-  (SIMD Processor) is 32 for the later Fermi-generation GPUs.
-  Each SIMD Thread has 32 elements run as :numref:`threadslanes` on 
-  16 SIMD lanes (number of functional units just same
-  as in vector processor). So it takes 2 clock cycles to complete [#lanes]_.
-
-- As the following code.
-  Thread Block 0 has 16 threads and each thread (warp) has it's own PC. The The 
-  SIMD Thread Scheduler select threads to run as :numref:`simd-processors`.
-
-.. code-block:: c++
-
-  Thread Block 0:
-    A[i0] = B[i0] * C[i0]; // thread 0, i0:(0..31) run in one or few SIMD instructions
-    A[i1] = B[i1] * C[i1]; // thread 1, i1:(32..63) 
-    ...
-    A[i15] = B[i15] * C[i15]; thread 15, i15:(480..511)
-
-  Thread Block 1:
-    A[i0] = B[i0] * C[i0]; // thread 0, i0:(512..543)
-    ...
-
-- Each thread handle 32 elements computing, so there are few hundred Thread 
-  Level Registers in a thread to support the SIMT computing.
-
-
-
 General purpose GPU
 --------------------
 
@@ -500,6 +454,55 @@ In the programming example saxpy() above,
 
 - blockDim is the number of total Thread Blocks in a Grid
 
+
+Mapping the previous section HW to the example code as the following,
+
+- Grid is Vectorizable Loop [#Quantitative-gpu-griddef]_.
+
+- Each multithreaded SIMD Processor is assigned 512 elements of the vectors to work on.
+  As :numref:`grid`: The hardware Thread Block Scheduler assigns Thread Blocks to 
+  multithreaded SIMD Processors. Thread Block <-> SIMD Processor. In this 8192 elements
+  of matrix multiplication A[] = B[] * C[] example, Warp is the 512 elements of 
+  matrix mutiplication.
+  If another 512 elements of matrix addition F[] = D[] + E[] assigned in the same 
+  Thread Block, then another Warp for it. Warp has it's own
+  PC and TLR (Thread Level Registers). Warp may map to
+  one whole function or part of function. Assume these two matrix mutiplication and 
+  addition instructions come from the same function. Compiler and run time may assign
+  them to the same Warp or different Warps [#Quantitative-gpu-warp]_.
+
+- SIMD Processors are full processors with separate PCs and are programmed using
+  threads [#Quantitative-gpu-threadblock]_. 
+  As :numref:`simd-processors`, it assigns 16 Thread blocks to 16 SIMD Processors.
+  
+- As :numref:`grid`, 
+  the maximum number of SIMD Threads that can execute simultaneously per Thread Block 
+  (SIMD Processor) is 32 for the later Fermi-generation GPUs.
+  Each SIMD Thread has 32 elements run as :numref:`threadslanes` on 
+  16 SIMD lanes (number of functional units just same
+  as in vector processor). So it takes 2 clock cycles to complete [#lanes]_.
+
+- As the following code.
+  Thread Block 0 has 16 threads and each thread (warp) has it's own PC. The The 
+  SIMD Thread Scheduler select threads to run as :numref:`grid`.
+
+.. code-block:: c++
+
+  Thread Block 0:
+    int i = blockIdx.x*blockDim.x + threadIdx.x;
+    if (i < n) y[i] = a*x[i] + y[i];
+
+    y[0..31] = a*x[0..31] + y[0..31]; // thread 0, (0..31) run in one or few SIMD instructions
+    y[32..63] = a*x[32..63] + y[32..63]; // thread 1, (32..63) 
+    ...
+    y[480..511] = a*x[480..511] + y[480..511]; thread 15, (480..511)
+
+  Thread Block 1:
+    y[512..543] = a*x[512..543] + y[512..543]; // thread 0, i0:(512..543)
+    ...
+
+- Each thread handle 32 elements computing, so there are few hundred Thread 
+  Level Registers in a thread to support the SIMT computing.
 
 The main() run on CPU while the saxpy() run on GPU. Through 
 cudaMemcpyHostToDevice and cudaMemcpyDeviceToHost, CPU can pass data in x and in y 
