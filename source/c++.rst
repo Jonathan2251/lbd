@@ -344,8 +344,51 @@ condition problem [#ll-wiki]_.
 Mips sync and ARM/X86-64 memory-barrier instruction [#mb-wiki]_ provide 
 synchronization mechanism very efficiently in some scenarios.
 
-In order to support atomic in C++ and java, llvm provides the atomic IRs here 
-[#atomics-llvm]_ [#llvmlang-ordering]_.
+In order to support atomic in C++ and java, llvm provides the atomic IRs and 
+memory ordering here [#atomics-llvm]_ [#llvmlang-ordering]_. The chapter 19 
+of book DPC++ [#dpcpp]_ explains the memory ordering better as follows,
+
+- memory_order::relaxed
+
+Read and write operations can be re-ordered before or after the operation with 
+no restrictions. There are no ordering guarantees.
+
+- memory_order::acquire
+
+Read and write operations appearing after the operation in the program must 
+occur after it (i.e., they cannot be re-ordered before the operation).
+
+- memory_order::release
+
+Read and write operations appearing before the operation in the program must 
+occur before it (i.e., they cannot be re-ordered after the operation), and 
+preceding write operations are guaranteed to be visible to other program 
+instances which have been synchronized by a corresponding acquire operation 
+(i.e., an atomic operation using the same variable and memory_order::acquire 
+or a barrier function).
+
+- memory_order::acq_rel
+
+The operation acts as both an acquire and a release. Read and write operations 
+cannot be re-ordered around the operation, and preceding writes must be made 
+visible as previously described for memory_order::release.
+
+- memory_order::seq_cst
+
+The operation acts as an acquire, release, or both depending on whether it is 
+a read, write, or read-modify-write operation, respectively. All operations 
+with this memory order are observed in a sequentially consistent order.
+
+There are several restrictions on which memory orders are supported by each 
+operation. The table in Figure 19-10 summarizes which combinations are valid.
+
+.. _c++-f1:
+.. figure:: ../Fig/c++/Fig-19-10-book-dpc++.png
+  :width: 1266 px
+  :height: 736 px
+  :scale: 50 %
+  :align: center
+
 
 For supporting llvm atomic IRs, the following code added to Chapter12_1.
 
@@ -554,3 +597,5 @@ options "clang++ -pthread -std=c++11".
 .. [#atomics-llvm] http://llvm.org/docs/Atomics.html
 
 .. [#llvmlang-ordering] http://llvm.org/docs/LangRef.html#ordering
+
+.. [#dpcpp] https://link.springer.com/book/10.1007/978-1-4842-5574-2
