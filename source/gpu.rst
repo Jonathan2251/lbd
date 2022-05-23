@@ -713,7 +713,7 @@ more. And actually, llvm IR expanding from version 3.1 util now as I can feel.
 
 .. [#gpuspeedup] https://en.wikipedia.org/wiki/Graphics_processing_unit
 
-.. [#vulkanapiwiki] Vulkan offers lower overhead, more direct control over the GPU, and lower CPU usage... By allowing shader pre-compilation, application initialization speed is improved... A Vulkan driver only needs to do GPU specific optimization and code generation, resulting in easier driver maintenance... https://en.wikipedia.org/wiki/Vulkan_(API)
+.. [#vulkanapiwiki] Vulkan offers lower overhead, more direct control over the GPU, and lower CPU usage... By allowing shader pre-compilation, application initialization speed is improved... A Vulkan driver only needs to do GPU specific optimization and code generation, resulting in easier driver maintenance... https://en.wikipedia.org/wiki/Vulkan https://en.wikipedia.org/wiki/Vulkan#OpenGL_vs._Vulkan
 
 .. [#vulkanex] https://github.com/SaschaWillems/Vulkan/blob/master/examples/triangle/triangle.cpp
 

@@ -336,8 +336,9 @@ high performance code by the target hardware instructions rather than couting on
 lock() function only [#atomic-wiki]_ [#atomic-stackoverflow]_ 
 [#atomic-herbsutter]_.
 
-Compare-and-swap operation is used to implement synchronization primitives like semaphores 
-and mutexes, as well as more sophisticated lock-free [#lf-wiki]_ and wait-free algorithms [#cas-wiki]_. 
+Compare-and-swap operation [#cas-wiki]_ is used to implement synchronization 
+primitives like semaphores and mutexes, as well as more sophisticated 
+wait-free and lock-free [#lf-wiki]_ algorithms. 
 For atomic variables, Mips lock instructions, ll and sc, to solve the race 
 condition problem [#ll-wiki]_. 
 
@@ -586,7 +587,18 @@ options "clang++ -pthread -std=c++11".
 
 .. [#atomic-herbsutter] http://herbsutter.com/2013/02/11/atomic-weapons-the-c-memory-model-and-modern-hardware/
 
-.. [#lf-wiki] Such as Mips LL instruction, provides programmer using it to call semaphore api function to block it on waiting queue or run other code to do something else useful when the resource/memory is occupied (LL return not success to access it). On the other hand, if hardware instruction provides WAIT instruction to block the CPU into wait until some condition (memory status) is true. Leave programmer no choice, then it is not lock-free. https://en.wikipedia.org/wiki/Non-blocking_algorithm
+.. [#lf-wiki] An algorithm is wait-free if every operation has a bound on the 
+   number of steps the algorithm will take before the operation completes. In 
+   other words, wait-free algorithm has no starvation. Lock-freedom allows 
+   individual threads to starve but guarantees system-wide throughput. An 
+   algorithm is lock-free if, when the program threads are run for a 
+   sufficiently long time, at least one of the threads makes progress (for 
+   some sensible definition of progress). All wait-free algorithms are lock-free. 
+   In particular, if one thread is suspended, then a lock-free algorithm guarantees 
+   that the remaining threads can still make progress. Hence, if two threads can 
+   contend for the same mutex lock or spinlock, then the algorithm is not lock-free. 
+   (If we suspend one thread that holds the lock, then the second thread will block.) 
+   https://en.wikipedia.org/wiki/Non-blocking_algorithm
 
 .. [#cas-wiki] https://en.wikipedia.org/wiki/Compare-and-swap
 
