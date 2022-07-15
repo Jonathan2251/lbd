@@ -109,7 +109,16 @@ Install Icarus Verilog tool on Linux
 
 Download the snapshot version of Icarus Verilog tool from web site, 
 ftp://icarus.com/pub/eda/verilog/snapshots or go to http://iverilog.icarus.com/ 
-and click snapshot version link. Follow the INSTALL file guide to install it. 
+and click snapshot version link. Follow the README or INSTALL file guide to 
+install it. 
+
+My installed commands for `sh autoconf.sh` dependences as follows,
+
+.. code-block:: console
+
+  $ sudo apt-get install flex
+  $ sudo apt-get install bison
+  $ sudo apt-get install gperf
 
 
 Install other tools on Linux
@@ -121,9 +130,9 @@ Set /home/Gamma/.bash_profile as follows,
 
 .. code-block:: console
 
-  [Gamma@localhost ~]$ pwd
+  $ pwd
   /home/Gamma
-  [Gamma@localhost ~]$ cat .bash_profile
+  $ cat .bash_profile
   # .bash_profile
   
   # Get the aliases and functions
@@ -136,8 +145,8 @@ Set /home/Gamma/.bash_profile as follows,
   PATH=$PATH:/usr/local/sphinx/bin:~/llvm/release/build/bin:
   ... 
   export PATH
-  [Gamma@localhost ~]$ source .bash_profile
-  [Gamma@localhost ~]$ $PATH
+  $ source .bash_profile
+  $ $PATH
   bash: /usr/lib64/qt-3.3/bin:/usr/local/bin:/usr/bin:/bin:/usr/local/sbin:
   /usr/sbin:/usr/local/sphinx/bin:/home/Gamma/.local/bin:/home/Gamma/bin:
   /usr/local/sphinx/bin:/home/cschen/llvm/release/build/bin
