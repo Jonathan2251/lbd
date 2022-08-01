@@ -581,8 +581,9 @@ lower levels api for operating memory by user program [#vulkanapiwiki]_.
 Vulkan api is lower level's C/C++ api to fill the gap allowing user program to 
 do these things in OpenGL to compete against Microsoft direct3D. 
 Here is an example [#vulkanex]_. Meanwhile glsl is C-like language. The vulkan 
-infrastructure provides tool to compile glsl into an Intermediate Representation 
-Form (IR) called spir-v [#spirvtoolchain]_ off-line. 
+infrastructure provides tool, glslangValidator [#spirvtoolchain]_, to compile 
+glsl into an Intermediate Representation 
+Form (IR) called spir-v off-line. 
 As a result, it saves part of compilation time from glsl to gpu instructions 
 on-line
 since spir-v is an IR of level closing to llvm IR [#spirvwiki]_. 
@@ -717,7 +718,7 @@ more. And actually, llvm IR expanding from version 3.1 util now as I can feel.
 
 .. [#vulkanex] https://github.com/SaschaWillems/Vulkan/blob/master/examples/triangle/triangle.cpp
 
-.. [#spirvtoolchain] glslangValidator is the tool used to compile GLSL shaders into SPIR-V, Vulkan's shader format. https://vulkan.lunarg.com/doc/view/1.0.39.1/windows/spirv_toolchain.html
+.. [#spirvtoolchain] glslangValidator is the tool used to compile GLSL shaders into SPIR-V, Vulkan's shader format. https://vulkan.lunarg.com/doc/sdk/latest/windows/spirv_toolchain.html
 
 .. [#spirvwiki] SPIR 2.0: LLVM IR version 3.4. SPIR-V 1.X: 100% Khronos defined Round-trip lossless conversion to llvm.  https://en.wikipedia.org/wiki/Standard_Portable_Intermediate_Representation
 
