@@ -501,8 +501,12 @@ Mapping the previous section HW to the example code as the following,
     y[512..543] = a*x[512..543] + y[512..543]; // thread 0, i0:(512..543)
     ...
 
-- Each thread handle 32 elements computing, so there are few hundred Thread 
+- Each thread handle 32 elements computing, assuming 4 registers for 1 element,
+  then there are 4*32 Thread 
   Level Registers in a thread to support the SIMT computing.
+
+- Each Thread Block (Core/Warp) has 16 threads, so there are 16 * Registers of 
+  Thread in a Core.
 
 The main() run on CPU while the saxpy() run on GPU. Through 
 cudaMemcpyHostToDevice and cudaMemcpyDeviceToHost, CPU can pass data in x and in y 
