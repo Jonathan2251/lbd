@@ -398,7 +398,7 @@ And mesa open source website is here <a class="footnote-reference brackets" href
 <p>The leading GPU architecture of Nvidia’s gpu is as the following
 figures.</p>
 <figure class="align-center" id="id73">
-<span id="grid"></span><a class="reference internal image-reference" href="_images/grid.png"><img alt="_images/grid.png" src="_images/grid.png" style="width: 560.0px; height: 688.0px;" /></a>
+<span id="grid"></span><a class="reference internal image-reference" href="_images/grid.png"><img alt="_images/grid.png" src="_images/grid.png" style="width: 700.0px; height: 912.0px;" /></a>
 <figcaption>
 <p><span class="caption-number">Fig. 39 </span><span class="caption-text">core(grid) in Nvidia gpu (figure from book <a class="footnote-reference brackets" href="#quantitative-grid" id="id39">32</a>)</span><a class="headerlink" href="#id73" title="Permalink to this image">¶</a></p>
 </figcaption>
@@ -421,47 +421,6 @@ figures.</p>
 <p><span class="caption-number">Fig. 42 </span><span class="caption-text">core(grid) in Nvidia’s gpu (figure from book <a class="footnote-reference brackets" href="#quantitative-gpu-mem" id="id42">35</a>)</span><a class="headerlink" href="#id76" title="Permalink to this image">¶</a></p>
 </figcaption>
 </figure>
-<ul class="simple">
-<li><p>Grid is Vectorizable Loop <a class="footnote-reference brackets" href="#quantitative-gpu-griddef" id="id43">36</a>.</p></li>
-<li><p>Each multithreaded SIMD Processor is assigned 512 elements of the vectors to work on.
-As <a class="reference internal" href="#grid"><span class="std std-numref">Fig. 39</span></a>: The hardware Thread Block Scheduler assigns Thread Blocks to
-multithreaded SIMD Processors. Thread Block &lt;-&gt; SIMD Processor. In this 8192 elements
-of matrix multiplication A[] = B[] * C[] example, Warp is the 512 elements of
-matrix mutiplication.
-If another 512 elements of matrix addition F[] = D[] + E[] assigned in the same
-Thread Block, then another Warp for it. Warp has it’s own
-PC and TLR (Thread Level Registers). Warp may map to
-one whole function or part of function. Assume these two matrix mutiplication and
-addition instructions come from the same function. Compiler and run time may assign
-them to the same Warp or different Warps <a class="footnote-reference brackets" href="#quantitative-gpu-warp" id="id44">37</a>.</p></li>
-<li><p>SIMD Processors are full processors with separate PCs and are programmed using
-threads <a class="footnote-reference brackets" href="#quantitative-gpu-threadblock" id="id45">38</a>.
-As <a class="reference internal" href="#simd-processors"><span class="std std-numref">Fig. 40</span></a>, it assigns 16 Thread blocks to 16 SIMD Processors.</p></li>
-<li><p>As <a class="reference internal" href="#grid"><span class="std std-numref">Fig. 39</span></a>,
-the maximum number of SIMD Threads that can execute simultaneously per Thread Block
-(SIMD Processor) is 32 for the later Fermi-generation GPUs.
-Each SIMD Thread has 32 elements run as <a class="reference internal" href="#threadslanes"><span class="std std-numref">Fig. 41</span></a> on
-16 SIMD lanes (number of functional units just same
-as in vector processor). So it takes 2 clock cycles to complete <a class="footnote-reference brackets" href="#lanes" id="id46">39</a>.</p></li>
-<li><p>As the following code.
-Thread Block 0 has 16 threads and each thread (warp) has it’s own PC. The The
-SIMD Thread Scheduler select threads to run as <a class="reference internal" href="#simd-processors"><span class="std std-numref">Fig. 40</span></a>.</p></li>
-</ul>
-<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="n">Thread</span><span class="w"> </span><span class="n">Block</span><span class="w"> </span><span class="mi">0</span><span class="o">:</span><span class="w"></span>
-<span class="w">  </span><span class="n">A</span><span class="p">[</span><span class="n">i0</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">B</span><span class="p">[</span><span class="n">i0</span><span class="p">]</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">C</span><span class="p">[</span><span class="n">i0</span><span class="p">];</span><span class="w"> </span><span class="c1">// thread 0, i0:(0..31) run in one or few SIMD instructions</span>
-<span class="w">  </span><span class="n">A</span><span class="p">[</span><span class="n">i1</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">B</span><span class="p">[</span><span class="n">i1</span><span class="p">]</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">C</span><span class="p">[</span><span class="n">i1</span><span class="p">];</span><span class="w"> </span><span class="c1">// thread 1, i1:(32..63)</span>
-<span class="w">  </span><span class="p">...</span><span class="w"></span>
-<span class="w">  </span><span class="n">A</span><span class="p">[</span><span class="n">i15</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">B</span><span class="p">[</span><span class="n">i15</span><span class="p">]</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">C</span><span class="p">[</span><span class="n">i15</span><span class="p">];</span><span class="w"> </span><span class="kr">thread</span><span class="w"> </span><span class="mi">15</span><span class="p">,</span><span class="w"> </span><span class="n">i15</span><span class="o">:</span><span class="p">(</span><span class="mf">480..511</span><span class="p">)</span><span class="w"></span>
-
-<span class="n">Thread</span><span class="w"> </span><span class="n">Block</span><span class="w"> </span><span class="mi">1</span><span class="o">:</span><span class="w"></span>
-<span class="w">  </span><span class="n">A</span><span class="p">[</span><span class="n">i0</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">B</span><span class="p">[</span><span class="n">i0</span><span class="p">]</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">C</span><span class="p">[</span><span class="n">i0</span><span class="p">];</span><span class="w"> </span><span class="c1">// thread 0, i0:(512..543)</span>
-<span class="w">  </span><span class="p">...</span><span class="w"></span>
-</pre></div>
-</div>
-<ul class="simple">
-<li><p>Each thread handle 32 elements computing, so there are few hundred Thread
-Level Registers in a thread to support the SIMT computing.</p></li>
-</ul>
 </section>
 <section id="general-purpose-gpu">
 <h2><a class="toc-backref" href="#id83">General purpose GPU</a><a class="headerlink" href="#general-purpose-gpu" title="Permalink to this headline">¶</a></h2>
@@ -469,8 +428,8 @@ Level Registers in a thread to support the SIMT computing.</p></li>
 a software frame work instead of OpenGL api, then the system can run some data
 parallel computation on GPU for speeding up and even get CPU and GPU executing
 simultaneously. Furthmore, any language that allows the code running on the CPU to poll
-a GPU shader for return values, can create a GPGPU framework <a class="footnote-reference brackets" href="#gpgpuwiki" id="id47">40</a>.
-The following is a CUDA example to run large data in array on GPU <a class="footnote-reference brackets" href="#cudaex" id="id48">41</a>
+a GPU shader for return values, can create a GPGPU framework <a class="footnote-reference brackets" href="#gpgpuwiki" id="id43">40</a>.
+The following is a CUDA example to run large data in array on GPU <a class="footnote-reference brackets" href="#cudaex" id="id44">41</a>
 as follows,</p>
 <div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="n">__global__</span><span class="w"></span>
 <span class="kt">void</span><span class="w"> </span><span class="n">saxpy</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">n</span><span class="p">,</span><span class="w"> </span><span class="kt">float</span><span class="w"> </span><span class="n">a</span><span class="p">,</span><span class="w"> </span><span class="kt">float</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">x</span><span class="p">,</span><span class="w"> </span><span class="kt">float</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">y</span><span class="p">)</span><span class="w"></span>
@@ -495,6 +454,54 @@ as follows,</p>
 <li><p>blockIdx is index of ThreadBlock</p></li>
 <li><p>threadIdx is index of SIMD Thread</p></li>
 <li><p>blockDim is the number of total Thread Blocks in a Grid</p></li>
+</ul>
+<p>Mapping the previous section HW to the example code as the following,</p>
+<ul class="simple">
+<li><p>Grid is Vectorizable Loop <a class="footnote-reference brackets" href="#quantitative-gpu-griddef" id="id45">36</a>.</p></li>
+<li><p>Each multithreaded SIMD Processor is assigned 512 elements of the vectors to work on.
+As <a class="reference internal" href="#grid"><span class="std std-numref">Fig. 39</span></a>: The hardware Thread Block Scheduler assigns Thread Blocks to
+multithreaded SIMD Processors. Thread Block &lt;-&gt; SIMD Processor. In this 8192 elements
+of matrix multiplication A[] = B[] * C[] example, Warp is the 512 elements of
+matrix mutiplication.
+If another 512 elements of matrix addition F[] = D[] + E[] assigned in the same
+Thread Block, then another Warp for it. Warp has it’s own
+PC and TLR (Thread Level Registers). Warp may map to
+one whole function or part of function. Assume these two matrix mutiplication and
+addition instructions come from the same function. Compiler and run time may assign
+them to the same Warp or different Warps <a class="footnote-reference brackets" href="#quantitative-gpu-warp" id="id46">37</a>.</p></li>
+<li><p>SIMD Processors are full processors with separate PCs and are programmed using
+threads <a class="footnote-reference brackets" href="#quantitative-gpu-threadblock" id="id47">38</a>.
+As <a class="reference internal" href="#simd-processors"><span class="std std-numref">Fig. 40</span></a>, it assigns 16 Thread blocks to 16 SIMD Processors.</p></li>
+<li><p>As <a class="reference internal" href="#grid"><span class="std std-numref">Fig. 39</span></a>,
+the maximum number of SIMD Threads that can execute simultaneously per Thread Block
+(SIMD Processor) is 32 for the later Fermi-generation GPUs.
+Each SIMD Thread has 32 elements run as <a class="reference internal" href="#threadslanes"><span class="std std-numref">Fig. 41</span></a> on
+16 SIMD lanes (number of functional units just same
+as in vector processor). So it takes 2 clock cycles to complete <a class="footnote-reference brackets" href="#lanes" id="id48">39</a>.</p></li>
+<li><p>As the following code.
+Thread Block 0 has 16 threads and each thread (warp) has it’s own PC. The The
+SIMD Thread Scheduler select threads to run as <a class="reference internal" href="#grid"><span class="std std-numref">Fig. 39</span></a>.</p></li>
+</ul>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="n">Thread</span><span class="w"> </span><span class="n">Block</span><span class="w"> </span><span class="mi">0</span><span class="o">:</span><span class="w"></span>
+<span class="w">  </span><span class="kt">int</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">blockIdx</span><span class="p">.</span><span class="n">x</span><span class="o">*</span><span class="n">blockDim</span><span class="p">.</span><span class="n">x</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">threadIdx</span><span class="p">.</span><span class="n">x</span><span class="p">;</span><span class="w"></span>
+<span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">i</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">n</span><span class="p">)</span><span class="w"> </span><span class="n">y</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">a</span><span class="o">*</span><span class="n">x</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">y</span><span class="p">[</span><span class="n">i</span><span class="p">];</span><span class="w"></span>
+
+<span class="w">  </span><span class="n">y</span><span class="p">[</span><span class="mf">0..31</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">a</span><span class="o">*</span><span class="n">x</span><span class="p">[</span><span class="mf">0..31</span><span class="p">]</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">y</span><span class="p">[</span><span class="mf">0..31</span><span class="p">];</span><span class="w"> </span><span class="c1">// thread 0, (0..31) run in one or few SIMD instructions</span>
+<span class="w">  </span><span class="n">y</span><span class="p">[</span><span class="mf">32..63</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">a</span><span class="o">*</span><span class="n">x</span><span class="p">[</span><span class="mf">32..63</span><span class="p">]</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">y</span><span class="p">[</span><span class="mf">32..63</span><span class="p">];</span><span class="w"> </span><span class="c1">// thread 1, (32..63)</span>
+<span class="w">  </span><span class="p">...</span><span class="w"></span>
+<span class="w">  </span><span class="n">y</span><span class="p">[</span><span class="mf">480..511</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">a</span><span class="o">*</span><span class="n">x</span><span class="p">[</span><span class="mf">480..511</span><span class="p">]</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">y</span><span class="p">[</span><span class="mf">480..511</span><span class="p">];</span><span class="w"> </span><span class="kr">thread</span><span class="w"> </span><span class="mi">15</span><span class="p">,</span><span class="w"> </span><span class="p">(</span><span class="mf">480..511</span><span class="p">)</span><span class="w"></span>
+
+<span class="n">Thread</span><span class="w"> </span><span class="n">Block</span><span class="w"> </span><span class="mi">1</span><span class="o">:</span><span class="w"></span>
+<span class="w">  </span><span class="n">y</span><span class="p">[</span><span class="mf">512..543</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">a</span><span class="o">*</span><span class="n">x</span><span class="p">[</span><span class="mf">512..543</span><span class="p">]</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">y</span><span class="p">[</span><span class="mf">512..543</span><span class="p">];</span><span class="w"> </span><span class="c1">// thread 0, i0:(512..543)</span>
+<span class="w">  </span><span class="p">...</span><span class="w"></span>
+</pre></div>
+</div>
+<ul class="simple">
+<li><p>Each thread handle 32 elements computing, assuming 4 registers for 1 element,
+then there are 4*32 Thread
+Level Registers in a thread to support the SIMT computing.</p></li>
+<li><p>Each Thread Block (Core/Warp) has 16 threads, so there are 16 * Registers of
+Thread in a Core.</p></li>
 </ul>
 <p>The main() run on CPU while the saxpy() run on GPU. Through
 cudaMemcpyHostToDevice and cudaMemcpyDeviceToHost, CPU can pass data in x and in y
@@ -597,8 +604,9 @@ lower levels api for operating memory by user program <a class="footnote-referen
 Vulkan api is lower level’s C/C++ api to fill the gap allowing user program to
 do these things in OpenGL to compete against Microsoft direct3D.
 Here is an example <a class="footnote-reference brackets" href="#vulkanex" id="id58">48</a>. Meanwhile glsl is C-like language. The vulkan
-infrastructure provides tool to compile glsl into an Intermediate Representation
-Form (IR) called spir-v <a class="footnote-reference brackets" href="#spirvtoolchain" id="id59">49</a> off-line.
+infrastructure provides tool, glslangValidator <a class="footnote-reference brackets" href="#spirvtoolchain" id="id59">49</a>, to compile
+glsl into an Intermediate Representation
+Form (IR) called spir-v off-line.
 As a result, it saves part of compilation time from glsl to gpu instructions
 on-line
 since spir-v is an IR of level closing to llvm IR <a class="footnote-reference brackets" href="#spirvwiki" id="id60">50</a>.
@@ -726,26 +734,26 @@ Morgan Kaufmann Series in Computer Architecture and Design)</p>
 <dd><p>Book Figure 4.17 of Computer Architecture: A Quantitative Approach 5th edition (The
 Morgan Kaufmann Series in Computer Architecture and Design)</p>
 </dd>
-<dt class="label" id="quantitative-gpu-griddef"><span class="brackets"><a class="fn-backref" href="#id43">36</a></span></dt>
+<dt class="label" id="quantitative-gpu-griddef"><span class="brackets"><a class="fn-backref" href="#id45">36</a></span></dt>
 <dd><p>Book Figure 4.12 of Computer Architecture: A Quantitative Approach 5th edition (The
 Morgan Kaufmann Series in Computer Architecture and Design)</p>
 </dd>
-<dt class="label" id="quantitative-gpu-warp"><span class="brackets"><a class="fn-backref" href="#id44">37</a></span></dt>
+<dt class="label" id="quantitative-gpu-warp"><span class="brackets"><a class="fn-backref" href="#id46">37</a></span></dt>
 <dd><p>Book Figure 4.14 and 4.24 of Computer Architecture: A Quantitative Approach 5th edition (The
 Morgan Kaufmann Series in Computer Architecture and Design)</p>
 </dd>
-<dt class="label" id="quantitative-gpu-threadblock"><span class="brackets"><a class="fn-backref" href="#id45">38</a></span></dt>
+<dt class="label" id="quantitative-gpu-threadblock"><span class="brackets"><a class="fn-backref" href="#id47">38</a></span></dt>
 <dd><p>search these words from section 4.4 of A Quantitative Approach 5th edition (The
 Morgan Kaufmann Series in Computer Architecture and Design)</p>
 </dd>
-<dt class="label" id="lanes"><span class="brackets"><a class="fn-backref" href="#id46">39</a></span></dt>
+<dt class="label" id="lanes"><span class="brackets"><a class="fn-backref" href="#id48">39</a></span></dt>
 <dd><p>“With Fermi, each 32-wide thread of SIMD instructions is mapped to 16 physical SIMD Lanes, so each SIMD instruction in a thread of SIMD instructions takes two clock cycles to complete” search these words from Page 296 of Computer Architecture: A Quantitative Approach 5th edition (The
 Morgan Kaufmann Series in Computer Architecture and Design).</p>
 </dd>
-<dt class="label" id="gpgpuwiki"><span class="brackets">40</span><span class="fn-backref">(<a href="#id47">1</a>,<a href="#id51">2</a>,<a href="#id54">3</a>)</span></dt>
+<dt class="label" id="gpgpuwiki"><span class="brackets">40</span><span class="fn-backref">(<a href="#id43">1</a>,<a href="#id51">2</a>,<a href="#id54">3</a>)</span></dt>
 <dd><p><a class="reference external" href="https://en.wikipedia.org/wiki/General-purpose_computing_on_graphics_processing_units">https://en.wikipedia.org/wiki/General-purpose_computing_on_graphics_processing_units</a></p>
 </dd>
-<dt class="label" id="cudaex"><span class="brackets"><a class="fn-backref" href="#id48">41</a></span></dt>
+<dt class="label" id="cudaex"><span class="brackets"><a class="fn-backref" href="#id44">41</a></span></dt>
 <dd><p><a class="reference external" href="https://devblogs.nvidia.com/easy-introduction-cuda-c-and-c/">https://devblogs.nvidia.com/easy-introduction-cuda-c-and-c/</a></p>
 </dd>
 <dt class="label" id="vmr"><span class="brackets"><a class="fn-backref" href="#id49">42</a></span></dt>
@@ -766,13 +774,13 @@ Morgan Kaufmann Series in Computer Architecture and Design)</p>
 <dd><p><a class="reference external" href="https://en.wikipedia.org/wiki/Graphics_processing_unit">https://en.wikipedia.org/wiki/Graphics_processing_unit</a></p>
 </dd>
 <dt class="label" id="vulkanapiwiki"><span class="brackets">47</span><span class="fn-backref">(<a href="#id57">1</a>,<a href="#id61">2</a>)</span></dt>
-<dd><p>Vulkan offers lower overhead, more direct control over the GPU, and lower CPU usage… By allowing shader pre-compilation, application initialization speed is improved… A Vulkan driver only needs to do GPU specific optimization and code generation, resulting in easier driver maintenance… <a class="reference external" href="https://en.wikipedia.org/wiki/Vulkan_(API">https://en.wikipedia.org/wiki/Vulkan_(API</a>)</p>
+<dd><p>Vulkan offers lower overhead, more direct control over the GPU, and lower CPU usage… By allowing shader pre-compilation, application initialization speed is improved… A Vulkan driver only needs to do GPU specific optimization and code generation, resulting in easier driver maintenance… <a class="reference external" href="https://en.wikipedia.org/wiki/Vulkan">https://en.wikipedia.org/wiki/Vulkan</a> <a class="reference external" href="https://en.wikipedia.org/wiki/Vulkan#OpenGL_vs._Vulkan">https://en.wikipedia.org/wiki/Vulkan#OpenGL_vs._Vulkan</a></p>
 </dd>
 <dt class="label" id="vulkanex"><span class="brackets"><a class="fn-backref" href="#id58">48</a></span></dt>
 <dd><p><a class="reference external" href="https://github.com/SaschaWillems/Vulkan/blob/master/examples/triangle/triangle.cpp">https://github.com/SaschaWillems/Vulkan/blob/master/examples/triangle/triangle.cpp</a></p>
 </dd>
 <dt class="label" id="spirvtoolchain"><span class="brackets"><a class="fn-backref" href="#id59">49</a></span></dt>
-<dd><p>glslangValidator is the tool used to compile GLSL shaders into SPIR-V, Vulkan’s shader format. <a class="reference external" href="https://vulkan.lunarg.com/doc/view/1.0.39.1/windows/spirv_toolchain.html">https://vulkan.lunarg.com/doc/view/1.0.39.1/windows/spirv_toolchain.html</a></p>
+<dd><p>glslangValidator is the tool used to compile GLSL shaders into SPIR-V, Vulkan’s shader format. <a class="reference external" href="https://vulkan.lunarg.com/doc/sdk/latest/windows/spirv_toolchain.html">https://vulkan.lunarg.com/doc/sdk/latest/windows/spirv_toolchain.html</a></p>
 </dd>
 <dt class="label" id="spirvwiki"><span class="brackets"><a class="fn-backref" href="#id60">50</a></span></dt>
 <dd><p>SPIR 2.0: LLVM IR version 3.4. SPIR-V 1.X: 100% Khronos defined Round-trip lossless conversion to llvm.  <a class="reference external" href="https://en.wikipedia.org/wiki/Standard_Portable_Intermediate_Representation">https://en.wikipedia.org/wiki/Standard_Portable_Intermediate_Representation</a></p>

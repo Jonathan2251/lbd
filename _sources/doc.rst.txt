@@ -19,8 +19,8 @@ Install sphinx
 
 LLVM and this book use Sphinx to generate html document. This book uses Sphinx 
 to generate pdf and epub format of document further.
-Sphinx uses restructured text format here [#rst-ref]_ [#rst-dir]_ [#rst]_.
 The installation of Sphinx reference [#sphinx-install]_.
+Sphinx uses restructured text format here [#rst-ref]_ [#rst-dir]_ [#rst]_.
 About the code-block in this document, please reference [#llvm-sphinx-quick]_ 
 [#sphinx-lexers]_.
 
@@ -34,10 +34,9 @@ On iMac you can install as follows,
 
 On Linux install it as follows,
 
-
 .. code-block:: console
 
-  sudo easy_install sphinx
+  sudo apt-get install python3-sphinx
 
 Above installaton for making html document but not for pdf. 
 The following installation for making pdf/latex document.
@@ -48,13 +47,13 @@ On Linux, install texlive as follows,
 
 .. code-block:: console
 
-  sudo apt-get install texlive texlive-latex-extra
+  sudo apt-get install texlive texlive-latex-extra latexmk
 
 or
 
 .. code-block:: console
 
-  sudo yum install texlive texlive-latex-extra
+  sudo yum install texlive texlive-latex-extra latexmk
 
 On Fedora 17, the texlive-latex-extra is missing. We install the package which
 include the pdflatex instead. For instance, we install pdfjam on Fedora 17 as
@@ -72,21 +71,6 @@ follows,
 Do sudo apt-get update -y; sudo apt-get install -y latexmk; if latexmk error 
 in 'make latexpdf' [#latexmk]_.
 
-On Fedora 18, the error as follows,
-
-.. code-block:: console
-
-  [root@localhost lld]$ make latexpdf
-  ...
-  LaTeX Error: File `titlesec.sty' not found
-
-Install all texlive-* (full) as follows,
-
-.. code-block:: console
-
-  [root@localhost lld]$ yum install texlive-*
-  
-
 After upgrade to iMac OS X 10.11.1, pdflatex link is missing, fix it by set in 
 .profile as follows,
 
@@ -97,48 +81,6 @@ After upgrade to iMac OS X 10.11.1, pdflatex link is missing, fix it by set in
   114-37-153-62:lbd Jonathan$ cat ~/.profile
   export PATH=$PATH:...:/usr/local/texlive/2012/bin/universal-darwin
 
-
-Install pip and update Sphinx version
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Install pip and upgrade Sphinx to newer version as follows,
-
-.. code-block:: console
-  
-  114-43-186-160:Downloads Jonathan$ curl -O https://bootstrap.pypa.io/get-pip.py
-  ...
-  114-43-186-160:Downloads Jonathan$ sudo python get-pip.py
-  ...
-  114-43-186-160:Downloads Jonathan$ sudo pip install Sphinx-1.4.4-py2.py3-none-any.whl
-  ...
-
-After make this document, I encounter the following error.
-
-.. code-block:: console
-  
-  114-43-186-160:test-lbt Jonathan$ make html
-  Makefile:253: warning: overriding commands for target `clean'
-  Makefile:52: warning: ignoring old commands for target `clean'
-  sphinx-build -b html -d build/doctrees   source build/html
-  Running Sphinx v1.4.4
-  loading pickled environment... not yet created
-  
-  Exception occurred:
-    File "/Library/Python/2.7/site-packages/sphinx/ext/intersphinx.py", line 148, 
-    in _strip_basic_auth
-      url_parts = parse.urlsplit(url)
-  AttributeError: 'Module_six_moves_urllib_parse' object has no attribute 'urlsplit'
-  The full traceback has been saved in /var/folders/rf/
-  8bgdgt9d6vgf5sn8h8_zycd00000gn/T/sphinx-err-HgctP4.log, if you want to report 
-  the issue to the developers.
-  Please also report this if it was a user error, so that a better error message 
-  can be provided next time.
-  A bug report can be filed in the tracker at <https://github.com/sphinx-doc/sphinx/issues>. Thanks!
-  make: *** [html] Error 1
-
-After changed /Library/Python/2.7/site-packages/sphinx/ext/intersphinx.py 
-according https://github.com/sphinx-doc/sphinx/commit/7586297d6df6fbae4b860a604422d4eddc40b32e
-I fixed the problem.
 
 Generate Cpu0 document
 ~~~~~~~~~~~~~~~~~~~~~~~
@@ -450,7 +392,7 @@ to T1 at the corresponding registers of these two assembly output.
 
 
 
-.. [#sphinx-install] http://docs.geoserver.org/latest/en/docguide/install.html
+.. [#sphinx-install] https://www.sphinx-doc.org/en/master/usage/installation.html
 
 .. [#maxtex] http://www.tug.org/mactex/
 

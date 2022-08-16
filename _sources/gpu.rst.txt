@@ -416,52 +416,6 @@ figures.
   core(grid) in Nvidia's gpu (figure from book [#Quantitative-gpu-mem]_)
 
 
-- Grid is Vectorizable Loop [#Quantitative-gpu-griddef]_.
-
-- Each multithreaded SIMD Processor is assigned 512 elements of the vectors to work on.
-  As :numref:`grid`: The hardware Thread Block Scheduler assigns Thread Blocks to 
-  multithreaded SIMD Processors. Thread Block <-> SIMD Processor. In this 8192 elements
-  of matrix multiplication A[] = B[] * C[] example, Warp is the 512 elements of 
-  matrix mutiplication.
-  If another 512 elements of matrix addition F[] = D[] + E[] assigned in the same 
-  Thread Block, then another Warp for it. Warp has it's own
-  PC and TLR (Thread Level Registers). Warp may map to
-  one whole function or part of function. Assume these two matrix mutiplication and 
-  addition instructions come from the same function. Compiler and run time may assign
-  them to the same Warp or different Warps [#Quantitative-gpu-warp]_.
-
-- SIMD Processors are full processors with separate PCs and are programmed using
-  threads [#Quantitative-gpu-threadblock]_. 
-  As :numref:`simd-processors`, it assigns 16 Thread blocks to 16 SIMD Processors.
-  
-- As :numref:`grid`, 
-  the maximum number of SIMD Threads that can execute simultaneously per Thread Block 
-  (SIMD Processor) is 32 for the later Fermi-generation GPUs.
-  Each SIMD Thread has 32 elements run as :numref:`threadslanes` on 
-  16 SIMD lanes (number of functional units just same
-  as in vector processor). So it takes 2 clock cycles to complete [#lanes]_.
-
-- As the following code.
-  Thread Block 0 has 16 threads and each thread (warp) has it's own PC. The The 
-  SIMD Thread Scheduler select threads to run as :numref:`simd-processors`.
-
-.. code-block:: c++
-
-  Thread Block 0:
-    A[i0] = B[i0] * C[i0]; // thread 0, i0:(0..31) run in one or few SIMD instructions
-    A[i1] = B[i1] * C[i1]; // thread 1, i1:(32..63) 
-    ...
-    A[i15] = B[i15] * C[i15]; thread 15, i15:(480..511)
-
-  Thread Block 1:
-    A[i0] = B[i0] * C[i0]; // thread 0, i0:(512..543)
-    ...
-
-- Each thread handle 32 elements computing, so there are few hundred Thread 
-  Level Registers in a thread to support the SIMT computing.
-
-
-
 General purpose GPU
 --------------------
 
@@ -500,6 +454,59 @@ In the programming example saxpy() above,
 
 - blockDim is the number of total Thread Blocks in a Grid
 
+
+Mapping the previous section HW to the example code as the following,
+
+- Grid is Vectorizable Loop [#Quantitative-gpu-griddef]_.
+
+- Each multithreaded SIMD Processor is assigned 512 elements of the vectors to work on.
+  As :numref:`grid`: The hardware Thread Block Scheduler assigns Thread Blocks to 
+  multithreaded SIMD Processors. Thread Block <-> SIMD Processor. In this 8192 elements
+  of matrix multiplication A[] = B[] * C[] example, Warp is the 512 elements of 
+  matrix mutiplication.
+  If another 512 elements of matrix addition F[] = D[] + E[] assigned in the same 
+  Thread Block, then another Warp for it. Warp has it's own
+  PC and TLR (Thread Level Registers). Warp may map to
+  one whole function or part of function. Assume these two matrix mutiplication and 
+  addition instructions come from the same function. Compiler and run time may assign
+  them to the same Warp or different Warps [#Quantitative-gpu-warp]_.
+
+- SIMD Processors are full processors with separate PCs and are programmed using
+  threads [#Quantitative-gpu-threadblock]_. 
+  As :numref:`simd-processors`, it assigns 16 Thread blocks to 16 SIMD Processors.
+  
+- As :numref:`grid`, 
+  the maximum number of SIMD Threads that can execute simultaneously per Thread Block 
+  (SIMD Processor) is 32 for the later Fermi-generation GPUs.
+  Each SIMD Thread has 32 elements run as :numref:`threadslanes` on 
+  16 SIMD lanes (number of functional units just same
+  as in vector processor). So it takes 2 clock cycles to complete [#lanes]_.
+
+- As the following code.
+  Thread Block 0 has 16 threads and each thread (warp) has it's own PC. The The 
+  SIMD Thread Scheduler select threads to run as :numref:`grid`.
+
+.. code-block:: c++
+
+  Thread Block 0:
+    int i = blockIdx.x*blockDim.x + threadIdx.x;
+    if (i < n) y[i] = a*x[i] + y[i];
+
+    y[0..31] = a*x[0..31] + y[0..31]; // thread 0, (0..31) run in one or few SIMD instructions
+    y[32..63] = a*x[32..63] + y[32..63]; // thread 1, (32..63) 
+    ...
+    y[480..511] = a*x[480..511] + y[480..511]; thread 15, (480..511)
+
+  Thread Block 1:
+    y[512..543] = a*x[512..543] + y[512..543]; // thread 0, i0:(512..543)
+    ...
+
+- Each thread handle 32 elements computing, assuming 4 registers for 1 element,
+  then there are 4*32 Thread 
+  Level Registers in a thread to support the SIMT computing.
+
+- Each Thread Block (Core/Warp) has 16 threads, so there are 16 * Registers of 
+  Thread in a Core.
 
 The main() run on CPU while the saxpy() run on GPU. Through 
 cudaMemcpyHostToDevice and cudaMemcpyDeviceToHost, CPU can pass data in x and in y 
@@ -578,8 +585,9 @@ lower levels api for operating memory by user program [#vulkanapiwiki]_.
 Vulkan api is lower level's C/C++ api to fill the gap allowing user program to 
 do these things in OpenGL to compete against Microsoft direct3D. 
 Here is an example [#vulkanex]_. Meanwhile glsl is C-like language. The vulkan 
-infrastructure provides tool to compile glsl into an Intermediate Representation 
-Form (IR) called spir-v [#spirvtoolchain]_ off-line. 
+infrastructure provides tool, glslangValidator [#spirvtoolchain]_, to compile 
+glsl into an Intermediate Representation 
+Form (IR) called spir-v off-line. 
 As a result, it saves part of compilation time from glsl to gpu instructions 
 on-line
 since spir-v is an IR of level closing to llvm IR [#spirvwiki]_. 
@@ -710,11 +718,11 @@ more. And actually, llvm IR expanding from version 3.1 util now as I can feel.
 
 .. [#gpuspeedup] https://en.wikipedia.org/wiki/Graphics_processing_unit
 
-.. [#vulkanapiwiki] Vulkan offers lower overhead, more direct control over the GPU, and lower CPU usage... By allowing shader pre-compilation, application initialization speed is improved... A Vulkan driver only needs to do GPU specific optimization and code generation, resulting in easier driver maintenance... https://en.wikipedia.org/wiki/Vulkan_(API)
+.. [#vulkanapiwiki] Vulkan offers lower overhead, more direct control over the GPU, and lower CPU usage... By allowing shader pre-compilation, application initialization speed is improved... A Vulkan driver only needs to do GPU specific optimization and code generation, resulting in easier driver maintenance... https://en.wikipedia.org/wiki/Vulkan https://en.wikipedia.org/wiki/Vulkan#OpenGL_vs._Vulkan
 
 .. [#vulkanex] https://github.com/SaschaWillems/Vulkan/blob/master/examples/triangle/triangle.cpp
 
-.. [#spirvtoolchain] glslangValidator is the tool used to compile GLSL shaders into SPIR-V, Vulkan's shader format. https://vulkan.lunarg.com/doc/view/1.0.39.1/windows/spirv_toolchain.html
+.. [#spirvtoolchain] glslangValidator is the tool used to compile GLSL shaders into SPIR-V, Vulkan's shader format. https://vulkan.lunarg.com/doc/sdk/latest/windows/spirv_toolchain.html
 
 .. [#spirvwiki] SPIR 2.0: LLVM IR version 3.4. SPIR-V 1.X: 100% Khronos defined Round-trip lossless conversion to llvm.  https://en.wikipedia.org/wiki/Standard_Portable_Intermediate_Representation
 
