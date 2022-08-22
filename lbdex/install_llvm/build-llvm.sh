@@ -41,5 +41,5 @@ if ! test -d ${LLVM_RELEASE_DIR}; then
 fi
 
 popd
-echo "Please remember to add ${LLVM_RELEASE_DIR}/bin to variable \${PATH} to your \
+echo "Please remember to add ${LLVM_RELEASE_DIR}/build/bin to variable \${PATH} to your \
   environment for clang++, clang."
