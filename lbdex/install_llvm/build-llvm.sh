@@ -1,5 +1,12 @@
 #!/usr/bin/env bash
 
+# If your memory is large enough, add swap size ubuntu as follows,
+# 1. search "add swap size ubuntu"
+# 2. https://bogdancornianu.com/change-swap-size-in-ubuntu/
+# 3. add to boot by change to /swapfile                                 swap            swap    default              0       0
+# https://linuxize.com/post/how-to-add-swap-space-on-ubuntu-18-04/
+# 4. reboot
+
 LLVM_DIR=~/llvm
 LLVM_RELEASE_DIR=${LLVM_DIR}/release
 LLVM_TEST_DIR=${LLVM_DIR}/test
@@ -7,7 +14,7 @@ LLVM_TEST_DIR=${LLVM_DIR}/test
 pushd ${LLVM_DIR}
 
 if ! test -d ${LLVM_DIR}/llvm-project; then
-  git clone git://github.com/llvm/llvm-project.git
+  git clone https://github.com/llvm/llvm-project.git
   cd llvm-project
   git checkout -b 12.x origin/release/12.x
   git checkout e8a397203c67adbeae04763ce25c6a5ae76af52c
