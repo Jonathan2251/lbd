@@ -150,7 +150,7 @@ Other example codes have no differences between this option and default option.
 
   JonathantekiiMac:input Jonathan$ pwd
   /Users/Jonathan/llvm/test/lbdex/input
-  JonathantekiiMac:input Jonathan$ bash build-run_backend.sh cpu032I be
+  JonathantekiiMac:input Jonathan$ bash build-run_backend.sh cpu032I eb
   JonathantekiiMac:input Jonathan$ cd ../verilog cd ../verilog
   JonathantekiiMac:input Jonathan$ pwd
   /Users/Jonathan/llvm/test/lbdex/verilog
@@ -189,7 +189,7 @@ Other example codes have no differences between this option and default option.
   total cpu cycles = 50645               
   RET to PC < 0, finished!
 
-  JonathantekiiMac:input Jonathan$ bash build-run_backend.sh cpu032II be
+  JonathantekiiMac:input Jonathan$ bash build-run_backend.sh cpu032II eb
   JonathantekiiMac:input Jonathan$ cd ../verilog
   JonathantekiiMac:verilog Jonathan$ ./cpu0IIs
   ...
@@ -267,7 +267,7 @@ following command. File build-run_backend.sh write the endian information to
 
 .. code-block:: console
 
-  JonathantekiiMac:input Jonathan$ bash build-run_backend.sh cpu032I le
+  JonathantekiiMac:input Jonathan$ bash build-run_backend.sh cpu032I el
 
 .. rubric:: ../verilog/cpu0.config
 .. code-block:: c++
@@ -293,7 +293,7 @@ The following files test more features.
   
 .. code-block:: console
 
-  JonathantekiiMac:input Jonathan$ bash build-run_backend.sh cpu032II le
+  JonathantekiiMac:input Jonathan$ bash build-run_backend.sh cpu032II el
   ...
   JonathantekiiMac:input Jonathan$ cd ../verilog
   JonathantekiiMac:verilog Jonathan$ ./cpu0IIs

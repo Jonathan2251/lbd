@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 LLVM_DIR=~/llvm
-LLVM_RELEASE_DIR=${LLVM_DIR}/release
+LLVM_DEBUG_DIR=${LLVM_DIR}/debug
 LLVM_TEST_DIR=${LLVM_DIR}/test
 
 if ! test -d ${LLVM_TEST_DIR}; then

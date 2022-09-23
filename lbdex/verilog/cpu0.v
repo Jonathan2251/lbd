@@ -264,7 +264,8 @@ module cpu0(input clock, reset, input [2:0] itype, output reg [2:0] tick,
       // Mathematic 
       ADDiu: regSet(a, Rb+c16);                   // ADDiu Ra, Rb+Cx; Ra<=Rb+Cx
       CMP:  begin 
-        if (Rb < Rc) `N=1; else `N=0; 
+        if (Rb < Rc) `N=1; else `N=0;
+        // `N=(Rb-Rc<0); // why not work for bash make.sh cpu032I el Makefile.builtins?
        `Z=(Rb-Rc==0); 
       end // CMP Rb, Rc; SW=(Rb >=< Rc)
       CMPu:  begin 

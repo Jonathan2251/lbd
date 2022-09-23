@@ -1568,7 +1568,7 @@ Run Mips backend with above input will get the following result.
 
 .. code-block:: console
 
-  JonathantekiiMac:input Jonathan$ ~/llvm/release/build/bin/llc 
+  JonathantekiiMac:input Jonathan$ ~/llvm/debug/build/bin/llc 
   -O0 -march=mips -relocation-model=static -filetype=asm 
   ch9_caller_callee_save_registers.bc -o -
   	.text
@@ -2256,10 +2256,10 @@ Build libraries and td
 ~~~~~~~~~~~~~~~~~~~~~~
 
 Build steps https://github.com/Jonathan2251/lbd/blob/master/README.md.
-We set llvm source code in /Users/Jonathan/llvm/release/llvm and have llvm 
-release-build in /Users/Jonathan/llvm/release/build. 
+We set llvm source code in /Users/Jonathan/llvm/debug/llvm and have llvm 
+debug-build in /Users/Jonathan/llvm/debug/build. 
 About how to build llvm, please refer here [#clang]_. 
-In appendix A, we made a copy from /Users/Jonathan/llvm/release/llvm to 
+In appendix A, we made a copy from /Users/Jonathan/llvm/debug/llvm to 
 /Users/Jonathan/llvm/test/llvm for working with my Cpu0 target backend.
 Sub-directories llvm is for source code and build is for debug 
 build directory.

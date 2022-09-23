@@ -1,4 +1,4 @@
-; ~/llvm/3.9.0/release/cmake_debug_build/bin/opt -O3 -S add.ll -o -
+; ~/llvm/debug/build/bin/opt -O3 -S add.ll -o -
 
 define i32 @add(i32 %a, i32 %b) nounwind {
 entry:

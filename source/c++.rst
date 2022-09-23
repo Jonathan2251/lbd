@@ -345,19 +345,58 @@ condition problem [#ll-wiki]_.
 Mips sync and ARM/X86-64 memory-barrier instruction [#mb-wiki]_ provide 
 synchronization mechanism very efficiently in some scenarios.
 
+Mips sync [#mips-sync]_ is explained simply as follows,
+
+A Simple Description:
+SYNC affects only uncached and cached coherent loads and stores. The loads and
+stores that occur prior to the SYNC must be completed before the loads and 
+stores after the SYNC are allowed to start.
+Loads are completed when the destination register is written. Stores are completed
+when the stored value is visible to every other processor in the system.
+
 In order to support atomic in C++ and java, llvm provides the atomic IRs and 
-memory ordering here [#atomics-llvm]_ [#llvmlang-ordering]_. The chapter 19 
-of book DPC++ [#dpcpp]_ explains the memory ordering better as follows,
+memory ordering here [#atomics-llvm]_ [#llvmlang-ordering]_. C++ memory order
+is explained and exampled here [#cpp-mem-order]_. The chapter 19 
+of book DPC++ [#dpcpp]_ explains the memory ordering better and I add the 
+related code fragment of lbdex/input/atomics.ll to it for explanation as follows,
 
 - memory_order::relaxed
 
 Read and write operations can be re-ordered before or after the operation with 
 no restrictions. There are no ordering guarantees.
 
+.. code-block:: console
+  
+  define i8 @load_i8_unordered(i8* %mem) {
+  ; CHECK-LABEL: load_i8_unordered
+  ; CHECK: ll
+  ; CHECK: sc
+  ; CHECK-NOT: sync
+    %val = load atomic i8, i8* %mem unordered, align 1
+    ret i8 %val
+  }
+
+**No sync** CodeGen on above.
+
 - memory_order::acquire
 
 Read and write operations appearing after the operation in the program must 
 occur after it (i.e., they cannot be re-ordered before the operation).
+
+.. code-block:: console
+
+  define i32 @load_i32_acquire(i32* %mem) {
+  ; CHECK-LABEL: load_i32_acquire
+  ; CHECK: ll
+  ; CHECK: sc
+    %val = load atomic i32, i32* %mem acquire, align 4
+  ; CHECK: sync
+    ret i32 %val
+  }
+
+Sync guarantees "load atomic" complete before the next R/W (Read/Write). All 
+writes in other threads that release the same atomic variable are visible in the 
+current thread.
 
 - memory_order::release
 
@@ -368,17 +407,67 @@ instances which have been synchronized by a corresponding acquire operation
 (i.e., an atomic operation using the same variable and memory_order::acquire 
 or a barrier function).
 
+.. code-block:: console
+
+  define void @store_i32_release(i32* %mem) {
+  ; CHECK-LABEL: store_i32_release
+  ; CHECK: sync
+  ; CHECK: ll
+  ; CHECK: sc
+    store atomic i32 42, i32* %mem release, align 4
+    ret void
+  }
+
+Sync guarantees preceding R/W complete before "store atomic". Mips' ll and sc 
+guarantee that "store atomic release" is visible to other processors.
+
 - memory_order::acq_rel
 
 The operation acts as both an acquire and a release. Read and write operations 
 cannot be re-ordered around the operation, and preceding writes must be made 
 visible as previously described for memory_order::release.
 
+.. code-block:: console
+
+  define i32 @cas_strong_i32_acqrel_acquire(i32* %mem) {
+  ; CHECK-LABEL: cas_strong_i32_acqrel_acquire
+  ; CHECK: ll
+  ; CHECK: sc
+    %val = cmpxchg i32* %mem, i32 0, i32 1 acq_rel acquire
+  ; CHECK: sync
+    %loaded = extractvalue { i32, i1} %val, 0
+    ret i32 %loaded
+  }
+
+Sync guarantees preceding R/W complete before "cmpxchg". Other processors' 
+preceding write operations are guaranteed to be visible to this 
+"cmpxchg acquire" (Mips's ll and sc quarantee it).
+
 - memory_order::seq_cst
 
 The operation acts as an acquire, release, or both depending on whether it is 
 a read, write, or read-modify-write operation, respectively. All operations 
 with this memory order are observed in a sequentially consistent order.
+
+.. code-block:: console
+
+  define i8 @cas_strong_i8_sc_sc(i8* %mem) {
+  ; CHECK-LABEL: cas_strong_i8_sc_sc
+  ; CHECK: sync
+  ; CHECK: ll
+  ; CHECK: sc
+    %val = cmpxchg i8* %mem, i8 0, i8 1 seq_cst seq_cst
+  ; CHECK: sync
+    %loaded = extractvalue { i8, i1} %val, 0
+    ret i8 %loaded
+  }
+
+First sync guarantees preceding R/W complete before "cmpxchg seq_cst" and 
+visible to "cmpxchg seq_cst". For seq_cst, a store performs a release operation.
+Which means "cmpxchg seq_cst" are visible to other threads/processors that 
+acquire the same atomic variable as the memory_order_release definition. 
+Mips' ll and sc quarantees this feature of "cmpxchg seq_cst". 
+Second Sync guarantees "cmpxchg seq_cst" complete before the next R/W.
 
 There are several restrictions on which memory orders are supported by each 
 operation. The table in Figure 19-10 summarizes which combinations are valid.
@@ -606,8 +695,12 @@ options "clang++ -pthread -std=c++11".
 
 .. [#mb-wiki] https://en.wikipedia.org/wiki/Memory_barrier
 
+.. [#mips-sync] Page 167 (A-155) of https://www.cs.cmu.edu/afs/cs/academic/class/15740-f97/public/doc/mips-isa.pdf
+
 .. [#atomics-llvm] http://llvm.org/docs/Atomics.html
 
 .. [#llvmlang-ordering] http://llvm.org/docs/LangRef.html#ordering
+
+.. [#cpp-mem-order] https://en.cppreference.com/w/cpp/atomic/memory_order
 
 .. [#dpcpp] https://link.springer.com/book/10.1007/978-1-4842-5574-2

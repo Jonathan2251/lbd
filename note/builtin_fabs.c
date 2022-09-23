@@ -1,4 +1,4 @@
-// ~/llvm/release/build/bin/clang -emit-llvm -S builtin_fabs.c -o -
+// ~/llvm/debug/build/bin/clang -emit-llvm -S builtin_fabs.c -o -
 
 // CHECK-LABEL: define{{.*}} void @test_float_builtin_ops
 void test_float_builtin_ops(float F, double D, long double LD) {

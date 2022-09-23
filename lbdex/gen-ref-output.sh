@@ -4,7 +4,7 @@ OS=`uname -s`
 echo "OS =" ${OS}
 
 TOOLDIR=~/llvm/test/build/bin
-CLANG=~/llvm/release/build/bin/clang
+CLANG=~/llvm/debug/build/bin/clang
 
 rm -rf output
 mkdir output

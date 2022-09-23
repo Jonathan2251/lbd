@@ -14,13 +14,24 @@ For information in using ``cmake`` to build LLVM, please refer to the "Building
 LLVM with CMake" [#llvm-cmake]_ documentation for further information. 
 
 We install two llvm directories in this chapter. One is the directory 
-~/llvm/release/ which contains the clang and clang++ compiler we will use to 
+~/llvm/debug/ which contains the clang and clang++ compiler we will use to 
 translate the C/C++ input file into llvm IR. 
 The other is the directory ~/llvm/test/ which contains our cpu0 backend 
 program and clang.
 
 Build steps
 ------------
+
+On linux, multi-threading -DLLVM_PARALLEL_COMPILE_JOBS=4, need more than 16GB
+memory. I create 64GB of swapfile to fix the problem of link failure
+[#swapfile1]_ [#swapfile2]_. The iMac has no this problem.
+
+.. code-block:: console
+
+  $ cat /etc/fstab
+  # <file system> <mount point>   <type>  <options>       <dump>  <pass>
+  ...
+  /swapfile       swap            swap    default         0       0
 
 After setup brew install for iMac or install necessory packages. Build as 
 https://github.com/Jonathan2251/lbd/blob/master/README.md.
@@ -65,6 +76,21 @@ Install Icarus Verilog tool by command ``brew install icarus-verilog`` as follow
 Install other tools on iMac
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+Install cmake as follows,
+
+.. code-block:: console
+
+  $ brew install cmake
+
+Download Graphviz from [#graphviz-download]_ according your 
+Linux distribution. Files compare tools Kdiff3 came from web site [#kdiff3]_. 
+
+.. code-block:: console
+
+  $ sudo apt install graphviz
+  $ dot -V
+  dot - graphviz version 2.40.1 (20161225.0304)
+
 Install Graphviz for display llvm IR nodes in debugging, 
 [#graphviz-dm]_. 
 
@@ -107,53 +133,93 @@ Setting Up Your Linux Machine
 Install Icarus Verilog tool on Linux
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Download the snapshot version of Icarus Verilog tool from web site, 
-ftp://icarus.com/pub/eda/verilog/snapshots or go to http://iverilog.icarus.com/ 
-and click snapshot version link. Follow the README or INSTALL file guide to 
-install it. 
-
-My installed commands for `sh autoconf.sh` dependences as follows,
+Download icarus verilog as follows [#icarus]_,
 
 .. code-block:: console
 
-  $ sudo apt-get install flex
-  $ sudo apt-get install bison
-  $ sudo apt-get install gperf
+  $ git clone http://iverilog.icarus.com/
 
 
-Install other tools on Linux
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Download Graphviz from [#graphviz-download]_ according your 
-Linux distribution. Files compare tools Kdiff3 came from web site [#kdiff3]_. 
+Follow the README or INSTALL file guide to install it. 
 
-Set /home/Gamma/.bash_profile as follows,
+Install `sh autoconf.sh` dependences and other dependences as follows,
 
 .. code-block:: console
 
   $ pwd
-  /home/Gamma
-  $ cat .bash_profile
-  # .bash_profile
-  
-  # Get the aliases and functions
-  if [ -f ~/.bashrc ]; then
-    . ~/.bashrc
-  fi
-  
-  # User specific environment and startup programs
-  
-  PATH=$PATH:/usr/local/sphinx/bin:~/llvm/release/build/bin:
-  ... 
-  export PATH
-  $ source .bash_profile
-  $ $PATH
-  bash: /usr/lib64/qt-3.3/bin:/usr/local/bin:/usr/bin:/bin:/usr/local/sbin:
-  /usr/sbin:/usr/local/sphinx/bin:/home/Gamma/.local/bin:/home/Gamma/bin:
-  /usr/local/sphinx/bin:/home/cschen/llvm/release/build/bin
+  $ ~/git/iverilog
+  $ sudo apt-get install autoconf automake autotools-dev curl python3 libmpc-dev \
+  libmpfr-dev libgmp-dev gawk build-essential bison flex texinfo gperf libtool \
+  patchutils bc zlib1g-dev libexpat-dev
+  $ sh autoconf.sh
 
+Then install icarus as follows,
+
+.. code-block:: console
+
+  $ ./configure
+  // or below if you are in shared server
+  $ ./configure --prefix=$HOME/local
+  $ make
+  $ make check
+
+
+Install other tools on Linux
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Install cmake as follows,
+
+.. code-block:: console
+
+  $ pwd
+  $ ~/local
+  $ wget -b https://github.com/Kitware/CMake/releases/download/v3.23.3/cmake-3.23.3-linux-x86_64.sh
+  $ bash cmake-3.23.3-linux-x86_64.sh
+  Do you accept the license? [yn]: 
+  y
+  By default the CMake will be installed in:
+    "/u/jonathanchen/local/cmake-3.23.3-linux-x86_64"
+  Do you want to include the subdirectory cmake-3.23.3-linux-x86_64?
+  Saying no will install in: "/u/jonathanchen/local" [Yn]: 
+  Y
+  ...
+  Unpacking finished successfully
+  $ ls
+  bin  cmake-3.23.3-linux-x86_64 ...
+  
+
+Download Graphviz from [#graphviz-download]_ according your 
+Linux distribution. Files compare tools Kdiff3 came from web site [#kdiff3]_. 
+
+.. code-block:: console
+
+  $ sudo apt install graphviz
+  $ dot -V
+  dot - graphviz version 2.40.1 (20161225.0304)
+
+Set "~/.profile" as follows,
+
+.. rubric:: ~/.profile
+.. code-block:: text
+
+   ~/.profile: executed by the command interpreter for login shells.
+  ...
+  # set PATH so it includes user's private bin if it exists
+  if [ -d "$HOME/local/bin" ] ; then
+      PATH="$HOME/local/bin:$PATH"
+  fi
+  # set PATH for cmake
+  if [ -d "$HOME/local/cmake-3.23.3-linux-x86_64/bin" ] ; then
+      PATH="$HOME/local/cmake-3.23.3-linux-x86_64/bin:$PATH"
+  fi
+  ...
 
 
 .. [#llvm-cmake] http://llvm.org/docs/CMake.html?highlight=cmake
+
+.. [#swapfile1] https://bogdancornianu.com/change-swap-size-in-ubuntu/
+
+.. [#swapfile2] https://linuxize.com/post/how-to-add-swap-space-on-ubuntu-18-04/
 
 .. [#installbrew] https://brew.sh/
 
@@ -164,5 +230,7 @@ Set /home/Gamma/.bash_profile as follows,
 .. [#isp] http://llvm.org/docs/CodeGenerator.html#selectiondag-instruction-selection-process
 
 .. [#vgwdc] http://llvm.org/docs/ProgrammersManual.html#viewing-graphs-while-debugging-code
+
+.. [#icarus] http://iverilog.icarus.com/
 
 .. [#graphviz-download] http://www.graphviz.org/Download.php
