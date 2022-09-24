@@ -1,10 +1,10 @@
 
 <!DOCTYPE html>
 
-<html>
+<html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
     <title>Arithmetic and logic instructions &#8212; Tutorial: Creating an LLVM Backend for the Cpu0 Architecture</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
@@ -13,6 +13,7 @@
     <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
     <script src="_static/jquery.js"></script>
     <script src="_static/underscore.js"></script>
+    <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="_static/doctools.js"></script>
     <link rel="author" title="About these documents" href="about.html" />
     <link rel="index" title="Index" href="genindex.html" />
@@ -39,8 +40,8 @@
         
         
   <section id="arithmetic-and-logic-instructions">
-<span id="sec-addingmoresupport"></span><h1>Arithmetic and logic instructions<a class="headerlink" href="#arithmetic-and-logic-instructions" title="Permalink to this headline">¶</a></h1>
-<div class="contents local topic" id="contents">
+<span id="sec-addingmoresupport"></span><h1>Arithmetic and logic instructions<a class="headerlink" href="#arithmetic-and-logic-instructions" title="Permalink to this heading">¶</a></h1>
+<nav class="contents local" id="contents">
 <ul class="simple">
 <li><p><a class="reference internal" href="#arithmetic" id="id21">Arithmetic</a></p>
 <ul>
@@ -60,7 +61,7 @@
 <li><p><a class="reference internal" href="#logic" id="id30">Logic</a></p></li>
 <li><p><a class="reference internal" href="#summary" id="id31">Summary</a></p></li>
 </ul>
-</div>
+</nav>
 <p>This chapter adds more Cpu0 arithmetic instructions support first.
 The <a class="reference external" href="http://jonathan2251.github.io/lbd/otherinst.html#display-llvm-ir-nodes-with-graphviz">section Display llvm IR nodes with Graphviz</a>
 will show you the steps of DAG optimization and their corresponding <code class="docutils literal notranslate"><span class="pre">llc</span></code>
@@ -79,7 +80,7 @@ HILO and C0 register class are defined in this chapter.
 Readers will know how to handle other register classes beside general
 purpose register class, and why they are needed, from this chapter.</p>
 <section id="arithmetic">
-<h2><a class="toc-backref" href="#id21">Arithmetic</a><a class="headerlink" href="#arithmetic" title="Permalink to this headline">¶</a></h2>
+<h2><a class="toc-backref" href="#id21" role="doc-backlink">Arithmetic</a><a class="headerlink" href="#arithmetic" title="Permalink to this heading">¶</a></h2>
 <p>The code added in Chapter4_1/ to support arithmetic instructions as follows,</p>
 <p class="rubric">lbdex/chapters/Chapter4_1/Cpu0Subtarget.cpp</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">static</span> <span class="n">cl</span><span class="p">::</span><span class="n">opt</span><span class="o">&lt;</span><span class="nb">bool</span><span class="o">&gt;</span> <span class="n">EnableOverflowOpt</span>
@@ -491,7 +492,7 @@ SDValue Cpu0TargetLowering::PerformDAGCombine(SDNode *N, DAGCombinerInfo &amp;DC
 </pre></div>
 </div>
 <section id="and">
-<h3><a class="toc-backref" href="#id22"><strong>+, -, *, &lt;&lt;,</strong> and <strong>&gt;&gt;</strong></a><a class="headerlink" href="#and" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id22" role="doc-backlink"><strong>+, -, *, &lt;&lt;,</strong> and <strong>&gt;&gt;</strong></a><a class="headerlink" href="#and" title="Permalink to this heading">¶</a></h3>
 <p>The ADDu, ADD, SUBu, SUB and MUL defined in Chapter4_1/Cpu0InstrInfo.td are for
 operators <strong>+, -, *</strong>.
 SHL (defined before) and SHLV are for <strong>&lt;&lt;</strong>.
@@ -501,7 +502,7 @@ unit are designed from two different hardware circuits, and more, their data
 path are separate.
 Cpu0 is same, so these two function units can be executed at same time
 (instruction level parallelism).
-Reference <a class="footnote-reference brackets" href="#instrstage" id="id1">1</a> for instruction itineraries.</p>
+Reference <a class="footnote-reference brackets" href="#instrstage" id="id1" role="doc-noteref"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></a> for instruction itineraries.</p>
 <p>Chapter4_1/ can handle <strong>+, -, *, &lt;&lt;,</strong> and <strong>&gt;&gt;</strong> operators in C
 language.
 The corresponding llvm IR instructions are <strong>add, sub, mul, shl, ashr</strong>.
@@ -546,11 +547,6 @@ defined for lshr instruction (We don’t know why it doesn’t use ashr and lshr
 the IR node name directly). Summary as the Table: C operator &gt;&gt; implementation.</p>
 <table class="docutils align-default" id="id10">
 <caption><span class="caption-number">Table 19 </span><span class="caption-text">C operator &gt;&gt; implementation</span><a class="headerlink" href="#id10" title="Permalink to this table">¶</a></caption>
-<colgroup>
-<col style="width: 40%" />
-<col style="width: 22%" />
-<col style="width: 38%" />
-</colgroup>
 <thead>
 <tr class="row-odd"><th class="head"><p>Description</p></th>
 <th class="head"><p>Shift with zero filled</p></th>
@@ -605,10 +601,6 @@ both signed and unsigned integers of x, we need these two instructions,
 <strong>lshr</strong> and <strong>ashr</strong>.</p>
 <table class="docutils align-default" id="id11">
 <caption><span class="caption-number">Table 20 </span><span class="caption-text">C operator &lt;&lt; implementation</span><a class="headerlink" href="#id11" title="Permalink to this table">¶</a></caption>
-<colgroup>
-<col style="width: 64%" />
-<col style="width: 36%" />
-</colgroup>
 <thead>
 <tr class="row-odd"><th class="head"><p>Description</p></th>
 <th class="head"><p>Shift with zero filled</p></th>
@@ -648,8 +640,8 @@ It’s fine since 2G is out of 32 bits signed integer range (-2G ~ 2G-1).
 For the overflow case, no way to keep the correct result in register. So, any
 value in register is OK. You can check that <strong>lshr</strong> satisfy x = x*2, for all
 x &lt;&lt; 1 and the x result is not out of range, no matter operand x is signed
-or unsigned integer <a class="footnote-reference brackets" href="#arithmetic-shift" id="id2">2</a>.</p>
-<p>The ‘ashr‘ Instruction” reference here <a class="footnote-reference brackets" href="#ashr" id="id3">3</a>, ‘lshr‘ reference here <a class="footnote-reference brackets" href="#lshr" id="id4">4</a>.</p>
+or unsigned integer <a class="footnote-reference brackets" href="#arithmetic-shift" id="id2" role="doc-noteref"><span class="fn-bracket">[</span>2<span class="fn-bracket">]</span></a>.</p>
+<p>The ‘ashr‘ Instruction” reference here <a class="footnote-reference brackets" href="#ashr" id="id3" role="doc-noteref"><span class="fn-bracket">[</span>3<span class="fn-bracket">]</span></a>, ‘lshr‘ reference here <a class="footnote-reference brackets" href="#lshr" id="id4" role="doc-noteref"><span class="fn-bracket">[</span>4<span class="fn-bracket">]</span></a>.</p>
 <p>The srav, shlv and shrv are for two virtual input registers instructions while
 the sra, … are for 1 virtual input registers and 1 constant input operands.</p>
 <p>Now, let’s build Chapter4_1/ and run with input file ch4_math.ll as follows,</p>
@@ -808,7 +800,7 @@ used in debug purpose. Compile with this option can help to identify the bug and
 fix it early.</p>
 </section>
 <section id="display-llvm-ir-nodes-with-graphviz">
-<h3><a class="toc-backref" href="#id23">Display llvm IR nodes with Graphviz</a><a class="headerlink" href="#display-llvm-ir-nodes-with-graphviz" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id23" role="doc-backlink">Display llvm IR nodes with Graphviz</a><a class="headerlink" href="#display-llvm-ir-nodes-with-graphviz" title="Permalink to this heading">¶</a></h3>
 <p>The previous section, display the DAG translation process in text on terminal
 by option <code class="docutils literal notranslate"><span class="pre">llc</span> <span class="pre">-debug</span></code>.
 The <code class="docutils literal notranslate"><span class="pre">llc</span></code> also supports the graphic displaying.
@@ -820,7 +812,7 @@ It’s not a must-have, but helps a lot especially when you are tired in trackin
 the DAG translation process.
 List the <code class="docutils literal notranslate"><span class="pre">llc</span></code> graphic support options from the sub-section “SelectionDAG
 Instruction Selection Process” of web “The LLVM Target-Independent Code Generator”
-<a class="footnote-reference brackets" href="#instructionsel" id="id5">5</a> as follows,</p>
+<a class="footnote-reference brackets" href="#instructionsel" id="id5" role="doc-noteref"><span class="fn-bracket">[</span>5<span class="fn-bracket">]</span></a> as follows,</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>The <code class="docutils literal notranslate"><span class="pre">llc</span></code> Graphviz DAG display options</p>
@@ -880,9 +872,9 @@ In order to writing the pattern match instruction in target description file
 operator.</p>
 </section>
 <section id="operator-and">
-<h3><a class="toc-backref" href="#id24">Operator % and /</a><a class="headerlink" href="#operator-and" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id24" role="doc-backlink">Operator % and /</a><a class="headerlink" href="#operator-and" title="Permalink to this heading">¶</a></h3>
 <section id="the-dag-of">
-<h4><a class="toc-backref" href="#id25">The DAG of %</a><a class="headerlink" href="#the-dag-of" title="Permalink to this headline">¶</a></h4>
+<h4><a class="toc-backref" href="#id25" role="doc-backlink">The DAG of %</a><a class="headerlink" href="#the-dag-of" title="Permalink to this heading">¶</a></h4>
 <p>Example input code ch4_1_mult.cpp which contains the C operator <strong>“%”</strong> and it’s
 corresponding llvm IR, as follows,</p>
 <p class="rubric">lbdex/input/ch4_1_mult.cpp</p>
@@ -910,7 +902,7 @@ corresponding llvm IR, as follows,</p>
 <span class="go">}</span>
 </pre></div>
 </div>
-<p>LLVM <strong>srem</strong> is the IR of corresponding <strong>“%”</strong>, reference here <a class="footnote-reference brackets" href="#srem" id="id6">6</a>.
+<p>LLVM <strong>srem</strong> is the IR of corresponding <strong>“%”</strong>, reference here <a class="footnote-reference brackets" href="#srem" id="id6" role="doc-noteref"><span class="fn-bracket">[</span>6<span class="fn-bracket">]</span></a>.
 Copy the reference as follows,</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
@@ -975,7 +967,7 @@ The result of high word, in this case is 0x2.
 The final result (sub 12, 12) is 0 which match the statement (11+1)%12.</p>
 </section>
 <section id="arm-solution">
-<h4><a class="toc-backref" href="#id26">Arm solution</a><a class="headerlink" href="#arm-solution" title="Permalink to this headline">¶</a></h4>
+<h4><a class="toc-backref" href="#id26" role="doc-backlink">Arm solution</a><a class="headerlink" href="#arm-solution" title="Permalink to this heading">¶</a></h4>
 <p>To run with ARM solution, change Cpu0InstrInfo.td and Cpu0ISelDAGToDAG.cpp from
 Chapter4_1/ as follows,</p>
 <p class="rubric">lbdex/chapters/Chapter4_1/Cpu0InstrInfo.td</p>
@@ -1070,7 +1062,7 @@ You can check it by unmark the <strong>“unsigned int b = 11;”</strong> in ch
 in ARM.</p>
 </section>
 <section id="mips-solution">
-<h4><a class="toc-backref" href="#id27">Mips solution</a><a class="headerlink" href="#mips-solution" title="Permalink to this headline">¶</a></h4>
+<h4><a class="toc-backref" href="#id27" role="doc-backlink">Mips solution</a><a class="headerlink" href="#mips-solution" title="Permalink to this heading">¶</a></h4>
 <p>Mips uses MULT instruction and save the high &amp; low part to registers HI and LO,
 respectively.
 After that, uses mfhi/mflo to move register HI/LO to your general purpose
@@ -1135,7 +1127,7 @@ ch4_1_mult.bc.</p>
 </div>
 </section>
 <section id="full-support-and">
-<h4><a class="toc-backref" href="#id28">Full support %, and /</a><a class="headerlink" href="#full-support-and" title="Permalink to this headline">¶</a></h4>
+<h4><a class="toc-backref" href="#id28" role="doc-backlink">Full support %, and /</a><a class="headerlink" href="#full-support-and" title="Permalink to this heading">¶</a></h4>
 <p>The sensitive readers may find llvm using <strong>“multiplication”</strong> instead
 of <strong>“div”</strong> to get the <strong>“%”</strong> result just because our example uses
 constant as divider, <strong>“(b+1)%12”</strong> in our example.
@@ -1327,10 +1319,6 @@ legalized selection DAG”.</p></li>
 translation and pattern match for C operator %.</p>
 <table class="docutils align-default" id="id16">
 <caption><span class="caption-number">Table 21 </span><span class="caption-text">Stages for C operator %</span><a class="headerlink" href="#id16" title="Permalink to this table">¶</a></caption>
-<colgroup>
-<col style="width: 40%" />
-<col style="width: 60%" />
-</colgroup>
 <thead>
 <tr class="row-odd"><th class="head"><p>Stage</p></th>
 <th class="head"><p>IR/DAG/instruction</p></th>
@@ -1353,10 +1341,6 @@ translation and pattern match for C operator %.</p>
 </table>
 <table class="docutils align-default" id="id17">
 <caption><span class="caption-number">Table 22 </span><span class="caption-text">Functions handle the DAG translation and pattern match for C operator %</span><a class="headerlink" href="#id17" title="Permalink to this table">¶</a></caption>
-<colgroup>
-<col style="width: 43%" />
-<col style="width: 57%" />
-</colgroup>
 <thead>
 <tr class="row-odd"><th class="head"><p>Translation</p></th>
 <th class="head"><p>Do by</p></th>
@@ -1382,7 +1366,7 @@ translation and pattern match for C operator %.</p>
 </table>
 <p>Step 2 as above, is triggered by code
 “setOperationAction(ISD::SREM, MVT::i32, Expand);” in Cpu0ISelLowering.cpp.
-About <strong>Expand</strong> please ref. <a class="footnote-reference brackets" href="#expand" id="id7">7</a> and <a class="footnote-reference brackets" href="#legalizetypes" id="id8">8</a>. Step 3 is
+About <strong>Expand</strong> please ref. <a class="footnote-reference brackets" href="#expand" id="id7" role="doc-noteref"><span class="fn-bracket">[</span>7<span class="fn-bracket">]</span></a> and <a class="footnote-reference brackets" href="#legalizetypes" id="id8" role="doc-noteref"><span class="fn-bracket">[</span>8<span class="fn-bracket">]</span></a>. Step 3 is
 triggered by code “setTargetDAGCombine(ISD::SDIVREM);” in Cpu0ISelLowering.cpp.
 Step 4 is did by PerformDivRemCombine() which called by performDAGCombine().
 Since the <strong>%</strong> corresponding <strong>srem</strong> makes the “N-&gt;hasAnyUseOfValue(1)” to
@@ -1398,7 +1382,7 @@ to <strong>mfhi</strong>.</p>
 </section>
 </section>
 <section id="rotate-instructions">
-<h3><a class="toc-backref" href="#id29">Rotate instructions</a><a class="headerlink" href="#rotate-instructions" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id29" role="doc-backlink">Rotate instructions</a><a class="headerlink" href="#rotate-instructions" title="Permalink to this heading">¶</a></h3>
 <p>Chapter4_1 include the rotate operations translation. The instructions “rol”,
 “ror”, “rolv” and “rorv” defined in Cpu0InstrInfo.td handle the translation.
 Compile ch4_1_rotate.cpp will get Cpu0 “rol” instruction.</p>
@@ -1472,7 +1456,7 @@ one one IR <strong>rotl</strong> during DAGs translation.</p>
 </section>
 </section>
 <section id="logic">
-<h2><a class="toc-backref" href="#id30">Logic</a><a class="headerlink" href="#logic" title="Permalink to this headline">¶</a></h2>
+<h2><a class="toc-backref" href="#id30" role="doc-backlink">Logic</a><a class="headerlink" href="#logic" title="Permalink to this heading">¶</a></h2>
 <p>Chapter4_2 supports logic operators <strong>&amp;, |, ^, !, ==, !=, &lt;, &lt;=, &gt; and &gt;=</strong>.
 They are trivial and easy. Listing the added code with comments and table for
 these operators IR, DAG and instructions as below. Please check them with the
@@ -1837,12 +1821,6 @@ int test_setxx()
 </div>
 <table class="docutils align-default" id="id18">
 <caption><span class="caption-number">Table 23 </span><span class="caption-text">Logic operators for cpu032I</span><a class="headerlink" href="#id18" title="Permalink to this table">¶</a></caption>
-<colgroup>
-<col style="width: 10%" />
-<col style="width: 32%" />
-<col style="width: 35%" />
-<col style="width: 23%" />
-</colgroup>
 <thead>
 <tr class="row-odd"><th class="head"><p>C</p></th>
 <th class="head"><p>.bc</p></th>
@@ -2001,12 +1979,6 @@ int test_setxx()
 </table>
 <table class="docutils align-default" id="id19">
 <caption><span class="caption-number">Table 24 </span><span class="caption-text">Logic operators for cpu032II</span><a class="headerlink" href="#id19" title="Permalink to this table">¶</a></caption>
-<colgroup>
-<col style="width: 10%" />
-<col style="width: 32%" />
-<col style="width: 35%" />
-<col style="width: 23%" />
-</colgroup>
 <thead>
 <tr class="row-odd"><th class="head"><p>C</p></th>
 <th class="head"><p>.bc</p></th>
@@ -2214,7 +2186,7 @@ cmp uses $sw dedicated register.</p>
 above result. Regardless of the move between $sw and general purpose register
 in <cite>llc -mcpu=cpu032I</cite>, the two cmp instructions in it will has hazard in
 instruction reorder since both of them use $sw register. The
-<cite>llc -mcpu=cpu032II</cite> has not this problem because it uses slti <a class="footnote-reference brackets" href="#quantitative" id="id9">9</a>.
+<cite>llc -mcpu=cpu032II</cite> has not this problem because it uses slti <a class="footnote-reference brackets" href="#quantitative" id="id9" role="doc-noteref"><span class="fn-bracket">[</span>9<span class="fn-bracket">]</span></a>.
 The slti version can reorder as follows,</p>
 <div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">...</span>
 <span class="go">ld  $2, 16($sp)</span>
@@ -2234,19 +2206,13 @@ these two instructions, the slt takes the priority since
 Cpu0InstrInfo.td.</p>
 </section>
 <section id="summary">
-<h2><a class="toc-backref" href="#id31">Summary</a><a class="headerlink" href="#summary" title="Permalink to this headline">¶</a></h2>
+<h2><a class="toc-backref" href="#id31" role="doc-backlink">Summary</a><a class="headerlink" href="#summary" title="Permalink to this heading">¶</a></h2>
 <p>List C operators, IR of .bc, Optimized legalized selection DAG and Cpu0
 instructions implemented in this chapter in Table: Chapter 4 mathmetic
 operators. There are over 20 operators totally in mathmetic and logic support in
 this chapter and spend 4xx lines of source code.</p>
 <table class="docutils align-default" id="id20">
 <caption><span class="caption-number">Table 25 </span><span class="caption-text">Chapter 4 mathmetic operators</span><a class="headerlink" href="#id20" title="Permalink to this table">¶</a></caption>
-<colgroup>
-<col style="width: 15%" />
-<col style="width: 30%" />
-<col style="width: 33%" />
-<col style="width: 23%" />
-</colgroup>
 <thead>
 <tr class="row-odd"><th class="head"><p>C</p></th>
 <th class="head"><p>.bc</p></th>
@@ -2364,36 +2330,45 @@ this chapter and spend 4xx lines of source code.</p>
 </tr>
 </tbody>
 </table>
-<dl class="footnote brackets">
-<dt class="label" id="instrstage"><span class="brackets"><a class="fn-backref" href="#id1">1</a></span></dt>
-<dd><p><a class="reference external" href="http://llvm.org/docs/doxygen/html/structllvm_1_1InstrStage.html">http://llvm.org/docs/doxygen/html/structllvm_1_1InstrStage.html</a></p>
-</dd>
-<dt class="label" id="arithmetic-shift"><span class="brackets"><a class="fn-backref" href="#id2">2</a></span></dt>
-<dd><p><a class="reference external" href="https://open4tech.com/logical-vs-arithmetic-shift">https://open4tech.com/logical-vs-arithmetic-shift</a></p>
-</dd>
-<dt class="label" id="ashr"><span class="brackets"><a class="fn-backref" href="#id3">3</a></span></dt>
-<dd><p><a class="reference external" href="http://llvm.org/docs/LangRef.html#ashr-instruction">http://llvm.org/docs/LangRef.html#ashr-instruction</a></p>
-</dd>
-<dt class="label" id="lshr"><span class="brackets"><a class="fn-backref" href="#id4">4</a></span></dt>
-<dd><p><a class="reference external" href="http://llvm.org/docs/LangRef.html#lshr-instruction">http://llvm.org/docs/LangRef.html#lshr-instruction</a></p>
-</dd>
-<dt class="label" id="instructionsel"><span class="brackets"><a class="fn-backref" href="#id5">5</a></span></dt>
-<dd><p><a class="reference external" href="http://llvm.org/docs/CodeGenerator.html#selectiondag-instruction-selection-process">http://llvm.org/docs/CodeGenerator.html#selectiondag-instruction-selection-process</a></p>
-</dd>
-<dt class="label" id="srem"><span class="brackets"><a class="fn-backref" href="#id6">6</a></span></dt>
-<dd><p><a class="reference external" href="http://llvm.org/docs/LangRef.html#srem-instruction">http://llvm.org/docs/LangRef.html#srem-instruction</a></p>
-</dd>
-<dt class="label" id="expand"><span class="brackets"><a class="fn-backref" href="#id7">7</a></span></dt>
-<dd><p><a class="reference external" href="http://llvm.org/docs/WritingAnLLVMBackend.html#expand">http://llvm.org/docs/WritingAnLLVMBackend.html#expand</a></p>
-</dd>
-<dt class="label" id="legalizetypes"><span class="brackets"><a class="fn-backref" href="#id8">8</a></span></dt>
-<dd><p><a class="reference external" href="http://llvm.org/docs/CodeGenerator.html#selectiondag-legalizetypes-phase">http://llvm.org/docs/CodeGenerator.html#selectiondag-legalizetypes-phase</a></p>
-</dd>
-<dt class="label" id="quantitative"><span class="brackets"><a class="fn-backref" href="#id9">9</a></span></dt>
-<dd><p>See book Computer Architecture: A Quantitative Approach (The Morgan
+<aside class="footnote-list brackets">
+<aside class="footnote brackets" id="instrstage" role="note">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id1">1</a><span class="fn-bracket">]</span></span>
+<p><a class="reference external" href="http://llvm.org/docs/doxygen/html/structllvm_1_1InstrStage.html">http://llvm.org/docs/doxygen/html/structllvm_1_1InstrStage.html</a></p>
+</aside>
+<aside class="footnote brackets" id="arithmetic-shift" role="note">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id2">2</a><span class="fn-bracket">]</span></span>
+<p><a class="reference external" href="https://open4tech.com/logical-vs-arithmetic-shift">https://open4tech.com/logical-vs-arithmetic-shift</a></p>
+</aside>
+<aside class="footnote brackets" id="ashr" role="note">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id3">3</a><span class="fn-bracket">]</span></span>
+<p><a class="reference external" href="http://llvm.org/docs/LangRef.html#ashr-instruction">http://llvm.org/docs/LangRef.html#ashr-instruction</a></p>
+</aside>
+<aside class="footnote brackets" id="lshr" role="note">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id4">4</a><span class="fn-bracket">]</span></span>
+<p><a class="reference external" href="http://llvm.org/docs/LangRef.html#lshr-instruction">http://llvm.org/docs/LangRef.html#lshr-instruction</a></p>
+</aside>
+<aside class="footnote brackets" id="instructionsel" role="note">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id5">5</a><span class="fn-bracket">]</span></span>
+<p><a class="reference external" href="http://llvm.org/docs/CodeGenerator.html#selectiondag-instruction-selection-process">http://llvm.org/docs/CodeGenerator.html#selectiondag-instruction-selection-process</a></p>
+</aside>
+<aside class="footnote brackets" id="srem" role="note">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id6">6</a><span class="fn-bracket">]</span></span>
+<p><a class="reference external" href="http://llvm.org/docs/LangRef.html#srem-instruction">http://llvm.org/docs/LangRef.html#srem-instruction</a></p>
+</aside>
+<aside class="footnote brackets" id="expand" role="note">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id7">7</a><span class="fn-bracket">]</span></span>
+<p><a class="reference external" href="http://llvm.org/docs/WritingAnLLVMBackend.html#expand">http://llvm.org/docs/WritingAnLLVMBackend.html#expand</a></p>
+</aside>
+<aside class="footnote brackets" id="legalizetypes" role="note">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id8">8</a><span class="fn-bracket">]</span></span>
+<p><a class="reference external" href="http://llvm.org/docs/CodeGenerator.html#selectiondag-legalizetypes-phase">http://llvm.org/docs/CodeGenerator.html#selectiondag-legalizetypes-phase</a></p>
+</aside>
+<aside class="footnote brackets" id="quantitative" role="note">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id9">9</a><span class="fn-bracket">]</span></span>
+<p>See book Computer Architecture: A Quantitative Approach (The Morgan
 Kaufmann Series in Computer Architecture and Design)</p>
-</dd>
-</dl>
+</aside>
+</aside>
 </section>
 </section>
 
@@ -2413,7 +2388,7 @@ Kaufmann Series in Computer Architecture and Design)</p>
 
     <div class="footer" role="contentinfo">
         &#169; Copyright 2016, Chen Chung-Shu.
-      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 4.4.0.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 5.1.1.
     </div>
   </body>
 </html>

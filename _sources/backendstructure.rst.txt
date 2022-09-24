@@ -825,7 +825,7 @@ The following code is the result of running Mips backend with ch3.cpp.
 
 .. code-block:: console
   
-  JonathantekiiMac:input Jonathan$ ~/llvm/release/build/bin/llc 
+  JonathantekiiMac:input Jonathan$ ~/llvm/debug/build/bin/llc 
   -march=mips -relocation-model=pic -filetype=asm ch3.bc -o -
     .text
     .abicalls
@@ -890,7 +890,7 @@ spill $ra register. This will save a lot of time if it is in a hot function.
   
   JonathantekiiMac:input Jonathan$ clang -target mips-unknown-linux-gnu -c 
   ch8_2_longbranch.cpp -emit-llvm -o ch8_2_longbranch.bc
-  JonathantekiiMac:input Jonathan$ ~/llvm/release/build/bin/llc 
+  JonathantekiiMac:input Jonathan$ ~/llvm/debug/build/bin/llc 
   -march=mips -relocation-model=pic -filetype=asm -force-mips-long-branch 
   ch8_2_longbranch.bc -o -
     ...

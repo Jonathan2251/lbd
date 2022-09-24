@@ -988,7 +988,7 @@ Compile it with debug build clang for O3 as follows,
 
 .. code-block:: console
   
-  114-43-212-251:input Jonathan$ ~/llvm/release/build/bin/clang  
+  114-43-212-251:input Jonathan$ ~/llvm/debug/build/bin/clang  
   -O3 -target mips-unknown-linux-gnu -c ch8_2_phinode.cpp -emit-llvm -o 
   ch8_2_phinode.bc
   114-43-212-251:input Jonathan$ ~/llvm/test/build/bin/llvm-dis 
@@ -1031,7 +1031,7 @@ from different basic block.
   
 .. code-block:: console
   
-  114-43-212-251:input Jonathan$ ~/llvm/release/build/bin/clang 
+  114-43-212-251:input Jonathan$ ~/llvm/debug/build/bin/clang 
   -O0 -target mips-unknown-linux-gnu -c ch8_2_phinode.cpp -emit-llvm -o 
   ch8_2_phinode.bc
   114-43-212-251:input Jonathan$ ~/llvm/test/build/bin/llvm-dis 

@@ -608,6 +608,28 @@ Now, you find llvm IR expanding from cpu to gpu becoming influentially more and
 more. And actually, llvm IR expanding from version 3.1 util now as I can feel.
 
 
+Accelerate ML/DL on OpenCL/SYCL
+-------------------------------
+
+.. _opengl_ml_graph: 
+.. figure:: ../Fig/gpu/opencl_ml_graph.png
+  :align: center
+  :scale: 50 %
+
+  Implement ML graph scheduler both on compiler and runtime
+
+
+As above figure, the Device of GPU or CPU+NPU is able to run the whole ML graph. 
+However if the Device has NPU only, then the CPU operation such as Avg-Pool
+has to run on Host side which add communication cost between Host and Device.
+ 
+In order to run ML (Machine Learning) efficiently, all platforms for ML on 
+GPU/NPU implement scheduling SW both on graph compiler and runtime. 
+If OpenCL can extend to support ML graph, then graph compiler such as TVM or 
+Runtime from Open Source has chance to leverage the effort of scheduling SW from 
+programmers [#paper-graph-on-opencl]_. Cuda graph is an idea  like this 
+[#cuda-graph-blog]_ [#cuda-graph-pytorch]_ .
+
 
 .. [#polygon] https://www.quora.com/Which-one-is-better-for-3D-modeling-Quads-or-Tris
 
@@ -732,4 +754,10 @@ more. And actually, llvm IR expanding from version 3.1 util now as I can feel.
 
 .. [#openclexfft] https://en.wikipedia.org/wiki/OpenCL
 
-.. [#opencl-wiki-supported-lang] The OpenCL standard defines host APIs for C and C++; third-party APIs exist for other programming languages and platforms such as Python,[14] Java, Perl[15] and .NET.[11]:15 https://en.wikipedia.org/wiki/OpenCL
+.. [#opencl-wiki-supported-lang] The OpenCL standard defines host APIs for C and C++; third-party APIs exist for other programming languages and platforms such as Python,[15] Java, Perl[15] and .NET.[11]:15 https://en.wikipedia.org/wiki/OpenCL
+
+.. [#paper-graph-on-opencl] https://easychair.org/publications/preprint/GjhX
+
+.. [#cuda-graph-blog] https://developer.nvidia.com/blog/cuda-graphs/
+
+.. [#cuda-graph-pytorch] https://pytorch.org/blog/accelerating-pytorch-with-cuda-graphs/
