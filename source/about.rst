@@ -61,7 +61,11 @@ https://github.com/Jonathan2251/lbd/blob/master/README.md
 Revision history
 ----------------
 
-Version 12.0.7, not released yet.
+Version 12.0.8, not released yet.
+
+Version 12.0.7, Released September 24, 2022.
+
+  Atomic, section of Accelerate ML/DL on OpenCL/SYC and refine Makefile and install.rst
 
 Version 12.0.6, Released August 16, 2022.
 
