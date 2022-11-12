@@ -1,0 +1,46 @@
+#!/usr/bin/python3.6
+# -*- coding: utf-8 -*-
+
+import os
+
+llvm_project_dir = os.environ["LLVM_DIR"]
+print('llvm_project_dir: ', llvm_project_dir)
+install_dir = r'/usr/local/riscv/andes/riscv_newlib'
+
+import sys
+
+config_map = {}
+
+def map_config(source_dir, site_config):
+    global config_map
+    source_dir = os.path.realpath(source_dir)
+    source_dir = os.path.normcase(source_dir)
+    site_config = os.path.normpath(site_config)
+    config_map[source_dir] = site_config
+
+# Set up some builtin parameters, so that by default the LLVM test suite
+# configuration file knows how to find the object tree.
+builtin_parameters = { 'build_mode' : '.' }
+
+# Allow generated file to be relocatable.
+from pathlib import Path
+def path(p):
+    if not p: return ''
+    return str((Path(__file__).parent / p).resolve())
+
+
+map_config(path(llvm_project_dir)+path(r'/clang/test/lit.cfg.py'), path(install_dir)+path(r'/tools/clang/test/lit.site.cfg.py'))
+map_config(path(llvm_project_dir)+path(r'/clang/test/Unit/lit.cfg.py'), path(install_dir)+path(r'/tools/clang/test/Unit/lit.site.cfg.py'))
+map_config(path(llvm_project_dir)+path(r'/llvm/utils/lit/tests/lit.cfg'), path(install_dir)+path(r'/utils/lit/lit.site.cfg'))
+map_config(path(llvm_project_dir)+path(r'/llvm/test/lit.cfg.py'), path(install_dir)+path(r'/test/lit.site.cfg.py'))
+map_config(path(llvm_project_dir)+path(r'/llvm/test/Unit/lit.cfg.py'), path(install_dir)+path(r'/test/Unit/lit.site.cfg.py'))
+
+builtin_parameters['config_map'] = config_map
+
+# Make sure we can find the lit package.
+llvm_source_root = path(llvm_project_dir)+path(r'/llvm')
+sys.path.insert(0, os.path.join(llvm_source_root, 'utils', 'lit'))
+
+if __name__=='__main__':
+    from lit.main import main
+    main(builtin_parameters)

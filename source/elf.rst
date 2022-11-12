@@ -79,10 +79,10 @@ Let's run Chapter9_3/ with ch6_1.cpp, and dump ELF header information by
 
 .. code-block:: console
 
-  [Gamma@localhost input]$ ~/llvm/test/build/bin/llc -march=cpu0 
+  input$ ~/llvm/test/build/bin/llc -march=cpu0 
   -relocation-model=pic -filetype=obj ch6_1.bc -o ch6_1.cpu0.o
   
-  [Gamma@localhost input]$ llvm-readelf -h ch6_1.cpu0.o 
+  input$ llvm-readelf -h ch6_1.cpu0.o 
     Magic:   7f 45 4c 46 01 02 01 03 00 00 00 00 00 00 00 00 
     Class:                             ELF32
     Data:                              2's complement, big endian
@@ -102,12 +102,12 @@ Let's run Chapter9_3/ with ch6_1.cpp, and dump ELF header information by
     Size of section headers:           40 (bytes)
     Number of section headers:         8
     Section header string table index: 5
-  [Gamma@localhost input]$ 
+  input$ 
 
-  [Gamma@localhost input]$ ~/llvm/test/build/bin/llc 
+  input$ ~/llvm/test/build/bin/llc 
   -march=mips -relocation-model=pic -filetype=obj ch6_1.bc -o ch6_1.mips.o
   
-  [Gamma@localhost input]$ llvm-readelf -h ch6_1.mips.o 
+  input$ llvm-readelf -h ch6_1.mips.o 
   ELF Header:
     Magic:   7f 45 4c 46 01 02 01 03 00 00 00 00 00 00 00 00 
     Class:                             ELF32
@@ -128,7 +128,7 @@ Let's run Chapter9_3/ with ch6_1.cpp, and dump ELF header information by
     Size of section headers:           40 (bytes)
     Number of section headers:         9
     Section header string table index: 6
-  [Gamma@localhost input]$ 
+  input$ 
 
 
 As above ELF header display, it contains information of magic number, version, 
@@ -139,10 +139,10 @@ Let's check ELF segments information as follows,
 
 .. code-block:: console
 
-  [Gamma@localhost input]$ llvm-readelf -l ch6_1.cpu0.o 
+  input$ llvm-readelf -l ch6_1.cpu0.o 
   
   There are no program headers in this file.
-  [Gamma@localhost input]$ 
+  input$ 
 
 
 The result is in expectation because cpu0 obj is for link only, not for 
@@ -153,7 +153,7 @@ Every section contains offset and size information.
 
 .. code-block:: console
 
-  [Gamma@localhost input]$ llvm-readelf -S ch6_1.cpu0.o 
+  input$ llvm-readelf -S ch6_1.cpu0.o 
   There are 10 section headers, starting at offset 0xd4:
   
   Section Headers:
@@ -172,7 +172,7 @@ Every section contains offset and size information.
     W (write), A (alloc), X (execute), M (merge), S (strings)
     I (info), L (link order), G (group), T (TLS), E (exclude), x (unknown)
     O (extra OS processing required) o (OS specific), p (processor specific)
-  [Gamma@localhost input]$ 
+  input$ 
 
 
 
@@ -183,11 +183,11 @@ Cpu0 backend translate global variable as follows,
 
 .. code-block:: console
 
-  [Gamma@localhost input]$ clang -target mips-unknown-linux-gnu -c ch6_1.cpp 
+  input$ clang -target mips-unknown-linux-gnu -c ch6_1.cpp 
   -emit-llvm -o ch6_1.bc
-  [Gamma@localhost input]$ ~/llvm/test/build/
+  input$ ~/llvm/test/build/
   bin/llc -march=cpu0 -relocation-model=pic -filetype=asm ch6_1.bc -o ch6_1.cpu0.s
-  [Gamma@localhost input]$ cat ch6_1.cpu0.s 
+  input$ cat ch6_1.cpu0.s 
     .section .mdebug.abi32
     .previous
     .file "ch6_1.bc"
@@ -212,9 +212,9 @@ Cpu0 backend translate global variable as follows,
     .size gI, 4
   
   
-  [Gamma@localhost input]$ ~/llvm/test/build/
+  input$ ~/llvm/test/build/
   bin/llc -march=cpu0 -relocation-model=pic -filetype=obj ch6_1.bc -o ch6_1.cpu0.o
-  [Gamma@localhost input]$ llvm-objdump -s ch6_1.cpu0.o
+  input$ llvm-objdump -s ch6_1.cpu0.o
   
   ch6_1.cpu0.o:     file format elf32-big
   
@@ -224,9 +224,9 @@ Cpu0 backend translate global variable as follows,
    ...
    0020 002a0000 00220000 012d0000 0ddd0008  .*..."...-......
    ...
-  [Gamma@localhost input]$ Jonathan$ 
+  input$
   
-  [Gamma@localhost input]$ llvm-readelf -tr ch6_1.cpu0.o 
+  input$ llvm-readelf -tr ch6_1.cpu0.o 
   There are 8 section headers, starting at offset 0xb0:
 
   Section Headers:
@@ -266,7 +266,7 @@ Cpu0 backend translate global variable as follows,
   00000028  00000617 unrecognized: 17      00000004   gI
 
   
-  [Gamma@localhost input]$ llvm-readelf -tr ch6_1.mips.o 
+  input$ llvm-readelf -tr ch6_1.mips.o 
   There are 9 section headers, starting at offset 0xc8:
 
   Section Headers:

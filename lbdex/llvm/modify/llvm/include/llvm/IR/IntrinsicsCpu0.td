@@ -11,7 +11,8 @@
 //
 //===----------------------------------------------------------------------===//
 
+// __builtin_cpu0_gcd defined in
+// https://github.com/Jonathan2251/lbt/blob/master/exlbt/clang/include/clang/Basic/BuiltinsCpu0.def
 def int_cpu0_gcd : GCCBuiltin<"__builtin_cpu0_gcd">,
   Intrinsic<[llvm_i32_ty], [llvm_i32_ty, llvm_i32_ty],
   [Commutative, IntrNoMem]>;
-

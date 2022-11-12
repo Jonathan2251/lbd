@@ -2,9 +2,9 @@
 
 define i32 @llvm_cpu0_gcd_soft_test(i32 %a, i32 %b) nounwind {
 entry:
-  %res = tail call i32 @llvm.cpu0.gcd.soft(i32 %a, i32 %b)
+  %res = tail call i32 @cpu0_gcd_soft(i32 %a, i32 %b)
   ret i32 %res
 }
 
-declare i32 @llvm.cpu0.gcd.soft(i32, i32) nounwind
+declare i32 @cpu0_gcd_soft(i32, i32) nounwind
 

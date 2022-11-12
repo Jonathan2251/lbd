@@ -193,14 +193,14 @@ Run as follows for test on Linux.
 
 .. code-block:: console
 
-  [Gamma@localhost Cpu0]$ pwd
+  $ pwd
   /home/cschen/llvm/test/llvm/test/CodeGen/Cpu0
-  [Gamma@localhost Cpu0]$ ~/llvm/test/build/bin/llvm-lit seteq.ll
+  $ ~/llvm/test/build/bin/llvm-lit seteq.ll
   -- Testing: 1 tests, 1 threads --
   PASS: LLVM :: CodeGen/Cpu0/seteq.ll (1 of 1)
   Testing Time: 0.08s
     Expected Passes    : 1
-  [Gamma@localhost Cpu0]$ ~/llvm/test/build/bin/llvm-lit .
+  $ ~/llvm/test/build/bin/llvm-lit .
   ...
   PASS: LLVM :: CodeGen/Cpu0/zeroreg.ll
   PASS: LLVM :: CodeGen/Cpu0/tailcall.ll
@@ -390,6 +390,23 @@ to T1 at the corresponding registers of these two assembly output.
 .. literalinclude:: ../lbdex/regression-test/Cpu0/setule.ll
 
 
+Run regression test must after build llvm. The following READ.rst and changes
+in related config files and llvm-lit allowing to setup llvm-lit for pre-build/
+pre-installed llvm for running llvm-lit without build llvm.
+
+.. rubric:: lbdex/set-llvm-lit/README.txt
+.. literalinclude:: ../lbdex/set-llvm-lit/README.txt
+
+set-llvm-lit % `diff -r origin modify &> set-llvm-lit.diff`
+
+.. rubric:: lbdex/set-llvm-lit/set-llvm-lit.diff
+.. literalinclude:: ../lbdex/set-llvm-lit/set-llvm-lit.diff
+
+- Only tools/clang/test/lit.site.cfg.py and test/lit.site.cfg.py need to be 
+  modified.
+  The other tools/clang/test/Unit/lit.site.cfg.py, test/Unit/lit.site.cfg.py and
+  utils/lit/tests/lit.site.cfg.in are empty and useless. However I modify them 
+  either.
 
 
 .. [#sphinx-install] https://www.sphinx-doc.org/en/master/usage/installation.html

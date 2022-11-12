@@ -558,7 +558,12 @@ float and double
 
 Cpu0 only has integer instructions at this point. 
 For float operations, Cpu0 backend
-will call the library function to translate integer to float. This float (or 
+will call the library function to translate integer to float as follows,
+
+.. rubric:: lbdex/input/ch7_1_fmul.c
+.. literalinclude:: ../lbdex/input/ch7_1_fmul.c
+
+This float (or 
 double) function call for Cpu0 will be supported after the chapter of function 
 call. For hardware cost reason, many CPU have no hardware float instructions.
 They call library function to finish float operations. Mips sperarate float 
