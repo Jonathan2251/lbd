@@ -61,7 +61,13 @@ https://github.com/Jonathan2251/lbd/blob/master/README.md
 Revision history
 ----------------
 
-Version 12.0.8, not released yet.
+Version 12.0.9, not released yet.
+
+Version 12.0.8, Released November 12, 2022.
+
+  install.rst: section Toolchain and Brew install in China.
+  Section Work flow of genobj.rst.
+  set-llvm-lit.
 
 Version 12.0.7, Released September 24, 2022.
 

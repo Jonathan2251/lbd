@@ -4,7 +4,7 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
     <title>C++ support &#8212; Tutorial: Creating an LLVM Backend for the Cpu0 Architecture</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
@@ -167,111 +167,7 @@ as the following will generate these exception handler IRs both on iMac and Linu
 <span class="go">bin/llvm-dis ch12_eh.bc -o -</span>
 </pre></div>
 </div>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>; ModuleID = &#39;ch12_eh.bc&#39;
-source_filename = &quot;input/ch12_eh.cpp&quot;
-target datalayout = &quot;E-m:m-p:32:32-i8:8:32-i16:16:32-i64:64-n32-S64&quot;
-target triple = &quot;mips-unknown-linux-gnu&quot;
-
-%class.Ex1 = type { i8 }
-
-$_ZTS3Ex1 = comdat any
-
-$_ZTI3Ex1 = comdat any
-
-@_ZTVN10__cxxabiv117__class_type_infoE = external dso_local global i8*
-@_ZTS3Ex1 = linkonce_odr dso_local constant [5 x i8] c&quot;3Ex1\00&quot;, comdat, align 1
-@_ZTI3Ex1 = linkonce_odr dso_local constant { i8*, i8* } { i8* bitcast (i8** get
-elementptr inbounds (i8*, i8** @_ZTVN10__cxxabiv117__class_type_infoE, i32 2) to
- i8*), i8* getelementptr inbounds ([5 x i8], [5 x i8]* @_ZTS3Ex1, i32 0, i32 0) 
-}, comdat, align 4
-
-; Function Attrs: noinline optnone mustprogress
-define dso_local void @_Z15throw_exceptionii(i32 signext %a, i32 signext %b) #0 
-{
-entry:
-  %a.addr = alloca i32, align 4
-  %b.addr = alloca i32, align 4
-  %ex1 = alloca %class.Ex1, align 1
-  store i32 %a, i32* %a.addr, align 4
-  store i32 %b, i32* %b.addr, align 4
-  %0 = load i32, i32* %a.addr, align 4
-  %1 = load i32, i32* %b.addr, align 4
-  %cmp = icmp sgt i32 %0, %1
-  br i1 %cmp, label %if.then, label %if.end
-
-if.then:                                          ; preds = %entry
-  %exception = call i8* @__cxa_allocate_exception(i32 1) #1
-  %2 = bitcast i8* %exception to %class.Ex1*
-  call void @__cxa_throw(i8* %exception, i8* bitcast ({ i8*, i8* }* @_ZTI3Ex1 to
- i8*), i8* null) #2
-  unreachable
-
-if.end:                                           ; preds = %entry
-  ret void
-}
-
-declare dso_local i8* @__cxa_allocate_exception(i32)
-
-declare dso_local void @__cxa_throw(i8*, i8*, i8*)
-
-; Function Attrs: noinline optnone mustprogress
-define dso_local i32 @_Z14test_try_catchv() #0 personality i8* bitcast (i32 (...
-)* @__gxx_personality_v0 to i8*) {
-entry:
-  %retval = alloca i32, align 4
-  %exn.slot = alloca i8*, align 4
-  %ehselector.slot = alloca i32, align 4
-  invoke void @_Z15throw_exceptionii(i32 signext 2, i32 signext 1)
-          to label %invoke.cont unwind label %lpad
-
-invoke.cont:                                      ; preds = %entry
-  br label %try.cont
-
-lpad:                                             ; preds = %entry
-  %0 = landingpad { i8*, i32 }
-          catch i8* null
-  %1 = extractvalue { i8*, i32 } %0, 0
-  store i8* %1, i8** %exn.slot, align 4
-  %2 = extractvalue { i8*, i32 } %0, 1
-  store i32 %2, i32* %ehselector.slot, align 4
-  br label %catch
-
-catch:                                            ; preds = %lpad
-  %exn = load i8*, i8** %exn.slot, align 4
-  %3 = call i8* @__cxa_begin_catch(i8* %exn) #1
-  store i32 1, i32* %retval, align 4
-  call void @__cxa_end_catch()
-  br label %return
-
-try.cont:                                         ; preds = %invoke.cont
-  store i32 0, i32* %retval, align 4
-  br label %return
-
-return:                                           ; preds = %try.cont, %catch
-  %4 = load i32, i32* %retval, align 4
-  ret i32 %4
-}
-
-declare dso_local i32 @__gxx_personality_v0(...)
-
-declare dso_local i8* @__cxa_begin_catch(i8*)
-
-declare dso_local void @__cxa_end_catch()
-
-attributes #0 = { noinline optnone mustprogress &quot;disable-tail-calls&quot;=&quot;false&quot; &quot;fr
-ame-pointer&quot;=&quot;all&quot; &quot;less-precise-fpmad&quot;=&quot;false&quot; &quot;min-legal-vector-width&quot;=&quot;0&quot; &quot;no
--infs-fp-math&quot;=&quot;false&quot; &quot;no-jump-tables&quot;=&quot;false&quot; &quot;no-nans-fp-math&quot;=&quot;false&quot; &quot;no-si
-gned-zeros-fp-math&quot;=&quot;false&quot; &quot;no-trapping-math&quot;=&quot;true&quot; &quot;stack-protector-buffer-si
-ze&quot;=&quot;8&quot; &quot;target-cpu&quot;=&quot;mips32r2&quot; &quot;target-features&quot;=&quot;+mips32r2,-noabicalls&quot; &quot;unsaf
-e-fp-math&quot;=&quot;false&quot; &quot;use-soft-float&quot;=&quot;false&quot; }
-attributes #1 = { nounwind }
-attributes #2 = { noreturn }
-
-!llvm.module.flags = !{!0}
-!llvm.ident = !{!1}
-
-!0 = !{i32 1, !&quot;wchar_size&quot;, i32 4}
-!1 = !{!&quot;clang version 12.0.1&quot;}
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>
 </pre></div>
 </div>
 <div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">JonathantekiiMac:input Jonathan$ </span>/Users/Jonathan/llvm/test/build/
@@ -310,171 +206,7 @@ exception C++ keywords. It can compile ch12_eh.bc as follows,</p>
 <span class="go">bin/llc -march=cpu0 -relocation-model=static -filetype=asm ch12_eh.bc -o -</span>
 </pre></div>
 </div>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>  .text
-  .section .mdebug.abiO32
-  .previous
-  .file  &quot;ch12_eh.cpp&quot;
-  .globl  _Z15throw_exceptionii           # -- Begin function _Z15throw_exceptio
-nii
-  .p2align  1
-  .type  _Z15throw_exceptionii,@function
-  .ent  _Z15throw_exceptionii           # @_Z15throw_exceptionii
-_Z15throw_exceptionii:
-  .cfi_startproc
-  .frame  $fp,40,$lr
-  .mask   0x00005000,-4
-  .set  noreorder
-  .set  nomacro
-# %bb.0:                                # %entry
-  addiu  $sp, $sp, -40
-  .cfi_def_cfa_offset 40
-  st  $lr, 36($sp)                    # 4-byte Folded Spill
-  st  $fp, 32($sp)                    # 4-byte Folded Spill
-  .cfi_offset 14, -4
-  .cfi_offset 12, -8
-  move  $fp, $sp
-  .cfi_def_cfa_register 12
-  st  $4, 28($fp)
-  st  $5, 24($fp)
-  ld  $2, 28($fp)
-  ld  $3, 24($fp)
-  cmp  $sw, $2, $3
-  jle  $sw, $BB0_2
-  nop
-# %bb.1:                                # %if.then
-  addiu  $4, $zero, 1
-  jsub  __cxa_allocate_exception
-  nop
-  addu  $4, $zero, $2
-  addiu  $2, $zero, 0
-  st  $2, 8($sp)
-  lui  $2, %hi(_ZTI3Ex1)
-  ori  $5, $2, %lo(_ZTI3Ex1)
-  jsub  __cxa_throw
-  nop
-$BB0_2:                                 # %if.end
-  move  $sp, $fp
-  ld  $fp, 32($sp)                    # 4-byte Folded Reload
-  ld  $lr, 36($sp)                    # 4-byte Folded Reload
-  addiu  $sp, $sp, 40
-  ret  $lr
-  nop
-  .set  macro
-  .set  reorder
-  .end  _Z15throw_exceptionii
-$func_end0:
-  .size  _Z15throw_exceptionii, ($func_end0)-_Z15throw_exceptionii
-  .cfi_endproc
-                                        # -- End function
-  .globl  _Z14test_try_catchv             # -- Begin function _Z14test_try_catch
-v
-  .p2align  1
-  .type  _Z14test_try_catchv,@function
-  .ent  _Z14test_try_catchv             # @_Z14test_try_catchv
-_Z14test_try_catchv:
-$tmp3:
-.set $func_begin0, ($tmp3)
-  .cfi_startproc
-  .cfi_personality 0, __gxx_personality_v0
-  .cfi_lsda 0, $exception0
-  .frame  $fp,32,$lr
-  .mask   0x00005000,-4
-  .set  noreorder
-  .set  nomacro
-# %bb.0:                                # %entry
-  addiu  $sp, $sp, -32
-  .cfi_def_cfa_offset 32
-  st  $lr, 28($sp)                    # 4-byte Folded Spill
-  st  $fp, 24($sp)                    # 4-byte Folded Spill
-  .cfi_offset 14, -4
-  .cfi_offset 12, -8
-  move  $fp, $sp
-  .cfi_def_cfa_register 12
-$tmp0:
-  addiu  $4, $zero, 2
-  addiu  $5, $zero, 1
-  jsub  _Z15throw_exceptionii
-  nop
-$tmp1:
-# %bb.1:                                # %invoke.cont
-  jmp  $BB1_4
-$BB1_2:                                 # %lpad
-$tmp2:
-  st  $4, 16($fp)
-  st  $5, 12($fp)
-# %bb.3:                                # %catch
-  ld  $4, 16($fp)
-  jsub  __cxa_begin_catch
-  nop
-  addiu  $2, $zero, 1
-  st  $2, 20($fp)
-  jsub  __cxa_end_catch
-  nop
-  jmp  $BB1_5
-$BB1_4:                                 # %try.cont
-  addiu  $2, $zero, 0
-  st  $2, 20($fp)
-$BB1_5:                                 # %return
-  ld  $2, 20($fp)
-  move  $sp, $fp
-  ld  $fp, 24($sp)                    # 4-byte Folded Reload
-  ld  $lr, 28($sp)                    # 4-byte Folded Reload
-  addiu  $sp, $sp, 32
-  ret  $lr
-  nop
-  .set  macro
-  .set  reorder
-  .end  _Z14test_try_catchv
-$func_end1:
-  .size  _Z14test_try_catchv, ($func_end1)-_Z14test_try_catchv
-  .cfi_endproc
-  .section  .gcc_except_table,&quot;a&quot;,@progbits
-  .p2align  2
-GCC_except_table1:
-$exception0:
-  .byte  255                             # @LPStart Encoding = omit
-  .byte  0                               # @TType Encoding = absptr
-  .uleb128 ($ttbase0)-($ttbaseref0)
-$ttbaseref0:
-  .byte  1                               # Call site Encoding = uleb128
-  .uleb128 ($cst_end0)-($cst_begin0)
-$cst_begin0:
-  .uleb128 ($tmp0)-($func_begin0)         # &gt;&gt; Call Site 1 &lt;&lt;
-  .uleb128 ($tmp1)-($tmp0)                #   Call between $tmp0 and $tmp1
-  .uleb128 ($tmp2)-($func_begin0)         #     jumps to $tmp2
-  .byte  1                               #   On action: 1
-  .uleb128 ($tmp1)-($func_begin0)         # &gt;&gt; Call Site 2 &lt;&lt;
-  .uleb128 ($func_end1)-($tmp1)           #   Call between $tmp1 and $func_end1
-  .byte  0                               #     has no landing pad
-  .byte  0                               #   On action: cleanup
-$cst_end0:
-  .byte  1                               # &gt;&gt; Action Record 1 &lt;&lt;
-                                        #   Catch TypeInfo 1
-  .byte  0                               #   No further actions
-  .p2align  2
-                                        # &gt;&gt; Catch TypeInfos &lt;&lt;
-  .4byte  0                               # TypeInfo 1
-$ttbase0:
-  .p2align  2
-                                        # -- End function
-  .type  _ZTS3Ex1,@object                # @_ZTS3Ex1
-  .section  .rodata._ZTS3Ex1,&quot;aG&quot;,@progbits,_ZTS3Ex1,comdat
-  .weak  _ZTS3Ex1
-_ZTS3Ex1:
-  .asciz  &quot;3Ex1&quot;
-  .size  _ZTS3Ex1, 5
-
-  .type  _ZTI3Ex1,@object                # @_ZTI3Ex1
-  .section  .rodata._ZTI3Ex1,&quot;aG&quot;,@progbits,_ZTI3Ex1,comdat
-  .weak  _ZTI3Ex1
-  .p2align  2
-_ZTI3Ex1:
-  .4byte  _ZTVN10__cxxabiv117__class_type_infoE+8
-  .4byte  _ZTS3Ex1
-  .size  _ZTI3Ex1, 8
-
-  .ident  &quot;clang version 12.0.1&quot;
-  .section  &quot;.note.GNU-stack&quot;,&quot;&quot;,@progbits
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>
 </pre></div>
 </div>
 </section>
@@ -854,54 +586,7 @@ lowerGlobalTLSAddress(SDValue Op, SelectionDAG &amp;DAG) const
 <span class="go">bin/llvm-dis ch12_thread_var.bc -o -</span>
 </pre></div>
 </div>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>; ModuleID = &#39;ch12_thread_var.bc&#39;
-source_filename = &quot;input/ch12_thread_var.cpp&quot;
-target datalayout = &quot;E-m:m-p:32:32-i8:8:32-i16:16:32-i64:64-n32-S64&quot;
-target triple = &quot;mips-unknown-linux-gnu&quot;
-
-$_ZTW1b = comdat any
-
-@a = dso_local thread_local global i32 0, align 4
-@b = dso_local thread_local global i32 0, align 4
-
-; Function Attrs: noinline nounwind optnone mustprogress
-define dso_local i32 @_Z15test_thread_varv() #0 {
-entry:
-  store i32 2, i32* @a, align 4
-  %0 = load i32, i32* @a, align 4
-  ret i32 %0
-}
-
-; Function Attrs: noinline nounwind optnone mustprogress
-define dso_local i32 @_Z17test_thread_var_2v() #0 {
-entry:
-  store i32 3, i32* @b, align 4
-  %0 = load i32, i32* @b, align 4
-  ret i32 %0
-}
-
-; Function Attrs: noinline
-define weak_odr hidden i32* @_ZTW1b() #1 comdat {
-  ret i32* @b
-}
-
-attributes #0 = { noinline nounwind optnone mustprogress &quot;disable-tail-calls&quot;=&quot;f
-alse&quot; &quot;frame-pointer&quot;=&quot;all&quot; &quot;less-precise-fpmad&quot;=&quot;false&quot; &quot;min-legal-vector-width
-&quot;=&quot;0&quot; &quot;no-infs-fp-math&quot;=&quot;false&quot; &quot;no-jump-tables&quot;=&quot;false&quot; &quot;no-nans-fp-math&quot;=&quot;fals
-e&quot; &quot;no-signed-zeros-fp-math&quot;=&quot;false&quot; &quot;no-trapping-math&quot;=&quot;true&quot; &quot;stack-protector-
-buffer-size&quot;=&quot;8&quot; &quot;target-cpu&quot;=&quot;mips32r2&quot; &quot;target-features&quot;=&quot;+mips32r2,-noabicall
-s&quot; &quot;unsafe-fp-math&quot;=&quot;false&quot; &quot;use-soft-float&quot;=&quot;false&quot; }
-attributes #1 = { noinline &quot;disable-tail-calls&quot;=&quot;false&quot; &quot;frame-pointer&quot;=&quot;all&quot; &quot;l
-ess-precise-fpmad&quot;=&quot;false&quot; &quot;no-infs-fp-math&quot;=&quot;false&quot; &quot;no-nans-fp-math&quot;=&quot;false&quot; &quot;
-no-signed-zeros-fp-math&quot;=&quot;false&quot; &quot;no-trapping-math&quot;=&quot;true&quot; &quot;stack-protector-buff
-er-size&quot;=&quot;8&quot; &quot;target-cpu&quot;=&quot;mips32r2&quot; &quot;target-features&quot;=&quot;+mips32r2,-noabicalls&quot; &quot;
-unsafe-fp-math&quot;=&quot;false&quot; &quot;use-soft-float&quot;=&quot;false&quot; }
-
-!llvm.module.flags = !{!0}
-!llvm.ident = !{!1}
-
-!0 = !{i32 1, !&quot;wchar_size&quot;, i32 4}
-!1 = !{!&quot;clang version 12.0.1&quot;}
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>
 </pre></div>
 </div>
 <div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">JonathantekiiMac:input Jonathan$ </span>/Users/Jonathan/llvm/test/build/
@@ -909,153 +594,7 @@ unsafe-fp-math&quot;=&quot;false&quot; &quot;use-soft-float&quot;=&quot;false&qu
 <span class="go">-o -</span>
 </pre></div>
 </div>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>  .text
-  .section .mdebug.abiO32
-  .previous
-  .file  &quot;ch12_thread_var.cpp&quot;
-  .globl  _Z15test_thread_varv            # -- Begin function _Z15test_thread_va
-rv
-  .p2align  1
-  .type  _Z15test_thread_varv,@function
-  .ent  _Z15test_thread_varv            # @_Z15test_thread_varv
-_Z15test_thread_varv:
-  .frame  $fp,16,$lr
-  .mask   0x00005000,-4
-  .set  noreorder
-  .cpload  $t9
-  .set  nomacro
-# %bb.0:                                # %entry
-  addiu  $sp, $sp, -16
-  st  $lr, 12($sp)                    # 4-byte Folded Spill
-  st  $fp, 8($sp)                     # 4-byte Folded Spill
-  move  $fp, $sp
-  .cprestore  8
-  ori  $4, $gp, %tlsldm(a)
-  ld  $t9, %call16(__tls_get_addr)($gp)
-  jalr  $t9
-  nop
-  ld  $gp, 8($fp)
-  lui  $3, %dtp_hi(a)
-  addu  $2, $3, $2
-  ori  $2, $2, %dtp_lo(a)
-  addiu  $3, $zero, 2
-  st  $3, 0($2)
-  ld  $2, 0($2)
-  move  $sp, $fp
-  ld  $fp, 8($sp)                     # 4-byte Folded Reload
-  ld  $lr, 12($sp)                    # 4-byte Folded Reload
-  addiu  $sp, $sp, 16
-  ret  $lr
-  nop
-  .set  macro
-  .set  reorder
-  .end  _Z15test_thread_varv
-$func_end0:
-  .size  _Z15test_thread_varv, ($func_end0)-_Z15test_thread_varv
-                                        # -- End function
-  .globl  _Z17test_thread_var_2v          # -- Begin function _Z17test_thread_va
-r_2v
-  .p2align  1
-  .type  _Z17test_thread_var_2v,@function
-  .ent  _Z17test_thread_var_2v          # @_Z17test_thread_var_2v
-_Z17test_thread_var_2v:
-  .frame  $fp,16,$lr
-  .mask   0x00005000,-4
-  .set  noreorder
-  .cpload  $t9
-  .set  nomacro
-# %bb.0:                                # %entry
-  addiu  $sp, $sp, -16
-  st  $lr, 12($sp)                    # 4-byte Folded Spill
-  st  $fp, 8($sp)                     # 4-byte Folded Spill
-  move  $fp, $sp
-  .cprestore  8
-  ori  $4, $gp, %tlsldm(b)
-  ld  $t9, %call16(__tls_get_addr)($gp)
-  jalr  $t9
-  nop
-  ld  $gp, 8($fp)
-  lui  $3, %dtp_hi(b)
-  addu  $2, $3, $2
-  ori  $2, $2, %dtp_lo(b)
-  addiu  $3, $zero, 3
-  st  $3, 0($2)
-  ld  $2, 0($2)
-  move  $sp, $fp
-  ld  $fp, 8($sp)                     # 4-byte Folded Reload
-  ld  $lr, 12($sp)                    # 4-byte Folded Reload
-  addiu  $sp, $sp, 16
-  ret  $lr
-  nop
-  .set  macro
-  .set  reorder
-  .end  _Z17test_thread_var_2v
-$func_end1:
-  .size  _Z17test_thread_var_2v, ($func_end1)-_Z17test_thread_var_2v
-                                        # -- End function
-  .section  .text._ZTW1b,&quot;axG&quot;,@progbits,_ZTW1b,comdat
-  .hidden  _ZTW1b                          # -- Begin function _ZTW1b
-  .weak  _ZTW1b
-  .p2align  1
-  .type  _ZTW1b,@function
-  .ent  _ZTW1b                          # @_ZTW1b
-_ZTW1b:
-  .cfi_startproc
-  .frame  $fp,16,$lr
-  .mask   0x00005000,-4
-  .set  noreorder
-  .cpload  $t9
-  .set  nomacro
-# %bb.0:
-  addiu  $sp, $sp, -16
-  .cfi_def_cfa_offset 16
-  st  $lr, 12($sp)                    # 4-byte Folded Spill
-  st  $fp, 8($sp)                     # 4-byte Folded Spill
-  .cfi_offset 14, -4
-  .cfi_offset 12, -8
-  move  $fp, $sp
-  .cfi_def_cfa_register 12
-  .cprestore  8
-  ld  $t9, %call16(__tls_get_addr)($gp)
-  ori  $4, $gp, %tlsldm(b)
-  jalr  $t9
-  nop
-  ld  $gp, 8($fp)
-  lui  $3, %dtp_hi(b)
-  addu  $2, $3, $2
-  ori  $2, $2, %dtp_lo(b)
-  move  $sp, $fp
-  ld  $fp, 8($sp)                     # 4-byte Folded Reload
-  ld  $lr, 12($sp)                    # 4-byte Folded Reload
-  addiu  $sp, $sp, 16
-  ret  $lr
-  nop
-  .set  macro
-  .set  reorder
-  .end  _ZTW1b
-$func_end2:
-  .size  _ZTW1b, ($func_end2)-_ZTW1b
-  .cfi_endproc
-                                        # -- End function
-  .type  a,@object                       # @a
-  .section  .tbss,&quot;awT&quot;,@nobits
-  .globl  a
-  .p2align  2
-a:
-$a$local:
-  .4byte  0                               # 0x0
-  .size  a, 4
-
-  .type  b,@object                       # @b
-  .globl  b
-  .p2align  2
-b:
-$b$local:
-  .4byte  0                               # 0x0
-  .size  b, 4
-
-  .ident  &quot;clang version 12.0.1&quot;
-  .section  &quot;.note.GNU-stack&quot;,&quot;&quot;,@progbits
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>
 </pre></div>
 </div>
 <p>In pic mode, the __thread variable access by call function __tls_get_addr with
@@ -1070,120 +609,7 @@ follows,</p>
 <span class="go">ch12_thread_var.bc -o -</span>
 </pre></div>
 </div>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>  .text
-  .section .mdebug.abiO32
-  .previous
-  .file  &quot;ch12_thread_var.cpp&quot;
-  .globl  _Z15test_thread_varv            # -- Begin function _Z15test_thread_va
-rv
-  .p2align  1
-  .type  _Z15test_thread_varv,@function
-  .ent  _Z15test_thread_varv            # @_Z15test_thread_varv
-_Z15test_thread_varv:
-  .frame  $fp,8,$lr
-  .mask   0x00001000,-4
-  .set  noreorder
-  .set  nomacro
-# %bb.0:                                # %entry
-  addiu  $sp, $sp, -8
-  st  $fp, 4($sp)                     # 4-byte Folded Spill
-  move  $fp, $sp
-  lui  $2, %tp_hi(a)
-  ori  $2, $2, %tp_lo(a)
-  addiu  $3, $zero, 2
-  st  $3, 0($2)
-  ld  $2, 0($2)
-  move  $sp, $fp
-  ld  $fp, 4($sp)                     # 4-byte Folded Reload
-  addiu  $sp, $sp, 8
-  ret  $lr
-  nop
-  .set  macro
-  .set  reorder
-  .end  _Z15test_thread_varv
-$func_end0:
-  .size  _Z15test_thread_varv, ($func_end0)-_Z15test_thread_varv
-                                        # -- End function
-  .globl  _Z17test_thread_var_2v          # -- Begin function _Z17test_thread_va
-r_2v
-  .p2align  1
-  .type  _Z17test_thread_var_2v,@function
-  .ent  _Z17test_thread_var_2v          # @_Z17test_thread_var_2v
-_Z17test_thread_var_2v:
-  .frame  $fp,8,$lr
-  .mask   0x00001000,-4
-  .set  noreorder
-  .set  nomacro
-# %bb.0:                                # %entry
-  addiu  $sp, $sp, -8
-  st  $fp, 4($sp)                     # 4-byte Folded Spill
-  move  $fp, $sp
-  lui  $2, %tp_hi(b)
-  ori  $2, $2, %tp_lo(b)
-  addiu  $3, $zero, 3
-  st  $3, 0($2)
-  ld  $2, 0($2)
-  move  $sp, $fp
-  ld  $fp, 4($sp)                     # 4-byte Folded Reload
-  addiu  $sp, $sp, 8
-  ret  $lr
-  nop
-  .set  macro
-  .set  reorder
-  .end  _Z17test_thread_var_2v
-$func_end1:
-  .size  _Z17test_thread_var_2v, ($func_end1)-_Z17test_thread_var_2v
-                                        # -- End function
-  .section  .text._ZTW1b,&quot;axG&quot;,@progbits,_ZTW1b,comdat
-  .hidden  _ZTW1b                          # -- Begin function _ZTW1b
-  .weak  _ZTW1b
-  .p2align  1
-  .type  _ZTW1b,@function
-  .ent  _ZTW1b                          # @_ZTW1b
-_ZTW1b:
-  .cfi_startproc
-  .frame  $fp,8,$lr
-  .mask   0x00001000,-4
-  .set  noreorder
-  .set  nomacro
-# %bb.0:
-  addiu  $sp, $sp, -8
-  .cfi_def_cfa_offset 8
-  st  $fp, 4($sp)                     # 4-byte Folded Spill
-  .cfi_offset 12, -4
-  move  $fp, $sp
-  .cfi_def_cfa_register 12
-  lui  $2, %tp_hi(b)
-  ori  $2, $2, %tp_lo(b)
-  move  $sp, $fp
-  ld  $fp, 4($sp)                     # 4-byte Folded Reload
-  addiu  $sp, $sp, 8
-  ret  $lr
-  nop
-  .set  macro
-  .set  reorder
-  .end  _ZTW1b
-$func_end2:
-  .size  _ZTW1b, ($func_end2)-_ZTW1b
-  .cfi_endproc
-                                        # -- End function
-  .type  a,@object                       # @a
-  .section  .tbss,&quot;awT&quot;,@nobits
-  .globl  a
-  .p2align  2
-a:
-  .4byte  0                               # 0x0
-  .size  a, 4
-
-  .type  b,@object                       # @b
-  .globl  b
-  .p2align  2
-b:
-  .4byte  0                               # 0x0
-  .size  b, 4
-
-  .ident  &quot;clang version 12.0.1&quot;
-  .section  &quot;.note.GNU-stack&quot;,&quot;&quot;,@progbits
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>
 </pre></div>
 </div>
 <p>While Mips uses rdhwr instruction to access thread varaible as below,
@@ -2262,7 +1688,6 @@ it into instruction “sync” by “def SYNC” and alias “SYNC 0”.</p>
 Input files ch12_atomics.cpp and ch12_atomics-fences.cpp are the C++
 files for generating llvm atomic IRs. The C++ files need to run with clang
 options “clang++ -pthread -std=c++11”.</p>
-<aside class="footnote-list brackets">
 <aside class="footnote brackets" id="exception" role="note">
 <span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id2">1</a><span class="fn-bracket">]</span></span>
 <p><a class="reference external" href="http://llvm.org/docs/ExceptionHandling.html">http://llvm.org/docs/ExceptionHandling.html</a></p>
@@ -2334,7 +1759,6 @@ contend for the same mutex lock or spinlock, then the algorithm is not lock-free
 <span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id15">15</a><span class="fn-bracket">]</span></span>
 <p><a class="reference external" href="https://link.springer.com/book/10.1007/978-1-4842-5574-2">https://link.springer.com/book/10.1007/978-1-4842-5574-2</a></p>
 </aside>
-</aside>
 </section>
 </section>
 
@@ -2354,7 +1778,7 @@ contend for the same mutex lock or spinlock, then the algorithm is not lock-free
 
     <div class="footer" role="contentinfo">
         &#169; Copyright 2016, Chen Chung-Shu.
-      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 5.1.1.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 5.0.2.
     </div>
   </body>
 </html>

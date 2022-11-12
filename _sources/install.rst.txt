@@ -45,7 +45,6 @@ Brew install and setup first [#installbrew]_.
 .. code-block:: console
 
   % /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-  [#installbrew]_.
 
 Then add brew command to your path as the bottom of installed message of bash above, like the 
 following.
@@ -54,6 +53,37 @@ following.
 
   % echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >> /Users/cschen/.zprofile
   % eval "$(/opt/homebrew/bin/brew shellenv)"
+
+Brew install in China, use the following install.sh instead [#installbrew-china]_.
+
+.. code-block:: console
+
+  % /bin/zsh -c "$(curl -fsSL https://gitee.com/cunkai/HomebrewCN/raw/master/Homebrew.sh)"
+  ...
+  % source /Users/cschen/.zprofile
+  % brew --version
+  Homebrew 3.6.7-28-g560f571
+  fatal: detected dubious ownership in repository at '/usr/local/Homebrew/Library/Taps/homebrew/homebrew-core'
+  To add an exception for this directory, call:
+  
+          git config --global --add safe.directory /usr/local/Homebrew/Library/Taps/homebrew/homebrew-core
+  Homebrew/homebrew-core (no Git repository)
+  fatal: detected dubious ownership in repository at '/usr/local/Homebrew/Library/Taps/homebrew/homebrew-cask'
+  To add an exception for this directory, call:
+
+	  git config --global --add safe.directory /usr/local/Homebrew/Library/Taps/homebrew/homebrew-cask
+
+  % git config --global --add safe.directory /usr/local/Homebrew/Library/Taps/homebrew/homebrew-core
+  % git config --global --add safe.directory /usr/local/Homebrew/Library/Taps/homebrew/homebrew-cask
+  % brew install cmake
+  ...
+  ==> Running `brew cleanup cmake`...
+  Disable this behaviour by setting HOMEBREW_NO_INSTALL_CLEANUP.
+  Hide these hints with HOMEBREW_NO_ENV_HINTS (see `man brew`).
+
+  % brew install ninja
+
+
 
 Install Icarus Verilog tool on iMac
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -76,14 +106,12 @@ Install Icarus Verilog tool by command ``brew install icarus-verilog`` as follow
 Install other tools on iMac
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Install cmake as follows,
+Install cmake and ninja as follows,
 
 .. code-block:: console
 
   $ brew install cmake
-
-Download Graphviz from [#graphviz-download]_ according your 
-Linux distribution. Files compare tools Kdiff3 came from web site [#kdiff3]_. 
+  $ brew install ninja
 
 .. code-block:: console
 
@@ -167,7 +195,7 @@ Then install icarus as follows,
 Install other tools on Linux
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Install cmake as follows,
+Install cmake and ninja as follows,
 
 .. code-block:: console
 
@@ -186,6 +214,8 @@ Install cmake as follows,
   Unpacking finished successfully
   $ ls
   bin  cmake-3.23.3-linux-x86_64 ...
+
+  $ sudo apt install ninja-build 
   
 
 Download Graphviz from [#graphviz-download]_ according your 
@@ -215,6 +245,47 @@ Set "~/.profile" as follows,
   ...
 
 
+Toolchain
+---------
+
+List some gnu and llvm tools as follows,
+
+.. code-block:: console
+
+  // Linux
+  ~/git/lbd/lbdex/input$ ~/llvm/debug/build/bin/clang -fpic hello.c
+  ~/git/lbd/lbdex/input$ man ldd
+  ldd - print shared object dependencies
+  ~/git/lbd/lbdex/input$ ldd a.out
+	linux-vdso.so.1 (0x00007fffd1fe5000)
+	libc.so.6 => /lib/x86_64-linux-gnu/libc.so.6 (0x00007f2c92a82000)
+	/lib64/ld-linux-x86-64.so.2 (0x00007f2c92e73000)
+
+  // MacOS
+  % man otool
+  otool-classic - object file displaying tool
+    ...
+    -L     Display the names and version numbers of the shared libraries that the object file uses, as well as the shared library ID if the file is a shared library.
+  % otool -L a.out   
+  a.out:
+  	/usr/lib/libSystem.B.dylib (compatibility version 1.0.0, current version 1292.100.5)
+
+  // Linux
+  ~/git/lbd/lbdex/input$ man objcopy
+  objcopy - copy and translate object files
+    ...
+    [-O bfdname|--output-target=bfdname]
+  ~/git/lbd/lbdex/input$ objcopy -O verilog a.out a.hex
+  ~/git/lbd/lbdex/input$ vi a.hex
+  @00400238
+  2F 6C 69 62 36 34 2F 6C 64 2D 6C 69 6E 75 78 2D
+  78 38 36 2D 36 34 2E 73 6F 2E 32 00
+  @00400254
+  04 00 00 00 10 00 00 00 01 00 00 00 47 4E 55 00
+  ...
+
+
+
 .. [#llvm-cmake] http://llvm.org/docs/CMake.html?highlight=cmake
 
 .. [#swapfile1] https://bogdancornianu.com/change-swap-size-in-ubuntu/
@@ -222,6 +293,8 @@ Set "~/.profile" as follows,
 .. [#swapfile2] https://linuxize.com/post/how-to-add-swap-space-on-ubuntu-18-04/
 
 .. [#installbrew] https://brew.sh/
+
+.. [#installbrew-china] https://blog.csdn.net/weixin_45571585/article/details/126977413
 
 .. [#kdiff3] http://kdiff3.sourceforge.net
 

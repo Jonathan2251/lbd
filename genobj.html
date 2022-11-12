@@ -4,7 +4,7 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
     <title>Generating object files &#8212; Tutorial: Creating an LLVM Backend for the Cpu0 Architecture</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
@@ -45,7 +45,8 @@
 <ul class="simple">
 <li><p><a class="reference internal" href="#translate-into-obj-file" id="id4">Translate into obj file</a></p></li>
 <li><p><a class="reference internal" href="#elf-obj-related-code" id="id5">ELF obj related code</a></p></li>
-<li><p><a class="reference internal" href="#backend-target-registration-structure" id="id6">Backend Target Registration Structure</a></p></li>
+<li><p><a class="reference internal" href="#work-flow" id="id6">Work flow</a></p></li>
+<li><p><a class="reference internal" href="#backend-target-registration-structure" id="id7">Backend Target Registration Structure</a></p></li>
 </ul>
 </nav>
 <p>The previous chapters introducing the assembly code generation only.
@@ -59,8 +60,9 @@ this chapter.</p>
 <p>Currently, we only support translation of llvm IR code into assembly code.
 If you try running Chapter4_2/ to translate it into obj code will get the error
 message as follows,</p>
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">[Gamma@localhost 3]$ </span>~/llvm/test/build/bin/
-<span class="go">llc -march=cpu0 -relocation-model=pic -filetype=obj ch4_1_math_math.bc -o</span>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">bin$ pwd</span>
+<span class="gp">$</span>HOME/llvm/test/build/bin/
+<span class="go">bin$ llc -march=cpu0 -relocation-model=pic -filetype=obj ch4_1_math_math.bc -o</span>
 <span class="go">ch4_1_math.cpu0.o</span>
 <span class="go">~/llvm/test/build/bin/llc: target does not</span>
 <span class="go">support generation of this file type!</span>
@@ -70,7 +72,7 @@ message as follows,</p>
 It produces obj files both for big endian and little endian with command
 <code class="docutils literal notranslate"><span class="pre">llc</span> <span class="pre">-march=cpu0</span></code> and <code class="docutils literal notranslate"><span class="pre">llc</span> <span class="pre">-march=cpu0el</span></code>, respectively.
 Run with them will get the obj files as follows,</p>
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">[Gamma@localhost input]$ </span>cat ch4_1_math.cpu0.s
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">input$ cat ch4_1_math.cpu0.s</span>
 <span class="go">...</span>
 <span class="go">  .set  nomacro</span>
 <span class="gp"># </span>BB#0:                                 <span class="c1"># %entry</span>
@@ -85,10 +87,11 @@ Run with them will get the obj files as follows,</p>
 <span class="go">  st  $2, 28($fp)</span>
 <span class="go">...</span>
 
-<span class="gp">[Gamma@localhost 3]$ </span>~/llvm/test/build/bin/
-<span class="go">llc -march=cpu0 -relocation-model=pic -filetype=obj ch4_1_math.bc -o</span>
+<span class="go">bin$ pwd</span>
+<span class="gp">$</span>HOME/llvm/test/build/bin/
+<span class="go">bin$ llc -march=cpu0 -relocation-model=pic -filetype=obj ch4_1_math.bc -o</span>
 <span class="go">ch4_1_math.cpu0.o</span>
-<span class="gp">[Gamma@localhost input]$ </span>objdump -s ch4_1_math.cpu0.o
+<span class="go">input$ objdump -s ch4_1_math.cpu0.o</span>
 
 <span class="go">ch4_1_math.cpu0.o:     file format elf32-big</span>
 
@@ -106,10 +109,10 @@ Run with them will get the obj files as follows,</p>
 <span class="go"> 00a0 22223000 022d0010 012d0034 013d0030  &quot;&quot;0..-...-.4.=.0</span>
 <span class="go"> 00b0 20232000 022d0000 09dd0038 3ce00000   # ..-.....8&lt;...</span>
 
-<span class="gp">[Gamma@localhost input]$ </span>~/llvm/test/
+<span class="go">input$ ~/llvm/test/</span>
 <span class="go">build/bin/llc -march=cpu0el -relocation-model=pic -filetype=obj</span>
 <span class="go">ch4_1_math.bc -o ch4_1_math.cpu0el.o</span>
-<span class="gp">[Gamma@localhost input]$ </span>objdump -s ch4_1_math.cpu0el.o
+<span class="go">input$ objdump -s ch4_1_math.cpu0el.o</span>
 
 <span class="go">ch4_1_math.cpu0el.o:     file format elf32-little</span>
 
@@ -1215,6 +1218,39 @@ Cpu0MCCodeEmitter::getMemEncoding(const MCInst &amp;MI, unsigned OpNo,
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1">#include &quot;MCTargetDesc/Cpu0MCExpr.h&quot;</span>
 </pre></div>
 </div>
+</section>
+<section id="work-flow">
+<h2><a class="toc-backref" href="#id6" role="doc-backlink">Work flow</a><a class="headerlink" href="#work-flow" title="Permalink to this heading">¶</a></h2>
+<p>In Chapter3_2, OutStreamer-&gt;emitInstruction print the asm. To support elf obj
+generation, this chapter create MCELFObjectStreamer inherited from OutStreamer
+by calling createELFStreamer in Cpu0MCTargetDesc.cpp above. Once
+MCELFObjectStreamer is created. The OutStreamer-&gt;emitInstruction will work with
+other code added in directory MCTargetDesc of this chapter. The details of
+expanation as follows,</p>
+<p class="rubric">llvm/include/llvm/CodeGen/AsmPrinter.h</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">AsmPrinter</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="k">public</span><span class="w"> </span><span class="n">MachineFunctionPass</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="k">public</span><span class="o">:</span><span class="w"></span>
+<span class="w">  </span><span class="p">...</span><span class="w"></span>
+<span class="w">  </span><span class="n">std</span><span class="o">::</span><span class="n">unique_ptr</span><span class="o">&lt;</span><span class="n">MCStreamer</span><span class="o">&gt;</span><span class="w"> </span><span class="n">OutStreamer</span><span class="p">;</span><span class="w"></span>
+<span class="w">  </span><span class="p">...</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
+</pre></div>
+</div>
+<p class="rubric">lbdex/chapters/Chapter3_2/Cpu0AsmPrinter.h</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">LLVM_LIBRARY_VISIBILITY</span><span class="w"> </span><span class="n">Cpu0AsmPrinter</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="k">public</span><span class="w"> </span><span class="n">AsmPrinter</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+</pre></div>
+</div>
+<p class="rubric">lbdex/chapters/Chapter3_2/Cpu0AsmPrinter.cpp</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="kt">void</span><span class="w"> </span><span class="nf">Cpu0AsmPrinter::emitInstruction</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">MachineInstr</span><span class="w"> </span><span class="o">*</span><span class="n">MI</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">  </span><span class="p">...</span><span class="w"></span>
+<span class="w">  </span><span class="k">do</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="p">...</span><span class="w"></span>
+<span class="w">    </span><span class="n">OutStreamer</span><span class="o">-&gt;</span><span class="n">emitInstruction</span><span class="p">(</span><span class="n">TmpInst0</span><span class="p">,</span><span class="w"> </span><span class="n">getSubtargetInfo</span><span class="p">());</span><span class="w"></span>
+<span class="w">    </span><span class="p">...</span><span class="w"></span>
+<span class="w">  </span><span class="p">}</span><span class="w"> </span><span class="k">while</span><span class="w"> </span><span class="p">((</span><span class="o">++</span><span class="n">I</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="n">E</span><span class="p">)</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="n">I</span><span class="o">-&gt;</span><span class="n">isInsideBundle</span><span class="p">());</span><span class="w"> </span><span class="c1">// Delay slot check</span>
+<span class="p">}</span><span class="w"></span>
+</pre></div>
+</div>
 <div class="graphviz"><img src="_images/graphviz-c29f9d57f511757a22a36302596889c3b13eb84d.png" alt="digraph G {
   rankdir=TB;
   &quot;Cpu0AsmPrinter::EmitInstruction()&quot; -&gt; &quot;MCObjectStreamer::EmitInstruction()&quot; [label=&quot;AsmPrinter::OutStreamer is MCObjectStreamer if llc -filetype=obj\nAsmPrinter::OutStreamer is MCAsmStreamer if llc -filetype=asm&quot;];
@@ -1467,7 +1503,7 @@ Operand.</p>
 <p>Then, ELFObjectWriter::writeObject() will write the buffer to elf file.</p>
 </section>
 <section id="backend-target-registration-structure">
-<h2><a class="toc-backref" href="#id6" role="doc-backlink">Backend Target Registration Structure</a><a class="headerlink" href="#backend-target-registration-structure" title="Permalink to this heading">¶</a></h2>
+<h2><a class="toc-backref" href="#id7" role="doc-backlink">Backend Target Registration Structure</a><a class="headerlink" href="#backend-target-registration-structure" title="Permalink to this heading">¶</a></h2>
 <p>Now, let’s examine Cpu0MCTargetDesc.cpp.
 Cpu0MCTargetDesc.cpp do the target registration as mentioned in
 the previous chapter here <a class="footnote-reference brackets" href="#target-registration" id="id1" role="doc-noteref"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></a>, and the assembly
@@ -1595,7 +1631,6 @@ Two objects take care big endian and little endian, respectively.
 It derived from MCAsmBackend.
 Most of code for object file generated is implemented by MCELFStreamer and it’s
 parent, MCAsmBackend.</p>
-<aside class="footnote-list brackets">
 <aside class="footnote brackets" id="target-registration" role="note">
 <span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id1">1</a><span class="fn-bracket">]</span></span>
 <p><a class="reference external" href="http://jonathan2251.github.io/lbd/llvmstructure.html#target-registration">http://jonathan2251.github.io/lbd/llvmstructure.html#target-registration</a></p>
@@ -1603,7 +1638,6 @@ parent, MCAsmBackend.</p>
 <aside class="footnote brackets" id="add-asmprinter" role="note">
 <span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id2">2</a><span class="fn-bracket">]</span></span>
 <p><a class="reference external" href="http://jonathan2251.github.io/lbd/backendstructure.html#add-asmprinter">http://jonathan2251.github.io/lbd/backendstructure.html#add-asmprinter</a></p>
-</aside>
 </aside>
 </section>
 </section>
@@ -1624,7 +1658,7 @@ parent, MCAsmBackend.</p>
 
     <div class="footer" role="contentinfo">
         &#169; Copyright 2016, Chen Chung-Shu.
-      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 5.1.1.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 5.0.2.
     </div>
   </body>
 </html>

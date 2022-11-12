@@ -4,7 +4,7 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
     <title>ELF Support &#8212; Tutorial: Creating an LLVM Backend for the Cpu0 Architecture</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
@@ -114,10 +114,10 @@ sections is the link time layout for code and data.</p>
 <h3><a class="toc-backref" href="#id8" role="doc-backlink">ELF header and Section header table</a><a class="headerlink" href="#elf-header-and-section-header-table" title="Permalink to this heading">¶</a></h3>
 <p>Let’s run Chapter9_3/ with ch6_1.cpp, and dump ELF header information by
 <code class="docutils literal notranslate"><span class="pre">llvm-readelf</span> <span class="pre">-h</span></code> to see what information the ELF header contains.</p>
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">[Gamma@localhost input]$ </span>~/llvm/test/build/bin/llc -march<span class="o">=</span>cpu0
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">input$ ~/llvm/test/build/bin/llc -march=cpu0</span>
 <span class="go">-relocation-model=pic -filetype=obj ch6_1.bc -o ch6_1.cpu0.o</span>
 
-<span class="gp">[Gamma@localhost input]$ </span>llvm-readelf -h ch6_1.cpu0.o
+<span class="go">input$ llvm-readelf -h ch6_1.cpu0.o</span>
 <span class="go">  Magic:   7f 45 4c 46 01 02 01 03 00 00 00 00 00 00 00 00</span>
 <span class="go">  Class:                             ELF32</span>
 <span class="go">  Data:                              2&#39;s complement, big endian</span>
@@ -137,12 +137,12 @@ sections is the link time layout for code and data.</p>
 <span class="go">  Size of section headers:           40 (bytes)</span>
 <span class="go">  Number of section headers:         8</span>
 <span class="go">  Section header string table index: 5</span>
-<span class="gp">[Gamma@localhost input]$</span>
+<span class="go">input$</span>
 
-<span class="gp">[Gamma@localhost input]$ </span>~/llvm/test/build/bin/llc
+<span class="go">input$ ~/llvm/test/build/bin/llc</span>
 <span class="go">-march=mips -relocation-model=pic -filetype=obj ch6_1.bc -o ch6_1.mips.o</span>
 
-<span class="gp">[Gamma@localhost input]$ </span>llvm-readelf -h ch6_1.mips.o
+<span class="go">input$ llvm-readelf -h ch6_1.mips.o</span>
 <span class="go">ELF Header:</span>
 <span class="go">  Magic:   7f 45 4c 46 01 02 01 03 00 00 00 00 00 00 00 00</span>
 <span class="go">  Class:                             ELF32</span>
@@ -163,7 +163,7 @@ sections is the link time layout for code and data.</p>
 <span class="go">  Size of section headers:           40 (bytes)</span>
 <span class="go">  Number of section headers:         9</span>
 <span class="go">  Section header string table index: 6</span>
-<span class="gp">[Gamma@localhost input]$</span>
+<span class="go">input$</span>
 </pre></div>
 </div>
 <p>As above ELF header display, it contains information of magic number, version,
@@ -171,10 +171,10 @@ ABI, …, . The Machine field of cpu0 is unknown while mips is known as
 MIPSR3000.
 It is unknown because cpu0 is not a popular CPU recognized by utility llvm-readelf.
 Let’s check ELF segments information as follows,</p>
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">[Gamma@localhost input]$ </span>llvm-readelf -l ch6_1.cpu0.o
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">input$ llvm-readelf -l ch6_1.cpu0.o</span>
 
 <span class="go">There are no program headers in this file.</span>
-<span class="gp">[Gamma@localhost input]$</span>
+<span class="go">input$</span>
 </pre></div>
 </div>
 <p>The result is in expectation because cpu0 obj is for link only, not for
@@ -182,7 +182,7 @@ execution.
 So, the segments is empty.
 Check ELF sections information as follows.
 Every section contains offset and size information.</p>
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">[Gamma@localhost input]$ </span>llvm-readelf -S ch6_1.cpu0.o
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">input$ llvm-readelf -S ch6_1.cpu0.o</span>
 <span class="go">There are 10 section headers, starting at offset 0xd4:</span>
 
 <span class="go">Section Headers:</span>
@@ -201,18 +201,18 @@ Every section contains offset and size information.</p>
 <span class="go">  W (write), A (alloc), X (execute), M (merge), S (strings)</span>
 <span class="go">  I (info), L (link order), G (group), T (TLS), E (exclude), x (unknown)</span>
 <span class="go">  O (extra OS processing required) o (OS specific), p (processor specific)</span>
-<span class="gp">[Gamma@localhost input]$</span>
+<span class="go">input$</span>
 </pre></div>
 </div>
 </section>
 <section id="relocation-record">
 <h3><a class="toc-backref" href="#id9" role="doc-backlink">Relocation Record</a><a class="headerlink" href="#relocation-record" title="Permalink to this heading">¶</a></h3>
 <p>Cpu0 backend translate global variable as follows,</p>
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">[Gamma@localhost input]$ </span>clang -target mips-unknown-linux-gnu -c ch6_1.cpp
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">input$ clang -target mips-unknown-linux-gnu -c ch6_1.cpp</span>
 <span class="go">-emit-llvm -o ch6_1.bc</span>
-<span class="gp">[Gamma@localhost input]$ </span>~/llvm/test/build/
+<span class="go">input$ ~/llvm/test/build/</span>
 <span class="go">bin/llc -march=cpu0 -relocation-model=pic -filetype=asm ch6_1.bc -o ch6_1.cpu0.s</span>
-<span class="gp">[Gamma@localhost input]$ </span>cat ch6_1.cpu0.s
+<span class="go">input$ cat ch6_1.cpu0.s</span>
 <span class="go">  .section .mdebug.abi32</span>
 <span class="go">  .previous</span>
 <span class="go">  .file &quot;ch6_1.bc&quot;</span>
@@ -237,9 +237,9 @@ Every section contains offset and size information.</p>
 <span class="go">  .size gI, 4</span>
 
 
-<span class="gp">[Gamma@localhost input]$ </span>~/llvm/test/build/
+<span class="go">input$ ~/llvm/test/build/</span>
 <span class="go">bin/llc -march=cpu0 -relocation-model=pic -filetype=obj ch6_1.bc -o ch6_1.cpu0.o</span>
-<span class="gp">[Gamma@localhost input]$ </span>llvm-objdump -s ch6_1.cpu0.o
+<span class="go">input$ llvm-objdump -s ch6_1.cpu0.o</span>
 
 <span class="go">ch6_1.cpu0.o:     file format elf32-big</span>
 
@@ -249,9 +249,9 @@ Every section contains offset and size information.</p>
 <span class="go"> ...</span>
 <span class="go"> 0020 002a0000 00220000 012d0000 0ddd0008  .*...&quot;...-......</span>
 <span class="go"> ...</span>
-<span class="gp">[Gamma@localhost input]$ </span>Jonathan$
+<span class="go">input$</span>
 
-<span class="gp">[Gamma@localhost input]$ </span>llvm-readelf -tr ch6_1.cpu0.o
+<span class="go">input$ llvm-readelf -tr ch6_1.cpu0.o</span>
 <span class="go">There are 8 section headers, starting at offset 0xb0:</span>
 
 <span class="go">Section Headers:</span>
@@ -291,7 +291,7 @@ Every section contains offset and size information.</p>
 <span class="go">00000028  00000617 unrecognized: 17      00000004   gI</span>
 
 
-<span class="gp">[Gamma@localhost input]$ </span>llvm-readelf -tr ch6_1.mips.o
+<span class="go">input$ llvm-readelf -tr ch6_1.mips.o</span>
 <span class="go">There are 9 section headers, starting at offset 0xc8:</span>
 
 <span class="go">Section Headers:</span>
@@ -992,7 +992,6 @@ the following result.</p>
 <span class="go">      ...</span>
 </pre></div>
 </div>
-<aside class="footnote-list brackets">
 <aside class="footnote brackets" id="wiki-elf" role="note">
 <span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id1">1</a><span class="fn-bracket">]</span></span>
 <p><a class="reference external" href="http://en.wikipedia.org/wiki/Executable_and_Linkable_Format">http://en.wikipedia.org/wiki/Executable_and_Linkable_Format</a></p>
@@ -1012,7 +1011,6 @@ the following result.</p>
 <aside class="footnote brackets" id="lk-elf" role="note">
 <span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id5">5</a><span class="fn-bracket">]</span></span>
 <p><a class="reference external" href="http://ccckmit.wikidot.com/lk:elffile">http://ccckmit.wikidot.com/lk:elffile</a></p>
-</aside>
 </aside>
 </section>
 </section>
@@ -1034,7 +1032,7 @@ the following result.</p>
 
     <div class="footer" role="contentinfo">
         &#169; Copyright 2016, Chen Chung-Shu.
-      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 5.1.1.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 5.0.2.
     </div>
   </body>
 </html>

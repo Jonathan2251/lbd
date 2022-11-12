@@ -4,7 +4,7 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
     <title>Function call &#8212; Tutorial: Creating an LLVM Backend for the Cpu0 Architecture</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
@@ -43,45 +43,45 @@
 <span id="sec-funccall"></span><h1>Function call<a class="headerlink" href="#function-call" title="Permalink to this heading">¶</a></h1>
 <nav class="contents local" id="contents">
 <ul class="simple">
-<li><p><a class="reference internal" href="#mips-stack-frame" id="id25">Mips stack frame</a></p></li>
-<li><p><a class="reference internal" href="#load-incoming-arguments-from-stack-frame" id="id26">Load incoming arguments from stack frame</a></p></li>
-<li><p><a class="reference internal" href="#store-outgoing-arguments-to-stack-frame" id="id27">Store outgoing arguments to stack frame</a></p>
+<li><p><a class="reference internal" href="#mips-stack-frame" id="id26">Mips stack frame</a></p></li>
+<li><p><a class="reference internal" href="#load-incoming-arguments-from-stack-frame" id="id27">Load incoming arguments from stack frame</a></p></li>
+<li><p><a class="reference internal" href="#store-outgoing-arguments-to-stack-frame" id="id28">Store outgoing arguments to stack frame</a></p>
 <ul>
-<li><p><a class="reference internal" href="#pseudo-hook-instruction-adjcallstackdown-and-adjcallstackup" id="id28">Pseudo hook instruction ADJCALLSTACKDOWN and ADJCALLSTACKUP</a></p></li>
-<li><p><a class="reference internal" href="#read-lowercall-with-graphivz-s-help" id="id29">Read Lowercall() with Graphivz’s help</a></p></li>
-<li><p><a class="reference internal" href="#long-and-short-string-initialization" id="id30">Long and short string initialization</a></p></li>
+<li><p><a class="reference internal" href="#pseudo-hook-instruction-adjcallstackdown-and-adjcallstackup" id="id29">Pseudo hook instruction ADJCALLSTACKDOWN and ADJCALLSTACKUP</a></p></li>
+<li><p><a class="reference internal" href="#read-lowercall-with-graphivz-s-help" id="id30">Read Lowercall() with Graphivz’s help</a></p></li>
+<li><p><a class="reference internal" href="#long-and-short-string-initialization" id="id31">Long and short string initialization</a></p></li>
 </ul>
 </li>
-<li><p><a class="reference internal" href="#structure-type-support" id="id31">Structure type support</a></p>
+<li><p><a class="reference internal" href="#structure-type-support" id="id32">Structure type support</a></p>
 <ul>
-<li><p><a class="reference internal" href="#ordinary-struct-type" id="id32">Ordinary struct type</a></p></li>
-<li><p><a class="reference internal" href="#byval-struct-type" id="id33">byval struct type</a></p></li>
+<li><p><a class="reference internal" href="#ordinary-struct-type" id="id33">Ordinary struct type</a></p></li>
+<li><p><a class="reference internal" href="#byval-struct-type" id="id34">byval struct type</a></p></li>
 </ul>
 </li>
-<li><p><a class="reference internal" href="#function-call-optiomization" id="id34">Function call optiomization</a></p>
+<li><p><a class="reference internal" href="#function-call-optiomization" id="id35">Function call optiomization</a></p>
 <ul>
-<li><p><a class="reference internal" href="#tail-call-optimization" id="id35">Tail call optimization</a></p></li>
-<li><p><a class="reference internal" href="#recursion-optimization" id="id36">Recursion optimization</a></p></li>
+<li><p><a class="reference internal" href="#tail-call-optimization" id="id36">Tail call optimization</a></p></li>
+<li><p><a class="reference internal" href="#recursion-optimization" id="id37">Recursion optimization</a></p></li>
 </ul>
 </li>
-<li><p><a class="reference internal" href="#other-features-supporting" id="id37">Other features supporting</a></p>
+<li><p><a class="reference internal" href="#other-features-supporting" id="id38">Other features supporting</a></p>
 <ul>
-<li><p><a class="reference internal" href="#the-gp-register-caller-saved-register-in-pic-addressing-mode" id="id38">The $gp register caller saved register in PIC addressing mode</a></p></li>
-<li><p><a class="reference internal" href="#variable-number-of-arguments" id="id39">Variable number of arguments</a></p></li>
-<li><p><a class="reference internal" href="#dynamic-stack-allocation-support" id="id40">Dynamic stack allocation support</a></p></li>
-<li><p><a class="reference internal" href="#variable-sized-array-support" id="id41">Variable sized array support</a></p></li>
-<li><p><a class="reference internal" href="#function-related-intrinsics-support" id="id42">Function related Intrinsics support</a></p>
+<li><p><a class="reference internal" href="#the-gp-register-caller-saved-register-in-pic-addressing-mode" id="id39">The $gp register caller saved register in PIC addressing mode</a></p></li>
+<li><p><a class="reference internal" href="#variable-number-of-arguments" id="id40">Variable number of arguments</a></p></li>
+<li><p><a class="reference internal" href="#dynamic-stack-allocation-support" id="id41">Dynamic stack allocation support</a></p></li>
+<li><p><a class="reference internal" href="#variable-sized-array-support" id="id42">Variable sized array support</a></p></li>
+<li><p><a class="reference internal" href="#function-related-intrinsics-support" id="id43">Function related Intrinsics support</a></p>
 <ul>
-<li><p><a class="reference internal" href="#frameaddress-and-returnaddress-intrinsics" id="id43">frameaddress and returnaddress intrinsics</a></p></li>
-<li><p><a class="reference internal" href="#eh-return-intrinsic" id="id44">eh.return intrinsic</a></p></li>
-<li><p><a class="reference internal" href="#eh-dwarf-intrinsic" id="id45">eh.dwarf intrinsic</a></p></li>
-<li><p><a class="reference internal" href="#bswap-intrinsic" id="id46">bswap intrinsic</a></p></li>
+<li><p><a class="reference internal" href="#frameaddress-and-returnaddress-intrinsics" id="id44">frameaddress and returnaddress intrinsics</a></p></li>
+<li><p><a class="reference internal" href="#eh-return-intrinsic" id="id45">eh.return intrinsic</a></p></li>
+<li><p><a class="reference internal" href="#eh-dwarf-intrinsic" id="id46">eh.dwarf intrinsic</a></p></li>
+<li><p><a class="reference internal" href="#bswap-intrinsic" id="id47">bswap intrinsic</a></p></li>
 </ul>
 </li>
-<li><p><a class="reference internal" href="#add-specific-backend-intrinsic-function" id="id47">Add specific backend intrinsic function</a></p></li>
+<li><p><a class="reference internal" href="#add-specific-backend-intrinsic-function" id="id48">Add specific backend intrinsic function</a></p></li>
 </ul>
 </li>
-<li><p><a class="reference internal" href="#summary" id="id48">Summary</a></p></li>
+<li><p><a class="reference internal" href="#summary" id="id49">Summary</a></p></li>
 </ul>
 </nav>
 <p>The subroutine/function call of backend translation is supported in this
@@ -101,7 +101,7 @@ Convention” of book “Computer Organization and Design, 1st Edition”
 “Run Time Memory” of compiler book, or “Function Call Sequence”  and
 “Stack Frame” of Mips ABI <a class="footnote-reference brackets" href="#abi" id="id2" role="doc-noteref"><span class="fn-bracket">[</span>3<span class="fn-bracket">]</span></a>.</p>
 <section id="mips-stack-frame">
-<h2><a class="toc-backref" href="#id25" role="doc-backlink">Mips stack frame</a><a class="headerlink" href="#mips-stack-frame" title="Permalink to this heading">¶</a></h2>
+<h2><a class="toc-backref" href="#id26" role="doc-backlink">Mips stack frame</a><a class="headerlink" href="#mips-stack-frame" title="Permalink to this heading">¶</a></h2>
 <p>The first thing for designing the Cpu0 function call is deciding how to pass
 arguments in function call. There are two options.
 One is passing arguments all in stack.
@@ -110,10 +110,10 @@ arguments, and put the other arguments in stack if it over the number of
 registers reserved for function call. For example, Mips pass the first 4
 arguments in register $a0, $a1, $a2, $a3, and the other arguments in stack
 if it over 4 arguments. <a class="reference internal" href="#funccall-f1"><span class="std std-numref">Fig. 27</span></a> is the Mips stack frame.</p>
-<figure class="align-center" id="id18">
+<figure class="align-center" id="id19">
 <span id="funccall-f1"></span><a class="reference internal image-reference" href="_images/13.png"><img alt="_images/13.png" src="_images/13.png" style="width: 344.0px; height: 265.5px;" /></a>
 <figcaption>
-<p><span class="caption-number">Fig. 27 </span><span class="caption-text">Mips stack frame</span><a class="headerlink" href="#id18" title="Permalink to this image">¶</a></p>
+<p><span class="caption-number">Fig. 27 </span><span class="caption-text">Mips stack frame</span><a class="headerlink" href="#id19" title="Permalink to this image">¶</a></p>
 </figcaption>
 </figure>
 <p>Run <code class="docutils literal notranslate"><span class="pre">llc</span> <span class="pre">-march=mips</span></code> for ch9_1.bc, you will get the following result.
@@ -247,10 +247,10 @@ It loads argument 5 from 48($sp) in sum_i() since the argument 5 is saved to
 16($sp) in main().
 The stack size of sum_i() is 32, so 16+32($sp) is the location of incoming
 argument 5.</p>
-<figure class="align-center" id="id19">
+<figure class="align-center" id="id20">
 <span id="funccall-f2"></span><a class="reference internal image-reference" href="_images/21.png"><img alt="_images/21.png" src="_images/21.png" style="width: 370.0px; height: 288.5px;" /></a>
 <figcaption>
-<p><span class="caption-number">Fig. 28 </span><span class="caption-text">Mips arguments location in stack frame</span><a class="headerlink" href="#id19" title="Permalink to this image">¶</a></p>
+<p><span class="caption-number">Fig. 28 </span><span class="caption-text">Mips arguments location in stack frame</span><a class="headerlink" href="#id20" title="Permalink to this image">¶</a></p>
 </figcaption>
 </figure>
 <p>The 007-2418-003.pdf in here <a class="footnote-reference brackets" href="#mipsasm" id="id3" role="doc-noteref"><span class="fn-bracket">[</span>2<span class="fn-bracket">]</span></a> is the Mips assembly language manual.
@@ -258,7 +258,7 @@ Here <a class="footnote-reference brackets" href="#abi" id="id4" role="doc-noter
 <a class="reference internal" href="#funccall-f1"><span class="std std-numref">Fig. 27</span></a>.</p>
 </section>
 <section id="load-incoming-arguments-from-stack-frame">
-<h2><a class="toc-backref" href="#id26" role="doc-backlink">Load incoming arguments from stack frame</a><a class="headerlink" href="#load-incoming-arguments-from-stack-frame" title="Permalink to this heading">¶</a></h2>
+<h2><a class="toc-backref" href="#id27" role="doc-backlink">Load incoming arguments from stack frame</a><a class="headerlink" href="#load-incoming-arguments-from-stack-frame" title="Permalink to this heading">¶</a></h2>
 <p>From last section, in order to support function call, we need implementing the
 arguments passing mechanism with stack frame.
 Before doing it, let’s run the old version of code Chapter8_2/ with ch9_1.cpp
@@ -1316,7 +1316,7 @@ in the following,</p>
 the correct number of values!</p>
 </section>
 <section id="store-outgoing-arguments-to-stack-frame">
-<h2><a class="toc-backref" href="#id27" role="doc-backlink">Store outgoing arguments to stack frame</a><a class="headerlink" href="#store-outgoing-arguments-to-stack-frame" title="Permalink to this heading">¶</a></h2>
+<h2><a class="toc-backref" href="#id28" role="doc-backlink">Store outgoing arguments to stack frame</a><a class="headerlink" href="#store-outgoing-arguments-to-stack-frame" title="Permalink to this heading">¶</a></h2>
 <p><a class="reference internal" href="#funccall-f2"><span class="std std-numref">Fig. 28</span></a> depicts two steps to take care arguments passing.
 One is store outgoing arguments into caller function, the other is load
 incoming arguments into callee function.
@@ -1779,7 +1779,7 @@ and jalr $t9 for calling subroutine (the $6 is $t9) in PIC mode.</p>
 <p>Like loading incoming arguments, we need to implement storeRegToStackSlot() at
 early chapter.</p>
 <section id="pseudo-hook-instruction-adjcallstackdown-and-adjcallstackup">
-<h3><a class="toc-backref" href="#id28" role="doc-backlink">Pseudo hook instruction ADJCALLSTACKDOWN and ADJCALLSTACKUP</a><a class="headerlink" href="#pseudo-hook-instruction-adjcallstackdown-and-adjcallstackup" title="Permalink to this heading">¶</a></h3>
+<h3><a class="toc-backref" href="#id29" role="doc-backlink">Pseudo hook instruction ADJCALLSTACKDOWN and ADJCALLSTACKUP</a><a class="headerlink" href="#pseudo-hook-instruction-adjcallstackdown-and-adjcallstackup" title="Permalink to this heading">¶</a></h3>
 <p>DAG.getCALLSEQ_START() and DAG.getCALLSEQ_END() are set before and after the
 <strong>“for loop”</strong>, respectively, they insert
 CALLSEQ_START, CALLSEQ_END, and translate them into pseudo machine instructions
@@ -1856,7 +1856,7 @@ stack.</p>
 </div>
 </section>
 <section id="read-lowercall-with-graphivz-s-help">
-<h3><a class="toc-backref" href="#id29" role="doc-backlink">Read Lowercall() with Graphivz’s help</a><a class="headerlink" href="#read-lowercall-with-graphivz-s-help" title="Permalink to this heading">¶</a></h3>
+<h3><a class="toc-backref" href="#id30" role="doc-backlink">Read Lowercall() with Graphivz’s help</a><a class="headerlink" href="#read-lowercall-with-graphivz-s-help" title="Permalink to this heading">¶</a></h3>
 <p>The whole DAGs created for outgoing arguments as
 “Figure Outgoing arguments DAG (A)…” below for ch9_outgoing.cpp with cpu032I.
 LowerCall() (excluding calling LowerCallResult()) will generate the DAG nodes as
@@ -2174,7 +2174,7 @@ registers and other arguments at stack. The result as follows,</p>
 </div>
 </section>
 <section id="long-and-short-string-initialization">
-<h3><a class="toc-backref" href="#id30" role="doc-backlink">Long and short string initialization</a><a class="headerlink" href="#long-and-short-string-initialization" title="Permalink to this heading">¶</a></h3>
+<h3><a class="toc-backref" href="#id31" role="doc-backlink">Long and short string initialization</a><a class="headerlink" href="#long-and-short-string-initialization" title="Permalink to this heading">¶</a></h3>
 <p>The last section mentioned the “JSUB texternalsym” pattern. Run Chapter9_2 with
 ch9_1_2.cpp to get the result as below. For long string, llvm call memcpy() to
 initialize string (char str[81] = “Hello world” in this case). For short string,
@@ -2296,8 +2296,8 @@ follows,</p>
 <p>The incoming arguments is the formal arguments defined in compiler and program
 language books. The outgoing arguments is the actual arguments.
 Summary as Table: Callee incoming arguments and caller outgoing arguments.</p>
-<table class="docutils align-default" id="id20">
-<caption><span class="caption-number">Table 33 </span><span class="caption-text">Callee incoming arguments and caller outgoing arguments</span><a class="headerlink" href="#id20" title="Permalink to this table">¶</a></caption>
+<table class="docutils align-default" id="id21">
+<caption><span class="caption-number">Table 33 </span><span class="caption-text">Callee incoming arguments and caller outgoing arguments</span><a class="headerlink" href="#id21" title="Permalink to this table">¶</a></caption>
 <thead>
 <tr class="row-odd"><th class="head"><p>Description</p></th>
 <th class="head"><p>Callee</p></th>
@@ -2318,9 +2318,9 @@ Summary as Table: Callee incoming arguments and caller outgoing arguments.</p>
 </section>
 </section>
 <section id="structure-type-support">
-<h2><a class="toc-backref" href="#id31" role="doc-backlink">Structure type support</a><a class="headerlink" href="#structure-type-support" title="Permalink to this heading">¶</a></h2>
+<h2><a class="toc-backref" href="#id32" role="doc-backlink">Structure type support</a><a class="headerlink" href="#structure-type-support" title="Permalink to this heading">¶</a></h2>
 <section id="ordinary-struct-type">
-<h3><a class="toc-backref" href="#id32" role="doc-backlink">Ordinary struct type</a><a class="headerlink" href="#ordinary-struct-type" title="Permalink to this heading">¶</a></h3>
+<h3><a class="toc-backref" href="#id33" role="doc-backlink">Ordinary struct type</a><a class="headerlink" href="#ordinary-struct-type" title="Permalink to this heading">¶</a></h3>
 <p>The following code in Chapter9_1/ and Chapter3_4/ support the ordinary
 structure type in function call.</p>
 <p class="rubric">lbdex/chapters/Chapter9_1/Cpu0ISelLowering.cpp</p>
@@ -2634,7 +2634,7 @@ register as follows,</p>
 <p>Mips ABI asks “return struct varaible address” to be set at $2.</p>
 </section>
 <section id="byval-struct-type">
-<h3><a class="toc-backref" href="#id33" role="doc-backlink">byval struct type</a><a class="headerlink" href="#byval-struct-type" title="Permalink to this heading">¶</a></h3>
+<h3><a class="toc-backref" href="#id34" role="doc-backlink">byval struct type</a><a class="headerlink" href="#byval-struct-type" title="Permalink to this heading">¶</a></h3>
 <p>The following code in Chapter9_1/ and Chapter9_2/ support the byval structure
 type in function call.</p>
 <p class="rubric">lbdex/chapters/Chapter9_1/Cpu0ISelLowering.cpp</p>
@@ -2891,9 +2891,9 @@ C language.</p>
 </section>
 </section>
 <section id="function-call-optiomization">
-<h2><a class="toc-backref" href="#id34" role="doc-backlink">Function call optiomization</a><a class="headerlink" href="#function-call-optiomization" title="Permalink to this heading">¶</a></h2>
+<h2><a class="toc-backref" href="#id35" role="doc-backlink">Function call optiomization</a><a class="headerlink" href="#function-call-optiomization" title="Permalink to this heading">¶</a></h2>
 <section id="tail-call-optimization">
-<h3><a class="toc-backref" href="#id35" role="doc-backlink">Tail call optimization</a><a class="headerlink" href="#tail-call-optimization" title="Permalink to this heading">¶</a></h3>
+<h3><a class="toc-backref" href="#id36" role="doc-backlink">Tail call optimization</a><a class="headerlink" href="#tail-call-optimization" title="Permalink to this heading">¶</a></h3>
 <p>Tail call optimization is used in some situation of function call. For some
 situation, the caller and callee stack can share the same memory stack.
 When this situation applied in recursive function call, it often asymptotically
@@ -3103,8 +3103,8 @@ ch9_2_tailcall.cpp as the following figure,</p>
 	Node0x0 -&gt; Node0x10404e9c0:d0[color=blue,style=dashed];
 }" class="graphviz" /></div>
 <p>Finally, listing the DAGs translation of tail call as the following table.</p>
-<table class="docutils align-default" id="id21">
-<caption><span class="caption-number">Table 34 </span><span class="caption-text">the DAGs translation of tail call</span><a class="headerlink" href="#id21" title="Permalink to this table">¶</a></caption>
+<table class="docutils align-default" id="id22">
+<caption><span class="caption-number">Table 34 </span><span class="caption-text">the DAGs translation of tail call</span><a class="headerlink" href="#id22" title="Permalink to this table">¶</a></caption>
 <thead>
 <tr class="row-odd"><th class="head"><p>Stage</p></th>
 <th class="head"><p>DAG</p></th>
@@ -3203,7 +3203,7 @@ void Cpu0AsmPrinter::emitInstruction(const MachineInstr *MI) {
 in Cpu0GenMCPseudoLowering.inc.</p>
 </section>
 <section id="recursion-optimization">
-<h3><a class="toc-backref" href="#id36" role="doc-backlink">Recursion optimization</a><a class="headerlink" href="#recursion-optimization" title="Permalink to this heading">¶</a></h3>
+<h3><a class="toc-backref" href="#id37" role="doc-backlink">Recursion optimization</a><a class="headerlink" href="#recursion-optimization" title="Permalink to this heading">¶</a></h3>
 <p>As last section, cpu032I cannot does tail call optimization in
 ch9_2_tailcall.cpp since the limitation of arguments size is not satisfied.
 If runnig with <code class="docutils literal notranslate"><span class="pre">clang</span> <span class="pre">-O3</span></code> option, it can get the same or better performance
@@ -3352,7 +3352,7 @@ ABI specification.</p>
 </section>
 </section>
 <section id="other-features-supporting">
-<h2><a class="toc-backref" href="#id37" role="doc-backlink">Other features supporting</a><a class="headerlink" href="#other-features-supporting" title="Permalink to this heading">¶</a></h2>
+<h2><a class="toc-backref" href="#id38" role="doc-backlink">Other features supporting</a><a class="headerlink" href="#other-features-supporting" title="Permalink to this heading">¶</a></h2>
 <p>This section supports features for “$gp register caller saved register in PIC
 addressing mode”, “variable number of arguments” and “dynamic stack allocation”.</p>
 <p>Run Chapter9_2/ with ch9_3_vararg.cpp to get the following error,</p>
@@ -3475,7 +3475,7 @@ addressing mode”, “variable number of arguments” and “dynamic stack allo
 </pre></div>
 </div>
 <section id="the-gp-register-caller-saved-register-in-pic-addressing-mode">
-<h3><a class="toc-backref" href="#id38" role="doc-backlink">The $gp register caller saved register in PIC addressing mode</a><a class="headerlink" href="#the-gp-register-caller-saved-register-in-pic-addressing-mode" title="Permalink to this heading">¶</a></h3>
+<h3><a class="toc-backref" href="#id39" role="doc-backlink">The $gp register caller saved register in PIC addressing mode</a><a class="headerlink" href="#the-gp-register-caller-saved-register-in-pic-addressing-mode" title="Permalink to this heading">¶</a></h3>
 <p>According the original cpu0 web site information, it only supports <strong>“jsub”</strong>
 of 24-bit address range access.
 We add <strong>“jalr”</strong> to cpu0 and expand it to 32 bit address. We do this change for
@@ -4035,7 +4035,7 @@ FunctionPass *llvm::createCpu0EmitGPRestorePass(Cpu0TargetMachine &amp;tm) {
 </div>
 </section>
 <section id="variable-number-of-arguments">
-<h3><a class="toc-backref" href="#id39" role="doc-backlink">Variable number of arguments</a><a class="headerlink" href="#variable-number-of-arguments" title="Permalink to this heading">¶</a></h3>
+<h3><a class="toc-backref" href="#id40" role="doc-backlink">Variable number of arguments</a><a class="headerlink" href="#variable-number-of-arguments" title="Permalink to this heading">¶</a></h3>
 <p>Until now, we support fixed number of arguments in formal function definition
 (Incoming Arguments).
 This subsection supports variable number of arguments since C language supports
@@ -4403,7 +4403,7 @@ We will verify the correction of the code in chapter “Verify backend on
 Verilog simulator” through the CPU0 Verilog language machine.</p>
 </section>
 <section id="dynamic-stack-allocation-support">
-<h3><a class="toc-backref" href="#id40" role="doc-backlink">Dynamic stack allocation support</a><a class="headerlink" href="#dynamic-stack-allocation-support" title="Permalink to this heading">¶</a></h3>
+<h3><a class="toc-backref" href="#id41" role="doc-backlink">Dynamic stack allocation support</a><a class="headerlink" href="#dynamic-stack-allocation-support" title="Permalink to this heading">¶</a></h3>
 <p>Even though C language is very rare using dynamic stack allocation, there are
 languages use it frequently. The following C example code uses it.</p>
 <p>Chapter9_3 supports dynamic stack allocation with the following code added.</p>
@@ -4658,22 +4658,22 @@ alloca().
 The first step is changing the sp to fp by instruction <strong>move $sp, $fp</strong>.
 Next, sp is changed back to caller stack bottom by instruction
 <strong>addiu $sp, $sp, 40</strong>.</p>
-<figure class="align-center" id="id22">
+<figure class="align-center" id="id23">
 <span id="funccall-f4"></span><a class="reference internal image-reference" href="_images/4.png"><img alt="_images/4.png" src="_images/4.png" style="width: 267.5px; height: 139.5px;" /></a>
 <figcaption>
-<p><span class="caption-number">Fig. 29 </span><span class="caption-text">Frame pointer changes when enter function</span><a class="headerlink" href="#id22" title="Permalink to this image">¶</a></p>
-</figcaption>
-</figure>
-<figure class="align-center" id="id23">
-<span id="funccall-f5"></span><a class="reference internal image-reference" href="_images/5.png"><img alt="_images/5.png" src="_images/5.png" style="width: 264.0px; height: 132.0px;" /></a>
-<figcaption>
-<p><span class="caption-number">Fig. 30 </span><span class="caption-text">Stack pointer changes when exit function</span><a class="headerlink" href="#id23" title="Permalink to this image">¶</a></p>
+<p><span class="caption-number">Fig. 29 </span><span class="caption-text">Frame pointer changes when enter function</span><a class="headerlink" href="#id23" title="Permalink to this image">¶</a></p>
 </figcaption>
 </figure>
 <figure class="align-center" id="id24">
+<span id="funccall-f5"></span><a class="reference internal image-reference" href="_images/5.png"><img alt="_images/5.png" src="_images/5.png" style="width: 264.0px; height: 132.0px;" /></a>
+<figcaption>
+<p><span class="caption-number">Fig. 30 </span><span class="caption-text">Stack pointer changes when exit function</span><a class="headerlink" href="#id24" title="Permalink to this image">¶</a></p>
+</figcaption>
+</figure>
+<figure class="align-center" id="id25">
 <span id="funccall-f6"></span><a class="reference internal image-reference" href="_images/6.png"><img alt="_images/6.png" src="_images/6.png" style="width: 269.5px; height: 197.0px;" /></a>
 <figcaption>
-<p><span class="caption-number">Fig. 31 </span><span class="caption-text">fp and sp access areas</span><a class="headerlink" href="#id24" title="Permalink to this image">¶</a></p>
+<p><span class="caption-number">Fig. 31 </span><span class="caption-text">fp and sp access areas</span><a class="headerlink" href="#id25" title="Permalink to this image">¶</a></p>
 </figcaption>
 </figure>
 <p>Using fp to keep the old stack pointer value is not the only solution.
@@ -4889,7 +4889,7 @@ which can be tested now as follows.</p>
 </div>
 </section>
 <section id="variable-sized-array-support">
-<h3><a class="toc-backref" href="#id41" role="doc-backlink">Variable sized array support</a><a class="headerlink" href="#variable-sized-array-support" title="Permalink to this heading">¶</a></h3>
+<h3><a class="toc-backref" href="#id42" role="doc-backlink">Variable sized array support</a><a class="headerlink" href="#variable-sized-array-support" title="Permalink to this heading">¶</a></h3>
 <p>LLVM supports variable sized arrays in C99 <a class="footnote-reference brackets" href="#stacksave" id="id11" role="doc-noteref"><span class="fn-bracket">[</span>9<span class="fn-bracket">]</span></a>. The following code
 added for this support. Set them to expand, meaning llvm uses other DAGs
 replace them.</p>
@@ -4957,7 +4957,7 @@ replace them.</p>
 </div>
 </section>
 <section id="function-related-intrinsics-support">
-<h3><a class="toc-backref" href="#id42" role="doc-backlink">Function related Intrinsics support</a><a class="headerlink" href="#function-related-intrinsics-support" title="Permalink to this heading">¶</a></h3>
+<h3><a class="toc-backref" href="#id43" role="doc-backlink">Function related Intrinsics support</a><a class="headerlink" href="#function-related-intrinsics-support" title="Permalink to this heading">¶</a></h3>
 <p>I think these llvm instinsic IRs are for the implementation of exception handle
 <a class="footnote-reference brackets" href="#excepthandle" id="id12" role="doc-noteref"><span class="fn-bracket">[</span>10<span class="fn-bracket">]</span></a> <a class="footnote-reference brackets" href="#returnaddr" id="id13" role="doc-noteref"><span class="fn-bracket">[</span>11<span class="fn-bracket">]</span></a>. With these IRs, programmer can record the
 frame address and return address to be used in implementing program of
@@ -5078,7 +5078,7 @@ intrinsic IRs, the following code added to Cpu0 backend.</p>
 </pre></div>
 </div>
 <section id="frameaddress-and-returnaddress-intrinsics">
-<h4><a class="toc-backref" href="#id43" role="doc-backlink">frameaddress and returnaddress intrinsics</a><a class="headerlink" href="#frameaddress-and-returnaddress-intrinsics" title="Permalink to this heading">¶</a></h4>
+<h4><a class="toc-backref" href="#id44" role="doc-backlink">frameaddress and returnaddress intrinsics</a><a class="headerlink" href="#frameaddress-and-returnaddress-intrinsics" title="Permalink to this heading">¶</a></h4>
 <p>Run with the following input to get the following result.</p>
 <p class="rubric">lbdex/input/ch9_3_frame_return_addr.cpp</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="nb">int</span> <span class="n">display_frameaddress</span><span class="p">()</span> <span class="p">{</span>
@@ -5227,7 +5227,7 @@ loading from stack slot rather than uses register directly.</p>
 </div>
 </section>
 <section id="eh-return-intrinsic">
-<h4><a class="toc-backref" href="#id44" role="doc-backlink">eh.return intrinsic</a><a class="headerlink" href="#eh-return-intrinsic" title="Permalink to this heading">¶</a></h4>
+<h4><a class="toc-backref" href="#id45" role="doc-backlink">eh.return intrinsic</a><a class="headerlink" href="#eh-return-intrinsic" title="Permalink to this heading">¶</a></h4>
 <p>Considering the following code,</p>
 <p class="rubric">unwind example</p>
 <div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="kt">int</span><span class="w"> </span><span class="nf">func</span><span class="p">()</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
@@ -5651,7 +5651,7 @@ Through examining global variable, exceptionOccur, is true or false, program
 will set the control flow to exception_handler() or not to correctly.</p>
 </section>
 <section id="eh-dwarf-intrinsic">
-<h4><a class="toc-backref" href="#id45" role="doc-backlink">eh.dwarf intrinsic</a><a class="headerlink" href="#eh-dwarf-intrinsic" title="Permalink to this heading">¶</a></h4>
+<h4><a class="toc-backref" href="#id46" role="doc-backlink">eh.dwarf intrinsic</a><a class="headerlink" href="#eh-dwarf-intrinsic" title="Permalink to this heading">¶</a></h4>
 <p>Beside lowerADD() in Cpu0ISelLowering, the following code is for the eh.dwarf
 supporting only, and it can run with input eh-dwarf-cfa.ll as below.</p>
 <p class="rubric">lbdex/chapters/Chapter9_3/Cpu0SEFrameLowering.cpp</p>
@@ -5721,7 +5721,7 @@ entry:
 </div>
 </section>
 <section id="bswap-intrinsic">
-<h4><a class="toc-backref" href="#id46" role="doc-backlink">bswap intrinsic</a><a class="headerlink" href="#bswap-intrinsic" title="Permalink to this heading">¶</a></h4>
+<h4><a class="toc-backref" href="#id47" role="doc-backlink">bswap intrinsic</a><a class="headerlink" href="#bswap-intrinsic" title="Permalink to this heading">¶</a></h4>
 <p>Cpu0 supports llvm instrinsics bswap intrinsic <a class="footnote-reference brackets" href="#bswapintrnsic" id="id16" role="doc-noteref"><span class="fn-bracket">[</span>14<span class="fn-bracket">]</span></a>.</p>
 <p class="rubric">lbdex/chapters/Chapter12_1/Cpu0ISelLowering.cpp</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Cpu0TargetLowering</span><span class="p">::</span><span class="n">Cpu0TargetLowering</span><span class="p">(</span><span class="n">const</span> <span class="n">Cpu0TargetMachine</span> <span class="o">&amp;</span><span class="n">TM</span><span class="p">,</span>
@@ -5791,7 +5791,7 @@ entry:
 </section>
 </section>
 <section id="add-specific-backend-intrinsic-function">
-<h3><a class="toc-backref" href="#id47" role="doc-backlink">Add specific backend intrinsic function</a><a class="headerlink" href="#add-specific-backend-intrinsic-function" title="Permalink to this heading">¶</a></h3>
+<h3><a class="toc-backref" href="#id48" role="doc-backlink">Add specific backend intrinsic function</a><a class="headerlink" href="#add-specific-backend-intrinsic-function" title="Permalink to this heading">¶</a></h3>
 <p>LLVM intrinsic functions is designed to extend llvm IRs for hardware
 acceleration in compiler design <a class="footnote-reference brackets" href="#extendintrnsic" id="id17" role="doc-noteref"><span class="fn-bracket">[</span>15<span class="fn-bracket">]</span></a>.
 Many cpu implement their intrinsic functions for their speedup hardware
@@ -5824,10 +5824,11 @@ The code as follows,</p>
 <span class="o">//</span>
 <span class="o">//===----------------------------------------------------------------------===//</span>
 
-<span class="k">def</span> <span class="nf">int_cpu0_gcd</span> <span class="p">:</span> <span class="n">GCCBuiltin</span><span class="o">&lt;</span><span class="s2">&quot;__builtin_cpu0_gcd&quot;</span><span class="o">&gt;</span><span class="p">,</span>
+<span class="o">//</span> <span class="n">__builtin_cpu0_gcd</span> <span class="n">defined</span> <span class="ow">in</span>
+<span class="o">//</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">github</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">Jonathan2251</span><span class="o">/</span><span class="n">lbt</span><span class="o">/</span><span class="n">blob</span><span class="o">/</span><span class="n">master</span><span class="o">/</span><span class="n">exlbt</span><span class="o">/</span><span class="n">clang</span><span class="o">/</span><span class="n">include</span><span class="o">/</span><span class="n">clang</span><span class="o">/</span><span class="n">Basic</span><span class="o">/</span><span class="n">BuiltinsCpu0</span><span class="o">.</span><span class="k">def</span>
+<span class="nf">def</span> <span class="n">int_cpu0_gcd</span> <span class="p">:</span> <span class="n">GCCBuiltin</span><span class="o">&lt;</span><span class="s2">&quot;__builtin_cpu0_gcd&quot;</span><span class="o">&gt;</span><span class="p">,</span>
   <span class="n">Intrinsic</span><span class="o">&lt;</span><span class="p">[</span><span class="n">llvm_i32_ty</span><span class="p">],</span> <span class="p">[</span><span class="n">llvm_i32_ty</span><span class="p">,</span> <span class="n">llvm_i32_ty</span><span class="p">],</span>
   <span class="p">[</span><span class="n">Commutative</span><span class="p">,</span> <span class="n">IntrNoMem</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
-
 </pre></div>
 </div>
 <p class="rubric">lbdex/chapters/Chapter9_3/Cpu0InstrInfo.td</p>
@@ -5846,15 +5847,19 @@ The code as follows,</p>
 </pre></div>
 </div>
 <p>When running llc with cpu0_gcd.ll, it gets the gcd machine instruction,
-meanwhile, when running cpu0_gcd_soft.ll, it gets the “call llvm.cpu0.gcd.soft”
+meanwhile, when running cpu0_gcd_soft.ll, it gets the “call cpu0_gcd_soft”
 function.
 In other words, “&#64;llvm.cpu0.gcd” is intrinsic function for “gcd” machine
-instruction; “&#64;llvm.cpu0.gcd.soft” is intrinsic function for hand-written
+instruction; “&#64;cpu0_gcd_soft” is ordinary function for hand-written
 function code.</p>
+<p>For those undefined intrinsic functions for Cpu0, such as “fmul float %0, %1”.
+LLVM will compile into function call “jsub fmul” for Cpu0 <a class="footnote-reference brackets" href="#lbd-fmul" id="id18" role="doc-noteref"><span class="fn-bracket">[</span>16<span class="fn-bracket">]</span></a>.</p>
+<p>The test_memcpy.ll is an example for InstrWriteMem which prevent to be optimized
+out.</p>
 </section>
 </section>
 <section id="summary">
-<h2><a class="toc-backref" href="#id48" role="doc-backlink">Summary</a><a class="headerlink" href="#summary" title="Permalink to this heading">¶</a></h2>
+<h2><a class="toc-backref" href="#id49" role="doc-backlink">Summary</a><a class="headerlink" href="#summary" title="Permalink to this heading">¶</a></h2>
 <p>Now, Cpu0 backend code can take care both the integer function call and
 control statement just like the example code of llvm frontend tutorial does.
 It can translate some of the C++ OOP language into Cpu0 instructions also
@@ -5866,7 +5871,6 @@ get benefit from this structure.
 The best part of 3 tiers compiler structure is that backend will grow up
 automatically in languages support as the frontend supporting languages more
 and more when the frontend doesn’t add any new IR for a new language.</p>
-<aside class="footnote-list brackets">
 <aside class="footnote brackets" id="computer-arch-interface" role="note">
 <span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id1">1</a><span class="fn-bracket">]</span></span>
 <p>Computer Organization and Design: The Hardware/Software Interface 1st edition (The Morgan Kaufmann Series in Computer Architecture and Design)</p>
@@ -5929,6 +5933,9 @@ and more when the frontend doesn’t add any new IR for a new language.</p>
 <span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id17">15</a><span class="fn-bracket">]</span></span>
 <p><a class="reference external" href="https://llvm.org/docs/ExtendingLLVM.html">https://llvm.org/docs/ExtendingLLVM.html</a></p>
 </aside>
+<aside class="footnote brackets" id="lbd-fmul" role="note">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id18">16</a><span class="fn-bracket">]</span></span>
+<p><a class="reference external" href="file:///Users/cschen/git/lbd/build/html/othertype.html#float-and-double">file:///Users/cschen/git/lbd/build/html/othertype.html#float-and-double</a></p>
 </aside>
 </section>
 </section>
@@ -5949,7 +5956,7 @@ and more when the frontend doesn’t add any new IR for a new language.</p>
 
     <div class="footer" role="contentinfo">
         &#169; Copyright 2016, Chen Chung-Shu.
-      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 5.1.1.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 5.0.2.
     </div>
   </body>
 </html>

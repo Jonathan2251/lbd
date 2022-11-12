@@ -3528,11 +3528,17 @@ The code as follows,
     :end-before: //#endif //#if CH >= CH9_3 //5
 
 When running llc with cpu0_gcd.ll, it gets the gcd machine instruction,
-meanwhile, when running cpu0_gcd_soft.ll, it gets the "call llvm.cpu0.gcd.soft"
+meanwhile, when running cpu0_gcd_soft.ll, it gets the "call cpu0_gcd_soft"
 function.
 In other words, "@llvm.cpu0.gcd" is intrinsic function for "gcd" machine
-instruction; "@llvm.cpu0.gcd.soft" is intrinsic function for hand-written
+instruction; "@cpu0_gcd_soft" is ordinary function for hand-written
 function code.
+
+For those undefined intrinsic functions for Cpu0, such as "fmul float %0, %1".
+LLVM will compile into function call "jsub fmul" for Cpu0 [#lbd-fmul]_.
+
+The test_memcpy.ll is an example for InstrWriteMem which prevent to be optimized
+out.
 
 
 Summary
@@ -3581,3 +3587,4 @@ and more when the frontend doesn't add any new IR for a new language.
 
 .. [#extendintrnsic] https://llvm.org/docs/ExtendingLLVM.html
 
+.. [#lbd-fmul] file:///Users/cschen/git/lbd/build/html/othertype.html#float-and-double

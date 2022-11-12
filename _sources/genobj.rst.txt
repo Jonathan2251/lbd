@@ -23,8 +23,9 @@ message as follows,
 
 .. code-block:: console
 
-  [Gamma@localhost 3]$ ~/llvm/test/build/bin/
-  llc -march=cpu0 -relocation-model=pic -filetype=obj ch4_1_math_math.bc -o 
+  bin$ pwd
+  $HOME/llvm/test/build/bin/
+  bin$ llc -march=cpu0 -relocation-model=pic -filetype=obj ch4_1_math_math.bc -o 
   ch4_1_math.cpu0.o
   ~/llvm/test/build/bin/llc: target does not 
   support generation of this file type! 
@@ -36,7 +37,7 @@ Run with them will get the obj files as follows,
 
 .. code-block:: console
 
-  [Gamma@localhost input]$ cat ch4_1_math.cpu0.s 
+  input$ cat ch4_1_math.cpu0.s 
   ...
     .set  nomacro
   # BB#0:                                 # %entry
@@ -51,10 +52,11 @@ Run with them will get the obj files as follows,
     st  $2, 28($fp)
   ...
   
-  [Gamma@localhost 3]$ ~/llvm/test/build/bin/
-  llc -march=cpu0 -relocation-model=pic -filetype=obj ch4_1_math.bc -o 
+  bin$ pwd
+  $HOME/llvm/test/build/bin/
+  bin$ llc -march=cpu0 -relocation-model=pic -filetype=obj ch4_1_math.bc -o 
   ch4_1_math.cpu0.o
-  [Gamma@localhost input]$ objdump -s ch4_1_math.cpu0.o 
+  input$ objdump -s ch4_1_math.cpu0.o 
   
   ch4_1_math.cpu0.o:     file format elf32-big 
   
@@ -72,10 +74,10 @@ Run with them will get the obj files as follows,
    00a0 22223000 022d0010 012d0034 013d0030  ""0..-...-.4.=.0
    00b0 20232000 022d0000 09dd0038 3ce00000   # ..-.....8<...     
    
-  [Gamma@localhost input]$ ~/llvm/test/
+  input$ ~/llvm/test/
   build/bin/llc -march=cpu0el -relocation-model=pic -filetype=obj 
   ch4_1_math.bc -o ch4_1_math.cpu0el.o 
-  [Gamma@localhost input]$ objdump -s ch4_1_math.cpu0el.o 
+  input$ objdump -s ch4_1_math.cpu0el.o 
   
   ch4_1_math.cpu0el.o:     file format elf32-little 
   
@@ -181,6 +183,44 @@ Chapter5_1.
 .. literalinclude:: ../lbdex/Cpu0/Cpu0MCInstLower.h
     :start-after: #if CH >= CH5_1
     :end-before: #endif
+
+
+Work flow
+---------
+
+In Chapter3_2, OutStreamer->emitInstruction print the asm. To support elf obj 
+generation, this chapter create MCELFObjectStreamer inherited from OutStreamer
+by calling createELFStreamer in Cpu0MCTargetDesc.cpp above. Once 
+MCELFObjectStreamer is created. The OutStreamer->emitInstruction will work with
+other code added in directory MCTargetDesc of this chapter. The details of 
+expanation as follows,
+
+.. rubric:: llvm/include/llvm/CodeGen/AsmPrinter.h
+.. code-block:: c++
+
+  class AsmPrinter : public MachineFunctionPass {
+  public:
+    ...
+    std::unique_ptr<MCStreamer> OutStreamer;
+    ...
+  }
+
+.. rubric:: lbdex/chapters/Chapter3_2/Cpu0AsmPrinter.h
+.. code-block:: c++
+
+  class LLVM_LIBRARY_VISIBILITY Cpu0AsmPrinter : public AsmPrinter {
+
+.. rubric:: lbdex/chapters/Chapter3_2/Cpu0AsmPrinter.cpp
+.. code-block:: c++
+
+  void Cpu0AsmPrinter::emitInstruction(const MachineInstr *MI) {
+    ...
+    do {
+      ...
+      OutStreamer->emitInstruction(TmpInst0, getSubtargetInfo());
+      ...
+    } while ((++I != E) && I->isInsideBundle()); // Delay slot check
+  }
 
 .. _genobj-f11: 
 .. graphviz:: ../Fig/genobj/callFunctions.gv
