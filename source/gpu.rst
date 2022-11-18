@@ -457,15 +457,15 @@ In the programming example saxpy() above,
 
 Mapping the previous section HW to the example code as the following,
 
-- Grid is Vectorizable Loop [#Quantitative-gpu-griddef]_.
+- Grid is Vectorizable Loop (y[0.8191]) [#Quantitative-gpu-griddef]_.
 
-- Each multithreaded SIMD Processor is assigned 512 elements of the vectors to work on.
+- Thread Block (y[0..511]) <-> SIMD Processor (Core). 
+  Each multithreaded SIMD Processor is assigned 512 elements of the vectors to work on.
   As :numref:`grid`: The hardware Thread Block Scheduler assigns Thread Blocks to 
-  multithreaded SIMD Processors. Thread Block <-> SIMD Processor. In this 8192 elements
+  multithreaded SIMD Processors. In this 8192 elements
   of matrix multiplication A[] = B[] * C[] example, Warp is the 512 elements of 
   matrix mutiplication.
-  If another 512 elements of matrix addition F[] = D[] + E[] assigned in the same 
-  Thread Block, then another Warp for it. Warp has it's own
+  Warp has it's own
   PC and TLR (Thread Level Registers). Warp may map to
   one whole function or part of function. Assume these two matrix mutiplication and 
   addition instructions come from the same function. Compiler and run time may assign
@@ -483,7 +483,7 @@ Mapping the previous section HW to the example code as the following,
   as in vector processor). So it takes 2 clock cycles to complete [#lanes]_.
 
 - As the following code.
-  Thread Block 0 has 16 threads and each thread (warp) has it's own PC. The The 
+  Thread Block 0 has 16 threads and each thread (Warp) has it's own PC. The The 
   SIMD Thread Scheduler select threads to run as :numref:`grid`.
 
 .. code-block:: c++
@@ -502,17 +502,20 @@ Mapping the previous section HW to the example code as the following,
     ...
 
 - Each thread handle 32 elements computing, assuming 4 registers for 1 element,
-  then there are 4*32 Thread 
-  Level Registers in a thread to support the SIMT computing.
+  then there are 4*32=128 Thread Level Registers, TLR, occupied in a thread to 
+  support the SIMT computing. So, assume a GPU architecture allocating 256 TLR
+  to a Thread (Warp), then it has sufficient TLR for more complicated statement,
+  such as a*x[i]+b*[y]+c*[z] without spilling in register allocation. 16 lanes
+  share the 256 TLR.
 
-- Each Thread Block (Core/Warp) has 16 threads, so there are 16 * Registers of 
-  Thread in a Core.
+- Each Thread Block (Core/Warp) has 16 threads, so there are 16*256 = 4K TLR in 
+  a Core.
 
 The main() run on CPU while the saxpy() run on GPU. Through 
 cudaMemcpyHostToDevice and cudaMemcpyDeviceToHost, CPU can pass data in x and in y 
 array to GPU and get result from GPU to y array. 
 Since both of these memory transfers trigger the DMA functions without CPU operation,
-it mays speed up by running both CPU/GPU with their data in their own cache 
+it may speed up by running both CPU/GPU with their data in their own cache 
 repectively.
 After DMA memcpy from cpu's memory to gpu's, gpu operate the whole loop of matrix 
 operation for "y[] = a*x[]+y[];"
@@ -537,15 +540,16 @@ code [#VMR]_,
   SV V1,Rx         ;store the result in X
 
 
-GPU has smaller L1 cache than cpu for each core.
+GPU persues throughput from SIMD application. Can hide L1 latence from SMT. As 
+result GPU may has smaller L1 cache than cpu for each core [#gpu-l1-smaller]_.
 DMA memcpy map the data in cpu memory to each l1 cache of core on gpu memory.
 Many gpu provides operations scatter and gather to access DRAM data for stream 
 processing [#Quantitative-gpu-sparse-matrix]_ [#gpgpuwiki]_ [#shadingl1]_.
 
 When the GPU function is dense computation in array such as MPEG4 encoder or
-deep learning for tuning weights, it mays get much speed up [#mpeg4speedup]_. 
+deep learning for tuning weights, it may get much speed up [#mpeg4speedup]_. 
 However when GPU function is matrix addition and CPU will idle for waiting 
-GPU's result. It mays slow down than doing matrix addition by CPU only.
+GPU's result. It may slow down than doing matrix addition by CPU only.
 Arithmetic intensity is defined as the number of operations performed per word of 
 memory transferred. It is important for GPGPU applications to have high arithmetic 
 intensity else the memory access latency will limit computational speedup 
@@ -730,6 +734,8 @@ programmers [#paper-graph-on-opencl]_. Cuda graph is an idea  like this
 
 .. [#VMR] subsection Vector Mask Registers: Handling IF Statements in Vector Loops of Computer Architecture: A Quantitative Approach 5th edition (The
        Morgan Kaufmann Series in Computer Architecture and Design)
+
+.. [#gpu-l1-smaller] From section 2.3.2 of book "Heterogeneous Computing with OpenCL 2.0" 3rd edition. https://dahlan.unimal.ac.id/files/ebooks2/2015%203rd%20Heterogeneous%20Computing%20with%20OpenCL%202.0.pdf as follows, "These tasks and the pixels they process are highly parallel, which gives a substan- tial amount of independent work to process for devices with multiple cores and highly latency-tolerant multithreading."
 
 .. [#Quantitative-gpu-sparse-matrix] Reference "Gather-Scatter: Handling Sparse Matrices in Vector Architectures": section 4.2 Vector Architecture of A Quantitative Approach 5th edition (The
        Morgan Kaufmann Series in Computer Architecture and Design)
