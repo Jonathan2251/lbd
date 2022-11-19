@@ -2523,7 +2523,7 @@ the Target Registration.
 
 .. [#llvm-ir-vs-gimple] https://stackoverflow.com/questions/40799696/how-is-gcc-ir-different-from-llvm-ir/40802063
 
-.. [#null_pointer_ex] https://github.com/Jonathan2251/note/blob/master/null_pointer.cpp is an example.
+.. [#null_pointer_ex] https://github.com/Jonathan2251/lbd/tree/master/References/null_pointer.cpp is an example.
 
 .. [#null_pointer]
     Dereferencing a NULL Pointer: 

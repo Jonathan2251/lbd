@@ -61,7 +61,11 @@ https://github.com/Jonathan2251/lbd/blob/master/README.md
 Revision history
 ----------------
 
-Version 12.0.9, not released yet.
+Version 12.0.10, not released yet.
+
+Version 12.0.9, Released November 19, 2022.
+  gpu.rst: Table 42 Map (Core,Thread) to saxpy and refine section of General purpose GPU.
+  Move null_pointer.cpp from git/note to lbd/References.
 
 Version 12.0.8, Released November 12, 2022.
 
