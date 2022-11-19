@@ -455,20 +455,31 @@ In the programming example saxpy() above,
 - blockDim is the number of total Thread Blocks in a Grid
 
 
-Mapping the previous section HW to the example code as the following,
+A GPU may has the HW structure and handle the subset of y[]=a*x[]+y[] array-calculation as follows,
 
-- Grid is Vectorizable Loop (y[0.8191]) [#Quantitative-gpu-griddef]_.
+- A Grid: has 16 Thread Blocks (Cores), y[0..8192] = a * x[0..8192] + y[0..8192]
 
-- Thread Block (y[0..511]) <-> SIMD Processor (Core). 
-  Each multithreaded SIMD Processor is assigned 512 elements of the vectors to work on.
-  As :numref:`grid`: The hardware Thread Block Scheduler assigns Thread Blocks to 
-  multithreaded SIMD Processors. In this 8192 elements
-  of matrix multiplication A[] = B[] * C[] example, Warp is the 512 elements of 
-  matrix mutiplication.
+- A Core: has 16 Threads (Warps), Core[0]: y[0..511] = a * x[0..511] + y[0..511], Core[1]: y[512..1023] = a * x[512..1023] + y[512..1023]
+
+- A Thread: has 16 Lanes, Core[0]-Thread[0]: y[0..31] = a * x[0..31] * y[0..31], Core[0]-Thread[1]: y[32..63] = a * x[32..63] + y[32..63]
+
+
+.. table:: Map (Core,Thread) to saxpy
+
+  ============  =================================================  =================================================  =======  ===========================================
+  -             Thread-0                                           Thread-1                                           ...      Thread-15
+  ============  =================================================  =================================================  =======  ===========================================
+  Core-0        y[0..31] = a * x[0..31] * y[0..31]                 y[32..63] = a * x[32..63] + y[32..63]              ...      y[480..511] = a * x[480..511] + y[480..511] 
+  ...           ...                                                ...                                                ...      ...
+  Core-15       y[7680..7711] = a * x[7680..7711] * y[7680..7711]  y[7712..7743] = a * x[7712..7743] + y[7712..7743]  ...      y[8160..8191] = a * x[8160..8191] + y[8160..8191] 
+  ============  =================================================  =================================================  =======  ===========================================
+
+- Grid is Vectorizable Loop [#Quantitative-gpu-griddef]_.
+
+- Thread Block <-> SIMD Processor (Core). 
   Warp has it's own
   PC and TLR (Thread Level Registers). Warp may map to
-  one whole function or part of function. Assume these two matrix mutiplication and 
-  addition instructions come from the same function. Compiler and run time may assign
+  one whole function or part of function. Compiler and run time may assign
   them to the same Warp or different Warps [#Quantitative-gpu-warp]_.
 
 - SIMD Processors are full processors with separate PCs and are programmed using
