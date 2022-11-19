@@ -457,11 +457,11 @@ In the programming example saxpy() above,
 
 A GPU may has the HW structure and handle the subset of y[]=a*x[]+y[] array-calculation as follows,
 
-- A Grid: has 16 Thread Blocks (Cores), y[0..8192] = a * x[0..8192] + y[0..8192]
+- A Grid: has 16 Thread Blocks (Cores).
 
-- A Core: has 16 Threads (Warps), Core[0]: y[0..511] = a * x[0..511] + y[0..511], Core[1]: y[512..1023] = a * x[512..1023] + y[512..1023]
+- A Core: has 16 Threads (Warps, Cuda Threads).
 
-- A Thread: has 16 Lanes, Core[0]-Thread[0]: y[0..31] = a * x[0..31] * y[0..31], Core[0]-Thread[1]: y[32..63] = a * x[32..63] + y[32..63]
+- A Thread: has 16 Lanes (vector instruction with processing 16-elements).
 
 
 .. table:: Map (Core,Thread) to saxpy
@@ -471,7 +471,7 @@ A GPU may has the HW structure and handle the subset of y[]=a*x[]+y[] array-calc
   ============  =================================================  =================================================  =======  ===========================================
   Core-0        y[0..31] = a * x[0..31] * y[0..31]                 y[32..63] = a * x[32..63] + y[32..63]              ...      y[480..511] = a * x[480..511] + y[480..511] 
   ...           ...                                                ...                                                ...      ...
-  Core-15       y[7680..7711] = a * x[7680..7711] * y[7680..7711]  y[7712..7743] = a * x[7712..7743] + y[7712..7743]  ...      y[8160..8191] = a * x[8160..8191] + y[8160..8191] 
+  Core-15       y[7680..7711] = a * ...                            ...                                                ...      y[8160..8191] = a * x[8160..8191] + y[8160..8191] 
   ============  =================================================  =================================================  =======  ===========================================
 
 - Grid is Vectorizable Loop [#Quantitative-gpu-griddef]_.
@@ -491,26 +491,8 @@ A GPU may has the HW structure and handle the subset of y[]=a*x[]+y[] array-calc
   (SIMD Processor) is 32 for the later Fermi-generation GPUs.
   Each SIMD Thread has 32 elements run as :numref:`threadslanes` on 
   16 SIMD lanes (number of functional units just same
-  as in vector processor). So it takes 2 clock cycles to complete [#lanes]_.
-
-- As the following code.
-  Thread Block 0 has 16 threads and each thread (Warp) has it's own PC. The The 
-  SIMD Thread Scheduler select threads to run as :numref:`grid`.
-
-.. code-block:: c++
-
-  Thread Block 0:
-    int i = blockIdx.x*blockDim.x + threadIdx.x;
-    if (i < n) y[i] = a*x[i] + y[i];
-
-    y[0..31] = a*x[0..31] + y[0..31]; // thread 0, (0..31) run in one or few SIMD instructions
-    y[32..63] = a*x[32..63] + y[32..63]; // thread 1, (32..63) 
-    ...
-    y[480..511] = a*x[480..511] + y[480..511]; thread 15, (480..511)
-
-  Thread Block 1:
-    y[512..543] = a*x[512..543] + y[512..543]; // thread 0, i0:(512..543)
-    ...
+  as in vector processor). So it takes 2 clock cycles to complete [#lanes]_, also
+  known as "ping pong" cycles.
 
 - Each thread handle 32 elements computing, assuming 4 registers for 1 element,
   then there are 4*32=128 Thread Level Registers, TLR, occupied in a thread to 
@@ -523,12 +505,12 @@ A GPU may has the HW structure and handle the subset of y[]=a*x[]+y[] array-calc
   a Core.
 
 The main() run on CPU while the saxpy() run on GPU. Through 
-cudaMemcpyHostToDevice and cudaMemcpyDeviceToHost, CPU can pass data in x and in y 
-array to GPU and get result from GPU to y array. 
+cudaMemcpyHostToDevice and cudaMemcpyDeviceToHost, CPU can pass data in x and y
+arrays to GPU and get result from GPU to y array. 
 Since both of these memory transfers trigger the DMA functions without CPU operation,
 it may speed up by running both CPU/GPU with their data in their own cache 
 repectively.
-After DMA memcpy from cpu's memory to gpu's, gpu operate the whole loop of matrix 
+After DMA memcpy from cpu's memory to gpu's, gpu operates the whole loop of matrix 
 operation for "y[] = a*x[]+y[];"
 instructions with one Grid. Furthermore liking vector processor, gpu provides
 Vector Mask Registers to Handling IF Statements in Vector Loops as the following 
@@ -551,8 +533,9 @@ code [#VMR]_,
   SV V1,Rx         ;store the result in X
 
 
-GPU persues throughput from SIMD application. Can hide L1 latence from SMT. As 
-result GPU may has smaller L1 cache than cpu for each core [#gpu-l1-smaller]_.
+GPU persues throughput from SIMD application. Can hide cache-miss latence from 
+SMT. As result GPU may hasn't L2 and L3 like CPU for each core since GPU is highly 
+latency-tolerant multithreading for data parallel application [#gpu-latency-tolerant]_.
 DMA memcpy map the data in cpu memory to each l1 cache of core on gpu memory.
 Many gpu provides operations scatter and gather to access DRAM data for stream 
 processing [#Quantitative-gpu-sparse-matrix]_ [#gpgpuwiki]_ [#shadingl1]_.
@@ -582,13 +565,20 @@ compressing [#gpuspeedup]_ gives the more applications for GPU acceleration.
   ============  ========================  =========
   Application   Non-data parallel         Data parallel
   Architecture  SISD, small vector        Large SIMD
-  Cache         Smaller and faster        Larger and slower
+  Cache         Smaller and faster        Larger and slower #A
   ILP           Pipeline                  Pipeline
    -            Superscalar, SMT          SIMT
    -            Super-pipeline
   Branch        Conditional-instructions  Mask & conditional-instructions
   ============  ========================  =========
                              
+.. note:: **GPU-Cache**
+ 
+  In theory for data parallel application in GPU's SMT, GPU can schedule more
+  threads and pursues throughput rather speedup for one single thread as SISD in
+  CPU. However in reality, GPU provides small L1 cache like CPU's and fill the 
+  cache-miss with scheduline another thread. So, GPU may has no L2 and L3 while
+  CPU has deep level of caches.
 
 
 Vulkan and spir-v
@@ -746,7 +736,7 @@ programmers [#paper-graph-on-opencl]_. Cuda graph is an idea  like this
 .. [#VMR] subsection Vector Mask Registers: Handling IF Statements in Vector Loops of Computer Architecture: A Quantitative Approach 5th edition (The
        Morgan Kaufmann Series in Computer Architecture and Design)
 
-.. [#gpu-l1-smaller] From section 2.3.2 of book "Heterogeneous Computing with OpenCL 2.0" 3rd edition. https://dahlan.unimal.ac.id/files/ebooks2/2015%203rd%20Heterogeneous%20Computing%20with%20OpenCL%202.0.pdf as follows, "These tasks and the pixels they process are highly parallel, which gives a substan- tial amount of independent work to process for devices with multiple cores and highly latency-tolerant multithreading."
+.. [#gpu-latency-tolerant] From section 2.3.2 of book "Heterogeneous Computing with OpenCL 2.0" 3rd edition. https://dahlan.unimal.ac.id/files/ebooks2/2015%203rd%20Heterogeneous%20Computing%20with%20OpenCL%202.0.pdf as follows, "These tasks and the pixels they process are highly parallel, which gives a substan- tial amount of independent work to process for devices with multiple cores and highly latency-tolerant multithreading."
 
 .. [#Quantitative-gpu-sparse-matrix] Reference "Gather-Scatter: Handling Sparse Matrices in Vector Architectures": section 4.2 Vector Architecture of A Quantitative Approach 5th edition (The
        Morgan Kaufmann Series in Computer Architecture and Design)
