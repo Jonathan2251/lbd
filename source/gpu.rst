@@ -560,17 +560,18 @@ compressing [#gpuspeedup]_ gives the more applications for GPU acceleration.
 
 .. table:: The differences for speedup in architecture of CPU and GPU
 
-  ============  ========================  =========
-  Item          CPU                       GPU
-  ============  ========================  =========
-  Application   Non-data parallel         Data parallel
-  Architecture  SISD, small vector        Large SIMD
-  Cache         Smaller and faster        Larger and slower #A
-  ILP           Pipeline                  Pipeline
-   -            Superscalar, SMT          SIMT
+  ============  ================================  =========
+  Item          CPU                               GPU
+  ============  ================================  =========
+  Application   Non-data parallel                 Data parallel
+  Architecture  SISD, small vector (eg.4*32bits)  Large SIMD (eg.16*32bits)
+  Cache         Smaller and faster                Larger and slower (ref. The following Note)
+  ILP           Pipeline                          Pipeline
+   -            Superscalar, SMT                  SIMT
    -            Super-pipeline
-  Branch        Conditional-instructions  Mask & conditional-instructions
-  ============  ========================  =========
+  Core          Smaller threads for SMT (2 or 4)  Larger threads (16 or 32)
+  Branch        Conditional-instructions          Mask & conditional-instructions
+  ============  ================================  =========
                              
 .. note:: **GPU-Cache**
  

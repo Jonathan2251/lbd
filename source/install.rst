@@ -113,12 +113,6 @@ Install cmake and ninja as follows,
   $ brew install cmake
   $ brew install ninja
 
-.. code-block:: console
-
-  $ sudo apt install graphviz
-  $ dot -V
-  dot - graphviz version 2.40.1 (20161225.0304)
-
 Install Graphviz for display llvm IR nodes in debugging, 
 [#graphviz-dm]_. 
 

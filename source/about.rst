@@ -61,7 +61,13 @@ https://github.com/Jonathan2251/lbd/blob/master/README.md
 Revision history
 ----------------
 
-Version 12.0.10, not released yet.
+Version 12.0.11, not released yet.
+
+Version 12.0.10, Released December 15, 2022.
+  gpu.rst: Refine Table 43.
+  ctrl.rst: Refine section "Pipeline architecture".
+  Change test_memcpy.ll.
+  Refine install.rst.
 
 Version 12.0.9, Released November 19, 2022.
   gpu.rst: Table 42 Map (Core,Thread) to saxpy and refine section of General purpose GPU.
@@ -662,8 +668,8 @@ architecture from scratch.
 We will use the Cpu0 architecture as an example to build our new backend. Cpu0 
 is a simple RISC architecture that has been designed for educational purposes. 
 More information about Cpu0, including its instruction set, is available 
-`here <http://ccckmit.wikidot.com/ocs:cpu0>`_. The Cpu0 example code referenced in
-this book can be found `here <http://jonathan2251.github.io/lbd/lbdex.tar.gz>`_.
+here [#cpu0-web]_. The Cpu0 example code referenced in
+this book can be found `<http://jonathan2251.github.io/lbd/lbdex.tar.gz>`_.
 As you progress from one chapter to the next, you will incrementally build the 
 backend's functionality.
 
@@ -883,3 +889,4 @@ regression test for Cpu0 backend are included.
 
 .. [#wiki-cpp] http://en.wikipedia.org/wiki/C%2B%2B
 
+.. [#cpu0-web] http://ccckmit.wikidot.com/ocs:cpu0

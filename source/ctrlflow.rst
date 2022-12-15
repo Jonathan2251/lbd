@@ -21,6 +21,9 @@ select_cc, to support the backend optimiation in control flow statement.
 Pipeline architecture
 ---------------------
 
+The following figures are from book "Computer Architecture A Quantitative 
+Approach Fourth Edition".
+
 .. _ctrl_pipeline:
 .. figure:: ../Fig/ctrlflow/5_stage_pipeline.png
   :width: 1932 px
@@ -34,15 +37,6 @@ Pipeline architecture
   EX: Execution/effective address cycle; MEM: Memory access; WB: Write-back cycle.
 
 
-.. _ctrlflow-cache_banks:
-.. figure:: ../Fig/ctrlflow/cache_banks.png
-  :width: 1540 px
-  :height: 506 px
-  :scale: 50 %
-  :align: center
-
-  Interleaved cache banks
-
 .. _ctrl-super_pipeline:
 .. figure:: ../Fig/ctrlflow/super_pipeline.png
   :width: 1894 px
@@ -53,9 +47,21 @@ Pipeline architecture
   Super pipeline
 
 
-With cache banks as :numref:`ctrlflow-cache_banks`, super-pipeline as 
-:numref:`ctrl-super_pipeline` and superscalar (multi-issues pipeline) 
-archtecture are emerged.
+Multibanked Caches as :numref:`ctrlflow-cache_banks` to Increase Cache Bandwidth.
+
+.. _ctrlflow-cache_banks:
+.. figure:: ../Fig/ctrlflow/cache_banks.png
+  :width: 1540 px
+  :height: 506 px
+  :scale: 50 %
+  :align: center
+
+  Interleaved cache banks
+
+Block size in cache L1 is usualy 16-256 bytes. Euipped with with multibanked 
+Caches can provide super-pipeline as :numref:`ctrl-super_pipeline` and 
+superscalar (multi-issues pipeline) archtectures for fetching 
+(4*block-size/instruction-size) instructions in a cycle.
 
 
 Control flow statement

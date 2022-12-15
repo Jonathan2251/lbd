@@ -3537,7 +3537,7 @@ function code.
 For those undefined intrinsic functions for Cpu0, such as "fmul float %0, %1".
 LLVM will compile into function call "jsub fmul" for Cpu0 [#lbd-fmul]_.
 
-The test_memcpy.ll is an example for InstrWriteMem which prevent to be optimized
+The test_memcpy.ll is an example for IntrWriteMem which prevent to be optimized
 out.
 
 
