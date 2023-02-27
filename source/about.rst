@@ -63,7 +63,7 @@ Revision history
 
 Version 12.0.12, not released yet.
 
-Version 12.0.11, Released Feburary 15, 2023.
+Version 12.0.11, Released Feburary 27, 2023.
   README.md.
   docs.rst: Note of Sphinx.
   c++.rst: Atomic.
