@@ -1,4 +1,4 @@
-; RUN: llc < %s -march=cpu0 -mcpu=cpu032II | FileCheck %s --check-prefix=CHECK
+; RUN: llc -O3 < %s -march=cpu0 -mcpu=cpu032II | FileCheck %s --check-prefix=CHECK
 
 ; We first check loads, for all sizes from i8 to i64.
 ; We also vary orderings to check for barriers.
@@ -87,6 +87,7 @@ define i16 @cas_weak_i16_acquire_acquire(i16* %mem) {
 }
 define i32 @cas_strong_i32_acqrel_acquire(i32* %mem) {
 ; CHECK-LABEL: cas_strong_i32_acqrel_acquire
+; CHECK: sync
 ; CHECK: ll
 ; CHECK: sc
   %val = cmpxchg i32* %mem, i32 0, i32 1 acq_rel acquire

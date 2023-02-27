@@ -340,7 +340,13 @@ Compare-and-swap operation [#cas-wiki]_ is used to implement synchronization
 primitives like semaphores and mutexes, as well as more sophisticated 
 wait-free and lock-free [#lf-wiki]_ algorithms. 
 For atomic variables, Mips lock instructions, ll and sc, to solve the race 
-condition problem [#ll-wiki]_. 
+condition problem. The semantic as follows,
+
+- Load-link returns the current value of a memory location, while a subsequent 
+  store-conditional to the same memory location will store a new value only if 
+  no updates have occurred to that location since the load-link. 
+  If any updates have occurred, the store-conditional is guaranteed to fail, 
+  even if the value read by the load-link has since been restored. [#ll-wiki]_ 
 
 Mips sync and ARM/X86-64 memory-barrier instruction [#mb-wiki]_ provide 
 synchronization mechanism very efficiently in some scenarios.
@@ -357,8 +363,9 @@ when the stored value is visible to every other processor in the system.
 In order to support atomic in C++ and java, llvm provides the atomic IRs and 
 memory ordering here [#atomics-llvm]_ [#llvmlang-ordering]_. C++ memory order
 is explained and exampled here [#cpp-mem-order]_. The chapter 19 
-of book DPC++ [#dpcpp]_ explains the memory ordering better and I add the 
-related code fragment of lbdex/input/atomics.ll to it for explanation as follows,
+of book DPC++ [#dpcpp-memorder]_ explains the memory ordering better and I add 
+the related code fragment of lbdex/input/atomics.ll to it for explanation as 
+follows,
 
 - memory_order::relaxed
 
@@ -376,7 +383,7 @@ no restrictions. There are no ordering guarantees.
     ret i8 %val
   }
 
-**No sync** CodeGen on above.
+No **sync** from CodeGen instructions above.
 
 - memory_order::acquire
 
@@ -470,7 +477,8 @@ Mips' ll and sc quarantees this feature of "cmpxchg seq_cst".
 Second Sync guarantees "cmpxchg seq_cst" complete before the next R/W.
 
 There are several restrictions on which memory orders are supported by each 
-operation. The table in Figure 19-10 summarizes which combinations are valid.
+operation. :numref:`c++-f1` (from book Figure 19-10) summarizes which 
+combinations are valid.
 
 .. _c++-f1:
 .. figure:: ../Fig/c++/Fig-19-10-book-dpc++.png
@@ -478,6 +486,76 @@ operation. The table in Figure 19-10 summarizes which combinations are valid.
   :height: 736 px
   :scale: 50 %
   :align: center
+
+  Supporting atomic operations with memory_order
+
+Load operations do not write values to memory and are therefore incompatible 
+with release semantics. Similarly, store operations do not read values from 
+memory and are therefore incompatible with acquire semantics. The remaining 
+read-modify-write atomic operations and fences are compatible with all memory 
+orderings [#dpcpp-memorder]_.
+
+.. note:: **C++ memory_order_consume**
+
+.. _c++-f2:
+.. figure:: ../Fig/c++/Fig-19-9-book-dpc++.png
+  :width: 1156 px
+  :height: 1188 px
+  :scale: 50 %
+  :align: center
+
+  Comparing standard C++ and SYCL/DPC++ memory models
+
+
+The C++ memory model additionally includes memory_order::consume, with similar 
+behavior to memory_order::acquire. however, the C++17 standard discourages its 
+use, noting that its definition is being revised. its inclusion in dpC++ has 
+therefore been postponed to a future version.
+
+For a few years now, compilers have treated consume as a synonym for acquire
+[#cpp-memorder-consume-as-acquire]_.
+
+The current expectation is that the replacement facility will rely on core 
+memory model and atomics definitions very similar to what's currently there. 
+Since memory_order_consume does have a profound impact on the memory model, 
+removing this text would allow drastic simplification, but conversely would 
+make it very difficult to add anything along the lines of memory_order_consume 
+back in later, especially if the standard evolves in the meantime, as expected. 
+Thus we are not proposing to remove the current wording 
+[#cpp-memorder-consume-remove]_.
+
+The following test files are extracted from memory_checks() of 
+clang/test/Sema/atomic-ops.c. The "__c11_atomic_xxx" builtin-functions from 
+clang defined in clang/include/clang/Basic/Builtins.def. Complie with clang
+will get the results same with :numref:`c++-f1`. Clang compile 
+memory_order_consume to the same result of memory_order_acquire. 
+
+.. rubric:: lbdex/input/ch12_sema_atomic-ops.c
+.. literalinclude:: ../lbdex/input/ch12_sema_atomic-ops.c
+
+.. rubric:: lbdex/input/ch12_sema_atomic-fetch.c
+.. literalinclude:: ../lbdex/input/ch12_sema_atomic-fetch.c
+
+.. table:: Atomic related between clang's builtin and llvm ir
+
+  ================================  ===========
+  clang's builtin                   llvm ir
+  ================================  ===========
+  __c11_atomic_load                 load atomic
+  __c11_atomic_store                store atomic
+  __c11_atomic_exchange_xxx         cmpxchg
+  atomic_thread_fence               fence
+  __c11_atomic_fetch_xxx            atomicrmw xxx
+  ================================  ===========
+
+C++ atomic functions supported by calling implemented functions from C++ libary.
+These implemented functions evently call "__c11_atomic_xxx" builtin-functions 
+for implementation. So, 
+"__c11_atomic_xxx" listed in above providing lower-level of better performance 
+functions for C++ programmers. An example as follows,
+
+.. rubric:: lbdex/input/ch12_c++_atomics.cpp
+.. literalinclude:: ../lbdex/input/ch12_c++_atomics.cpp
 
 
 For supporting llvm atomic IRs, the following code added to Chapter12_1.
@@ -670,6 +748,8 @@ options "clang++ -pthread -std=c++11".
 
 .. [#thread-wiki] http://en.wikipedia.org/wiki/Thread-local_storage
 
+.. [#cpp-atomic] https://cplusplus.com/reference/atomic/
+
 .. [#atomic-wiki] https://en.wikipedia.org/wiki/Memory_model_%28programming%29
 
 .. [#atomic-stackoverflow] http://stackoverflow.com/questions/6319146/c11-introduced-a-standardized-memory-model-what-does-it-mean-and-how-is-it-g
@@ -695,7 +775,7 @@ options "clang++ -pthread -std=c++11".
 
 .. [#mb-wiki] https://en.wikipedia.org/wiki/Memory_barrier
 
-.. [#mips-sync] Page 167 (A-155) of https://www.cs.cmu.edu/afs/cs/academic/class/15740-f97/public/doc/mips-isa.pdf
+.. [#mips-sync] From page A-158, it is same with ARM's barrier that all instructions before SYNC are completed before issuing the instructions after SYNC. Page 167 (A-155) of https://www.cs.cmu.edu/afs/cs/academic/class/15740-f97/public/doc/mips-isa.pdf
 
 .. [#atomics-llvm] http://llvm.org/docs/Atomics.html
 
@@ -703,4 +783,8 @@ options "clang++ -pthread -std=c++11".
 
 .. [#cpp-mem-order] https://en.cppreference.com/w/cpp/atomic/memory_order
 
-.. [#dpcpp] https://link.springer.com/book/10.1007/978-1-4842-5574-2
+.. [#dpcpp-memorder] Section "The memory_order Enumeration Class" which include figure 19-10 of book https://link.springer.com/book/10.1007/978-1-4842-5574-2
+
+.. [#cpp-memorder-consume-as-acquire] https://stackoverflow.com/questions/65336409/what-does-memory-order-consume-really-do
+
+.. [#cpp-memorder-consume-remove] https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2016/p0371r1.html

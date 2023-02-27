@@ -82,6 +82,37 @@ After upgrade to iMac OS X 10.11.1, pdflatex link is missing, fix it by set in
   export PATH=$PATH:...:/usr/local/texlive/2012/bin/universal-darwin
 
 
+Note of Sphinx
+~~~~~~~~~~~~~~
+
+- Do not use > 90 characters in a line of code-block:: console or any code-block,
+  otherwise it may show the error in `make latexpdf`.  
+
+.. code-block:: console
+
+  $HOME/git/lbd$ make latexpdf
+  
+  Latexmk: applying rule 'pdflatex'...
+  Rule 'pdflatex': File changes, etc:
+     Changed files, or newly in use since previous run(s):
+    LLVMToolchainCpu0.aux
+    LLVMToolchainCpu0.toc
+  Rule 'pdflatex': The following rules & subrules became out-of-date:
+    pdflatex
+  Latexmk: Maximum runs of pdflatex reached without getting stable files
+  Latexmk: All targets (LLVMToolchainCpu0.pdf) are up-to-date
+  ----------------------
+  This message may duplicate earlier message.
+  Latexmk: Failure in processing file 'LLVMToolchainCpu0.tex':
+     'pdflatex' needed too many passes
+  ----------------------
+  Latexmk: If appropriate, the -f option can be used to get latexmk
+    to try to force complete processing.
+  make[1]: *** [LLVMToolchainCpu0.pdf] Error 12
+  make: *** [latexpdf] Error 2
+  make latexpdf  14.57s user 1.11s system 99% cpu 15.790 total
+
+
 Generate Cpu0 document
 ~~~~~~~~~~~~~~~~~~~~~~~
 
