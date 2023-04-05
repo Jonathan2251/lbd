@@ -61,20 +61,27 @@ https://github.com/Jonathan2251/lbd/blob/master/README.md
 Revision history
 ----------------
 
-Version 12.0.12, not released yet.
+Version 12.0.13, not released yet.
+
+Version 12.0.12, Released April 4, 2023.
+
+  gpu.rst: refine.
 
 Version 12.0.11, Released Feburary 27, 2023.
+
   README.md.
   docs.rst: Note of Sphinx.
   c++.rst: Atomic.
 
 Version 12.0.10, Released December 15, 2022.
+
   gpu.rst: Refine Table 43.
   ctrl.rst: Refine section "Pipeline architecture".
   Change test_memcpy.ll.
   Refine install.rst.
 
 Version 12.0.9, Released November 19, 2022.
+
   gpu.rst: Table 42 Map (Core,Thread) to saxpy and refine section of General purpose GPU.
   Move null_pointer.cpp from git/note to lbd/References.
 

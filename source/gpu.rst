@@ -229,6 +229,11 @@ About llvm intrinsic extended function, please refer this book here [#intrinsicc
   gvec4 texture(gsampler2D sampler, vec2 P, [float bias]);
 
 
+GPU provides 'Texture Unit' to speedup fragment shader. However the 
+‘Texture Unit’ HW is expensive resouce and only few of them in a GPU. 
+Driver can associate ‘Texture Unit’ to sampler variable by OpenGL api 
+and switch between shaders as the following statements.
+
 .. _sampling: 
 .. figure:: ../Fig/gpu/sampling_diagram.png
   :align: center
@@ -343,7 +348,7 @@ Where tex_a is the texture memory address for 'sampler uniform variable' x,
 and the pixel of coordinates (x,y,z) is given by (f1,f2,f3) user input.
 The f4 is skipped for 3D texture.
 
-Above tex.3d texture instruction load the calculated color of pixel (x,y.z) from 
+Above tex.3d texture instruction load the calculated color of pixel (x,y,z) from 
 texture image into GPRs (r1,r2,r3,r4)=(R,G,B,A). 
 And fragment shader can re-calculate the color of this pixel with the color of
 this pixel at texture image [#ptxtex]_. 
@@ -631,9 +636,9 @@ has to run on Host side which add communication cost between Host and Device.
  
 In order to run ML (Machine Learning) efficiently, all platforms for ML on 
 GPU/NPU implement scheduling SW both on graph compiler and runtime. 
-If OpenCL can extend to support ML graph, then graph compiler such as TVM or 
-Runtime from Open Source has chance to leverage the effort of scheduling SW from 
-programmers [#paper-graph-on-opencl]_. Cuda graph is an idea  like this 
+**If OpenCL can extend to support ML graph, then graph compiler such as TVM or 
+Runtime from Open Source have chance to leverage the effort of scheduling SW from 
+programmers** [#paper-graph-on-opencl]_. Cuda graph is an idea  like this 
 [#cuda-graph-blog]_ [#cuda-graph-pytorch]_ .
 
 
