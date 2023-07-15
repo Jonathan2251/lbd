@@ -80,6 +80,153 @@ with their type.
   ==============  ==================
 
 
+Basic geometry in computer graphics
+-----------------------------------
+
+The complete concept can be found in
+Book: Computer graphics principles and practice 3rd editon, authors: JOHN F, 
+...
+
+This book is very complete and may take much time to understand every detail.
+
+Both Triangles or Quads are ploygon. So, objects can be formed with ploygon in
+both 2D and 3D. About transfermation in 2D or 3D, almost every book of computer 
+graphics has mentioned well already. This section introduces the most important 
+concept and method for deciding Inner and Outer planes, then a point or object
+can be checked for showing or hidding during 2D or 3D rendering.
+
+The cross product in **3D** is defined by the formula and can be represented with 
+matrix notation as proved here 
+[#cross-product-wiki]_ [#sphinx-math]_ [#mathbase-latex]_.
+
+.. math::
+
+  \mathbf a \mathsf x \mathbf b = \Vert a \Vert \Vert b \Vert sin(\Theta) n
+
+.. math::
+
+  \mathbf a \mathsf x \mathbf b = 
+  \begin{vmatrix}
+  \mathbf i & \mathbf j& \mathbf k\\ 
+  a_1& a_2& a_3\\ 
+  b_1& b_2& b_3 
+  \end{vmatrix}
+
+The cross product in **2D** is defined by the formula and can be represented with matrix
+notation as proved here 
+[#cross-product-2d-proof]_ [#cross-product-2d-proof2]_.
+
+.. math::
+
+  \mathbf a \mathsf x \mathbf b = \Vert a \Vert \Vert b \Vert sin(\Theta)
+
+.. math::
+
+  \mathbf a \mathsf x \mathbf b = 
+  \begin{vmatrix}
+  \mathbf i & \mathbf j& \mathbf k\\ 
+  a_1& a_2& 0\\ 
+  b_1& b_2& 0 
+  \end{vmatrix}
+
+In 2D, any two points :math:`\text{ from } P_i \text{ to } P_{i+1}` can form a 
+vector and decide inner side or outer side.
+For example, as :numref:`inward-edge-normals`, :math:`\Theta` is the angle
+from :math:`P_iP_{i+1}` to :math:`P_iP'_{i+1} = 180^\circ`. 
+So, with right-hand rule, counter clockwise order, any 
+:math:`P_iQ` between :math:`P_iP_{i+1}` to :math:`P_iP'_{i+1}`, the angle of 
+:math:`P_iP_{i+1}` to :math:`P_iQ = \theta_1, 0^\circ < \theta_1 < 180^\circ` 
+then the inward direction be decided. 
+
+.. _inward-edge-normals: 
+.. figure:: ../Fig/gpu/inward-edge-normals.png
+  :align: center
+  :scale: 50 %
+
+  Inward edge normals
+
+.. _cross-product: 
+.. figure:: ../Fig/gpu/cross-product.png
+  :align: center
+  :scale: 50 %
+
+  Cross product definition in 2D
+
+Polygon can be created from vertices. 
+Suppose that :math:`(P_0, P_1, ..., P_n)` is a polygon. The line segments 
+:math:`P_0P_1, P_1P_2`, etc., are the edges of the polygon; the vectors 
+:math:`v_0 = P_1 - P_0, v_1 = P_2 - P_1, ..., v_n = P_0 - P_n` are the edges 
+of the polygon.
+For each edge :math:`P_i - P_{i+1}`, the inward edge normal is the vector 
+:math:`\mathsf x\; v_i`; the outward edge normal is :math:`\; -\; \mathsf x\; v_i`.
+Where :math:`\; \mathsf x\; v_i` is coss-product(:math:`\mathsf v_i`) as 
+:numref:`inward-edge-normals` and :numref:`cross-product`.
+For a convex polygon whose vertices are listed in counterclockwise order, the 
+inward edge normals point toward the interior of the polygon, and the outward 
+edge normals point toward the unbounded exterior of the polygon, 
+corresponding to our ordinary intuition. But if the vertices of a polygon are 
+given in clockwise order, the interior and exterior swap roles. 
+
+This cross product has an important property: Going from v to ×v involves a 
+rotation by 90◦ in the same direction as the rotation that takes the positive 
+x-axis to the positive y-axis.
+
+.. _in-polygon: 
+.. figure:: ../Fig/gpu/polygon.png
+  :align: center
+  :scale: 50 %
+
+  Draw a polygon with vectices counter clockwise
+
+As :numref:`in-polygon`, when drawing polygon with vectors(lines) counter 
+clockwise, the ploygon will be created and the two sides of a vector(line) 
+can be indentified [#cgpap]_. 
+Further a point in polygon or out of polygon can be identified.
+One simple way of finding whether the point is inside or outside a simple 
+polygon is to test how many times a ray, starting from the point and going in 
+any fixed direction, intersects the edges of the polygon. If the point is on 
+the outside of the polygon the ray will intersect its edge an even number of 
+times. If the point is on the inside of the polygon then it will intersect the 
+edge an odd number of times [#wiki-point-in-polygon]_.
+
+
+.. _3d-cross-product: 
+.. figure:: ../Fig/gpu/3d-cross-product.png
+  :align: center
+  :scale: 50 %
+
+  Cross product definition in 3D
+
+
+.. _in-3d-polygon: 
+.. figure:: ../Fig/gpu/3d-polygon.png
+  :align: center
+  :scale: 50 %
+
+  3D polygon with directions on each plane
+
+As the same way, through following the same direction counter clockwise to 
+create 2D polygon one after one, then the 3D polygon will be created.
+As :numref:`3d-cross-product`, the inward direction can be decided with a x b > 
+0 and outward is a x b < 0 [#cross-product-wiki]_.
+The :numref:`in-3d-polygon` is an example of 3D polygon created by 2D triangles.
+The direction of plane (triangle) as the line perpendicular to the plane.
+
+Cast a ray from the 3D point along X-axis and check how many intersections with 
+outer object you find. Depending on the intersection number on each axis (even 
+or odd) you can understand if your point is inside or outside 
+[#point-in-3d-object]_.
+Inside is odd and outside is even. As :numref:`in-3d-object`, points on the 
+line going through the object satisfy this rule.
+
+.. _in-3d-object: 
+.. figure:: ../Fig/gpu/in-3d-object.png
+  :align: center
+  :scale: 50 %
+
+  Point in or out 3D object
+
+
 3D Rendering
 ------------
 
@@ -92,6 +239,15 @@ with their type.
   :scale: 80 %
 
   Diagram of the Rendering Pipeline. The blue boxes are programmable shader stages.
+
+
+.. table:: work for each rendering pipeline todo: page 10 of book "OpenGL Programming Guide 9th Edition" and [#rendering]_.
+
+  ====================  ===============
+  statge                work
+  ====================  ===============
+  Vertex Specification  xxx
+  ====================  ===============
 
 
 For 2D animation, the model is created by 2D only (1 face only), so it only can be 
@@ -219,8 +375,16 @@ to gpu instructions as follows,
   }
   
   ...
-     // gpu machine code
-      sample2d_inst $1, $2, $3 // $1: %x, $2: %uv_2d, $3: %bias
+  // gpu machine code
+  load $1, tex_a;
+  sample2d_inst $1, $2, $3 // $1: tex_a, $2: %uv_2d, $3: %bias
+
+  .tex_a // Driver set the index of gpu descriptor regsters here
+
+As the bottom of code above, .tex_a memory address includes the Texture Object
+which binding by driver in on-line compilation/linking. Through binding Texture
+Object (SW) and Texture Unit (HW) with OpenGL API, gpu will uses Texture Unit HW
+resources efficiently. Explaining it the following. 
       
 About llvm intrinsic extended function, please refer this book here [#intrinsiccpu0]_.
 
@@ -295,7 +459,8 @@ binary file [#metadata]_.
 
 2. After gpu driver executing glsl on-line compiling,
 driver read this metadata from compiled binary file and maintain a 
-table of {name, SamplerType} for each 'sampler uniform variable'.
+table of {name, type, location} for each 'sampler uniform variable'.
+Driver also fill this information to Texture Desciptor in GPU's memory.
 
 3. Api,
 
@@ -304,7 +469,7 @@ table of {name, SamplerType} for each 'sampler uniform variable'.
   xLoc = gl.getUniformLocation(prog, "x"); // prog: glsl program, xLoc
   
 will get the location from the table for 'sampler uniform variable' x that
-driver created and set the memory address xSlot to xLoc. 
+driver created.
 
 SAMPLER_2D: is integer value for Sampler2D type.
 
@@ -323,29 +488,39 @@ will binding xLoc of 'sampler uniform variable' x to
 
   {xLoc, 1} : 1 is 'Texture Unit 1', xLoc is the location(memory address) of 'sampler uniform variable' x
   
-This api will set the descriptor register of gpu with this {xLoc, 1} 
-information [#descriptorreg]_.
+This api will set the texture descriptors in gpu with this {xLoc, 1} 
+information.
+Next, driver set the index or memory address of gpu texture descriptors to 
+variable .tex_a of memory address. For example as diagram, driver set k to 
+.tex_a.
   
-5. When executing the texture instructions from glsl binary file on gpu,
+5.
 
 .. code-block:: console
 
   // gpu machine code
-  load $1, &xSlot;
-  sample2d_inst $1, $2, $3 // $1: %x, $2: %uv_2d, $3: %bias
+  load $1, tex_a;
+  sample2d_inst $1, $2, $3 // $1: tex_a, $2: %uv_2d, $3: %bias
+
+  .tex_a // Driver set the index of gpu descriptor regsters here at step 4
       
-the corresponding 'Texture Unit 1' on gpu will being executed through descriptor 
-register of gpu {xLoc, 1} in this example since memory address xSlot includes the
-value of xLoc. 
+When executing the texture instructions from glsl binary file on gpu, the 
+corresponding 'Texture Unit 1' on gpu will being executed through texture 
+descriptor in gpu's memory because .tex_a: {xLoc, 1}. Driver may set
+texture descriptor in gpu's texture desciptors if gpu provides specific
+texture descriptors in architecture [#descriptorreg]_.
 
 For instance, Nvidia texture instruction as follow,
 
 .. code-block:: console
 
+  // the content of tex_a bound to texture unit as step 5 above
   tex.3d.v4.s32.s32  {r1,r2,r3,r4}, [tex_a, {f1,f2,f3,f4}];
 
-Where tex_a is the texture memory address for 'sampler uniform variable' x,
-and the pixel of coordinates (x,y,z) is given by (f1,f2,f3) user input.
+  .tex_a
+
+The content of tex_a bound to texture unit set by driver as the end of step 4.
+The pixel of coordinates (x,y,z) is given by (f1,f2,f3) user input.
 The f4 is skipped for 3D texture.
 
 Above tex.3d texture instruction load the calculated color of pixel (x,y,z) from 
@@ -509,6 +684,10 @@ A GPU may has the HW structure and handle the subset of y[]=a*x[]+y[] array-calc
 - Each Thread Block (Core/Warp) has 16 threads, so there are 16*256 = 4K TLR in 
   a Core.
 
+- After Volta GPU of Nvidia, each thread in Warp has it's own PC [#Volta]_. In 
+  Cuda Applications, this feature provides more parallel opportunities with 
+  __syncwarp() to user programmers.
+
 The main() run on CPU while the saxpy() run on GPU. Through 
 cudaMemcpyHostToDevice and cudaMemcpyDeviceToHost, CPU can pass data in x and y
 arrays to GPU and get result from GPU to y array. 
@@ -590,6 +769,15 @@ compressing [#gpuspeedup]_ gives the more applications for GPU acceleration.
 Vulkan and spir-v
 -----------------
 
+.. _opencl_to_spirv: 
+.. figure:: ../Fig/gpu/opencl-to-spirv-offine-compilation.png
+  :align: center
+  :scale: 40 %
+
+  Offline Compilation of OpenCL Kernels into SPIR-V Using Open Source Tooling [#opencl-to-spirv]_
+
+Difference between OpenCL and OpenGL's compute shader. [#diff-compute-shader-opencl]_
+
 Though OpenGL api existed in higher level with many advantages from sections
 above, sometimes it cannot compete in efficience with direct3D providing 
 lower levels api for operating memory by user program [#vulkanapiwiki]_. 
@@ -641,9 +829,7 @@ Runtime from Open Source have chance to leverage the effort of scheduling SW fro
 programmers** [#paper-graph-on-opencl]_. Cuda graph is an idea  like this 
 [#cuda-graph-blog]_ [#cuda-graph-pytorch]_ .
 
-
 .. [#polygon] https://www.quora.com/Which-one-is-better-for-3D-modeling-Quads-or-Tris
-
 
 .. [#shading] https://en.wikipedia.org/wiki/Shading
 
@@ -653,8 +839,23 @@ programmers** [#paper-graph-on-opencl]_. Cuda graph is an idea  like this
 
 .. [#joglwiki] https://en.wikipedia.org/wiki/Java_OpenGL
 
-.. [#3dfmt] https://all3dp.com/3d-file-format-3d-files-3d-printer-3d-cad-vrml-stl-obj/
+.. [#sphinx-math] https://sphinx-rtd-trial.readthedocs.io/en/latest/ext/math.html#module-sphinx.ext.mathbase
 
+.. [#mathbase-latex] https://mirrors.mit.edu/CTAN/info/short-math-guide/short-math-guide.pdf
+
+.. [#cgpap] Figure 7.19 of Book: Computer graphics principles and practice 3rd edition
+
+.. [#wiki-point-in-polygon] https://en.wikipedia.org/wiki/Point_in_polygon
+
+.. [#cross-product-wiki] https://en.wikipedia.org/wiki/Cross_product
+
+.. [#cross-product-2d-proof] https://www.xarg.org/book/linear-algebra/2d-perp-product/
+
+.. [#cross-product-2d-proof2] https://www.nagwa.com/en/explainers/175169159270/
+
+.. [#point-in-3d-object] https://stackoverflow.com/questions/63557043/how-to-determine-whether-a-point-is-inside-or-outside-a-3d-model-computationally
+
+.. [#3dfmt] https://all3dp.com/3d-file-format-3d-files-3d-printer-3d-cad-vrml-stl-obj/
 
 .. [#3drendering_wiki] https://en.wikipedia.org/wiki/3D_rendering
 
@@ -739,6 +940,8 @@ programmers** [#paper-graph-on-opencl]_. Cuda graph is an idea  like this
 
 .. [#cudaex] https://devblogs.nvidia.com/easy-introduction-cuda-c-and-c/
 
+.. [#Volta] Page 25 of https://images.nvidia.com/content/volta-architecture/pdf/volta-architecture-whitepaper.pdf
+
 .. [#VMR] subsection Vector Mask Registers: Handling IF Statements in Vector Loops of Computer Architecture: A Quantitative Approach 5th edition (The
        Morgan Kaufmann Series in Computer Architecture and Design)
 
@@ -752,6 +955,10 @@ programmers** [#paper-graph-on-opencl]_. Cuda graph is an idea  like this
 .. [#mpeg4speedup] https://www.manchestervideo.com/2016/06/11/speed-h-264-encoding-budget-gpu/
 
 .. [#gpuspeedup] https://en.wikipedia.org/wiki/Graphics_processing_unit
+
+.. [#diff-compute-shader-opencl] https://stackoverflow.com/questions/15868498/what-is-the-difference-between-opencl-and-opengls-compute-shader
+
+.. [#opencl-to-spirv] https://www.khronos.org/blog/offline-compilation-of-opencl-kernels-into-spir-v-using-open-source-tooling
 
 .. [#vulkanapiwiki] Vulkan offers lower overhead, more direct control over the GPU, and lower CPU usage... By allowing shader pre-compilation, application initialization speed is improved... A Vulkan driver only needs to do GPU specific optimization and code generation, resulting in easier driver maintenance... https://en.wikipedia.org/wiki/Vulkan https://en.wikipedia.org/wiki/Vulkan#OpenGL_vs._Vulkan
 
