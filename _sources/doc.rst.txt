@@ -112,6 +112,8 @@ Note of Sphinx
   make: *** [latexpdf] Error 2
   make latexpdf  14.57s user 1.11s system 99% cpu 15.790 total
 
+- Sphinx support math symbols here [#sphinx-math]_ [#mathbase-latex]_.
+
 
 Generate Cpu0 document
 ~~~~~~~~~~~~~~~~~~~~~~~
@@ -445,6 +447,10 @@ set-llvm-lit % `diff -r origin modify &> set-llvm-lit.diff`
 .. [#maxtex] http://www.tug.org/mactex/
 
 .. [#latexmk] https://zoomadmin.com/HowToInstall/UbuntuPackage/latexmk
+
+.. [#sphinx-math] https://sphinx-rtd-trial.readthedocs.io/en/latest/ext/math.html#module-sphinx.ext.mathbase
+
+.. [#mathbase-latex] https://mirrors.mit.edu/CTAN/info/short-math-guide/short-math-guide.pdf
 
 .. [#rst-ref] http://docutils.sourceforge.net/docs/ref/rst/restructuredtext.html
 
