@@ -32,9 +32,10 @@ Table of Contents
    asm
    c++
    verilog
+   gpu
    install
    doc
-   gpu
+   npu
    todo
 
 
