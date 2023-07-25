@@ -1,7 +1,7 @@
 .. _sec-gpu:
 
-Appendix C: The concept of GPU compiler
-=======================================
+The concept of GPU compiler
+===========================
 
 .. contents::
    :local:
@@ -25,8 +25,22 @@ The flow for 3D/2D graphic processing as the following diagram.
 
   OpenGL flow
 
-The most of time for running OpenGL api is on GPU. Usually, CPU is a function 
-call to GPU's functions.
+The driver run on CPU side as :numref:`gpu_driver_role`. The OpenGL Api will call
+driver's function eventually and driver finish the function's work via issuing
+GPU-HW's command and/or sending data to GPU. GPU's firmware only manage clock,
+voltage, power comsumption, ..., etc [#gpu-firmware-jobs]_.
+Even so, GPU's rendor work from the data of 3D vertex, colors, ... sending from 
+CPU and storing in GPU's memory or shared memory consume more computing power
+than CPU.
+
+.. _gpu_driver_role: 
+.. figure:: ../Fig/gpu/gpu-driver-role.png
+  :align: center
+  :scale: 50 %
+
+  The role of GPU driver
+
+
 This chapter is giving a concept for the flow above and focuses on shader compiler
 for GPU. Furthermore, explaining how GPU has taking more applications from 
 CPU through GPGPU concept and related standards emerged.
@@ -84,8 +98,8 @@ Basic geometry in computer graphics
 -----------------------------------
 
 The complete concept can be found in
-Book: Computer graphics principles and practice 3rd editon, authors: JOHN F, 
-...
+Book: "Computer graphics principles and practice 3rd editon, authors: JOHN F, 
+..."
 
 This book is very complete and may take much time to understand every detail.
 
@@ -127,7 +141,37 @@ notation as proved here
   \mathbf i & \mathbf j& \mathbf k\\ 
   a_1& a_2& 0\\ 
   b_1& b_2& 0 
-  \end{vmatrix}
+  \end{vmatrix} = 
+  \begin{bmatrix}
+  a_1& a_2 \\
+  b_1& b_2
+  \end{bmatrix}
+
+After above matrix form is proved, the Antisymmetric may be proved as follows,
+
+.. math::
+
+  a \mathsf x b = \mathsf x&
+  \begin{bmatrix}
+  a \\ 
+  b 
+  \end{bmatrix} =
+  \begin{bmatrix}
+  a_x& a_y \\ 
+  b_x& b_y 
+  \end{bmatrix} =
+  \begin{bmatrix}
+  - b_x& - b_y \\ 
+  a_x& a_y 
+  \end{bmatrix} =
+
+.. math::
+
+  \mathsf x&
+  \begin{bmatrix}
+  -b \\ 
+  a 
+  \end{bmatrix} 
 
 In 2D, any two points :math:`\text{ from } P_i \text{ to } P_{i+1}` can form a 
 vector and decide inner side or outer side.
@@ -135,7 +179,7 @@ For example, as :numref:`inward-edge-normals`, :math:`\Theta` is the angle
 from :math:`P_iP_{i+1}` to :math:`P_iP'_{i+1} = 180^\circ`. 
 So, with right-hand rule, counter clockwise order, any 
 :math:`P_iQ` between :math:`P_iP_{i+1}` to :math:`P_iP'_{i+1}`, the angle of 
-:math:`P_iP_{i+1}` to :math:`P_iQ = \theta_1, 0^\circ < \theta_1 < 180^\circ` 
+:math:`P_iP_{i+1}` to :math:`P_iQ = \theta, 0^\circ < \theta < 180^\circ` 
 then the inward direction be decided. 
 
 .. _inward-edge-normals: 
@@ -145,13 +189,6 @@ then the inward direction be decided.
 
   Inward edge normals
 
-.. _cross-product: 
-.. figure:: ../Fig/gpu/cross-product.png
-  :align: center
-  :scale: 50 %
-
-  Cross product definition in 2D
-
 Polygon can be created from vertices. 
 Suppose that :math:`(P_0, P_1, ..., P_n)` is a polygon. The line segments 
 :math:`P_0P_1, P_1P_2`, etc., are the edges of the polygon; the vectors 
@@ -160,7 +197,7 @@ of the polygon.
 For each edge :math:`P_i - P_{i+1}`, the inward edge normal is the vector 
 :math:`\mathsf x\; v_i`; the outward edge normal is :math:`\; -\; \mathsf x\; v_i`.
 Where :math:`\; \mathsf x\; v_i` is coss-product(:math:`\mathsf v_i`) as 
-:numref:`inward-edge-normals` and :numref:`cross-product`.
+:numref:`inward-edge-normals`.
 For a convex polygon whose vertices are listed in counterclockwise order, the 
 inward edge normals point toward the interior of the polygon, and the outward 
 edge normals point toward the unbounded exterior of the polygon, 
@@ -227,11 +264,107 @@ line going through the object satisfy this rule.
   Point in or out 3D object
 
 
+OpenGL
+------
+
+The following example from openGL redbook and example code [#redbook]_ 
+[#redbook-examples]_.
+
+.. rubric:: References/triangles.vert
+.. literalinclude:: ../References/triangles.vert
+
+.. rubric:: References/triangles.frag
+.. literalinclude:: ../References/triangles.frag
+
+.. rubric:: References/01-triangles.cpp
+.. literalinclude:: ../References/01-triangles.cpp
+
+Init(): 
+
+- According counter clockwise rule in previous section, Triangle Primitives are
+  defined in varaible vertices. After binding OpenGL 
+  object Buffers[0] to vertices, vertices data will send to memory of 
+  server(gpu).
+
+- Generate Vertex Array VAOs and bind VAOs[0].
+
+- glVertexAttribPointer( vPosition, 2, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(0) ):
+  During gpu rendering, each vertex position will be held in vPosition and pass
+  to "triangles.vert" shader because LoadShaders( shaders ).
+
+display():
+
+- Bind VAOs[0], set render mode to GL_TRIANGLES and send vertex data to Buffer
+  (gpu memory, OpenGL pipeline). Next, GPU will do rendering pipeline descibed
+  in next section.
+
+The triangles.vert has input vPosition and no output variable, so using 
+gl_Position default varaible without declaration. The triangles.frag has not 
+defined input variable and has defined output variable fColor instead of using
+gl_FragColor.
+
+The "in" and "out" in shaders above are "type qualifier". 
+A type qualifier is used in the OpenGL Shading Language (GLSL) to modify the 
+storage or behavior of global and locally defined variables. These qualifiers 
+change particular aspects of the variable, such as where they get their data 
+from and so forth [#ogl-qualifier]_. 
+
+Though attribute and varying are removed from later version 1.4 of OpenGL,
+many materials in website using them [#ogl-qualifier-deprecate] 
+[#github-attr-varying-depr]_. 
+It's better to use "in" and "out" to replace
+them as follows,
+
+.. rubric:: replace attribute and varying with in and out
+.. code-block:: c++
+
+  uniform float scale;
+  attribute vec2 position;
+  // in vec2 position;
+  attribute vec4 color;
+  // in vec4 color;
+  varying vec4 v_color;
+  // out v_color
+
+  void main()
+  {
+    gl_Position = vec4(position*scale, 0.0, 1.0);
+    v_color = color;
+  }
+
+.. rubric:: replace attribute and varying with in and out
+.. code-block:: c++
+
+  varying vec4 v_color;
+  // in vec4 v_color;
+
+  void main()
+  {
+    gl_FragColor = v_color;
+  }
+
+An OpenGL program is made of two shaders [#monstar-lab-opengl]_ 
+[#glumpy-shaders]_:
+
+- The vertex shader is (commonly) executed once for every vertex we want to 
+  draw. It receives some attributes as input, computes the position of this 
+  vertex in space and returns it in a variable called gl_Position. It also 
+  defines some varyings.
+
+- The fragment shader is executed once for each pixel to be rendered. It 
+  receives some varyings as input, computes the color of this pixel and 
+  returns it in a variable called fColor.
+
+Since we have 6 vertices in our buffer, this shader will be executed 6 times by 
+the GPU (once per vertex)! We can also expect all 6 instances of the shader to 
+be executed in parallel, since a GPU have so many cores.
+
 3D Rendering
 ------------
 
 3D rendering is the process of converting 3D models into 2D images on a computer 
-[#3drendering_wiki]_. The steps as the following Figure [#rendering]_.
+[#3drendering_wiki]_. The steps as the following :numref:`rendering_pipeline1` 
+from OpenGL website [#rendering]_ and the website has descripiton for each stage.
 
 .. _rendering_pipeline1: 
 .. figure:: ../Fig/gpu/rendering_pipeline.png
@@ -240,20 +373,36 @@ line going through the object satisfy this rule.
 
   Diagram of the Rendering Pipeline. The blue boxes are programmable shader stages.
 
+In addition, list OpenGL rendering pipeline Figure 1.2 and stage from book 
+"OpenGL Programming Guide 9th Edition" [#redbook]_ as follows,
 
-.. table:: work for each rendering pipeline todo: page 10 of book "OpenGL Programming Guide 9th Edition" and [#rendering]_.
+.. _OpenGL_pipeline: 
+.. figure:: ../Fig/gpu/OpenGL-pipeline.png
+  :align: center
+  :scale: 50 %
 
-  ====================  ===============
-  statge                work
-  ====================  ===============
-  Vertex Specification  xxx
-  ====================  ===============
+.. table:: OpenGL rendering pipeline from page 10 of book "OpenGL Programming Guide 9th Edition" [#redbook]_ and [#rendering]_.
+
+  =======================  ===============
+  stage                    description
+  =======================  ===============
+  Vertex Specification     After setting data as the example of previous section, glDrawArrays() will send data to gpu through buffer objects.
+  Vertex Shading           For each vertex that is issued by a drawing command, a vertex shader will be called to process the data associated with that vertex.
+  Tessellation Shading     After the vertex shader has processed each vertex’s associated data, the tessellation shader stage will continue processing that data, if it’s been activated.
+  Geometry Shading         The next shader stage, geometry shading, allows additional processing of individual geometric primitives, including creating new ones, before rasterization. 
+  Primitive Assembly       The previous shading stages all operate on vertices, with the information about how those vertices are organized into geometric primitives being carried along internal to OpenGL. The primitive assembly stage organizes the vertices into their associated geometric primitives in preparation for clipping and rasterization.
+  Clipping                 Occasionally, vertices will be outside of the viewport—the region of the window where you’re permitted to draw—and cause the primitive associated with that vertex to be modified so none of its pixels are outside of the viewport. This operation is called clipping and is handled automatically by OpenGL.
+  Rasterization            Vertex -> Fragment. The job of the rasterizer is to determine which screen locations are covered by a particular piece of geometry (point, line, or triangle). Knowing those locations, along with the input vertex data, the rasterizer linearly interpolates the data values for each varying variable in the fragment shader and sends those values as inputs into your fragment shader.
+  Fragment Shading         Determine color for each pixel. The final stage where you have programmable control over the color of a screen location is fragment shading. In this shader stage, you use a shader to determine the fragment’s final color (although the next stage, per-fragment operations, can modify the color one last time) and potentially its depth value. Fragment shaders are very powerful, as they often employ texture mapping to augment the colors provided by the vertex processing stages. A fragment shader may also terminate processing a fragment if it determines the fragment shouldn’t be drawn; this process is called fragment discard. A helpful way of thinking about the difference between shaders that deal with vertices and fragment shaders is this: vertex shading (including tessellation and geometry shading) determines where on the screen a primitive is, while fragment shading uses that information to determine what color that fragment will be.
+  Per-Fragment Operations  During this stage, a fragment’s visibility is determined using depth testing (also commonly known as z-buffering) and stencil testing. If a fragment successfully makes it through all of the enabled tests, it may be written directly to the framebuffer, updating the color (and possibly depth value) of its pixel, or if blending is enabled, the fragment’s color will be combined with the pixel’s current color to generate a new color that is written into the framebuffer.
+  =======================  ===============
 
 
 For 2D animation, the model is created by 2D only (1 face only), so it only can be 
 viewed from the same face of model. If you want to display different faces of model,
 multiple 2D models need to be created and switch these 2D models from face(flame) to 
 face(flame) from time to time [#2danimation]_.
+
 
 GLSL (GL Shader Language)
 -------------------------
@@ -821,6 +970,9 @@ Accelerate ML/DL on OpenCL/SYCL
 As above figure, the Device of GPU or CPU+NPU is able to run the whole ML graph. 
 However if the Device has NPU only, then the CPU operation such as Avg-Pool
 has to run on Host side which add communication cost between Host and Device.
+
+Like OpenGL's shader, the "kernel" function may be compiled on-line or off-line
+and sending to GPU as programmable functions.
  
 In order to run ML (Machine Learning) efficiently, all platforms for ML on 
 GPU/NPU implement scheduling SW both on graph compiler and runtime. 
@@ -828,6 +980,8 @@ GPU/NPU implement scheduling SW both on graph compiler and runtime.
 Runtime from Open Source have chance to leverage the effort of scheduling SW from 
 programmers** [#paper-graph-on-opencl]_. Cuda graph is an idea  like this 
 [#cuda-graph-blog]_ [#cuda-graph-pytorch]_ .
+
+.. [#gpu-firmware-jobs] https://antonelly.com.co/do-gpus-have-firmware/#:~:text=Providing%20access%20to%20new%20features,drivers%20during%20the%20boot%20process
 
 .. [#polygon] https://www.quora.com/Which-one-is-better-for-3D-modeling-Quads-or-Tris
 
@@ -863,6 +1017,19 @@ programmers** [#paper-graph-on-opencl]_. Cuda graph is an idea  like this
 
 .. [#2danimation] https://tw.video.search.yahoo.com/search/video?fr=yfp-search-sb&p=2d+animation#id=12&vid=46be09edf57b960ae79e9cd077eea1ea&action=view
 
+.. [#redbook] http://www.opengl-redbook.com
+
+.. [#redbook-examples] https://github.com/openglredbook/examples
+
+.. [#monstar-lab-opengl] https://engineering.monstar-lab.com/en/post/2022/03/01/Introduction-To-GPUs-With-OpenGL/
+
+.. [#glumpy-shaders] https://glumpy.github.io/modern-gl.html
+
+.. [#ogl-qualifier] https://www.khronos.org/opengl/wiki/Type_Qualifier_(GLSL)
+
+.. [#ogl-qualifier-deprecate] https://www.khronos.org/opengl/wiki/Type_Qualifier_(GLSL)#Removed_qualifiers
+
+.. [#github-attr-varying-depr] https://github.com/vispy/vispy/issues/242
 
 .. [#fragmentshader_reason] https://community.khronos.org/t/pixel-vs-fragment-shader/52838
 

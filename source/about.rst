@@ -63,6 +63,11 @@ Revision history
 
 Version 12.0.14, not released yet.
 
+Version 12.0.13.1, Released July 24, 2023.
+
+  gpu.rst: Section of Basic geometry in computer graphics, a x b = -b x a in 2D,
+  The role of GPU driver. npu.rst: The role of GPU driver.
+
 Version 12.0.13, Released July 15, 2023.
 
   gpu.rst: Section of Basic geometry in computer graphics
