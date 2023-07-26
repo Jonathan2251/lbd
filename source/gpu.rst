@@ -171,7 +171,8 @@ After above matrix form is proved, the Antisymmetric may be proved as follows,
   \begin{bmatrix}
   -b \\ 
   a 
-  \end{bmatrix} 
+  \end{bmatrix} =
+  -b \mathsf x a 
 
 In 2D, any two points :math:`\text{ from } P_i \text{ to } P_{i+1}` can form a 
 vector and decide inner side or outer side.
@@ -712,6 +713,13 @@ And mesa open source website is here [#mesa]_.
 Architecture
 ------------
 
+SIMT
+~~~~
+
+Single instruction, multiple threads (SIMT) is an execution model used in 
+parallel computing where single instruction, multiple data (SIMD) is combined 
+with multithreading [#simt-wiki]_.
+
 The leading GPU architecture of Nvidia's gpu is as the following 
 figures.
 
@@ -744,6 +752,40 @@ figures.
 
   core(grid) in Nvidia's gpu (figure from book [#Quantitative-gpu-mem]_)
 
+
+Buffers
+~~~~~~~
+
+In addition the texture unit and instruction, GPU provides different Buffers
+to speedup OpenGL pipeline rendering [#buffers-redbook]_.
+
+- Color buffer
+
+  They contain the RGB or sRGB color data and may also contain alpha values for 
+  each pixel in the framebuffer. There may be multiple color buffers in a 
+  framebuffer.
+  You’ve already used double buffering for animation. Double buffering is done 
+  by making the main color buffer have two parts: a front buffer that’s displayed 
+  in your window; and a back buffer, which is where you render the new image 
+  [#redbook-p155]_.
+
+- Depth buffer (Z buffer)
+
+  Depth is measured in terms of distance to the eye, so pixels with larger 
+  depth-buffer values are overwritten by pixels with smaller values 
+  [#redbook-p156]_ [#z-buffer-wiki]_ [#depthstencils-ogl]_.
+
+- Stencil Buffer
+
+  In the simplest case, the stencil buffer is used to limit the area of 
+  rendering (stenciling) [#stencils-buffer-wiki]_ [#depthstencils-ogl]_.  
+
+- Frame Buffer
+
+  OpenGL offers: the color, depth and stencil buffers. 
+  This combination of buffers is known as the default framebuffer and as you've 
+  seen, a framebuffer is an area in memory that can be rendered to 
+  [#framebuffers-ogl]_. 
 
 General purpose GPU
 --------------------
@@ -1076,6 +1118,7 @@ programmers** [#paper-graph-on-opencl]_. Cuda graph is an idea  like this
 
 .. [#mesa] https://www.mesa3d.org/
 
+.. [#simt-wiki] https://en.wikipedia.org/wiki/Single_instruction,_multiple_threads
 
 .. [#Quantitative-grid] Book Figure 4.13 of Computer Architecture: A Quantitative Approach 5th edition (The
        Morgan Kaufmann Series in Computer Architecture and Design)
@@ -1089,6 +1132,20 @@ programmers** [#paper-graph-on-opencl]_. Cuda graph is an idea  like this
 
 .. [#Quantitative-gpu-mem] Book Figure 4.17 of Computer Architecture: A Quantitative Approach 5th edition (The
        Morgan Kaufmann Series in Computer Architecture and Design)
+
+.. [#buffers-redbook] Page 155 - 185 of book "OpenGL Programming Guide 9th Edition" [#redbook]_.
+
+.. [#redbook-p155] Page 155 of book "OpenGL Programming Guide 9th Edition" [#redbook]_.
+
+.. [#redbook-p156] Page 156 of book "OpenGL Programming Guide 9th Edition" [#redbook]_.
+
+..  [#z-buffer-wiki] https://en.wikipedia.org/wiki/Z-buffering
+
+.. [#depthstencils-ogl] https://open.gl/depthstencils
+
+.. [#stencils-buffer-wiki] https://en.wikipedia.org/wiki/Stencil_buffer
+
+.. [#framebuffers-ogl] https://open.gl/framebuffers
 
 .. [#Quantitative-gpu-griddef] Book Figure 4.12 of Computer Architecture: A Quantitative Approach 5th edition (The
        Morgan Kaufmann Series in Computer Architecture and Design)
