@@ -141,7 +141,7 @@ notation as proved here
   \mathbf i & \mathbf j& \mathbf k\\ 
   a_1& a_2& 0\\ 
   b_1& b_2& 0 
-  \end{vmatrix} = 
+  \end{vmatrix} =
   \begin{bmatrix}
   a_1& a_2 \\
   b_1& b_2
@@ -157,16 +157,18 @@ After above matrix form is proved, the Antisymmetric may be proved as follows,
   b 
   \end{bmatrix} =
   \begin{bmatrix}
-  a_x& a_y \\ 
-  b_x& b_y 
+  a_1& a_2 \\ 
+  b_1& b_2 
   \end{bmatrix} =
-  \begin{bmatrix}
-  - b_x& - b_y \\ 
-  a_x& a_y 
-  \end{bmatrix} =
+  a_1b_2 - a_2b_1 = 
 
 .. math::
 
+  -b_1a_2 - (-b_2a_1) = 
+  \begin{bmatrix}
+  - b_1& - b_2 \\ 
+  a_1& a_2 
+  \end{bmatrix} =
   \mathsf x&
   \begin{bmatrix}
   -b \\ 
