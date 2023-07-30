@@ -365,6 +365,11 @@ be executed in parallel, since a GPU have so many cores.
 3D Rendering
 ------------
 
+Based on the previous section of 3D modeling, the 3D modeling tool will generate
+3D vertex model and OpenGL code, then programmers may hand-change OpenGL code and
+add or modify shaders. The 3D animation will trigger the 3D rendering for each
+2D image drawing.
+
 3D rendering is the process of converting 3D models into 2D images on a computer 
 [#3drendering_wiki]_. The steps as the following :numref:`rendering_pipeline1` 
 from OpenGL website [#rendering]_ and the website has descripiton for each stage.
