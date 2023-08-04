@@ -40,6 +40,10 @@ than CPU.
 
   The role of GPU driver
 
+- As above, every animation the client CPU program set new position of obect 
+  (vertices), server (driver and GPU) does the 3D to 2D rendering. Higher-level
+  libraries and frameworks on top of OpenGL provide animation framework and 
+  tools.
 
 This chapter is giving a concept for the flow above and focuses on shader compiler
 for GPU. Furthermore, explaining how GPU has taking more applications from 
