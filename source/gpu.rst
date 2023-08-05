@@ -285,15 +285,23 @@ The following example from openGL redbook and example code [#redbook]_
 
 .. rubric:: References/01-triangles.cpp
 .. literalinclude:: ../References/01-triangles.cpp
+   :language: c++
+   :linenos:
 
 Init(): 
 
+- Generate Vertex Array VAOs and bind VAOs[0].
+
 - According counter clockwise rule in previous section, Triangle Primitives are
   defined in varaible vertices. After binding OpenGL 
-  object Buffers[0] to vertices, vertices data will send to memory of 
+  VBO Buffers[0] to vertices, vertices data will send to memory of 
   server(gpu).
-
-- Generate Vertex Array VAOs and bind VAOs[0].
+  Think of the "active" buffer as just a global variable, and there are a bunch 
+  of functions which use the active buffer instead of using a parameter. 
+  These global state variables are the ugly side of OpenGL [#vao-vbo-binding]_
+  and can be replaced with glVertexArrayVertexBuffer(), 
+  glVertexArrayAttribFormat(), ..., then call glBindVertexArray(vao)
+  before drawing in OpenGL 4.5 [#ogl-vavb]_ [#ogl-bluebook-p152]_.
 
 - glVertexAttribPointer( vPosition, 2, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(0) ):
   During gpu rendering, each vertex position will be held in vPosition and pass
@@ -1073,6 +1081,12 @@ programmers** [#paper-graph-on-opencl]_. Cuda graph is an idea  like this
 .. [#redbook] http://www.opengl-redbook.com
 
 .. [#redbook-examples] https://github.com/openglredbook/examples
+
+.. [#vao-vbo-binding] https://stackoverflow.com/questions/21652546/what-is-the-role-of-glbindvertexarrays-vs-glbindbuffer-and-what-is-their-relatio
+
+.. [#ogl-vavb] https://registry.khronos.org/OpenGL-Refpages/gl4/html/glBindVertexBuffer.xhtmll
+
+.. [#ogl-bluebook-p152] Page 152 of Blue book: OpenGL SuperBible 7th Edition.
 
 .. [#monstar-lab-opengl] https://engineering.monstar-lab.com/en/post/2022/03/01/Introduction-To-GPUs-With-OpenGL/
 
