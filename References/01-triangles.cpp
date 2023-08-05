@@ -25,15 +25,31 @@ void
 init( void )
 {
     glGenVertexArrays( NumVAOs, VAOs );
+    // Make the new VAO:VAOs[Triangles] active, creating it if necessary.
     glBindVertexArray( VAOs[Triangles] );
-
+    // opengl->current_array_buffer = VAOs[Triangles]
+    
     GLfloat  vertices[NumVertices][2] = {
         { -0.90f, -0.90f }, {  0.85f, -0.90f }, { -0.90f,  0.85f },  // Triangle 1
         {  0.90f, -0.85f }, {  0.90f,  0.90f }, { -0.85f,  0.90f }   // Triangle 2
     };
 
     glCreateBuffers( NumBuffers, Buffers );
+    
+    // Make the buffer the active array buffer.
     glBindBuffer( GL_ARRAY_BUFFER, Buffers[ArrayBuffer] );
+    // Attach the active VBO:Buffers[ArrayBuffer] to VAOs[Triangles]
+    // as an array of vectors with 4 floats each.
+    // Kind of like:
+    // opengl->current_vertex_array->attributes[attr] = {
+    //     type = GL_FLOAT,
+    //     size = 4,
+    //     data = opengl->current_array_buffer
+    // }
+    // Can be replaced with glVertexArrayVertexBuffer(VAOs[Triangles], Triangles, 
+    // buffer[ArrayBuffer], ArrayBuffer, sizeof(vmath::vec2));, glVertexArrayAttribFormat(), ...
+    // in OpenGL 4.5.
+    
     glBufferStorage( GL_ARRAY_BUFFER, sizeof(vertices), vertices, 0);
 
     ShaderInfo  shaders[] =
