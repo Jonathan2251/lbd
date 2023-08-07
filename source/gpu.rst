@@ -41,9 +41,14 @@ than CPU.
   The role of GPU driver
 
 - As above, every animation the client CPU program set new position of obect 
-  (vertices), server (driver and GPU) does the 3D to 2D rendering. Higher-level
+  (vertices) and colors, the data of one frame, server (driver and GPU) does 
+  the 3D to 2D rendering. Higher-level
   libraries and frameworks on top of OpenGL provide animation framework and 
   tools.
+
+- GPU can't directly read user input from, say, keyboard, mouse, gamepad, or 
+  play audio, or load files from a hard drive, or anything like that. In this
+  situation, cannot let GPU handle the animation work [#cpu-gpu-role]_. 
 
 This chapter is giving a concept for the flow above and focuses on shader compiler
 for GPU. Furthermore, explaining how GPU has taking more applications from 
@@ -101,10 +106,21 @@ with their type.
 Basic geometry in computer graphics
 -----------------------------------
 
+This section instroduce the basic geometry math for computer graphics. The 
+computer grapics books has provided topics of transformation of object and 
+position in space. Chapter 4 of Blue book: OpenGL SuperBible 7th Edition give
+a short description (40 pages) and useful concept is a good material for 
+knowing the concept. Given the following for Quaternion Product (Hamilton 
+product) from Wiki [#wiki-quaternion]_ since the book miss this.
+
+.. math::
+
+  \mathbf ij = -ji = k, jk = -kj = i, ki = -ik = j.
+
+
 The complete concept can be found in
 Book: "Computer graphics principles and practice 3rd editon, authors: JOHN F, 
-..."
-
+...". But it is 1 thousand of pages.
 This book is very complete and may take much time to understand every detail.
 
 Both Triangles or Quads are ploygon. So, objects can be formed with ploygon in
@@ -1044,6 +1060,8 @@ programmers** [#paper-graph-on-opencl]_. Cuda graph is an idea  like this
 
 .. [#gpu-firmware-jobs] https://antonelly.com.co/do-gpus-have-firmware/#:~:text=Providing%20access%20to%20new%20features,drivers%20during%20the%20boot%20process
 
+.. [#cpu-gpu-role] https://stackoverflow.com/questions/47426655/cpu-and-gpu-in-3d-game-whos-doing-what
+
 .. [#polygon] https://www.quora.com/Which-one-is-better-for-3D-modeling-Quads-or-Tris
 
 .. [#shading] https://en.wikipedia.org/wiki/Shading
@@ -1054,23 +1072,25 @@ programmers** [#paper-graph-on-opencl]_. Cuda graph is an idea  like this
 
 .. [#joglwiki] https://en.wikipedia.org/wiki/Java_OpenGL
 
+.. [#3dfmt] https://all3dp.com/3d-file-format-3d-files-3d-printer-3d-cad-vrml-stl-obj/
+
+.. [#wiki-quaternion] https://en.wikipedia.org/wiki/Quaternion
+
+.. [#cross-product-wiki] https://en.wikipedia.org/wiki/Cross_product
+
 .. [#sphinx-math] https://sphinx-rtd-trial.readthedocs.io/en/latest/ext/math.html#module-sphinx.ext.mathbase
 
 .. [#mathbase-latex] https://mirrors.mit.edu/CTAN/info/short-math-guide/short-math-guide.pdf
-
-.. [#cgpap] Figure 7.19 of Book: Computer graphics principles and practice 3rd edition
-
-.. [#wiki-point-in-polygon] https://en.wikipedia.org/wiki/Point_in_polygon
-
-.. [#cross-product-wiki] https://en.wikipedia.org/wiki/Cross_product
 
 .. [#cross-product-2d-proof] https://www.xarg.org/book/linear-algebra/2d-perp-product/
 
 .. [#cross-product-2d-proof2] https://www.nagwa.com/en/explainers/175169159270/
 
-.. [#point-in-3d-object] https://stackoverflow.com/questions/63557043/how-to-determine-whether-a-point-is-inside-or-outside-a-3d-model-computationally
+.. [#cgpap] Figure 7.19 of Book: Computer graphics principles and practice 3rd edition
 
-.. [#3dfmt] https://all3dp.com/3d-file-format-3d-files-3d-printer-3d-cad-vrml-stl-obj/
+.. [#wiki-point-in-polygon] https://en.wikipedia.org/wiki/Point_in_polygon
+
+.. [#point-in-3d-object] https://stackoverflow.com/questions/63557043/how-to-determine-whether-a-point-is-inside-or-outside-a-3d-model-computationally
 
 .. [#3drendering_wiki] https://en.wikipedia.org/wiki/3D_rendering
 
