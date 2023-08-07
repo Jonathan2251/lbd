@@ -40,6 +40,15 @@ than CPU.
 
   The role of GPU driver
 
+- As above, every animation the client CPU program set new position of obect 
+  (vertices) and colors, the data of one frame, server (driver and GPU) does 
+  the 3D to 2D rendering. Higher-level
+  libraries and frameworks on top of OpenGL provide animation framework and 
+  tools.
+
+- GPU can't directly read user input from, say, keyboard, mouse, gamepad, or 
+  play audio, or load files from a hard drive, or anything like that. In this
+  situation, cannot let GPU handle the animation work [#cpu-gpu-role]_. 
 
 This chapter is giving a concept for the flow above and focuses on shader compiler
 for GPU. Furthermore, explaining how GPU has taking more applications from 
@@ -97,10 +106,21 @@ with their type.
 Basic geometry in computer graphics
 -----------------------------------
 
+This section instroduce the basic geometry math for computer graphics. The 
+computer grapics books has provided topics of transformation of object and 
+position in space. Chapter 4 of Blue book: OpenGL SuperBible 7th Edition give
+a short description (40 pages) and useful concept is a good material for 
+knowing the concept. Given the following for Quaternion Product (Hamilton 
+product) from Wiki [#wiki-quaternion]_ since the book miss this.
+
+.. math::
+
+  \mathbf ij = -ji = k, jk = -kj = i, ki = -ik = j.
+
+
 The complete concept can be found in
 Book: "Computer graphics principles and practice 3rd editon, authors: JOHN F, 
-..."
-
+...". But it is 1 thousand of pages.
 This book is very complete and may take much time to understand every detail.
 
 Both Triangles or Quads are ploygon. So, objects can be formed with ploygon in
@@ -141,7 +161,7 @@ notation as proved here
   \mathbf i & \mathbf j& \mathbf k\\ 
   a_1& a_2& 0\\ 
   b_1& b_2& 0 
-  \end{vmatrix} = 
+  \end{vmatrix} =
   \begin{bmatrix}
   a_1& a_2 \\
   b_1& b_2
@@ -157,16 +177,18 @@ After above matrix form is proved, the Antisymmetric may be proved as follows,
   b 
   \end{bmatrix} =
   \begin{bmatrix}
-  a_x& a_y \\ 
-  b_x& b_y 
+  a_1& a_2 \\ 
+  b_1& b_2 
   \end{bmatrix} =
-  \begin{bmatrix}
-  - b_x& - b_y \\ 
-  a_x& a_y 
-  \end{bmatrix} =
+  a_1b_2 - a_2b_1 = 
 
 .. math::
 
+  -b_1a_2 - (-b_2a_1) = 
+  \begin{bmatrix}
+  - b_1& - b_2 \\ 
+  a_1& a_2 
+  \end{bmatrix} =
   \mathsf x&
   \begin{bmatrix}
   -b \\ 
@@ -279,15 +301,23 @@ The following example from openGL redbook and example code [#redbook]_
 
 .. rubric:: References/01-triangles.cpp
 .. literalinclude:: ../References/01-triangles.cpp
+   :language: c++
+   :linenos:
 
 Init(): 
 
+- Generate Vertex Array VAOs and bind VAOs[0].
+
 - According counter clockwise rule in previous section, Triangle Primitives are
   defined in varaible vertices. After binding OpenGL 
-  object Buffers[0] to vertices, vertices data will send to memory of 
+  VBO Buffers[0] to vertices, vertices data will send to memory of 
   server(gpu).
-
-- Generate Vertex Array VAOs and bind VAOs[0].
+  Think of the "active" buffer as just a global variable, and there are a bunch 
+  of functions which use the active buffer instead of using a parameter. 
+  These global state variables are the ugly side of OpenGL [#vao-vbo-binding]_
+  and can be replaced with glVertexArrayVertexBuffer(), 
+  glVertexArrayAttribFormat(), ..., then call glBindVertexArray(vao)
+  before drawing in OpenGL 4.5 [#ogl-vavb]_ [#ogl-bluebook-p152]_.
 
 - glVertexAttribPointer( vPosition, 2, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(0) ):
   During gpu rendering, each vertex position will be held in vPosition and pass
@@ -362,6 +392,11 @@ be executed in parallel, since a GPU have so many cores.
 
 3D Rendering
 ------------
+
+Based on the previous section of 3D modeling, the 3D modeling tool will generate
+3D vertex model and OpenGL code, then programmers may hand-change OpenGL code and
+add or modify shaders. The 3D animation will trigger the 3D rendering for each
+2D image drawing.
 
 3D rendering is the process of converting 3D models into 2D images on a computer 
 [#3drendering_wiki]_. The steps as the following :numref:`rendering_pipeline1` 
@@ -1025,6 +1060,8 @@ programmers** [#paper-graph-on-opencl]_. Cuda graph is an idea  like this
 
 .. [#gpu-firmware-jobs] https://antonelly.com.co/do-gpus-have-firmware/#:~:text=Providing%20access%20to%20new%20features,drivers%20during%20the%20boot%20process
 
+.. [#cpu-gpu-role] https://stackoverflow.com/questions/47426655/cpu-and-gpu-in-3d-game-whos-doing-what
+
 .. [#polygon] https://www.quora.com/Which-one-is-better-for-3D-modeling-Quads-or-Tris
 
 .. [#shading] https://en.wikipedia.org/wiki/Shading
@@ -1035,23 +1072,25 @@ programmers** [#paper-graph-on-opencl]_. Cuda graph is an idea  like this
 
 .. [#joglwiki] https://en.wikipedia.org/wiki/Java_OpenGL
 
+.. [#3dfmt] https://all3dp.com/3d-file-format-3d-files-3d-printer-3d-cad-vrml-stl-obj/
+
+.. [#wiki-quaternion] https://en.wikipedia.org/wiki/Quaternion
+
+.. [#cross-product-wiki] https://en.wikipedia.org/wiki/Cross_product
+
 .. [#sphinx-math] https://sphinx-rtd-trial.readthedocs.io/en/latest/ext/math.html#module-sphinx.ext.mathbase
 
 .. [#mathbase-latex] https://mirrors.mit.edu/CTAN/info/short-math-guide/short-math-guide.pdf
-
-.. [#cgpap] Figure 7.19 of Book: Computer graphics principles and practice 3rd edition
-
-.. [#wiki-point-in-polygon] https://en.wikipedia.org/wiki/Point_in_polygon
-
-.. [#cross-product-wiki] https://en.wikipedia.org/wiki/Cross_product
 
 .. [#cross-product-2d-proof] https://www.xarg.org/book/linear-algebra/2d-perp-product/
 
 .. [#cross-product-2d-proof2] https://www.nagwa.com/en/explainers/175169159270/
 
-.. [#point-in-3d-object] https://stackoverflow.com/questions/63557043/how-to-determine-whether-a-point-is-inside-or-outside-a-3d-model-computationally
+.. [#cgpap] Figure 7.19 of Book: Computer graphics principles and practice 3rd edition
 
-.. [#3dfmt] https://all3dp.com/3d-file-format-3d-files-3d-printer-3d-cad-vrml-stl-obj/
+.. [#wiki-point-in-polygon] https://en.wikipedia.org/wiki/Point_in_polygon
+
+.. [#point-in-3d-object] https://stackoverflow.com/questions/63557043/how-to-determine-whether-a-point-is-inside-or-outside-a-3d-model-computationally
 
 .. [#3drendering_wiki] https://en.wikipedia.org/wiki/3D_rendering
 
@@ -1062,6 +1101,12 @@ programmers** [#paper-graph-on-opencl]_. Cuda graph is an idea  like this
 .. [#redbook] http://www.opengl-redbook.com
 
 .. [#redbook-examples] https://github.com/openglredbook/examples
+
+.. [#vao-vbo-binding] https://stackoverflow.com/questions/21652546/what-is-the-role-of-glbindvertexarrays-vs-glbindbuffer-and-what-is-their-relatio
+
+.. [#ogl-vavb] https://registry.khronos.org/OpenGL-Refpages/gl4/html/glBindVertexBuffer.xhtmll
+
+.. [#ogl-bluebook-p152] Page 152 of Blue book: OpenGL SuperBible 7th Edition.
 
 .. [#monstar-lab-opengl] https://engineering.monstar-lab.com/en/post/2022/03/01/Introduction-To-GPUs-With-OpenGL/
 

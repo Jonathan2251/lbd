@@ -63,7 +63,11 @@ Revision history
 
 Version 12.0.14, not released yet.
 
-Version 12.0.13.1, Released July 24, 2023.
+Version 12.0.13.2, Released July 24, 2023.
+
+  gpu.rst: Subsection of buffers, vao binding.
+
+Version 12.0.13.1, Released August 7, 2023.
 
   gpu.rst: Section of Basic geometry in computer graphics, a x b = -b x a in 2D,
   The role of GPU driver. npu.rst: The role of GPU driver.
