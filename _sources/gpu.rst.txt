@@ -16,42 +16,9 @@ Since the 2D or 3D graphic processing provides large opportunity in parallel
 data processing, GPU hardware usually composed of thousands
 of functional units in each core(grid) in N-Vidia processors.
 
-The flow for 3D/2D graphic processing as the following diagram.
-
-.. _opengl_flow: 
-.. figure:: ../Fig/gpu/opengl_flow.png
-  :align: center
-  :scale: 100 %
-
-  OpenGL flow
-
-The driver run on CPU side as :numref:`gpu_driver_role`. The OpenGL Api will call
-driver's function eventually and driver finish the function's work via issuing
-GPU-HW's command and/or sending data to GPU. GPU's firmware only manage clock,
-voltage, power comsumption, ..., etc [#gpu-firmware-jobs]_.
-Even so, GPU's rendor work from the data of 3D vertex, colors, ... sending from 
-CPU and storing in GPU's memory or shared memory consume more computing power
-than CPU.
-
-.. _gpu_driver_role: 
-.. figure:: ../Fig/gpu/gpu-driver-role.png
-  :align: center
-  :scale: 50 %
-
-  The role of GPU driver
-
-- As above, every animation the client CPU program set new position of obect 
-  (vertices) and colors, the data of one frame, server (driver and GPU) does 
-  the 3D to 2D rendering. Higher-level
-  libraries and frameworks on top of OpenGL provide animation framework and 
-  tools.
-
-- GPU can't directly read user input from, say, keyboard, mouse, gamepad, or 
-  play audio, or load files from a hard drive, or anything like that. In this
-  situation, cannot let GPU handle the animation work [#cpu-gpu-role]_. 
-
-This chapter is giving a concept for the flow above and focuses on shader compiler
-for GPU. Furthermore, explaining how GPU has taking more applications from 
+This chapter is giving a overview for how 3D animation to be created and run on
+CPU+GPU. Give a concept for GPU compiler and HW featrues for graphic application.
+Furthermore, explaining how GPU has taking more applications from 
 CPU through GPGPU concept and related standards emerged.
 
 
@@ -75,6 +42,17 @@ Further, after texturing (texture mapping), the model looks real more
 [#texturemapping]_.
  
 To get to know how animation for a 3D modeling, please look video here [#animation1]_.
+According the video for skeleton animation, setting the joints poistion at different 
+poses and giving time to each pose (keyframe) as :numref:`animation`.
+
+.. _animation: 
+.. figure:: ../Fig/gpu/animation.png
+  :align: center
+  :scale: 50 %
+
+  Set time point at keyframes
+
+
 In this series of video, you find the 3D modeling tools creating Java instead of
 C/C++ code calling OpenGL api and shaders. It's because Java can call OpenGL api
 through a wrapper library [#joglwiki]_.
@@ -101,6 +79,77 @@ with their type.
   STEP            Neutral
   VRML/X3D        Neutral
   ==============  ==================
+
+The four key features a 3D file can store include the model’s geometry, the 
+model’s surface texture, scene details, and animation of the model [#3dfmt]_.
+
+Specifically, they can store details about four key features of a 3D model, 
+though it’s worth bearing in mind that you may not always take advantage of 
+all four features in all projects, and not all file formats support all four 
+features!
+
+3D printer applications do not to support animation. CAD and CAM such as
+designing airplane does not need feature of scene details.
+
+DAE (Collada) appeared in the video animation above.
+Collada files  belong to a neutral format used heavily in the video game and 
+film industries. It’s managed by the non-profit technology consortium, the 
+Khronos Group.
+
+The file extension for the Collada format is .dae.
+The Collada format stores data using the XML mark-up language.
+
+The original intention behind the Collada format was to become a standard among 
+3D file formats. Indeed, in 2013, it was adopted by ISO as a publicly available 
+specification, ISO/PAS 17506. As a result, many 3D modeling programs support 
+the Collada format.
+
+That said, the consensus is that the Collada format hasn’t kept up with the 
+times. It was once used heavily as an interchange format for Autodesk Max/Maya 
+in film production, but the industry has now shifted more towards OBJ, FBX, 
+and Alembic [#3dfmt]_.
+
+
+Graphic SW stack
+----------------
+
+The driver run on CPU side as the following figure. The OpenGL Api will call
+driver's function eventually and driver finish the function's work via issuing
+GPU-HW's command and/or sending data to GPU. GPU's firmware only manage clock,
+voltage, power comsumption, ..., etc [#gpu-firmware-jobs]_.
+Even so, GPU's rendor work from the data of 3D vertex, colors, ... sending from 
+CPU and storing in GPU's memory or shared memory consume more computing power
+than CPU.
+
+.. _graphic_sw_stack: 
+.. graphviz:: ../Fig/gpu/graphic-sw-stack.gv
+
+- According the previous section, after user create skeleton and skin for each
+  model and set keyframes time through 3D modeling tool, the 3D modeling tool 
+  can either generate Java code which calling JOGL (Java OpenGL) [#joglwiki]_, 
+  or generate OpenCL API directly. The frame data can be calculated from 
+  interplation between keyframes.
+
+- As above, every animation the client CPU program set new position of obect 
+  (vertices) and colors, the data of one frame, server (driver and GPU) does 
+  the 3D to 2D rendering. Higher-level
+  libraries and frameworks on top of OpenGL provide animation framework and 
+  tools to generate OpenGL API and shaders from 3D model. 
+
+- Shader may call Builtin-functions which written from Compute Shader, spriv or 
+  LLVM-IR. LLVM libclc is a project for builtin-functions in OpenCL which can 
+  be used in OpenGL too [#libclc]_. 
+  Like CPU's builtin-functions, new GPU ISA/architecture has to implement their 
+  builtin-functions or porting from open source such as libclc.
+
+- GPU can't directly read user input from, say, keyboard, mouse, gamepad, or 
+  play audio, or load files from a hard drive, or anything like that. In this
+  situation, cannot let GPU handle the animation work [#cpu-gpu-role]_. 
+
+The flow for 3D/2D graphic processing as the following diagram.
+
+.. _opengl_flow: 
+.. graphviz:: ../Fig/gpu/opengl-flow.gv
 
 
 Basic geometry in computer graphics
@@ -1058,10 +1107,6 @@ Runtime from Open Source have chance to leverage the effort of scheduling SW fro
 programmers** [#paper-graph-on-opencl]_. Cuda graph is an idea  like this 
 [#cuda-graph-blog]_ [#cuda-graph-pytorch]_ .
 
-.. [#gpu-firmware-jobs] https://antonelly.com.co/do-gpus-have-firmware/#:~:text=Providing%20access%20to%20new%20features,drivers%20during%20the%20boot%20process
-
-.. [#cpu-gpu-role] https://stackoverflow.com/questions/47426655/cpu-and-gpu-in-3d-game-whos-doing-what
-
 .. [#polygon] https://www.quora.com/Which-one-is-better-for-3D-modeling-Quads-or-Tris
 
 .. [#shading] https://en.wikipedia.org/wiki/Shading
@@ -1073,6 +1118,12 @@ programmers** [#paper-graph-on-opencl]_. Cuda graph is an idea  like this
 .. [#joglwiki] https://en.wikipedia.org/wiki/Java_OpenGL
 
 .. [#3dfmt] https://all3dp.com/3d-file-format-3d-files-3d-printer-3d-cad-vrml-stl-obj/
+
+.. [#gpu-firmware-jobs] https://antonelly.com.co/do-gpus-have-firmware/#:~:text=Providing%20access%20to%20new%20features,drivers%20during%20the%20boot%20process
+
+.. [#libclc] https://libclc.llvm.org
+
+.. [#cpu-gpu-role] https://stackoverflow.com/questions/47426655/cpu-and-gpu-in-3d-game-whos-doing-what
 
 .. [#wiki-quaternion] https://en.wikipedia.org/wiki/Quaternion
 

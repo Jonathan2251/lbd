@@ -17,13 +17,24 @@ The Chapter11_2 can be built and run with the C++ polymorphism example code of
 ch12_inherit.cpp as follows,
 
 .. rubric:: lbdex/input/ch12_inherit.cpp
-.. literalinclude:: ../lbdex/input/ch12_inherit.cpp
-    :start-after: /// start
+.. code-block:: c++
+
+  ...
+  class CPolygon { // _ZTVN10__cxxabiv117__class_type_infoE for parent class
+    ...
+  #ifdef COUT_TEST
+   // generate IR nvoke, landing, resume and unreachable on iMac
+      { cout << this->area() << endl; }
+  #else
+      { printf("%d\n", this->area()); }
+  #endif
+  };
+  ...
 
 If using cout instead of printf in ch12_inherit.cpp, it won't generate exception 
 handler IRs on Linux, whereas it will generate invoke, landing, resume 
 and unreachable exception handler IRs on iMac.
-Example code, ch12_eh.cpp, which supports **try** and **catch** exception handler 
+Example code, ch12_eh.cpp, which includes **try** and **catch** exception handler 
 as the following will generate these exception handler IRs both on iMac and Linux.
 
 .. rubric:: lbdex/input/ch12_eh.cpp
@@ -37,7 +48,26 @@ as the following will generate these exception handler IRs both on iMac and Linu
   JonathantekiiMac:input Jonathan$ /Users/Jonathan/llvm/test/build/
   bin/llvm-dis ch12_eh.bc -o -
   
-.. literalinclude:: ../lbdex/output/ch12_eh.ll
+.. rubric:: ../lbdex/output/ch12_eh.ll
+.. code-block:: llvm
+
+  ...
+  define dso_local i32 @_Z14test_try_catchv() #0 personality i8* bitcast (i32 (...
+  )* @__gxx_personality_v0 to i8*) {
+  entry:
+    ...
+    invoke void @_Z15throw_exceptionii(i32 signext 2, i32 signext 1)
+          to label %invoke.cont unwind label %lpad
+
+  invoke.cont:                                      ; preds = %entry
+    br label %try.cont
+
+  lpad:                                             ; preds = %entry
+    %0 = landingpad { i8*, i32 }
+            catch i8* null
+    ...
+  }
+  ...
 
 .. code:: console
 
@@ -67,7 +97,40 @@ exception C++ keywords. It can compile ch12_eh.bc as follows,
   JonathantekiiMac:input Jonathan$ /Users/Jonathan/llvm/test/build/
   bin/llc -march=cpu0 -relocation-model=static -filetype=asm ch12_eh.bc -o -
   
-.. literalinclude:: ../lbdex/output/ch12_eh.cpu0.s
+.. rubric:: ../lbdex/output/ch12_eh.cpu0.s
+.. code:: text
+
+    .type  _Z14test_try_catchv,@function
+    .ent  _Z14test_try_catchv             # @_Z14test_try_catchv
+  _Z14test_try_catchv:
+    ...
+  $tmp0:
+    addiu  $4, $zero, 2
+    addiu  $5, $zero, 1
+    jsub  _Z15throw_exceptionii
+    nop
+  $tmp1:
+  # %bb.1:                                # %invoke.cont
+    jmp  $BB1_4
+  $BB1_2:                                 # %lpad
+  $tmp2:
+    st  $4, 16($fp)
+    st  $5, 12($fp)
+  # %bb.3:                                # %catch
+    ld  $4, 16($fp)
+    jsub  __cxa_begin_catch
+    nop
+    addiu  $2, $zero, 1
+    st  $2, 20($fp)
+    jsub  __cxa_end_catch
+    nop
+    jmp  $BB1_5
+  $BB1_4:                                 # %try.cont
+    addiu  $2, $zero, 0
+    st  $2, 20($fp)
+  $BB1_5:                                 # %return
+    ld  $2, 20($fp)
+    ...
 
 
 Thread variable
@@ -237,33 +300,79 @@ programming.
   JonathantekiiMac:input Jonathan$ /Users/Jonathan/llvm/test/build/
   bin/llvm-dis ch12_thread_var.bc -o -
   
-.. literalinclude:: ../lbdex/output/ch12_thread_var.ll
+.. rubric:: ../lbdex/output/ch12_thread_var.ll
+.. code-block:: llvm
+
+  ...
+  @a = dso_local thread_local global i32 0, align 4
+  @b = dso_local thread_local global i32 0, align 4
+
+  ; Function Attrs: noinline nounwind optnone mustprogress
+  define dso_local i32 @_Z15test_thread_varv() #0 {
+  entry:
+    store i32 2, i32* @a, align 4
+    %0 = load i32, i32* @a, align 4
+    ret i32 %0
+  }
+
+  ; Function Attrs: noinline nounwind optnone mustprogress
+  define dso_local i32 @_Z17test_thread_var_2v() #0 {
+  entry:
+    store i32 3, i32* @b, align 4
+    %0 = load i32, i32* @b, align 4
+    ret i32 %0
+  }
+  ...
 
 .. code-block:: console
 
   JonathantekiiMac:input Jonathan$ /Users/Jonathan/llvm/test/build/
   bin/llc -march=cpu0 -relocation-model=pic -filetype=asm ch12_thread_var.bc 
-  -o -
+  -o ch12_thread_var.cpu0.pic.s
+  JonathantekiiMac:input Jonathan$ cat ch12_thread_var.cpu0.pic.s
   
-.. literalinclude:: ../lbdex/output/ch12_thread_var.cpu0.pic.s
+.. rubric:: ../lbdex/output/ch12_thread_var.cpu0.pic.s
+.. code-block:: text
 
+  ...
+    .ent  _Z15test_thread_varv            # @_Z15test_thread_varv
+  _Z15test_thread_varv:
+    ...
+    ori  $4, $gp, %tlsldm(a)
+    ld  $t9, %call16(__tls_get_addr)($gp)
+    jalr  $t9
+    nop
+    ld  $gp, 8($fp)
+    lui  $3, %dtp_hi(a)
+    addu  $2, $3, $2
+    ori  $2, $2, %dtp_lo(a)
+    ...
 
 In pic mode, the __thread variable access by call function __tls_get_addr with 
 the address of thread variable. 
 The c++11 standard thread_local variable is accessed by calling function _ZTW1b 
 which also call the function __tls_get_addr to get the thread_local variable 
 address. 
-In static mode, the thread variable is accessed by machine instructions as 
-follows,
+In static mode, the thread variable is accessed by getting address of thread 
+variables "a" and "b" with machine instructions as follows,
 
 .. code-block:: console
 
   JonathantekiiMac:input Jonathan$ /Users/Jonathan/llvm/test/build/
   bin/llc -march=cpu0 -relocation-model=static -filetype=asm 
-  ch12_thread_var.bc -o -
+  ch12_thread_var.bc -o ch12_thread_var.cpu0.static.s
+  JonathantekiiMac:input Jonathan$ cat ch12_thread_var.cpu0.static.s
   
-.. literalinclude:: ../lbdex/output/ch12_thread_var.cpu0.static.s
+.. rubric:: ../lbdex/output/ch12_thread_var.cpu0.static.s
+.. code-block:: text
 
+    ...
+    lui  $2, %tp_hi(a)
+    ori  $2, $2, %tp_lo(a)
+    ...
+    lui  $2, %tp_hi(b)
+    ori  $2, $2, %tp_lo(b)
+    ...
 
 While Mips uses rdhwr instruction to access thread varaible as below, 
 Cpu0 access thread varaible without inventing any new instruction. 
