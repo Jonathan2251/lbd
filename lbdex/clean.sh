@@ -6,5 +6,5 @@ popd
 pushd verilog
 make clean
 popd
-rm -rf chapters preprocess tmp.txt
+rm -rf output chapters preprocess tmp.txt
 

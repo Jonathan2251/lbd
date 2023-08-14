@@ -458,7 +458,7 @@ set-llvm-lit % `diff -r origin modify &> set-llvm-lit.diff`
 
 .. [#rst] http://docutils.sourceforge.net/rst.html
 
-.. [#llvm-sphinx-quick] http://llvm.org/docs/SphinxQuickstartTemplate.html
+.. [#llvm-sphinx-quick] http://llvm.org/docs/SphinxQuickstartTemplate.html If you need to show LLVM IR use the llvm code block. https://llvm.org/docs/SphinxQuickstartTemplate.html#code-blocks
 
 .. [#sphinx-lexers] http://pygments.org/docs/lexers/
 
