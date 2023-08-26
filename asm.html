@@ -43,13 +43,13 @@
 <span id="sec-asm"></span><h1>Assembler<a class="headerlink" href="#assembler" title="Permalink to this heading">¶</a></h1>
 <nav class="contents local" id="contents">
 <ul class="simple">
-<li><p><a class="reference internal" href="#asmparser-support" id="id8">AsmParser support</a></p>
+<li><p><a class="reference internal" href="#asmparser-support" id="id12">AsmParser support</a></p>
 <ul>
-<li><p><a class="reference internal" href="#code-structure-explanation" id="id9">Code structure explanation</a></p></li>
-<li><p><a class="reference internal" href="#code-list-and-some-detail-functions-explanation" id="id10">Code list and some detail functions explanation</a></p></li>
+<li><p><a class="reference internal" href="#code-structure-explanation" id="id13">Code structure explanation</a></p></li>
+<li><p><a class="reference internal" href="#code-list-and-some-detail-functions-explanation" id="id14">Code list and some detail functions explanation</a></p></li>
 </ul>
 </li>
-<li><p><a class="reference internal" href="#inline-assembly" id="id11">Inline assembly</a></p></li>
+<li><p><a class="reference internal" href="#inline-assembly" id="id15">Inline assembly</a></p></li>
 </ul>
 </nav>
 <p>This chapter include the assembly programming support in Cpu0 backend.</p>
@@ -74,7 +74,7 @@ assembly handler.
 With AsmParser and inline assembly support in Cpu0 backend, we can hand-code
 the assembly language in C/C++ file and translate it into obj (elf format).</p>
 <section id="asmparser-support">
-<h2><a class="toc-backref" href="#id8" role="doc-backlink">AsmParser support</a><a class="headerlink" href="#asmparser-support" title="Permalink to this heading">¶</a></h2>
+<h2><a class="toc-backref" href="#id12" role="doc-backlink">AsmParser support</a><a class="headerlink" href="#asmparser-support" title="Permalink to this heading">¶</a></h2>
 <p>This section lists all the AsmParser code for Cpu0 backend with only a few
 explanation. Please refer here <a class="footnote-reference brackets" href="#id4" id="id1" role="doc-noteref"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></a> for more AsmParser explanation.</p>
 <p>Run Chapter10_1/ with ch11_1.cpp will get the following error message.</p>
@@ -130,17 +130,18 @@ explanation. Please refer here <a class="footnote-reference brackets" href="#id4
 The Cpu0 can translate LLVM IR into assembly and obj directly, but it cannot
 translate hand-code assembly instructions into obj.</p>
 <section id="code-structure-explanation">
-<h3><a class="toc-backref" href="#id9" role="doc-backlink">Code structure explanation</a><a class="headerlink" href="#code-structure-explanation" title="Permalink to this heading">¶</a></h3>
+<h3><a class="toc-backref" href="#id13" role="doc-backlink">Code structure explanation</a><a class="headerlink" href="#code-structure-explanation" title="Permalink to this heading">¶</a></h3>
 <p>Directory AsmParser handle the assembly to obj translation.
-The assembling Data Flow Diagram (DFD) as follows,</p>
-<div class="graphviz"><img src="_images/graphviz-22499f023fa698d40efcf1241d0be25c0ffb5e37.png" alt="// Free usage license, author: Chung-Shu Chen 陳鍾樞
+The assembling Data Flow Diagram (DFD) as <a class="reference internal" href="#asm-f1"><span class="std std-numref">Fig. 44</span></a> and <a class="reference internal" href="#asm-f2"><span class="std std-numref">Fig. 45</span></a>.</p>
+<figure class="align-default" id="id7">
+<span id="asm-f1"></span><div class="graphviz"><img src="_images/graphviz-83981439aa0a8967cd12b525616450b7fd014f33.png" alt="// Free usage license, author: Chung-Shu Chen 陳鍾樞
 // dot -tPng asmDfd.gv -oasmDfd.png
 
 digraph G {
   rankdir=LR;
   subgraph cluster_0 {
     style=filled;
-    label = &quot;Assemble flow&quot;;
+//    label = &quot;Assemble flow&quot;;
     node [style=filled,color=white]; user, asmParser, encoder, elfobj;
     user -&gt; asmParser [ label = &quot;cpu0 assembly&quot; ];
     asmParser -&gt; encoder [ label = &quot;opcode ID &amp; operand IDs&quot; ];
@@ -148,14 +149,19 @@ digraph G {
     color=lightgrey
   }
 }" class="graphviz" /></div>
-<div class="graphviz"><img src="_images/graphviz-cb5176e71b11e05c49c0735fd5ebf6fa984c0eb3.png" alt="// Free usage license, author: Chung-Shu Chen 陳鍾樞
+<figcaption>
+<p><span class="caption-number">Fig. 44 </span><span class="caption-text">Assemble flow</span><a class="headerlink" href="#id7" title="Permalink to this image">¶</a></p>
+</figcaption>
+</figure>
+<figure class="align-default" id="id8">
+<span id="asm-f2"></span><div class="graphviz"><img src="_images/graphviz-4342827cb3d69f667c4384c52efb234b91270d15.png" alt="// Free usage license, author: Chung-Shu Chen 陳鍾樞
 // dot -Tpng asmDfdEx.gv -oasmDfdEx.png
 
 digraph G {
   rankdir=LR;
   subgraph cluster_2 {
     style=filled;
-    label = &quot;Assemble flow, for instance: add $v1, $v0, $at&quot;;
+//    label = &quot;Assemble flow, for instance: add $v1, $v0, $at&quot;;
     subgraph clusterA {
       label = &quot;asmParser&quot;;
       node [style=filled,color=white]; ParseInstruction [label=&quot;ParseInstruction()&quot;];
@@ -170,6 +176,10 @@ digraph G {
     color=lightgrey
   }
 }" class="graphviz" /></div>
+<figcaption>
+<p><span class="caption-number">Fig. 45 </span><span class="caption-text">Assemble flow, for instance: add $v1, $v0, $at</span><a class="headerlink" href="#id8" title="Permalink to this image">¶</a></p>
+</figcaption>
+</figure>
 <p>Given an example of assembly instruction “add $v1, $v0, $at”, llvm AsmParser
 kernel call backend ParseInstruction() of Cpu0AsmParser.cpp when it
 parses and recognises that the first token at the beginning of line is identifier.
@@ -342,14 +352,15 @@ encodeInstruction(), explaining in comments which begin with ///.</p>
 <span class="p">}</span><span class="w"></span>
 </pre></div>
 </div>
-<div class="graphviz"><img src="_images/graphviz-13a448c0a183907da8bd37fbd2547525e244aa7a.png" alt="// Free usage license, author: Chung-Shu Chen 陳鍾樞
+<figure class="align-default" id="id9">
+<span id="asm-f3"></span><div class="graphviz"><img src="_images/graphviz-b8e184fba6bf28f4ebe4fd9c01b3b07dc4dc548d.png" alt="// Free usage license, author: Chung-Shu Chen 陳鍾樞
 // dot -Tpng asmDfdEx2.gv -oasmDfdEx2.png
 
 digraph G {
   rankdir=LR;
   subgraph cluster_2 {
     style=filled;
-    label = &quot;Data flow in MatchAndEmitInstruction(), for instance: add $v1, $v0, $at&quot;;
+//    label = &quot;Data flow in MatchAndEmitInstruction(), for instance: add $v1, $v0, $at&quot;;
     subgraph clusterA {
       label = &quot;MatchAndEmitInstruction()&quot;;
       node [style=filled,color=white]; MatchTable0 [label=&quot;Start = std::\nbegin(MatchTable0);\nEnd = std::end\n(MatchTable0);&quot;];
@@ -361,14 +372,19 @@ digraph G {
     color=lightgrey
   }
 }" class="graphviz" /></div>
-<div class="graphviz"><img src="_images/graphviz-2214df9ff80ce815f6d76f9f33ca8ad96f103fb2.png" alt="// Free usage license, author: Chung-Shu Chen 陳鍾樞
+<figcaption>
+<p><span class="caption-number">Fig. 46 </span><span class="caption-text">Data flow in MatchAndEmitInstruction(), for instance: add $v1, $v0, $at”</span><a class="headerlink" href="#id9" title="Permalink to this image">¶</a></p>
+</figcaption>
+</figure>
+<figure class="align-default" id="id10">
+<span id="asm-f4"></span><div class="graphviz"><img src="_images/graphviz-3f9ce164f96f1d09a1c4d5fe60e50c87dc9a85ad.png" alt="// Free usage license, author: Chung-Shu Chen 陳鍾樞
 // dot -Tpng asmDfdEx3.gv -oasmDfdEx3.png
 
 digraph G {
   rankdir=LR;
   subgraph cluster_2 {
     style=filled;
-    label = &quot;Data flow in and between MatchAndEmitInstruction() and encodeInstruction(), for instance: add $v1, $v0, $at&quot;;
+//    label = &quot;Data flow in and between MatchAndEmitInstruction() and encodeInstruction(), for instance: add $v1, $v0, $at&quot;;
     subgraph clusterA {
       label = &quot;MatchAndEmitInstruction()&quot;;
       node [style=filled,color=white]; convertToMCInst [label=&quot;convertToMCInst()&quot;];
@@ -383,13 +399,17 @@ digraph G {
     color=lightgrey
   }
 }" class="graphviz" /></div>
+<figcaption>
+<p><span class="caption-number">Fig. 47 </span><span class="caption-text">Data flow in and between MatchAndEmitInstruction() and encodeInstruction(), for instance: add $v1, $v0, $at</span><a class="headerlink" href="#id10" title="Permalink to this image">¶</a></p>
+</figcaption>
+</figure>
 <p>MatchTable0 include all the possibile combinations of opcode and operands type.
 Even the assembly instruction of user input may pass Cpu0AsmParser in syntax
 check, the MatchAndEmitInstruction() still can be fail. For example, instruction
 “asm(“move $3, $2);” can pass but “asm(“move $3, $2, $1”);” will fail.</p>
 </section>
 <section id="code-list-and-some-detail-functions-explanation">
-<h3><a class="toc-backref" href="#id10" role="doc-backlink">Code list and some detail functions explanation</a><a class="headerlink" href="#code-list-and-some-detail-functions-explanation" title="Permalink to this heading">¶</a></h3>
+<h3><a class="toc-backref" href="#id14" role="doc-backlink">Code list and some detail functions explanation</a><a class="headerlink" href="#code-list-and-some-detail-functions-explanation" title="Permalink to this heading">¶</a></h3>
 <p>The Chapter11_1/ include AsmParser implementation as follows,</p>
 <p class="rubric">lbdex/chapters/Chapter11_1/AsmParser/Cpu0AsmParser.cpp</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>//===-- Cpu0AsmParser.cpp - Parse Cpu0 assembly to MCInst instructions ----===//
@@ -1813,7 +1833,7 @@ of Cpu0AsmParser as follows,</p>
 </section>
 </section>
 <section id="inline-assembly">
-<h2><a class="toc-backref" href="#id11" role="doc-backlink">Inline assembly</a><a class="headerlink" href="#inline-assembly" title="Permalink to this heading">¶</a></h2>
+<h2><a class="toc-backref" href="#id15" role="doc-backlink">Inline assembly</a><a class="headerlink" href="#inline-assembly" title="Permalink to this heading">¶</a></h2>
 <p>Run Chapter11_1 with ch11_2 will get the following error.</p>
 <p class="rubric">lbdex/input/ch11_2.cpp</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">extern</span> <span class="s2">&quot;C&quot;</span> <span class="nb">int</span> <span class="n">printf</span><span class="p">(</span><span class="n">const</span> <span class="n">char</span> <span class="o">*</span><span class="nb">format</span><span class="p">,</span> <span class="o">...</span><span class="p">);</span>
@@ -2463,8 +2483,8 @@ bool Cpu0TargetLowering::isLegalAddressingMode(const DataLayout &amp;DL,
 </div>
 <p>Same with backend structure, the structure of inline assembly can be divided by
 file name as Table: the structure of inline assembly.</p>
-<table class="docutils align-default" id="id7">
-<caption><span class="caption-number">Table 35 </span><span class="caption-text">inline assembly functions</span><a class="headerlink" href="#id7" title="Permalink to this table">¶</a></caption>
+<table class="docutils align-default" id="id11">
+<caption><span class="caption-number">Table 35 </span><span class="caption-text">inline assembly functions</span><a class="headerlink" href="#id11" title="Permalink to this table">¶</a></caption>
 <thead>
 <tr class="row-odd"><th class="head"><p>File</p></th>
 <th class="head"><p>Function</p></th>

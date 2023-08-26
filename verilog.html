@@ -43,15 +43,16 @@
 <span id="sec-verilog"></span><h1>Verify backend on Verilog simulator<a class="headerlink" href="#verify-backend-on-verilog-simulator" title="Permalink to this heading">¶</a></h1>
 <nav class="contents local" id="contents">
 <ul class="simple">
-<li><p><a class="reference internal" href="#create-verilog-simulator-of-cpu0" id="id8">Create verilog simulator of Cpu0</a></p></li>
-<li><p><a class="reference internal" href="#verify-backend" id="id9">Verify backend</a></p></li>
-<li><p><a class="reference internal" href="#other-llvm-based-tools-for-cpu0-processor" id="id10">Other llvm based tools for Cpu0 processor</a></p></li>
+<li><p><a class="reference internal" href="#create-verilog-simulator-of-cpu0" id="id9">Create verilog simulator of Cpu0</a></p></li>
+<li><p><a class="reference internal" href="#verify-backend" id="id10">Verify backend</a></p></li>
+<li><p><a class="reference internal" href="#other-llvm-based-tools-for-cpu0-processor" id="id11">Other llvm based tools for Cpu0 processor</a></p></li>
 </ul>
 </nav>
 <p>Until now, we have an llvm backend to compile C or assembly as the white part of
-the following figure. If without global variable, the elf obj can be
+<a class="reference internal" href="#runbackend-f1"><span class="std std-numref">Fig. 50</span></a>. If without global variable, the elf obj can be
 dumped to hex file via <code class="docutils literal notranslate"><span class="pre">llvm-objdump</span> <span class="pre">-d</span></code> which finished in Chapter ELF Support.</p>
-<div class="graphviz"><img src="_images/graphviz-00fb829f5101e41c988df69aac68285e3bdffcfd.png" alt="digraph G {
+<figure class="align-default" id="id8">
+<span id="runbackend-f1"></span><div class="graphviz"><img src="_images/graphviz-7f3372150b115295375f540a388a53ddb15b4fca.png" alt="digraph G {
   rankdir=LR;
   &quot;Verilog machine&quot; [style=filled, color=gray];
   &quot;clang&quot; -&gt; &quot;llc&quot; [label=&quot;IR&quot;];
@@ -59,14 +60,18 @@ dumped to hex file via <code class="docutils literal notranslate"><span class="p
   &quot;llc&quot; -&gt; &quot;llvm-objdump -d&quot; [label=&quot;obj&quot;];
   &quot;llvm-objdump -d&quot; -&gt; &quot;Verilog machine&quot; [label=&quot;hex&quot;];
   
-  label = &quot;Figure: Cpu0 backend without linker&quot;;
+//  label = &quot;Figure: Cpu0 backend without linker&quot;;
 }" class="graphviz" /></div>
+<figcaption>
+<p><span class="caption-number">Fig. 50 </span><span class="caption-text">Cpu0 backend without linker</span><a class="headerlink" href="#id8" title="Permalink to this image">¶</a></p>
+</figcaption>
+</figure>
 <p>This chapter will implement Cpu0 instructions by Verilog language as the gray
 part of above figure.
 With this Verilog machine, we can run this hex program on the Cpu0 Verilog
 machine on PC and see the Cpu0 instructions execution result.</p>
 <section id="create-verilog-simulator-of-cpu0">
-<h2><a class="toc-backref" href="#id8" role="doc-backlink">Create verilog simulator of Cpu0</a><a class="headerlink" href="#create-verilog-simulator-of-cpu0" title="Permalink to this heading">¶</a></h2>
+<h2><a class="toc-backref" href="#id9" role="doc-backlink">Create verilog simulator of Cpu0</a><a class="headerlink" href="#create-verilog-simulator-of-cpu0" title="Permalink to this heading">¶</a></h2>
 <p>Verilog language is an IEEE standard in IC design. There are a lot of books and
 documents for this language. Free documents exist in Web sites <a class="footnote-reference brackets" href="#free-doc1" id="id1" role="doc-noteref"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></a>
 <a class="footnote-reference brackets" href="#free-doc2" id="id2" role="doc-noteref"><span class="fn-bracket">[</span>2<span class="fn-bracket">]</span></a> <a class="footnote-reference brackets" href="#free-doc3" id="id3" role="doc-noteref"><span class="fn-bracket">[</span>3<span class="fn-bracket">]</span></a> <a class="footnote-reference brackets" href="#free-doc4" id="id4" role="doc-noteref"><span class="fn-bracket">[</span>4<span class="fn-bracket">]</span></a> <a class="footnote-reference brackets" href="#free-doc5" id="id5" role="doc-noteref"><span class="fn-bracket">[</span>5<span class="fn-bracket">]</span></a>.
@@ -723,7 +728,7 @@ longer and affect the CPU performance. So, I set the endian transfer in memory
 module. In system with bus, it will be set in bus system I think.</p>
 </section>
 <section id="verify-backend">
-<h2><a class="toc-backref" href="#id9" role="doc-backlink">Verify backend</a><a class="headerlink" href="#verify-backend" title="Permalink to this heading">¶</a></h2>
+<h2><a class="toc-backref" href="#id10" role="doc-backlink">Verify backend</a><a class="headerlink" href="#verify-backend" title="Permalink to this heading">¶</a></h2>
 <p>Now let’s compile ch_run_backend.cpp as below. Since code size grows up from
 low to high address and stack grows up from high to low address. $sp is set
 at 0x7fffc because assuming cpu0.v uses 0x80000 bytes of memory.</p>
@@ -1335,7 +1340,7 @@ cat ../verilog/cpu0.config
 </div>
 </section>
 <section id="other-llvm-based-tools-for-cpu0-processor">
-<h2><a class="toc-backref" href="#id10" role="doc-backlink">Other llvm based tools for Cpu0 processor</a><a class="headerlink" href="#other-llvm-based-tools-for-cpu0-processor" title="Permalink to this heading">¶</a></h2>
+<h2><a class="toc-backref" href="#id11" role="doc-backlink">Other llvm based tools for Cpu0 processor</a><a class="headerlink" href="#other-llvm-based-tools-for-cpu0-processor" title="Permalink to this heading">¶</a></h2>
 <p>You can find the Cpu0 ELF linker implementation based on lld which is the
 llvm official linker project, as well as elf2hex which modified from llvm-objdump
 driver at web: <a class="reference external" href="http://jonathan2251.github.io/lbt/index.html">http://jonathan2251.github.io/lbt/index.html</a>.</p>

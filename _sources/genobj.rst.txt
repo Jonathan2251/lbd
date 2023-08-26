@@ -224,15 +224,18 @@ expanation as follows,
 
 .. _genobj-f11: 
 .. graphviz:: ../Fig/genobj/callFunctions.gv
+   :caption: Calling Functions of elf encoder
 
-The ELF encoder calling functions shown as the figure above. 
+The ELF encoder calling functions shown as :numref:`genobj-f11` above. 
 AsmPrinter::OutStreamer is set to MCObjectStreamer when by llc driver when user
 input ``llc -filetype=obj``.
 
 .. _genobj-f12: 
 .. graphviz:: ../Fig/genobj/instEncodeDfd.gv
+   :caption: DFD flow for instruction encode
 
-The instruction operands information for encoder is got as the figure above. 
+The instruction operands information for encoder is got as :numref:`genobj-f12` 
+above. 
 Steps as follows,
 
   1. Function encodeInstruction() pass MI.Opcode to getBinaryCodeForInstr().
@@ -245,10 +248,11 @@ Steps as follows,
   
 The MI.Opcode is set in Instruction Selection Stage.
 The table gen function getBinaryCodeForInstr() get all the operands information 
-from the td files set by programmer as the following figure. 
+from the td files set by programmer as :numref:`genobj-f13`. 
 
 .. _genobj-f13: 
 .. graphviz:: ../Fig/genobj/getBinaryCodeForInstr.gv
+   :caption: Instruction encode, for instance:  addu $v0, $at, $v1\n  v0:MI.getOperand(0), at:MI.getOperand(1), v1:MI.getOperand(2)
 
 For instance, Cpu0 backend will generate "addu $v0, $at, $v1" for the IR 
 "%0 = add %1, %2" once llvm allocate registers $v0, $at and $v1 for Operands

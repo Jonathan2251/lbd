@@ -43,10 +43,10 @@
 <span id="sec-genobjfiles"></span><h1>Generating object files<a class="headerlink" href="#generating-object-files" title="Permalink to this heading">¶</a></h1>
 <nav class="contents local" id="contents">
 <ul class="simple">
-<li><p><a class="reference internal" href="#translate-into-obj-file" id="id4">Translate into obj file</a></p></li>
-<li><p><a class="reference internal" href="#elf-obj-related-code" id="id5">ELF obj related code</a></p></li>
-<li><p><a class="reference internal" href="#work-flow" id="id6">Work flow</a></p></li>
-<li><p><a class="reference internal" href="#backend-target-registration-structure" id="id7">Backend Target Registration Structure</a></p></li>
+<li><p><a class="reference internal" href="#translate-into-obj-file" id="id7">Translate into obj file</a></p></li>
+<li><p><a class="reference internal" href="#elf-obj-related-code" id="id8">ELF obj related code</a></p></li>
+<li><p><a class="reference internal" href="#work-flow" id="id9">Work flow</a></p></li>
+<li><p><a class="reference internal" href="#backend-target-registration-structure" id="id10">Backend Target Registration Structure</a></p></li>
 </ul>
 </nav>
 <p>The previous chapters introducing the assembly code generation only.
@@ -56,7 +56,7 @@ endian and little endian obj files with only a few code added.
 The Target Registration mechanism and their structure are introduced in
 this chapter.</p>
 <section id="translate-into-obj-file">
-<h2><a class="toc-backref" href="#id4" role="doc-backlink">Translate into obj file</a><a class="headerlink" href="#translate-into-obj-file" title="Permalink to this heading">¶</a></h2>
+<h2><a class="toc-backref" href="#id7" role="doc-backlink">Translate into obj file</a><a class="headerlink" href="#translate-into-obj-file" title="Permalink to this heading">¶</a></h2>
 <p>Currently, we only support translation of llvm IR code into assembly code.
 If you try running Chapter4_2/ to translate it into obj code will get the error
 message as follows,</p>
@@ -146,7 +146,7 @@ The big endian (B0, B1, B2, B3) = (09, dd, ff, c8), objdump from B0 to B3 is
 objdump from B0 to B3 is 0xc8ffdd09.</p>
 </section>
 <section id="elf-obj-related-code">
-<h2><a class="toc-backref" href="#id5" role="doc-backlink">ELF obj related code</a><a class="headerlink" href="#elf-obj-related-code" title="Permalink to this heading">¶</a></h2>
+<h2><a class="toc-backref" href="#id8" role="doc-backlink">ELF obj related code</a><a class="headerlink" href="#elf-obj-related-code" title="Permalink to this heading">¶</a></h2>
 <p>To support elf obj generation, the following code changed and added to
 Chapter5_1.</p>
 <p class="rubric">lbdex/chapters/Chapter5_1/InstPrinter/Cpu0InstPrinter.cpp</p>
@@ -1220,7 +1220,7 @@ Cpu0MCCodeEmitter::getMemEncoding(const MCInst &amp;MI, unsigned OpNo,
 </div>
 </section>
 <section id="work-flow">
-<h2><a class="toc-backref" href="#id6" role="doc-backlink">Work flow</a><a class="headerlink" href="#work-flow" title="Permalink to this heading">¶</a></h2>
+<h2><a class="toc-backref" href="#id9" role="doc-backlink">Work flow</a><a class="headerlink" href="#work-flow" title="Permalink to this heading">¶</a></h2>
 <p>In Chapter3_2, OutStreamer-&gt;emitInstruction print the asm. To support elf obj
 generation, this chapter create MCELFObjectStreamer inherited from OutStreamer
 by calling createELFStreamer in Cpu0MCTargetDesc.cpp above. Once
@@ -1251,7 +1251,8 @@ expanation as follows,</p>
 <span class="p">}</span><span class="w"></span>
 </pre></div>
 </div>
-<div class="graphviz"><img src="_images/graphviz-c29f9d57f511757a22a36302596889c3b13eb84d.png" alt="digraph G {
+<figure class="align-default" id="id3">
+<span id="genobj-f11"></span><div class="graphviz"><img src="_images/graphviz-756f06703364518e4af4c30ea08eb28e5eb13d6f.png" alt="digraph G {
   rankdir=TB;
   &quot;Cpu0AsmPrinter::EmitInstruction()&quot; -&gt; &quot;MCObjectStreamer::EmitInstruction()&quot; [label=&quot;AsmPrinter::OutStreamer is MCObjectStreamer if llc -filetype=obj\nAsmPrinter::OutStreamer is MCAsmStreamer if llc -filetype=asm&quot;];
   &quot;MCObjectStreamer::EmitInstruction()&quot; -&gt; &quot;MCELFStreamer::EmitInstToData()&quot; -&gt; &quot;encodeInstruction()&quot; -&gt; &quot;Cpu0MCCodeEmitter::getBinaryCodeForInstr()&quot;;
@@ -1265,12 +1266,17 @@ expanation as follows,</p>
     &quot;getExprOpValue()&quot;;
     &quot;getMachineOpValue()&quot; -&gt; &quot;getExprOpValue()&quot;;
   }
-  label = &quot;Figure: Calling Functions of elf encoder&quot;;
+//  label = &quot;Figure: Calling Functions of elf encoder&quot;;
 }" class="graphviz" /></div>
-<p>The ELF encoder calling functions shown as the figure above.
+<figcaption>
+<p><span class="caption-number">Fig. 25 </span><span class="caption-text">Calling Functions of elf encoder</span><a class="headerlink" href="#id3" title="Permalink to this image">¶</a></p>
+</figcaption>
+</figure>
+<p>The ELF encoder calling functions shown as <a class="reference internal" href="#genobj-f11"><span class="std std-numref">Fig. 25</span></a> above.
 AsmPrinter::OutStreamer is set to MCObjectStreamer when by llc driver when user
 input <code class="docutils literal notranslate"><span class="pre">llc</span> <span class="pre">-filetype=obj</span></code>.</p>
-<div class="graphviz"><img src="_images/graphviz-bf009aa7878011424cdc0abae4932b70269c81a8.png" alt="digraph G {
+<figure class="align-default" id="id4">
+<span id="genobj-f12"></span><div class="graphviz"><img src="_images/graphviz-df50cbe68f4e97e4834c89b85f078289932b4ec7.png" alt="digraph G {
   rankdir=TB;
   subgraph cluster0 {
     label = &quot;Cpu0MCCodeEmitter.cpp&quot;;
@@ -1289,9 +1295,14 @@ input <code class="docutils literal notranslate"><span class="pre">llc</span> <s
   
   &quot;getMachineOpValue()&quot; -&gt; &quot;getBinaryCodeForInstr()&quot;  [label=&quot;3. RegNum&quot;];
   
-  label = &quot;Figure: DFD flow for instruction encode&quot;;
+//  label = &quot;Figure: DFD flow for instruction encode&quot;;
 }" class="graphviz" /></div>
-<p>The instruction operands information for encoder is got as the figure above.
+<figcaption>
+<p><span class="caption-number">Fig. 26 </span><span class="caption-text">DFD flow for instruction encode</span><a class="headerlink" href="#id4" title="Permalink to this image">¶</a></p>
+</figcaption>
+</figure>
+<p>The instruction operands information for encoder is got as <a class="reference internal" href="#genobj-f12"><span class="std std-numref">Fig. 26</span></a>
+above.
 Steps as follows,</p>
 <blockquote>
 <div><ol class="arabic simple">
@@ -1303,8 +1314,9 @@ Steps as follows,</p>
 </div></blockquote>
 <p>The MI.Opcode is set in Instruction Selection Stage.
 The table gen function getBinaryCodeForInstr() get all the operands information
-from the td files set by programmer as the following figure.</p>
-<div class="graphviz"><img src="_images/graphviz-f2be32a11f0f84a442d8e01777a2ae0f48a7dd6c.png" alt="digraph G {
+from the td files set by programmer as <a class="reference internal" href="#genobj-f13"><span class="std std-numref">Fig. 27</span></a>.</p>
+<figure class="align-default" id="id5">
+<span id="genobj-f13"></span><div class="graphviz"><img src="_images/graphviz-7ea631171be09d802a787afd41b3ec2965dd8e56.png" alt="digraph G {
   rankdir=LR;
   // graphviz uses &amp;nn; to display control character, &amp;#38; ascii 0x38 is '&amp;', 0x60 is '&lt;', 0x62 is '&gt;'
   // when use port=&quot;f1&quot;, the shape cannot set to &quot;Mrecord&quot;
@@ -1354,8 +1366,12 @@ from the td files set by programmer as the following figure.</p>
   InstrTd:f2:e -&gt; getBinaryCodeForInstr:f2:n;
   InstrTd:f3:e -&gt; getBinaryCodeForInstr:f3:n;
           
-  label = &quot;Instruction encode, for instance:  addu $v0, $at, $v1\n  v0:MI.getOperand(0), at:MI.getOperand(1), v1:MI.getOperand(2)&quot;;
+//  label = &quot;Instruction encode, for instance:  addu $v0, $at, $v1\n  v0:MI.getOperand(0), at:MI.getOperand(1), v1:MI.getOperand(2)&quot;;
 }" class="graphviz" /></div>
+<figcaption>
+<p><span class="caption-number">Fig. 27 </span><span class="caption-text">Instruction encode, for instance:  addu $v0, $at, $v1n  v0:MI.getOperand(0), at:MI.getOperand(1), v1:MI.getOperand(2)</span><a class="headerlink" href="#id5" title="Permalink to this image">¶</a></p>
+</figcaption>
+</figure>
 <p>For instance, Cpu0 backend will generate “addu $v0, $at, $v1” for the IR
 “%0 = add %1, %2” once llvm allocate registers $v0, $at and $v1 for Operands
 %0, %1 and %2 individually. The MCOperand structure for MI.Operands[] include
@@ -1503,7 +1519,7 @@ Operand.</p>
 <p>Then, ELFObjectWriter::writeObject() will write the buffer to elf file.</p>
 </section>
 <section id="backend-target-registration-structure">
-<h2><a class="toc-backref" href="#id7" role="doc-backlink">Backend Target Registration Structure</a><a class="headerlink" href="#backend-target-registration-structure" title="Permalink to this heading">¶</a></h2>
+<h2><a class="toc-backref" href="#id10" role="doc-backlink">Backend Target Registration Structure</a><a class="headerlink" href="#backend-target-registration-structure" title="Permalink to this heading">¶</a></h2>
 <p>Now, let’s examine Cpu0MCTargetDesc.cpp.
 Cpu0MCTargetDesc.cpp do the target registration as mentioned in
 the previous chapter here <a class="footnote-reference brackets" href="#target-registration" id="id1" role="doc-noteref"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></a>, and the assembly
@@ -1531,12 +1547,12 @@ List the register functions of ELF obj output as follows,</p>
 </pre></div>
 </div>
 <p>Above createELFStreamer takes care the elf obj streamer.
-<a class="reference internal" href="#genobj-f10"><span class="std std-numref">Fig. 22</span></a> as follow is MCELFStreamer inheritance tree.
+<a class="reference internal" href="#genobj-f10"><span class="std std-numref">Fig. 28</span></a> as follow is MCELFStreamer inheritance tree.
 You can find a lot of operations in that inheritance tree.</p>
-<figure class="align-center" id="id3">
+<figure class="align-center" id="id6">
 <span id="genobj-f10"></span><a class="reference internal image-reference" href="_images/101.png"><img alt="_images/101.png" src="_images/101.png" style="width: 783.0px; height: 596.0px;" /></a>
 <figcaption>
-<p><span class="caption-number">Fig. 22 </span><span class="caption-text">MCELFStreamer inherit tree</span><a class="headerlink" href="#id3" title="Permalink to this image">¶</a></p>
+<p><span class="caption-number">Fig. 28 </span><span class="caption-text">MCELFStreamer inherit tree</span><a class="headerlink" href="#id6" title="Permalink to this image">¶</a></p>
 </figcaption>
 </figure>
 <p class="rubric">Register function of asm target streamer</p>
