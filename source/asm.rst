@@ -64,15 +64,15 @@ Code structure explanation
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Directory AsmParser handle the assembly to obj translation.
-The assembling Data Flow Diagram (DFD) as follows,
+The assembling Data Flow Diagram (DFD) as :numref:`asm-f1` and :numref:`asm-f2`.
 
 .. _asm-f1: 
 .. graphviz:: ../Fig/asm/asmDfd.gv
-
+   :caption: Assemble flow
 
 .. _asm-f2: 
 .. graphviz:: ../Fig/asm/asmDfdEx.gv
-
+   :caption: Assemble flow, for instance: add $v1, $v0, $at
   
 Given an example of assembly instruction "add $v1, $v0, $at", llvm AsmParser
 kernel call backend ParseInstruction() of Cpu0AsmParser.cpp when it 
@@ -255,11 +255,11 @@ encodeInstruction(), explaining in comments which begin with ///.
 
 .. _asm-f3: 
 .. graphviz:: ../Fig/asm/asmDfdEx2.gv
-  
+   :caption: Data flow in MatchAndEmitInstruction(), for instance: add $v1, $v0, $at"
 
 .. _asm-f4: 
 .. graphviz:: ../Fig/asm/asmDfdEx3.gv
-
+   :caption: Data flow in and between MatchAndEmitInstruction() and encodeInstruction(), for instance: add $v1, $v0, $at
 
 MatchTable0 include all the possibile combinations of opcode and operands type.
 Even the assembly instruction of user input may pass Cpu0AsmParser in syntax 

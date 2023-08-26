@@ -27,7 +27,7 @@ CPU through GPGPU concept and related standards emerged.
 
 Through creating 3D model with Triangles or Quads along on skin, the 3D model
 is created with polygon mesh [#polygon]_ formed by all the vertices on the first image 
-as follows,
+as :numref:`modeling1`.
 
 .. _modeling1: 
 .. figure:: ../Fig/gpu/modeling1.png
@@ -37,7 +37,8 @@ as follows,
   Creating 3D model and texturing
 
 After the next smooth shading [#polygon]_, the vertices and edge lines are covered 
-with color (or remove edges), and model looks much more smooth [#shading]_. 
+with color (or remove edges, actually edge never has black line), and model looks 
+much more smooth [#shading]_. 
 Further, after texturing (texture mapping), the model looks real more 
 [#texturemapping]_.
  
@@ -113,7 +114,8 @@ and Alembic [#3dfmt]_.
 Graphic SW stack
 ----------------
 
-The driver run on CPU side as the following figure. The OpenGL Api will call
+The driver run on CPU side as :numref:`graphic_sw_stack`. 
+The OpenGL Api will call
 driver's function eventually and driver finish the function's work via issuing
 GPU-HW's command and/or sending data to GPU. GPU's firmware only manage clock,
 voltage, power comsumption, ..., etc [#gpu-firmware-jobs]_.
@@ -123,6 +125,7 @@ than CPU.
 
 .. _graphic_sw_stack: 
 .. graphviz:: ../Fig/gpu/graphic-sw-stack.gv
+  :caption: Graphic SW Stack
 
 - According the previous section, after user create skeleton and skin for each
   model and set keyframes time through 3D modeling tool, the 3D modeling tool 
@@ -146,17 +149,22 @@ than CPU.
   play audio, or load files from a hard drive, or anything like that. In this
   situation, cannot let GPU handle the animation work [#cpu-gpu-role]_. 
 
-The flow for 3D/2D graphic processing as the following diagram.
+- 3D model (CPU) does the rendering animation to generate each frame between
+  keyframes (poses) while GPU does the rendering pipeline from each frame to
+  each pixel's value.
+
+The flow for 3D/2D graphic processing as :numref:`opengl_flow`.
 
 .. _opengl_flow: 
 .. graphviz:: ../Fig/gpu/opengl-flow.gv
+  :caption: OpenGL Flow
 
 
 Basic geometry in computer graphics
 -----------------------------------
 
-This section instroduce the basic geometry math for computer graphics. The 
-computer grapics books has provided topics of transformation of object and 
+This section instroduces the basic geometry math for computer graphics. Every 
+computer graphics book has provided topics of transformation of object and 
 position in space. Chapter 4 of Blue book: OpenGL SuperBible 7th Edition give
 a short description (40 pages) and useful concept is a good material for 
 knowing the concept. Given the following for Quaternion Product (Hamilton 
@@ -178,6 +186,8 @@ graphics has mentioned well already. This section introduces the most important
 concept and method for deciding Inner and Outer planes, then a point or object
 can be checked for showing or hidding during 2D or 3D rendering.
 
+Any area of polygon can be calculated by dividing into Triangles or Quads. And
+any area of Triangle or Quad can be calculated by cross product in 3D.
 The cross product in **3D** is defined by the formula and can be represented with 
 matrix notation as proved here 
 [#cross-product-wiki]_ [#sphinx-math]_ [#mathbase-latex]_.
@@ -315,7 +325,7 @@ edge an odd number of times [#wiki-point-in-polygon]_.
   3D polygon with directions on each plane
 
 As the same way, through following the same direction counter clockwise to 
-create 2D polygon one after one, then the 3D polygon will be created.
+create 2D polygon one by one, then the 3D polygon will be created.
 As :numref:`3d-cross-product`, the inward direction can be decided with a x b > 
 0 and outward is a x b < 0 [#cross-product-wiki]_.
 The :numref:`in-3d-polygon` is an example of 3D polygon created by 2D triangles.
@@ -390,7 +400,7 @@ change particular aspects of the variable, such as where they get their data
 from and so forth [#ogl-qualifier]_. 
 
 Though attribute and varying are removed from later version 1.4 of OpenGL,
-many materials in website using them [#ogl-qualifier-deprecate] 
+many materials in website using them [#ogl-qualifier-deprecate]_ 
 [#github-attr-varying-depr]_. 
 It's better to use "in" and "out" to replace
 them as follows,
@@ -412,7 +422,6 @@ them as follows,
     v_color = color;
   }
 
-.. rubric:: replace attribute and varying with in and out
 .. code-block:: c++
 
   varying vec4 v_color;

@@ -867,12 +867,16 @@ The language used in .td files are Target(Hardware) Description Language that
 let llvm backend compiler engineers to define the transformation for llvm IR
 and the machine instructions of their CPUs. In frontend, compiler development
 tools provide the "Parser Generator" for compiler development; in backend,
-they provide the "Machine Code Generator" for development, as the following
-figures.
+they provide the "Machine Code Generator" for development, as 
+:numref:`llvmstructure_frontendTblGen` and :numref:`llvmstructure_llvmTblGen`.
 
+.. _llvmstructure_frontendTblGen:
 .. graphviz:: ../Fig/llvmstructure/frontendTblGen.gv
+  :caption: Front TableGen Flow
 
+.. _llvmstructure_llvmTblGen:
 .. graphviz:: ../Fig/llvmstructure/llvmTblGen.gv
+  :caption: llvm TableGen Flow
 
 
 Since the c++'s grammar is more context-sensitive than context-free, llvm 
@@ -1468,7 +1472,8 @@ file of ELF format which will be explained at later chapter).
 Similarly, the machine instruction DAG nodes LD and ST can be translated from IR 
 DAG nodes **load** and **store**. Notice that the $rb in 
 :numref:`llvmstructure-f13` is virtual register name (not machine register). 
-The detail for :numref:`llvmstructure-f13` depicted after it.
+The detail for :numref:`llvmstructure-f13` is depicted as 
+:numref:`llvmstructure-dag`.
  
 .. _llvmstructure-f13: 
 .. figure:: ../Fig/llvmstructure/13.png
@@ -1480,8 +1485,9 @@ The detail for :numref:`llvmstructure-f13` depicted after it.
   Pattern match for ADDiu instruction and IR node add
 
 
+.. _llvmstructure-dag: 
 .. graphviz:: ../Fig/llvmstructure/DAG.gv
-
+   :caption: Pattern match for ADDiu instruction and IR node add in detail
   
 From DAG instruction selection we mentioned, the leaf node must be a Data Node.
 ADDiu is format L type which the last operand must fits in 16 bits range.
@@ -2480,6 +2486,52 @@ You can review the houndreds lines of Chapter2 example code to see how to do
 the Target Registration. 
 
 
+Options of llc for debug
+----------------------------
+
+llc --help-hidden
+
+The following options for llc need to give a input .bc or .ll file.
+
+- -debug:
+
+- -debug-pass=Structure
+
+- -print-after-all, -print-before-all
+
+- -print-before="pass" and -print-after="pass", eg. -print-before="postra-machine-sink" and -print-after="postra-machine-sink". The pass name can be got as follows,
+
+.. code-block:: console
+
+  CodeGen % pwd
+  ~/llvm/debug/llvm/lib/CodeGen
+  CodeGen % grep -R "INITIALIZE_PASS" |grep sink
+  ./MachineSink.cpp:INITIALIZE_PASS(PostRAMachineSinking, "postra-machine-sink",
+
+- -view-dag-combine1-dags displays the DAG after being built, before the
+  first optimization pass.
+   
+- -view-legalize-dags displays the DAG before Legalization.
+  
+- -view-dag-combine2-dags displays the DAG before the second optimization
+  pass.
+  
+- -view-isel-dags displays the DAG before the Select phase. 
+  
+- -view-sched-dags displays the DAG before Scheduling.
+
+- -march=<string>, eg. march=mips; 
+
+- -relocation-model=static/pic
+
+- -filetype=asm/obj
+
+Options of opt 
+---------------
+
+Check from `opt --help-hidden` and LLVM passes [#llvm-passes]_. Eg. `opt -dot-cfg input.ll`.
+
+
 .. [#cpu0-chinese] Original Cpu0 architecture and ISA details (Chinese). http://ccckmit.wikidot.com/ocs:cpu0
 
 .. [#cpu0-english] English translation of Cpu0 description. http://translate.google.com.tw/translate?js=n&prev=_t&hl=zh-TW&ie=UTF-8&layout=2&eotf=1&sl=zh-CN&tl=en&u=http://ccckmit.wikidot.com/ocs:cpu0
@@ -2551,3 +2603,5 @@ the Target Registration.
 .. [#tblgen-langintro] http://llvm.org/docs/TableGen/LangIntro.html
 
 .. [#tblgen-langref] http://llvm.org/docs/TableGen/LangRef.html
+
+.. [#llvm-passes] https://llvm.org/docs/Passes.html

@@ -114,6 +114,13 @@ Note of Sphinx
 
 - Sphinx support math symbols here [#sphinx-math]_ [#mathbase-latex]_.
 
+Note of graphviz
+~~~~~~~~~~~~~~~~
+
+- Drawing nodes inside a parent node: "compound=true;". Subgraph cluster_name 
+  [#graphviz-cluster]_. Edge from/to parent node: "ltail/lhead = parent_node". 
+
+- Documents [#gv-doc-pdf]_.
 
 Generate Cpu0 document
 ~~~~~~~~~~~~~~~~~~~~~~~
@@ -451,6 +458,10 @@ set-llvm-lit % `diff -r origin modify &> set-llvm-lit.diff`
 .. [#sphinx-math] https://sphinx-rtd-trial.readthedocs.io/en/latest/ext/math.html#module-sphinx.ext.mathbase
 
 .. [#mathbase-latex] https://mirrors.mit.edu/CTAN/info/short-math-guide/short-math-guide.pdf
+
+.. [#gv-doc-pdf] https://www.graphviz.org/pdf/dotguide.pdf
+
+.. [#graphviz-cluster] Ex. lbd/Fig/gpu/opengl-flow.gv. If the name of the subgraph begins with cluster, Graphviz notes the subgraph as a special cluster subgraph. If supported, the layout engine will do the layout so that the nodes belonging to the cluster are drawn together, with the entire drawing of the cluster contained within a bounding rectangle. https://graphviz.org/doc/info/lang.html. 
 
 .. [#rst-ref] http://docutils.sourceforge.net/docs/ref/rst/restructuredtext.html
 
