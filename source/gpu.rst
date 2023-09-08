@@ -475,22 +475,69 @@ In addition, list OpenGL rendering pipeline Figure 1.2 and stage from book
   :align: center
   :scale: 50 %
 
-.. table:: OpenGL rendering pipeline from page 10 of book "OpenGL Programming Guide 9th Edition" [#redbook]_ and [#rendering]_.
+.. raw:: pdf
 
-  =======================  ===============
-  stage                    description
-  =======================  ===============
-  Vertex Specification     After setting data as the example of previous section, glDrawArrays() will send data to gpu through buffer objects.
-  Vertex Shading           For each vertex that is issued by a drawing command, a vertex shader will be called to process the data associated with that vertex.
-  Tessellation Shading     After the vertex shader has processed each vertex’s associated data, the tessellation shader stage will continue processing that data, if it’s been activated.
-  Geometry Shading         The next shader stage, geometry shading, allows additional processing of individual geometric primitives, including creating new ones, before rasterization. 
-  Primitive Assembly       The previous shading stages all operate on vertices, with the information about how those vertices are organized into geometric primitives being carried along internal to OpenGL. The primitive assembly stage organizes the vertices into their associated geometric primitives in preparation for clipping and rasterization.
-  Clipping                 Occasionally, vertices will be outside of the viewport—the region of the window where you’re permitted to draw—and cause the primitive associated with that vertex to be modified so none of its pixels are outside of the viewport. This operation is called clipping and is handled automatically by OpenGL.
-  Rasterization            Vertex -> Fragment. The job of the rasterizer is to determine which screen locations are covered by a particular piece of geometry (point, line, or triangle). Knowing those locations, along with the input vertex data, the rasterizer linearly interpolates the data values for each varying variable in the fragment shader and sends those values as inputs into your fragment shader.
-  Fragment Shading         Determine color for each pixel. The final stage where you have programmable control over the color of a screen location is fragment shading. In this shader stage, you use a shader to determine the fragment’s final color (although the next stage, per-fragment operations, can modify the color one last time) and potentially its depth value. Fragment shaders are very powerful, as they often employ texture mapping to augment the colors provided by the vertex processing stages. A fragment shader may also terminate processing a fragment if it determines the fragment shouldn’t be drawn; this process is called fragment discard. A helpful way of thinking about the difference between shaders that deal with vertices and fragment shaders is this: vertex shading (including tessellation and geometry shading) determines where on the screen a primitive is, while fragment shading uses that information to determine what color that fragment will be.
-  Per-Fragment Operations  During this stage, a fragment’s visibility is determined using depth testing (also commonly known as z-buffering) and stencil testing. If a fragment successfully makes it through all of the enabled tests, it may be written directly to the framebuffer, updating the color (and possibly depth value) of its pixel, or if blending is enabled, the fragment’s color will be combined with the pixel’s current color to generate a new color that is written into the framebuffer.
-  =======================  ===============
+   PageBreak
 
+.. list-table:: OpenGL rendering pipeline from page 10 of book "OpenGL Programming Guide 9th Edition" [#redbook]_ and [#rendering]_.
+  :widths: 20 60
+  :header-rows: 1
+
+  * - Stage.
+    - Description
+  * - Vertex Specification
+    - After setting data as the example of previous section, glDrawArrays() will send data to gpu through buffer objects.
+  * - Vertex Shading
+    - For each vertex that is issued by a drawing command, a vertex shader will be called to process the data associated with that vertex.
+  * - Tessellation Shading
+    - After the vertex shader has processed each vertex’s associated data, the tessellation shader stage will continue processing that data, if it’s been activated. Reference below.
+  * - Geometry Shading
+    - The next shader stage, geometry shading, allows additional processing of individual geometric primitives, including creating new ones, before rasterization. Chapter 10 of Red Book [#redbook]_ has details.
+  * - Primitive Assembly
+    - The previous shading stages all operate on vertices, with the information about how those vertices are organized into geometric primitives being carried along internal to OpenGL. The primitive assembly stage organizes the vertices into their associated geometric primitives in preparation for clipping and rasterization.
+  * - Clipping
+    - Occasionally, vertices will be outside of the viewport—the region of the window where you’re permitted to draw—and cause the primitive associated with that vertex to be modified so none of its pixels are outside of the viewport. This operation is called clipping and is handled automatically by OpenGL.
+  * - Rasterization
+    - Vertex -> Fragment. The job of the rasterizer is to determine which screen locations are covered by a particular piece of geometry (point, line, or triangle). Knowing those locations, along with the input vertex data, the rasterizer linearly interpolates the data values for each varying variable in the fragment shader and sends those values as inputs into your fragment shader.
+
+.. list-table:: OpenGL rendering pipeline from page 10 of book "OpenGL Programming Guide 9th Edition" [#redbook]_ and [#rendering]_.
+  :widths: 20 60
+  :header-rows: 1
+
+  * - Stage.
+    - Description
+  * - Fragment Shading
+    - Determine color for each pixel. The final stage where you have programmable control over the color of a screen location is fragment shading. In this shader stage, you use a shader to determine the fragment’s final color (although the next stage, per-fragment operations, can modify the color one last time) and potentially its depth value. Fragment shaders are very powerful, as they often employ texture mapping to augment the colors provided by the vertex processing stages. A fragment shader may also terminate processing a fragment if it determines the fragment shouldn’t be drawn; this process is called fragment discard. A helpful way of thinking about the difference between shaders that deal with vertices and fragment shaders is this: vertex shading (including tessellation and geometry shading) determines where on the screen a primitive is, while fragment shading uses that information to determine what color that fragment will be.
+  * - Per-Fragment Operations
+    - During this stage, a fragment’s visibility is determined using depth testing (also commonly known as z-buffering) and stencil testing. If a fragment successfully makes it through all of the enabled tests, it may be written directly to the framebuffer, updating the color (and possibly depth value) of its pixel, or if blending is enabled, the fragment’s color will be combined with the pixel’s current color to generate a new color that is written into the framebuffer.
+
+
+- Tessellation Shading: 
+  The core problem that Tessellation deals with is the static nature of 3D models
+  in terms of their detail and polygon count. The thing is that when we look at 
+  a complex model such as a human face up close we prefer to use a highly 
+  detailed model that will bring out the tiny details (e.g. skin bumps, etc). 
+  A highly detailed model automatically translates to more triangles and more 
+  compute power required for processing. ... 
+  One possible way to solve this problem using the existing features of OpenGL 
+  is to generate the same model at multiple levels of detail (LOD). For example, 
+  highly detailed, average and low. We can then select the version to use based 
+  on the distance from the camera. This, however, will require more artist 
+  resources and often will not be flexible enough. ...
+  Let's take a look at how Tessellation has been implemented in the graphics 
+  pipeline. The core components that are responsible for Tessellation are two 
+  new shader stages and in between them a fixed function stage that can be 
+  configured to some degree but does not run a shader. The first shader stage 
+  is called Tessellation Control Shader (TCS), the fixed function stage is 
+  called the Primitive Generator (PG), and the second shader stage is called 
+  Tessellation Evaluation Shader (TES). 
+  Some GPU havn't this fixed function stage implemented in HW and even havn't
+  provide these TCS, TES and Gemoetry Shader. User can write Compute Shaders 
+  instead for this on-fly detail display.
+  This surface is usually defined by some polynomial formula and the idea is 
+  that moving a CP has an effect on the entire surface. ...
+  The group of CPs is usually called a Patch [#ts-tu30]_.
+  Chapter 9 of Red Book [#redbook]_ has details.
 
 For 2D animation, the model is created by 2D only (1 face only), so it only can be 
 viewed from the same face of model. If you want to display different faces of model,
@@ -1155,6 +1202,8 @@ programmers** [#paper-graph-on-opencl]_. Cuda graph is an idea  like this
 .. [#3drendering_wiki] https://en.wikipedia.org/wiki/3D_rendering
 
 .. [#rendering] https://www.khronos.org/opengl/wiki/Rendering_Pipeline_Overview
+
+.. [#ts-tu30] https://ogldev.org/www/tutorial30/tutorial30.html
 
 .. [#2danimation] https://tw.video.search.yahoo.com/search/video?fr=yfp-search-sb&p=2d+animation#id=12&vid=46be09edf57b960ae79e9cd077eea1ea&action=view
 
