@@ -1355,8 +1355,35 @@ indirectly, compiler such as llvm and gcc may treat null pointer as undef and
 optimzation out [#null_pointer]_.
 
 
+CFG (Control Flow Graph)
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+The SSA form can be depicted in CFG and do optimization through the analysis on
+CFG. Each node in the graph represents a basic block, i.e. a straight-line piece 
+of code without any jumps or jump targets; jump targets start a block, and jumps 
+end a block [#cfg-wiki]_.
+
+The following is an example of CFG. **The jump/branch always in the last 
+statement of BBs (Basic Blocks)** in :numref:`cfg_ex`. 
+
+.. rubric:: Fig/llvmstructure/cfg-ex.cpp
+.. literalinclude:: ../Fig/llvmstructure/cfg-ex.cpp
+   :language: c++
+
+.. rubric:: Fig/llvmstructure/cfg-ex.ll
+.. literalinclude:: ../Fig/llvmstructure/cfg-ex.ll
+   :language: llvm
+
+.. _cfg_ex:
+.. graphviz:: ../Fig/llvmstructure/cfg-ex.dot
+  :caption: CFG for cfg-ex.ll
+
+
 DAG (Directed Acyclic Graph)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The SSA in each BB (Basic Block) from CFG as the previous section can be 
+represented in DAG.
 
 Many important techniques for local optimization begin by transforming a basic 
 block into DAG [#dragonbooks-8.5]_. 
@@ -2586,6 +2613,8 @@ Check from `opt --help-hidden` and LLVM passes [#llvm-passes]_. Eg. `opt -dot-cf
     As link, https://blog.llvm.org/2011/05/what-every-c-programmer-should-know_14.html.
     In this case, the developer forgot to call "set", did not crash with a null pointer dereference, 
     and their code broke when someone else did a debug build.
+
+.. [#cfg-wiki] https://en.wikipedia.org/wiki/Control-flow_graph
 
 .. [#dragonbooks-8.5] Refer section 8.5 of book Compilers: Principles, 
     Techniques, and Tools (2nd Edition) 
