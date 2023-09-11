@@ -1129,6 +1129,12 @@ changed from time to time.
       * Mips Assembly Printer
         Delete Garbage Collector Information
 
+- Since Instructions Scheduling and Dead Code Removing will affect Register 
+  Allocation. However llvm does not go from later pass onto earlier pass again.
+  The Register Allocation is after Instruction Scheduling. The passes from
+  Live Variable Analysis to Greedy Register Allocator are passes for Register
+  Allocation. About Register Allocation Passes are here [#cmu-rac]_ [#ra-wiki]_.
+
 
 SSA form
 ~~~~~~~~
@@ -2584,6 +2590,10 @@ Check from `opt --help-hidden` and LLVM passes [#llvm-passes]_. Eg. `opt -dot-cf
 .. [#codegen] http://llvm.org/docs/CodeGenerator.html
 
 .. [#langref] http://llvm.org/docs/LangRef.html
+
+.. [#cmu-rac] https://www.cs.cmu.edu/afs/cs/academic/class/15745-s16/www/lectures/L23-Register-Coalescing.pdf
+
+.. [#ra-wiki] https://en.wikipedia.org/wiki/Register_allocation
 
 .. [#dragonbooks-10.2.3] Refer section 10.2.3 of book Compilers: Principles, 
     Techniques, and Tools (2nd Edition) 
