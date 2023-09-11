@@ -63,6 +63,11 @@ Revision history
 
 Version 12.0.14, not released yet.
 
+Version 12.0.13.5, Released September 10, 2023.
+
+  gpu.rst: Tessellation Shading and \clearpage for pdf. llvmstructure.rst: 
+  section CFG and Register Allocation Passes.
+
 Version 12.0.13.4, Released August 26, 2023.
 
   llvm.rst: Sections of Options of llc for debug and Options of opt.
