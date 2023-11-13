@@ -63,6 +63,10 @@ Revision history
 
 Version 12.0.14, not released yet.
 
+Version 12.0.13.6, Released November 13, 2023.
+
+  gpu.rst: VAO.
+
 Version 12.0.13.5, Released September 10, 2023.
 
   gpu.rst: Tessellation Shading and \clearpage for pdf. llvmstructure.rst: 
