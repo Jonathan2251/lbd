@@ -451,7 +451,9 @@ An OpenGL program is made of two shaders [#monstar-lab-opengl]_
 
 - The fragment shader is executed once for each pixel to be rendered. It 
   receives some varyings as input, computes the color of this pixel and 
-  returns it in a variable called fColor.
+  returns it in a variable called fColor. These frames data existed in the
+  form of VAO (Vertex Array Object) in OpenGL. It will be explaned in later
+  section OpenGL.
 
 Since we have 6 vertices in our buffer, this shader will be executed 6 times by 
 the GPU (once per vertex)! We can also expect all 6 instances of the shader to 
