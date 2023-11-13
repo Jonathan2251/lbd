@@ -153,6 +153,8 @@ than CPU.
   keyframes (poses) while GPU does the rendering pipeline from each frame to
   each pixel's value. For instancfe, 3D model generate 60 frames per second
   since lcd display refresh rate is 60 (refresh 60 times per second).
+  These frames data existed in the form of VAO (Vertex Array Object) in OpenGL.
+  It will be explaned in later `section OpenGL`_.
 
 The flow for 3D/2D graphic processing as :numref:`opengl_flow`.
 
@@ -451,9 +453,7 @@ An OpenGL program is made of two shaders [#monstar-lab-opengl]_
 
 - The fragment shader is executed once for each pixel to be rendered. It 
   receives some varyings as input, computes the color of this pixel and 
-  returns it in a variable called fColor. These frames data existed in the
-  form of VAO (Vertex Array Object) in OpenGL. It will be explaned in later
-  section OpenGL.
+  returns it in a variable called fColor.
 
 Since we have 6 vertices in our buffer, this shader will be executed 6 times by 
 the GPU (once per vertex)! We can also expect all 6 instances of the shader to 
@@ -1166,6 +1166,9 @@ GPU/NPU implement scheduling SW both on graph compiler and runtime.
 Runtime from Open Source have chance to leverage the effort of scheduling SW from 
 programmers** [#paper-graph-on-opencl]_. Cuda graph is an idea  like this 
 [#cuda-graph-blog]_ [#cuda-graph-pytorch]_ .
+
+.. _section OpenGL:
+  http://jonathan2251.github.io/lbd/gpu.html#opengl
 
 .. [#polygon] https://www.quora.com/Which-one-is-better-for-3D-modeling-Quads-or-Tris
 
