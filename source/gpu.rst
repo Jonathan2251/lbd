@@ -21,6 +21,7 @@ CPU+GPU. Give a concept for GPU compiler and HW featrues for graphic application
 Furthermore, explaining how GPU has taking more applications from 
 CPU through GPGPU concept and related standards emerged.
 
+Webiste, Basic theory of 3D graphics with OpenGL, [#cg_basictheory]_.
 
 3D modeling
 ------------
@@ -1169,6 +1170,8 @@ programmers** [#paper-graph-on-opencl]_. Cuda graph is an idea  like this
 
 .. _section OpenGL:
   http://jonathan2251.github.io/lbd/gpu.html#opengl
+
+.. [#cg_basictheory] https://www3.ntu.edu.sg/home/ehchua/programming/opengl/CG_BasicsTheory.html
 
 .. [#polygon] https://www.quora.com/Which-one-is-better-for-3D-modeling-Quads-or-Tris
 
