@@ -330,8 +330,8 @@ edge an odd number of times [#wiki-point-in-polygon]_.
 
 As the same way, through following the same direction counter clockwise to 
 create 2D polygon one by one, then the 3D polygon will be created.
-As :numref:`3d-cross-product`, the inward direction can be decided with a x b > 
-0 and outward is a x b < 0 [#cross-product-wiki]_.
+As :numref:`3d-cross-product`, the inward direction can be decided with a x b < 
+0 and outward is a x b > 0 in OpenGL [#ogl-point-outwards]_.
 The :numref:`in-3d-polygon` is an example of 3D polygon created by 2D triangles.
 The direction of plane (triangle) as the line perpendicular to the plane.
 
@@ -1168,6 +1168,16 @@ Runtime from Open Source have chance to leverage the effort of scheduling SW fro
 programmers** [#paper-graph-on-opencl]_. Cuda graph is an idea  like this 
 [#cuda-graph-blog]_ [#cuda-graph-pytorch]_ .
 
+Open Sources
+------------
+
+- https://registry.khronos.org/OpenGL-Refpages/
+
+- https://www.mesa3d.org
+
+- https://www.opengl.org/sdk/, https://www.opengl.org/sdk/libs/
+
+
 .. _section OpenGL:
   http://jonathan2251.github.io/lbd/gpu.html#opengl
 
@@ -1206,6 +1216,8 @@ programmers** [#paper-graph-on-opencl]_. Cuda graph is an idea  like this
 .. [#cgpap] Figure 7.19 of Book: Computer graphics principles and practice 3rd edition
 
 .. [#wiki-point-in-polygon] https://en.wikipedia.org/wiki/Point_in_polygon
+
+.. [#ogl-point-outwards] Normals are used to differentiate the front- and back-face, and for other processing such as lighting. Right-hand rule (or counter-clockwise) is used in OpenGL. The normal is pointing outwards, indicating the outer surface (or front-face). https://www3.ntu.edu.sg/home/ehchua/programming/opengl/CG_BasicsTheory.html
 
 .. [#point-in-3d-object] https://stackoverflow.com/questions/63557043/how-to-determine-whether-a-point-is-inside-or-outside-a-3d-model-computationally
 
