@@ -1265,7 +1265,7 @@ Open Sources
 
 .. [#cpu-gpu-role] https://stackoverflow.com/questions/47426655/cpu-and-gpu-in-3d-game-whos-doing-what
 
-.. [#db-rr] Not sure following statement is right.
+.. [#db-rr] Not sure the following statement is right.
 
    Double buffering alone does not solve the entire problem, as the buffer swap 
    might occur at an inappropriate time, for example, while the display is in 
