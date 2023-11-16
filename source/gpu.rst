@@ -157,6 +157,10 @@ than CPU.
   These frames data existed in the form of VAO (Vertex Array Object) in OpenGL.
   It will be explaned in later `section OpenGL`_.
 
+- In addition, OpenGL provides vertex buffer object (VBO) allowing 
+  vertex array data to be stored in high-performance graphics memory on the 
+  server side and promotes efficient data transfer [#vbo]_ [#classorvbo]_.
+
 The flow for 3D/2D graphic processing as :numref:`opengl_flow`.
 
 .. _opengl_flow: 
@@ -284,6 +288,17 @@ For each edge :math:`P_i - P_{i+1}`, the inward edge normal is the vector
 :math:`\mathsf x\; v_i`; the outward edge normal is :math:`\; -\; \mathsf x\; v_i`.
 Where :math:`\; \mathsf x\; v_i` is coss-product(:math:`\mathsf v_i`) as 
 :numref:`inward-edge-normals`.
+Base on this observation, the rule for inward and outward to any vector as
+:numref:`2d-vector-inward`. Face the same direction of a specific vector, the
+left side is inward and right side is outward.
+
+.. _2d-vector-inward: 
+.. figure:: ../Fig/gpu/2d-vector-inward.png
+  :align: center
+  :scale: 50 %
+
+  Inward and outward in 2D for a vector.
+
 For a convex polygon whose vertices are listed in counterclockwise order, the 
 inward edge normals point toward the interior of the polygon, and the outward 
 edge normals point toward the unbounded exterior of the polygon, 
@@ -321,6 +336,19 @@ edge an odd number of times [#wiki-point-in-polygon]_.
   Cross product definition in 3D
 
 
+As the same way, through following the same direction counter clockwise to 
+create 2D polygon one by one, then the 3D polygon will be created.
+As :numref:`3d-cross-product`, the inward direction can be decided with a x b < 
+0 and outward is a x b > 0 in OpenGL as :numref:`ogl-pointing-outwards` 
+Z axis + is the outer surface and - is the inner surface [#ogl-point-outwards]_.
+
+.. _ogl-pointing-outwards: 
+.. figure:: ../Fig/gpu/ogl-pointing-outwards.png
+  :align: center
+  :scale: 50 %
+
+  OpenGL pointing outwards, indicating the outer surface (z axis is +)
+
 .. _in-3d-polygon: 
 .. figure:: ../Fig/gpu/3d-polygon.png
   :align: center
@@ -328,10 +356,6 @@ edge an odd number of times [#wiki-point-in-polygon]_.
 
   3D polygon with directions on each plane
 
-As the same way, through following the same direction counter clockwise to 
-create 2D polygon one by one, then the 3D polygon will be created.
-As :numref:`3d-cross-product`, the inward direction can be decided with a x b < 
-0 and outward is a x b > 0 in OpenGL [#ogl-point-outwards]_.
 The :numref:`in-3d-polygon` is an example of 3D polygon created by 2D triangles.
 The direction of plane (triangle) as the line perpendicular to the plane.
 
@@ -352,6 +376,34 @@ line going through the object satisfy this rule.
 
 OpenGL
 ------
+
+.. rubric:: OpenGL uses counter clockwise and pointing outwards [#vbo]_.
+.. code-block:: c++
+
+  // unit cube      
+  // A cube has 6 sides and each side has 4 vertices, therefore, the total number
+  // of vertices is 24 (6 sides * 4 verts), and 72 floats in the vertex array
+  // since each vertex has 3 components (x,y,z) (= 24 * 3)
+  //    v6----- v5  
+  //   /|      /|   
+  //  v1------v0|   
+  //  | |     | |   
+  //  | v7----|-v4  
+  //  |/      |/    
+  //  v2------v3    
+
+  // vertex position array
+  GLfloat vertices[]  = {
+     .5f, .5f, .5f,  -.5f, .5f, .5f,  -.5f,-.5f, .5f,  .5f,-.5f, .5f, // v0,v1,v2,v3 (front)
+     .5f, .5f, .5f,   .5f,-.5f, .5f,   .5f,-.5f,-.5f,  .5f, .5f,-.5f, // v0,v3,v4,v5 (right)
+     .5f, .5f, .5f,   .5f, .5f,-.5f,  -.5f, .5f,-.5f, -.5f, .5f, .5f, // v0,v5,v6,v1 (top)
+    -.5f, .5f, .5f,  -.5f, .5f,-.5f,  -.5f,-.5f,-.5f, -.5f,-.5f, .5f, // v1,v6,v7,v2 (left)
+    -.5f,-.5f,-.5f,   .5f,-.5f,-.5f,   .5f,-.5f, .5f, -.5f,-.5f, .5f, // v7,v4,v3,v2 (bottom)
+     .5f,-.5f,-.5f,  -.5f,-.5f,-.5f,  -.5f, .5f,-.5f,  .5f, .5f,-.5f  // v4,v7,v6,v5 (back)
+  };
+
+From code above, we can see that OpenGL uses counter clockwise and pointing
+outwards as we said in previous section.
 
 The following example from openGL redbook and example code [#redbook]_ 
 [#redbook-examples]_.
@@ -469,7 +521,17 @@ add or modify shaders. The 3D animation will trigger the 3D rendering for each
 2D image drawing.
 
 3D rendering is the process of converting 3D models into 2D images on a computer 
-[#3drendering_wiki]_. The steps as the following :numref:`rendering_pipeline1` 
+[#3drendering_wiki]_. 
+The steps as the following :numref:`short_rendering_pipeline`.
+
+.. _short_rendering_pipeline: 
+.. figure:: ../Fig/gpu/short-rendering-pipeline.png
+  :align: center
+  :scale: 50 %
+
+  3D Graphics Rendering Pipeline
+
+The complete steps as the following :numref:`rendering_pipeline1` 
 from OpenGL website [#rendering]_ and the website has descripiton for each stage.
 
 .. _rendering_pipeline1: 
@@ -627,10 +689,6 @@ The shaders program is C-like syntax and can be compiled in few mini-seconds,
 add up this few mini-seconds of on-line compilation time in running OpenGL 
 program is a good choice for dealing the cases of driver software or gpu 
 hardware replacement [#onlinecompile]_. 
-
-In addition, OpenGL provides vertex buffer object (VBO) allowing 
-vertex array data to be stored in high-performance graphics memory on the 
-server side and promotes efficient data transfer [#vbo]_ [#classorvbo]_.
 
 
 OpenGL Shader compiler
@@ -1201,6 +1259,12 @@ Open Sources
 
 .. [#cpu-gpu-role] https://stackoverflow.com/questions/47426655/cpu-and-gpu-in-3d-game-whos-doing-what
 
+.. [#vbo] http://www.songho.ca/opengl/gl_vbo.html
+
+.. [#classorvbo] If your models will be rigid, meaning you will not change each vertex individually, and you will render many frames with the same model, you will achieve the best performance not by storing the models in your class, but in vertex buffer objects (VBOs) https://gamedev.stackexchange.com/questions/19560/what-is-the-best-way-to-store-meshes-or-3d-models-in-a-class
+
+.. [#openglspec] https://www.khronos.org/registry/OpenGL-Refpages/
+
 .. [#wiki-quaternion] https://en.wikipedia.org/wiki/Quaternion
 
 .. [#cross-product-wiki] https://en.wikipedia.org/wiki/Cross_product
@@ -1264,13 +1328,6 @@ Open Sources
 .. [#on-line] Compiler and interpreter: (https://www.guru99.com/difference-compiler-vs-interpreter.html). AOT compiler: compiles before running; JIT compiler: compiles while running; interpreter: runs (reference https://softwareengineering.stackexchange.com/questions/246094/understanding-the-differences-traditional-interpreter-jit-compiler-jit-interp). Both online and offline compiler are AOT compiler. User call OpenGL api to run their program and the driver call call online compiler to compile user's shaders without user compiling their shader before running their program. When user run a CPU program of C language, he must compile C program before running the program. This is offline compiler.
 
 .. [#onlinecompile] https://community.khronos.org/t/offline-glsl-compilation/61784
-
-.. [#classorvbo] If your models will be rigid, meaning you will not change each vertex individually, and you will render many frames with the same model, you will achieve the best performance not by storing the models in your class, but in vertex buffer objects (VBOs) https://gamedev.stackexchange.com/questions/19560/what-is-the-best-way-to-store-meshes-or-3d-models-in-a-class
-
-.. [#vbo] http://www.songho.ca/opengl/gl_vbo.html
-
-
-.. [#openglspec] https://www.khronos.org/registry/OpenGL-Refpages/
 
 .. [#opengleswiki] https://en.wikipedia.org/wiki/OpenGL_ES
 
