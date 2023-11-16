@@ -152,8 +152,14 @@ than CPU.
 
 - 3D model (CPU) does the rendering animation to generate each frame between
   keyframes (poses) while GPU does the rendering pipeline from each frame to
-  each pixel's value. For instancfe, 3D model generate 60 frames per second
-  since lcd display refresh rate is 60 (refresh 60 times per second).
+  each pixel's value.
+  Since GPU uses double buffering HW, the frequences of application refresh rate 
+  (drawing on background buffer, switch buffer and trigger rendering) cannot 
+  over the refresh rate of display. At same rate for the highest.
+  For instance, 3D model generate 30 frames per second at
+  most since lcd display refresh rate is 60 (refresh 60 times per second) in 
+  double buffering HW [#db-rr]_.
+
   These frames data existed in the form of VAO (Vertex Array Object) in OpenGL.
   It will be explaned in later `section OpenGL`_.
 
@@ -572,9 +578,9 @@ In addition, list OpenGL rendering pipeline Figure 1.2 and stage from book
   * - Clipping
     - Occasionally, vertices will be outside of the viewport—the region of the window where you’re permitted to draw—and cause the primitive associated with that vertex to be modified so none of its pixels are outside of the viewport. This operation is called clipping and is handled automatically by OpenGL.
   * - Rasterization
-    - Vertex -> Fragment. The job of the rasterizer is to determine which screen locations are covered by a particular piece of geometry (point, line, or triangle). Knowing those locations, along with the input vertex data, the rasterizer linearly interpolates the data values for each varying variable in the fragment shader and sends those values as inputs into your fragment shader.
+    - **Vertex -> Fragment.** The job of the rasterizer is to determine which screen locations are covered by a particular piece of geometry (point, line, or triangle). Knowing those locations, along with the input vertex data, the rasterizer linearly interpolates the data values for each varying variable in the fragment shader and sends those values as inputs into your fragment shader.
   * - Fragment Shading
-    - Determine color for each pixel. The final stage where you have programmable control over the color of a screen location is fragment shading. In this shader stage, you use a shader to determine the fragment’s final color (although the next stage, per-fragment operations, can modify the color one last time) and potentially its depth value. Fragment shaders are very powerful, as they often employ texture mapping to augment the colors provided by the vertex processing stages. A fragment shader may also terminate processing a fragment if it determines the fragment shouldn’t be drawn; this process is called fragment discard. A helpful way of thinking about the difference between shaders that deal with vertices and fragment shaders is this: vertex shading (including tessellation and geometry shading) determines where on the screen a primitive is, while fragment shading uses that information to determine what color that fragment will be.
+    - **Determine color for each pixel.** The final stage where you have programmable control over the color of a screen location is fragment shading. In this shader stage, you use a shader to determine the fragment’s final color (although the next stage, per-fragment operations, can modify the color one last time) and potentially its depth value. Fragment shaders are very powerful, as they often employ texture mapping to augment the colors provided by the vertex processing stages. A fragment shader may also terminate processing a fragment if it determines the fragment shouldn’t be drawn; this process is called fragment discard. A helpful way of thinking about the difference between shaders that deal with vertices and fragment shaders is this: vertex shading (including tessellation and geometry shading) determines where on the screen a primitive is, while fragment shading uses that information to determine what color that fragment will be.
   * - Per-Fragment Operations
     - During this stage, a fragment’s visibility is determined using depth testing (also commonly known as z-buffering) and stencil testing. If a fragment successfully makes it through all of the enabled tests, it may be written directly to the framebuffer, updating the color (and possibly depth value) of its pixel, or if blending is enabled, the fragment’s color will be combined with the pixel’s current color to generate a new color that is written into the framebuffer.
 
@@ -1258,6 +1264,22 @@ Open Sources
 .. [#libclc] https://libclc.llvm.org
 
 .. [#cpu-gpu-role] https://stackoverflow.com/questions/47426655/cpu-and-gpu-in-3d-game-whos-doing-what
+
+.. [#db-rr] Not sure following statement is right.
+
+   Double buffering alone does not solve the entire problem, as the buffer swap 
+   might occur at an inappropriate time, for example, while the display is in 
+   the middle of displaying the old frame. This is resolved via the so-called 
+   vertical synchronization (or VSync) at the end of the raster-scan. 
+   When we signal to the GPU to do a buffer swap, the GPU will wait till the next
+   VSync to perform the actual swap, after the entire current frame is displayed.
+
+   The most important point is: When the VSync buffer-swap is enabled, you cannot 
+   refresh the display faster than the refresh rate of the display!!! 
+   If you application refreshes at a fixed rate, the resultant refresh rate is 
+   likely to be an integral factor of the display's refresh rate, i.e., 1/2, 1/3, 
+   1/4, etc.
+   https://www3.ntu.edu.sg/home/ehchua/programming/opengl/CG_BasicsTheory.html
 
 .. [#vbo] http://www.songho.ca/opengl/gl_vbo.html
 
