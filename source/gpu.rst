@@ -153,19 +153,91 @@ than CPU.
 - 3D model (CPU) does the rendering animation to generate each frame between
   keyframes (poses) while GPU does the rendering pipeline from each frame to
   each pixel's value.
-  Since GPU uses double buffering HW, the frequences of application refresh rate 
-  (drawing on background buffer, switch buffer and trigger rendering) cannot 
-  over the refresh rate of display. At same rate for the highest.
-  For instance, 3D model generate 30 frames per second at
-  most since lcd display refresh rate is 60 (refresh 60 times per second) in 
-  double buffering HW [#db-rr]_.
-
-  These frames data existed in the form of VAO (Vertex Array Object) in OpenGL.
-  It will be explaned in later `section OpenGL`_.
 
 - In addition, OpenGL provides vertex buffer object (VBO) allowing 
   vertex array data to be stored in high-performance graphics memory on the 
   server side and promotes efficient data transfer [#vbo]_ [#classorvbo]_.
+
+.. raw:: latex
+
+   \clearpage
+
+.. _db-vsync: 
+.. figure:: ../Fig/gpu/db-vsync.png
+  :align: center
+  :scale: 50 %
+
+  VSync
+
+.. rubric:: VSync
+.. code-block:: console
+
+  No tearing, GPU and Display run at same refresh rate since GPU refresh faster
+  than Display.
+
+                A    B
+
+  GPU      | ----| ----|
+
+  Display  |-----|-----|
+
+              B      A
+
+  Tearing, GPU has exactly refresh cycles but VSync takes one cycle more.
+  than Display.
+
+                A
+
+  GPU      | -----|
+
+  Display  |-----|-----|
+
+              B      A
+
+- Double Buffering and VSync
+
+  While the display is reading from the frame buffer to display the current 
+  frame, we might be updating its contents for the next frame (not necessarily 
+  in raster-scan manner). This would result in the so-called tearing, in which 
+  the screen shows parts of the old frame and parts of the new frame.
+  This could be resolved by using so-called double buffering. Instead of using 
+  a single frame buffer, modern GPU uses two of them: a front buffer and a back 
+  buffer. The display reads from the front buffer, while we can write the next 
+  frame to the back buffer. When we finish, we signal to GPU to swap the front 
+  and back buffer (known as buffer swap or page flip).
+
+  Double buffering alone does not solve the entire problem, as the buffer swap 
+  might occur at an inappropriate time, for example, while the display is in 
+  the middle of displaying the old frame. This is resolved via the so-called 
+  vertical synchronization (or VSync) at the end of the raster-scan. 
+  When we signal to the GPU to do a buffer swap, the GPU will wait till the next
+  VSync to perform the actual swap, after the entire current frame is displayed.
+
+  As above console.
+  The most important point is: When the VSync buffer-swap is enabled, you cannot 
+  refresh the display faster than the refresh rate of the display!!! 
+  If GPU is capable of producing higher frame rates than the display's 
+  refresh rate, then GPU can use fast rate without tearing.
+  If GPU has same or less frame rates then display's and you application 
+  refreshes at a fixed rate, the resultant refresh rate is 
+  likely to be an integral factor of the display's refresh rate, i.e., 1/2, 1/3, 
+  1/4, etc. Otherwise it will cause tearing [#cg_basictheory]_.
+
+- NVIDIA G-SYNC and AMD FreeSync
+
+  If your monitor and graphics card both in your customer computer support 
+  NVIDIA G-SYNC, you’re in luck. With this technology, a special chip in the 
+  display communicates with the graphics card. This lets the monitor vary the 
+  refresh rate to match the frame rate of the NVIDIA GTX graphics card, up to 
+  the maximum refresh rate of the display. This means that the frames are 
+  displayed as soon as they are rendered by the GPU, eliminating screen tearing 
+  and reducing stutter for when the frame rate is both higher and lower than 
+  the refresh rate of the display. This makes it perfect for situations where 
+  the frame rate varies, which happens a lot when gaming. 
+  Today, you can even find G-SYNC technology in gaming laptops! [#g-sync]_
+
+- These frames data existed in the form of VAO (Vertex Array Object) in OpenGL.
+  It will be explaned in later `section OpenGL`_.
 
 The flow for 3D/2D graphic processing as :numref:`opengl_flow`.
 
@@ -1265,27 +1337,12 @@ Open Sources
 
 .. [#cpu-gpu-role] https://stackoverflow.com/questions/47426655/cpu-and-gpu-in-3d-game-whos-doing-what
 
-.. [#db-rr] Not sure the following statement is right.
-
-   Double buffering alone does not solve the entire problem, as the buffer swap 
-   might occur at an inappropriate time, for example, while the display is in 
-   the middle of displaying the old frame. This is resolved via the so-called 
-   vertical synchronization (or VSync) at the end of the raster-scan. 
-   When we signal to the GPU to do a buffer swap, the GPU will wait till the next
-   VSync to perform the actual swap, after the entire current frame is displayed.
-
-   The most important point is: When the VSync buffer-swap is enabled, you cannot 
-   refresh the display faster than the refresh rate of the display!!! 
-   If you application refreshes at a fixed rate, the resultant refresh rate is 
-   likely to be an integral factor of the display's refresh rate, i.e., 1/2, 1/3, 
-   1/4, etc.
-   https://www3.ntu.edu.sg/home/ehchua/programming/opengl/CG_BasicsTheory.html
 
 .. [#vbo] http://www.songho.ca/opengl/gl_vbo.html
 
 .. [#classorvbo] If your models will be rigid, meaning you will not change each vertex individually, and you will render many frames with the same model, you will achieve the best performance not by storing the models in your class, but in vertex buffer objects (VBOs) https://gamedev.stackexchange.com/questions/19560/what-is-the-best-way-to-store-meshes-or-3d-models-in-a-class
 
-.. [#openglspec] https://www.khronos.org/registry/OpenGL-Refpages/
+.. [#g-sync] https://www.avadirect.com/blog/frame-rate-fps-vs-hz-refresh-rate/
 
 .. [#wiki-quaternion] https://en.wikipedia.org/wiki/Quaternion
 
@@ -1350,6 +1407,8 @@ Open Sources
 .. [#on-line] Compiler and interpreter: (https://www.guru99.com/difference-compiler-vs-interpreter.html). AOT compiler: compiles before running; JIT compiler: compiles while running; interpreter: runs (reference https://softwareengineering.stackexchange.com/questions/246094/understanding-the-differences-traditional-interpreter-jit-compiler-jit-interp). Both online and offline compiler are AOT compiler. User call OpenGL api to run their program and the driver call call online compiler to compile user's shaders without user compiling their shader before running their program. When user run a CPU program of C language, he must compile C program before running the program. This is offline compiler.
 
 .. [#onlinecompile] https://community.khronos.org/t/offline-glsl-compilation/61784
+
+.. [#openglspec] https://www.khronos.org/registry/OpenGL-Refpages/
 
 .. [#opengleswiki] https://en.wikipedia.org/wiki/OpenGL_ES
 
