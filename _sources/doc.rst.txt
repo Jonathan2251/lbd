@@ -88,6 +88,9 @@ Note of Sphinx
 - Do not use > 90 characters in a line of code-block:: console or any code-block,
   otherwise it may show the error in `make latexpdf`.  
 
+- Use "\clearpage" (reference gpu.rst) to clear page for pdf to avoid split into
+  two pages.
+
 .. code-block:: console
 
   $HOME/git/lbd$ make latexpdf
