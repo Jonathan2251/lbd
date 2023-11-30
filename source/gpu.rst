@@ -9,9 +9,9 @@ The concept of GPU compiler
 
 Basicly CPU compiler is SISD (Single Instruction Single Data Architecture). 
 The multimedia instructions in CPU are small scaled of SIMD
-(Single Instruction Multiple Data) for 4 or 16 elements while GPU is a large 
-scaled of SIMD processor coloring millions of pixels of image in few 
-micro seconds.
+(Single Instruction Multiple Data) for 4 elements of 32-bit or 16 elements of
+8-bit while GPU is a large scaled of SIMD processor, 16 elements of 32-bit, 
+coloring millions of pixels of image in few micro seconds.
 Since the 2D or 3D graphic processing provides large opportunity in parallel
 data processing, GPU hardware usually composed of thousands
 of functional units in each core(grid) in N-Vidia processors.
@@ -115,6 +115,20 @@ and Alembic [#3dfmt]_.
 Graphic SW stack
 ----------------
 
+The role of CPU and GPU for graphic animation as :numref:`graphic_cpu_gpu`.
+
+.. _graphic_cpu_gpu: 
+.. figure:: ../Fig/gpu/graphic-cpu-gpu.png
+  :align: center
+  :scale: 50 %
+
+  OpenGL and Vulkan are both rendering APIs. In both cases, the GPU executes 
+  shaders, while the CPU executes everything else [#ogl-cpu-gpu]_.
+
+- GPU can't directly read user input from, say, keyboard, mouse, gamepad, or 
+  play audio, or load files from a hard drive, or anything like that. In this
+  situation, cannot let GPU handle the animation work [#cpu-gpu-role]_. 
+
 The driver run on CPU side as :numref:`graphic_sw_stack`. 
 The OpenGL Api will call
 driver's function eventually and driver finish the function's work via issuing
@@ -146,17 +160,22 @@ than CPU.
   Like CPU's builtin-functions, new GPU ISA/architecture has to implement their 
   builtin-functions or porting from open source such as libclc.
 
-- GPU can't directly read user input from, say, keyboard, mouse, gamepad, or 
-  play audio, or load files from a hard drive, or anything like that. In this
-  situation, cannot let GPU handle the animation work [#cpu-gpu-role]_. 
-
 - 3D model (CPU) does the rendering animation to generate each frame between
   keyframes (poses) while GPU does the rendering pipeline from each frame to
   each pixel's value.
 
+- These frames data existed in the form of VAO (Vertex Array Object) in OpenGL.
+  It will be explaned in later `section OpenGL`_.
+
 - In addition, OpenGL provides vertex buffer object (VBO) allowing 
   vertex array data to be stored in high-performance graphics memory on the 
   server side and promotes efficient data transfer [#vbo]_ [#classorvbo]_.
+
+The flow for 3D/2D graphic processing as :numref:`opengl_flow`.
+
+.. _opengl_flow: 
+.. graphviz:: ../Fig/gpu/opengl-flow.gv
+  :caption: OpenGL Flow
 
 .. raw:: latex
 
@@ -170,7 +189,7 @@ than CPU.
   VSync
 
 .. rubric:: VSync
-.. code-block:: console
+.. code-block:: text
 
   No tearing, GPU and Display run at same refresh rate since GPU refresh faster
   than Display.
@@ -193,6 +212,17 @@ than CPU.
   Display  |-----|-----|
 
               B      A
+
+  Avoid tearing, GPU has refresh rate 1/2 of Display's refresh rate.
+  than Display.
+
+                A          B
+
+  GPU      | -----|    | -----|
+
+  Display  |-----|-----|-----|-----|
+
+              B      B    A     A
 
 - Double Buffering and VSync
 
@@ -236,18 +266,22 @@ than CPU.
   the frame rate varies, which happens a lot when gaming. 
   Today, you can even find G-SYNC technology in gaming laptops! [#g-sync]_
 
-- These frames data existed in the form of VAO (Vertex Array Object) in OpenGL.
-  It will be explaned in later `section OpenGL`_.
-
-The flow for 3D/2D graphic processing as :numref:`opengl_flow`.
-
-.. _opengl_flow: 
-.. graphviz:: ../Fig/gpu/opengl-flow.gv
-  :caption: OpenGL Flow
-
 
 Basic geometry in computer graphics
 -----------------------------------
+
+- Additive colors in light as :numref:`additive-colors` [#additive-colors-wiki]_  
+  [#additive-colors-ytube]_. If in paints, it adds shade and become light grey
+  since it add shade (dark color) [#additive-colors-shade]_.
+
+.. _additive-colors: 
+.. figure:: ../Fig/gpu/additive-colors.png
+  :align: center
+  :scale: 50 %
+
+  Additive colors in light
+
+
 
 This section instroduces the basic geometry math for computer graphics. Every 
 computer graphics book has provided topics of transformation of object and 
@@ -275,8 +309,7 @@ can be checked for showing or hidding during 2D or 3D rendering.
 Any area of polygon can be calculated by dividing into Triangles or Quads. And
 any area of Triangle or Quad can be calculated by cross product in 3D.
 The cross product in **3D** is defined by the formula and can be represented with 
-matrix notation as proved here 
-[#cross-product-wiki]_ [#sphinx-math]_ [#mathbase-latex]_.
+matrix notation as proved here [#cross-product-wiki]_.
 
 .. math::
 
@@ -357,19 +390,6 @@ then the inward direction be decided.
 
   Inward edge normals
 
-Polygon can be created from vertices. 
-Suppose that :math:`(P_0, P_1, ..., P_n)` is a polygon. The line segments 
-:math:`P_0P_1, P_1P_2`, etc., are the edges of the polygon; the vectors 
-:math:`v_0 = P_1 - P_0, v_1 = P_2 - P_1, ..., v_n = P_0 - P_n` are the edges 
-of the polygon.
-For each edge :math:`P_i - P_{i+1}`, the inward edge normal is the vector 
-:math:`\mathsf x\; v_i`; the outward edge normal is :math:`\; -\; \mathsf x\; v_i`.
-Where :math:`\; \mathsf x\; v_i` is coss-product(:math:`\mathsf v_i`) as 
-:numref:`inward-edge-normals`.
-Base on this observation, the rule for inward and outward to any vector as
-:numref:`2d-vector-inward`. Face the same direction of a specific vector, the
-left side is inward and right side is outward.
-
 .. _2d-vector-inward: 
 .. figure:: ../Fig/gpu/2d-vector-inward.png
   :align: center
@@ -377,7 +397,25 @@ left side is inward and right side is outward.
 
   Inward and outward in 2D for a vector.
 
-For a convex polygon whose vertices are listed in counterclockwise order, the 
+Base on this observation, the rule for inward and outward to any vector as
+:numref:`inward-edge-normals`. Face the same direction of a specific vector, 
+the left side is inward and right side is outward as 
+:numref:`2d-vector-inward`.
+
+For each edge :math:`P_i - P_{i+1}`, the inward edge normal is the vector 
+:math:`\mathsf x\; v_i`; the outward edge normal is :math:`\; -\; \mathsf x\; v_i`.
+Where :math:`\; \mathsf x\; v_i` is coss-product(:math:`\mathsf v_i`) as 
+:numref:`inward-edge-normals`.
+
+
+Polygon can be created from vertices. 
+Suppose that :math:`(P_0, P_1, ..., P_n)` is a polygon. The line segments 
+:math:`P_0P_1, P_1P_2`, etc., are the edges of the polygon; the vectors 
+:math:`v_0 = P_1 - P_0, v_1 = P_2 - P_1, ..., v_n = P_0 - P_n` are the edges 
+of the polygon. Through counter clockwise, the left side is inward, then the
+inward region of polygon can be decided.
+
+For a convex polygon whose vertices are listed in counter clockwise order, the 
 inward edge normals point toward the interior of the polygon, and the outward 
 edge normals point toward the unbounded exterior of the polygon, 
 corresponding to our ordinary intuition. But if the vertices of a polygon are 
@@ -414,11 +452,12 @@ edge an odd number of times [#wiki-point-in-polygon]_.
   Cross product definition in 3D
 
 
-As the same way, through following the same direction counter clockwise to 
+In the same way, through following the same direction counter clockwise to 
 create 2D polygon one by one, then the 3D polygon will be created.
-As :numref:`3d-cross-product`, the inward direction can be decided with a x b < 
-0 and outward is a x b > 0 in OpenGL as :numref:`ogl-pointing-outwards` 
-Z axis + is the outer surface and - is the inner surface [#ogl-point-outwards]_.
+As :numref:`3d-cross-product` from wiki [#cross-product-wiki]_, the inward 
+direction can be decided with a x b < 0 and outward is a x b > 0 in OpenGL.
+Replace a, b with x, y as :numref:`ogl-pointing-outwards` axis z+ is the 
+outer surface and z- is the inner surface [#ogl-point-outwards]_.
 
 .. _ogl-pointing-outwards: 
 .. figure:: ../Fig/gpu/ogl-pointing-outwards.png
@@ -451,11 +490,7 @@ line going through the object satisfy this rule.
 
   Point in or out 3D object
 
-
-OpenGL
-------
-
-.. rubric:: OpenGL uses counter clockwise and pointing outwards [#vbo]_.
+.. rubric:: OpenGL uses counter clockwise and pointing outwards as default [#vbo]_.
 .. code-block:: c++
 
   // unit cube      
@@ -481,7 +516,14 @@ OpenGL
   };
 
 From code above, we can see that OpenGL uses counter clockwise and pointing
-outwards as we said in previous section.
+outwards as default. However OpenGL provides glFrontFace(GL_CW) for clockwise 
+[#ogl_frontface]_.
+
+For group of objects, scene graph provides better animation and saving memory 
+[#scene-graph-wiki]_.
+
+OpenGL
+------
 
 The following example from openGL redbook and example code [#redbook]_ 
 [#redbook-examples]_.
@@ -545,16 +587,19 @@ Though attribute and varying are removed from later version 1.4 of OpenGL,
 many materials in website using them [#ogl-qualifier-deprecate]_ 
 [#github-attr-varying-depr]_. 
 It's better to use "in" and "out" to replace
-them as follows,
+them as the following code.
+OpenGL has a few ways to binding API's variable with shader's variable.
+glVertexAttrib* as the following code and glBindAttribLocation() 
+[#ogl-layout-q]_, ...
 
 .. rubric:: replace attribute and varying with in and out
 .. code-block:: c++
 
   uniform float scale;
-  attribute vec2 position;
-  // in vec2 position;
-  attribute vec4 color;
-  // in vec4 color;
+  layout (location = 0) attribute vec2 position;
+  // layout (location = 0) in vec2 position;
+  layout (location = 1) attribute vec4 color;
+  // layout (location = 1) in vec4 color;
   varying vec4 v_color;
   // out v_color
 
@@ -563,6 +608,13 @@ them as follows,
     gl_Position = vec4(position*scale, 0.0, 1.0);
     v_color = color;
   }
+
+.. code-block:: c++
+
+  // OpenGL API
+  GLfloat attrib[] = { x * 0.5f, x * 0.6f, x* 0.4f, 0.0f };
+  // Update the value of input attribute 1 : layout (location = 1) in vec4 color
+  glVertexAttrib4fv(1, attrib);
 
 .. code-block:: c++
 
@@ -640,21 +692,21 @@ In addition, list OpenGL rendering pipeline Figure 1.2 and stage from book
   * - Vertex Specification
     - After setting data as the example of previous section, glDrawArrays() will send data to gpu through buffer objects.
   * - Vertex Shading
-    - For each vertex that is issued by a drawing command, a vertex shader will be called to process the data associated with that vertex.
+    - **Vertex -> Vertex and other data such as color for later passes.** For each vertex that is issued by a drawing command, a vertex shader will be called to process the data associated with that vertex.
   * - Tessellation Shading
-    - After the vertex shader has processed each vertex’s associated data, the tessellation shader stage will continue processing that data, if it’s been activated. Reference below.
+    - **Create more detail on demand when room in.** After the vertex shader has processed each vertex’s associated data, the tessellation shader stage will continue processing that data, if it’s been activated. Reference below.
   * - Geometry Shading
-    - The next shader stage, geometry shading, allows additional processing of individual geometric primitives, including creating new ones, before rasterization. Chapter 10 of Red Book [#redbook]_ has details.
+    - **The next shader stage, geometry shading, allows additional processing of individual geometric primitives, including creating new ones, before rasterization.** Chapter 10 of Red Book [#redbook]_ has details.
   * - Primitive Assembly
-    - The previous shading stages all operate on vertices, with the information about how those vertices are organized into geometric primitives being carried along internal to OpenGL. The primitive assembly stage organizes the vertices into their associated geometric primitives in preparation for clipping and rasterization.
+    - The previous shading stages all operate on vertices, with the information about how those vertices are organized into geometric primitives being carried along internal to OpenGL. **The primitive assembly stage organizes the vertices into their associated geometric primitives in preparation for clipping and rasterization.**
   * - Clipping
-    - Occasionally, vertices will be outside of the viewport—the region of the window where you’re permitted to draw—and cause the primitive associated with that vertex to be modified so none of its pixels are outside of the viewport. This operation is called clipping and is handled automatically by OpenGL.
+    - **Clipping hidden parts.** Occasionally, vertices will be outside of the viewport—the region of the window where you’re permitted to draw—and cause the primitive associated with that vertex to be modified so none of its pixels are outside of the viewport. This operation is called clipping and is handled automatically by OpenGL.
   * - Rasterization
     - **Vertex -> Fragment.** The job of the rasterizer is to determine which screen locations are covered by a particular piece of geometry (point, line, or triangle). Knowing those locations, along with the input vertex data, the rasterizer linearly interpolates the data values for each varying variable in the fragment shader and sends those values as inputs into your fragment shader.
   * - Fragment Shading
     - **Determine color for each pixel.** The final stage where you have programmable control over the color of a screen location is fragment shading. In this shader stage, you use a shader to determine the fragment’s final color (although the next stage, per-fragment operations, can modify the color one last time) and potentially its depth value. Fragment shaders are very powerful, as they often employ texture mapping to augment the colors provided by the vertex processing stages. A fragment shader may also terminate processing a fragment if it determines the fragment shouldn’t be drawn; this process is called fragment discard. A helpful way of thinking about the difference between shaders that deal with vertices and fragment shaders is this: vertex shading (including tessellation and geometry shading) determines where on the screen a primitive is, while fragment shading uses that information to determine what color that fragment will be.
   * - Per-Fragment Operations
-    - During this stage, a fragment’s visibility is determined using depth testing (also commonly known as z-buffering) and stencil testing. If a fragment successfully makes it through all of the enabled tests, it may be written directly to the framebuffer, updating the color (and possibly depth value) of its pixel, or if blending is enabled, the fragment’s color will be combined with the pixel’s current color to generate a new color that is written into the framebuffer.
+    - During this stage, a fragment’s visibility is determined using depth testing (also commonly known as z-buffering) and stencil testing. If a fragment successfully makes it through all of the enabled tests, it may be written directly to the framebuffer, updating the color (and possibly depth value) of its pixel, or **if blending is enabled, the fragment’s color will be combined with the pixel’s current color to generate a new color that is written into the framebuffer.**
 
 
 - Tessellation Shading: 
@@ -700,10 +752,9 @@ only need to call this api to finish the 3D to 2D projecting function in compute
 Any GPU hardware dependent code in these api provided by GPU manufacturer.
 An OpenGL program looks like the following,
 
+.. rubric:: Vertex shader
 .. code-block:: c++
 
-  Vertex shader
-  
   #version 330 core
   layout (location = 0) in vec3 aPos; // the position variable has attribute position 0
     
@@ -714,8 +765,10 @@ An OpenGL program looks like the following,
       gl_Position = vec4(aPos, 1.0); // see how we directly give a vec3 to vec4's constructor
       vertexColor = vec4(0.5, 0.0, 0.0, 1.0); // set the output variable to a dark-red color
   }
-  Fragment shader
-  
+
+.. rubric:: Fragment shader
+.. code-block:: c++
+
   #version 330 core
   out vec4 FragColor;
     
@@ -726,7 +779,9 @@ An OpenGL program looks like the following,
       FragColor = computeColorOfThisPixel(...);
   } 
   
-  // openGl user program
+.. rubric:: OpenGl user program
+.. code-block:: c++
+
   int main(int argc, char ** argv)
   {
     // init window, detect user input and do corresponding animation by calling opengl api
@@ -782,7 +837,8 @@ This implementation can be done by generating llvm extended intrinsic functions
 from shader parser of frontend compiler as well as llvm backend converting those intrinsic 
 to gpu instructions as follows,
 
-.. code-block:: console
+.. rubric:: Fragment shader
+.. code-block:: c++
 
   #version 320 es
   uniform sampler2D x;
@@ -793,18 +849,24 @@ to gpu instructions as follows,
       FragColor = texture(x, uv_2d, bias);
   }
   
+.. rubric:: llvm-ir
+.. code-block:: text
+
   ...
   !1 = !{!"sampler_2d"}
-  !2 = !{i32 SAMPLER_2D} : SAMPLER_2D is integer value for sampler2D, for example: 0x0f02
+  !2 = !{i32 SAMPLER_2D} ; SAMPLER_2D is integer value for sampler2D, for example: 0x0f02
   ; A named metadata.
   !x_meta = !{!1, !2}
 
   define void @main() #0 {
       ...
-      %1 = @llvm.gpu0.texture(metadata !x_meta, %1, %2, %3); // %1: %sampler_2d, %2: %uv_2d, %3: %bias
+      %1 = @llvm.gpu0.texture(metadata !x_meta, %1, %2, %3); ; %1: %sampler_2d, %2: %uv_2d, %3: %bias
       ...
   }
   
+.. rubric:: asm of gpu
+.. code-block:: asm
+
   ...
   // gpu machine code
   load $1, tex_a;
@@ -1331,12 +1393,13 @@ Open Sources
 
 .. [#3dfmt] https://all3dp.com/3d-file-format-3d-files-3d-printer-3d-cad-vrml-stl-obj/
 
-.. [#gpu-firmware-jobs] https://antonelly.com.co/do-gpus-have-firmware/#:~:text=Providing%20access%20to%20new%20features,drivers%20during%20the%20boot%20process
-
-.. [#libclc] https://libclc.llvm.org
+.. [#ogl-cpu-gpu] https://en.wikipedia.org/wiki/Vulkan
 
 .. [#cpu-gpu-role] https://stackoverflow.com/questions/47426655/cpu-and-gpu-in-3d-game-whos-doing-what
 
+.. [#gpu-firmware-jobs] https://antonelly.com.co/do-gpus-have-firmware/#:~:text=Providing%20access%20to%20new%20features,drivers%20during%20the%20boot%20process
+
+.. [#libclc] https://libclc.llvm.org
 
 .. [#vbo] http://www.songho.ca/opengl/gl_vbo.html
 
@@ -1344,13 +1407,15 @@ Open Sources
 
 .. [#g-sync] https://www.avadirect.com/blog/frame-rate-fps-vs-hz-refresh-rate/
 
+.. [#additive-colors-wiki] https://en.wikipedia.org/wiki/RGB_color_model
+
+.. [#additive-colors-ytube] https://www.youtube.com/watch?v=kEnz_3miiAc
+
+.. [#additive-colors-shade] https://www.tiktok.com/@tonesterpaints/video/7059565281227853102
+
 .. [#wiki-quaternion] https://en.wikipedia.org/wiki/Quaternion
 
 .. [#cross-product-wiki] https://en.wikipedia.org/wiki/Cross_product
-
-.. [#sphinx-math] https://sphinx-rtd-trial.readthedocs.io/en/latest/ext/math.html#module-sphinx.ext.mathbase
-
-.. [#mathbase-latex] https://mirrors.mit.edu/CTAN/info/short-math-guide/short-math-guide.pdf
 
 .. [#cross-product-2d-proof] https://www.xarg.org/book/linear-algebra/2d-perp-product/
 
@@ -1363,6 +1428,10 @@ Open Sources
 .. [#ogl-point-outwards] Normals are used to differentiate the front- and back-face, and for other processing such as lighting. Right-hand rule (or counter-clockwise) is used in OpenGL. The normal is pointing outwards, indicating the outer surface (or front-face). https://www3.ntu.edu.sg/home/ehchua/programming/opengl/CG_BasicsTheory.html
 
 .. [#point-in-3d-object] https://stackoverflow.com/questions/63557043/how-to-determine-whether-a-point-is-inside-or-outside-a-3d-model-computationally
+
+.. [#ogl_frontface] https://registry.khronos.org/OpenGL-Refpages/gl4/html/glFrontFace.xhtml
+
+.. [#scene-graph-wiki] https://en.wikipedia.org/wiki/Scene_graph
 
 .. [#3drendering_wiki] https://en.wikipedia.org/wiki/3D_rendering
 
@@ -1393,6 +1462,8 @@ Open Sources
 .. [#ogl-qualifier-deprecate] https://www.khronos.org/opengl/wiki/Type_Qualifier_(GLSL)#Removed_qualifiers
 
 .. [#github-attr-varying-depr] https://github.com/vispy/vispy/issues/242
+
+.. [#ogl-layout-q] https://www.khronos.org/opengl/wiki/Layout_Qualifier_(GLSL)
 
 .. [#fragmentshader_reason] https://community.khronos.org/t/pixel-vs-fragment-shader/52838
 
@@ -1500,7 +1571,7 @@ Open Sources
 
 .. [#opencl-to-spirv] https://www.khronos.org/blog/offline-compilation-of-opencl-kernels-into-spir-v-using-open-source-tooling
 
-.. [#vulkanapiwiki] Vulkan offers lower overhead, more direct control over the GPU, and lower CPU usage... By allowing shader pre-compilation, application initialization speed is improved... A Vulkan driver only needs to do GPU specific optimization and code generation, resulting in easier driver maintenance... https://en.wikipedia.org/wiki/Vulkan https://en.wikipedia.org/wiki/Vulkan#OpenGL_vs._Vulkan
+.. [#vulkanapiwiki] Vulkan offers lower overhead, more direct control over the GPU, and lower CPU usage... By allowing shader pre-compilation, application initialization speed is improved... A Vulkan driver only needs to do GPU specific optimization and code generation, resulting in easier driver maintenance... [#ogl-cpu-gpu]_ https://en.wikipedia.org/wiki/Vulkan#OpenGL_vs._Vulkan
 
 .. [#vulkanex] https://github.com/SaschaWillems/Vulkan/blob/master/examples/triangle/triangle.cpp
 

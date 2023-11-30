@@ -63,6 +63,10 @@ Revision history
 
 Version 12.0.14, not released yet.
 
+Version 12.0.13.8, Released November 30, 2023.
+
+  gpu.rst: graphic_cpu_gpu.png, additive-colors.
+
 Version 12.0.13.7, Released November 16, 2023.
 
   gpu.rst: 2d-vector-inward, ogl-pointing-outwards and short-rendering-pipeline, Double Buffering and VSync.
