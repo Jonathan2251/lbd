@@ -1231,9 +1231,23 @@ A GPU may has the HW structure and handle the subset of y[]=a*x[]+y[] array-calc
 - Each Thread Block (Core/Warp) has 16 SIMD Threads, so there are 16*256 = 4K 
   TLR in a Core.
 
-- After Volta GPU of Nvidia, each thread in Warp has it's own PC [#Volta]_. In 
-  Cuda Applications, this feature provides more parallel opportunities with 
-  __syncwarp() to user programmers.
+.. _volta-1: 
+.. figure:: ../Fig/gpu/volta-1.png
+  :align: center
+  :scale: 50 %
+
+  Volta Warp with Per-Thread Program Counter and Call Stack [#Volta]_
+
+.. _volta-2: 
+.. figure:: ../Fig/gpu/volta-2.png
+  :align: center
+  :scale: 50 %
+
+  Programs use Explicit Synchronization to Reconverge Threads in a Warp [#Volta]_
+
+- After Volta GPU of Nvidia, each thread in Warp has it's own PC as 
+  :numref:`volta-1`. In Cuda Applications, this feature provides more parallel 
+  opportunities with __syncwarp() to user programmers as :numref:`volta-2`.
 
 The main() run on CPU while the saxpy() run on GPU. Through 
 cudaMemcpyHostToDevice and cudaMemcpyDeviceToHost, CPU can pass data in x and y
@@ -1564,7 +1578,7 @@ Open Sources
        Morgan Kaufmann Series in Computer Architecture and Design).
        
 
-.. [#Volta] Page 25 of https://images.nvidia.com/content/volta-architecture/pdf/volta-architecture-whitepaper.pdf
+.. [#Volta] See Figure numbers from https://images.nvidia.com/content/volta-architecture/pdf/volta-architecture-whitepaper.pdf
 
 .. [#VMR] subsection Vector Mask Registers: Handling IF Statements in Vector Loops of Computer Architecture: A Quantitative Approach 5th edition (The
        Morgan Kaufmann Series in Computer Architecture and Design)
