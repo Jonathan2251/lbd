@@ -1216,7 +1216,11 @@ A GPU may has the HW structure and handle the subset of y[]=a*x[]+y[] array-calc
   known as "ping pong" cycles.
 
 - SIMD Thread <-> Warp as :numref:`gpu-terms`. 
-  Each Warp has 16 Cuda Thread. If a Cuda Thread handles 32 
+  Each Warp has 16 Cuda Thread. 
+
+- Cuda Thread : A vertical cut of a thread of SIMD instructions corresponding to 
+  one element executed by one SIMD Lane.
+  If a Cuda Thread handles 32 
   elements computing, assuming 4 registers for 1 element, then there are 4*32=128 
   Thread Level Registers, TLR, occupied in a thread to support the SIMT computing. 
   So, assume a GPU architecture allocating 256 TLR to a SIMD Thread (Warp), then 
