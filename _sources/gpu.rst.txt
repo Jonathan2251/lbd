@@ -1168,6 +1168,13 @@ In the programming example saxpy() above,
 
 - blockDim is the number of total Thread Blocks in a Grid
 
+.. _gpu-terms: 
+.. figure:: ../Fig/gpu/gpu-terms.png
+  :align: center
+  :scale: 50 %
+
+  Terms in Nvidia's gpu (figure from book [#Quantitative-gpu-terms]_)
+
 
 A GPU may has the HW structure and handle the subset of y[]=a*x[]+y[] array-calculation as follows,
 
@@ -1188,7 +1195,7 @@ A GPU may has the HW structure and handle the subset of y[]=a*x[]+y[] array-calc
   Core-15       y[7680..7711] = a * ...                            ...                                                ...      y[8160..8191] = a * x[8160..8191] + y[8160..8191] 
   ============  =================================================  =================================================  =======  ===========================================
 
-- Grid is Vectorizable Loop [#Quantitative-gpu-griddef]_.
+- Grid is Vectorizable Loop as :numref:`gpu-terms`.
 
 - Thread Block <-> SIMD Processor (Core). 
   Warp has it's own
@@ -1208,19 +1215,39 @@ A GPU may has the HW structure and handle the subset of y[]=a*x[]+y[] array-calc
   as in vector processor). So it takes 2 clock cycles to complete [#lanes]_, also
   known as "ping pong" cycles.
 
-- Each thread handle 32 elements computing, assuming 4 registers for 1 element,
-  then there are 4*32=128 Thread Level Registers, TLR, occupied in a thread to 
-  support the SIMT computing. So, assume a GPU architecture allocating 256 TLR
-  to a Thread (Warp), then it has sufficient TLR for more complicated statement,
-  such as a*x[i]+b*[y]+c*[z] without spilling in register allocation. 16 lanes
-  share the 256 TLR.
+- SIMD Thread <-> Warp as :numref:`gpu-terms`. 
+  Each Warp has 16 Cuda Thread. 
 
-- Each Thread Block (Core/Warp) has 16 threads, so there are 16*256 = 4K TLR in 
-  a Core.
+- Cuda Thread : A vertical cut of a thread of SIMD instructions corresponding to 
+  one element executed by one SIMD Lane.
+  If a Cuda Thread handles 32 
+  elements computing, assuming 4 registers for 1 element, then there are 4*32=128 
+  Thread Level Registers, TLR, occupied in a thread to support the SIMT computing. 
+  So, assume a GPU architecture allocating 256 TLR to a SIMD Thread (Warp), then 
+  it has sufficient TLR for more complicated statement, such as 
+  a*X[i]+b*Y[i]+c*Z[i] without spilling in register allocation. 16 lanes share 
+  the 256 TLR.
 
-- After Volta GPU of Nvidia, each thread in Warp has it's own PC [#Volta]_. In 
-  Cuda Applications, this feature provides more parallel opportunities with 
-  __syncwarp() to user programmers.
+- Each Thread Block (Core/Warp) has 16 SIMD Threads, so there are 16*256 = 4K 
+  TLR in a Core.
+
+.. _volta-1: 
+.. figure:: ../Fig/gpu/volta-1.png
+  :align: center
+  :scale: 50 %
+
+  Volta Warp with Per-Thread Program Counter and Call Stack [#Volta]_
+
+.. _volta-2: 
+.. figure:: ../Fig/gpu/volta-2.png
+  :align: center
+  :scale: 50 %
+
+  Programs use Explicit Synchronization to Reconverge Threads in a Warp [#Volta]_
+
+- After Volta GPU of Nvidia, each thread in Warp has it's own PC as 
+  :numref:`volta-1`. In Cuda Applications, this feature provides more parallel 
+  opportunities with __syncwarp() to user programmers as :numref:`volta-2`.
 
 The main() run on CPU while the saxpy() run on GPU. Through 
 cudaMemcpyHostToDevice and cudaMemcpyDeviceToHost, CPU can pass data in x and y
@@ -1534,7 +1561,11 @@ Open Sources
 
 .. [#framebuffers-ogl] https://open.gl/framebuffers
 
-.. [#Quantitative-gpu-griddef] Book Figure 4.12 of Computer Architecture: A Quantitative Approach 5th edition (The
+.. [#gpgpuwiki] https://en.wikipedia.org/wiki/General-purpose_computing_on_graphics_processing_units
+
+.. [#cudaex] https://devblogs.nvidia.com/easy-introduction-cuda-c-and-c/
+
+.. [#Quantitative-gpu-terms] Book Figure 4.12 of Computer Architecture: A Quantitative Approach 5th edition (The
        Morgan Kaufmann Series in Computer Architecture and Design)
 
 .. [#Quantitative-gpu-warp] Book Figure 4.14 and 4.24 of Computer Architecture: A Quantitative Approach 5th edition (The
@@ -1547,11 +1578,7 @@ Open Sources
        Morgan Kaufmann Series in Computer Architecture and Design).
        
 
-.. [#gpgpuwiki] https://en.wikipedia.org/wiki/General-purpose_computing_on_graphics_processing_units
-
-.. [#cudaex] https://devblogs.nvidia.com/easy-introduction-cuda-c-and-c/
-
-.. [#Volta] Page 25 of https://images.nvidia.com/content/volta-architecture/pdf/volta-architecture-whitepaper.pdf
+.. [#Volta] See Figure numbers from https://images.nvidia.com/content/volta-architecture/pdf/volta-architecture-whitepaper.pdf
 
 .. [#VMR] subsection Vector Mask Registers: Handling IF Statements in Vector Loops of Computer Architecture: A Quantitative Approach 5th edition (The
        Morgan Kaufmann Series in Computer Architecture and Design)
