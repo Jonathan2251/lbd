@@ -1138,6 +1138,88 @@ a software frame work instead of OpenGL api, then the system can run some data
 parallel computation on GPU for speeding up and even get CPU and GPU executing 
 simultaneously. Furthmore, any language that allows the code running on the CPU to poll 
 a GPU shader for return values, can create a GPGPU framework [#gpgpuwiki]_.
+
+.. _gpu-terms: 
+.. figure:: ../Fig/gpu/gpu-terms.png
+  :align: center
+  :scale: 50 %
+
+  Terms in Nvidia's gpu (figure from book [#Quantitative-gpu-terms]_)
+
+.. list-table:: More Desciptive Name and Cuda term in GPU and Desciption.
+  :widths: 20 20 40
+  :header-rows: 1
+
+  * - More Desciptive Name
+    - Cuda term
+    - Description
+  * - Grid
+    - Grid
+    - Grid is Vectorizable Loop as :numref:`gpu-terms`.
+  * - SIMD Processor / SIMD Block / Core
+    - Cuda Thread Engine
+    - Each multithreaded SIMD Processor is assigned 512 elements of the vectors to 
+      work on.
+      SIMD Processors are full processors with separate PCs and are programmed using
+      threads [#Quantitative-gpu-threadblock]_. 
+      As :numref:`simd-processors`, it assigns 16 Thread Blocks to 16 SIMD 
+      Processors.
+      CPU Core is the processor which include multi-threads. A thread of CPU is 
+      execution unit with its own PC (Program Counter). As this concept, GPU
+      Core is the SIMD Processor includes several SIMD Thread (Warp). Each Warp
+      has its PC [#wiki_tbcp]_.
+  * - SIMD Thread
+    - Warp 
+    - Each Warp has 16 Cuda Thread. 
+      Warp has it's own PC and TLR (Thread Level Registers). Warp may map to
+      one whole function or part of function. Compiler and run time may assign
+      them to the same Warp or different Warps [#Quantitative-gpu-warp]_.
+  * - SIMD Lane
+    - Cuda Thread
+    - A vertical cut of a thread of SIMD instructions corresponding to 
+      one element executed by one SIMD Lane.
+  * - Chime
+    - Chime
+    - If vector length would be 32 (32 elements) and SIMD Lanes is 16, the 
+      chime is 2 clock cycles, also known as “ping pong” cycles.
+      As :numref:`grid` for the later Fermi-generation GPUs.
+      Each SIMD Thread (Warp) has 32 elements run as :numref:`threadslanes` on 16 SIMD 
+      lanes (number of functional units just same as in vector processor). 
+      So it takes 2 clock cycles to (chime is 2 clock cycles) complete [#lanes]_.
+
+A GPU may has the HW structure and handle the subset of y[]=a*x[]+y[] array-calculation as follows,
+
+- A Grid: has 16 Thread Blocks (Cores).
+
+- A Core: has 16 Threads (Warps, Cuda Threads).
+
+- A SIMD Thread (Warp): has 16 Lanes (vector instruction with processing 16-elements).
+
+
+.. table:: Map (Core,Warp) to saxpy
+
+  ============  =================================================  =================================================  =======  ===========================================
+  -             Warp-0                                             Warp-1                                             ...      Warp-15
+  ============  =================================================  =================================================  =======  ===========================================
+  Core-0        y[0..31] = a * x[0..31] * y[0..31]                 y[32..63] = a * x[32..63] + y[32..63]              ...      y[480..511] = a * x[480..511] + y[480..511] 
+  ...           ...                                                ...                                                ...      ...
+  Core-15       y[7680..7711] = a * ...                            ...                                                ...      y[8160..8191] = a * x[8160..8191] + y[8160..8191] 
+  ============  =================================================  =================================================  =======  ===========================================
+
+- If a SIMD Lane (Cuda Thread) handles 2 elements computing, assuming 4 
+  registers for 1 element, then there are 4*32=128 Thread Level Registers, TLR, 
+  occupied in a SIMD Thread (Warp) to support the SIMT computing. 
+  So, assume a GPU architecture allocating 256 TLR to a SIMD Thread (Warp), then 
+  it has sufficient TLR for more complicated statement, such as 
+  a*X[i]+b*Y[i]+c*Z[i] without spilling in register allocation. All 16 lanes 
+  share the 256 TLR. 
+  Each Thread Block (Core/Warp) has 16 SIMD Threads, so there are 16*256 = 4K 
+  TLR in a SIMD Processor (Core, Cuda Thread Engine).
+
+- When mapping to the fragments/pixels in graphic GPU, x[0..15] corresponding to
+  a two dimensions of tile of fragments/pixels at pixel[0..3][0..3] since image
+  uses tile base for grouping closest color together.
+
 The following is a CUDA example to run large data in array on GPU [#cudaex]_ 
 as follows,
 
@@ -1160,76 +1242,24 @@ as follows,
     ...
   }
 
-In the programming example saxpy() above,
+The following table explains how the elemements of saxpy() maps to lane of SIMD Thread(Warp) of Thread Block(Core) of Grid.
 
-- blockIdx is index of ThreadBlock
+.. list-table:: Mapping saxpy code to :numref:`grid`.
+  :widths: 8 17 55
+  :header-rows: 1
 
-- threadIdx is index of SIMD Thread
-
-- blockDim is the number of total Thread Blocks in a Grid
-
-.. _gpu-terms: 
-.. figure:: ../Fig/gpu/gpu-terms.png
-  :align: center
-  :scale: 50 %
-
-  Terms in Nvidia's gpu (figure from book [#Quantitative-gpu-terms]_)
-
-
-A GPU may has the HW structure and handle the subset of y[]=a*x[]+y[] array-calculation as follows,
-
-- A Grid: has 16 Thread Blocks (Cores).
-
-- A Core: has 16 Threads (Warps, Cuda Threads).
-
-- A Thread: has 16 Lanes (vector instruction with processing 16-elements).
-
-
-.. table:: Map (Core,Thread) to saxpy
-
-  ============  =================================================  =================================================  =======  ===========================================
-  -             Thread-0                                           Thread-1                                           ...      Thread-15
-  ============  =================================================  =================================================  =======  ===========================================
-  Core-0        y[0..31] = a * x[0..31] * y[0..31]                 y[32..63] = a * x[32..63] + y[32..63]              ...      y[480..511] = a * x[480..511] + y[480..511] 
-  ...           ...                                                ...                                                ...      ...
-  Core-15       y[7680..7711] = a * ...                            ...                                                ...      y[8160..8191] = a * x[8160..8191] + y[8160..8191] 
-  ============  =================================================  =================================================  =======  ===========================================
-
-- Grid is Vectorizable Loop as :numref:`gpu-terms`.
-
-- Thread Block <-> SIMD Processor (Core). 
-  Warp has it's own
-  PC and TLR (Thread Level Registers). Warp may map to
-  one whole function or part of function. Compiler and run time may assign
-  them to the same Warp or different Warps [#Quantitative-gpu-warp]_.
-
-- SIMD Processors are full processors with separate PCs and are programmed using
-  threads [#Quantitative-gpu-threadblock]_. 
-  As :numref:`simd-processors`, it assigns 16 Thread blocks to 16 SIMD Processors.
-  
-- As :numref:`grid`, 
-  the maximum number of SIMD Threads that can execute simultaneously per Thread Block 
-  (SIMD Processor) is 32 for the later Fermi-generation GPUs.
-  Each SIMD Thread has 32 elements run as :numref:`threadslanes` on 
-  16 SIMD lanes (number of functional units just same
-  as in vector processor). So it takes 2 clock cycles to complete [#lanes]_, also
-  known as "ping pong" cycles.
-
-- SIMD Thread <-> Warp as :numref:`gpu-terms`. 
-  Each Warp has 16 Cuda Thread. 
-
-- Cuda Thread : A vertical cut of a thread of SIMD instructions corresponding to 
-  one element executed by one SIMD Lane.
-  If a Cuda Thread handles 32 
-  elements computing, assuming 4 registers for 1 element, then there are 4*32=128 
-  Thread Level Registers, TLR, occupied in a thread to support the SIMT computing. 
-  So, assume a GPU architecture allocating 256 TLR to a SIMD Thread (Warp), then 
-  it has sufficient TLR for more complicated statement, such as 
-  a*X[i]+b*Y[i]+c*Z[i] without spilling in register allocation. 16 lanes share 
-  the 256 TLR.
-
-- Each Thread Block (Core/Warp) has 16 SIMD Threads, so there are 16*256 = 4K 
-  TLR in a Core.
+  * - saxpy(()
+    - Instance in :numref:`grid`
+    - Description
+  * - blockDim.x
+    - The index of Thread Block
+    - blockDim: in this example configured as :numref:`grid` is 16(Thread Blocks) * 16(SIDM Threads) = 256
+  * - blockIdx.x
+    - The index of SIMD Thread
+    - blockIdx: the index of Thread Block within the Grid
+  * - threadIdx.x
+    - The index of elements
+    - threadIdx: the index of the SIMD Thread within its Thread Block
 
 .. _volta-1: 
 .. figure:: ../Fig/gpu/volta-1.png
@@ -1257,7 +1287,7 @@ it may speed up by running both CPU/GPU with their data in their own cache
 repectively.
 After DMA memcpy from cpu's memory to gpu's, gpu operates the whole loop of matrix 
 operation for "y[] = a*x[]+y[];"
-instructions with one Grid. Furthermore liking vector processor, gpu provides
+instructions with one Grid. Furthermore like vector processor, gpu provides
 Vector Mask Registers to Handling IF Statements in Vector Loops as the following 
 code [#VMR]_,
 
@@ -1337,7 +1367,24 @@ Vulkan and spir-v
 
   Offline Compilation of OpenCL Kernels into SPIR-V Using Open Source Tooling [#opencl-to-spirv]_
 
-Difference between OpenCL and OpenGL's compute shader. [#diff-compute-shader-opencl]_
+- Comparsion for OpenCL and OpenGL's compute shader.
+
+  - Same:
+
+    Both are for General Computing of GPU.
+
+  - Difference:
+
+    OpenCL include GPU and other accelerate device/processor.
+    OpenCL is C language on Device and C++ on Host based on OpenCL runtime. 
+    Compute shader is GLSL shader language run on OpenGL graphic enviroment and
+    integrate and access data of OpenGL API easily [#diff-compute-shader-opencl]_.
+
+- OpenGL/GLSL vs Vulkan/spir-v.
+
+  - High level of API and shader: OpenGL, GLSL.
+
+  - Low level of API and shader: Vulkan, spir-v.
 
 Though OpenGL api existed in higher level with many advantages from sections
 above, sometimes it cannot compete in efficience with direct3D providing 
@@ -1563,22 +1610,24 @@ Open Sources
 
 .. [#gpgpuwiki] https://en.wikipedia.org/wiki/General-purpose_computing_on_graphics_processing_units
 
-.. [#cudaex] https://devblogs.nvidia.com/easy-introduction-cuda-c-and-c/
-
 .. [#Quantitative-gpu-terms] Book Figure 4.12 of Computer Architecture: A Quantitative Approach 5th edition (The
        Morgan Kaufmann Series in Computer Architecture and Design)
 
-.. [#Quantitative-gpu-warp] Book Figure 4.14 and 4.24 of Computer Architecture: A Quantitative Approach 5th edition (The
-       Morgan Kaufmann Series in Computer Architecture and Design)
+.. [#cudaex] https://devblogs.nvidia.com/easy-introduction-cuda-c-and-c/
 
 .. [#Quantitative-gpu-threadblock] search these words from section 4.4 of A Quantitative Approach 5th edition (The
        Morgan Kaufmann Series in Computer Architecture and Design)
-       
+
+.. [#wiki_tbcp] https://en.wikipedia.org/wiki/Thread_block_(CUDA_programming)
+ 
+.. [#Quantitative-gpu-warp] Book Figure 4.14 and 4.24 of Computer Architecture: A Quantitative Approach 5th edition (The
+       Morgan Kaufmann Series in Computer Architecture and Design)
+
 .. [#lanes] "With Fermi, each 32-wide thread of SIMD instructions is mapped to 16 physical SIMD Lanes, so each SIMD instruction in a thread of SIMD instructions takes two clock cycles to complete" search these words from Page 296 of Computer Architecture: A Quantitative Approach 5th edition (The
        Morgan Kaufmann Series in Computer Architecture and Design).
        
 
-.. [#Volta] See Figure numbers from https://images.nvidia.com/content/volta-architecture/pdf/volta-architecture-whitepaper.pdf
+.. [#Volta] See the same Figures from https://images.nvidia.com/content/volta-architecture/pdf/volta-architecture-whitepaper.pdf
 
 .. [#VMR] subsection Vector Mask Registers: Handling IF Statements in Vector Loops of Computer Architecture: A Quantitative Approach 5th edition (The
        Morgan Kaufmann Series in Computer Architecture and Design)
