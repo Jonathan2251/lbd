@@ -61,7 +61,9 @@ https://github.com/Jonathan2251/lbd/blob/master/README.md
 Revision history
 ----------------
 
-Version 12.0.14, not released yet.
+Version 12.0.15, not released yet.
+
+Version 12.0.14, Released December 30, 2023.
 
   gpu.rst: Table More Desciptive Name and Cuda term in GPU and Desciption, 
   Table Mapping saxpy code.
