@@ -63,6 +63,13 @@ Revision history
 
 Version 12.0.14, not released yet.
 
+  gpu.rst: Table More Desciptive Name and Cuda term in GPU and Desciption, 
+  Table Mapping saxpy code.
+  gpu.rst: Table More Desciptive Name for Cuda term in Fermi GPU and Desciption.
+  llvmstructure.rst: table: C, llvm-ir and Cpu0.
+  lvmstructure.rst: note What and how the ISA of Cpu0 be selected
+  
+
 Version 12.0.13.9, Released November 30, 2023.
 
   gpu.rst: Table More Desciptive Name and Cuda term in GPU and Desciption,
