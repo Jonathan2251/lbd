@@ -7,14 +7,13 @@ The concept of GPU compiler
    :local:
    :depth: 4
 
-Basicly CPU compiler is SISD (Single Instruction Single Data Architecture). 
-The multimedia instructions in CPU are small scaled of SIMD
-(Single Instruction Multiple Data) for 4 elements of 32-bit or 16 elements of
-8-bit while GPU is a large scaled of SIMD processor, 16 elements of 32-bit, 
-coloring millions of pixels of image in few micro seconds.
+Basicly CPU is SISD (Single Instruction Single Data) Architecture in each core.
+The multimedia instructions in CPU are smaller scaled of SIMD (Single 
+Instruction Multiple Data) while GPU is a large scaled of SIMD processor, 
+coloring millions of pixels of image in few mini seconds.
 Since the 2D or 3D graphic processing provides large opportunity in parallel
 data processing, GPU hardware usually composed of thousands
-of functional units in each core(grid) in N-Vidia processors.
+of functional units in each core in N-Vidia processors.
 
 This chapter is giving a overview for how 3D animation to be created and run on
 CPU+GPU. Give a concept for GPU compiler and HW featrues for graphic application.
@@ -1146,18 +1145,21 @@ a GPU shader for return values, can create a GPGPU framework [#gpgpuwiki]_.
 
   Terms in Nvidia's gpu (figure from book [#Quantitative-gpu-terms]_)
 
-.. list-table:: More Desciptive Name and Cuda term in GPU and Desciption.
-  :widths: 20 20 40
+.. list-table:: More Desciptive Name for Cuda term in Fermi GPU and Desciption.
+  :widths: 15 15 10 40
   :header-rows: 1
 
   * - More Desciptive Name
     - Cuda term
+    - Structure
     - Description
   * - Grid
     - Grid
+    - 
     - Grid is Vectorizable Loop as :numref:`gpu-terms`.
   * - SIMD Processor / SIMD Block / Core
     - Cuda Thread Engine
+    - Each Grid has 16 SIMD Processors.
     - Each multithreaded SIMD Processor is assigned 512 elements of the vectors to 
       work on.
       SIMD Processors are full processors with separate PCs and are programmed using
@@ -1171,15 +1173,17 @@ a GPU shader for return values, can create a GPGPU framework [#gpgpuwiki]_.
   * - SIMD Thread
     - Warp 
     - Each Warp has 16 Cuda Thread. 
-      Warp has it's own PC and TLR (Thread Level Registers). Warp may map to
+    - Warp has it's own PC and TLR (Thread Level Registers). Warp may map to
       one whole function or part of function. Compiler and run time may assign
       them to the same Warp or different Warps [#Quantitative-gpu-warp]_.
   * - SIMD Lane
     - Cuda Thread
+    - Each SIMD Thread has 16 Lanes.
     - A vertical cut of a thread of SIMD instructions corresponding to 
-      one element executed by one SIMD Lane.
+      one element executed by one SIMD Lane. It is a vector instruction with processing 16-elements.
   * - Chime
     - Chime
+    - Each SIMD Lane has 2 chimes.
     - If vector length would be 32 (32 elements) and SIMD Lanes is 16, the 
       chime is 2 clock cycles, also known as “ping pong” cycles.
       As :numref:`grid` for the later Fermi-generation GPUs.
@@ -1188,12 +1192,6 @@ a GPU shader for return values, can create a GPGPU framework [#gpgpuwiki]_.
       So it takes 2 clock cycles to (chime is 2 clock cycles) complete [#lanes]_.
 
 A GPU may has the HW structure and handle the subset of y[]=a*x[]+y[] array-calculation as follows,
-
-- A Grid: has 16 Thread Blocks (Cores).
-
-- A Core: has 16 Threads (Warps, Cuda Threads).
-
-- A SIMD Thread (Warp): has 16 Lanes (vector instruction with processing 16-elements).
 
 
 .. table:: Map (Core,Warp) to saxpy

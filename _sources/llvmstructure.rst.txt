@@ -119,12 +119,84 @@ for each type of instruction.
 
   Cpu0's three instruction formats
 
-The Cpu0 has two ISA, the first ISA-I is cpu032I which hired CMP instruction 
-from ARM; the second ISA-II is cpu032II which hired SLT instruction from Mips. 
-The cpu032II include all cpu032I instruction set and add SLT, BEQ, ..., 
-instructions. The main purpose to add cpu032II is for instruction set design 
-explanation. As you will see in later chapter (chapter Control flow statements), 
-the SLT instruction will has better performance than CMP old style instruction.
+.. raw:: latex
+
+   \clearpage
+      
+.. table:: C, llvm-ir [#langref]_ and Cpu0
+
+  ====================  =================================  ====================================  =======  ================
+  C                     llvm-ir                            Cpu0                                  I or II  Comment
+  ====================  =================================  ====================================  =======  ================
+  =                     load/store                         ld/lb/lbu/lh/lhu                      I
+  &, &&                 and                                and                                   I
+  \|, \|\|              or                                 or                                    I
+  ^                     xor                                xor/nor                               I        ! can be got from two ir
+  !                     - %tobool = icmp ne i32 %6, 0      - cmp                                 
+                        - %lnot = xor i1 %tobool, true     - xor                                 
+  ==, !=, <, <=, >, >=  icmp/fcmp <cond> cond:eq/ne,...    cmp/ucmp ... + floating-lib           I
+   "                      "                                slt/sltu/slti/sltiu                   II       slti/sltiu: ex. a == 3 reduce instructions
+  if (a <= b)           icmp/fcmp <cond> +                 cmp/uccmp + jeq/jne/jlt/jgt/jle/jge   I        Conditional branch
+                        br i1 <cond>, ...
+  if (bool)             br i1 <cond>, ...                  jeq/jne                               I
+    "                     "                                beq/bne                               II
+  goto                  br <dest>                          jmp                                   I        Uncondictional branch
+  call sub-function     call                               jsub                                  I        Provide 24-bit address range of calling sub-function (the address from caller to callee is within 24-bit)
+    "                     "                                jalr                                  I        Add for 32-bit address range of calling sub-function
+  return                ret                                ret                                   I
+  +, -, \*              add/fadd, sub/fsub, mul/fmul       add/addu/addiu, sub/subu, mul         I
+  /, %                  udiv/sdiv/fdiv, urem/srem/frem     div, mfhi/mflo/mthi/mtlo              I
+  <<, >>                shl, lshr/ashr                     shl/rol/rolv, srl/sra/ror/rorv        II
+  float <-> int         fptoui, sitofp, ...                                                               Cpu0 uses SW for floating value, and these two IR are for HW floating instruction 
+  __builtin_clz/clo     llvm.clz/llvm_clo                  floating-lib + clz, clo               I        For SW floating-lib, uses __builtin_clz / __builtin_clo in clang and clang generates llvm.clz/llvm.clo intrinsic function 
+  ====================  =================================  ====================================  =======  ================
+
+
+.. note:: **What and how the llvm-ir and the ISA of a RISC CPU be selected**
+
+  - The llvm-ir and the ISA of a RISC CPU emerged after C language. As table 
+    above, they can be selected based on C language. 
+
+  - Not listed in above table, LLVM-IR includes terminator instructions 
+    "switch, invoke, ...",
+    atomic and a lot of llvm-intrinsics to provide better performance
+    to backend for their specific instructions such as llvm.vector.reduce.*.
+
+  - For vector processing of CPU/GPU, they can use vector-type of math llvm-ir or
+    llvm-intrinsic for implementation.
+
+
+.. note:: **What and how the ISA of Cpu0 be selected**
+
+  - The intention of orignal author of Cpu0: Design the ISA for teaching 
+    materials without considering performance. 
+
+  - My intention of goals: Adding a goal that what ISA is good to be selected 
+    or designed considering for both to be an llvm simple tutorial material and
+    basic performance to be an ISA. I am not interested in a bad ISA.
+
+    - As you can see from table above, "if (a <= b)" can be replaced with 
+      "t = (a <= b)" and "if (t)", so I designed the ISA II of Cpu0 "slt+beq" to 
+      replace "cmp+jeq" to reduce 
+      jeq/jne/jlt/jgt/jle/jge six intructions to two, beq/bne for the balance of
+      the complexity in Cpu0 ISA and performance.
+
+    - For the same reason, I hired **slt**,... from **Mips** instead of **cmp** 
+      from **ARM** as result that
+      destination register can be in any GPR for avoiding the bottle neck on the 
+      same "status register". 
+
+    - Floating value can be implemented by software, so Cpu0 has integer 
+      instructions only. I add clz and clo to Cpu0 since the floating-lib such as 
+      compiler-rt/builtin is implemented on top of these two builtin-function.
+      Normalization for Floating precsion can use clz and clo to speedup.
+      Though Cpu0 can use a couple of instructions for handling the 
+      corresponding llvm.clz/llvm.clo, adding clz/clo can execute it in one 
+      single instruction. 
+
+    - I extend II of Cpu0 as reasons above for an better ISA in performace from 
+      Mips.
+
 The following table details the cpu032I instruction set:
 
 - First column F\.: meaning Format.
@@ -664,7 +736,7 @@ that llvm uses.
 Three-phase design
 ~~~~~~~~~~~~~~~~~~
 
-The text in this and the following sub-section comes from the AOSA chapter on 
+This content and the following sub-section comes from the AOSA chapter on 
 LLVM written by Chris Lattner [#aosa-book]_.
 
 The most popular design for a traditional static compiler (like most C 
@@ -2559,10 +2631,15 @@ The following options for llc need to give a input .bc or .ll file.
 
 - -filetype=asm/obj
 
+Use F.dump() in code where F is class Function for passes in llvm/lib/Transformation.
+
 Options of opt 
 ---------------
 
-Check from `opt --help-hidden` and LLVM passes [#llvm-passes]_. Eg. `opt -dot-cfg input.ll`.
+Check from `opt --help-hidden` and LLVM passes [#llvm-passes]_. Eg. 
+
+- `opt -dot-cfg input.ll`: Print CFG of function to 'dot' file
+- -dot-cfg-only : Print CFG of function to 'dot' file (with no function bodies)
 
 
 .. [#cpu0-chinese] Original Cpu0 architecture and ISA details (Chinese). http://ccckmit.wikidot.com/ocs:cpu0
