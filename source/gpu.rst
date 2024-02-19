@@ -1365,6 +1365,10 @@ Vulkan and spir-v
 
   Offline Compilation of OpenCL Kernels into SPIR-V Using Open Source Tooling [#opencl-to-spirv]_
 
+.. _glsl_spirv: 
+.. graphviz:: ../Fig/gpu/glsl-spirv.gv
+  :caption: Convertion between glsl and spirv
+
 - Comparsion for OpenCL and OpenGL's compute shader.
 
   - Same:

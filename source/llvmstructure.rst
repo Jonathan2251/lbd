@@ -148,9 +148,18 @@ for each type of instruction.
   /, %                  udiv/sdiv/fdiv, urem/srem/frem     div, mfhi/mflo/mthi/mtlo              I
   <<, >>                shl, lshr/ashr                     shl/rol/rolv, srl/sra/ror/rorv        II
   float <-> int         fptoui, sitofp, ...                                                               Cpu0 uses SW for floating value, and these two IR are for HW floating instruction 
-  __builtin_clz/clo     llvm.clz/llvm_clo                  floating-lib + clz, clo               I        For SW floating-lib, uses __builtin_clz / __builtin_clo in clang and clang generates llvm.clz/llvm.clo intrinsic function 
+  __builtin_clz/clo     llvm.clz/llvm_clo                  floating-lib + clz, clo               I        For SW floating-lib, uses __builtin_clz / __builtin_clo in clang and clang generates llvm.clz/llvm.clo intrinsic function
+  __builtin_eh_xxx      llvm.eh.xxx                        st/ld                                 I        pass information to exception handler through $4, $5
   ====================  =================================  ====================================  =======  ================
 
+.. table:: C++, llvm-ir [#langref]_ and Cpu0
+
+  ====================  =================================  ====================================  =======  ================
+  C++                   llvm-ir                            Cpu0                                  I or II  Comment
+  ====================  =================================  ====================================  =======  ================
+  try {  }              invoke void @_Z15throw_exception   jsub  _Z15throw_exception             I
+  catch { }             landingpad...catch                 st and ld                             I        st/ld $4 & $5 to/from stack, $4:exception address, $5: exception typeid
+  ====================  =================================  ====================================  =======  ================
 
 .. note:: **What and how the llvm-ir and the ISA of a RISC CPU be selected**
 
