@@ -669,6 +669,9 @@ The steps as the following :numref:`short_rendering_pipeline`.
 
   3D Graphics Rendering Pipeline
 
+- A fragment can be treated as a pixel in 3D spaces, which is aligned with the 
+  pixel grid, with attributes such as position, color, normal and texture.
+
 The complete steps as the following :numref:`rendering_pipeline1` 
 from OpenGL website [#rendering]_ and the website has descripiton for each stage.
 
@@ -710,7 +713,7 @@ In addition, list OpenGL rendering pipeline Figure 1.2 and stage from book
   * - Clipping
     - **Clipping hidden parts.** Occasionally, vertices will be outside of the viewport—the region of the window where you’re permitted to draw—and cause the primitive associated with that vertex to be modified so none of its pixels are outside of the viewport. This operation is called clipping and is handled automatically by OpenGL.
   * - Rasterization
-    - **Vertex -> Fragment.** The job of the rasterizer is to determine which screen locations are covered by a particular piece of geometry (point, line, or triangle). Knowing those locations, along with the input vertex data, the rasterizer linearly interpolates the data values for each varying variable in the fragment shader and sends those values as inputs into your fragment shader.
+    - **Vertex -> Fragment.** The job of the rasterizer is to determine which screen locations are covered by a particular piece of geometry (point, line, or triangle). Knowing those locations, along with the input vertex data, the rasterizer linearly interpolates the data values for each varying variable in the fragment shader and sends those values as inputs into your fragment shader. A fragment can be treated as a pixel in 3D spaces, which is aligned with the pixel grid, with attributes such as position, color, normal and texture.
   * - Fragment Shading
     - **Determine color for each pixel.** The final stage where you have programmable control over the color of a screen location is fragment shading. In this shader stage, you use a shader to determine the fragment’s final color (although the next stage, per-fragment operations, can modify the color one last time) and potentially its depth value. Fragment shaders are very powerful, as they often employ texture mapping to augment the colors provided by the vertex processing stages. A fragment shader may also terminate processing a fragment if it determines the fragment shouldn’t be drawn; this process is called fragment discard. A helpful way of thinking about the difference between shaders that deal with vertices and fragment shaders is this: vertex shading (including tessellation and geometry shading) determines where on the screen a primitive is, while fragment shading uses that information to determine what color that fragment will be.
   * - Per-Fragment Operations
