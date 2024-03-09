@@ -223,7 +223,7 @@ The flow for 3D/2D graphic processing as :numref:`opengl_flow`.
 
               B      B    A     A
 
-- Double Buffering and VSync
+- Double Buffering
 
   While the display is reading from the frame buffer to display the current 
   frame, we might be updating its contents for the next frame (not necessarily 
@@ -235,6 +235,8 @@ The flow for 3D/2D graphic processing as :numref:`opengl_flow`.
   frame to the back buffer. When we finish, we signal to GPU to swap the front 
   and back buffer (known as buffer swap or page flip).
 
+- VSync
+
   Double buffering alone does not solve the entire problem, as the buffer swap 
   might occur at an inappropriate time, for example, while the display is in 
   the middle of displaying the old frame. This is resolved via the so-called 
@@ -242,7 +244,7 @@ The flow for 3D/2D graphic processing as :numref:`opengl_flow`.
   When we signal to the GPU to do a buffer swap, the GPU will wait till the next
   VSync to perform the actual swap, after the entire current frame is displayed.
 
-  As above console.
+  As above text digram.
   The most important point is: When the VSync buffer-swap is enabled, you cannot 
   refresh the display faster than the refresh rate of the display!!! 
   If GPU is capable of producing higher frame rates than the display's 
@@ -263,8 +265,15 @@ The flow for 3D/2D graphic processing as :numref:`opengl_flow`.
   and reducing stutter for when the frame rate is both higher and lower than 
   the refresh rate of the display. This makes it perfect for situations where 
   the frame rate varies, which happens a lot when gaming. 
-  Today, you can even find G-SYNC technology in gaming laptops! [#g-sync]_
+  Today, you can even find G-SYNC technology in gaming laptops!
 
+  AMD has a similar solution called FreeSync. However, this doesn’t require a 
+  proprietary chip in the monitor. 
+  In FreeSync, the AMD Radeon driver, and the display firmware handle the 
+  communication. 
+  Generally, FreeSync monitors are less expensive than their G-SYNC counterparts,
+  but gamers generally prefer G-SYNC over FreeSync as the latter may cause 
+  ghosting, where old images leave behind artifacts [#g-sync]_.
 
 Basic geometry in computer graphics
 -----------------------------------
