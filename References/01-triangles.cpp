@@ -24,7 +24,8 @@ const GLuint  NumVertices = 6;
 void
 init( void )
 {
-    glGenVertexArrays( NumVAOs, VAOs );
+    glGenVertexArrays( NumVAOs, VAOs ); // Same with glCreateVertexArray( NumVAOs, VAOs ); 
+      // https://stackoverflow.com/questions/24441430/glgen-vs-glcreate-naming-convention
     // Make the new VAO:VAOs[Triangles] active, creating it if necessary.
     glBindVertexArray( VAOs[Triangles] );
     // opengl->current_array_buffer = VAOs[Triangles]
@@ -65,6 +66,7 @@ init( void )
     glVertexAttribPointer( vPosition, 2, GL_FLOAT,
                            GL_FALSE, 0, BUFFER_OFFSET(0) );
     glEnableVertexAttribArray( vPosition );
+    // Above two functions specify vPosition to vertex shader at layout (location = 0)
 }
 
 //----------------------------------------------------------------------------

@@ -551,6 +551,16 @@ Init():
 
 - Generate Vertex Array VAOs and bind VAOs[0].
 
+  (glGenVertexArrays( NumVAOs, VAOs ); glBindVertexArray( VAOs[Triangles] ); 
+  glCreateBuffers( NumBuffers, Buffers );)
+  A vertex-array object holds various data related to a collection of vertices. 
+  Those data are stored in buffer objects and managed by the currently bound 
+  vertex-array object. 
+
+  - glBindBuffer( GL_ARRAY_BUFFER, Buffers[ArrayBuffer] );
+    
+    Because there are many different places where buffer objects can be in OpenGL, when we bind a buffer, we need to specify which what we’d like to use it for. In our example, because we’re storing vertex data into the buffer, we use GL_ARRAY_BUFFER. The place where the buffer is bound is known as the binding target. 
+
 - According counter clockwise rule in previous section, Triangle Primitives are
   defined in varaible vertices. After binding OpenGL 
   VBO Buffers[0] to vertices, vertices data will send to memory of 
