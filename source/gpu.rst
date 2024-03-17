@@ -22,8 +22,11 @@ CPU through GPGPU concept and related standards emerged.
 
 Webiste, Basic theory of 3D graphics with OpenGL, [#cg_basictheory]_.
 
+Concept in graphic and system
+-----------------------------
+
 3D modeling
-------------
+~~~~~~~~~~~
 
 Through creating 3D model with Triangles or Quads along on skin, the 3D model
 is created with polygon mesh [#polygon]_ formed by all the vertices on the first image 
@@ -112,7 +115,7 @@ and Alembic [#3dfmt]_.
 
 
 Graphic SW stack
-----------------
+~~~~~~~~~~~~~~~~
 
 The role of CPU and GPU for graphic animation as :numref:`graphic_cpu_gpu`.
 
@@ -276,7 +279,7 @@ The flow for 3D/2D graphic processing as :numref:`opengl_flow`.
   ghosting, where old images leave behind artifacts [#g-sync]_.
 
 Basic geometry in computer graphics
------------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 - Additive colors in light as :numref:`additive-colors` [#additive-colors-wiki]_  
   [#additive-colors-ytube]_. If in paints, it adds shade and become light grey
@@ -533,6 +536,9 @@ For group of objects, scene graph provides better animation and saving memory
 OpenGL
 ------
 
+Example of OpenGL program
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
 The following example from openGL redbook and example code [#redbook]_ 
 [#redbook-examples]_.
 
@@ -661,7 +667,7 @@ the GPU (once per vertex)! We can also expect all 6 instances of the shader to
 be executed in parallel, since a GPU have so many cores.
 
 3D Rendering
-------------
+~~~~~~~~~~~~
 
 Based on the previous section of 3D modeling, the 3D modeling tool will generate
 3D vertex model and OpenGL code, then programmers may hand-change OpenGL code and
@@ -764,7 +770,7 @@ face(flame) from time to time [#2danimation]_.
 
 
 GLSL (GL Shader Language)
--------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~
 
 OpenGL is a standard for designing 2D/3D animation in computer graphic.
 To do animation well, OpenGL provides a lots of api(functions) call for
@@ -846,7 +852,7 @@ hardware replacement [#onlinecompile]_.
 
 
 OpenGL Shader compiler
------------------------
+~~~~~~~~~~~~~~~~~~~~~~
 
 OpenGL standard is here [#openglspec]_. The OpenGL is for desktop computer or server
 while the OpenGL ES is for embedded system [#opengleswiki]_. Though shaders are only
@@ -1213,8 +1219,65 @@ a GPU shader for return values, can create a GPGPU framework [#gpgpuwiki]_.
       lanes (number of functional units just same as in vector processor). 
       So it takes 2 clock cycles to (chime is 2 clock cycles) complete [#lanes]_.
 
+Mapping data in GPU
+~~~~~~~~~~~~~~~~~~~
+
 A GPU may has the HW structure and handle the subset of y[]=a*x[]+y[] array-calculation as follows,
 
+.. code:: text
+
+  // Invoke DAXPY with 256 threads per Thread Block
+  __host__
+  int nblocks = (n+ 255) / 256;
+  daxpy<<<nblocks, 256>>>(n, 2.0, x, y);
+  // DAXPY in CUDA
+  __device__
+  void daxpy(int n, double a, double *x, double *y) {
+    int i = blockIdx.x*blockDim.x + threadIdx.x;
+    if (i < n) y[i] = a*x[i] + y[i];
+  }
+
+.. code:: text
+
+  shl.u32 R8, blockIdx, 9   ; Thread Block ID * Block size (512 or 29)
+  add.u32 R8, R8, threadIdx ; R8 = i = my CUDA Thread ID
+  shl.u32 R8, R8, 3         ; byte offset
+  ld.global.f64 RD0, [X+R8] ; RD0 = X[i]
+  ld.global.f64 RD2, [Y+R8] ; RD2 = Y[i]
+  mul.f64 RD0, RD0, RD4     ; Product in RD0 = RD0 * RD4 (scalar a)
+  add.f64 RD0, RD0, RD2     ; SuminRD0 = RD0 + RD2 (Y[i])
+  st.global.f64 [Y+R8], RD0 ; Y[i] = sum (X[i]*a + Y[i])
+
+The following table explains how the elemements of saxpy() maps to lane of SIMD 
+Thread(Warp) of Thread Block(Core) of Grid.
+
+.. list-table:: Mapping saxpy code to :numref:`grid`.
+  :widths: 8 17 55
+  :header-rows: 1
+
+  * - saxpy(()
+    - Instance in :numref:`grid`
+    - Description
+  * - blockDim.x
+    - The index of Thread Block
+    - blockDim: in this example configured as :numref:`grid` is 16(Thread Blocks) * 16(SIDM Threads) = 256
+  * - blockIdx.x
+    - The index of SIMD Thread
+    - blockIdx: the index of Thread Block within the Grid
+  * - threadIdx.x
+    - The index of elements
+    - threadIdx: the index of the SIMD Thread within its Thread Block
+
+- With Fermi, each 32-wide thread of SIMD instructions is mapped to 16 physical 
+  SIMD Lanes, so each SIMD instruction in a thread of SIMD instructions takes 
+  two clock cycles to complete.
+
+- You could say that it has 16 lanes, the vector length would be 32, and the 
+  chime is 2 clock cycles.
+
+- The mape of y[0..31] = a * x[0..31] * y[0..31] to <Core, Warp, Cuda Thread> 
+  of GPU as the following table. x[0..31] map to 32 Cuda Threads; two Cuda
+  Thread map to one SIMD lane.
 
 .. table:: Map (Core,Warp) to saxpy
 
@@ -1240,8 +1303,19 @@ A GPU may has the HW structure and handle the subset of y[]=a*x[]+y[] array-calc
   a two dimensions of tile of fragments/pixels at pixel[0..3][0..3] since image
   uses tile base for grouping closest color together.
 
-The following is a CUDA example to run large data in array on GPU [#cudaex]_ 
+Work between CPU and GPU in Cuda
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Above daxpy() GPU code did not mention the host (CPU) side of code for triggering
+GPU's function.
+The following is host (CPU) side of a CUDA example to call saxpy on GPU [#cudaex]_ 
 as follows,
+
+.. code:: text
+
+  for(i=0;i<64; i=i+1)
+    if (X[i] != 0)
+      X[i] = X[i] – Y[i];
 
 .. code-block:: c++
 
@@ -1258,50 +1332,19 @@ as follows,
     cudaMemcpy(d_x, x, N*sizeof(float), cudaMemcpyHostToDevice);
     cudaMemcpy(d_y, y, N*sizeof(float), cudaMemcpyHostToDevice);
     ...
+    saxpy<<<(N+255)/256, 256>>>(N, 2.0, d_x, d_y);
+    ...
     cudaMemcpy(y, d_y, N*sizeof(float), cudaMemcpyDeviceToHost);
     ...
   }
 
-The following table explains how the elemements of saxpy() maps to lane of SIMD Thread(Warp) of Thread Block(Core) of Grid.
-
-.. list-table:: Mapping saxpy code to :numref:`grid`.
-  :widths: 8 17 55
-  :header-rows: 1
-
-  * - saxpy(()
-    - Instance in :numref:`grid`
-    - Description
-  * - blockDim.x
-    - The index of Thread Block
-    - blockDim: in this example configured as :numref:`grid` is 16(Thread Blocks) * 16(SIDM Threads) = 256
-  * - blockIdx.x
-    - The index of SIMD Thread
-    - blockIdx: the index of Thread Block within the Grid
-  * - threadIdx.x
-    - The index of elements
-    - threadIdx: the index of the SIMD Thread within its Thread Block
-
-.. _volta-1: 
-.. figure:: ../Fig/gpu/volta-1.png
-  :align: center
-  :scale: 50 %
-
-  Volta Warp with Per-Thread Program Counter and Call Stack [#Volta]_
-
-.. _volta-2: 
-.. figure:: ../Fig/gpu/volta-2.png
-  :align: center
-  :scale: 50 %
-
-  Programs use Explicit Synchronization to Reconverge Threads in a Warp [#Volta]_
-
-- After Volta GPU of Nvidia, each thread in Warp has it's own PC as 
-  :numref:`volta-1`. In Cuda Applications, this feature provides more parallel 
-  opportunities with __syncwarp() to user programmers as :numref:`volta-2`.
-
-The main() run on CPU while the saxpy() run on GPU. Through 
-cudaMemcpyHostToDevice and cudaMemcpyDeviceToHost, CPU can pass data in x and y
-arrays to GPU and get result from GPU to y array. 
+The main() run on CPU while the saxpy() run on GPU. 
+CPU copy the data from x and y to the corresponding device arrays d_x and d_y 
+using cudaMemcpy.
+The saxpy kernel is launched by the statement: 
+saxpy<<<(N+255)/256, 256>>>(N, 2.0, d_x, d_y);
+Through cudaMemcpyHostToDevice and cudaMemcpyDeviceToHost, CPU can pass data in 
+x and y arrays to GPU and get result from GPU to y array. 
 Since both of these memory transfers trigger the DMA functions without CPU operation,
 it may speed up by running both CPU/GPU with their data in their own cache 
 repectively.
@@ -1310,12 +1353,6 @@ operation for "y[] = a*x[]+y[];"
 instructions with one Grid. Furthermore like vector processor, gpu provides
 Vector Mask Registers to Handling IF Statements in Vector Loops as the following 
 code [#VMR]_,
-
-.. code:: text
-
-  for(i=0;i<64; i=i+1)
-    if (X[i] != 0)
-      X[i] = X[i] – Y[i];
 
 
 .. code:: asm
@@ -1376,6 +1413,39 @@ compressing [#gpuspeedup]_ gives the more applications for GPU acceleration.
   cache-miss with scheduline another thread. So, GPU may has no L2 and L3 while
   CPU has deep level of caches.
 
+Volta (Cuda thread/SIMD lane with PC, Program Couner and Call Stack)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Todo: According the assembly of dapxy(), this is not useful. Why is this existed?
+
+One way the compiler handles this is by keeping executing
+instructions in order and if some threads don’t have to execute certain instructions it switches off those threads and turns them
+on their relevant instructions and switches off the other threads, this process is called masking.
+
+.. _pre-volta-1: 
+.. figure:: ../Fig/gpu/pre-volta-1.png
+  :align: center
+  :scale: 50 %
+
+  SIMT Warp Execution Model of Pascal and Earlier GPUs [#Volta]_
+
+.. _volta-1: 
+.. figure:: ../Fig/gpu/volta-1.png
+  :align: center
+  :scale: 50 %
+
+  Volta Warp with Per-Thread Program Counter and Call Stack [#Volta]_
+
+.. _volta-2: 
+.. figure:: ../Fig/gpu/volta-2.png
+  :align: center
+  :scale: 50 %
+
+  Programs use Explicit Synchronization to Reconverge Threads in a Warp [#Volta]_
+
+- After Volta GPU of Nvidia, each thread in Warp has it's own PC as 
+  :numref:`volta-1`. In Cuda Applications, this feature provides more parallel 
+  opportunities with __syncwarp() to user programmers as :numref:`volta-2`.
 
 Vulkan and spir-v
 -----------------
