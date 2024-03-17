@@ -61,7 +61,13 @@ https://github.com/Jonathan2251/lbd/blob/master/README.md
 Revision history
 ----------------
 
-Version 12.0.15, not released yet.
+Version 12.0.16, not released yet.
+
+Version 12.0.15, Released March 16, 2024.
+
+  llvmstructure.rst: table: C, llvm-ir and Cpu0. 
+  gpu.rst: glsl-spirv.gv, AMD FreeSync, Fragment definition, comment for 
+  References/01-triangles.cpp, Refine sections and sub-sections.
 
 Version 12.0.14, Released December 30, 2023.
 
