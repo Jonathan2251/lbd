@@ -117,6 +117,8 @@ and Alembic [#3dfmt]_.
 Graphic SW stack
 ~~~~~~~~~~~~~~~~
 
+- https://en.wikipedia.org/wiki/Free_and_open-source_graphics_device_driver
+
 The role of CPU and GPU for graphic animation as :numref:`graphic_cpu_gpu`.
 
 .. _graphic_cpu_gpu: 
@@ -130,6 +132,12 @@ The role of CPU and GPU for graphic animation as :numref:`graphic_cpu_gpu`.
 - GPU can't directly read user input from, say, keyboard, mouse, gamepad, or 
   play audio, or load files from a hard drive, or anything like that. In this
   situation, cannot let GPU handle the animation work [#cpu-gpu-role]_. 
+
+- A graphics driver consists of an implementation of the OpenGL state machine 
+  and a compilation stack to compile the shaders into the GPU's machine language. 
+  This compilation, as well as pretty much anything else, is executed on the CPU, 
+  then the compiled shaders are sent to the GPU and are executed by it. 
+  (SDL = Simple DirectMedia Layer) [#mesawiki]_.
 
 The driver run on CPU side as :numref:`graphic_sw_stack`. 
 The OpenGL Api will call
@@ -172,6 +180,9 @@ than CPU.
 - In addition, OpenGL provides vertex buffer object (VBO) allowing 
   vertex array data to be stored in high-performance graphics memory on the 
   server side and promotes efficient data transfer [#vbo]_ [#classorvbo]_.
+
+- 3D animation SW provides a lot of builtin shaders. Programmer can write
+  their shaders to the game engine.
 
 The flow for 3D/2D graphic processing as :numref:`opengl_flow`.
 
