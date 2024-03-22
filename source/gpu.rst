@@ -1416,8 +1416,6 @@ compressing [#gpuspeedup]_ gives the more applications for GPU acceleration.
 Volta (Cuda thread/SIMD lane with PC, Program Couner and Call Stack)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Todo: According the assembly of dapxy(), this is not useful. Why is this existed?
-
 One way the compiler handles this is by keeping executing
 instructions in order and if some threads don’t have to execute certain instructions it switches off those threads and turns them
 on their relevant instructions and switches off the other threads, this process is called masking.
@@ -1436,16 +1434,46 @@ on their relevant instructions and switches off the other threads, this process 
 
   Volta Warp with Per-Thread Program Counter and Call Stack [#Volta]_
 
+- After Volta GPU of Nvidia, each thread in Warp has it's own PC as 
+  :numref:`volta-1`. 
+
+.. code:: text
+
+  // 
+  __device__ void insert_after(Node *a, Node *b)
+  {
+    Node *c;
+    lock(a); lock(a->next);
+    ...
+    unlock(c); unlock(a);
+  }
+
+- Volta’s independent thread scheduling allows the GPU to yield execution of 
+  any thread, either to make better use of execution resources or to allow 
+  one thread to wait for data to be produced by another.
+  As above example [#Volta]_, each thread can progress with it's own PC. So,
+  the different threads in the same Warp can run insert_ater() function 
+  in dependently without waiting lock().
+
+- Provide both thread in group efficency and independently thread progression.
+
+  Beside each thread in same Warp can progress independently as above,
+  To maximize parallel efficiency, Volta includes a schedule optimizer which 
+  determines how to group active threads from the same warp together into SIMT 
+  units. This retains the high throughput of SIMT execution as in prior NVIDIA 
+  GPUs, but with much more flexibility: threads can now diverge and reconverge 
+  at sub-warp granularity, while the convergence optimizer in Volta will still 
+  group together threads which are executing the same code and run them in 
+  parallel for maximum efficiency.
+  In Cuda Applications, this feature provides more parallel 
+  opportunities with __syncwarp() to user programmers as :numref:`volta-2`.
+
 .. _volta-2: 
 .. figure:: ../Fig/gpu/volta-2.png
   :align: center
   :scale: 50 %
 
   Programs use Explicit Synchronization to Reconverge Threads in a Warp [#Volta]_
-
-- After Volta GPU of Nvidia, each thread in Warp has it's own PC as 
-  :numref:`volta-1`. In Cuda Applications, this feature provides more parallel 
-  opportunities with __syncwarp() to user programmers as :numref:`volta-2`.
 
 Vulkan and spir-v
 -----------------
