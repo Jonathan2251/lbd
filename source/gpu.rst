@@ -292,6 +292,15 @@ The flow for 3D/2D graphic processing as :numref:`opengl_flow`.
 Basic geometry in computer graphics
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+This section instroduces the basic geometry math for computer graphics. 
+The complete concept can be found in
+Book: "Computer graphics principles and practice 3rd editon, authors: JOHN F, 
+...". But it is 1 thousand of pages.
+This book is very complete and may take much time to understand every detail.
+
+Color
++++++
+
 - Additive colors in light as :numref:`additive-colors` [#additive-colors-wiki]_  
   [#additive-colors-ytube]_. If in paints, it adds shade and become light grey
   since it add shade (dark color) [#additive-colors-shade]_.
@@ -303,9 +312,12 @@ Basic geometry in computer graphics
 
   Additive colors in light
 
+Transformation
+++++++++++++++
 
+- Rotation: https://en.wikipedia.org/wiki/Rotation_matrix
 
-This section instroduces the basic geometry math for computer graphics. Every 
+Every 
 computer graphics book has provided topics of transformation of object and 
 position in space. Chapter 4 of Blue book: OpenGL SuperBible 7th Edition give
 a short description (40 pages) and useful concept is a good material for 
@@ -317,10 +329,8 @@ product) from Wiki [#wiki-quaternion]_ since the book miss this.
   \mathbf ij = -ji = k, jk = -kj = i, ki = -ik = j.
 
 
-The complete concept can be found in
-Book: "Computer graphics principles and practice 3rd editon, authors: JOHN F, 
-...". But it is 1 thousand of pages.
-This book is very complete and may take much time to understand every detail.
+Cross product
++++++++++++++
 
 Both Triangles or Quads are ploygon. So, objects can be formed with ploygon in
 both 2D and 3D. About transfermation in 2D or 3D, almost every book of computer 
@@ -328,7 +338,7 @@ graphics has mentioned well already. This section introduces the most important
 concept and method for deciding Inner and Outer planes, then a point or object
 can be checked for showing or hidding during 2D or 3D rendering.
 
-Any area of polygon can be calculated by dividing into Triangles or Quads. And
+Any **area** of polygon can be calculated by dividing into Triangles or Quads. And
 any area of Triangle or Quad can be calculated by cross product in 3D.
 The cross product in **3D** is defined by the formula and can be represented with 
 matrix notation as proved here [#cross-product-wiki]_.
