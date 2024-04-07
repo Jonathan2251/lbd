@@ -315,7 +315,9 @@ Color
 Transformation
 ++++++++++++++
 
-- Rotation: https://en.wikipedia.org/wiki/Rotation_matrix
+Objects (Triangle/Quad) can be moved in 2D/3D with martix representation in wiki 
+here [#wiki-transformation]_. The rotation matrix in wiki is derived from wiki
+here [#wiki-rotation]_.
 
 Every 
 computer graphics book has provided topics of transformation of object and 
@@ -328,6 +330,20 @@ product) from Wiki [#wiki-quaternion]_ since the book miss this.
 
   \mathbf ij = -ji = k, jk = -kj = i, ki = -ik = j.
 
+Projection
+++++++++++
+
+.. _ViewFrustum: 
+.. figure:: ../Fig/gpu/ViewFrustum.png
+  :align: center
+  :scale: 15 %
+
+Only objects in the cone between near and far planes are projected to 2D for 
+prospective projection..
+
+Prospective projection and orthographic projection (used in CAD tools) from 3D
+to 2D can be represented by transformation matrix in the previous section 
+[#wiki-prospective-projection]_.
 
 Cross product
 +++++++++++++
@@ -1630,7 +1646,13 @@ Open Sources
 
 .. [#additive-colors-shade] https://www.tiktok.com/@tonesterpaints/video/7059565281227853102
 
+.. [#wiki-transformation] https://en.wikipedia.org/wiki/Transformation_matrix
+
+.. [#wiki-rotation] https://en.wikipedia.org/wiki/Rotation_matrix
+
 .. [#wiki-quaternion] https://en.wikipedia.org/wiki/Quaternion
+
+.. [#wiki-prospective-projection] https://en.wikipedia.org/wiki/3D_projection#Perspective_projection
 
 .. [#cross-product-wiki] https://en.wikipedia.org/wiki/Cross_product
 
