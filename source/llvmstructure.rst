@@ -1476,45 +1476,18 @@ represented in DAG.
 Many important techniques for local optimization begin by transforming a basic 
 block into DAG [#dragonbooks-8.5]_. 
 For example, the basic block code and it's corresponding DAG as 
-:numref:`llvmstructure-dag-one-dest`.
+:numref:`llvmstructure-dag-ex`.
 
-.. code:: text
-
-  a = b + c
-  b = a - d
-  c = b + c
-  d = a - d
-
-.. _llvmstructure-dag-one-dest: 
-.. graphviz:: ../Fig/llvmstructure/dag-one-dest.gv
-   :caption: One destionation register of DAG example
+.. _llvmstructure-dag-ex: 
+.. graphviz:: ../Fig/llvmstructure/dag-ex.gv
+   :caption: The left includes two destination register of DAG example and the 
+             right has one destination only
 
 DAG and SSA are allowed for two destination virtual registers.
 Assume ediv operation provides divide on interger which save quotient in "a" and
-remainder in "d" as the following code. The DAG as 
-:numref:`llvmstructure-dag-two-dest`
-
-.. code:: text
-
-  a,d = b ediv c // ediv: a=b/c, d=b%c
-  b = a - d
-  c = b + c
-  d = a - d
-
-.. _llvmstructure-dag-two-dest: 
-.. graphviz:: ../Fig/llvmstructure/dag-two-dest.gv
-   :caption: Two destination register of DAG example
-
-For one destination register, DAG may simplify as :numref:`llvmstructure-f10`.
-
-.. _llvmstructure-f10: 
-.. figure:: ../Fig/llvmstructure/10.png
-  :width: 474 px
-  :height: 178 px
-  :scale: 80 %
-  :align: center
-
-  Simplify DAG representation
+remainder in "d".
+For one destination register, DAG may simplify as the right of 
+:numref:`llvmstructure-dag-ex`.
 
 If b is not live on exit from the block, then we can do "common expression 
 remove" as the following table.
