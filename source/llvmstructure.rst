@@ -953,7 +953,7 @@ they provide the "Machine Code Generator" for development, as
 
 .. _llvmstructure_frontendTblGen:
 .. graphviz:: ../Fig/llvmstructure/frontendTblGen.gv
-  :caption: Front TableGen Flow
+  :caption: Frontend TableGen Flow
 
 .. _llvmstructure_llvmTblGen:
 .. graphviz:: ../Fig/llvmstructure/llvmTblGen.gv
