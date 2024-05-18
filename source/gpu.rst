@@ -1237,7 +1237,7 @@ a GPU shader for return values, can create a GPGPU framework [#gpgpuwiki]_.
       has its PC [#wiki_tbcp]_.
   * - SIMD Thread
     - Warp 
-    - Each Warp has 16 Cuda Thread. 
+    - Each SIMD Processor has 16 SIMD Threads. 
     - Warp has it's own PC and TLR (Thread Level Registers). Warp may map to
       one whole function or part of function. Compiler and run time may assign
       them to the same Warp or different Warps [#Quantitative-gpu-warp]_.
