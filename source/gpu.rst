@@ -139,6 +139,22 @@ The role of CPU and GPU for graphic animation as :numref:`graphic_cpu_gpu`.
   then the compiled shaders are sent to the GPU and are executed by it. 
   (SDL = Simple DirectMedia Layer) [#mesawiki]_.
 
+.. _graphic_gpu_csf: 
+.. figure:: ../Fig/gpu/graphic-gpu-csf.png
+  :align: center
+  :scale: 50 %
+
+  MCU and specific HW circuits to speedup the processing of CSF 
+  (Command Stream Fronted) [#csf]_.
+
+The GPU driver write command and data from CPU to GPU's system memory through 
+PCIe. These commands are called Command Stream Fronted (CSF) in the memory of 
+GPU. A chipset of GPU includes tens of SIMD processors (cores). In order to
+speedup the GPU driver's processing, the CSF is designed to a simpler form.
+As result, GPU chipset include MCU (Micro Chip Unit) and specfic HW to transfer
+the CSF into individual data structure for each SIMD processor to execute as 
+:numref:`graphic_gpu_csf`, 
+
 The driver run on CPU side as :numref:`graphic_sw_stack`. 
 The OpenGL Api will call
 driver's function eventually and driver finish the function's work via issuing
@@ -1629,6 +1645,8 @@ Open Sources
 .. [#ogl-cpu-gpu] https://en.wikipedia.org/wiki/Vulkan
 
 .. [#cpu-gpu-role] https://stackoverflow.com/questions/47426655/cpu-and-gpu-in-3d-game-whos-doing-what
+
+.. [#csf] https://developer.arm.com/documentation/102813/0107/GPU-activity
 
 .. [#gpu-firmware-jobs] https://antonelly.com.co/do-gpus-have-firmware/#:~:text=Providing%20access%20to%20new%20features,drivers%20during%20the%20boot%20process
 
