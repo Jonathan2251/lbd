@@ -153,13 +153,13 @@ GPU. A chipset of GPU includes tens of SIMD processors (cores). In order to
 speedup the GPU driver's processing, the CSF is designed to a simpler form.
 As result, GPU chipset include MCU (Micro Chip Unit) and specfic HW to transfer
 the CSF into individual data structure for each SIMD processor to execute as 
-:numref:`graphic_gpu_csf`, 
+:numref:`graphic_gpu_csf`. The firmware version of MCU is updated by MCU itself
+usually.
 
 The driver run on CPU side as :numref:`graphic_sw_stack`. 
 The OpenGL Api will call
 driver's function eventually and driver finish the function's work via issuing
-GPU-HW's command and/or sending data to GPU. GPU's firmware only manage clock,
-voltage, power comsumption, ..., etc [#gpu-firmware-jobs]_.
+GPU-HW's command and/or sending data to GPU.
 Even so, GPU's rendor work from the data of 3D vertex, colors, ... sending from 
 CPU and storing in GPU's memory or shared memory consume more computing power
 than CPU.
@@ -1646,9 +1646,9 @@ Open Sources
 
 .. [#cpu-gpu-role] https://stackoverflow.com/questions/47426655/cpu-and-gpu-in-3d-game-whos-doing-what
 
-.. [#csf] https://developer.arm.com/documentation/102813/0107/GPU-activity
+.. [#mesawiki] https://en.wikipedia.org/wiki/Mesa_(computer_graphics)
 
-.. [#gpu-firmware-jobs] https://antonelly.com.co/do-gpus-have-firmware/#:~:text=Providing%20access%20to%20new%20features,drivers%20during%20the%20boot%20process
+.. [#csf] https://developer.arm.com/documentation/102813/0107/GPU-activity
 
 .. [#libclc] https://libclc.llvm.org
 
@@ -1757,8 +1757,6 @@ Open Sources
 .. [#descriptorreg] When performing a texture fetch, the addresses to read pixel data from are computed by reading the GPRs that hold the texture descriptor and the GPRs that hold the texture coordinates. It's mostly just general purpose memory fetching. https://www.gamedev.net/forums/topic/681503-texture-units/ 
 
 .. [#texturewrapper] https://learnopengl.com/Getting-started/Textures
-
-.. [#mesawiki] https://en.wikipedia.org/wiki/Mesa_(computer_graphics)
 
 .. [#mesa] https://www.mesa3d.org/
 
