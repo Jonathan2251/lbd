@@ -953,7 +953,7 @@ they provide the "Machine Code Generator" for development, as
 
 .. _llvmstructure_frontendTblGen:
 .. graphviz:: ../Fig/llvmstructure/frontendTblGen.gv
-  :caption: Front TableGen Flow
+  :caption: Frontend TableGen Flow
 
 .. _llvmstructure_llvmTblGen:
 .. graphviz:: ../Fig/llvmstructure/llvmTblGen.gv
@@ -1220,7 +1220,8 @@ changed from time to time.
 SSA form
 ~~~~~~~~
 
-SSA form says that each variable is assigned exactly once. 
+SSA form says that each variable is assigned exactly once. One instruction
+in SSA form can have more than one destination virtual register.
 LLVM IR is SSA form which has unbounded virtual registers (each variable is 
 assigned exactly once and is keeped in different virtual register).
 As the result, the optimization steps used in code generation sequence which 
@@ -1475,16 +1476,18 @@ represented in DAG.
 Many important techniques for local optimization begin by transforming a basic 
 block into DAG [#dragonbooks-8.5]_. 
 For example, the basic block code and it's corresponding DAG as 
-:numref:`llvmstructure-f10`.
+:numref:`llvmstructure-dag-ex`.
 
-.. _llvmstructure-f10: 
-.. figure:: ../Fig/llvmstructure/10.png
-  :width: 474 px
-  :height: 178 px
-  :scale: 80 %
-  :align: center
+.. _llvmstructure-dag-ex: 
+.. graphviz:: ../Fig/llvmstructure/dag-ex.gv
+   :caption: The left includes two destination register of DAG example and the 
+             right has one destination only
 
-  DAG example
+DAG and SSA are allowed for two destination virtual registers.
+Assume ediv operation provides divide on interger which save quotient in "a" and
+remainder in "d".
+For one destination register, DAG may simplify as the right of 
+:numref:`llvmstructure-dag-ex`.
 
 If b is not live on exit from the block, then we can do "common expression 
 remove" as the following table.

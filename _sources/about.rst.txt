@@ -63,6 +63,12 @@ Revision history
 
 Version 12.0.16, not released yet.
 
+Version 12.0.15.1, Released May 31, 2024.
+
+  gpu.rst: opengl-flow.gv, explanation of Vota, rotation, section Transformation,
+  graphic-gpu-csf.png.
+  llvmstructure.rst: DAG for two destination registers.
+
 Version 12.0.15, Released March 16, 2024.
 
   llvmstructure.rst: table: C, llvm-ir and Cpu0. 

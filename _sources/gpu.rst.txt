@@ -117,6 +117,8 @@ and Alembic [#3dfmt]_.
 Graphic SW stack
 ~~~~~~~~~~~~~~~~
 
+- https://en.wikipedia.org/wiki/Free_and_open-source_graphics_device_driver
+
 The role of CPU and GPU for graphic animation as :numref:`graphic_cpu_gpu`.
 
 .. _graphic_cpu_gpu: 
@@ -131,11 +133,33 @@ The role of CPU and GPU for graphic animation as :numref:`graphic_cpu_gpu`.
   play audio, or load files from a hard drive, or anything like that. In this
   situation, cannot let GPU handle the animation work [#cpu-gpu-role]_. 
 
+- A graphics driver consists of an implementation of the OpenGL state machine 
+  and a compilation stack to compile the shaders into the GPU's machine language. 
+  This compilation, as well as pretty much anything else, is executed on the CPU, 
+  then the compiled shaders are sent to the GPU and are executed by it. 
+  (SDL = Simple DirectMedia Layer) [#mesawiki]_.
+
+.. _graphic_gpu_csf: 
+.. figure:: ../Fig/gpu/graphic-gpu-csf.png
+  :align: center
+  :scale: 50 %
+
+  MCU and specific HW circuits to speedup the processing of CSF 
+  (Command Stream Fronted) [#csf]_.
+
+The GPU driver write command and data from CPU to GPU's system memory through 
+PCIe. These commands are called Command Stream Fronted (CSF) in the memory of 
+GPU. A chipset of GPU includes tens of SIMD processors (cores). In order to
+speedup the GPU driver's processing, the CSF is designed to a simpler form.
+As result, GPU chipset include MCU (Micro Chip Unit) and specfic HW to transfer
+the CSF into individual data structure for each SIMD processor to execute as 
+:numref:`graphic_gpu_csf`. The firmware version of MCU is updated by MCU itself
+usually.
+
 The driver run on CPU side as :numref:`graphic_sw_stack`. 
 The OpenGL Api will call
 driver's function eventually and driver finish the function's work via issuing
-GPU-HW's command and/or sending data to GPU. GPU's firmware only manage clock,
-voltage, power comsumption, ..., etc [#gpu-firmware-jobs]_.
+GPU-HW's command and/or sending data to GPU.
 Even so, GPU's rendor work from the data of 3D vertex, colors, ... sending from 
 CPU and storing in GPU's memory or shared memory consume more computing power
 than CPU.
@@ -172,6 +196,9 @@ than CPU.
 - In addition, OpenGL provides vertex buffer object (VBO) allowing 
   vertex array data to be stored in high-performance graphics memory on the 
   server side and promotes efficient data transfer [#vbo]_ [#classorvbo]_.
+
+- 3D animation SW provides a lot of builtin shaders. Programmer can write
+  their shaders to the game engine.
 
 The flow for 3D/2D graphic processing as :numref:`opengl_flow`.
 
@@ -281,6 +308,15 @@ The flow for 3D/2D graphic processing as :numref:`opengl_flow`.
 Basic geometry in computer graphics
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+This section instroduces the basic geometry math for computer graphics. 
+The complete concept can be found in
+Book: "Computer graphics principles and practice 3rd editon, authors: JOHN F, 
+...". But it is 1 thousand of pages.
+This book is very complete and may take much time to understand every detail.
+
+Color
++++++
+
 - Additive colors in light as :numref:`additive-colors` [#additive-colors-wiki]_  
   [#additive-colors-ytube]_. If in paints, it adds shade and become light grey
   since it add shade (dark color) [#additive-colors-shade]_.
@@ -292,9 +328,14 @@ Basic geometry in computer graphics
 
   Additive colors in light
 
+Transformation
+++++++++++++++
 
+Objects (Triangle/Quad) can be moved in 2D/3D with martix representation in wiki 
+here [#wiki-transformation]_. The rotation matrix in wiki is derived from wiki
+here [#wiki-rotation]_.
 
-This section instroduces the basic geometry math for computer graphics. Every 
+Every 
 computer graphics book has provided topics of transformation of object and 
 position in space. Chapter 4 of Blue book: OpenGL SuperBible 7th Edition give
 a short description (40 pages) and useful concept is a good material for 
@@ -305,11 +346,23 @@ product) from Wiki [#wiki-quaternion]_ since the book miss this.
 
   \mathbf ij = -ji = k, jk = -kj = i, ki = -ik = j.
 
+Projection
+++++++++++
 
-The complete concept can be found in
-Book: "Computer graphics principles and practice 3rd editon, authors: JOHN F, 
-...". But it is 1 thousand of pages.
-This book is very complete and may take much time to understand every detail.
+.. _ViewFrustum: 
+.. figure:: ../Fig/gpu/ViewFrustum.png
+  :align: center
+  :scale: 15 %
+
+Only objects in the cone between near and far planes are projected to 2D for 
+prospective projection..
+
+Prospective projection and orthographic projection (used in CAD tools) from 3D
+to 2D can be represented by transformation matrix in the previous section 
+[#wiki-prospective-projection]_.
+
+Cross product
++++++++++++++
 
 Both Triangles or Quads are ploygon. So, objects can be formed with ploygon in
 both 2D and 3D. About transfermation in 2D or 3D, almost every book of computer 
@@ -317,7 +370,7 @@ graphics has mentioned well already. This section introduces the most important
 concept and method for deciding Inner and Outer planes, then a point or object
 can be checked for showing or hidding during 2D or 3D rendering.
 
-Any area of polygon can be calculated by dividing into Triangles or Quads. And
+Any **area** of polygon can be calculated by dividing into Triangles or Quads. And
 any area of Triangle or Quad can be calculated by cross product in 3D.
 The cross product in **3D** is defined by the formula and can be represented with 
 matrix notation as proved here [#cross-product-wiki]_.
@@ -1200,7 +1253,7 @@ a GPU shader for return values, can create a GPGPU framework [#gpgpuwiki]_.
       has its PC [#wiki_tbcp]_.
   * - SIMD Thread
     - Warp 
-    - Each Warp has 16 Cuda Thread. 
+    - Each SIMD Processor has 16 SIMD Threads. 
     - Warp has it's own PC and TLR (Thread Level Registers). Warp may map to
       one whole function or part of function. Compiler and run time may assign
       them to the same Warp or different Warps [#Quantitative-gpu-warp]_.
@@ -1416,8 +1469,6 @@ compressing [#gpuspeedup]_ gives the more applications for GPU acceleration.
 Volta (Cuda thread/SIMD lane with PC, Program Couner and Call Stack)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Todo: According the assembly of dapxy(), this is not useful. Why is this existed?
-
 One way the compiler handles this is by keeping executing
 instructions in order and if some threads don’t have to execute certain instructions it switches off those threads and turns them
 on their relevant instructions and switches off the other threads, this process is called masking.
@@ -1436,16 +1487,46 @@ on their relevant instructions and switches off the other threads, this process 
 
   Volta Warp with Per-Thread Program Counter and Call Stack [#Volta]_
 
+- After Volta GPU of Nvidia, each thread in Warp has it's own PC as 
+  :numref:`volta-1`. 
+
+.. code:: text
+
+  // 
+  __device__ void insert_after(Node *a, Node *b)
+  {
+    Node *c;
+    lock(a); lock(a->next);
+    ...
+    unlock(c); unlock(a);
+  }
+
+- Volta’s independent thread scheduling allows the GPU to yield execution of 
+  any thread, either to make better use of execution resources or to allow 
+  one thread to wait for data to be produced by another.
+  As above example [#Volta]_, each thread can progress with it's own PC. So,
+  the different threads in the same Warp can run insert_ater() function 
+  in dependently without waiting lock().
+
+- Provide both thread in group efficency and independently thread progression.
+
+  Beside each thread in same Warp can progress independently as above,
+  To maximize parallel efficiency, Volta includes a schedule optimizer which 
+  determines how to group active threads from the same warp together into SIMT 
+  units. This retains the high throughput of SIMT execution as in prior NVIDIA 
+  GPUs, but with much more flexibility: threads can now diverge and reconverge 
+  at sub-warp granularity, while the convergence optimizer in Volta will still 
+  group together threads which are executing the same code and run them in 
+  parallel for maximum efficiency.
+  In Cuda Applications, this feature provides more parallel 
+  opportunities with __syncwarp() to user programmers as :numref:`volta-2`.
+
 .. _volta-2: 
 .. figure:: ../Fig/gpu/volta-2.png
   :align: center
   :scale: 50 %
 
   Programs use Explicit Synchronization to Reconverge Threads in a Warp [#Volta]_
-
-- After Volta GPU of Nvidia, each thread in Warp has it's own PC as 
-  :numref:`volta-1`. In Cuda Applications, this feature provides more parallel 
-  opportunities with __syncwarp() to user programmers as :numref:`volta-2`.
 
 Vulkan and spir-v
 -----------------
@@ -1565,7 +1646,9 @@ Open Sources
 
 .. [#cpu-gpu-role] https://stackoverflow.com/questions/47426655/cpu-and-gpu-in-3d-game-whos-doing-what
 
-.. [#gpu-firmware-jobs] https://antonelly.com.co/do-gpus-have-firmware/#:~:text=Providing%20access%20to%20new%20features,drivers%20during%20the%20boot%20process
+.. [#mesawiki] https://en.wikipedia.org/wiki/Mesa_(computer_graphics)
+
+.. [#csf] https://developer.arm.com/documentation/102813/0107/GPU-activity
 
 .. [#libclc] https://libclc.llvm.org
 
@@ -1581,7 +1664,13 @@ Open Sources
 
 .. [#additive-colors-shade] https://www.tiktok.com/@tonesterpaints/video/7059565281227853102
 
+.. [#wiki-transformation] https://en.wikipedia.org/wiki/Transformation_matrix
+
+.. [#wiki-rotation] https://en.wikipedia.org/wiki/Rotation_matrix
+
 .. [#wiki-quaternion] https://en.wikipedia.org/wiki/Quaternion
+
+.. [#wiki-prospective-projection] https://en.wikipedia.org/wiki/3D_projection#Perspective_projection
 
 .. [#cross-product-wiki] https://en.wikipedia.org/wiki/Cross_product
 
@@ -1668,8 +1757,6 @@ Open Sources
 .. [#descriptorreg] When performing a texture fetch, the addresses to read pixel data from are computed by reading the GPRs that hold the texture descriptor and the GPRs that hold the texture coordinates. It's mostly just general purpose memory fetching. https://www.gamedev.net/forums/topic/681503-texture-units/ 
 
 .. [#texturewrapper] https://learnopengl.com/Getting-started/Textures
-
-.. [#mesawiki] https://en.wikipedia.org/wiki/Mesa_(computer_graphics)
 
 .. [#mesa] https://www.mesa3d.org/
 

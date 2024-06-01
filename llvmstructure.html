@@ -1241,7 +1241,7 @@ tools provide the “Parser Generator” for compiler development; in backend,
 they provide the “Machine Code Generator” for development, as
 <a class="reference internal" href="#llvmstructure-frontendtblgen"><span class="std std-numref">Fig. 9</span></a> and <a class="reference internal" href="#llvmstructure-llvmtblgen"><span class="std std-numref">Fig. 10</span></a>.</p>
 <figure class="align-default" id="id63">
-<span id="llvmstructure-frontendtblgen"></span><div class="graphviz"><img src="_images/graphviz-b523ef8c65e1fe38c99baf64a998172f8867cd1d.png" alt="digraph G {
+<span id="llvmstructure-frontendtblgen"></span><div class="graphviz"><img src="_images/graphviz-74a5e5851b60471e6d5a9ff7c6db59714d51f294.png" alt="digraph G {
   rankdir=TB;
   subgraph cluster_0 {
 	node [color=black]; &quot;parser generator such as yacc/lex&quot;;
@@ -1257,11 +1257,11 @@ they provide the “Machine Code Generator” for development, as
 	&quot;*.y, *.l&quot; -&gt; &quot;yacc/lex&quot;;
 	&quot;yacc/lex&quot; -&gt; &quot;front parser: *.cpp&quot;;
   }
-//  label = &quot;Front TableGen Flow&quot;;
+//  label = &quot;Frontend TableGen Flow&quot;;
 
 }" class="graphviz" /></div>
 <figcaption>
-<p><span class="caption-number">Fig. 9 </span><span class="caption-text">Front TableGen Flow</span><a class="headerlink" href="#id63" title="Permalink to this image">¶</a></p>
+<p><span class="caption-number">Fig. 9 </span><span class="caption-text">Frontend TableGen Flow</span><a class="headerlink" href="#id63" title="Permalink to this image">¶</a></p>
 </figcaption>
 </figure>
 <figure class="align-default" id="id64">
@@ -1529,7 +1529,8 @@ Allocation. About Register Allocation Passes are here <a class="footnote-referen
 </section>
 <section id="ssa-form">
 <h3><a class="toc-backref" href="#id88" role="doc-backlink">SSA form</a><a class="headerlink" href="#ssa-form" title="Permalink to this heading">¶</a></h3>
-<p>SSA form says that each variable is assigned exactly once.
+<p>SSA form says that each variable is assigned exactly once. One instruction
+in SSA form can have more than one destination virtual register.
 LLVM IR is SSA form which has unbounded virtual registers (each variable is
 assigned exactly once and is keeped in different virtual register).
 As the result, the optimization steps used in code generation sequence which
@@ -1869,13 +1870,58 @@ represented in DAG.</p>
 <p>Many important techniques for local optimization begin by transforming a basic
 block into DAG <a class="footnote-reference brackets" href="#dragonbooks-8-5" id="id37" role="doc-noteref"><span class="fn-bracket">[</span>27<span class="fn-bracket">]</span></a>.
 For example, the basic block code and it’s corresponding DAG as
-<a class="reference internal" href="#llvmstructure-f10"><span class="std std-numref">Fig. 13</span></a>.</p>
-<figure class="align-center" id="id69">
-<span id="llvmstructure-f10"></span><a class="reference internal image-reference" href="_images/102.png"><img alt="_images/102.png" src="_images/102.png" style="width: 379.20000000000005px; height: 142.4px;" /></a>
+<a class="reference internal" href="#llvmstructure-dag-ex"><span class="std std-numref">Fig. 13</span></a>.</p>
+<figure class="align-default" id="id69">
+<span id="llvmstructure-dag-ex"></span><div class="graphviz"><img src="_images/graphviz-07cb6760fa51dfd8828f1a2b7971e81db32fd691.png" alt="graph {
+  subgraph cluster_1
+  {
+   label = &quot;a,d = b ediv c \nb = a - d \nc = b + c \nd = a - d&quot;; 
+   A_c ;
+   A_c [label=&quot;c\n+&quot;] ;
+   A_c -- A_bd ;
+   A_bd [label=&quot;b,d\n-&quot;] ;
+   A_bd -- A_a ;
+   A_bd -- A_d0 ;
+   A_a [label=&quot;a&quot;, shape=none] ;
+   A_a -- A_ediv [style=dashed];
+   A_d0 [label=&quot;d0&quot;, shape=none] ;
+   A_d0 -- A_ediv [style=dashed];
+   A_ediv [label=&quot;ediv&quot;] ;
+   A_ediv -- A_b0 ;
+   A_b0 [label=&quot;b0&quot;, shape=none] ;
+   A_ediv -- A_c0 ;
+   A_c0 [label=&quot;c0&quot;, shape=none] ;
+   A_c -- A_c0;
+  }
+
+  subgraph cluster_2
+  {
+   label = &quot;a = b + c \nb = a - d \nc = b + c \nd = a - d&quot;; 
+   B_c ;
+   B_c [label=&quot;c\n+&quot;] ;
+   B_c -- B_bd ;
+   B_bd [label=&quot;b,d\n-&quot;] ;
+   B_bd -- B_a ;
+   B_bd -- B_d0 ;
+   B_a [label=&quot;a\n+&quot;] ;
+   B_d0 [label=&quot;d0&quot;, shape=none] ;
+   B_a -- B_b0 ;
+   B_b0 [label=&quot;b0&quot;, shape=none] ;
+   B_a -- B_c0 ;
+   B_c0 [label=&quot;c0&quot;, shape=none] ;
+   B_c -- B_c0;
+ }
+}" class="graphviz" /></div>
 <figcaption>
-<p><span class="caption-number">Fig. 13 </span><span class="caption-text">DAG example</span><a class="headerlink" href="#id69" title="Permalink to this image">¶</a></p>
+<p><span class="caption-number">Fig. 13 </span><span class="caption-text">The left includes two destination register of DAG example and the
+right has one destination only</span><a class="headerlink" href="#id69" title="Permalink to this image">¶</a></p>
 </figcaption>
 </figure>
+<p>DAG and SSA are allowed for two destination virtual registers.
+Assume ediv operation provides divide on interger which save quotient in “a” and
+remainder in “d”.
+For one destination register, DAG may simplify as the right of
+<a class="reference internal" href="#llvmstructure-dag-ex"><span class="std std-numref">Fig. 13</span></a>.</p>
 <p>If b is not live on exit from the block, then we can do “common expression
 remove” as the following table.</p>
 <table class="docutils align-default" id="id70">
