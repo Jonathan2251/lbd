@@ -1153,12 +1153,16 @@ figures.
 
   core(grid) in Nvidia gpu (figure from book [#Quantitative-grid]_)
  
-.. _simd-processors: 
-.. figure:: ../Fig/gpu/SIMD-processors.png
+.. _sm: 
+.. figure:: ../Fig/gpu/sm.png
   :align: center
-  :scale: 100 %
+  :scale: 50 %
 
-  SIMD processors (figure from book [#Quantitative-simd-processors]_)
+  Streaming Multiprocessor SM has two -16-way SIMD units and four special 
+  function units [#cuda-sm]_. SM has L1 and Read Only Cache (Uniform Cache)
+  GTX480 has 48 SMs. ALUs run at twice the clock rate of rest of chip. So each 
+  decoded instruction runs on 32 pieces of data on the 16 ALUs over two ALU 
+  clocks [#chime]_.
 
 .. _threadslanes: 
 .. figure:: ../Fig/gpu/threads-lanes.png
@@ -1238,7 +1242,7 @@ a GPU shader for return values, can create a GPGPU framework [#gpgpuwiki]_.
     - Grid
     - 
     - Grid is Vectorizable Loop as :numref:`gpu-terms`.
-  * - SIMD Processor / SIMD Block / Core
+  * - SIMD Processor / SIMD Block / SM
     - Cuda Thread Engine
     - Each Grid has 16 SIMD Processors.
     - Each multithreaded SIMD Processor is assigned 512 elements of the vectors to 
@@ -1261,16 +1265,17 @@ a GPU shader for return values, can create a GPGPU framework [#gpgpuwiki]_.
     - Cuda Thread
     - Each SIMD Thread has 16 Lanes.
     - A vertical cut of a thread of SIMD instructions corresponding to 
-      one element executed by one SIMD Lane. It is a vector instruction with processing 16-elements.
+      one element executed by one SIMD Lane. It is a vector instruction with 
+      processing 16-elements.
   * - Chime
     - Chime
     - Each SIMD Lane has 2 chimes.
-    - If vector length would be 32 (32 elements) and SIMD Lanes is 16, the 
-      chime is 2 clock cycles, also known as “ping pong” cycles.
+    - One clock rate of rest of chip executes 2 data elements on two Cuda-core 
+      as :numref:`sm`.
+      Vector length is 32 (32 elements). SIMD Lanes is 16. Chime is 2. 
+      This ALU clock cycles, also known as “ping pong” cycles.
       As :numref:`grid` for the later Fermi-generation GPUs.
-      Each SIMD Thread (Warp) has 32 elements run as :numref:`threadslanes` on 16 SIMD 
-      lanes (number of functional units just same as in vector processor). 
-      So it takes 2 clock cycles to (chime is 2 clock cycles) complete [#lanes]_.
+
 
 Mapping data in GPU
 ~~~~~~~~~~~~~~~~~~~
@@ -1765,6 +1770,10 @@ Open Sources
 .. [#Quantitative-grid] Book Figure 4.13 of Computer Architecture: A Quantitative Approach 5th edition (The
        Morgan Kaufmann Series in Computer Architecture and Design)
 
+.. [#cuda-sm] https://www.tomshardware.com/reviews/geforce-gtx-480,2585-18.html
+
+.. [#chime] https://www.cs.cmu.edu/afs/cs/academic/class/15418-s12/www/lectures/02_multicore.pdf
+
 .. [#Quantitative-simd-processors] Book Figure 4.15 of Computer Architecture: A Quantitative Approach 5th edition (The
        Morgan Kaufmann Series in Computer Architecture and Design)
 
@@ -1803,10 +1812,6 @@ Open Sources
  
 .. [#Quantitative-gpu-warp] Book Figure 4.14 and 4.24 of Computer Architecture: A Quantitative Approach 5th edition (The
        Morgan Kaufmann Series in Computer Architecture and Design)
-
-.. [#lanes] "With Fermi, each 32-wide thread of SIMD instructions is mapped to 16 physical SIMD Lanes, so each SIMD instruction in a thread of SIMD instructions takes two clock cycles to complete" search these words from Page 296 of Computer Architecture: A Quantitative Approach 5th edition (The
-       Morgan Kaufmann Series in Computer Architecture and Design).
-       
 
 .. [#Volta] See the same Figures from https://images.nvidia.com/content/volta-architecture/pdf/volta-architecture-whitepaper.pdf
 
