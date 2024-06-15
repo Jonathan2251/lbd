@@ -12,11 +12,12 @@ The multimedia instructions in CPU are smaller scaled of SIMD (Single
 Instruction Multiple Data) while GPU is a large scaled of SIMD processor, 
 coloring millions of pixels of image in few mini seconds.
 Since the 2D or 3D graphic processing provides large opportunity in parallel
-data processing, GPU hardware usually composed of thousands
-of functional units in each core in N-Vidia processors.
+data processing, GPU hardware usually composed tens thousands of functional 
+units in each chip for N-Vidia and other's manufacturers.
 
-This chapter is giving a overview for how 3D animation to be created and run on
-CPU+GPU. Give a concept for GPU compiler and HW featrues for graphic application.
+This chapter is giving an overview for how 3D animation to be created and run on
+CPU+GPU. 
+Providing a concept in GPU compiler and HW featrues for graphic application.
 Furthermore, explaining how GPU has taking more applications from 
 CPU through GPGPU concept and related standards emerged.
 
@@ -46,7 +47,7 @@ Further, after texturing (texture mapping), the model looks real more
 [#texturemapping]_.
  
 To get to know how animation for a 3D modeling, please look video here [#animation1]_.
-According the video for skeleton animation, setting the joints poistion at different 
+According to the video for skeleton animation, setting the joints poistion at different 
 poses and giving time to each pose (keyframe) as :numref:`animation`.
 
 .. _animation: 
@@ -57,7 +58,7 @@ poses and giving time to each pose (keyframe) as :numref:`animation`.
   Set time point at keyframes
 
 
-In this series of video, you find the 3D modeling tools creating Java instead of
+In this series of videos, you find the 3D modeling tools creating Java instead of
 C/C++ code calling OpenGL api and shaders. It's because Java can call OpenGL api
 through a wrapper library [#joglwiki]_.
 
@@ -114,10 +115,21 @@ in film production, but the industry has now shifted more towards OBJ, FBX,
 and Alembic [#3dfmt]_.
 
 
-Graphic SW stack
-~~~~~~~~~~~~~~~~
+Graphic HW and SW stack
+~~~~~~~~~~~~~~~~~~~~~~~
 
 - https://en.wikipedia.org/wiki/Free_and_open-source_graphics_device_driver
+
+The block diagram of Graphic Processing Unit (GPU) as 
+:numref:`gpu_block_diagram`. 
+
+.. _gpu_block_diagram: 
+.. figure:: ../Fig/gpu/gpu-block-diagram.png
+  :align: center
+  :scale: 50 %
+
+  Components of a GPU: GPU has accelerated video decoding and encoding 
+  [#wiki-gpu]_
 
 The role of CPU and GPU for graphic animation as :numref:`graphic_cpu_gpu`.
 
@@ -1249,8 +1261,7 @@ a GPU shader for return values, can create a GPGPU framework [#gpgpuwiki]_.
       work on.
       SIMD Processors are full processors with separate PCs and are programmed using
       threads [#Quantitative-gpu-threadblock]_. 
-      As :numref:`simd-processors`, it assigns 16 Thread Blocks to 16 SIMD 
-      Processors.
+      As :numref:`grid`, it assigns 16 Thread Blocks to 16 SIMD Processors.
       CPU Core is the processor which include multi-threads. A thread of CPU is 
       execution unit with its own PC (Program Counter). As this concept, GPU
       Core is the SIMD Processor includes several SIMD Thread (Warp). Each Warp
@@ -1646,6 +1657,8 @@ Open Sources
 .. [#joglwiki] https://en.wikipedia.org/wiki/Java_OpenGL
 
 .. [#3dfmt] https://all3dp.com/3d-file-format-3d-files-3d-printer-3d-cad-vrml-stl-obj/
+
+.. [#wiki-gpu] https://en.wikipedia.org/wiki/Graphics_processing_unit
 
 .. [#ogl-cpu-gpu] https://en.wikipedia.org/wiki/Vulkan
 
