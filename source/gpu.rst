@@ -340,6 +340,15 @@ Color
 
   Additive colors in light
 
+.. note:: **Additive colors**
+
+  I know it's not match human's intuition. However the additive colors RGB in 
+  light become totally white light, and the additive colors RGB in paints become
+  light grey paint is reasonalbe since light has no shade. This result comes from
+  the sense of human's eyes. When no light no color can be sensed by eyes. 
+  Computer engineers should know if you try to explore the very basic nature, 
+  then it is fields of physics or human's eyes structure in bilogy.
+ 
 Transformation
 ++++++++++++++
 
@@ -1544,8 +1553,23 @@ on their relevant instructions and switches off the other threads, this process 
 
   Programs use Explicit Synchronization to Reconverge Threads in a Warp [#Volta]_
 
-Vulkan and spir-v
------------------
+OpenCL, Vulkan and spir-v
+-------------------------
+
+.. _spirv: 
+.. graphviz:: ../Fig/gpu/spirv-lang-layers.gv
+  :caption: OpenCL and GLSL(OpenGL)
+
+.. table:: OpenCL and OpenGL SW system
+
+  ==========   ============  =====================
+  Name of SW   GPU language  Level of GPU language
+  ==========   ============  =====================
+  OpenCL       OpenCL        C99 dialect (with C pointer, ...)
+  OpenGL       GLSL          C-like (no C pointer, ...)
+  Vulkan       SPIR-V        IR
+  ==========   ============  =====================
+
 
 .. _opencl_to_spirv: 
 .. figure:: ../Fig/gpu/opencl-to-spirv-offine-compilation.png
@@ -1553,6 +1577,12 @@ Vulkan and spir-v
   :scale: 40 %
 
   Offline Compilation of OpenCL Kernels into SPIR-V Using Open Source Tooling [#opencl-to-spirv]_
+
+- clang: Compile OpenCL to spirv for runtime+driver. Or compile OpenCL to llvm, then
+  "SPIR-V LLVM Translator" translate llvm to spirv for runtime+driver.
+
+- clspv: Compile OpenCL to spirv for tuntime
+
 
 .. _glsl_spirv: 
 .. graphviz:: ../Fig/gpu/glsl-spirv.gv
@@ -1602,6 +1632,30 @@ Once OpenCL grows into a popular standard when more computer languages or
 framework supporting OpenCL language, GPU will take more jobs from CPU 
 [#opencl-wiki-supported-lang]_.
 
+Most GPUs have 32 lanes in a SIMD processor (Warp), vulkan provides Subgroup
+operations to data parallel programming on lanes of SIMD processor 
+[#vulkan-subgroup]_.
+The following is a code example.
+
+.. rubric:: An example of subgroup operations in glsl for vulkan
+.. code-block:: c++
+
+  vec4 sum = vec4(0, 0, 0, 0);
+  if (gl_SubgroupInvocationID < 16u) {
+    sum += subgroupAdd(in[gl_SubgroupInvocationID]);
+  }
+  else {
+    sum += subgroupInclusiveMul(in[gl_SubgroupInvocationID]);
+  }
+  subgroupMemoryBarrier();
+
+- Nvidia's GPU provides __syncwarp() for subgroupMemoryBarrier() or compiler to
+  sync for the lanes in the same Warp.
+
+In order to let lanes in the same SIMD processor work efficently, data unifomity
+analysis will provide many optimization opporturnities in register allocation,
+transformation and code generation [#llvm-uniformity]_.
+
 Now, you find llvm IR expanding from cpu to gpu becoming influentially more and
 more. And actually, llvm IR expanding from version 3.1 util now as I can feel.
 
@@ -1617,7 +1671,8 @@ Accelerate ML/DL on OpenCL/SYCL
   Implement ML graph scheduler both on compiler and runtime
 
 
-As above figure, the Device of GPU or CPU+NPU is able to run the whole ML graph. 
+As :numref:`opengl_ml_graph`, the Device of GPU or CPU+NPU is able to run the 
+whole ML graph. 
 However if the Device has NPU only, then the CPU operation such as Avg-Pool
 has to run on Host side which add communication cost between Host and Device.
 
@@ -1630,6 +1685,44 @@ GPU/NPU implement scheduling SW both on graph compiler and runtime.
 Runtime from Open Source have chance to leverage the effort of scheduling SW from 
 programmers** [#paper-graph-on-opencl]_. Cuda graph is an idea  like this 
 [#cuda-graph-blog]_ [#cuda-graph-pytorch]_ .
+
+- SYCL: Using C++ templates to optimize and genertate code for OpenCL and Cuda.
+  Provides a consistent language, APIs, and ecosystem in which to write and tune 
+  code for different accelerator architecture, CPUs, GPUs, and FPGAs [#sycl]_.
+
+  - SYCL uses generic programming with templates and generic lambda functions to 
+    enable higher-level application software to be cleanly coded with optimized 
+    acceleration of kernel code across an extensive range of acceleration backend 
+    APIs, such as OpenCL and CUDA [#sycl-cuda]_.
+
+.. _sycl-role: 
+.. figure:: ../Fig/gpu/sycl.png
+  :align: center
+  :scale: 50 %
+
+  SYCL = C++ template and compiler for Data Parallel Applications on AI on CPUs, 
+  GPUs and HPGAs.
+
+- DPC++ (OneDPC) compiler: Based on SYCL, DPC++ can compile DPC++ language for
+  CPU host and GPU device. DPC++ (Data Parallel C++) is a language from Intel and
+  maybe accepted by C++ which GPU side (Kernal code) is C++ without exception 
+  handler [#dpcpp]_ [#dpcpp-book]_.
+
+  - Features of Kernel Code:
+    
+    - Not supported: 
+
+      Dynamic polymorphism, dynamic memory allocations (therefore no object 
+      management using new or delete operators), static variables, function 
+      pointers, runtime type information (RTTI), and **exception handling**. 
+      No virtual member functions, and no variadic functions, are allowed to 
+      be called from kernel code. Recursion is not allowed within kernel code.
+
+    - Supported: 
+
+      Lambdas, operator overloading, templates, classes, and static polymorphism
+      [#dpcpp-features]_.
+
 
 Open Sources
 ------------
@@ -1862,8 +1955,22 @@ Open Sources
 
 .. [#opencl-wiki-supported-lang] The OpenCL standard defines host APIs for C and C++; third-party APIs exist for other programming languages and platforms such as Python,[15] Java, Perl[15] and .NET.[11]:15 https://en.wikipedia.org/wiki/OpenCL
 
+.. [#vulkan-subgroup] https://www.khronos.org/blog/vulkan-subgroup-tutorial
+
+.. [#llvm-uniformity] https://llvm.org/docs/ConvergenceAndUniformity.html
+
 .. [#paper-graph-on-opencl] https://easychair.org/publications/preprint/GjhX
 
 .. [#cuda-graph-blog] https://developer.nvidia.com/blog/cuda-graphs/
 
 .. [#cuda-graph-pytorch] https://pytorch.org/blog/accelerating-pytorch-with-cuda-graphs/
+
+.. [#sycl] https://www.khronos.org/sycl/
+
+.. [#sycl-cuda] https://github.com/codeplaysoftware/sycl-for-cuda/blob/cuda/sycl/doc/GetStartedWithSYCLCompiler.md
+
+.. [#dpcpp] https://www.intel.com/content/www/us/en/developer/tools/oneapi/dpc-compiler.html#gs.cxolyy
+
+.. [#dpcpp-book] https://link.springer.com/book/10.1007/978-1-4842-5574-2
+
+.. [#dpcpp-features] Page 14 of DPC++ book.
