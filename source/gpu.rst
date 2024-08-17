@@ -16,9 +16,10 @@ data processing, GPU hardware usually composed tens thousands of functional
 units in each chip for N-Vidia and other's manufacturers.
 
 This chapter is giving an overview for how 3D animation to be created and run on
-CPU+GPU. 
-Providing a concept in GPU compiler and HW featrues for graphic application.
-Furthermore, explaining how GPU has taking more applications from 
+CPU+GPU first. 
+After that, providing a concept in GPU compiler and HW featrues for graphic 
+application.
+Finally, explaining how GPU has taking more applications from 
 CPU through GPGPU concept and related standards emerged.
 
 Webiste, Basic theory of 3D graphics with OpenGL, [#cg_basictheory]_.
@@ -1154,8 +1155,15 @@ GPU compiler.)
 Here is the software stack of 3D graphic system for OpenGL in linux [#mesawiki]_.
 And mesa open source website is here [#mesa]_.
 
-Architecture
-------------
+GPU Architecture
+----------------
+
+.. _gpu-terms: 
+.. figure:: ../Fig/gpu/gpu-terms.png
+  :align: center
+  :scale: 50 %
+
+  Terms in Nvidia's gpu (figure from book [#Quantitative-gpu-terms]_)
 
 SIMT
 ~~~~
@@ -1167,13 +1175,15 @@ with multithreading [#simt-wiki]_.
 The leading GPU architecture of Nvidia's gpu is as the following 
 figures.
 
-.. _grid: 
-.. figure:: ../Fig/gpu/grid.png
+.. _threadslanes: 
+.. figure:: ../Fig/gpu/threads-lanes.png
   :align: center
-  :scale: 100 %
+  :scale: 50 %
 
-  core(grid) in Nvidia gpu (figure from book [#Quantitative-grid]_)
- 
+  Threads and lanes in gpu (figure from book [#Quantitative-threads-lanes]_)
+
+.. note:: A SIMD Thread executed by SIMD Processor, a.k.a. SM, has 16 Lanes.
+  
 .. _sm: 
 .. figure:: ../Fig/gpu/sm.png
   :align: center
@@ -1181,30 +1191,146 @@ figures.
 
   Streaming Multiprocessor SM has two -16-way SIMD units and four special 
   function units [#cuda-sm]_. SM has L1 and Read Only Cache (Uniform Cache)
-  GTX480 has 48 SMs. ALUs run at twice the clock rate of rest of chip. So each 
+  GTX480 has 48 SMs. **ALUs run at twice the clock rate of rest of chip. So each 
   decoded instruction runs on 32 pieces of data on the 16 ALUs over two ALU 
-  clocks [#chime]_.
+  clocks** [#chime]_.
 
-.. _threadslanes: 
-.. figure:: ../Fig/gpu/threads-lanes.png
+.. _sm2: 
+.. figure:: ../Fig/gpu/sm2.png
   :align: center
-  :scale: 100 %
+  :scale: 50 %
 
-  threads and lanes in gpu (figure from book [#Quantitative-threads-lanes]_)
-  
-  
+  Multithreaded SIMD Processor (Streaming Multiprocessor SM) figure from book 
+  [#Quantitative-gpu-sm]_
+
+.. note:: A SIMD Thread executed by SIMD Processor, a.k.a. SM, processes 32 
+          elements.
+          Number of registers in a Thread Block =
+          16 (SM) * 32 (Cuda Thread) * 64 (TLR, Thread Level Register) = 32768 
+          Register file.
+          Fermi has a mode bit that offers the choice of using 64 KB of SRAM as 
+          a 16 KB L1 cache with 48 KB of Local Memory or as a 48 KB L1 cache 
+          with 16 KB of Local Memory [#Quantitative-gpu-l1]_.
+
+.. _threadblock: 
+.. figure:: ../Fig/gpu/threadblock.jpg
+  :align: center
+  :scale: 50 %
+
+  SM select Thread Blocks to run
+
+- Two level of scheduler. 
+
+  - Level 1: Thread Block Scheduler: 
+    Whenever an SM executes a thread block, all the threads inside the 
+    thread block are executed at the same time. 
+    When any of thread in Warp not ready for operands data dependence, context
+    switching between Warps. 
+    When switching away from a particular warp, all the data of that warp remains 
+    in the register file so that it can be quickly resumed when its operands 
+    become ready [#wiki-tbcp]_.
+
+- Level 2: Warp Scheduler:
+  Cuda Threads in the same Warp.
+
+
+.. code:: c++
+
+  // Invoke MATMUL with 256 threads per Thread Block
+  __host__
+  int nblocks = (n + 255) / 512;
+  matmul<<<nblocks, 255>>>(n, A, B, C);
+  // MATMUL in CUDA
+  __device__
+  void matmul(int n, double A, double *B, double *C) {
+    int i = blockIdx.x*blockDim.x + threadIdx.x;
+    if (i < n) A[i] = B[i] + C[i];
+  }
+
+.. _grid: 
+.. figure:: ../Fig/gpu/grid.png
+  :align: center
+  :scale: 50 %
+
+  Mapping 8192 elements of matmul for Nvidia's GPU (figure from book 
+  [#Quantitative-grid]_). SIMT: 16 SIMD Threads in 1 Thread Block.
+
 .. _gpu-mem: 
 .. figure:: ../Fig/gpu/memory.png
   :align: center
-  :scale: 80 %
+  :scale: 50 %
 
-  core(grid) in Nvidia's gpu (figure from book [#Quantitative-gpu-mem]_)
+  GPU memory (figure from book [#Quantitative-gpu-mem]_)
+
+.. raw:: latex
+
+   \clearpage
+
+Summarize as table below.
+ 
+.. list-table:: More Descriptive Name for Cuda term in Fermi GPU.
+  :widths: 15 15 10 40
+  :header-rows: 1
+
+  * - More Desciptive Name
+    - Cuda term
+    - Structure
+    - Description
+  * - Grid
+    - Grid
+    - 
+    - Grid is Vectorizable Loop as :numref:`gpu-terms`.
+  * - Thread Block
+    - Thread Block / GPU Core
+    - Each Grid has 16 Thread Block.
+    - Each Thread Block is assigned 512 elements of the vectors to 
+      work on.
+      SIMD Processors are full processors with separate PCs and are programmed using
+      threads [#Quantitative-gpu-threadblock]_. 
+      As :numref:`grid`, it assigns 16 Thread Block to 16 SIMD Processors.
+      CPU Core is the processor which include multi-threads. A thread of CPU is 
+      execution unit with its own PC (Program Counter). 
+      Similarly, Once a thread block is launched on a multiprocessor (SM), all of its warps are resident until their execution finishes. Thus a new block is not launched on an SM until there is sufficient number of free registers for all warps of the new block, and until there is enough free shared memory for the new block.
+      As this concept, GPU
+      Core is the SIMD Processor includes several SIMD Thread (Warp). Each Warp
+      has its PC [#wiki-tbcp]_.
+  * - SIMD Thread (run by SIMD Processor)
+    - Warp (run by Streaming Multiprocessor, SM)
+    - Each SIMD Processor has 16 SIMD Threads. 
+    - Each SIMD Processor has Memory:Local Memory as :numref:`gpu-mem`. Local 
+      Memory is shared by the SIMD Lanes within a multithreaded SIMD Processor, 
+      but this memory is not shared between multithreaded SIMD Processors. 
+      Warp has it's own PC and may map to
+      one whole function or part of function. Compiler and run time may assign
+      them to the same Warp or different Warps [#Quantitative-gpu-warp]_.
+  * - SIMD Lane
+    - Cuda Thread
+    - Each SIMD Thread has 16 Lanes..
+    - A vertical cut of a thread of SIMD instructions corresponding to 
+      one element executed by one SIMD Lane. It is a vector instruction with 
+      processing 16-elements. SIMD Lane registers: each Lane has its TLR 
+      (Thread Level Registers) which is allocated from Register file (32768 x 
+      32-bit) by SM as :numref:`sm`.
+  * - Chime
+    - Chime
+    - Each SIMD Lane has 2 chimes.
+    - One clock rate of rest of chip executes 2 data elements on two Cuda-core 
+      as :numref:`sm`.
+      Vector length is 32 (32 elements). SIMD Lanes is 16. Chime is 2. 
+      This ALU clock cycles, also known as “ping pong” cycles.
+      As :numref:`grid` for the later Fermi-generation GPUs.
+
+
+Texture unit
+~~~~~~~~~~~~
+
+As depicted in `section OpenGL Shader Compiler`_.
 
 
 Buffers
 ~~~~~~~
 
-In addition the texture unit and instruction, GPU provides different Buffers
+In addition to texture units and instructions, GPU provides different Buffers
 to speedup OpenGL pipeline rendering [#buffers-redbook]_.
 
 - Color buffer
@@ -1235,6 +1361,7 @@ to speedup OpenGL pipeline rendering [#buffers-redbook]_.
   seen, a framebuffer is an area in memory that can be rendered to 
   [#framebuffers-ogl]_. 
 
+
 General purpose GPU
 --------------------
 
@@ -1244,69 +1371,17 @@ parallel computation on GPU for speeding up and even get CPU and GPU executing
 simultaneously. Furthmore, any language that allows the code running on the CPU to poll 
 a GPU shader for return values, can create a GPGPU framework [#gpgpuwiki]_.
 
-.. _gpu-terms: 
-.. figure:: ../Fig/gpu/gpu-terms.png
-  :align: center
-  :scale: 50 %
-
-  Terms in Nvidia's gpu (figure from book [#Quantitative-gpu-terms]_)
-
-.. list-table:: More Desciptive Name for Cuda term in Fermi GPU and Desciption.
-  :widths: 15 15 10 40
-  :header-rows: 1
-
-  * - More Desciptive Name
-    - Cuda term
-    - Structure
-    - Description
-  * - Grid
-    - Grid
-    - 
-    - Grid is Vectorizable Loop as :numref:`gpu-terms`.
-  * - SIMD Processor / SIMD Block / SM
-    - Cuda Thread Engine
-    - Each Grid has 16 SIMD Processors.
-    - Each multithreaded SIMD Processor is assigned 512 elements of the vectors to 
-      work on.
-      SIMD Processors are full processors with separate PCs and are programmed using
-      threads [#Quantitative-gpu-threadblock]_. 
-      As :numref:`grid`, it assigns 16 Thread Blocks to 16 SIMD Processors.
-      CPU Core is the processor which include multi-threads. A thread of CPU is 
-      execution unit with its own PC (Program Counter). As this concept, GPU
-      Core is the SIMD Processor includes several SIMD Thread (Warp). Each Warp
-      has its PC [#wiki_tbcp]_.
-  * - SIMD Thread
-    - Warp 
-    - Each SIMD Processor has 16 SIMD Threads. 
-    - Warp has it's own PC and TLR (Thread Level Registers). Warp may map to
-      one whole function or part of function. Compiler and run time may assign
-      them to the same Warp or different Warps [#Quantitative-gpu-warp]_.
-  * - SIMD Lane
-    - Cuda Thread
-    - Each SIMD Thread has 16 Lanes.
-    - A vertical cut of a thread of SIMD instructions corresponding to 
-      one element executed by one SIMD Lane. It is a vector instruction with 
-      processing 16-elements.
-  * - Chime
-    - Chime
-    - Each SIMD Lane has 2 chimes.
-    - One clock rate of rest of chip executes 2 data elements on two Cuda-core 
-      as :numref:`sm`.
-      Vector length is 32 (32 elements). SIMD Lanes is 16. Chime is 2. 
-      This ALU clock cycles, also known as “ping pong” cycles.
-      As :numref:`grid` for the later Fermi-generation GPUs.
-
 
 Mapping data in GPU
 ~~~~~~~~~~~~~~~~~~~
 
-A GPU may has the HW structure and handle the subset of y[]=a*x[]+y[] array-calculation as follows,
+As previous section GPU, the subset of y[]=a*x[]+y[] array-calculation as follows,
 
 .. code:: text
 
   // Invoke DAXPY with 256 threads per Thread Block
   __host__
-  int nblocks = (n+ 255) / 256;
+  int nblocks = (n+255) / 256;
   daxpy<<<nblocks, 256>>>(n, 2.0, x, y);
   // DAXPY in CUDA
   __device__
@@ -1315,16 +1390,68 @@ A GPU may has the HW structure and handle the subset of y[]=a*x[]+y[] array-calc
     if (i < n) y[i] = a*x[i] + y[i];
   }
 
+- name<<<dimGrid, dimBlock>>>(... parameter list ...): 
+
+  - dimGrid: Number of Blocks in Grid
+
+  - dimBlock: 256 Threads in Block
+
+.. rubric:: Assembly code of PTX (from page 300 of Quantitative book)
 .. code:: text
 
-  shl.u32 R8, blockIdx, 9   ; Thread Block ID * Block size (512 or 29)
-  add.u32 R8, R8, threadIdx ; R8 = i = my CUDA Thread ID
-  shl.u32 R8, R8, 3         ; byte offset
-  ld.global.f64 RD0, [X+R8] ; RD0 = X[i]
-  ld.global.f64 RD2, [Y+R8] ; RD2 = Y[i]
-  mul.f64 RD0, RD0, RD4     ; Product in RD0 = RD0 * RD4 (scalar a)
-  add.f64 RD0, RD0, RD2     ; SuminRD0 = RD0 + RD2 (Y[i])
-  st.global.f64 [Y+R8], RD0 ; Y[i] = sum (X[i]*a + Y[i])
+  // code to set VLR, Vector Length Register, to (n % 256)
+  //   ...
+  // 
+  shl.u32 R8, blockIdx, 9	; Thread Block ID * Block size (512)
+  add.u32 R8, R8, threadIdx	; R8 = i = my CUDA Thread ID
+  shl.u32 R8, R8, 3		; byte offset
+  setp.neq.s32 P1, RD8, RD3	; RD3 = n, P1 is predicate register 1
+  ld.global.f64 RD0, [X+R8]	; RD0 = X[i]
+  ld.global.f64 RD2, [Y+R8]	; RD2 = Y[i]
+  mul.f64 RD0, RD0, RD4		; Product in RD0 = RD0 * RD4 (scalar a)
+  add.f64 RD0, RD0, RD2		; SuminRD0 = RD0 + RD2 (Y[i])
+  st.global.f64 [Y+R8], RD0	; Y[i] = sum (X[i]*a + Y[i])
+
+- Need to set VLR if PTX has this instruction. Otherwise, set lane-mask in 
+  the similar way of the code below.
+
+.. code:: text
+
+  __device__
+  void lane-mask-ex( double *X, double *Y, double *Z) {
+    if (X[i] != 0)
+      X[i] = X[i] – Y[i];
+    else X[i] = Z[i];
+  }
+
+.. rubric:: Assembly code of Vector Processor
+.. code:: asm
+
+  LV V1,Rx         ;load vector X into V1
+  LV V2,Ry         ;load vector Y
+  L.D F0,#0        ;load FP zero into F0
+  SNEVS.D V1,F0    ;sets VM(i) to 1 if V1(i)!=F0
+  SUBVV.D V1,V1,V2 ;subtract under vector mask 
+  SV V1,Rx         ;store the result in X
+
+.. rubric:: Assembly code of PTX (modified code from refering page 208 - 302 of 
+            Quantitative book)
+.. code:: text
+
+  ld.global.f64 RD0, [X+R9]	; RD0 = X[i]
+  setp.neq.s32 P1, RD0, #0	; P1 is predicate register 1
+  @!P1, bra ELSE1, *Push	; Push old mask, set new mask bits
+                          	; if P1 false, go to ELSE1
+  ld.global.f64 RD2, [Y+R8]	; RD2 = Y[i]
+  sub.f64 RD0, RD0, RD2		; Difference in RD0
+  st.global.f64 [X+R8], RD0	; X[i]=RD0
+  ELSE1: 
+  ld.global.f64 RD0, [Z+R8]	; RD0 = Z[i]
+  st.global.f64 [X+R8], RD0	; X[i] = RD0
+  ENDIF1: 
+  ret, *Pop			; pop to restore old mask
+
+- For Lane Mask, refer to [#VMR]_ [#Quantitative-gpu-asm-daxpy]_.
 
 The following table explains how the elemements of saxpy() maps to lane of SIMD 
 Thread(Warp) of Thread Block(Core) of Grid.
@@ -1367,15 +1494,10 @@ Thread(Warp) of Thread Block(Core) of Grid.
   Core-15       y[7680..7711] = a * ...                            ...                                                ...      y[8160..8191] = a * x[8160..8191] + y[8160..8191] 
   ============  =================================================  =================================================  =======  ===========================================
 
-- If a SIMD Lane (Cuda Thread) handles 2 elements computing, assuming 4 
-  registers for 1 element, then there are 4*32=128 Thread Level Registers, TLR, 
-  occupied in a SIMD Thread (Warp) to support the SIMT computing. 
-  So, assume a GPU architecture allocating 256 TLR to a SIMD Thread (Warp), then 
-  it has sufficient TLR for more complicated statement, such as 
-  a*X[i]+b*Y[i]+c*Z[i] without spilling in register allocation. All 16 lanes 
-  share the 256 TLR. 
-  Each Thread Block (Core/Warp) has 16 SIMD Threads, so there are 16*256 = 4K 
-  TLR in a SIMD Processor (Core, Cuda Thread Engine).
+- Each Cuda Thread run GPU function-code saxpy. Fermi has Register file (32768 x
+  32-bit).
+  As :numref:`sm`, Number of registers in a Thread Block = 16 (SM) * 32 (Cuda 
+  Thread) * 64 (TLR, Thread Level Register) = 32768 x 32-bit (Register file).
 
 - When mapping to the fragments/pixels in graphic GPU, x[0..15] corresponding to
   a two dimensions of tile of fragments/pixels at pixel[0..3][0..3] since image
@@ -1389,13 +1511,9 @@ GPU's function.
 The following is host (CPU) side of a CUDA example to call saxpy on GPU [#cudaex]_ 
 as follows,
 
-.. code:: text
-
-  for(i=0;i<64; i=i+1)
-    if (X[i] != 0)
-      X[i] = X[i] – Y[i];
-
 .. code-block:: c++
+
+  #include <stdio.h>
 
   __global__
   void saxpy(int n, float a, float * x, float * y)
@@ -1421,6 +1539,9 @@ CPU copy the data from x and y to the corresponding device arrays d_x and d_y
 using cudaMemcpy.
 The saxpy kernel is launched by the statement: 
 saxpy<<<(N+255)/256, 256>>>(N, 2.0, d_x, d_y);
+In this case we launch the kernel with thread blocks containing 512 elements, 
+and use integer arithmetic to determine the number of thread blocks required to 
+process all N elements of the arrays ((N+255)/256)
 Through cudaMemcpyHostToDevice and cudaMemcpyDeviceToHost, CPU can pass data in 
 x and y arrays to GPU and get result from GPU to y array. 
 Since both of these memory transfers trigger the DMA functions without CPU operation,
@@ -1428,20 +1549,7 @@ it may speed up by running both CPU/GPU with their data in their own cache
 repectively.
 After DMA memcpy from cpu's memory to gpu's, gpu operates the whole loop of matrix 
 operation for "y[] = a*x[]+y[];"
-instructions with one Grid. Furthermore like vector processor, gpu provides
-Vector Mask Registers to Handling IF Statements in Vector Loops as the following 
-code [#VMR]_,
-
-
-.. code:: asm
-
-  LV V1,Rx         ;load vector X into V1
-  LV V2,Ry         ;load vector Y
-  L.D F0,#0        ;load FP zero into F0
-  SNEVS.D V1,F0    ;sets VM(i) to 1 if V1(i)!=F0
-  SUBVV.D V1,V1,V2 ;subtract under vector mask 
-  SV V1,Rx         ;store the result in X
-
+instructions with one Grid.
 
 GPU persues throughput from SIMD application. Can hide cache-miss latence from 
 SMT. As result GPU may hasn't L2 and L3 like CPU for each core since GPU is highly 
@@ -1552,6 +1660,7 @@ on their relevant instructions and switches off the other threads, this process 
   :scale: 50 %
 
   Programs use Explicit Synchronization to Reconverge Threads in a Warp [#Volta]_
+
 
 OpenCL, Vulkan and spir-v
 -------------------------
@@ -1737,6 +1846,9 @@ Open Sources
 .. _section OpenGL:
   http://jonathan2251.github.io/lbd/gpu.html#opengl
 
+.. _section OpenGL Shader Compiler:
+  http://jonathan2251.github.io/lbd/gpu.html#opengl-shader-compiler
+
 .. [#cg_basictheory] https://www3.ntu.edu.sg/home/ehchua/programming/opengl/CG_BasicsTheory.html
 
 .. [#polygon] https://www.quora.com/Which-one-is-better-for-3D-modeling-Quads-or-Tris
@@ -1887,6 +1999,9 @@ Open Sources
        Book Figure 4.14 of Computer Architecture: A Quantitative Approach 5th edition (The
        Morgan Kaufmann Series in Computer Architecture and Design) 
 
+.. [#Quantitative-gpu-sm] Book Figure 4.20 of Computer Architecture: A Quantitative Approach 5th edition (The
+       Morgan Kaufmann Series in Computer Architecture and Design)
+
 .. [#Quantitative-gpu-mem] Book Figure 4.17 of Computer Architecture: A Quantitative Approach 5th edition (The
        Morgan Kaufmann Series in Computer Architecture and Design)
 
@@ -1909,12 +2024,15 @@ Open Sources
 .. [#Quantitative-gpu-terms] Book Figure 4.12 of Computer Architecture: A Quantitative Approach 5th edition (The
        Morgan Kaufmann Series in Computer Architecture and Design)
 
+.. [#Quantitative-gpu-l1] Page 306 of Computer Architecture: A Quantitative Approach 5th edition (The
+       Morgan Kaufmann Series in Computer Architecture and Design)
+
 .. [#cudaex] https://devblogs.nvidia.com/easy-introduction-cuda-c-and-c/
 
 .. [#Quantitative-gpu-threadblock] search these words from section 4.4 of A Quantitative Approach 5th edition (The
        Morgan Kaufmann Series in Computer Architecture and Design)
 
-.. [#wiki_tbcp] https://en.wikipedia.org/wiki/Thread_block_(CUDA_programming)
+.. [#wiki-tbcp] `https://en.wikipedia.org/wiki/Thread_block_(CUDA_programming)`
  
 .. [#Quantitative-gpu-warp] Book Figure 4.14 and 4.24 of Computer Architecture: A Quantitative Approach 5th edition (The
        Morgan Kaufmann Series in Computer Architecture and Design)
@@ -1922,6 +2040,9 @@ Open Sources
 .. [#Volta] See the same Figures from https://images.nvidia.com/content/volta-architecture/pdf/volta-architecture-whitepaper.pdf
 
 .. [#VMR] subsection Vector Mask Registers: Handling IF Statements in Vector Loops of Computer Architecture: A Quantitative Approach 5th edition (The
+       Morgan Kaufmann Series in Computer Architecture and Design)
+
+.. [#Quantitative-gpu-asm-daxpy] Code written by refering page 208 - 302 of Computer Architecture: A Quantitative Approach 5th edition (The
        Morgan Kaufmann Series in Computer Architecture and Design)
 
 .. [#gpu-latency-tolerant] From section 2.3.2 of book "Heterogeneous Computing with OpenCL 2.0" 3rd edition. https://dahlan.unimal.ac.id/files/ebooks2/2015%203rd%20Heterogeneous%20Computing%20with%20OpenCL%202.0.pdf as follows, "These tasks and the pixels they process are highly parallel, which gives a substan- tial amount of independent work to process for devices with multiple cores and highly latency-tolerant multithreading."
