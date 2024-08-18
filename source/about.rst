@@ -63,6 +63,11 @@ Revision history
 
 Version 12.0.16, not released yet.
 
+Version 12.0.15.2, Released August 18, 2024.
+
+  gpu.rst: sm.png, gpu-block-diagram.png, spirv-lang-layers.gv, sycl.png, 
+  subgroup, threadblock.jpg, threads-lanes.png, grid.png.
+
 Version 12.0.15.1, Released May 31, 2024.
 
   gpu.rst: opengl-flow.gv, explanation of Vota, rotation, section Transformation,
