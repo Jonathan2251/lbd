@@ -1326,6 +1326,23 @@ Texture unit
 
 As depicted in `section OpenGL Shader Compiler`_.
 
+Speedup Features
+~~~~~~~~~~~~~~~~
+
+- Gather-scatter data transfer: HW support sparse vector access is called 
+  gather-scatter. The VMIPS instructions are LVI (load vector indexed or gather) 
+  and SVI (store vector indexed or scatter) [#Quantitative-gpu-gs]_. 
+
+- Address Coalescing: GPU provides this feature explained as follows, 
+
+  - Note that unlike vector architectures, GPUs don’t have separate instructions 
+    for sequential data transfers, strided data transfers, and gather-scatter 
+    data transfers. All data transfers are gather-scatter! To regain the 
+    efficiency of sequential (unit-stride) data transfers, GPUs include special 
+    Address Coalescing hardware to recognize when the SIMD Lanes within a thread of 
+    SIMD instructions are col- lectively issuing sequential addresses 
+    [#Quantitative-gpu-ac]_..
+
 
 Buffers
 ~~~~~~~
@@ -2030,6 +2047,12 @@ Open Sources
 .. [#cudaex] https://devblogs.nvidia.com/easy-introduction-cuda-c-and-c/
 
 .. [#Quantitative-gpu-threadblock] search these words from section 4.4 of A Quantitative Approach 5th edition (The
+       Morgan Kaufmann Series in Computer Architecture and Design)
+
+.. [#Quantitative-gpu-gs] Page 280 of Computer Architecture: A Quantitative Approach 5th edition (The
+       Morgan Kaufmann Series in Computer Architecture and Design)
+
+.. [#Quantitative-gpu-ac] Page 300 of Computer Architecture: A Quantitative Approach 5th edition (The
        Morgan Kaufmann Series in Computer Architecture and Design)
 
 .. [#wiki-tbcp] `https://en.wikipedia.org/wiki/Thread_block_(CUDA_programming)`
