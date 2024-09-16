@@ -68,12 +68,12 @@ The assembling Data Flow Diagram (DFD) as :numref:`asm-f1` and :numref:`asm-f2`.
 
 .. _asm-f1: 
 .. graphviz:: ../Fig/asm/asmDfd.gv
-   :caption: Assemble flow
+   :caption: Assembly flow
 
 .. _asm-f2: 
 .. graphviz:: ../Fig/asm/asmDfdEx.gv
-   :caption: Assemble flow, for instance: add $v1, $v0, $at
-  
+   :caption: Assembly flow, for instance: add $v1, $v0, $at
+ 
 Given an example of assembly instruction "add $v1, $v0, $at", llvm AsmParser
 kernel call backend ParseInstruction() of Cpu0AsmParser.cpp when it 
 parses and recognises that the first token at the beginning of line is identifier. 
@@ -255,17 +255,32 @@ encodeInstruction(), explaining in comments which begin with ///.
 
 .. _asm-f3: 
 .. graphviz:: ../Fig/asm/asmDfdEx2.gv
-   :caption: Data flow in MatchAndEmitInstruction(), for instance: add $v1, $v0, $at"
+   :caption: Data flow in MatchAndEmitInstruction(), for instance: add $v1, 
+             $v0, $at"
 
 .. _asm-f4: 
 .. graphviz:: ../Fig/asm/asmDfdEx3.gv
-   :caption: Data flow in and between MatchAndEmitInstruction() and encodeInstruction(), for instance: add $v1, $v0, $at
+   :caption: Data flow between MatchAndEmitInstruction() and encodeInstruction(), 
+             for instance: add $v1, $v0, $at
 
 MatchTable0 include all the possibile combinations of opcode and operands type.
 Even the assembly instruction of user input may pass Cpu0AsmParser in syntax 
 check, the MatchAndEmitInstruction() still can be fail. For example, instruction 
 "asm("move $3, $2);" can pass but "asm("move $3, $2, $1");" will fail. 
+
+List flow of calling functions for Cpu0AsmParser as :numref:`asm-flow`.
   
+.. _asm-flow: 
+.. graphviz:: ../Fig/asm/asmFlow.gv
+   :caption: Flow of calling functions for Cpu0AsmParser. 
+
+- After ParseInstruction() and MatchAndEmitInstruction() will produce class 
+  MCInst.
+
+  - In MatchAndEmitInstruction(), assembly will call 
+    MCObjectStreamer::emitInstruction() for encoding to binary, reference 
+    :numref:`genobj-f11`.
+
 
 Code list and some detail functions explanation
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

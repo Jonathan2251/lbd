@@ -63,6 +63,14 @@ Revision history
 
 Version 12.0.16, not released yet.
 
+Version 12.0.15.3, Released September 15, 2024.
+
+  gpu.rst: address coalescing, subgroup and trans-steps.png;
+  backendstructure.rst: printAsm.gv, asm-emit.gv and llvm-data-structure.gv;
+  elf.rst: disas.gv;
+  asm.rst: asmFlow.gv;
+  genobj.rst: getMemEncoding, obj-emit.gv;
+
 Version 12.0.15.2, Released August 18, 2024.
 
   gpu.rst: sm.png, gpu-block-diagram.png, spirv-lang-layers.gv, sycl.png, 

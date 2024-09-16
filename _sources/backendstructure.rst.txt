@@ -7,6 +7,13 @@ Backend structure
    :local:
    :depth: 4
 
+From :numref:`llvmstructure-f9`, llvm compiler transfer from llvm-ir to assembly
+or binary object with the following data structure as 
+:numref:`backendstructure-lds`.
+
+.. _backendstructure-lds:
+.. graphviz:: ../Fig/backendstructure/llvm-data-structure.gv
+  :caption: LLVM data structure used in different stages
 
 This chapter introduces the backend class inheritance tree and class members 
 first. 
@@ -370,6 +377,15 @@ instance CH3_5, as follows,
 Add AsmPrinter
 --------------
 
+.. _asm-emit:
+.. graphviz:: ../Fig/backendstructure/asm-emit.gv
+   :caption: When "llc -filetype=asm", Cpu0AsmPrinter extract MCInst from MachineInstr for asm encoding
+
+As :numref:`asm-emit`, because MachineInstr is a big class for opitmization and
+convertion in many passes. LLVM creates MCInst for encoding purpose in assembly
+and binary object. As you can see from the following Cpu0AsmPrinter, it extracts
+MCInst from MachineInstr by calling "MCInstLowering.Lower(&*I, TmpInst0);".
+
 Chapter3_2/ contains the Cpu0AsmPrinter definition. 
 
 .. rubric:: lbdex/chapters/Chapter2/Cpu0.td
@@ -407,6 +423,13 @@ class Cpu0InstPrinter and include them as did in Chapter3_2.
 
 File Chapter3_2/Cpu0/InstPrinter/Cpu0InstPrinter.cpp include Cpu0GenAsmWrite.inc 
 and call the auto-generated functions from TableGen.
+The flow of printing assembly and calling between Cpu0InstPrinter.cpp and 
+Cpu0GenAsmWrite.inc as :numref:`print-asm`.
+
+.. _print-asm:
+.. graphviz:: ../Fig/backendstructure/printAsm.gv
+   :caption: The flow of printing assembly and calling between 
+             Cpu0InstPrinter.cpp and Cpu0GenAsmWrite.inc
 
 Function Cpu0InstPrinter::printMemOperand() defined in 
 Chapter3_2/InstPrinter/Cpu0InstPrinter.cpp as above. 

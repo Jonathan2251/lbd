@@ -113,8 +113,7 @@ for each type of instruction.
 
 .. _llvmstructure-f2: 
 .. figure:: ../Fig/llvmstructure/2.png
-  :width: 601 px
-  :height: 331 px
+  :scale: 50%
   :align: center
 
   Cpu0's three instruction formats

@@ -43,22 +43,35 @@
 <span id="sec-backendstructure"></span><h1>Backend structure<a class="headerlink" href="#backend-structure" title="Permalink to this heading">¶</a></h1>
 <nav class="contents local" id="contents">
 <ul class="simple">
-<li><p><a class="reference internal" href="#targetmachine-structure" id="id15">TargetMachine structure</a></p></li>
-<li><p><a class="reference internal" href="#add-asmprinter" id="id16">Add AsmPrinter</a></p></li>
-<li><p><a class="reference internal" href="#add-cpu0dagtodagisel-class" id="id17">Add Cpu0DAGToDAGISel class</a></p></li>
-<li><p><a class="reference internal" href="#handle-return-register-lr" id="id18">Handle return register $lr</a></p></li>
-<li><p><a class="reference internal" href="#add-prologue-epilogue-functions" id="id19">Add Prologue/Epilogue functions</a></p>
+<li><p><a class="reference internal" href="#targetmachine-structure" id="id18">TargetMachine structure</a></p></li>
+<li><p><a class="reference internal" href="#add-asmprinter" id="id19">Add AsmPrinter</a></p></li>
+<li><p><a class="reference internal" href="#add-cpu0dagtodagisel-class" id="id20">Add Cpu0DAGToDAGISel class</a></p></li>
+<li><p><a class="reference internal" href="#handle-return-register-lr" id="id21">Handle return register $lr</a></p></li>
+<li><p><a class="reference internal" href="#add-prologue-epilogue-functions" id="id22">Add Prologue/Epilogue functions</a></p>
 <ul>
-<li><p><a class="reference internal" href="#concept" id="id20">Concept</a></p></li>
-<li><p><a class="reference internal" href="#prologue-and-epilogue-functions" id="id21">Prologue and Epilogue functions</a></p></li>
-<li><p><a class="reference internal" href="#handle-stack-slot-for-local-variables" id="id22">Handle stack slot for local variables</a></p></li>
-<li><p><a class="reference internal" href="#large-stack" id="id23">Large stack</a></p></li>
+<li><p><a class="reference internal" href="#concept" id="id23">Concept</a></p></li>
+<li><p><a class="reference internal" href="#prologue-and-epilogue-functions" id="id24">Prologue and Epilogue functions</a></p></li>
+<li><p><a class="reference internal" href="#handle-stack-slot-for-local-variables" id="id25">Handle stack slot for local variables</a></p></li>
+<li><p><a class="reference internal" href="#large-stack" id="id26">Large stack</a></p></li>
 </ul>
 </li>
-<li><p><a class="reference internal" href="#data-operands-dags" id="id24">Data operands DAGs</a></p></li>
-<li><p><a class="reference internal" href="#summary-of-this-chapter" id="id25">Summary of this Chapter</a></p></li>
+<li><p><a class="reference internal" href="#data-operands-dags" id="id27">Data operands DAGs</a></p></li>
+<li><p><a class="reference internal" href="#summary-of-this-chapter" id="id28">Summary of this Chapter</a></p></li>
 </ul>
 </nav>
+<p>From <a class="reference internal" href="llvmstructure.html#llvmstructure-f9"><span class="std std-numref">Fig. 11</span></a>, llvm compiler transfer from llvm-ir to assembly
+or binary object with the following data structure as
+<a class="reference internal" href="#backendstructure-lds"><span class="std std-numref">Fig. 18</span></a>.</p>
+<figure class="align-default" id="id5">
+<span id="backendstructure-lds"></span><div class="graphviz"><img src="_images/graphviz-f155c21b026d9a3af4cac5b599605c96509e606c.png" alt="digraph G {
+  rankdir=LR;
+  &quot;llvm-ir&quot; -&gt; &quot;DAG&quot; -&gt; &quot;MachineInstr&quot; -&gt; &quot;MCInst&quot; -&gt; &quot;assembly&quot;;
+  &quot;MCInst&quot; -&gt; &quot;binary object&quot;;
+}" class="graphviz" /></div>
+<figcaption>
+<p><span class="caption-number">Fig. 18 </span><span class="caption-text">LLVM data structure used in different stages</span><a class="headerlink" href="#id5" title="Permalink to this image">¶</a></p>
+</figcaption>
+</figure>
 <p>This chapter introduces the backend class inheritance tree and class members
 first.
 Next, following the backend structure, adding individual classes implementation
@@ -75,7 +88,7 @@ Once knowing the structure, you can
 create your backend structure as quickly as we did, even though there are 5000
 lines of code around added in this chapter.</p>
 <section id="targetmachine-structure">
-<h2><a class="toc-backref" href="#id15" role="doc-backlink">TargetMachine structure</a><a class="headerlink" href="#targetmachine-structure" title="Permalink to this heading">¶</a></h2>
+<h2><a class="toc-backref" href="#id18" role="doc-backlink">TargetMachine structure</a><a class="headerlink" href="#targetmachine-structure" title="Permalink to this heading">¶</a></h2>
 <p class="rubric">lbdex/chapters/Chapter3_1/Cpu0TargetObjectFile.h</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">//===--</span> <span class="n">llvm</span><span class="o">/</span><span class="n">Target</span><span class="o">/</span><span class="n">Cpu0TargetObjectFile</span><span class="o">.</span><span class="n">h</span> <span class="o">-</span> <span class="n">Cpu0</span> <span class="n">Object</span> <span class="n">Info</span> <span class="o">---*-</span> <span class="n">C</span><span class="o">++</span> <span class="o">-*-===//</span>
 <span class="o">//</span>
@@ -2203,14 +2216,14 @@ getFrameRegister(const MachineFunction &amp;MF) const {
 <span class="p">};</span><span class="w"></span>
 </pre></div>
 </div>
-<figure class="align-center" id="id5">
+<figure class="align-center" id="id6">
 <span id="backendstructure-f1"></span><img alt="_images/1.png" src="_images/1.png" />
 <figcaption>
-<p><span class="caption-number">Fig. 18 </span><span class="caption-text">Cpu0 backend class access link</span><a class="headerlink" href="#id5" title="Permalink to this image">¶</a></p>
+<p><span class="caption-number">Fig. 19 </span><span class="caption-text">Cpu0 backend class access link</span><a class="headerlink" href="#id6" title="Permalink to this image">¶</a></p>
 </figcaption>
 </figure>
 <p>Chapter3_1 add most Cpu0 backend classes. The code of Chapter3_1 can be
-summaried as <a class="reference internal" href="#backendstructure-f1"><span class="std std-numref">Fig. 18</span></a>.
+summaried as <a class="reference internal" href="#backendstructure-f1"><span class="std std-numref">Fig. 19</span></a>.
 Class Cpu0Subtarget provides the interfaces getInstrInfo(), getFrameLowering(),
 …, to get other Cpu0 classes.
 Most classes (like Cpu0InstrInfo, Cpu0RegisterInfo, …) have Subtarget
@@ -2227,8 +2240,8 @@ Mips16, MipsSE and Mips64 files/classes name to define classes for 16,
 32 and 64 bits architecture, respectively.
 Since Cpu0Subtarget creates Cpu0InstrInfo, Cpu0RegisterInfo, …, at constuctor
 function, it can provide the class reference through the interfaces shown in
-<a class="reference internal" href="#backendstructure-f1"><span class="std std-numref">Fig. 18</span></a>.</p>
-<p>Below <a class="reference internal" href="#backendstructure-f2"><span class="std std-numref">Fig. 19</span></a> shows Cpu0 TableGen inheritance
+<a class="reference internal" href="#backendstructure-f1"><span class="std std-numref">Fig. 19</span></a>.</p>
+<p>Below <a class="reference internal" href="#backendstructure-f2"><span class="std std-numref">Fig. 20</span></a> shows Cpu0 TableGen inheritance
 relationship.
 Last chapter mentioned that backend class can include the TableGen generated
 classes and inherited from it.
@@ -2236,10 +2249,10 @@ All the TableGen generated classes of Cpu0 backend are in
 build/lib/Target/Cpu0/*.inc. Through C++ inheritance mechanism,
 TableGen provides backend programmers a fexible way to use its generated
 code. Programmers have chance to override this function if they need to.</p>
-<figure class="align-center" id="id6">
+<figure class="align-center" id="id7">
 <span id="backendstructure-f2"></span><img alt="_images/2.png" src="_images/2.png" />
 <figcaption>
-<p><span class="caption-number">Fig. 19 </span><span class="caption-text">Cpu0 classes inherited from TableGen generated files</span><a class="headerlink" href="#id6" title="Permalink to this image">¶</a></p>
+<p><span class="caption-number">Fig. 20 </span><span class="caption-text">Cpu0 classes inherited from TableGen generated files</span><a class="headerlink" href="#id7" title="Permalink to this image">¶</a></p>
 </figcaption>
 </figure>
 <p>Since llvm has deep inheritance tree, they are not digged here.
@@ -2389,7 +2402,23 @@ instance CH3_5, as follows,</p>
 </div>
 </section>
 <section id="add-asmprinter">
-<h2><a class="toc-backref" href="#id16" role="doc-backlink">Add AsmPrinter</a><a class="headerlink" href="#add-asmprinter" title="Permalink to this heading">¶</a></h2>
+<h2><a class="toc-backref" href="#id19" role="doc-backlink">Add AsmPrinter</a><a class="headerlink" href="#add-asmprinter" title="Permalink to this heading">¶</a></h2>
+<figure class="align-default" id="id8">
+<span id="asm-emit"></span><div class="graphviz"><img src="_images/graphviz-e8af485b27c0222248233ede991709fb7e1aa3f0.png" alt="digraph G {
+  rankdir=LR;
+  MCInst [style=filled, color=green]; 
+  assembly [style=filled, color=green];
+
+  &quot;llvm-ir&quot; -&gt; DAG -&gt; MachineInstr -&gt; MCInst -&gt; assembly;
+}" class="graphviz" /></div>
+<figcaption>
+<p><span class="caption-number">Fig. 21 </span><span class="caption-text">When “llc -filetype=asm”, Cpu0AsmPrinter extract MCInst from MachineInstr for asm encoding</span><a class="headerlink" href="#id8" title="Permalink to this image">¶</a></p>
+</figcaption>
+</figure>
+<p>As <a class="reference internal" href="#asm-emit"><span class="std std-numref">Fig. 21</span></a>, because MachineInstr is a big class for opitmization and
+convertion in many passes. LLVM creates MCInst for encoding purpose in assembly
+and binary object. As you can see from the following Cpu0AsmPrinter, it extracts
+MCInst from MachineInstr by calling “MCInstLowering.Lower(&amp;*I, TmpInst0);”.</p>
 <p>Chapter3_2/ contains the Cpu0AsmPrinter definition.</p>
 <p class="rubric">lbdex/chapters/Chapter2/Cpu0.td</p>
 <div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="n">def</span><span class="w"> </span><span class="n">Cpu0InstrInfo</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="n">InstrInfo</span><span class="p">;</span><span class="w"></span>
@@ -2595,7 +2624,54 @@ in Cpu0InstrInfo.td and Cpu0RegisterInfo.td.
 To let these two functions work in our code, the only thing needed is adding a
 class Cpu0InstPrinter and include them as did in Chapter3_2.</p>
 <p>File Chapter3_2/Cpu0/InstPrinter/Cpu0InstPrinter.cpp include Cpu0GenAsmWrite.inc
-and call the auto-generated functions from TableGen.</p>
+and call the auto-generated functions from TableGen.
+The flow of printing assembly and calling between Cpu0InstPrinter.cpp and
+Cpu0GenAsmWrite.inc as <a class="reference internal" href="#print-asm"><span class="std std-numref">Fig. 22</span></a>.</p>
+<figure class="align-default" id="id9">
+<span id="print-asm"></span><div class="graphviz"><img src="_images/graphviz-7175c6aa0061cc812174e0d5e1a1cbab9f544a91.png" alt="digraph G {
+  rankdir=TB;
+  E1 -&gt; E2 [label=&quot;AsmPrinter::OutStreamer is MCAsmStreamer if llc -filetype=asm&quot;];
+  E2 -&gt; &quot;MCTargetStreamer::prettyPrintAsm()&quot; -&gt; &quot;printInst()&quot; -&gt; &quot;printInstruction()&quot;;
+  &quot;printInstruction()&quot; -&gt; &quot;getMnemonic()&quot;;
+  &quot;printInstruction()&quot; -&gt; &quot;printUsignedImm()&quot;;
+  &quot;printInstruction()&quot; -&gt; &quot;printMemOperand()&quot;;
+  &quot;printInstruction()&quot; -&gt; &quot;printOperand()&quot;;
+  &quot;printRegName()&quot; -&gt; &quot;getRegisterName(unsigned RegNo)&quot;;
+  &quot;printInst()&quot; -&gt; &quot;printAliasInstr()&quot;;
+  subgraph clusterCpu0Asm {
+    label = &quot;Cpu0AsmPrinter.cpp&quot;;
+    E1 [label=&quot;Cpu0AsmPrinter::emitInstruction(const MachineInstr *MI)&quot;];
+  }
+  subgraph clusterMCAsm {
+    label = &quot;lib/MC/MCAsmStreamer.cpp&quot;;
+    E2 [label=&quot;MCAsmStreamer::emitInstruction(const MCInst &amp;Inst, ...)&quot;];
+  }
+  subgraph clusterMC {
+    label = &quot;lib/MC/MCStreamer.cpp&quot;;
+    &quot;MCTargetStreamer::prettyPrintAsm()&quot;;
+  }
+  subgraph clusterInc {
+    label = &quot;Cpu0GenAsmWrite.inc&quot;;
+    &quot;getMnemonic()&quot;;
+    &quot;printInstruction()&quot;;
+    &quot;getRegisterName(unsigned RegNo)&quot;;
+    &quot;printAliasInstr()&quot; [label=&quot;printAliasInstr()\n (print \&quot;move $fp, $sp\&quot; instead of \n addiu $fp, 0, $sp)\n&quot;];
+  }
+  subgraph clusterCpu0InstPrinter {
+    label = &quot;Cpu0InstPrinter.cpp&quot;;
+    &quot;printRegName()&quot;;
+    &quot;printInst()&quot;;
+    &quot;printUsignedImm()&quot;;
+    &quot;printMemOperand()&quot;;
+    &quot;printOperand()&quot;;
+  }
+//  label = &quot;Figure: The flow of printing assembly and calling between Cpu0InstPrinter.cpp and Cpu0GenAsmWrite.inc&quot;;
+}" class="graphviz" /></div>
+<figcaption>
+<p><span class="caption-number">Fig. 22 </span><span class="caption-text">The flow of printing assembly and calling between
+Cpu0InstPrinter.cpp and Cpu0GenAsmWrite.inc</span><a class="headerlink" href="#id9" title="Permalink to this image">¶</a></p>
+</figcaption>
+</figure>
 <p>Function Cpu0InstPrinter::printMemOperand() defined in
 Chapter3_2/InstPrinter/Cpu0InstPrinter.cpp as above.
 It will be triggered since Cpu0InstrInfo.td
@@ -3068,11 +3144,11 @@ extern &quot;C&quot; void LLVMInitializeCpu0TargetMC() {
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>  <span class="n">Cpu0MCAsmInfo</span><span class="o">.</span><span class="n">cpp</span>
 </pre></div>
 </div>
-<p>To make the registration clearly, summary as the following diagram, <a class="reference internal" href="#backendstructure-f3"><span class="std std-numref">Fig. 20</span></a>.</p>
-<figure class="align-center" id="id7">
+<p>To make the registration clearly, summary as the following diagram, <a class="reference internal" href="#backendstructure-f3"><span class="std std-numref">Fig. 23</span></a>.</p>
+<figure class="align-center" id="id10">
 <span id="backendstructure-f3"></span><img alt="_images/dyn_reg.png" src="_images/dyn_reg.png" />
 <figcaption>
-<p><span class="caption-number">Fig. 20 </span><span class="caption-text">Tblgen generate files for Cpu0 backend</span><a class="headerlink" href="#id7" title="Permalink to this image">¶</a></p>
+<p><span class="caption-number">Fig. 23 </span><span class="caption-text">Tblgen generate files for Cpu0 backend</span><a class="headerlink" href="#id10" title="Permalink to this image">¶</a></p>
 </figcaption>
 </figure>
 <p>Above createCpu0MCAsmInfo() registering the object of class Cpu0MCAsmInfo for
@@ -3531,7 +3607,7 @@ follows,</p>
 class Cpu0DAGToDAGISel.</p>
 </section>
 <section id="add-cpu0dagtodagisel-class">
-<h2><a class="toc-backref" href="#id17" role="doc-backlink">Add Cpu0DAGToDAGISel class</a><a class="headerlink" href="#add-cpu0dagtodagisel-class" title="Permalink to this heading">¶</a></h2>
+<h2><a class="toc-backref" href="#id20" role="doc-backlink">Add Cpu0DAGToDAGISel class</a><a class="headerlink" href="#add-cpu0dagtodagisel-class" title="Permalink to this heading">¶</a></h2>
 <p>The IR DAG to machine instruction DAG transformation is introduced in the
 previous chapter.
 Now, let’s check what IR DAG nodes the file ch3.bc has. List ch3.ll as follows,</p>
@@ -4017,7 +4093,7 @@ code added in Chapter3_1/Cpu0ISelLowering.cpp.</p>
 </div>
 </section>
 <section id="handle-return-register-lr">
-<h2><a class="toc-backref" href="#id18" role="doc-backlink">Handle return register $lr</a><a class="headerlink" href="#handle-return-register-lr" title="Permalink to this heading">¶</a></h2>
+<h2><a class="toc-backref" href="#id21" role="doc-backlink">Handle return register $lr</a><a class="headerlink" href="#handle-return-register-lr" title="Permalink to this heading">¶</a></h2>
 <p>The following code is the result of running Mips backend with ch3.cpp.</p>
 <div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">JonathantekiiMac:input Jonathan$ </span>~/llvm/debug/build/bin/llc
 <span class="go">-march=mips -relocation-model=pic -filetype=asm ch3.bc -o -</span>
@@ -4601,8 +4677,8 @@ The DAGs which before and after instruction selection stage are shown as follows
 </pre></div>
 </div>
 <p>Summary above translation into Table: Chapter 3 .bc IR instructions.</p>
-<table class="docutils align-default" id="id8">
-<caption><span class="caption-number">Table 15 </span><span class="caption-text">Chapter 3 .bc IR instructions</span><a class="headerlink" href="#id8" title="Permalink to this table">¶</a></caption>
+<table class="docutils align-default" id="id11">
+<caption><span class="caption-number">Table 15 </span><span class="caption-text">Chapter 3 .bc IR instructions</span><a class="headerlink" href="#id11" title="Permalink to this table">¶</a></caption>
 <thead>
 <tr class="row-odd"><th class="head"><p>.bc</p></th>
 <th class="head"><p>Lower</p></th>
@@ -4719,8 +4795,8 @@ class JumpFR&lt;bits&lt;8&gt; op, string instr_asm, RegisterClass RC&gt;:
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">RET</span>     <span class="p">:</span> <span class="n">RetBase</span><span class="o">&lt;</span><span class="n">GPROut</span><span class="o">&gt;</span><span class="p">;</span>
 </pre></div>
 </div>
-<table class="docutils align-default" id="id9">
-<caption><span class="caption-number">Table 16 </span><span class="caption-text">Handle return register lr</span><a class="headerlink" href="#id9" title="Permalink to this table">¶</a></caption>
+<table class="docutils align-default" id="id12">
+<caption><span class="caption-number">Table 16 </span><span class="caption-text">Handle return register lr</span><a class="headerlink" href="#id12" title="Permalink to this table">¶</a></caption>
 <thead>
 <tr class="row-odd"><th class="head"><p>Stage</p></th>
 <th class="head"><p>Function</p></th>
@@ -4764,9 +4840,9 @@ won’t be live out, and the previous DAG (CopyToReg %X, %V0, %Y) will be remove
 at later optimization steps. It ending with the return value is error.</p>
 </section>
 <section id="add-prologue-epilogue-functions">
-<h2><a class="toc-backref" href="#id19" role="doc-backlink">Add Prologue/Epilogue functions</a><a class="headerlink" href="#add-prologue-epilogue-functions" title="Permalink to this heading">¶</a></h2>
+<h2><a class="toc-backref" href="#id22" role="doc-backlink">Add Prologue/Epilogue functions</a><a class="headerlink" href="#add-prologue-epilogue-functions" title="Permalink to this heading">¶</a></h2>
 <section id="concept">
-<h3><a class="toc-backref" href="#id20" role="doc-backlink">Concept</a><a class="headerlink" href="#concept" title="Permalink to this heading">¶</a></h3>
+<h3><a class="toc-backref" href="#id23" role="doc-backlink">Concept</a><a class="headerlink" href="#concept" title="Permalink to this heading">¶</a></h3>
 <p>Following come from tricore_llvm.pdf section “4.4.2 Non-static Register
 Information ”.</p>
 <p>For some target architectures, some aspects of the target architecture’s
@@ -4805,7 +4881,7 @@ register–offset pair. Depending on whether the machine function that contains
 the instruction has a fixed or a variable stack frame, either the stack pointer
 %a10 or the frame pointer %a14 is used as the base register.
 The offset is computed accordingly.
-<a class="reference internal" href="#backendstructure-f10"><span class="std std-numref">Fig. 21</span></a> demonstrates for both cases how a stack slot
+<a class="reference internal" href="#backendstructure-f10"><span class="std std-numref">Fig. 24</span></a> demonstrates for both cases how a stack slot
 is addressed.</p></li>
 </ul>
 <p>If the addressing mode of the affected instruction cannot handle the address
@@ -4816,17 +4892,17 @@ Interim results are put into an unused address register.
 If none is available, an already occupied address register is scavenged.
 For this purpose, LLVM’s framework offers a class named RegScavenger that
 takes care of all the details.</p>
-<figure class="align-center" id="id10">
+<figure class="align-center" id="id13">
 <span id="backendstructure-f10"></span><img alt="_images/10.png" src="_images/10.png" />
 <figcaption>
-<p><span class="caption-number">Fig. 21 </span><span class="caption-text">Addressing of a variable a located on the stack.
+<p><span class="caption-number">Fig. 24 </span><span class="caption-text">Addressing of a variable a located on the stack.
 If the stack frame has a variable size, slot must be addressed relative to
-the frame pointer</span><a class="headerlink" href="#id10" title="Permalink to this image">¶</a></p>
+the frame pointer</span><a class="headerlink" href="#id13" title="Permalink to this image">¶</a></p>
 </figcaption>
 </figure>
 </section>
 <section id="prologue-and-epilogue-functions">
-<h3><a class="toc-backref" href="#id21" role="doc-backlink">Prologue and Epilogue functions</a><a class="headerlink" href="#prologue-and-epilogue-functions" title="Permalink to this heading">¶</a></h3>
+<h3><a class="toc-backref" href="#id24" role="doc-backlink">Prologue and Epilogue functions</a><a class="headerlink" href="#prologue-and-epilogue-functions" title="Permalink to this heading">¶</a></h3>
 <p>The Prologue and Epilogue functions as follows,</p>
 <p class="rubric">lbdex/chapters/Chapter3_5/Cpu0SEFrameLowering.cpp</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>void Cpu0SEFrameLowering::emitPrologue(MachineFunction &amp;MF,
@@ -5106,7 +5182,7 @@ def : Pat&lt;(i32 imm:$imm),
 </div>
 </section>
 <section id="handle-stack-slot-for-local-variables">
-<h3><a class="toc-backref" href="#id22" role="doc-backlink">Handle stack slot for local variables</a><a class="headerlink" href="#handle-stack-slot-for-local-variables" title="Permalink to this heading">¶</a></h3>
+<h3><a class="toc-backref" href="#id25" role="doc-backlink">Handle stack slot for local variables</a><a class="headerlink" href="#handle-stack-slot-for-local-variables" title="Permalink to this heading">¶</a></h3>
 <p>The following code handle the stack slot for local variables.</p>
 <p class="rubric">lbdex/chapters/Chapter3_5/Cpu0RegisterInfo.cpp</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>//- If no eliminateFrameIndex(), it will hang on run. 
@@ -5377,8 +5453,8 @@ Cpu0SEInstrInfo.h and Cpu0InstrInfo.h it will get the belowing error.</p>
 <span class="go">Abort trap: 6</span>
 </pre></div>
 </div>
-<table class="docutils align-default" id="id11">
-<caption><span class="caption-number">Table 17 </span><span class="caption-text">Backend functions called in PrologEpilogInserter.cpp</span><a class="headerlink" href="#id11" title="Permalink to this table">¶</a></caption>
+<table class="docutils align-default" id="id14">
+<caption><span class="caption-number">Table 17 </span><span class="caption-text">Backend functions called in PrologEpilogInserter.cpp</span><a class="headerlink" href="#id14" title="Permalink to this table">¶</a></caption>
 <thead>
 <tr class="row-odd"><th class="head"><p>Stage</p></th>
 <th class="head"><p>Function</p></th>
@@ -5602,7 +5678,7 @@ as follows,</p>
 </div>
 </section>
 <section id="large-stack">
-<h3><a class="toc-backref" href="#id23" role="doc-backlink">Large stack</a><a class="headerlink" href="#large-stack" title="Permalink to this heading">¶</a></h3>
+<h3><a class="toc-backref" href="#id26" role="doc-backlink">Large stack</a><a class="headerlink" href="#large-stack" title="Permalink to this heading">¶</a></h3>
 <p>At this point, we have translated the very simple main() function with
 “return 0;” single instruction.
 Though Cpu0AnalyzeImmediate.cpp and the Cpu0InstrInfo.td instructions defined in
@@ -5988,8 +6064,8 @@ Instead of tracking the code, listing the stack size and the instructions
 generated in “Table: Cpu0 stack adjustment instructions before replace addiu and
 shl with lui instruction” as follows and “Table: Cpu0 stack adjustment
 instructions after replace addiu and shl with lui instruction” at next,</p>
-<table class="docutils align-default" id="id12">
-<caption><span class="caption-number">Table 18 </span><span class="caption-text">Cpu0 stack adjustment instructions before replace addiu and shl with lui instruction</span><a class="headerlink" href="#id12" title="Permalink to this table">¶</a></caption>
+<table class="docutils align-default" id="id15">
+<caption><span class="caption-number">Table 18 </span><span class="caption-text">Cpu0 stack adjustment instructions before replace addiu and shl with lui instruction</span><a class="headerlink" href="#id15" title="Permalink to this table">¶</a></caption>
 <thead>
 <tr class="row-odd"><th class="head"><p>stack size range</p></th>
 <th class="head"><p>ex. stack size</p></th>
@@ -6093,8 +6169,8 @@ follows,</p>
 <p>The Cpu0AnalyzeImmediate::GetShortestSeq() will call Cpu0AnalyzeImmediate::
 ReplaceADDiuSHLWithLUi() to replace addiu and shl with single instruction lui
 only. The effect as the following table.</p>
-<table class="docutils align-default" id="id13">
-<caption><span class="caption-number">Table 19 </span><span class="caption-text">Cpu0 stack adjustment instructions after replace addiu and shl with lui instruction</span><a class="headerlink" href="#id13" title="Permalink to this table">¶</a></caption>
+<table class="docutils align-default" id="id16">
+<caption><span class="caption-number">Table 19 </span><span class="caption-text">Cpu0 stack adjustment instructions after replace addiu and shl with lui instruction</span><a class="headerlink" href="#id16" title="Permalink to this table">¶</a></caption>
 <thead>
 <tr class="row-odd"><th class="head"><p>stack size range</p></th>
 <th class="head"><p>ex. stack size</p></th>
@@ -6220,7 +6296,7 @@ follows,</p>
 </section>
 </section>
 <section id="data-operands-dags">
-<h2><a class="toc-backref" href="#id24" role="doc-backlink">Data operands DAGs</a><a class="headerlink" href="#data-operands-dags" title="Permalink to this heading">¶</a></h2>
+<h2><a class="toc-backref" href="#id27" role="doc-backlink">Data operands DAGs</a><a class="headerlink" href="#data-operands-dags" title="Permalink to this heading">¶</a></h2>
 <p>From above or compiler book, you can see all the OP code are the internal nodes
 in DAGs graph, and operands are the leaves of DAGs.
 To develop your backend, you can copy the
@@ -6361,7 +6437,7 @@ ADDiu mention in last chapter.
 PatLeaf immZExt16, immLow16Zero and ImmLeaf immZExt5 are similar to immSExt16.</p>
 </section>
 <section id="summary-of-this-chapter">
-<h2><a class="toc-backref" href="#id25" role="doc-backlink">Summary of this Chapter</a><a class="headerlink" href="#summary-of-this-chapter" title="Permalink to this heading">¶</a></h2>
+<h2><a class="toc-backref" href="#id28" role="doc-backlink">Summary of this Chapter</a><a class="headerlink" href="#summary-of-this-chapter" title="Permalink to this heading">¶</a></h2>
 <p>Summary the functions for llvm backend stages as the following table.</p>
 <div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">118-165-79-200:input Jonathan$ </span>/Users/Jonathan/llvm/test/build/
 <span class="go">bin/llc -march=cpu0 -relocation-model=pic -filetype=asm ch3.bc</span>
@@ -6391,8 +6467,8 @@ PatLeaf immZExt16, immLow16Zero and ImmLeaf immZExt5 are similar to immSExt16.</
 <span class="go">      Cpu0 Assembly Printer</span>
 </pre></div>
 </div>
-<table class="docutils align-default" id="id14">
-<caption><span class="caption-number">Table 20 </span><span class="caption-text">Functions for llvm backend stages</span><a class="headerlink" href="#id14" title="Permalink to this table">¶</a></caption>
+<table class="docutils align-default" id="id17">
+<caption><span class="caption-number">Table 20 </span><span class="caption-text">Functions for llvm backend stages</span><a class="headerlink" href="#id17" title="Permalink to this table">¶</a></caption>
 <thead>
 <tr class="row-odd"><th class="head"><p>Stage</p></th>
 <th class="head"><p>Function</p></th>

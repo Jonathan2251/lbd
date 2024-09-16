@@ -43,10 +43,10 @@
 <span id="sec-genobjfiles"></span><h1>Generating object files<a class="headerlink" href="#generating-object-files" title="Permalink to this heading">¶</a></h1>
 <nav class="contents local" id="contents">
 <ul class="simple">
-<li><p><a class="reference internal" href="#translate-into-obj-file" id="id7">Translate into obj file</a></p></li>
-<li><p><a class="reference internal" href="#elf-obj-related-code" id="id8">ELF obj related code</a></p></li>
-<li><p><a class="reference internal" href="#work-flow" id="id9">Work flow</a></p></li>
-<li><p><a class="reference internal" href="#backend-target-registration-structure" id="id10">Backend Target Registration Structure</a></p></li>
+<li><p><a class="reference internal" href="#translate-into-obj-file" id="id8">Translate into obj file</a></p></li>
+<li><p><a class="reference internal" href="#elf-obj-related-code" id="id9">ELF obj related code</a></p></li>
+<li><p><a class="reference internal" href="#work-flow" id="id10">Work flow</a></p></li>
+<li><p><a class="reference internal" href="#backend-target-registration-structure" id="id11">Backend Target Registration Structure</a></p></li>
 </ul>
 </nav>
 <p>The previous chapters introducing the assembly code generation only.
@@ -55,8 +55,22 @@ objdump utility. With LLVM support, the Cpu0 backend can generate both big
 endian and little endian obj files with only a few code added.
 The Target Registration mechanism and their structure are introduced in
 this chapter.</p>
+<p>Similar to <a class="reference internal" href="backendstructure.html#asm-emit"><span class="std std-numref">Fig. 21</span></a> of previous chapter, but this chapter emit binary
+obj instruction as <a class="reference internal" href="#obj-emit"><span class="std std-numref">Fig. 29</span></a>.</p>
+<figure class="align-default" id="id3">
+<span id="obj-emit"></span><div class="graphviz"><img src="_images/graphviz-636795140b555c48c7dde16f13e6a28668293511.png" alt="digraph G {
+  rankdir=LR;
+  MCInst [style=filled, color=green]; 
+  &quot;binary obj&quot; [style=filled, color=green];
+
+  MachineInstr -&gt; MCInst -&gt; &quot;binary obj&quot;;
+}" class="graphviz" /></div>
+<figcaption>
+<p><span class="caption-number">Fig. 29 </span><span class="caption-text">When “llc -filetype=obj”, Cpu0AsmPrinter extract MCInst from MachineInstr for obj encoding</span><a class="headerlink" href="#id3" title="Permalink to this image">¶</a></p>
+</figcaption>
+</figure>
 <section id="translate-into-obj-file">
-<h2><a class="toc-backref" href="#id7" role="doc-backlink">Translate into obj file</a><a class="headerlink" href="#translate-into-obj-file" title="Permalink to this heading">¶</a></h2>
+<h2><a class="toc-backref" href="#id8" role="doc-backlink">Translate into obj file</a><a class="headerlink" href="#translate-into-obj-file" title="Permalink to this heading">¶</a></h2>
 <p>Currently, we only support translation of llvm IR code into assembly code.
 If you try running Chapter4_2/ to translate it into obj code will get the error
 message as follows,</p>
@@ -146,7 +160,7 @@ The big endian (B0, B1, B2, B3) = (09, dd, ff, c8), objdump from B0 to B3 is
 objdump from B0 to B3 is 0xc8ffdd09.</p>
 </section>
 <section id="elf-obj-related-code">
-<h2><a class="toc-backref" href="#id8" role="doc-backlink">ELF obj related code</a><a class="headerlink" href="#elf-obj-related-code" title="Permalink to this heading">¶</a></h2>
+<h2><a class="toc-backref" href="#id9" role="doc-backlink">ELF obj related code</a><a class="headerlink" href="#elf-obj-related-code" title="Permalink to this heading">¶</a></h2>
 <p>To support elf obj generation, the following code changed and added to
 Chapter5_1.</p>
 <p class="rubric">lbdex/chapters/Chapter5_1/InstPrinter/Cpu0InstPrinter.cpp</p>
@@ -674,28 +688,6 @@ MCAsmBackend *llvm::createCpu0AsmBackend(const Target &amp;T,
                                  <span class="n">SmallVectorImpl</span><span class="o">&lt;</span><span class="n">MCFixup</span><span class="o">&gt;</span> <span class="o">&amp;</span><span class="n">Fixups</span><span class="p">,</span>
                                  <span class="n">const</span> <span class="n">MCSubtargetInfo</span> <span class="o">&amp;</span><span class="n">STI</span><span class="p">)</span> <span class="n">const</span><span class="p">;</span>
 
-  <span class="o">//</span> <span class="n">getBranch16TargetOpValue</span> <span class="o">-</span> <span class="n">Return</span> <span class="n">binary</span> <span class="n">encoding</span> <span class="n">of</span> <span class="n">the</span> <span class="n">branch</span>
-  <span class="o">//</span> <span class="n">target</span> <span class="n">operand</span><span class="p">,</span> <span class="n">such</span> <span class="k">as</span> <span class="n">BEQ</span><span class="p">,</span> <span class="n">BNE</span><span class="o">.</span> <span class="n">If</span> <span class="n">the</span> <span class="n">machine</span> <span class="n">operand</span>
-  <span class="o">//</span> <span class="n">requires</span> <span class="n">relocation</span><span class="p">,</span> <span class="n">record</span> <span class="n">the</span> <span class="n">relocation</span> <span class="ow">and</span> <span class="k">return</span> <span class="n">zero</span><span class="o">.</span>
-  <span class="n">unsigned</span> <span class="n">getBranch16TargetOpValue</span><span class="p">(</span><span class="n">const</span> <span class="n">MCInst</span> <span class="o">&amp;</span><span class="n">MI</span><span class="p">,</span> <span class="n">unsigned</span> <span class="n">OpNo</span><span class="p">,</span>
-                                    <span class="n">SmallVectorImpl</span><span class="o">&lt;</span><span class="n">MCFixup</span><span class="o">&gt;</span> <span class="o">&amp;</span><span class="n">Fixups</span><span class="p">,</span>
-                                    <span class="n">const</span> <span class="n">MCSubtargetInfo</span> <span class="o">&amp;</span><span class="n">STI</span><span class="p">)</span> <span class="n">const</span><span class="p">;</span>
-
-  <span class="o">//</span> <span class="n">getBranch24TargetOpValue</span> <span class="o">-</span> <span class="n">Return</span> <span class="n">binary</span> <span class="n">encoding</span> <span class="n">of</span> <span class="n">the</span> <span class="n">branch</span>
-  <span class="o">//</span> <span class="n">target</span> <span class="n">operand</span><span class="p">,</span> <span class="n">such</span> <span class="k">as</span> <span class="n">JMP</span> <span class="c1">#BB01, JEQ, JSUB. If the machine operand</span>
-  <span class="o">//</span> <span class="n">requires</span> <span class="n">relocation</span><span class="p">,</span> <span class="n">record</span> <span class="n">the</span> <span class="n">relocation</span> <span class="ow">and</span> <span class="k">return</span> <span class="n">zero</span><span class="o">.</span>
-  <span class="n">unsigned</span> <span class="n">getBranch24TargetOpValue</span><span class="p">(</span><span class="n">const</span> <span class="n">MCInst</span> <span class="o">&amp;</span><span class="n">MI</span><span class="p">,</span> <span class="n">unsigned</span> <span class="n">OpNo</span><span class="p">,</span>
-                                    <span class="n">SmallVectorImpl</span><span class="o">&lt;</span><span class="n">MCFixup</span><span class="o">&gt;</span> <span class="o">&amp;</span><span class="n">Fixups</span><span class="p">,</span>
-                                    <span class="n">const</span> <span class="n">MCSubtargetInfo</span> <span class="o">&amp;</span><span class="n">STI</span><span class="p">)</span> <span class="n">const</span><span class="p">;</span>
-                                  
-  <span class="o">//</span> <span class="n">getJumpTargetOpValue</span> <span class="o">-</span> <span class="n">Return</span> <span class="n">binary</span> <span class="n">encoding</span> <span class="n">of</span> <span class="n">the</span> <span class="n">jump</span>
-  <span class="o">//</span> <span class="n">target</span> <span class="n">operand</span><span class="p">,</span> <span class="n">such</span> <span class="k">as</span> <span class="n">JSUB</span> <span class="c1">#function_addr. </span>
-  <span class="o">//</span> <span class="n">If</span> <span class="n">the</span> <span class="n">machine</span> <span class="n">operand</span> <span class="n">requires</span> <span class="n">relocation</span><span class="p">,</span>
-  <span class="o">//</span> <span class="n">record</span> <span class="n">the</span> <span class="n">relocation</span> <span class="ow">and</span> <span class="k">return</span> <span class="n">zero</span><span class="o">.</span>
-   <span class="n">unsigned</span> <span class="n">getJumpTargetOpValue</span><span class="p">(</span><span class="n">const</span> <span class="n">MCInst</span> <span class="o">&amp;</span><span class="n">MI</span><span class="p">,</span> <span class="n">unsigned</span> <span class="n">OpNo</span><span class="p">,</span>
-                                 <span class="n">SmallVectorImpl</span><span class="o">&lt;</span><span class="n">MCFixup</span><span class="o">&gt;</span> <span class="o">&amp;</span><span class="n">Fixups</span><span class="p">,</span>
-                                 <span class="n">const</span> <span class="n">MCSubtargetInfo</span> <span class="o">&amp;</span><span class="n">STI</span><span class="p">)</span> <span class="n">const</span><span class="p">;</span>
-
   <span class="o">//</span> <span class="n">getMachineOpValue</span> <span class="o">-</span> <span class="n">Return</span> <span class="n">binary</span> <span class="n">encoding</span> <span class="n">of</span> <span class="n">operand</span><span class="o">.</span> <span class="n">If</span> <span class="n">the</span> <span class="n">machin</span>
   <span class="o">//</span> <span class="n">operand</span> <span class="n">requires</span> <span class="n">relocation</span><span class="p">,</span> <span class="n">record</span> <span class="n">the</span> <span class="n">relocation</span> <span class="ow">and</span> <span class="k">return</span> <span class="n">zero</span><span class="o">.</span>
   <span class="n">unsigned</span> <span class="n">getMachineOpValue</span><span class="p">(</span><span class="n">const</span> <span class="n">MCInst</span> <span class="o">&amp;</span><span class="n">MI</span><span class="p">,</span> <span class="n">const</span> <span class="n">MCOperand</span> <span class="o">&amp;</span><span class="n">MO</span><span class="p">,</span>
@@ -807,40 +799,6 @@ encodeInstruction(const MCInst &amp;MI, raw_ostream &amp;OS,
 
   EmitInstruction(Binary, Size, OS);
 }
-
-//@CH8_1 {
-/// getBranch16TargetOpValue - Return binary encoding of the branch
-/// target operand. If the machine operand requires relocation,
-/// record the relocation and return zero.
-unsigned Cpu0MCCodeEmitter::
-getBranch16TargetOpValue(const MCInst &amp;MI, unsigned OpNo,
-                         SmallVectorImpl&lt;MCFixup&gt; &amp;Fixups,
-                         const MCSubtargetInfo &amp;STI) const {
-  return 0;
-}
-
-/// getBranch24TargetOpValue - Return binary encoding of the branch
-/// target operand. If the machine operand requires relocation,
-/// record the relocation and return zero.
-unsigned Cpu0MCCodeEmitter::
-getBranch24TargetOpValue(const MCInst &amp;MI, unsigned OpNo,
-                       SmallVectorImpl&lt;MCFixup&gt; &amp;Fixups,
-                       const MCSubtargetInfo &amp;STI) const {
-  return 0;
-}
-
-/// getJumpTargetOpValue - Return binary encoding of the jump
-/// target operand, such as JSUB. 
-/// If the machine operand requires relocation,
-/// record the relocation and return zero.
-//@getJumpTargetOpValue {
-unsigned Cpu0MCCodeEmitter::
-getJumpTargetOpValue(const MCInst &amp;MI, unsigned OpNo,
-                     SmallVectorImpl&lt;MCFixup&gt; &amp;Fixups,
-                     const MCSubtargetInfo &amp;STI) const {
-  return 0;
-}
-//@CH8_1 }
 
 //@getExprOpValue {
 unsigned Cpu0MCCodeEmitter::
@@ -1220,7 +1178,7 @@ Cpu0MCCodeEmitter::getMemEncoding(const MCInst &amp;MI, unsigned OpNo,
 </div>
 </section>
 <section id="work-flow">
-<h2><a class="toc-backref" href="#id9" role="doc-backlink">Work flow</a><a class="headerlink" href="#work-flow" title="Permalink to this heading">¶</a></h2>
+<h2><a class="toc-backref" href="#id10" role="doc-backlink">Work flow</a><a class="headerlink" href="#work-flow" title="Permalink to this heading">¶</a></h2>
 <p>In Chapter3_2, OutStreamer-&gt;emitInstruction print the asm. To support elf obj
 generation, this chapter create MCELFObjectStreamer inherited from OutStreamer
 by calling createELFStreamer in Cpu0MCTargetDesc.cpp above. Once
@@ -1251,31 +1209,51 @@ expanation as follows,</p>
 <span class="p">}</span><span class="w"></span>
 </pre></div>
 </div>
-<figure class="align-default" id="id3">
-<span id="genobj-f11"></span><div class="graphviz"><img src="_images/graphviz-756f06703364518e4af4c30ea08eb28e5eb13d6f.png" alt="digraph G {
+<figure class="align-default" id="id4">
+<span id="genobj-f11"></span><div class="graphviz"><img src="_images/graphviz-883fc5d4999d51752587616a835a14e5f18b5c50.png" alt="digraph G {
   rankdir=TB;
-  &quot;Cpu0AsmPrinter::EmitInstruction()&quot; -&gt; &quot;MCObjectStreamer::EmitInstruction()&quot; [label=&quot;AsmPrinter::OutStreamer is MCObjectStreamer if llc -filetype=obj\nAsmPrinter::OutStreamer is MCAsmStreamer if llc -filetype=asm&quot;];
-  &quot;MCObjectStreamer::EmitInstruction()&quot; -&gt; &quot;MCELFStreamer::EmitInstToData()&quot; -&gt; &quot;encodeInstruction()&quot; -&gt; &quot;Cpu0MCCodeEmitter::getBinaryCodeForInstr()&quot;;
-  &quot;Cpu0MCCodeEmitter::getBinaryCodeForInstr()&quot; -&gt; &quot;getBranch16TargetOpValue()&quot;;
-  &quot;Cpu0MCCodeEmitter::getBinaryCodeForInstr()&quot; -&gt; &quot;getMachineOpValue()&quot;;
-  subgraph cluster0 {
+  compound=true;
+  E1 -&gt; E2 [label=&quot;AsmPrinter::OutStreamer is MCAsmStreamer if llc -filetype=obj&quot;];
+  E2 -&gt; &quot;MCELFStreamer::emitInstToData()&quot; -&gt; &quot;encodeInstruction()&quot; -&gt; &quot;getBinaryCodeForInstr()&quot;;
+  &quot;getBinaryCodeForInstr()&quot; -&gt; EM;
+  &quot;getBinaryCodeForInstr()&quot; -&gt; &quot;getMachineOpValue()&quot;;
+  subgraph clusterCpu0Asm {
+    label = &quot;Cpu0AsmPrinter.cpp&quot;;
+    E1 [label=&quot;Cpu0AsmPrinter::emitInstruction(const MachineInstr *MI)&quot;];
+  }
+  subgraph clusterObj {
+    label = &quot;lib/MC/MCObjectStreamer.cpp&quot;;
+    E2 [label=&quot;MCObjectStreamer::emitInstruction(const MCInst &amp;Inst, ...)&quot;];
+  }
+  subgraph clusterELF {
+    label = &quot;lib/MC/MCELFStreamer.cpp&quot;;
+    &quot;MCELFStreamer::emitInstToData()&quot;;
+  }
+  subgraph clusterInc {
+    label = &quot;Cpu0MCCodeEmitter.inc&quot;;
+    &quot;getBinaryCodeForInstr()&quot;;
+  }
+  subgraph clusterCpu0MC {
     label = &quot;Cpu0MCCodeEmitter.cpp&quot;;
     &quot;encodeInstruction()&quot;;
-    &quot;getBranch16TargetOpValue()&quot;;
     &quot;getMachineOpValue()&quot;;
     &quot;getExprOpValue()&quot;;
     &quot;getMachineOpValue()&quot; -&gt; &quot;getExprOpValue()&quot;;
+    subgraph clusterEM {
+      label = &quot;This function specified in Cpu0InstrInfo.td\n by let EncoderMethod = getMemEncoding&quot;;
+      EM [label=&quot;getMemEncoding()&quot;];
+    }
   }
 //  label = &quot;Figure: Calling Functions of elf encoder&quot;;
 }" class="graphviz" /></div>
 <figcaption>
-<p><span class="caption-number">Fig. 26 </span><span class="caption-text">Calling Functions of elf encoder</span><a class="headerlink" href="#id3" title="Permalink to this image">¶</a></p>
+<p><span class="caption-number">Fig. 30 </span><span class="caption-text">Calling Functions of elf encoder</span><a class="headerlink" href="#id4" title="Permalink to this image">¶</a></p>
 </figcaption>
 </figure>
-<p>The ELF encoder calling functions shown as <a class="reference internal" href="#genobj-f11"><span class="std std-numref">Fig. 26</span></a> above.
+<p>The ELF encoder calling functions shown as <a class="reference internal" href="#genobj-f11"><span class="std std-numref">Fig. 30</span></a> above.
 AsmPrinter::OutStreamer is set to MCObjectStreamer when by llc driver when user
 input <code class="docutils literal notranslate"><span class="pre">llc</span> <span class="pre">-filetype=obj</span></code>.</p>
-<figure class="align-default" id="id4">
+<figure class="align-default" id="id5">
 <span id="genobj-f12"></span><div class="graphviz"><img src="_images/graphviz-df50cbe68f4e97e4834c89b85f078289932b4ec7.png" alt="digraph G {
   rankdir=TB;
   subgraph cluster0 {
@@ -1298,10 +1276,10 @@ input <code class="docutils literal notranslate"><span class="pre">llc</span> <s
 //  label = &quot;Figure: DFD flow for instruction encode&quot;;
 }" class="graphviz" /></div>
 <figcaption>
-<p><span class="caption-number">Fig. 27 </span><span class="caption-text">DFD flow for instruction encode</span><a class="headerlink" href="#id4" title="Permalink to this image">¶</a></p>
+<p><span class="caption-number">Fig. 31 </span><span class="caption-text">DFD flow for instruction encode</span><a class="headerlink" href="#id5" title="Permalink to this image">¶</a></p>
 </figcaption>
 </figure>
-<p>The instruction operands information for encoder is got as <a class="reference internal" href="#genobj-f12"><span class="std std-numref">Fig. 27</span></a>
+<p>The instruction operands information for encoder is got as <a class="reference internal" href="#genobj-f12"><span class="std std-numref">Fig. 31</span></a>
 above.
 Steps as follows,</p>
 <blockquote>
@@ -1314,8 +1292,8 @@ Steps as follows,</p>
 </div></blockquote>
 <p>The MI.Opcode is set in Instruction Selection Stage.
 The table gen function getBinaryCodeForInstr() get all the operands information
-from the td files set by programmer as <a class="reference internal" href="#genobj-f13"><span class="std std-numref">Fig. 28</span></a>.</p>
-<figure class="align-default" id="id5">
+from the td files set by programmer as <a class="reference internal" href="#genobj-f13"><span class="std std-numref">Fig. 32</span></a>.</p>
+<figure class="align-default" id="id6">
 <span id="genobj-f13"></span><div class="graphviz"><img src="_images/graphviz-7ea631171be09d802a787afd41b3ec2965dd8e56.png" alt="digraph G {
   rankdir=LR;
   // graphviz uses &amp;nn; to display control character, &amp;#38; ascii 0x38 is '&amp;', 0x60 is '&lt;', 0x62 is '&gt;'
@@ -1369,7 +1347,7 @@ from the td files set by programmer as <a class="reference internal" href="#geno
 //  label = &quot;Instruction encode, for instance:  addu $v0, $at, $v1\n  v0:MI.getOperand(0), at:MI.getOperand(1), v1:MI.getOperand(2)&quot;;
 }" class="graphviz" /></div>
 <figcaption>
-<p><span class="caption-number">Fig. 28 </span><span class="caption-text">Instruction encode, for instance:  addu $v0, $at, $v1n  v0:MI.getOperand(0), at:MI.getOperand(1), v1:MI.getOperand(2)</span><a class="headerlink" href="#id5" title="Permalink to this image">¶</a></p>
+<p><span class="caption-number">Fig. 32 </span><span class="caption-text">Instruction encode, for instance:  addu $v0, $at, $v1n  v0:MI.getOperand(0), at:MI.getOperand(1), v1:MI.getOperand(2)</span><a class="headerlink" href="#id6" title="Permalink to this image">¶</a></p>
 </figcaption>
 </figure>
 <p>For instance, Cpu0 backend will generate “addu $v0, $at, $v1” for the IR
@@ -1500,10 +1478,55 @@ function in parent class MCCodeEmitter.</p>
 <span class="p">}</span>
 </pre></div>
 </div>
-<p>The “let EncoderMethod = “getMemEncoding”;” in Cpu0InstrInfo.td as above will
+<p>As <a class="reference internal" href="llvmstructure.html#llvmstructure-f2"><span class="std std-numref">Fig. 4</span></a>, <strong>ld</strong> and <strong>st</strong> are L Type format (ADD … are
+R Type format).
+The “let EncoderMethod = “getMemEncoding”;” in Cpu0InstrInfo.td as above will
 making llvm call function getMemEncoding() when either <strong>ld</strong> or <strong>st</strong>
 instruction is issued in elf obj since these two instructions use <strong>mem</strong>
-Operand.</p>
+Operand. The following is the implementation and TableGen code for them.</p>
+<p class="rubric">lbdex/chapters/Chapter5_1/Cpu0InstrInfo.td</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">mem</span> <span class="p">:</span> <span class="n">Operand</span><span class="o">&lt;</span><span class="n">iPTR</span><span class="o">&gt;</span> <span class="p">{</span>
+  <span class="n">let</span> <span class="n">PrintMethod</span> <span class="o">=</span> <span class="s2">&quot;printMemOperand&quot;</span><span class="p">;</span>
+  <span class="n">let</span> <span class="n">MIOperandInfo</span> <span class="o">=</span> <span class="p">(</span><span class="n">ops</span> <span class="n">GPROut</span><span class="p">,</span> <span class="n">simm16</span><span class="p">);</span>
+  <span class="n">let</span> <span class="n">EncoderMethod</span> <span class="o">=</span> <span class="s2">&quot;getMemEncoding&quot;</span><span class="p">;</span>
+<span class="p">}</span>
+
+</pre></div>
+</div>
+<p class="rubric">lbdex/chapters/Chapter5_1/MCTargetDesc/Cpu0MCCodeEmitter.cpp</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">///</span> <span class="n">If</span> <span class="n">the</span> <span class="n">offset</span> <span class="n">operand</span> <span class="n">requires</span> <span class="n">relocation</span><span class="p">,</span> <span class="n">record</span> <span class="n">the</span> <span class="n">relocation</span><span class="o">.</span>
+<span class="n">unsigned</span>
+<span class="n">Cpu0MCCodeEmitter</span><span class="p">::</span><span class="n">getMemEncoding</span><span class="p">(</span><span class="n">const</span> <span class="n">MCInst</span> <span class="o">&amp;</span><span class="n">MI</span><span class="p">,</span> <span class="n">unsigned</span> <span class="n">OpNo</span><span class="p">,</span>
+                                  <span class="n">SmallVectorImpl</span><span class="o">&lt;</span><span class="n">MCFixup</span><span class="o">&gt;</span> <span class="o">&amp;</span><span class="n">Fixups</span><span class="p">,</span>
+                                  <span class="n">const</span> <span class="n">MCSubtargetInfo</span> <span class="o">&amp;</span><span class="n">STI</span><span class="p">)</span> <span class="n">const</span> <span class="p">{</span>
+  <span class="o">//</span> <span class="n">Base</span> <span class="n">register</span> <span class="ow">is</span> <span class="n">encoded</span> <span class="ow">in</span> <span class="n">bits</span> <span class="mi">20</span><span class="o">-</span><span class="mi">16</span><span class="p">,</span> <span class="n">offset</span> <span class="ow">is</span> <span class="n">encoded</span> <span class="ow">in</span> <span class="n">bits</span> <span class="mi">15</span><span class="o">-</span><span class="mf">0.</span>
+  <span class="k">assert</span><span class="p">(</span><span class="n">MI</span><span class="o">.</span><span class="n">getOperand</span><span class="p">(</span><span class="n">OpNo</span><span class="p">)</span><span class="o">.</span><span class="n">isReg</span><span class="p">());</span>
+  <span class="n">unsigned</span> <span class="n">RegBits</span> <span class="o">=</span> <span class="n">getMachineOpValue</span><span class="p">(</span><span class="n">MI</span><span class="p">,</span> <span class="n">MI</span><span class="o">.</span><span class="n">getOperand</span><span class="p">(</span><span class="n">OpNo</span><span class="p">),</span> <span class="n">Fixups</span><span class="p">,</span> <span class="n">STI</span><span class="p">)</span> <span class="o">&lt;&lt;</span> <span class="mi">16</span><span class="p">;</span>
+  <span class="n">unsigned</span> <span class="n">OffBits</span> <span class="o">=</span> <span class="n">getMachineOpValue</span><span class="p">(</span><span class="n">MI</span><span class="p">,</span> <span class="n">MI</span><span class="o">.</span><span class="n">getOperand</span><span class="p">(</span><span class="n">OpNo</span><span class="o">+</span><span class="mi">1</span><span class="p">),</span> <span class="n">Fixups</span><span class="p">,</span> <span class="n">STI</span><span class="p">);</span>
+
+  <span class="k">return</span> <span class="p">(</span><span class="n">OffBits</span> <span class="o">&amp;</span> <span class="mh">0xFFFF</span><span class="p">)</span> <span class="o">|</span> <span class="n">RegBits</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="c1">#include &quot;Cpu0GenMCCodeEmitter.inc&quot;</span>
+
+</pre></div>
+</div>
+<p class="rubric">build/lib/Target/Cpu0/Cpu0GenMCCodeEmitter.inc</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="k">case</span><span class="w"> </span><span class="no">Cpu0</span><span class="o">::</span><span class="no">LD</span><span class="w"></span>
+<span class="no">case</span><span class="w"> </span><span class="no">Cpu0</span><span class="o">::</span><span class="no">ST</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">  </span><span class="c1">// op: ra</span>
+<span class="w">  </span><span class="n">op</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">getMachineOpValue</span><span class="p">(</span><span class="n">MI</span><span class="p">,</span><span class="w"> </span><span class="n">MI</span><span class="p">.</span><span class="n">getOperand</span><span class="p">(</span><span class="mi">0</span><span class="p">),</span><span class="w"> </span><span class="n">Fixups</span><span class="p">,</span><span class="w"> </span><span class="n">STI</span><span class="p">);</span><span class="w"></span>
+<span class="w">  </span><span class="n">op</span><span class="w"> </span><span class="o">&amp;=</span><span class="w"> </span><span class="n">UINT64_C</span><span class="p">(</span><span class="mi">15</span><span class="p">);</span><span class="w"></span>
+<span class="w">  </span><span class="n">op</span><span class="w"> </span><span class="o">&lt;&lt;=</span><span class="w"> </span><span class="mi">20</span><span class="p">;</span><span class="w"></span>
+<span class="w">  </span><span class="n">Value</span><span class="w"> </span><span class="o">|=</span><span class="w"> </span><span class="n">op</span><span class="p">;</span><span class="w"></span>
+<span class="w">  </span><span class="c1">// op: addr</span>
+<span class="w">  </span><span class="n">op</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">getMemEncoding</span><span class="p">(</span><span class="n">MI</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="n">Fixups</span><span class="p">,</span><span class="w"> </span><span class="n">STI</span><span class="p">);</span><span class="w"></span>
+<span class="w">  </span><span class="n">op</span><span class="w"> </span><span class="o">&amp;=</span><span class="w"> </span><span class="n">UINT64_C</span><span class="p">(</span><span class="mi">1048575</span><span class="p">);</span><span class="w"></span>
+<span class="w">  </span><span class="n">Value</span><span class="w"> </span><span class="o">|=</span><span class="w"> </span><span class="n">op</span><span class="p">;</span><span class="w"></span>
+<span class="w">  </span><span class="k">break</span><span class="p">;</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
+</pre></div>
+</div>
 <p>The other functions in Cpu0MCCodeEmitter.cpp are called by these two functions.</p>
 <p>After encoder, the following code will write the encode instructions to buffer.</p>
 <p class="rubric">src/lib/MC/MCELFStreamer.cpp</p>
@@ -1519,7 +1542,7 @@ Operand.</p>
 <p>Then, ELFObjectWriter::writeObject() will write the buffer to elf file.</p>
 </section>
 <section id="backend-target-registration-structure">
-<h2><a class="toc-backref" href="#id10" role="doc-backlink">Backend Target Registration Structure</a><a class="headerlink" href="#backend-target-registration-structure" title="Permalink to this heading">¶</a></h2>
+<h2><a class="toc-backref" href="#id11" role="doc-backlink">Backend Target Registration Structure</a><a class="headerlink" href="#backend-target-registration-structure" title="Permalink to this heading">¶</a></h2>
 <p>Now, let’s examine Cpu0MCTargetDesc.cpp.
 Cpu0MCTargetDesc.cpp do the target registration as mentioned in
 the previous chapter here <a class="footnote-reference brackets" href="#target-registration" id="id1" role="doc-noteref"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></a>, and the assembly
@@ -1547,12 +1570,12 @@ List the register functions of ELF obj output as follows,</p>
 </pre></div>
 </div>
 <p>Above createELFStreamer takes care the elf obj streamer.
-<a class="reference internal" href="#genobj-f10"><span class="std std-numref">Fig. 29</span></a> as follow is MCELFStreamer inheritance tree.
+<a class="reference internal" href="#genobj-f10"><span class="std std-numref">Fig. 33</span></a> as follow is MCELFStreamer inheritance tree.
 You can find a lot of operations in that inheritance tree.</p>
-<figure class="align-center" id="id6">
+<figure class="align-center" id="id7">
 <span id="genobj-f10"></span><a class="reference internal image-reference" href="_images/101.png"><img alt="_images/101.png" src="_images/101.png" style="width: 783.0px; height: 596.0px;" /></a>
 <figcaption>
-<p><span class="caption-number">Fig. 29 </span><span class="caption-text">MCELFStreamer inherit tree</span><a class="headerlink" href="#id6" title="Permalink to this image">¶</a></p>
+<p><span class="caption-number">Fig. 33 </span><span class="caption-text">MCELFStreamer inherit tree</span><a class="headerlink" href="#id7" title="Permalink to this image">¶</a></p>
 </figcaption>
 </figure>
 <p class="rubric">Register function of asm target streamer</p>
