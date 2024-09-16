@@ -553,6 +553,17 @@ ISD node of Cpu0InstrInfo.td.
 LLVM will call these DecodeMethod when user uses Disassembler tools, such  
 as ``llvm-objdump -d``.
 
+The flow of disassembly as :numref:`disas`. 
+
+.. _disas:
+.. graphviz:: ../Fig/elf/disas.gv
+   :caption: The flow of disassembly. 
+
+- After getInstruction() of Cpu0Disassembler.cpp, disassembleObject() of 
+  llvm-objdump.cpp call printInst() of Cpu0InstPrinter.cpp.
+
+  - printInst() of Cpu0InstPrinter.cpp: reference :numref:`print-asm`.
+
 Finally cpu032II includes all cpu032I instruction set and adds some instrucitons. 
 When ``llvm-objdump -d`` is invoked, function selectCpu0ArchFeature() as 
 the following will be called through createCpu0MCSubtargetInfo(). 
@@ -566,7 +577,6 @@ instructions).
 .. literalinclude:: ../lbdex/Cpu0/MCTargetDesc/Cpu0MCTargetDesc.cpp
     :start-after: //@1 {
     :end-before: //@1 }
-
 
 Now, run Chapter10_1/ with command ``llvm-objdump -d ch8_1_1.cpu0.o`` will get 
 the following result.

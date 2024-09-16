@@ -1,0 +1,40 @@
+digraph G {
+  rankdir=TB;
+  E1 -> E2 [label="AsmPrinter::OutStreamer is MCAsmStreamer if llc -filetype=asm"];
+  E2 -> "MCTargetStreamer::prettyPrintAsm()" -> "printInst()" -> "printInstruction()";
+  "printInstruction()" -> "getMnemonic()";
+  "printInstruction()" -> "printUsignedImm()";
+  "printInstruction()" -> "printMemOperand()";
+  "printInstruction()" -> "printOperand()";
+  "printRegName()" -> "getRegisterName(unsigned RegNo)";
+  "printInst()" -> "printAliasInstr()";
+  subgraph clusterCpu0Asm {
+    label = "Cpu0AsmPrinter.cpp";
+    E1 [label="Cpu0AsmPrinter::emitInstruction(const MachineInstr *MI)"];
+  }
+  subgraph clusterMCAsm {
+    label = "lib/MC/MCAsmStreamer.cpp";
+    E2 [label="MCAsmStreamer::emitInstruction(const MCInst &Inst, ...)"];
+  }
+  subgraph clusterMC {
+    label = "lib/MC/MCStreamer.cpp";
+    "MCTargetStreamer::prettyPrintAsm()";
+  }
+  subgraph clusterInc {
+    label = "Cpu0GenAsmWrite.inc";
+    "getMnemonic()";
+    "printInstruction()";
+    "getRegisterName(unsigned RegNo)";
+    "printAliasInstr()" [label="printAliasInstr()\n (print \"move $fp, $sp\" instead of \n addiu $fp, 0, $sp)\n"];
+  }
+  subgraph clusterCpu0InstPrinter {
+    label = "Cpu0InstPrinter.cpp";
+    "printRegName()";
+    "printInst()";
+    "printUsignedImm()";
+    "printMemOperand()";
+    "printOperand()";
+  }
+//  label = "Figure: The flow of printing assembly and calling between Cpu0InstPrinter.cpp and Cpu0GenAsmWrite.inc";
+}
+  

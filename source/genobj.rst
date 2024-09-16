@@ -14,6 +14,13 @@ endian and little endian obj files with only a few code added.
 The Target Registration mechanism and their structure are introduced in 
 this chapter.
 
+Similar to :numref:`asm-emit` of previous chapter, but this chapter emit binary
+obj instruction as :numref:`obj-emit`.
+
+.. _obj-emit:
+.. graphviz:: ../Fig/genobj/obj-emit.gv
+   :caption: When "llc -filetype=obj", Cpu0AsmPrinter extract MCInst from MachineInstr for obj encoding
+
 Translate into obj file
 ------------------------
 
@@ -378,11 +385,39 @@ function in parent class MCCodeEmitter.
     :start-after: //@ 32-bit load.
     :end-before: //#endif
 
-
+As :numref:`llvmstructure-f2`, **ld** and **st** are L Type format (ADD ... are
+R Type format).
 The "let EncoderMethod = "getMemEncoding";" in Cpu0InstrInfo.td as above will 
 making llvm call function getMemEncoding() when either **ld** or **st** 
 instruction is issued in elf obj since these two instructions use **mem** 
-Operand.
+Operand. The following is the implementation and TableGen code for them.
+
+.. rubric:: lbdex/chapters/Chapter5_1/Cpu0InstrInfo.td
+.. literalinclude:: ../lbdex/chapters/Chapter5_1/Cpu0InstrInfo.td
+    :start-after: // Address operand
+    :end-before: // Transformation Function - get the lower 16 bits.
+
+.. rubric:: lbdex/chapters/Chapter5_1/MCTargetDesc/Cpu0MCCodeEmitter.cpp
+.. literalinclude:: ../lbdex/chapters/Chapter5_1/MCTargetDesc/Cpu0MCCodeEmitter.cpp
+    :start-after: /// getMemEncoding
+
+.. rubric:: build/lib/Target/Cpu0/Cpu0GenMCCodeEmitter.inc
+.. code-block:: c++
+
+    case Cpu0::LD
+    case Cpu0::ST: {
+      // op: ra
+      op = getMachineOpValue(MI, MI.getOperand(0), Fixups, STI);
+      op &= UINT64_C(15);
+      op <<= 20;
+      Value |= op;
+      // op: addr
+      op = getMemEncoding(MI, 1, Fixups, STI);
+      op &= UINT64_C(1048575);
+      Value |= op;
+      break;
+    } 
+
 
 The other functions in Cpu0MCCodeEmitter.cpp are called by these two functions.
 

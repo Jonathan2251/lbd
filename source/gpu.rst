@@ -368,6 +368,15 @@ product) from Wiki [#wiki-quaternion]_ since the book miss this.
 
   \mathbf ij = -ji = k, jk = -kj = i, ki = -ik = j.
 
+.. _trans_steps: 
+.. figure:: ../Fig/gpu/trans-steps.png
+  :align: center
+  :scale: 50 %
+
+  Cooridinates Transform Pipeline [#cg_basictheory]_
+
+Detail for :numref:`trans_steps` on website [#cg_basictheory]_.
+
 Projection
 ++++++++++
 
@@ -1320,11 +1329,36 @@ Summarize as table below.
       This ALU clock cycles, also known as “ping pong” cycles.
       As :numref:`grid` for the later Fermi-generation GPUs.
 
+Vertex unit
+~~~~~~~~~~~
+
+VAR unit
+++++++++
+
+VAR Variable Rate Shading Unit [#var]_.
+
 
 Texture unit
 ~~~~~~~~~~~~
 
 As depicted in `section OpenGL Shader Compiler`_.
+
+Speedup Features
+~~~~~~~~~~~~~~~~
+
+- Gather-scatter data transfer: HW support sparse vector access is called 
+  gather-scatter. The VMIPS instructions are LVI (load vector indexed or gather) 
+  and SVI (store vector indexed or scatter) [#Quantitative-gpu-gs]_. 
+
+- Address Coalescing: GPU provides this feature explained as follows, 
+
+  - Note that unlike vector architectures, GPUs don’t have separate instructions 
+    for sequential data transfers, strided data transfers, and gather-scatter 
+    data transfers. All data transfers are gather-scatter! To regain the 
+    efficiency of sequential (unit-stride) data transfers, GPUs include special 
+    Address Coalescing hardware to recognize when the SIMD Lanes within a thread of 
+    SIMD instructions are col- lectively issuing sequential addresses 
+    [#Quantitative-gpu-ac]_..
 
 
 Buffers
@@ -1741,9 +1775,40 @@ Once OpenCL grows into a popular standard when more computer languages or
 framework supporting OpenCL language, GPU will take more jobs from CPU 
 [#opencl-wiki-supported-lang]_.
 
-Most GPUs have 32 lanes in a SIMD processor (Warp), vulkan provides Subgroup
-operations to data parallel programming on lanes of SIMD processor 
+Most GPUs have 16 or 32 lanes in a SIMD processor (Warp), vulkan provides 
+Subgroup operations to data parallel programming on lanes of SIMD processor 
 [#vulkan-subgroup]_.
+
+Subgroup operations provide a fast way for moving data between lanes intra Warp.
+Assuming each Warp has eight lanes.
+The following table lists result of reduce, inclusive and exclusive operations.
+
+.. table:: Lists each lane's value after **Reduce**, **Inclusive** and 
+  **Exclusive** operations repectively
+
+  ================  ============  ============  ============  ============
+  Lane              0             1             2             3           
+  ================  ============  ============  ============  ============
+  Initial value     a             b             c             d           
+  Reduce            OP(abcd)      OP(abcd)      OP(abcd)      OP(abcd)
+  Inclusive         OP(a)         OP(ab)        OP(abc)       OP(abcd)    
+  Exclusive         not define    OP(a)         OP(ab)        OP(abc)     
+  ================  ============  ============  ============  ============
+
+- Reduce: e.g. subgroupAdd. Inclusive: e.g. subgroupInclusiveAdd. Exclusive: 
+  e.g. subgroupExclusiveAdd.
+
+- For examples: 
+
+  - ADD operation: OP(abcd) = a+b+c+d.
+
+  - MAX operation: OP(abc) = MAX(a,b,c).
+
+- When lane i is inactive, it is value is none.
+
+  - For instance of lane 0 is inactive, then MUL operation: OP(abcd) = b*c*d.
+
+
 The following is a code example.
 
 .. rubric:: An example of subgroup operations in glsl for vulkan
@@ -2030,6 +2095,14 @@ Open Sources
 .. [#cudaex] https://devblogs.nvidia.com/easy-introduction-cuda-c-and-c/
 
 .. [#Quantitative-gpu-threadblock] search these words from section 4.4 of A Quantitative Approach 5th edition (The
+       Morgan Kaufmann Series in Computer Architecture and Design)
+
+.. [#var] https://developer.nvidia.com/vrworks/graphics/variablerateshading
+
+.. [#Quantitative-gpu-gs] Page 280 of Computer Architecture: A Quantitative Approach 5th edition (The
+       Morgan Kaufmann Series in Computer Architecture and Design)
+
+.. [#Quantitative-gpu-ac] Page 300 of Computer Architecture: A Quantitative Approach 5th edition (The
        Morgan Kaufmann Series in Computer Architecture and Design)
 
 .. [#wiki-tbcp] `https://en.wikipedia.org/wiki/Thread_block_(CUDA_programming)`

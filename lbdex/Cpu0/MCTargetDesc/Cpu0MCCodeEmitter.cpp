@@ -91,6 +91,7 @@ encodeInstruction(const MCInst &MI, raw_ostream &OS,
   EmitInstruction(Binary, Size, OS);
 }
 
+#if CH >= CH8_1 //0
 //@CH8_1 {
 /// getBranch16TargetOpValue - Return binary encoding of the branch
 /// target operand. If the machine operand requires relocation,
@@ -166,6 +167,7 @@ getJumpTargetOpValue(const MCInst &MI, unsigned OpNo,
   return 0;
 }
 //@CH8_1 }
+#endif
 
 //@getExprOpValue {
 unsigned Cpu0MCCodeEmitter::

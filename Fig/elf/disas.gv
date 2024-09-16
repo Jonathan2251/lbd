@@ -1,0 +1,47 @@
+digraph G {
+  rankdir=TD;
+  "disassembleObject()" -> "getInstruction()" [label="1. AsmPrinter::llvm-objdump -d"];
+  "disassembleObject()" -> "PrettyPrinter::printInst()" [label="2"];
+  "PrettyPrinter::printInst()" -> "printInst()";
+  "getInstruction()" -> "decodeInstruction()";
+  "decodeInstruction()" -> "fieldFromInstruction()";
+  "decodeInstruction()" -> "checkDecoderPredicate()";
+  "decodeInstruction()" -> "decodeToMCInst()";
+  "decodeToMCInst()" -> "DecodeMem()";
+  "decodeToMCInst()" -> "DecodeBranch16Target()";
+  "decodeToMCInst()" -> "DecodeBranch24Target()";
+  "decodeToMCInst()" -> "DecodeJumpTarget()";
+  "decodeToMCInst()" -> "DecodeJumpFR()";
+  "decodeToMCInst()" -> "DecodeSimm16()";
+  subgraph clusterObjdump {
+    label = "llvm-objdump.cpp";
+    "disassembleObject()";
+    "PrettyPrinter::printInst()";
+  }
+  subgraph clusterCpu0Dis1 {
+    label = "Cpu0Disassembler.cpp";
+    "getInstruction()";
+  }
+  subgraph clusterCpu0Dis2 {
+    label = "Cpu0Disassembler.cpp\n These functions specified in Cpu0InstrInfo.td";
+    "DecodeMem()";
+    "DecodeBranch16Target()";
+    "DecodeBranch24Target()";
+    "DecodeJumpTarget()";
+    "DecodeJumpFR()";
+    "DecodeSimm16()";
+  }
+  subgraph clusterInc {
+    label = "Cpu0GenDisassemblerTables.inc";
+    "fieldFromInstruction()";
+    "checkDecoderPredicate()";
+    "decodeToMCInst()";
+    "decodeInstruction()";
+  }
+  subgraph clusterCpu0InstPrinter {
+    label = "Cpu0InstPrinter";
+    "printInst()";
+  }
+//  label = "Figure: The flow of disassembly";
+}
+  

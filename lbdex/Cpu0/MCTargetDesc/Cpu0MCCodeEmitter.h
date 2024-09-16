@@ -60,6 +60,7 @@ public:
                                  SmallVectorImpl<MCFixup> &Fixups,
                                  const MCSubtargetInfo &STI) const;
 
+#if CH >= CH8_1
   // getBranch16TargetOpValue - Return binary encoding of the branch
   // target operand, such as BEQ, BNE. If the machine operand
   // requires relocation, record the relocation and return zero.
@@ -81,6 +82,7 @@ public:
    unsigned getJumpTargetOpValue(const MCInst &MI, unsigned OpNo,
                                  SmallVectorImpl<MCFixup> &Fixups,
                                  const MCSubtargetInfo &STI) const;
+#endif // #if CH >= CH8_1
 
   // getMachineOpValue - Return binary encoding of operand. If the machin
   // operand requires relocation, record the relocation and return zero.

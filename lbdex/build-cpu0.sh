@@ -22,7 +22,7 @@ if ! test -d ${LLVM_TEST_DIR}; then
   cd build
 # clang has better diagnosis in report error message
   cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_C_COMPILER=clang \
-  -DLLVM_TARGETS_TO_BUILD=Cpu0 -DLLVM_ENABLE_PROJECTS="clang" \
+  -DLLVM_TARGETS_TO_BUILD=Cpu0 \
   -DLLVM_OPTIMIZED_TABLEGEN=On \
   -DLLVM_PARALLEL_COMPILE_JOBS=4 -DLLVM_PARALLEL_LINK_JOBS=1 -G "Ninja" ../llvm
   time ninja

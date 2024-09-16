@@ -1,16 +1,36 @@
 digraph G {
   rankdir=TB;
-  "Cpu0AsmPrinter::EmitInstruction()" -> "MCObjectStreamer::EmitInstruction()" [label="AsmPrinter::OutStreamer is MCObjectStreamer if llc -filetype=obj\nAsmPrinter::OutStreamer is MCAsmStreamer if llc -filetype=asm"];
-  "MCObjectStreamer::EmitInstruction()" -> "MCELFStreamer::EmitInstToData()" -> "encodeInstruction()" -> "Cpu0MCCodeEmitter::getBinaryCodeForInstr()";
-  "Cpu0MCCodeEmitter::getBinaryCodeForInstr()" -> "getBranch16TargetOpValue()";
-  "Cpu0MCCodeEmitter::getBinaryCodeForInstr()" -> "getMachineOpValue()";
-  subgraph cluster0 {
+  compound=true;
+  E1 -> E2 [label="AsmPrinter::OutStreamer is MCAsmStreamer if llc -filetype=obj"];
+  E2 -> "MCELFStreamer::emitInstToData()" -> "encodeInstruction()" -> "getBinaryCodeForInstr()";
+  "getBinaryCodeForInstr()" -> EM;
+  "getBinaryCodeForInstr()" -> "getMachineOpValue()";
+  subgraph clusterCpu0Asm {
+    label = "Cpu0AsmPrinter.cpp";
+    E1 [label="Cpu0AsmPrinter::emitInstruction(const MachineInstr *MI)"];
+  }
+  subgraph clusterObj {
+    label = "lib/MC/MCObjectStreamer.cpp";
+    E2 [label="MCObjectStreamer::emitInstruction(const MCInst &Inst, ...)"];
+  }
+  subgraph clusterELF {
+    label = "lib/MC/MCELFStreamer.cpp";
+    "MCELFStreamer::emitInstToData()";
+  }
+  subgraph clusterInc {
+    label = "Cpu0MCCodeEmitter.inc";
+    "getBinaryCodeForInstr()";
+  }
+  subgraph clusterCpu0MC {
     label = "Cpu0MCCodeEmitter.cpp";
     "encodeInstruction()";
-    "getBranch16TargetOpValue()";
     "getMachineOpValue()";
     "getExprOpValue()";
     "getMachineOpValue()" -> "getExprOpValue()";
+    subgraph clusterEM {
+      label = "This function specified in Cpu0InstrInfo.td\n by let EncoderMethod = getMemEncoding";
+      EM [label="getMemEncoding()"];
+    }
   }
 //  label = "Figure: Calling Functions of elf encoder";
 }
