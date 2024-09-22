@@ -63,6 +63,12 @@ Revision history
 
 Version 12.0.16, not released yet.
 
+Version 12.0.15.4, Released September 22, 2024.
+
+  backendstructure.rst: Fix Cpu0.td for CH2, Cpu0MCInstLower::Lower() and 
+  printAsm.gv, callFunctions.gv, cpu0-function.gv;
+  elf.rst: ch3.disas.log, table to explain decodeInstruction();
+
 Version 12.0.15.3, Released September 15, 2024.
 
   gpu.rst: address coalescing, subgroup and trans-steps.png;

@@ -1,20 +1,28 @@
 digraph G {
   rankdir=TB;
-  E1 -> E2 [label="AsmPrinter::OutStreamer is MCAsmStreamer if llc -filetype=asm"];
-  E2 -> "MCTargetStreamer::prettyPrintAsm()" -> "printInst()" -> "printInstruction()";
-  "printInstruction()" -> "getMnemonic()";
-  "printInstruction()" -> "printUsignedImm()";
-  "printInstruction()" -> "printMemOperand()";
-  "printInstruction()" -> "printOperand()";
-  "printRegName()" -> "getRegisterName(unsigned RegNo)";
+  E1 -> E2 [label="MachineInstr"];
+  E2 -> E1 [label="MCInst"];
+  E1 -> E3 [label="MCInst"];
+  E3 -> "MCTargetStreamer::prettyPrintAsm()" [label="MCInst"];
+  "MCTargetStreamer::prettyPrintAsm()" -> "printInst()" [label="MCInst"];
+  "printInst()" -> "printInstruction()" [label="MCInst"];
+  "printInstruction()" -> "getMnemonic()" [label="MCInst,opNum"];
+  "getMnemonic()" -> "printInstruction()" [label="(NameOfOpcode,Bits*)"];
+  "printInstruction()" -> POP [label="MCInst,opNum"];
+  POP:P1 -> "getRegisterName()" [label="RegNo"];
+  "getRegisterName()" -> POP:P1 [label="RegName"];
   "printInst()" -> "printAliasInstr()";
   subgraph clusterCpu0Asm {
     label = "Cpu0AsmPrinter.cpp";
-    E1 [label="Cpu0AsmPrinter::emitInstruction(const MachineInstr *MI)"];
+    E1 [label="Cpu0AsmPrinter::emitInstruction()"];
+  }
+  subgraph clusterMCInstLower {
+    label = "lib/MC/MCInstLower.cpp";
+    E2 [label="Cpu0MCInstLower::Lower()"];
   }
   subgraph clusterMCAsm {
     label = "lib/MC/MCAsmStreamer.cpp";
-    E2 [label="MCAsmStreamer::emitInstruction(const MCInst &Inst, ...)"];
+    E3 [label="MCAsmStreamer::emitInstruction()*"];
   }
   subgraph clusterMC {
     label = "lib/MC/MCStreamer.cpp";
@@ -22,18 +30,15 @@ digraph G {
   }
   subgraph clusterInc {
     label = "Cpu0GenAsmWrite.inc";
-    "getMnemonic()";
+    getMnemonic [label="getMnemonic()"];
     "printInstruction()";
-    "getRegisterName(unsigned RegNo)";
+    "getRegisterName()";
     "printAliasInstr()" [label="printAliasInstr()\n (print \"move $fp, $sp\" instead of \n addiu $fp, 0, $sp)\n"];
   }
   subgraph clusterCpu0InstPrinter {
     label = "Cpu0InstPrinter.cpp";
-    "printRegName()";
     "printInst()";
-    "printUsignedImm()";
-    "printMemOperand()";
-    "printOperand()";
+    POP [label="<P1> printRegName() | printUnsignedImm() | printMemOperand() | printOperand()", shape=record];
   }
 //  label = "Figure: The flow of printing assembly and calling between Cpu0InstPrinter.cpp and Cpu0GenAsmWrite.inc";
 }

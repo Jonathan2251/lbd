@@ -1,17 +1,25 @@
 digraph G {
   rankdir=TB;
-  compound=true;
-  E1 -> E2 [label="AsmPrinter::OutStreamer is MCAsmStreamer if llc -filetype=obj"];
-  E2 -> "MCELFStreamer::emitInstToData()" -> "encodeInstruction()" -> "getBinaryCodeForInstr()";
-  "getBinaryCodeForInstr()" -> EM;
-  "getBinaryCodeForInstr()" -> "getMachineOpValue()";
+  E1 -> E2 [label="MachineInstr"];
+  E2 -> E1 [label="MCInst"];
+  E1 -> E3 [label="MCInst"];
+
+  E3 -> "MCELFStreamer::emitInstToData()" [label="MCInst"];
+  "MCELFStreamer::emitInstToData()" -> "encodeInstruction()" [label="MCInst"];
+  "encodeInstruction()" -> "getBinaryCodeForInstr()" [label="MCInst"];
+  "getBinaryCodeForInstr()" -> EM  [label="MCInst,OpNo"];
+  "getBinaryCodeForInstr()" -> "getMachineOpValue()" [label="MCInst, MCInst.getOperand(OpNo)"];
   subgraph clusterCpu0Asm {
     label = "Cpu0AsmPrinter.cpp";
-    E1 [label="Cpu0AsmPrinter::emitInstruction(const MachineInstr *MI)"];
+    E1 [label="Cpu0AsmPrinter::emitInstruction()"];
+  }
+  subgraph clusterMCInstLower {
+    label = "lib/MC/MCInstLower.cpp";
+    E2 [label="Cpu0MCInstLower::Lower()"];
   }
   subgraph clusterObj {
     label = "lib/MC/MCObjectStreamer.cpp";
-    E2 [label="MCObjectStreamer::emitInstruction(const MCInst &Inst, ...)"];
+    E3 [label="MCObjectStreamer::emitInstruction()*"];
   }
   subgraph clusterELF {
     label = "lib/MC/MCELFStreamer.cpp";
@@ -22,13 +30,13 @@ digraph G {
     "getBinaryCodeForInstr()";
   }
   subgraph clusterCpu0MC {
-    label = "Cpu0MCCodeEmitter.cpp";
+    label = "Cpu0GenMCCodeEmitter.cpp";
     "encodeInstruction()";
     "getMachineOpValue()";
     "getExprOpValue()";
-    "getMachineOpValue()" -> "getExprOpValue()";
+    "getMachineOpValue()" -> "getExprOpValue()" [label="MCOperand"];
     subgraph clusterEM {
-      label = "This function specified in Cpu0InstrInfo.td\n by let EncoderMethod = getMemEncoding";
+      label = "This function specified in Cpu0InstrInfo.td\n by let EncoderMethod = getMemEncoding.\nIt is LD/ST instructions in Cpu0.";
       EM [label="getMemEncoding()"];
     }
   }

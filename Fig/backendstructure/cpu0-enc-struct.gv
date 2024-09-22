@@ -1,0 +1,39 @@
+digraph G {
+  rankdir=TB;
+  llc [label="llc", shape=record];
+  llvm_objdump [label="llvm-objdump", shape=record];
+  asm_file [label="asm file", shape=record];
+  bin_file [labe="binary file", shape=record];
+  llc -> EI_Asm;
+  EI_Asm -> "printInst()" [label="MCInst"];
+  EI_Asm -> EI_MC [label="MCInst"];
+  "printInst()" -> asm_file;
+  EI_MC -> bin_file;
+
+  llc -> "MatchAndEmitInstruction()";
+  "MatchAndEmitInstruction()" -> EI_MC [label="MCInst"];
+
+  llvm_objdump -> "getInstruction()";
+  "getInstruction()" -> "printInst()" [label="MCInst"];
+
+  subgraph clusterCpu0Asm {
+    label = "Cpu0AsmPrinter.cpp";
+    EI_Asm [label="emitInstruction()", style="filled,bold", fillcolor="lightgreen"];
+  }
+  subgraph clusterCpu0InstPrinter {
+    label = "Cpu0InstPrinter.cpp\nCpuGenAsmWrite.inc(from Cpu0InstrInfo.td)";
+    "printInst()" [style="filled,bold", fillcolor="lightgreen"];
+  }
+  subgraph clusterCpu0MC {
+    label = "Cpu0GenMCCodeEmitter.cpp\nCpu0MCCodeEmitter.inc(from Cpu0InstrInfo.td)";
+    EI_MC [label="emitInstruction()"];
+  }
+  subgraph clusterCpu0AsmParser {
+    label = "Cpu0AsmParser.cpp\nCpu0GenAsmMatcher.inc(from Cpu0InstrInfo.td)";
+    "MatchAndEmitInstruction()";
+  }
+  subgraph clusterCpu0Dis {
+    label = "Cpu0Disassembler.cpp\nCpu0GenDisassemblerTables.inc(from Cpu0InstrInfo.td)";
+    "getInstruction()";
+  }
+}

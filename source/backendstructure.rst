@@ -15,6 +15,20 @@ or binary object with the following data structure as
 .. graphviz:: ../Fig/backendstructure/llvm-data-structure.gv
   :caption: LLVM data structure used in different stages
 
+Cpu0 backend supports the following backend compiler, assembler and disassembler 
+as :numref:`backendstructure-function` and :numref:`backendstructure-enc-struct`.
+However only the green part for printing assembly is implemented in this chapter.
+Others are implemented in later chapters :numref:`genobj-f11`, :numref:`asm-flow` 
+and :numref:`disas`.
+
+.. _backendstructure-function:
+.. graphviz:: ../Fig/backendstructure/cpu0-function.gv
+  :caption: Backend compiler, assembler and disassembler of Cpu0
+
+.. _backendstructure-enc-struct:
+.. graphviz:: ../Fig/backendstructure/cpu0-enc-struct.gv
+  :caption: The structure for backend compiler, assembler and disassembler of Cpu0
+
 This chapter introduces the backend class inheritance tree and class members 
 first. 
 Next, following the backend structure, adding individual classes implementation 
@@ -69,13 +83,7 @@ TargetMachine structure
 
 .. rubric:: lbdex/chapters/Chapter3_1/Cpu0.td
 .. literalinclude:: ../lbdex/Cpu0/Cpu0.td
-    :start-after: #if CH >= CH3_1 1
-    :end-before: #endif
-.. literalinclude:: ../lbdex/Cpu0/Cpu0.td
     :start-after: #if CH >= CH3_1 2
-    :end-before: #endif
-.. literalinclude:: ../lbdex/Cpu0/Cpu0.td
-    :start-after: #if CH >= CH3_1 3
     :end-before: #endif
 
 .. rubric:: lbdex/chapters/Chapter3_1/Cpu0CallingConv.td
@@ -383,8 +391,7 @@ Add AsmPrinter
 
 As :numref:`asm-emit`, because MachineInstr is a big class for opitmization and
 convertion in many passes. LLVM creates MCInst for encoding purpose in assembly
-and binary object. As you can see from the following Cpu0AsmPrinter, it extracts
-MCInst from MachineInstr by calling "MCInstLowering.Lower(&*I, TmpInst0);".
+and binary object.
 
 Chapter3_2/ contains the Cpu0AsmPrinter definition. 
 
@@ -421,15 +428,24 @@ in Cpu0InstrInfo.td and Cpu0RegisterInfo.td.
 To let these two functions work in our code, the only thing needed is adding a 
 class Cpu0InstPrinter and include them as did in Chapter3_2.
 
-File Chapter3_2/Cpu0/InstPrinter/Cpu0InstPrinter.cpp include Cpu0GenAsmWrite.inc 
+File Chapter3_2/Cpu0/InstPrinter/Cpu0InstPrinter.cpp includes Cpu0GenAsmWrite.inc
 and call the auto-generated functions from TableGen.
 The flow of printing assembly and calling between Cpu0InstPrinter.cpp and 
-Cpu0GenAsmWrite.inc as :numref:`print-asm`.
+Cpu0GenAsmWrite.inc as :numref:`print-asm`. 
+Cpu0AsmPrinter::emitInstruction() calls Cpu0MCInstLower::Lower(const 
+MachineInstr *MI, MCInst &OutMI) to extracts MCInst from MachineInstr.
 
 .. _print-asm:
 .. graphviz:: ../Fig/backendstructure/printAsm.gv
    :caption: The flow of printing assembly and calling between 
              Cpu0InstPrinter.cpp and Cpu0GenAsmWrite.inc
+
+- AsmPrinter::OutStreamer is \nMCAsmStreamer if llc -filetype=asm; 
+  AsmPrinter::OutStreamer is \nMCObjectStreamer if llc -filetype=obj as 
+  :numref:`genobj-f11`.
+
+- Bits is the format of instruction for Opcode, used to print "," between 
+  operands.
 
 Function Cpu0InstPrinter::printMemOperand() defined in 
 Chapter3_2/InstPrinter/Cpu0InstPrinter.cpp as above. 

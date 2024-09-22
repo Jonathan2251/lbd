@@ -146,7 +146,10 @@ extern "C" void LLVMInitializeCpu0Disassembler() {
                                          createCpu0elDisassembler);
 }
 
-
+#if 0
+#undef LLVM_DEBUG
+#define LLVM_DEBUG(X) X
+#endif
 #include "Cpu0GenDisassemblerTables.inc"
 
 /// Read four bytes from the ArrayRef and return 32 bit word sorted

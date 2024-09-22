@@ -1,0 +1,28 @@
+digraph G {
+  rankdir=LR;
+  subgraph clusterDisa {
+    label = "Disassembler";
+    objdump [label="llvm-objdump", shape=record];
+    obj_dis [label="binary obj"];
+    asm_dis [label="assembly"];
+    obj_dis -> objdump;
+    objdump -> asm_dis [label="-d"];
+  }
+  subgraph clusterAsm {
+    label = "Assembler";
+    llc_asm [label="llc", shape=record];
+    asm_asm [label="assembly"];
+    obj_asm [label="binary obj"];
+    asm_asm -> llc_asm;
+    llc_asm -> obj_asm [label="-filetype=obj"];
+  }
+  subgraph clusterLlc {
+    label = "Backend compiler";
+    llc_llc [label="llc", shape=record];
+    asm_llc [label="assembly"];
+    obj_llc [label="binary obj"];
+    "llvm-ir" -> llc_llc;
+    llc_llc -> asm_llc [label="-filetype=asm"];
+    llc_llc -> obj_llc [label="-filetype=obj"];
+  }
+}

@@ -7,7 +7,6 @@
 //
 //===----------------------------------------------------------------------===//
 
-//#if CH >= CH3_1 1
 // Without this will have error: 'cpu032I' is not a recognized processor for 
 //  this target (ignoring processor)
 //===----------------------------------------------------------------------===//
@@ -78,7 +77,6 @@ def FeatureCpu032I     : SubtargetFeature<"cpu032I", "Cpu0ArchVersion",
 def FeatureCpu032II    : SubtargetFeature<"cpu032II", "Cpu0ArchVersion",                      
                                "Cpu032II", "Cpu032II ISA Support (slt)",
                                 [FeatureCmp, FeatureSlt, FeatureChapterAll]>;
-//#endif
 
 //===----------------------------------------------------------------------===//
 // Calling Conv, Instruction Descriptions
@@ -95,7 +93,6 @@ def Cpu0InstrInfo : InstrInfo;
 // Cpu0 processors supported.
 //===----------------------------------------------------------------------===//
 
-//#if CH >= CH3_1 3
 class Proc<string Name, list<SubtargetFeature> Features>
  : Processor<Name, Cpu0GenericItineraries, Features>;
 
@@ -108,7 +105,6 @@ def : Proc<"cpu032II", [FeatureCpu032II]>;
 //   FeatureCpu032II =  1ULL << 2,
 //   FeatureSlt =  1ULL << 3
 // };
-//#endif
 
 //#if CH >= CH11_1 1
 def Cpu0AsmParser : AsmParser {

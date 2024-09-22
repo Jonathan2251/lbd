@@ -553,17 +553,6 @@ ISD node of Cpu0InstrInfo.td.
 LLVM will call these DecodeMethod when user uses Disassembler tools, such  
 as ``llvm-objdump -d``.
 
-The flow of disassembly as :numref:`disas`. 
-
-.. _disas:
-.. graphviz:: ../Fig/elf/disas.gv
-   :caption: The flow of disassembly. 
-
-- After getInstruction() of Cpu0Disassembler.cpp, disassembleObject() of 
-  llvm-objdump.cpp call printInst() of Cpu0InstPrinter.cpp.
-
-  - printInst() of Cpu0InstPrinter.cpp: reference :numref:`print-asm`.
-
 Finally cpu032II includes all cpu032I instruction set and adds some instrucitons. 
 When ``llvm-objdump -d`` is invoked, function selectCpu0ArchFeature() as 
 the following will be called through createCpu0MCSubtargetInfo(). 
@@ -602,6 +591,75 @@ the following result.
         18: 02 4d 00 1c                                   st  $4, 28($sp)
         ...
 
+
+Disassembler structure
+----------------------
+
+The flow of disassembly as :numref:`disas`. 
+
+.. _disas:
+.. graphviz:: ../Fig/elf/disas.gv
+   :caption: The flow of disassembly. 
+
+- After getInstruction() of Cpu0Disassembler.cpp, disassembleObject() of 
+  llvm-objdump.cpp call printInst() of Cpu0InstPrinter.cpp.
+
+  - printInst() of Cpu0InstPrinter.cpp: reference :numref:`print-asm`.
+
+- Bytes: 4-byte (32-bits) for Cpu0. insn: Convert Bytes to big or little endian 
+  of 32-bit (unsigned int) binary instruction.
+
+List DecoderTableCpu032 and decodeInstruction() as follows,
+
+.. rubric:: build/lib/Target/Cpu0/Cpu0GenDisassemblerTables.inc
+.. literalinclude:: ../lbdex/Cpu0Gen/Cpu0GenDisassemblerTables.inc
+   :start-at: static const uint8_t DecoderTableCpu032[] = {
+   :end-at: /* 112 */
+   :append: ...
+.. literalinclude:: ../lbdex/Cpu0Gen/Cpu0GenDisassemblerTables.inc
+   :prepend: template <typename InsnType>
+   :start-at: static DecodeStatus decodeInstruction
+   :end-before: } // end namespace llvm
+
+List the tracing of decodeInstruction() by enabling "#if 1" of 
+Cpu0Disassembler.cpp and run "llvm-objdump" as follows,
+
+.. rubric:: lbdex/chapters/Chapter10_1/Disassembler/Cpu0Disassembler.cpp
+.. code-block:: c++
+
+  #if 1
+  #undef LLVM_DEBUG(X)
+  #define LLVM_DEBUG(X) X
+  #endif
+  #include "Cpu0GenDisassemblerTables.inc"
+
+
+.. literalinclude:: ../log-include-in-lbd/ch3.disas.log
+
+
+Based on the debug log above, pick example "addiu $sp, $sp, -8" which opcode is
+9 to explain decodeInstruction() as table and explanation follows,
+
+.. table:: The state transformation of decodeInstruction() for "addiu $sp, $sp, -8"
+
+  ===================  =============================================
+  state                result
+  ===================  =============================================
+  OPC_ExtractField     CurFieldValue <- Opcode:9
+  OPC_FilterValue      Match entries of DecodeTable == CurFieldValue
+  OPC_Decode           setOpcode(9) and decode operands by calling decodeToMCInst()
+  ===================  =============================================
+
+- For "move $fp, $sp" and "ret $lr", they have state OPC_CheckField before 
+  OPC_Decode since they are R type of Cpu0 instruction format and 
+  "let shamt = 0;" is set in "class ArithLogic" of Cpu0InstrInfo.td. 
+
+  - For "move $fp, $sp", fieldFromInstruction(0x11cd0000, 0, 12) = (0x11cd0000 
+    & 0x00000fff). Check bits(20..31) is 0.
+
+- DecodeBranch16Target() and DecodeBranch24Target(): decode immediate value to
+  MCInst.operand and set the type of MCInst.operand to immediate type and value
+  to positive or negative. Operand of MCInst can be immediate or register type.
 
 .. _section Handle $gp register in PIC addressing mode:
 	http://jonathan2251.github.io/lbd/funccall.html#handle-gp-register-in-pic-addressing-mode

@@ -1,9 +1,9 @@
 digraph G {
   rankdir=TD;
-  "disassembleObject()" -> "getInstruction()" [label="1. AsmPrinter::llvm-objdump -d"];
-  "disassembleObject()" -> "PrettyPrinter::printInst()" [label="2"];
-  "PrettyPrinter::printInst()" -> "printInst()";
-  "getInstruction()" -> "decodeInstruction()";
+  "disassembleObject()" -> "getInstruction()" [label="1. [AsmPrinter::llvm-objdump -d]\nMCInst,Bytes"];
+  "disassembleObject()" -> "PrettyPrinter::printInst()" [label="2. MCInst,Address"];
+  "PrettyPrinter::printInst()" -> "printInst()" [label="MCInst,Address"];
+  "getInstruction()" -> "decodeInstruction()" [label="DecoderTableCpu032,MCInst,insn,Address"];
   "decodeInstruction()" -> "fieldFromInstruction()";
   "decodeInstruction()" -> "checkDecoderPredicate()";
   "decodeInstruction()" -> "decodeToMCInst()";
@@ -21,6 +21,9 @@ digraph G {
   subgraph clusterCpu0Dis1 {
     label = "Cpu0Disassembler.cpp";
     "getInstruction()";
+    "readInstruction32()";
+    "getInstruction()" -> "readInstruction32()" [label="Bytes"];
+    "readInstruction32()" -> "getInstruction()" [label="insn"];
   }
   subgraph clusterCpu0Dis2 {
     label = "Cpu0Disassembler.cpp\n These functions specified in Cpu0InstrInfo.td";

@@ -148,6 +148,8 @@ void Cpu0AsmPrinter::emitInstruction(const MachineInstr *MI) {
       llvm_unreachable("Pseudo opcode found in emitInstruction()");
 
     MCInst TmpInst0;
+    // Call Cpu0MCInstLower::Lower(const MachineInstr *MI, MCInst &OutMI) to 
+    // extracts MCInst from MachineInstr.
     MCInstLowering.Lower(&*I, TmpInst0);
     OutStreamer->emitInstruction(TmpInst0, getSubtargetInfo());
   } while ((++I != E) && I->isInsideBundle()); // Delay slot check

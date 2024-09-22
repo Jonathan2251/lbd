@@ -37,6 +37,9 @@ build_llvm()
     pushd ${LLVM_DEBUG_DIR}/build
     OS=`uname -s`
     echo "OS =" ${OS}
+
+#   These two for build llvm/clang with static link
+#   -DLLVM_STATIC_LINK_CXX_STDLIB=ON -DLLVM_ENABLE_PIC=OFF
     cmake -DCMAKE_BUILD_TYPE=Debug -DLLVM_ENABLE_PROJECTS="clang" \
     -DLLVM_OPTIMIZED_TABLEGEN=On \
     -DLLVM_PARALLEL_COMPILE_JOBS=4 -DLLVM_PARALLEL_LINK_JOBS=1 -G "Ninja" ../llvm
