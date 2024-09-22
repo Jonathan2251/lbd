@@ -233,6 +233,10 @@ expanation as follows,
 .. graphviz:: ../Fig/genobj/callFunctions.gv
    :caption: Calling Functions of elf encoder
 
+- AsmPrinter::OutStreamer is \nMCObjectStreamer if llc -filetype=obj;
+  AsmPrinter::OutStreamer is \nMCAsmStreamer if llc -filetype=asm as 
+  :numref:`print-asm`.
+
 The ELF encoder calling functions shown as :numref:`genobj-f11` above. 
 AsmPrinter::OutStreamer is set to MCObjectStreamer when by llc driver when user
 input ``llc -filetype=obj``.

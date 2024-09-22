@@ -2067,6 +2067,9 @@ Every backend has its own .td to define some target information.
 These files have a similar syntax to C++. For Cpu0, the target description file 
 is called Cpu0Other.td, which is shown below:
 
+.. rubric:: lbdex/chapters/Chapter2/Cpu0.td
+.. literalinclude:: ../lbdex/chapters/Chapter2/Cpu0.td
+
 .. rubric:: lbdex/chapters/Chapter2/Cpu0Other.td
 .. literalinclude:: ../lbdex/chapters/Chapter2/Cpu0Other.td
 

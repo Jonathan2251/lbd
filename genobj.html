@@ -55,18 +55,18 @@ objdump utility. With LLVM support, the Cpu0 backend can generate both big
 endian and little endian obj files with only a few code added.
 The Target Registration mechanism and their structure are introduced in
 this chapter.</p>
-<p>Similar to <a class="reference internal" href="backendstructure.html#asm-emit"><span class="std std-numref">Fig. 21</span></a> of previous chapter, but this chapter emit binary
-obj instruction as <a class="reference internal" href="#obj-emit"><span class="std std-numref">Fig. 29</span></a>.</p>
+<p>Similar to <a class="reference internal" href="backendstructure.html#asm-emit"><span class="std std-numref">Fig. 23</span></a> of previous chapter, but this chapter emit binary
+obj instruction as <a class="reference internal" href="#obj-emit"><span class="std std-numref">Fig. 31</span></a>.</p>
 <figure class="align-default" id="id3">
-<span id="obj-emit"></span><div class="graphviz"><img src="_images/graphviz-636795140b555c48c7dde16f13e6a28668293511.png" alt="digraph G {
+<span id="obj-emit"></span><div class="graphviz"><img src="_images/graphviz-b40e0fb4a01facfff92985fa79b6516432d62ff4.png" alt="digraph G {
   rankdir=LR;
-  MCInst [style=filled, color=green]; 
-  &quot;binary obj&quot; [style=filled, color=green];
+  MCInst [style=&quot;filled,bold&quot;, fillcolor=lightgreen]; 
+  &quot;binary obj&quot; [style=&quot;filled,bold&quot;, fillcolor=lightgreen];
 
   MachineInstr -&gt; MCInst -&gt; &quot;binary obj&quot;;
 }" class="graphviz" /></div>
 <figcaption>
-<p><span class="caption-number">Fig. 29 </span><span class="caption-text">When “llc -filetype=obj”, Cpu0AsmPrinter extract MCInst from MachineInstr for obj encoding</span><a class="headerlink" href="#id3" title="Permalink to this image">¶</a></p>
+<p><span class="caption-number">Fig. 31 </span><span class="caption-text">When “llc -filetype=obj”, Cpu0AsmPrinter extract MCInst from MachineInstr for obj encoding</span><a class="headerlink" href="#id3" title="Permalink to this image">¶</a></p>
 </figcaption>
 </figure>
 <section id="translate-into-obj-file">
@@ -1210,20 +1210,28 @@ expanation as follows,</p>
 </pre></div>
 </div>
 <figure class="align-default" id="id4">
-<span id="genobj-f11"></span><div class="graphviz"><img src="_images/graphviz-883fc5d4999d51752587616a835a14e5f18b5c50.png" alt="digraph G {
+<span id="genobj-f11"></span><div class="graphviz"><img src="_images/graphviz-3672fd063defc318af3c54bc113d9bb5b63a1960.png" alt="digraph G {
   rankdir=TB;
-  compound=true;
-  E1 -&gt; E2 [label=&quot;AsmPrinter::OutStreamer is MCAsmStreamer if llc -filetype=obj&quot;];
-  E2 -&gt; &quot;MCELFStreamer::emitInstToData()&quot; -&gt; &quot;encodeInstruction()&quot; -&gt; &quot;getBinaryCodeForInstr()&quot;;
-  &quot;getBinaryCodeForInstr()&quot; -&gt; EM;
-  &quot;getBinaryCodeForInstr()&quot; -&gt; &quot;getMachineOpValue()&quot;;
+  E1 -&gt; E2 [label=&quot;MachineInstr&quot;];
+  E2 -&gt; E1 [label=&quot;MCInst&quot;];
+  E1 -&gt; E3 [label=&quot;MCInst&quot;];
+
+  E3 -&gt; &quot;MCELFStreamer::emitInstToData()&quot; [label=&quot;MCInst&quot;];
+  &quot;MCELFStreamer::emitInstToData()&quot; -&gt; &quot;encodeInstruction()&quot; [label=&quot;MCInst&quot;];
+  &quot;encodeInstruction()&quot; -&gt; &quot;getBinaryCodeForInstr()&quot; [label=&quot;MCInst&quot;];
+  &quot;getBinaryCodeForInstr()&quot; -&gt; EM  [label=&quot;MCInst,OpNo&quot;];
+  &quot;getBinaryCodeForInstr()&quot; -&gt; &quot;getMachineOpValue()&quot; [label=&quot;MCInst, MCInst.getOperand(OpNo)&quot;];
   subgraph clusterCpu0Asm {
     label = &quot;Cpu0AsmPrinter.cpp&quot;;
-    E1 [label=&quot;Cpu0AsmPrinter::emitInstruction(const MachineInstr *MI)&quot;];
+    E1 [label=&quot;Cpu0AsmPrinter::emitInstruction()&quot;];
+  }
+  subgraph clusterMCInstLower {
+    label = &quot;lib/MC/MCInstLower.cpp&quot;;
+    E2 [label=&quot;Cpu0MCInstLower::Lower()&quot;];
   }
   subgraph clusterObj {
     label = &quot;lib/MC/MCObjectStreamer.cpp&quot;;
-    E2 [label=&quot;MCObjectStreamer::emitInstruction(const MCInst &amp;Inst, ...)&quot;];
+    E3 [label=&quot;MCObjectStreamer::emitInstruction()*&quot;];
   }
   subgraph clusterELF {
     label = &quot;lib/MC/MCELFStreamer.cpp&quot;;
@@ -1234,27 +1242,32 @@ expanation as follows,</p>
     &quot;getBinaryCodeForInstr()&quot;;
   }
   subgraph clusterCpu0MC {
-    label = &quot;Cpu0MCCodeEmitter.cpp&quot;;
+    label = &quot;Cpu0GenMCCodeEmitter.cpp&quot;;
     &quot;encodeInstruction()&quot;;
     &quot;getMachineOpValue()&quot;;
     &quot;getExprOpValue()&quot;;
-    &quot;getMachineOpValue()&quot; -&gt; &quot;getExprOpValue()&quot;;
+    &quot;getMachineOpValue()&quot; -&gt; &quot;getExprOpValue()&quot; [label=&quot;MCOperand&quot;];
     subgraph clusterEM {
-      label = &quot;This function specified in Cpu0InstrInfo.td\n by let EncoderMethod = getMemEncoding&quot;;
+      label = &quot;This function specified in Cpu0InstrInfo.td\n by let EncoderMethod = getMemEncoding.\nIt is LD/ST instructions in Cpu0.&quot;;
       EM [label=&quot;getMemEncoding()&quot;];
     }
   }
 //  label = &quot;Figure: Calling Functions of elf encoder&quot;;
 }" class="graphviz" /></div>
 <figcaption>
-<p><span class="caption-number">Fig. 30 </span><span class="caption-text">Calling Functions of elf encoder</span><a class="headerlink" href="#id4" title="Permalink to this image">¶</a></p>
+<p><span class="caption-number">Fig. 32 </span><span class="caption-text">Calling Functions of elf encoder</span><a class="headerlink" href="#id4" title="Permalink to this image">¶</a></p>
 </figcaption>
 </figure>
-<p>The ELF encoder calling functions shown as <a class="reference internal" href="#genobj-f11"><span class="std std-numref">Fig. 30</span></a> above.
+<ul class="simple">
+<li><p>AsmPrinter::OutStreamer is nMCObjectStreamer if llc -filetype=obj;
+AsmPrinter::OutStreamer is nMCAsmStreamer if llc -filetype=asm as
+<a class="reference internal" href="backendstructure.html#print-asm"><span class="std std-numref">Fig. 24</span></a>.</p></li>
+</ul>
+<p>The ELF encoder calling functions shown as <a class="reference internal" href="#genobj-f11"><span class="std std-numref">Fig. 32</span></a> above.
 AsmPrinter::OutStreamer is set to MCObjectStreamer when by llc driver when user
 input <code class="docutils literal notranslate"><span class="pre">llc</span> <span class="pre">-filetype=obj</span></code>.</p>
 <figure class="align-default" id="id5">
-<span id="genobj-f12"></span><div class="graphviz"><img src="_images/graphviz-df50cbe68f4e97e4834c89b85f078289932b4ec7.png" alt="digraph G {
+<span id="genobj-f12"></span><div class="graphviz"><img src="_images/graphviz-760eed9aa185fa562f3070e92a0f79eee8bed6a6.png" alt="digraph G {
   rankdir=TB;
   subgraph cluster0 {
     label = &quot;Cpu0MCCodeEmitter.cpp&quot;;
@@ -1262,7 +1275,7 @@ input <code class="docutils literal notranslate"><span class="pre">llc</span> <s
     &quot;getMachineOpValue()&quot;;
   }
   subgraph cluster1 {
-    label = &quot;Cpu0MCCodeEmitter.inc&quot;;
+    label = &quot;Cpu0GenMCCodeEmitter.inc&quot;;
     &quot;getBinaryCodeForInstr()&quot;
   }
   
@@ -1276,10 +1289,10 @@ input <code class="docutils literal notranslate"><span class="pre">llc</span> <s
 //  label = &quot;Figure: DFD flow for instruction encode&quot;;
 }" class="graphviz" /></div>
 <figcaption>
-<p><span class="caption-number">Fig. 31 </span><span class="caption-text">DFD flow for instruction encode</span><a class="headerlink" href="#id5" title="Permalink to this image">¶</a></p>
+<p><span class="caption-number">Fig. 33 </span><span class="caption-text">DFD flow for instruction encode</span><a class="headerlink" href="#id5" title="Permalink to this image">¶</a></p>
 </figcaption>
 </figure>
-<p>The instruction operands information for encoder is got as <a class="reference internal" href="#genobj-f12"><span class="std std-numref">Fig. 31</span></a>
+<p>The instruction operands information for encoder is got as <a class="reference internal" href="#genobj-f12"><span class="std std-numref">Fig. 33</span></a>
 above.
 Steps as follows,</p>
 <blockquote>
@@ -1292,7 +1305,7 @@ Steps as follows,</p>
 </div></blockquote>
 <p>The MI.Opcode is set in Instruction Selection Stage.
 The table gen function getBinaryCodeForInstr() get all the operands information
-from the td files set by programmer as <a class="reference internal" href="#genobj-f13"><span class="std std-numref">Fig. 32</span></a>.</p>
+from the td files set by programmer as <a class="reference internal" href="#genobj-f13"><span class="std std-numref">Fig. 34</span></a>.</p>
 <figure class="align-default" id="id6">
 <span id="genobj-f13"></span><div class="graphviz"><img src="_images/graphviz-7ea631171be09d802a787afd41b3ec2965dd8e56.png" alt="digraph G {
   rankdir=LR;
@@ -1347,7 +1360,7 @@ from the td files set by programmer as <a class="reference internal" href="#geno
 //  label = &quot;Instruction encode, for instance:  addu $v0, $at, $v1\n  v0:MI.getOperand(0), at:MI.getOperand(1), v1:MI.getOperand(2)&quot;;
 }" class="graphviz" /></div>
 <figcaption>
-<p><span class="caption-number">Fig. 32 </span><span class="caption-text">Instruction encode, for instance:  addu $v0, $at, $v1n  v0:MI.getOperand(0), at:MI.getOperand(1), v1:MI.getOperand(2)</span><a class="headerlink" href="#id6" title="Permalink to this image">¶</a></p>
+<p><span class="caption-number">Fig. 34 </span><span class="caption-text">Instruction encode, for instance:  addu $v0, $at, $v1n  v0:MI.getOperand(0), at:MI.getOperand(1), v1:MI.getOperand(2)</span><a class="headerlink" href="#id6" title="Permalink to this image">¶</a></p>
 </figcaption>
 </figure>
 <p>For instance, Cpu0 backend will generate “addu $v0, $at, $v1” for the IR
@@ -1570,12 +1583,12 @@ List the register functions of ELF obj output as follows,</p>
 </pre></div>
 </div>
 <p>Above createELFStreamer takes care the elf obj streamer.
-<a class="reference internal" href="#genobj-f10"><span class="std std-numref">Fig. 33</span></a> as follow is MCELFStreamer inheritance tree.
+<a class="reference internal" href="#genobj-f10"><span class="std std-numref">Fig. 35</span></a> as follow is MCELFStreamer inheritance tree.
 You can find a lot of operations in that inheritance tree.</p>
 <figure class="align-center" id="id7">
 <span id="genobj-f10"></span><a class="reference internal image-reference" href="_images/101.png"><img alt="_images/101.png" src="_images/101.png" style="width: 783.0px; height: 596.0px;" /></a>
 <figcaption>
-<p><span class="caption-number">Fig. 33 </span><span class="caption-text">MCELFStreamer inherit tree</span><a class="headerlink" href="#id7" title="Permalink to this image">¶</a></p>
+<p><span class="caption-number">Fig. 35 </span><span class="caption-text">MCELFStreamer inherit tree</span><a class="headerlink" href="#id7" title="Permalink to this image">¶</a></p>
 </figcaption>
 </figure>
 <p class="rubric">Register function of asm target streamer</p>
