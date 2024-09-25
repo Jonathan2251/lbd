@@ -433,7 +433,7 @@ and call the auto-generated functions from TableGen.
 The flow of printing assembly and calling between Cpu0InstPrinter.cpp and 
 Cpu0GenAsmWrite.inc as :numref:`print-asm`. 
 Cpu0AsmPrinter::emitInstruction() calls Cpu0MCInstLower::Lower(const 
-MachineInstr *MI, MCInst &OutMI) to extracts MCInst from MachineInstr.
+MachineInstr \*MI, MCInst &OutMI) to extracts MCInst from MachineInstr.
 
 .. _print-asm:
 .. graphviz:: ../Fig/backendstructure/printAsm.gv
