@@ -29,6 +29,14 @@ and :numref:`disas`.
 .. graphviz:: ../Fig/backendstructure/cpu0-enc-struct.gv
   :caption: The structure for backend compiler, assembler and disassembler of Cpu0
 
+- Bytes: 4-byte (32-bits) for Cpu0.
+
+- The emitInstruction() of Cpu0MCCodeEmitter.cpp: encode binary for an 
+  instruction reused for both llc (compiler) and llc (assembler).
+
+- The printInst() of Cpu0InstPrinter.cpp: print assembly code for an instruction
+  reused for both llc (compiler) and llvm-objdump (disassembler).
+
 This chapter introduces the backend class inheritance tree and class members 
 first. 
 Next, following the backend structure, adding individual classes implementation 

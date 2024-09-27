@@ -309,6 +309,9 @@ of Cpu0AsmParser as follows,
 Assembler structure
 -------------------
 
+Run llc with option "-debug-only=asm-matcher,cpu0-asm-parser" will know how the 
+Cpu0's assembler program. 
+
 Directory AsmParser handle the assembly to obj translation.
 The assembling Data Flow Diagram (DFD) as :numref:`asm-f1` and :numref:`asm-f2`.
 
@@ -527,16 +530,24 @@ List flow of calling functions for Cpu0AsmParser as :numref:`asm-flow`.
     MCObjectStreamer::emitInstruction() for encoding to binary, reference 
     :numref:`genobj-f11`.
 
-- Run llc with option "-debug" or "-debug-only=asm-matcher" will show debug
-  message to check the flow of assembler as follows,
+- Run llc with option "-debug" or "-debug-only=asm-matcher,cpu0-asm-parser" 
+  will show debug message to check the flow of assembler as follows,
+
+- For Cpu0, only memory operand (L Type or J Type instruction) will call 
+  tryCustomParseOperand().
 
 .. code-block:: console
 
   input % ~/llvm/test/build/bin/clang -target mips-unknown-linux-gnu -c 
   ch11_1.cpp -emit-llvm -o ch11_1.bc
   input % ~/llvm/test/build/bin/llc -march=cpu0 -relocation-model=pic 
-  -filetype=obj -debug-only=asm-matcher ch11_1.bc -o ch11_1.cpu0.o
+  -filetype=obj -debug-only=asm-matcher,cpu0-asm-parser ch11_1.bc -o 
+  ch11_1.cpu0.o
 
+  ParseOperand
+  .. Generic Parser
+  ParseOperand
+  <ld><Register<19>><Mem<9, 8>>
   AsmMatcher: found 1 encodings with mnemonic 'ld'
   Trying to match opcode LD
     Matching formal operand class MCK_CPURegs against actual operand at index 1 

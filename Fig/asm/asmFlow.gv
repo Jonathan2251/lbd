@@ -1,13 +1,15 @@
 digraph G {
   rankdir=TB;
-  "parseStatement()" -> "ParseInstruction()" [label="1"];
-  "parseStatement()" -> "MatchAndEmitInstruction()" [label="2"];
+  "parseStatement()" -> "ParseInstruction()" [label="1. OpcodeStr"];
+  "ParseInstruction()" -> "parseStatement()" [label="Info.ParseOperands"];
+  "parseStatement()" -> "MatchAndEmitInstruction()" [label="2. Info.ParsedOperands"];
   "MatchAndEmitInstruction()" -> "MatchInstructionImpl()";
-  "ParseInstruction()" -> "ParseOperand()";
+  "ParseInstruction()" -> "ParseOperand()" [label="OpcodeStr"];
+  "ParseOperand()" -> "ParseInstruction()" [label="Operands"];
   "ParseOperand()" -> "MatchOperandParserImpl()";
-  "MatchAndEmitInstruction()" -> "MCObjectStreamer::emitInstruction()";
+  "MatchAndEmitInstruction()" -> "MCObjectStreamer::emitInstruction()" [label="MCInst"];
   subgraph clusterAsm {
-    label = "/lib/MC/AsmParser.cpp";
+    label = "/lib/MC/MCParser/AsmParser.cpp";
     "parseStatement()";
   }
   subgraph clusterCpu0Asm {

@@ -602,7 +602,9 @@ The flow of disassembly as :numref:`disas`.
    :caption: The flow of disassembly. 
 
 - After getInstruction() of Cpu0Disassembler.cpp, disassembleObject() of 
-  llvm-objdump.cpp call printInst() of Cpu0InstPrinter.cpp.
+  llvm-objdump.cpp call printInst() of Cpu0InstPrinter.cpp to print 
+  (address: binary assembly) for the instruction, for example 
+  "(4: 09 30 00 00 addiu $3, $zero, 0)".
 
   - printInst() of Cpu0InstPrinter.cpp: reference :numref:`print-asm`.
 

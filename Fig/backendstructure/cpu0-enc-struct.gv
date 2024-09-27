@@ -4,16 +4,16 @@ digraph G {
   llvm_objdump [label="llvm-objdump", shape=record];
   asm_file [label="asm file", shape=record];
   bin_file [labe="binary file", shape=record];
-  llc -> EI_Asm;
+  llc -> EI_Asm [label="[input-file=llvm-ir]\nMachineInstr"];
   EI_Asm -> "printInst()" [label="MCInst"];
   EI_Asm -> EI_MC [label="MCInst"];
   "printInst()" -> asm_file;
   EI_MC -> bin_file;
 
-  llc -> "MatchAndEmitInstruction()";
+  llc -> "MatchAndEmitInstruction()" [label="[input-file=asm]\nOpcode,Operands"];
   "MatchAndEmitInstruction()" -> EI_MC [label="MCInst"];
 
-  llvm_objdump -> "getInstruction()";
+  llvm_objdump -> "getInstruction()" [label="[input-file=binary]\nBytes"];
   "getInstruction()" -> "printInst()" [label="MCInst"];
 
   subgraph clusterCpu0Asm {
@@ -25,7 +25,7 @@ digraph G {
     "printInst()" [style="filled,bold", fillcolor="lightgreen"];
   }
   subgraph clusterCpu0MC {
-    label = "Cpu0GenMCCodeEmitter.cpp\nCpu0MCCodeEmitter.inc(from Cpu0InstrInfo.td)";
+    label = "Cpu0MCCodeEmitter.cpp\nCpu0GenMCCodeEmitter.inc(from Cpu0InstrInfo.td)";
     EI_MC [label="emitInstruction()"];
   }
   subgraph clusterCpu0AsmParser {
