@@ -433,6 +433,17 @@ You can check them with debug option enabled.
 Atomic
 --------
 
+- Reason
+
+  - Compiler and CPU reorder the memory access instructions (load and store) to 
+    accelerate. CPU has instructions for sequtential access (not reorder). 
+    C/C++ provide memory ordering to tell compiler not to reorder..
+
+  - If using asm instructions in C/C++ only, it
+    cannot provide a common structure for all backend compiler since reorder may 
+    happens in any pass. 
+
+
 In tradition, C uses different API which provided by OS or library to support
 multi-thread programming. For example, posix thread API on unix/linux, MS
 windows API, ..., etc. In order to achieve synchronization to solve race
