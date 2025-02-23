@@ -1,0 +1,42 @@
+digraph MemoryOrderAcquireCache {
+    rankdir=TB;
+    node [shape=box, fontname="Helvetica"];
+
+    // Main memory
+    MainMemory [label="Main Memory", shape=cylinder, style=filled, fillcolor=lightgray];
+
+    // CPU caches
+    subgraph cluster_cache1 {
+        label="CPU Core 1 Cache (Thread 1 - Producer)";
+        style=dashed;
+        Cache1_Data [label="data=42 (Stale?)"];
+        Cache1_Ready [label="ready=true"];
+    }
+
+    subgraph cluster_cache2 {
+        label="CPU Core 2 Cache (Thread 2 - Consumer)";
+        style=dashed;
+        Cache2_Data [label="data=?"];
+        Cache2_Ready [label="ready=false"];
+    }
+
+    // Threads
+    Thread1 [label="Thread 1 (Producer)"];
+    Thread2 [label="Thread 2 (Consumer)"];
+
+    // Memory operations in Thread 1 (Producer)
+    Thread1 -> Cache1_Data [label="data.store(42, relaxed)"];
+    Thread1 -> Cache1_Ready [label="ready.store(true, release)"];
+    
+    // Memory propagation
+    Cache1_Ready -> MainMemory [label="ready=true propagated", color=red];
+    MainMemory -> Cache2_Ready [label="Consumer sees ready=true (Acquire)", color=red];
+
+    // Memory operations in Thread 2 (Consumer)
+    Thread2 -> Cache2_Ready [label="while (!ready.load(acquire));"];
+    Cache2_Ready -> Cache2_Data [label="data.load(relaxed)", color=blue];
+
+    // Synchronization path
+    Cache1_Ready -> Cache2_Ready [label="Acquire-Release Sync", style=dashed, color=purple];
+}
+

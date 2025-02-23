@@ -430,8 +430,8 @@ You can check them with debug option enabled.
   ==========================  ===========================
 
 
-Atomic
---------
+Memory ordering (Atomic)
+------------------------
 
 - Reason
 
@@ -442,6 +442,37 @@ Atomic
   - If using asm instructions in C/C++ only, it
     cannot provide a common structure for all backend compiler since reorder may 
     happens in any pass. 
+
+Example code of C++ code for producer-consumer as follows,
+
+.. rubric:: References/c++/mem-order-ex1.cpp (C++ code of memory order for producer-consumer)
+.. literalinclude:: ../References/c++/mem-order-ex1.cpp
+
+Explaining as :numref:`mem_o_hw` and follows,
+
+.. _mem_o_hw:
+.. graphviz:: ../Fig/gpu/mem-o-hw.gv
+  :caption: Diagram for mem-order-ex1.cpp
+
+Diagram Explanation:
+
+- CPU Core 1 (Thread 1 - Producer)
+
+  - Writes 42 to data with memory_order_relaxed (not immediately visible).
+
+  - Writes true to ready with memory_order_release, ensuring prior stores are 
+    visible before this write.
+
+- Main Memory
+
+  - ready=true propagates to main memory, making it visible to all cores.
+
+- CPU Core 2 (Thread 2 - Consumer)
+
+  - Waits until ready=true with memory_order_acquire, ensuring visibility of all
+    previous writes.
+
+  - After acquiring ready, loads data, which is now guaranteed to be 42.
 
 
 In tradition, C uses different API which provided by OS or library to support
