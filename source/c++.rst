@@ -430,22 +430,188 @@ You can check them with debug option enabled.
   ==========================  ===========================
 
 
-Memory ordering (Atomic)
-------------------------
+C++ Memory Order [#cpp-mem-order]_
+----------------------------------
 
-- Reason
 
-  - Compiler and CPU reorder the memory access instructions (load and store) to 
-    accelerate. CPU has instructions for sequtential access (not reorder). 
-    C/C++ provide memory ordering to tell compiler not to reorder..
+Background
+~~~~~~~~~~
 
-  - If using asm instructions in C/C++ only, it
-    cannot provide a common structure for all backend compiler since reorder may 
-    happens in any pass. 
+Before **C++11**, multi-threaded programming relied on **mutexes, volatile 
+variables, and platform-specific atomic operations**, leading to inefficiencies 
+and undefined behavior.
+
+To solve this, **C++11 introduced memory orderings in `std::atomic`** to give 
+programmers **fine-grained control** over synchronization.
+
+The Problem Before C++11
+++++++++++++++++++++++++
+
+1. **Unspecified Behavior in Multi-threading**
+
+   - The C++98/03 standard had **no formal memory model**.  
+   - Compilers **optimized code aggressively**, leading to race conditions.
+   - Without a memory model, a compiler may not apply such optimizations to 
+     multi-threaded programs at all, or it may apply optimizations that are 
+     incompatible with multi-threading, leading to bugs [#atomic-wiki]_.
+
+2. **Reliance on Volatile and Platform-specific Primitives**
+
+   - `volatile` **did not** prevent reordering by the compiler.  
+   - Programmers had to use **OS-specific APIs (e.g., `pthread_mutex`)** 
+     [#atomic-stackoverflow]_.
+
+3. **Inefficient Synchronization Mechanisms**
+
+   - Mutexes ensured correctness but **caused performance overhead** [#cas-wiki]_.  
+   - **Spin-locks wasted CPU cycles** due to busy-waiting.
+
+C++11 Memory Model Solution
++++++++++++++++++++++++++++
+
+C++11 introduced **a well-defined memory model** and **atomic operations** with 
+**memory orderings**, allowing programmers to control hardware-level 
+optimizations.
+
+.. table::
+
+   ================================================  ===============================================  ========================
+   **Feature**                                       **Description**                                  **Benefit**
+   ================================================  ===============================================  ========================
+   `std::atomic`                                     Provides lock-free atomic variables              Faster than mutexes
+   Memory Orderings (`std::memory_order`)            Controls instruction reordering                  Fine-grained optimization
+   Sequential Consistency (`memory_order_seq_cst`)   Strongest ordering, default behavior             Prevents race conditions
+   Acquire-Release (`memory_order_acquire/release`)  Synchronization without mutexes                  Efficient producer-consumer
+   Relaxed Ordering (`memory_order_relaxed`)         Allows reordering for performance                Best for atomic counters
+   ================================================  ===============================================  ========================
+
+Key Memory Order Introductions
+++++++++++++++++++++++++++++++
+
+1. **Sequential Consistency (`memory_order_seq_cst`)**
+
+   - **Prevents reordering globally.**  
+   - **Ensures** all threads observe operations in the same order.  
+   - **Default behavior** of `std::atomic`.
+
+2. **Acquire-Release (`memory_order_acquire/release`)**
+
+   - **Efficient alternative to mutexes.**  
+   - `acquire`: Ensures earlier loads are visible.  
+   - `release`: Ensures later stores are visible.  
+   - **Used in producer-consumer models**.
+
+3. **Relaxed Ordering (`memory_order_relaxed`)**
+
+   - Allows **maximum performance** without ordering constraints.  
+   - Best for **counters and statistics** that don’t need synchronization.
+
+Example: **Spin-lock vs. Memory Order**
++++++++++++++++++++++++++++++++++++++++
+
+Before C++11, **spin-locks** were used for synchronization:
+
+.. code-block:: cpp
+
+    std::atomic<int> lock(0);
+
+    void spin_lock() {
+        while (lock.exchange(1, std::memory_order_acquire) == 1);
+    }
+
+    void spin_unlock() {
+        lock.store(0, std::memory_order_release);
+    }
+
+Now, C++ **memory orderings** allow more efficient **lock-free or wait-free 
+implementations** [#lf-wiki]_.
+
+Conclusion
+++++++++++
+
+- **C++11 introduced memory order to define a consistent multi-threaded model.**
+- **It prevents race conditions while optimizing performance.**
+- **Use relaxed ordering for performance, acquire-release for synchronization, 
+  and sequential consistency for safety.**
+
+C++ Memory Order description
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+C++ provides several memory orders in `std::atomic` to control synchronization 
+and ordering of operations.
+
+.. table:: C++ memory order
+
+   ============================  ==================================================   ================================================
+   **Memory Order**              **Description**                                      **Use Cases**
+   ============================  ==================================================   ================================================
+   `memory_order_relaxed`        No ordering guarantees; only atomicity.              Non-dependent atomic counters, statistics.
+   `memory_order_consume`        Data-dependent ordering (deprecated in practice).    Rarely used; intended for pointer chains.
+   `memory_order_acquire`        Ensures preceding reads/writes are visible.          Locks, consumer threads.
+   `memory_order_release`        Ensures following reads/writes are visible.          Locks, producer threads.
+   `memory_order_acq_rel`        Combines acquire + release.                          Read-modify-write operations, synchronization.
+   `memory_order_seq_cst`        Strongest ordering; global sequential consistency.   Default behavior, safest but can be slow.
+   ============================  ==================================================   ================================================
+
+Key Details
++++++++++++
+
+- **`memory_order_relaxed`**
+
+  - No synchronization; just ensures atomicity.  
+  - Example: **Atomic counters** that don’t require ordering.
+
+- **`memory_order_acquire` & `memory_order_release`**
+
+  - `acquire` ensures **earlier reads are visible**.  
+  - `release` ensures **later writes are visible**.  
+  - Used in **lock-free producer-consumer models**.
+
+- **`memory_order_acq_rel`**
+
+  - Used in **atomic read-modify-write operations** like `fetch_add`.  
+  - Ensures proper ordering in concurrent updates.
+
+- **`memory_order_seq_cst`**
+
+  - Provides **global order of operations**, preventing out-of-order execution.  
+  - The safest but can cause **performance overhead**.
+
+Example Usage in Code
++++++++++++++++++++++
+
+.. code-block:: cpp
+
+    std::atomic<int> counter(0);
+
+    void producer() {
+        counter.store(42, std::memory_order_release);
+    }
+
+    void consumer() {
+        int value = counter.load(std::memory_order_acquire);
+    }
+
+- **Ensures `consumer()` sees the updated value from `producer()` safely.**
+- Avoids **race conditions** without unnecessary locking.
+
+Conclusion
+++++++++++
+
+- Use **`memory_order_relaxed`** for **performance** when ordering is 
+  unnecessary.
+- Use **`memory_order_acquire/release`** for **synchronization** between 
+  threads.
+- Use **`memory_order_seq_cst`** when you need **global ordering but at a 
+  performance cost**.
+
+Example code for producer-consumer
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Example code of C++ code for producer-consumer as follows,
 
-.. rubric:: References/c++/mem-order-ex1.cpp (C++ code of memory order for producer-consumer)
+.. rubric:: References/c++/mem-order-ex1.cpp (C++ code of memory order for 
+            producer-consumer)
 .. literalinclude:: ../References/c++/mem-order-ex1.cpp
 
 Explaining as :numref:`mem_o_hw` and follows,
@@ -456,40 +622,27 @@ Explaining as :numref:`mem_o_hw` and follows,
 
 Diagram Explanation:
 
-- CPU Core 1 (Thread 1 - Producer)
+- **CPU Core 1 (Thread 1 - Producer)**
 
   - Writes 42 to data with memory_order_relaxed (not immediately visible).
-
   - Writes true to ready with memory_order_release, ensuring prior stores are 
     visible before this write.
 
-- Main Memory
+- **Main Memory**
 
   - ready=true propagates to main memory, making it visible to all cores.
 
-- CPU Core 2 (Thread 2 - Consumer)
+- **CPU Core 2 (Thread 2 - Consumer)**
 
   - Waits until ready=true with memory_order_acquire, ensuring visibility of all
     previous writes.
-
   - After acquiring ready, loads data, which is now guaranteed to be 42.
 
 
-In tradition, C uses different API which provided by OS or library to support
-multi-thread programming. For example, posix thread API on unix/linux, MS
-windows API, ..., etc. In order to achieve synchronization to solve race
-condition between threads, OS provide their own lock or semaphore functions to 
-programmer. But this solution is OS dependent. 
-After c++11, programmer can use atomic to program and run the code 
-on every different platform since the thread and atomic are part of c++ standard.
-Beside of portability, the other important benifit is the compiler can generate
-high performance code by the target hardware instructions rather than couting on
-lock() function only [#atomic-wiki]_ [#atomic-stackoverflow]_ 
-[#atomic-herbsutter]_.
 
-Compare-and-swap operation [#cas-wiki]_ is used to implement synchronization 
-primitives like semaphores and mutexes, as well as more sophisticated 
-wait-free and lock-free [#lf-wiki]_ algorithms. 
+Why Do We Need C++ Memory Order Instead of MIPS `ll/sc` Inline Assembly?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 For atomic variables, Mips lock instructions, ll and sc, to solve the race 
 condition problem. The semantic as follows,
 
@@ -506,14 +659,198 @@ Mips sync [#mips-sync]_ is explained simply as follows,
 
 A Simple Description:
 SYNC affects only uncached and cached coherent loads and stores. The loads and
-stores that occur prior to the SYNC must be completed before the loads and 
+es that occur prior to the SYNC must be completed before the loads and 
 stores after the SYNC are allowed to start.
-Loads are completed when the destination register is written. Stores are completed
-when the stored value is visible to every other processor in the system.
+Loads are completed when the destination register is written. Stores are 
+completed when the stored value is visible to every other processor in the 
+system.
+
+While **MIPS `ll` (load-linked) and `sc` (store-conditional)** instructions can 
+implement atomic operations like **compare-and-swap (CAS), spinlocks, and other 
+synchronization primitives**, C++ memory ordering (`std::atomic` and 
+`memory_order_xxx`) is still necessary for several key reasons.
+
+1. **Portability Across Architectures**
+
+   - MIPS **`ll/sc`** is architecture-specific.
+
+   - C++ atomics work on **x86, ARM, RISC-V, and MIPS** without modification.
+
+   - Example:
+   
+     .. code-block:: cpp
+
+        std::atomic<int> x(0);
+        x.store(10, std::memory_order_release); // Works on any CPU
+
+2. **Higher-Level Abstraction (Readability & Maintainability)**
+
+   - C++ atomics **clearly express intent** (`memory_order_acquire`, 
+     `memory_order_release`).
+
+   - Inline assembly requires **deep CPU knowledge** and is **harder to 
+     maintain**.
+
+3. **Compiler Optimization** [#atomic-wiki]_ [#atomic-stackoverflow]_ 
+
+   - C++ memory order **allows the compiler to optimize atomic operations**.
+
+   - Inline assembly is treated as a **black box**, preventing optimizations.
+
+4. **Automatic Handling of `sc` (Store-Conditional) Failures**
+
+   - In MIPS **`ll/sc`**, `sc` may fail due to other cores modifying the memory,
+     requiring a **manual retry loop**.
+
+   - C++ atomics **handle this automatically**.
+
+5. **Fine-Grained Memory Ordering Control**
+
+   - **`ll/sc`** only ensures atomicity, but C++ allows **explicit control** 
+     over memory ordering:
+
+     - `memory_order_relaxed`: No ordering constraints.
+     - `memory_order_acquire/release`: Ensures **happens-before relationships**.
+     - `memory_order_seq_cst`: Enforces **global sequential consistency**.
+
+Comparison Table
+++++++++++++++++
+
+.. table::
+
+   ===========================  =========================================================  ==============================
+   **Factor**                   **C++ Memory Order (`std::atomic`)**                       **MIPS `ll/sc` Inline Assembly**
+   ===========================  =========================================================  ==============================
+   Portability                  ✅ Works on all CPUs (x86, ARM, etc.)                      ❌ MIPS-only  
+   Ease of Use                  ✅ Readable, maintainable                                  ❌ Complex, low-level  
+   Compiler Optimization        ✅ Compiler optimizes                                      ❌ Prevents optimizations  
+   Correctness (`sc` failures)  ✅ Handled automatically                                   ❌ Must manually retry  
+   Memory Ordering Control      ✅ Fine-grained control (`acquire`, `release`, `relaxed`)  ❌ Only atomicity  
+   Future Proofing              ✅ Works on any CPU, even future ones                      ❌ Tied to MIPS ISA  
+   ===========================  =========================================================  ==============================
+
+**Notes:**
+  - ✅ **Recommended approach** for most cases.
+  - ❌ **Use inline assembly only if absolutely necessary** (low-level 
+    OS/kernel code, extreme optimizations).
+
+Conclusion
+++++++++++
+
+- **Use C++ `std::atomic` whenever possible** for **portability, readability, 
+  and correctness**.
+- Use **MIPS `ll/sc` inline assembly only if absolutely necessary**, such as:
+
+  - **Extreme performance tuning** for a **specific** MIPS CPU.
+  - **Low-level OS development**, where direct control over atomic operations 
+    is required.
+
+
+Performance Differences: C++ Memory Ordering vs. MIPS **`ll/sc`** Spin-locks
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Spin-lock can be used to implement producer-consumer but it is ineffienct as 
+follows,
+
+Both **C++ memory ordering (`std::atomic`)** and **MIPS `ll/sc` 
+(load-linked/store-conditional)** can be used to implement atomic operations, 
+including **spin-locks** and **lock-free algorithms**.  
+However, their **performance characteristics are different**.
+
+Key Performance Differences
++++++++++++++++++++++++++++
+
+1. **Spin-locks Waste CPU Cycles**
+
+   - A spin-lock using **`ll/sc`** causes threads to continuously retry **if 
+     `sc` fails**, wasting CPU time.
+   - C++ atomics allow efficient synchronization with **fine-grained memory ordering control**.
+
+2. **Scalability Issues with Spin-locks**
+
+   - Under contention, **multiple threads retrying `sc` lead to heavy cache contention**.
+   - C++ atomics can use **lock-free algorithms**, reducing contention.
+
+3. **Fairness & Starvation Risks**
+
+   - `ll/sc` spin-locks **do not guarantee fairness**, meaning some threads may keep failing `sc`.
+   - C++ atomics enable **wait-free and lock-free approaches** for better performance.
+
+4. **Cache Coherency Overhead**
+
+   - MIPS `ll/sc` repeatedly accesses memory, **invalidating cache lines** on other cores.
+   - C++ atomics can use **`memory_order_acquire/release`**, minimizing cache invalidation.
+
+Comparsion Table
+++++++++++++++++
+
+.. table::
+
+   ===============  ====================================  ==============================
+   **Factor**       **C++ Memory Order (`std::atomic`)**  **MIPS `ll/sc` Spin-lock**
+   ===============  ====================================  ==============================
+   CPU Efficiency   ✅ No busy waiting, efficient         ❌ Wastes CPU cycles  
+   Scalability      ✅ Lock-free algorithms available     ❌ Heavy contention under load  
+   Fairness         ✅ Prevents starvation                ❌ Threads may fail repeatedly  
+   Cache Coherency  ✅ Uses fine-grained control          ❌ Causes cache thrashing  
+   Power Usage      ✅ Allows sleeping, energy-saving     ❌ High power due to spinning  
+   ===============  ====================================  ==============================
+
+Example: Spin-lock Using `ll/sc` (Inefficient)
+++++++++++++++++++++++++++++++++++++++++++++++
+
+This MIPS assembly **spin-lock** continuously retries `sc`, causing CPU waste:
+
+.. code-block:: asm
+
+  # MIPS Spin-lock Implementation
+  # $t0 - Temporary register
+  # $t1 - Lock value (1 = locked, 0 = unlocked)
+  # lock - Memory location for the lock variable
+
+  .data
+  lock:  .word 0   # Initialize the lock as unlocked (0)
+
+  .text
+  .globl spin_lock, spin_unlock
+
+  # Spin-lock function (blocking)
+  spin_lock:
+    ll   $t0, lock         # Load the current lock value
+    bnez $t0, spin_lock    # If non-zero (locked), retry
+    li   $t1, 1            # Prepare the "locked" value
+    sc   $t1, lock         # Attempt to store "1" (lock)
+    beqz $t1, spin_lock    # If store failed, retry
+    jr   $ra               # Return (lock acquired)
+
+  # Spin-unlock function
+  spin_unlock:
+    li   $t1, 0            # Prepare "unlocked" value
+    sw   $t1, lock         # Store "0" (unlock)
+    jr   $ra               # Return
+
+- **`ll` (Load Linked):** Reads a memory location and marks it as "linked."
+- **`sc` (Store Conditional):** Attempts to write to the same memory location.
+  - If another thread modified it, the store **fails**.
+  - If **successful**, the store completes **atomically**.
+
+
+Conclusion:
++++++++++++
+
+- **Spin-locks using `ll/sc` are inefficient** in high contention scenarios.
+- **C++ atomics provide better scalability, fairness, and power efficiency**.
+- **For multi-threaded applications, lock-free algorithms are preferred** over spin-locks.
+
+
+
+Cpu0 implementation for memory-order
+------------------------------------
 
 In order to support atomic in C++ and java, llvm provides the atomic IRs and 
-memory ordering here [#atomics-llvm]_ [#llvmlang-ordering]_. C++ memory order
-is explained and exampled here [#cpp-mem-order]_. The chapter 19 
+memory ordering here [#atomics-llvm]_ [#llvmlang-ordering]_.
+
+The chapter 19 
 of book DPC++ [#dpcpp-memorder]_ explains the memory ordering better and I add 
 the related code fragment of lbdex/input/atomics.ll to it for explanation as 
 follows,
@@ -901,11 +1238,13 @@ options "clang++ -pthread -std=c++11".
 
 .. [#cpp-atomic] https://cplusplus.com/reference/atomic/
 
+.. [#cpp-mem-order] https://en.cppreference.com/w/cpp/atomic/memory_order
+
 .. [#atomic-wiki] https://en.wikipedia.org/wiki/Memory_model_%28programming%29
 
 .. [#atomic-stackoverflow] http://stackoverflow.com/questions/6319146/c11-introduced-a-standardized-memory-model-what-does-it-mean-and-how-is-it-g
 
-.. [#atomic-herbsutter] http://herbsutter.com/2013/02/11/atomic-weapons-the-c-memory-model-and-modern-hardware/
+.. [#cas-wiki] https://en.wikipedia.org/wiki/Compare-and-swap
 
 .. [#lf-wiki] An algorithm is wait-free if every operation has a bound on the 
    number of steps the algorithm will take before the operation completes. In 
@@ -920,8 +1259,6 @@ options "clang++ -pthread -std=c++11".
    (If we suspend one thread that holds the lock, then the second thread will block.) 
    https://en.wikipedia.org/wiki/Non-blocking_algorithm
 
-.. [#cas-wiki] https://en.wikipedia.org/wiki/Compare-and-swap
-
 .. [#ll-wiki] https://en.wikipedia.org/wiki/Load-link/store-conditional
 
 .. [#mb-wiki] https://en.wikipedia.org/wiki/Memory_barrier
@@ -931,8 +1268,6 @@ options "clang++ -pthread -std=c++11".
 .. [#atomics-llvm] http://llvm.org/docs/Atomics.html
 
 .. [#llvmlang-ordering] http://llvm.org/docs/LangRef.html#ordering
-
-.. [#cpp-mem-order] https://en.cppreference.com/w/cpp/atomic/memory_order
 
 .. [#dpcpp-memorder] Section "The memory_order Enumeration Class" which include figure 19-10 of book https://link.springer.com/book/10.1007/978-1-4842-5574-2
 

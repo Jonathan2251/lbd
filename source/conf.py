@@ -246,6 +246,7 @@ htmlhelp_basename = 'lbtdoc'
 
 # -- Options for LaTeX output ---------------------------------------------
 
+latex_engine = 'xelatex'  # Use XeLaTeX for Unicode support
 latex_elements = {
      # The paper size ('letterpaper' or 'a4paper').
      #
