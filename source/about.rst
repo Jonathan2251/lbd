@@ -63,6 +63,9 @@ Revision history
 
 Version 12.0.16, not released yet.
 
+  Chatgpt: Refine my English for the input rst format texts I input the 
+  following and output rst format with <= 80 characters each line.
+
 Version 12.0.15.4, Released September 22, 2024.
 
   backendstructure.rst: Fix Cpu0.td for CH2, Cpu0MCInstLower::Lower() and 
@@ -676,10 +679,11 @@ http://llvm.org/docs/DeveloperPolicy.html#license
 Motivation
 -----------
 
-My intention for writing this book is that I am curious about what a simple and 
-robotic CPU ISA and SW toolchains of llvm based can be.
+My intention in writing this book stems from my curiosity about how a simple  
+and robotic CPU ISA, along with an LLVM-based software toolchain, can be  
+designed and implemented.
 
-.. table:: Number of lines around in source code (include space-line and comments) for Cpu0
+.. table:: Number of lines in source code (including spaces and comments) for Cpu0
 
   ======================  ===============
   Components              Number of lines
@@ -696,138 +700,139 @@ robotic CPU ISA and SW toolchains of llvm based can be.
   ======================  ===============
   
 
-- Though llvm backend's source code can be ported from other backend, it still
-  includes a lot of thinking for doing it and not quite easily.
+- Though the LLVM backend's source code can be ported from another backend, it
+  still requires a lot of thought and effort to do so, making the process not  
+  entirely easy.
 
+We all learned computer knowledge in school through conceptual books.  
+Concepts provide an effective way to understand the big picture.  
+However, when developing real, complex systems, we often find that the  
+concepts from school or books are insufficient or lack detail.  
 
-We all learned computer knowledge from school through the concept of book.
-The concept is an effective way to know the big view. 
-But once getting into develop a real complicated system, we often feel the 
-concept from school or book is not much or not details enough. 
-Compiler is a very complicated system, so traditionally 
-the students in school learn this knowledge in concept and do the home work via 
-yacc/lex tools to translate part of C or other high level language into 
-immediate representation (IR) or assembly to feel the parsing knowledge and 
-tools application. 
+A compiler is a highly complex system. Traditionally, students learn about  
+compilers conceptually and complete homework assignments using yacc/lex tools  
+to translate parts of C or another high-level language into an intermediate  
+representation (IR) or assembly. This approach helps them understand parsing  
+and tool applications.
 
-On the other hand, the compiler engineers who graduated from school often facing 
-the real market complicated CPUs and specification. Since for market reason, 
-there are a serial of CPUs and ABI (Application Binary Interface) to deal with. 
-Moreover, for speed performance reason, the real compiler backend program is too 
-complicated to be a learning material in compiler backend designing even the 
-market CPU include only one CPU and ABI. 
+On the other hand, compiler engineers who graduate from school often face real  
+market CPUs and complex specifications. Due to market demands, there exist  
+multiple CPU series and ABIs (Application Binary Interfaces) to handle.  
+Furthermore, for performance reasons, real compiler backend implementations  
+are too complex to serve as learning materials, even for a CPU with a single  
+ABI.
 
-This book develop the compiler backend along with a simple school designed CPU 
-which called Cpu0. It include the implementation of a compiler backend, linker, 
-llvm-objdump, elf2hex as well as Verilog language source code of Cpu0 
-instruction set. 
-We provide readers full source code to compile C/C++ program and see 
-how the programs run on the Cpu0 machine created by verilog language.
-Through this school learning purpose CPU, you get the chance to know the whole 
-thing in compiler backend, linker, system tools and CPU design. Usually it is 
-not easy from working in real CPU and compiler since the real job is too 
-complicated to be finished by one single person only.
+This book develops a compiler backend alongside a simple, educational CPU  
+called Cpu0. It includes implementations of a compiler backend, linker,  
+llvm-objdump, elf2hex, and the Verilog source code for Cpu0's instruction set.  
+We provide readers with full source code to compile C/C++ programs and observe  
+how they run on the Cpu0 machine implemented in Verilog. Through this  
+educational CPU, readers gain insight into compiler backends, linkers, system  
+tools, and CPU design. In contrast, real-world CPUs and compilers are too  
+complex for a single person to fully understand or develop alone.  
 
-As my observation, LLVM advocated by some software engineers against gcc with 
-two reasons. 
-One is political with BSD license [#llvm-license]_ [#richard]_. 
-The other is technical with following the 3 tiers of compiler software 
-structure along with C++ object oriented technology.
-GCC started with C and adopted C++ after near 20 years later [#wiki-gcc]_.
-Maybe gcc adopted C++ just because llvm do that.
-I learned C++ object oriented programming during studing in school.
-After "Design Pattern", "C++/STL" and "object oriented design" books study,
-I understand the C is easy to trace while C++ is easy to creating reusable
-software units known as object.
-If a programmer has well knowledge in "Design Pattern", then the C++ can
-supply more reuse ability and rewrite ability. A book of "system language" 
-about software quality that I have ever read , listing these items: read 
-ability, rewrite ability, reuse ability and performance to define the software 
-quality.
-Object oriented programming exists for solving the big and complex
-software development. 
-Of course, compiler and OS are complex software without question, why do gcc 
-and linux not using c++ [#wiki-cpp]_?
-This is the reason I try to create a backend under llvm rather than gcc.
+From my observations, LLVM is favored by some software engineers over GCC for  
+two reasons. The first is political, as LLVM uses the BSD license  
+[#llvm-license]_ [#richard]_. The second is technical, as LLVM follows the  
+three-tier compiler software structure and leverages C++ object-oriented  
+programming. GCC was originally written in C and only adopted C++ nearly 20  
+years later [#wiki-gcc]_. Some speculate that GCC adopted C++ simply because  
+LLVM did.
+
+I learned object-oriented programming in C++ during my studies. After reading  
+books on "Design Patterns," "C++/STL," and "Object-Oriented Design," I  
+realized that C is easier to trace, whereas C++ enables the creation of  
+reusable software units, known as objects. If a programmer has a strong  
+understanding of design patterns, C++ provides better reusability and  
+modifiability. A book I read on "system languages" defined software quality  
+based on readability, modifiability, reusability, and performance.  
+Object-oriented programming was introduced to manage large and complex  
+software projects.  
+
+Given that compilers and operating systems are undeniably complex, why do GCC  
+and Linux still avoid using C++? [#wiki-cpp]_ This is one reason I chose to  
+develop a backend under LLVM rather than GCC.
+
 
 Preface
 -------
 
-The LLVM Compiler Infrastructure provides a versatile structure for creating new
-backends. Creating a new backend should not be too difficult once you 
-familiarize yourself with this structure. However, the available backend 
-documentation is fairly high level and leaves out many details. This tutorial 
-will provide step-by-step instructions to write a new backend for a new target 
-architecture from scratch. 
+The LLVM Compiler Infrastructure provides a versatile framework for creating  
+new backends. Once you familiarize yourself with this structure, creating a  
+new backend should not be too difficult. However, the available backend  
+documentation is fairly high level and omits many details. This tutorial  
+provides step-by-step instructions for writing a new backend for a new target  
+architecture from scratch.  
 
-We will use the Cpu0 architecture as an example to build our new backend. Cpu0 
-is a simple RISC architecture that has been designed for educational purposes. 
-More information about Cpu0, including its instruction set, is available 
-here [#cpu0-web]_. The Cpu0 example code referenced in
-this book can be found `<http://jonathan2251.github.io/lbd/lbdex.tar.gz>`_.
-As you progress from one chapter to the next, you will incrementally build the 
-backend's functionality.
+We will use the Cpu0 architecture as an example to build our backend. Cpu0 is  
+a simple RISC architecture designed for educational purposes. More information  
+about Cpu0, including its instruction set, is available here [#cpu0-web]_. The  
+Cpu0 example code referenced in this book can be found  
+`<http://jonathan2251.github.io/lbd/lbdex.tar.gz>`_. As you progress through  
+each chapter, you will incrementally build the backend's functionality.  
 
-Since Cpu0 is a simple RISC CPU for educational purpose, it makes this llvm 
-backend code simple too and easy to learning. In addition, Cpu0 supply the 
-Verilog source code that you can run on your PC or FPGA platform when you go to 
-chapter "Verify backend on Verilog simulator". To explain the backend design, 
-we carefully design C/C++ program for each chapter new added function. Through 
-these example code, readers can understand what IRs (llvm immediate form) the 
-backend transfer from and the C/C++ code corresponding to these IRs.
+Since Cpu0 is a simple RISC CPU for educational purposes, the LLVM backend code  
+for it is also simple and easy to learn. Additionally, Cpu0 provides Verilog  
+source code that can be run on a PC or FPGA platform, as explained in the  
+chapter "Verify Backend on Verilog Simulator." To illustrate backend design,  
+we carefully design C/C++ programs for each newly added function in every  
+chapter. Through these example codes, readers can understand which LLVM  
+intermediate representations (IRs) the backend transforms and how these IRs  
+correspond to the original C/C++ code.  
 
-This tutorial started using the LLVM 3.1 Mips backend as a reference and sync
-to llvm 3.5 Mips at version 3.5.3. As our experience, reference and sync with
-a released backend code will help upgrading your backend features and fixing 
-bugs.
-You can take advantage by compare difference from version to version, and hire
-llvm development team effort. 
-Since Cpu0 is an educational architecture, and it has missed some key pieces of 
-documentation needed when developing a compiler, such as an Application Binary 
-Interface (ABI). We implement our backend by borrowing information from the Mips 
-ABI as a guide. You may want to familiarize yourself with the relevant parts of 
-the Mips ABI as you progress through this tutorial.
+This tutorial initially used the LLVM 3.1 MIPS backend as a reference and was  
+later synchronized with LLVM 3.5 MIPS at version 3.5.3. Based on our  
+experience, referencing and synchronizing with an existing backend helps  
+enhance features and fix bugs. By comparing differences across versions, you  
+can leverage the LLVM development team's efforts to improve your backend.  
 
-This document can be a tutorial of toolchain development for a new CPU 
-architecture. Many programmer gradutated from school with the knowledges of 
-Compiler as well as Computer architecture but is not an professional engineer 
-in compiler or CPU design. This document is a material to introduce these 
-engineers how to programming a toolchain as well as designing a CPU based on 
-the LLVM infrastructure without pay any money to buy software or hardware. 
-Computer is the only device needed.
+Since Cpu0 is an educational architecture, it lacks key documentation needed  
+for compiler development, such as an Application Binary Interface (ABI). To  
+implement our backend, we use the MIPS ABI as a reference. You may find it  
+helpful to familiarize yourself with relevant parts of the MIPS ABI as you  
+progress through this tutorial.  
 
-Finally, this book is not a compiler book in concept. It is for those readers 
-who are interested in extending compiler toolchain to support a new CPU based on 
-llvm structure. To program on Linux OS, you program a driver without knowing 
-every details in OS. 
-For example in a specific USB device driver program on Linux plateform, he 
-or she will try to understand the USB specification, linux USB subsystem and 
-common device driver working model and API. 
-In the same way, to extend functions from a large software like this llvm 
-umbrella project, you should find a way to reach the goal and ignore the 
-details not on your way. 
-Try to understand in details of every line of source code is not realistic if 
-your project is an extended function from a well defined software structure. 
-It only makes sense in rewriting the whole software structure.
-Of course, if there are more llvm backend book or documents, then 
-readers have the chance to know more about llvm by reading book or documents. 
+This document also serves as a tutorial for toolchain development for a new  
+CPU architecture. Many programmers graduate with knowledge of compilers and  
+computer architecture but lack professional experience in compiler or CPU  
+design. This document introduces these engineers to toolchain programming and  
+CPU design using the LLVM infrastructure—without requiring the purchase of any  
+software or hardware. A computer is the only device needed.  
 
+Finally, this book is not a conceptual compiler textbook. It is intended for  
+readers interested in extending a compiler toolchain to support a new CPU  
+based on LLVM. Programming on Linux does not require understanding every  
+detail of the operating system. For example, when developing a USB device  
+driver for Linux, a programmer studies the USB specification, the Linux USB  
+subsystem, and the common device driver model and APIs. Similarly, this book  
+focuses on practical implementation rather than compiler theory.
+
+In the same way, when extending functions in a large software project like the  
+LLVM umbrella project, you should focus on achieving your goal and ignore  
+irrelevant details.  
+
+Trying to understand every line of source code in detail is unrealistic if  
+your project involves extending a well-defined software structure. It only  
+makes sense when rewriting the entire software structure.  
+
+Of course, if more books or documents about LLVM backend development were  
+available, readers would have more opportunities to understand LLVM by  
+studying them.
 
 Prerequisites
 -------------
 
-Readers should be comfortable with the C++ language and Object-Oriented 
-Programming concepts. LLVM has been developed and implemented in C++, and it is 
-written in a modular way so that various classes can be adapted and reused as 
-often as possible.
+Readers should be comfortable with the C++ language and Object-Oriented  
+Programming concepts. LLVM is developed in C++ and follows a modular design,  
+allowing various classes to be adapted and reused efficiently.  
 
-Already having conceptual knowledge of how compilers work is a plus, and if you 
-already have implemented compilers in the past you will likely have no trouble 
-following this tutorial. As this tutorial will build up an LLVM backend 
-step-by-step, we will introduce important concepts as necessary.
+Having a conceptual understanding of how compilers work is beneficial. If you  
+have implemented compilers before, you will likely have no trouble following  
+this tutorial. Since this tutorial builds an LLVM backend step by step, we will  
+introduce important concepts as needed.  
 
-This tutorial references the following materials.  We highly recommend you read 
-these documents to get a deeper understanding of what the tutorial is teaching:
+This tutorial references the following materials. We highly recommend reading  
+these documents to gain a deeper understanding of the topics covered:
 
 `The Architecture of Open Source Applications Chapter on LLVM <http://www.aosabook.org/en/llvm.html>`_
 
@@ -854,105 +859,114 @@ Outline of Chapters
 
   Code generation and execution flow
 
-The top part of :numref:`about-f1` is the work flow and software package 
-of a computer program be generated and executed. IR stands for Intermediate 
-Representation. 
-The middle part is this book's work flow. Except clang, the other blocks need to 
-be extended for a new backend development (Cpu0 backend extending clang too, however
-Cpu0 backend uses Mips ABI and can use Mips-clang). 
-This book implement the yellow boxes part. The green parts of this figure, lld 
-and elf2hex for Cpu0 backend, can be found on 
+The top part of :numref:`about-f1` represents the workflow and software packages
+involved in generating and executing a computer program. IR stands for
+Intermediate Representation.
+
+The middle part illustrates this book's workflow. Except for Clang, the other
+components need to be extended for a new backend development. Although the Cpu0
+backend extends Clang as well, it uses the MIPS ABI and can utilize MIPS-Clang.
+This book implements the sections highlighted in yellow. The green sections,
+which include lld and elf2hex for the Cpu0 backend, can be found at:
 http://jonathan2251.github.io/lbt/index.html.
-The hex is the ascii file format 
-using '0' to '9' and 'a' to 'f' for hexadecimal value representation since 
-the Verilog language machine uses it as input file.
 
-This book include 10,000 lines of source code for
+The hex format is an ASCII file representation that uses characters '0' to '9'
+and 'a' to 'f' to encode hexadecimal values, as the Verilog machine reads it as
+an input file.
 
-1. Step-by-step, creating an llvm backend for the Cpu0. Chapter 2 to 
-   11.
-2. Cpu0 verilog source code. Chapter 12.
+This book includes 10,000 lines of source code covering:
 
-With these code, reader can generate Cpu0 machine code through Cpu0 llvm 
-backend compiler, then see how it runs on your computer if the code without
-global variable or relocation record for handling by linker. 
-The pdf and epub are also available in the web. 
-This is a tutorial for llvm backend developer but not for an expert. 
-It also can be a material for those who have compiler and computer 
-architecture book's knowledges and like to know how to extend the llvm 
+1. Step-by-step creation of an LLVM backend for the Cpu0, from Chapters 2 to 11.
+2. Cpu0 Verilog source code, discussed in Chapter 12.
+
+With this code, readers can generate Cpu0 machine code through the Cpu0 LLVM
+backend compiler and observe how it executes on a computer. However, execution
+is only possible for code that does not contain global variables or relocation
+records requiring linker handling. The book is also available in PDF and EPUB
+formats online.
+
+This tutorial is aimed at LLVM backend developers but is not intended for
+experts. It serves as a valuable resource for those familiar with compiler
+concepts and computer architecture who wish to learn how to extend the LLVM
 toolchain to support a new CPU.
 
 :ref:`sec-llvmstructure`:
 
-This chapter introduces the Cpu0 architecture, a high-level view of LLVM, and 
-how Cpu0 will be targeted in in an LLVM backend. 
-This chapter will run you through the initial steps of building the backend, 
-including initial work on the target description (td), setting up cmake file, 
-and target registration. Around 750 lines of source 
-code are added by the end of this chapter.
+This chapter introduces the Cpu0 architecture, provides a high-level overview
+of LLVM, and explains how Cpu0 will be targeted in an LLVM backend. It guides
+you through the initial steps of backend development, including target
+description (TD), CMake setup, and target registration. By the end of this
+chapter, around 750 lines of source code will be added.
 
 :ref:`sec-backendstructure`:
 
-This chapter highlights the structure of an LLVM backend using by UML graphs, 
-and we continue to build the Cpu0 backend. 
-Thousands of lines of source code are added, most of which are common from one 
-LLVM backends to another, regardless of the target architecture. 
-By the end of this chapter, the Cpu0 LLVM backend will support less than ten 
-instructions to generate some initial assembly output. 
+This chapter outlines the structure of an LLVM backend using UML diagrams. It
+continues the development of the Cpu0 backend, adding thousands of lines of
+source code. Many of these lines are common across LLVM backends, regardless of
+the target architecture.
+
+By the end of this chapter, the Cpu0 LLVM backend will support fewer than ten
+instructions and be capable of generating some initial assembly output.
 
 :ref:`sec-addingmoresupport`:
 
-Over ten C operators and their corresponding LLVM IR instructions are introduced 
-in this chapter. 
-Few houndred lines of source code, mostly in .td Target Description files, are 
-added. With these houndred lines of source code, the backend can now translate 
-the **+, -, \*, /, &, |, ^, <<, >>, !** and **%** C operators into the 
-appropriate Cpu0 assembly code. Usage of the ``llc`` debug option and of 
-**Graphviz** as a debug tool are introduced in this chapter.
+Over ten C operators and their corresponding LLVM IR instructions are introduced  
+in this chapter.  
+
+A few hundred lines of source code, mostly in `.td` Target Description files,  
+are added. With these lines of source code, the backend can now translate the  
+**+, -, \*, /, &, |, ^, <<, >>, !** and **%** C operators into the appropriate  
+Cpu0 assembly code.  
+
+Usage of the ``llc`` debug option and **Graphviz** as a debug tool are  
+introduced in this chapter.
 
 :ref:`sec-genobjfiles`:
 
-Object file generation support for the Cpu0 backend is added in this chapter, 
-as the Target Registration structure is introduced. 
-Based on llvm structure, the Cpu0 backend can generate big and little endian 
-ELF object files without much effort.
+Object file generation support for the Cpu0 backend is added in this chapter,  
+as the Target Registration structure is introduced.  
+
+Based on the LLVM structure, the Cpu0 backend can generate big-endian and  
+little-endian ELF object files with minimal effort.
 
 :ref:`sec-globalvars`:
 
-Global variable handling is added in this chapter. Cpu0 supports PIC and static 
-addressing mode, both addressing mode explained as their functionality are 
-implemented.
+Global variable handling is added in this chapter. Cpu0 supports both PIC and  
+static addressing modes. Both addressing modes are explained as their  
+functionalities are implemented.
 
 :ref:`sec-othertypesupport`:
 
-In addition to type int, other data type such as pointer, char, bool, long long, 
-structure and array are added in this chapter.
+In addition to the `int` type, other data types such as pointers, `char`,  
+`bool`, `long long`, structures, and arrays are added in this chapter.
 
 :ref:`sec-controlflow`:
 
-Support for flow control statements, such as, **if, else, while, for, goto, 
-switch, case** as well as both a simple optimization software pass and hardware 
-instructions for control statement optimization discussed in this chapter. 
+Support for flow control statements, such as **if, else, while, for, goto,  
+switch,** and **case**, as well as both a simple optimization software pass and  
+hardware instructions for control statement optimization, are discussed in this  
+chapter.
 
 :ref:`sec-funccall`:
 
-This chapter details the implementation of function calls in the Cpu0 backend. 
-The stack frame, handling incoming & outgoing arguments, and their corresponding 
-standard LLVM functions are introduced. 
+This chapter details the implementation of function calls in the Cpu0 backend.  
+The stack frame, handling of incoming and outgoing arguments, and their  
+corresponding standard LLVM functions are introduced.
 
 :ref:`sec-elf`:
 
-This chapter details Cpu0 support for the well-known ELF object file format. 
-The ELF format and binutils tools are not a part of LLVM, but are introduced. 
-This chapter details how to use the ELF tools to verify and analyze the object 
-files created by the Cpu0 backend. 
-The disassemble command ``llvm-objdump -d`` support for Cpu0 is added in the 
+This chapter details Cpu0 support for the well-known ELF object file format.  
+The ELF format and binutils tools are not part of LLVM but are introduced.  
+This chapter explains how to use ELF tools to verify and analyze the object  
+files created by the Cpu0 backend.  
+
+The disassembly command ``llvm-objdump -d`` support for Cpu0 is added in the  
 last section of this chapter.
 
 :ref:`sec-asm`:
 
-Support the translation of hand code assembly language into obj under the llvm 
-insfrastructure. 
+Support for translating hand-written assembly language into object files under  
+the LLVM infrastructure.
 
 :ref:`sec-c++`:
 
@@ -960,21 +974,20 @@ Support C++ language features. It's under working.
 
 :ref:`sec-verilog`:
 
-Create the CPU0 virtual machine with Verilog language of Icarus tool first. 
-With this tool, feeding the hex file which generated by llvm-objdump to the Cpu0 
-virtual machine and seeing the Cpu0 running result on PC computer.
+First, create the Cpu0 virtual machine using the Verilog language with the  
+Icarus tool. Using this tool, feed the hex file generated by ``llvm-objdump``  
+to the Cpu0 virtual machine and observe the execution results on a PC.
 
 :ref:`sec-appendix-installing`:
 
-Details how to set up the LLVM source code, development tools, and environment
-setting for Mac OS X and Linux platforms.
+This section details how to set up the LLVM source code, development tools,  
+and environment configuration for macOS and Linux platforms.
 
 :ref:`sec-appendix-doc`:
 
-This book uses Sphinx to generate pdf and epub format of document further.
-Details about how to install tools to and generate these docuemnts and 
-regression test for Cpu0 backend are included.
-
+This book uses Sphinx to generate PDF and EPUB document formats.  
+Details on how to install the necessary tools, generate these documents,  
+and perform regression testing for the Cpu0 backend are included.
 
 .. [#llvm-license] http://llvm.org/docs/DeveloperPolicy.html#license
 

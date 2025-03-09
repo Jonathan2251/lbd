@@ -7,47 +7,65 @@ Verify backend on Verilog simulator
    :local:
    :depth: 4
 
-Until now, we have an llvm backend to compile C or assembly as the white part of 
-:numref:`runbackend-f1`. If without global variable, the elf obj can be 
-dumped to hex file via ``llvm-objdump -d`` which finished in Chapter ELF Support.
+Until now, we have developed an LLVM backend capable of compiling C or 
+assembly code, as illustrated in the white part of :numref:`runbackend-f1`.  
+If the program does not contain global variables, the ELF object file can  
+be dumped to a hex file using the following command:
+
+.. code-block:: bash
+
+   llvm-objdump -d
+
+This functionality was completed in Chapter *ELF Support*.
 
 .. _runbackend-f1: 
 .. graphviz:: ../Fig/verilog/verilog.gv
    :caption: Cpu0 backend without linker
 
-This chapter will implement Cpu0 instructions by Verilog language as the gray 
-part of above figure.
-With this Verilog machine, we can run this hex program on the Cpu0 Verilog 
-machine on PC and see the Cpu0 instructions execution result.
+This chapter implements the Cpu0 instructions using the Verilog language, 
+as represented by the gray part in the figure above.
+
+With this Verilog-based machine, we can execute the hex program generated 
+by the LLVM backend on the Cpu0 Verilog simulator running on a PC. 
+This allows us to observe and verify the execution results of Cpu0 instructions 
+directly on the hardware model.
 
 
-Create verilog simulator of Cpu0
+Create Verilog Simulator of Cpu0
 --------------------------------
 
-Verilog language is an IEEE standard in IC design. There are a lot of books and 
-documents for this language. Free documents exist in Web sites [#free-doc1]_ 
-[#free-doc2]_ [#free-doc3]_ [#free-doc4]_ [#free-doc5]_. 
-Verilog also called as Verilog HDL but not VHDL. 
-VHDL is the same purpose language which compete against Verilog.
-About VHDL reference here [#vhdl]_.
-Example code, lbdex/verilog/cpu0.v, is the Cpu0 design in Verilog. 
-In Appendix A, we have downloaded and installed Icarus Verilog tool both on 
-iMac and Linux. The cpu0.v is a simple design 
-with only few hundreds lines of code totally. 
-This implementation hasn't the pipeline features, but through implement
-the delay slot simulation (SIMULATE_DELAY_SLOT part of code), the exact pipeline
-machine cycles can be calculated.
+Verilog is an IEEE-standard language widely used in IC design. There are many
+books and free online resources available for learning Verilog [#free-doc1]_
+[#free-doc2]_ [#free-doc3]_ [#free-doc4]_ [#free-doc5]_.
 
-Verilog is a C like language in syntex and 
-this book is a compiler book, so we list the cpu0.v as well as the building 
-command without explanation as below. 
-We expect readers can understand the Verilog code just with a little patience in
-reading it. 
-There are two type of I/O according computer architecture. 
-One is memory mapped I/O, the other is instruction I/O. 
-Cpu0 uses memory mapped I/O where memory address 0x80000 as the output port. 
-When meet the instruction **"st $ra, cx($rb)"**, where cx($rb) is 
-0x80000, Cpu0 displays the content as follows,
+Verilog is also known as Verilog HDL (Hardware Description Language), not to be
+confused with **VHDL**, which serves the same purpose but is a competing
+language [#vhdl]_.
+
+An example implementation, ``lbdex/verilog/cpu0.v``, contains the Cpu0 processor
+design written in Verilog. As described in Appendix A, we have installed the
+Icarus Verilog tool on both iMac and Linux systems. The ``cpu0.v`` design is
+relatively simple, with only a few hundred lines of code in total.
+
+Although this implementation does not include pipelining, it simulates delay
+slots (via the ``SIMULATE_DELAY_SLOT`` section of the code) to accurately
+estimate pipeline machine cycles.
+
+Verilog has a C-like syntax, and since this book focuses on compiler
+implementation, we present the ``cpu0.v`` code and the build commands below
+**without an in-depth explanation**. We expect that readers with some patience
+and curiosity will be able to understand the Verilog code.
+
+Cpu0 supports **memory-mapped I/O**, one of the two primary I/O models in
+computer architecture (the other being **instruction-based I/O**). Cpu0 maps the
+output port to memory address ``0x80000``. When executing the instruction:
+
+::
+
+  st $ra, cx($rb)
+
+where ``cx($rb)`` equals ``0x80000``, the Cpu0 processor outputs the content to
+that I/O port, as demonstrated below.
 
 .. code-block:: verilog
 
@@ -63,10 +81,15 @@ When meet the instruction **"st $ra, cx($rb)"**, where cx($rb) is
 .. literalinclude:: ../lbdex/verilog/Makefile
 
 
-Since Cpu0 Verilog machine supports both big and little endian, the memory 
-and cpu module both have a wire connectting each other. 
-The endian information stored in ROM of memory module, and memory module send 
-the information when it is up according the following code,
+Since the Cpu0 Verilog machine supports both big-endian and little-endian  
+modes, the memory and CPU modules communicate this configuration through  
+a dedicated wire.
+
+The endian information is stored in the ROM of the memory module. Upon  
+system startup, the memory module reads this configuration and sends the  
+endian setting to the CPU via the connected wire.
+
+This mechanism is implemented according to the following code snippet:
 
 .. rubric:: lbdex/verilog/cpu0.v
 .. code-block:: console
@@ -83,22 +106,13 @@ the information when it is up according the following code,
     .m_size(m_size), .abus(mar), .dbus_in(mdr), .dbus_out(dbus), .cfg(cfg));
 
 
-Instead of setting endian tranfer in memory module, the endian transfer can 
-also be set in CPU module, and memory moudle always return with big endian.
-I am not an professional engineer in FPGA/CPU hardware design. 
-But according book "Computer 
-Architecture: A Quantitative Approach", some operations may have no tolerance 
-in time of execution stage. Any endian swap will make the clock cycle time 
-longer and affect the CPU performance. So, I set the endian transfer in memory
-module. In system with bus, it will be set in bus system I think.
-
-
 Verify backend
 --------------
 
-Now let's compile ch_run_backend.cpp as below. Since code size grows up from 
-low to high address and stack grows up from high to low address. $sp is set 
-at 0x7fffc because assuming cpu0.v uses 0x80000 bytes of memory.
+Now let's compile ``ch_run_backend.cpp`` as shown below. Since code size grows
+from low to high addresses and the stack grows from high to low addresses, the
+``$sp`` register is set to ``0x7fffc``. This is because ``cpu0.v`` is assumed to
+use ``0x80000`` bytes of memory.
 
 .. rubric:: lbdex/input/start.h
 .. literalinclude:: ../lbdex/input/start.h
@@ -134,17 +148,20 @@ at 0x7fffc because assuming cpu0.v uses 0x80000 bytes of memory.
 .. rubric:: lbdex/input/build-run_backend.sh
 .. literalinclude:: ../lbdex/input/build-run_backend.sh
 
-To run program without linker implementation at this point, the boot.cpp must be 
-set at the beginning of code, and the main() of ch_run_backend.cpp comes 
-immediately after it.
-Let's run Chapter11_2/ with ``llvm-objdump -d`` for input file 
-ch_run_backend.cpp to generate the hex file via build-run_bacekend.sh, then 
-feed hex file to cpu0Is Verilog simulator to get the output result as below. 
-Remind ch_run_backend.cpp have to be compiled with option 
-``clang -target mips-unknown-linux-gnu`` since the example code 
-ch9_3_vararg.cpp which uses the vararg needs to be compiled with this option. 
-Other example codes have no differences between this option and default option. 
+To run program without linker implementation at this point, the ``boot.cpp`` must
+be set at the beginning of code, and the ``main()`` of ``ch_run_backend.cpp``
+comes immediately after it.
 
+Let's run ``Chapter11_2/`` with ``llvm-objdump -d`` for input file
+``ch_run_backend.cpp`` to generate the hex file via ``build-run_bacekend.sh``,
+then feed the hex file to ``cpu0``'s Verilog simulator to get the output result
+as below.
+
+Remind that ``ch_run_backend.cpp`` has to be compiled with the option
+``clang -target mips-unknown-linux-gnu`` since the example code
+``ch9_3_vararg.cpp``, which uses vararg, needs to be compiled with this option.
+Other example codes have no differences between this option and the default
+option.
 
 .. code-block:: console
 
@@ -196,19 +213,21 @@ Other example codes have no differences between this option and default option.
   total cpu cycles = 48335               
   RET to PC < 0, finished!
 
-The "total cpu cycles" is calculated in this verilog simualtor so that the 
-backend compiler and CPU performance can be reviewed.
-Only the CPU cycles are counted in this implemenation since I/O 
-cycles time is unknown.
-As explained in chapter "Control flow statements", cpu032II which uses 
-instructions slt and beq
-has better performance than cmp and jeq in cpu032I.
-Instructions "jmp" has no delay slot so it is better used in dynamic linker 
-implementation.
+The "total CPU cycles" are calculated in this Verilog simulator to allow
+performance review of both the backend compiler and the CPU.
 
-You can trace the memory binary code and destination
-register changed at every instruction execution by unmark TRACE in Makefile as 
-below,
+Only CPU cycles are counted in this implementation, as I/O cycle times are
+unknown.
+
+As explained in Chapter "Control Flow Statements", ``cpu032II``, which uses
+instructions ``slt`` and ``beq``, performs better than ``cmp`` and ``jeq`` in
+``cpu032I``.
+
+The instruction ``jmp`` has no delay slot, making it preferable for use in
+dynamic linker implementations.
+
+You can trace memory binary code and changes to destination registers at every
+instruction execution by unmarking ``TRACE`` in the Makefile, as shown below:
 
 .. rubric:: lbdex/verilog/Makefile
 
@@ -235,35 +254,43 @@ below,
   RET to PC < 0, finished!
 
 
-As above result, cpu0.v dumps the memory first after reading input file cpu0.hex. 
-Next, it runs instructions from address 0 and print each destination 
-register value in the fourth column. 
-The first column is the nano seconds of timing. The second 
-is instruction address. The third is instruction content. 
-Now, most example codes depicted in the previous chapters are verified by 
-print the variable with print_integer().
+As shown in the result above, ``cpu0.v`` dumps the memory content after reading
+the input file ``cpu0.hex``. Next, it runs instructions from address 0 and prints
+each destination register value in the fourth column.
 
-Since the cpu0.v machine is created by Verilog language, suppose it can run on
-real FPGA device (but I never do it). 
-The real output hardware 
-interface/port is hardware output device dependent, such as RS232, speaker, 
-LED, .... You should implement the I/O interface/port when you want to program 
-FPGA and wire I/O device to the I/O port. 
-Through running the compiled code on Verilog simulator, Cpu0 backend compiled 
-result and CPU cycles are verified and calculated.
-Currently, this Cpu0 Verilog program is not a pipeline architecture, but 
-according the instruction set it can be implemented as a pipeline model.
-The cycle time of Cpu0 pipeline model is more than 1/5 of "total cpu cycles" 
-displayed as above since there are dependences exist between instructions.
-Though the Verilog simulator is slow in running the whole system program and
-not include the cycles counting in cache and I/O, it is a simple and easy way
-to verify your idea about CPU design at early stage with small program pattern.
-The overall system simulator is complex to create. Even wiki web site here 
-[#wiki-sim]_ include tools for creating the simulator, it needs a lot of effort.
+The first column is the timestamp in nanoseconds. The second column is the
+instruction address. The third column is the instruction content.
 
-To generate cpu032I as well as little endian code, you can run with the 
-following command. File build-run_backend.sh write the endian information to 
-../verilog/cpu0.config as below.
+Most of the example codes discussed in previous chapters are verified by printing
+variables using ``print_integer()``.
+
+Since the ``cpu0.v`` machine is written in Verilog, it is assumed to be capable of
+running on a real FPGA device (though I have not tested this myself). The actual
+output hardware interface or port depends on the specific output device, such as
+RS232, speaker, LED, etc. You must implement the I/O interface or port and wire
+your I/O device accordingly when programming an FPGA.
+
+By running the compiled code on the Verilog simulator, the compiled result from
+the Cpu0 backend and the total CPU cycles can be verified and measured.
+
+Currently, this Cpu0 Verilog implementation does not support pipeline
+architecture. However, based on the instruction set, it can be extended to a
+pipelined model.
+
+The cycle time of the pipelined Cpu0 model is expected to be more than 1/5 of the
+"total CPU cycles" shown above, due to dependencies between instructions.
+
+Although the Verilog simulator is slow for running full system programs and does
+not count cycles for cache and I/O operations, it provides a simple and effective
+way to validate CPU design ideas in the early development stages using small
+program patterns.
+
+Creating a full system simulator is complex. While the Wiki website [#wiki-sim]_
+provides tools for building simulators, doing so requires significant effort.
+
+To generate ``cpu032I`` code with little-endian format, you can run the following
+command. The script ``build-run_backend.sh`` writes the endian configuration to
+``../verilog/cpu0.config`` as shown below.
 
 .. code-block:: console
 
@@ -302,12 +329,16 @@ The following files test more features.
   ...
 
 
-Other llvm based tools for Cpu0 processor
+Other LLVM-Based Tools for Cpu0 Processor
 ------------------------------------------
 
-You can find the Cpu0 ELF linker implementation based on lld which is the 
-llvm official linker project, as well as elf2hex which modified from llvm-objdump
-driver at web: http://jonathan2251.github.io/lbt/index.html.
+You can find the Cpu0 ELF linker implementation based on ``lld``, which is the
+official LLVM linker project, as well as ``elf2hex``, which is modified from the
+``llvm-objdump`` driver, at the following website:
+
+::
+
+  http://jonathan2251.github.io/lbt/index.html
 
 
 .. [#free-doc1] http://ccckmit.wikidot.com/ve:main

@@ -7,43 +7,43 @@ Appendix B: Cpu0 document and test
    :local:
    :depth: 4
 
-
 Cpu0 document
----------------
+-------------
 
 This section illustrates how to generate Cpu0 backend document.
 
-
 Install sphinx
-~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~
 
-LLVM and this book use Sphinx to generate html document. This book uses Sphinx 
-to generate pdf and epub format of document further.
-The installation of Sphinx reference [#sphinx-install]_.
-Sphinx uses restructured text format here [#rst-ref]_ [#rst-dir]_ [#rst]_.
-About the code-block in this document, please reference [#llvm-sphinx-quick]_ 
+LLVM and this book use Sphinx to generate HTML documents. This book uses
+Sphinx to generate PDF and EPUB formats as well. See the installation guide
+here [#sphinx-install]_.
+
+Sphinx uses reStructuredText format; see [#rst-ref]_, [#rst-dir]_, and [#rst]_.
+For code-block formatting in this document, see [#llvm-sphinx-quick]_ and
 [#sphinx-lexers]_.
 
-On iMac you can install as follows,
+On iMac you can install as follows:
 
 .. code-block:: console
 
   brew install sphinx-doc
   echo 'export PATH="/opt/homebrew/opt/sphinx-doc/bin:$PATH"' >> ~/.zshrc
-  % source ~/.zshrc 
+  % source ~/.zshrc
 
-On Linux install it as follows,
+On Linux, install with:
 
 .. code-block:: console
 
   sudo apt-get install python3-sphinx
 
-Above installaton for making html document but not for pdf. 
-The following installation for making pdf/latex document.
+The above installs Sphinx for making HTML documents but not PDF.
 
-On iMac, install MacTex.pkg from here [#maxtex]_ and restart computer.
+For PDF/LaTeX generation, install the following.
 
-On Linux, install texlive as follows,
+On iMac, install MacTeX.pkg from here [#maxtex]_ and restart your computer.
+
+On Linux, install texlive as follows:
 
 .. code-block:: console
 
@@ -55,10 +55,9 @@ or
 
   sudo yum install texlive texlive-latex-extra latexmk
 
-On Fedora 17, the texlive-latex-extra is missing. We install the package which
-include the pdflatex instead. For instance, we install pdfjam on Fedora 17 as
-follows,
-
+On Fedora 17, the texlive-latex-extra package is missing. Instead, install
+the package that includes pdflatex. For example, install pdfjam on Fedora 17
+as follows,
 
 .. code-block:: console
 
@@ -68,11 +67,17 @@ follows,
   pdfjam.noarch                        2.08-3.fc17                         @fedora
   [root@localhost lbd]$ 
 
-Do sudo apt-get update -y; sudo apt-get install -y latexmk; if latexmk error 
-in 'make latexpdf' [#latexmk]_.
+Do
 
-After upgrade to iMac OS X 10.11.1, pdflatex link is missing, fix it by set in 
-.profile as follows,
+.. code-block:: console
+
+  sudo apt-get update -y
+  sudo apt-get install -y latexmk
+
+if latexmk gives error during 'make latexpdf' [#latexmk]_.
+
+After upgrading to iMac OS X 10.11.1, the pdflatex link may be missing. Fix it by
+adding the following to your ``.profile``:
 
 .. code-block:: console
   
@@ -85,11 +90,11 @@ After upgrade to iMac OS X 10.11.1, pdflatex link is missing, fix it by set in
 Note of Sphinx
 ~~~~~~~~~~~~~~
 
-- Do not use > 90 characters in a line of code-block:: console or any code-block,
-  otherwise it may show the error in `make latexpdf`.  
+- Do not use more than 90 characters per line in ``code-block:: console`` or any
+  other code block, otherwise errors may occur during `make latexpdf`.
 
-- Use "\clearpage" (reference gpu.rst) to clear page for pdf to avoid split into
-  two pages.
+- Use ``\clearpage`` (see gpu.rst) to force page breaks in pdf and avoid content
+  splitting across two pages.
 
 .. code-block:: console
 
@@ -115,31 +120,33 @@ Note of Sphinx
   make: *** [latexpdf] Error 2
   make latexpdf  14.57s user 1.11s system 99% cpu 15.790 total
 
-- Sphinx support math symbols here [#sphinx-math]_ [#mathbase-latex]_.
+- Sphinx supports math symbols; see references [#sphinx-math]_ and
+  [#mathbase-latex]_ for more details.
 
 Note of graphviz
 ~~~~~~~~~~~~~~~~
 
-- Drawing nodes inside a parent node: "compound=true;". Subgraph cluster_name 
-  [#graphviz-cluster]_. Edge from/to parent node: "ltail/lhead = parent_node". 
+- To draw nodes inside a parent node, use "compound=true;" and subgraph
+  cluster_name [#graphviz-cluster]_. To create edges from/to parent nodes,
+  use the attributes "ltail" and "lhead" set to the parent node.
 
-- Documents [#gv-doc-pdf]_.
+- See graphviz documents here [#gv-doc-pdf]_.
 
 Generate Cpu0 document
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-Cpu0 example code is added chapter by chapter.
-It can be configured to a specific chapter by change CH definition in 
-Cpu0SetChapter.h. 
-For example, the following definition configue it to chapter 2.
+The Cpu0 example code is added chapter by chapter.
+It can be configured to a specific chapter by changing the CH definition in
+Cpu0SetChapter.h.
+For example, the following definition configures it to chapter 2.
 
 .. rubric:: lbdex/Cpu0/Cpu0SetChapter.h
 .. code-block:: c++
 
   #define CH       CH2
 
-To make readers easily understanding the backend structure step by step, Cpu0 
-example code can be generated with chapter by chapter through commands as follws,
+To help readers understand the backend structure step by step, the Cpu0 example
+code can be generated chapter by chapter using the following commands:
 
 .. code-block:: console
 
@@ -153,8 +160,8 @@ example code can be generated with chapter by chapter through commands as follws
   Chapter11_2  Chapter3_2  Chapter4_1  Chapter7_1  Chapter9_2
   Chapter12_1  Chapter3_3  Chapter4_2  Chapter8_1  Chapter9_3
 
-Beside chapters example code, above html and pdf of Cpu0 documents also include
-files \*.ll and \*.s in lbd/lbdex/output.
+Besides the example code in each chapter, the above HTML and PDF Cpu0 documents 
+also include the \*.ll and \*.s files located in the lbd/lbdex/output directory.
   
 .. code-block:: console
 
@@ -162,7 +169,8 @@ files \*.ll and \*.s in lbd/lbdex/output.
   ch12_eh.cpu0.s			ch12_thread_var.cpu0.pic.s	ch12_thread_var.ll
   ch12_eh.ll			ch12_thread_var.cpu0.static.s	ch4_math.s
   
-Then, this book html/pdf can be generated by the following commands.
+Then, the HTML and PDF versions of this book can be generated by running the
+following commands.
 
 .. code-block:: console
 
@@ -174,47 +182,63 @@ Then, this book html/pdf can be generated by the following commands.
   ...
 
 
-About Cpu0 document
-~~~~~~~~~~~~~~~~~~~~~
+About Cpu0 Document
+~~~~~~~~~~~~~~~~~~~
 
-Since llvm have a new release version about every 6 months and every name of 
-file, function, class, variable, ..., etc, may be changed, the Cpu0 document
-maintains is an effort because it adds the code chapter by chapter.
-In order to make the document as correct and easily maintain. I use the 
-":start-after:" and ":end-before:" of restructured text format to keep the 
-document update to date. 
-For every new release, when the Cpu0 backend code is changed, the document will
-reflect the changes in most of the contents of document.
+Since LLVM has a new release about every 6 months, and names of files, 
+functions, classes, variables, etc. may change, maintaining the Cpu0 document 
+is a continuous effort. The document adds code chapter by chapter.
 
-In lbdex/Cpu0, the text begin from "//\@" and "\#ifdef CH > CHxx" are refered by 
-document files \*.rst.
+To keep the document correct and easy to maintain, I use the ``:start-after:``
+and ``:end-before:`` directives of reStructuredText to keep the document up to 
+date.
 
-In lbdex/llvm/modify/llvm, the \*.rst refer the code by copy them directly.
-Most of references exist in llvmstructure.rst and elf.rst.
+For every new release, when the Cpu0 backend code changes, the document will 
+reflect those changes in most of its content.
 
-The example C/C++ code in lbdex/input come from my thinking and refer the
-directory clang/test/CodeGen of clang source code release.
+In the ``lbdex/Cpu0`` folder, text beginning with ``//\@`` and ``#ifdef CH > CHxx``
+is referenced by document files ``*.rst``.
 
+In ``lbdex/llvm/modify/llvm``, the ``*.rst`` files reference the code by copying
+it directly. Most references exist in ``llvmstructure.rst`` and ``elf.rst``.
+
+The example C/C++ code in ``lbdex/input`` comes from my own ideas and refers to
+the ``clang/test/CodeGen`` directory in the Clang source code release.
 
 Cpu0 Regression Test
-----------------------
+--------------------
 
-The last chapter can verify Cpu0 backend's generated code by Verilog simulator 
-for those code without global variable access.
-The chapter lld in web https://github.com/Jonathan2251/lbt.git includes
-llvm ELF linker implementation and is capable of verifying those test items with 
-global variable access.
-However, LLVM has its test cases (regression test) for each backend to 
-verify your backend compiler [#test]_ without implementing any simulator or real
-hardware platform. 
-Cpu0 regression test items existed in lbdex.tar.gz example code. Untar it
-to lbdex/, and:
+The last chapter can verify the Cpu0 backend's generated code by using a Verilog 
+simulator for code without global variable access.
 
-For both iMac and Linux, copy lbdex/regression-test/Cpu0 to 
-~/llvm/test/llvm/test/CodeGen/Cpu0.
+The chapter *lld* in the repository https://github.com/Jonathan2251/lbt.git includes
+an LLVM ELF linker implementation and can verify test items involving global variable access.
 
-Then run as follows for both of single and all test cases on iMac.
-The **llvm-lit -a** can display executing command.
+However, LLVM provides its own test cases (regression tests) for each backend to verify
+the backend compiler [#test]_ without needing a simulator or real hardware platform.
+
+Cpu0 regression test items exist in the lbdex.tar.gz example code. Untar it into the
+lbdex/ directory.
+
+For both iMac and Linux, copy the folder:
+
+:: 
+
+  lbdex/regression-test/Cpu0
+
+To
+
+:: 
+
+  ~/llvm/test/llvm/test/CodeGen/Cpu0
+
+Then run the tests as follows on iMac, for both single and all test cases:
+
+.. code-block:: console
+
+  $ llvm-lit -a ~/llvm/test/llvm/test/CodeGen/Cpu0
+
+The option **-a** shows the executing commands for each test case.
 
 .. code-block:: console
 
@@ -232,7 +256,7 @@ The **llvm-lit -a** can display executing command.
   ...
 
 
-Run as follows for test on Linux. 
+Run the following command to execute the test on Linux.
 
 .. code-block:: console
 
@@ -249,8 +273,8 @@ Run as follows for test on Linux.
   PASS: LLVM :: CodeGen/Cpu0/tailcall.ll
   ...
 
-Listing the chapters of this book and the related regression test items as
-follows,
+The chapters of this book and their related regression test items are listed 
+as follows:
 
 .. table:: Chapters
 
@@ -349,7 +373,7 @@ follows,
   mulll.ll                         v              64-bit mul                                               4
   mulull.ll                        v              64-bit mul                                               4
   not1.ll                          v              not 1                                                    4
-  null.ll                          v              ret i32 0, -> ret	$lr                                    3
+  null.ll                          v              ret i32 0, -> ret $lr                                    3
   o32_cc_byval.ll                  v              by value                                                 9
   o32_cc_vararg.ll                 v              variable argument                                        9
   private.ll                       v              private function call                                    9
@@ -358,7 +382,7 @@ follows,
   remul.ll                         v              urem, -> div, mfhi                                       4
   return-vector-float4.ll          v              return vector, -> lui lui ...                            3
   return-vector.ll                 v              return vector, -> ld ld ..., st st ...                   3
-  return_address.ll                v              llvm.returnaddress, -> addu	$2, $zero, $lr               9
+  return_address.ll                v              llvm.returnaddress, -> addu $2, $zero, $lr               9
   rotate.ll                        v              rotl, rotr, -> rolv, rol, rorv                           4
   sb1.ll                           v              store i8, sb                                             7
   select.ll                        v              select, -> movn, movz                                    8
@@ -413,29 +437,33 @@ follows,
   ===============================  =============  =======================================================  ===========
   
 
-These supported test cases are in lbdex/regression-test/Cpu0 which can be 
-gotten from ``tar -xf lbdex.tar.gz``.
+These supported test cases are located in ``lbdex/regression-test/Cpu0``, which 
+can be extracted from ``tar -xf lbdex.tar.gz``.
 
-The regression test is useful in two major reasons. First, it provides
-the llvm input, assembly output and the running command as well as options in
-the the sample input file, so all the first glimpse of documentation needed for
-both end user and programmer are well written in the same test input file.
-Second, once programmers change their backend compiler especially for 
-optimization, the regression testing may fail for some side effect 
-or bugs from this new change. That is the name of "regression test"
-stands for. The following file includes the assembly output pattern of two 
-subtargets for Cpu0 backend. Beside checking opcode, it is capable to check 
-register number. In this case, the destination register of "andi" must be the 
-first source register in the following instruction "xori" once it is specified
-to T1 at the corresponding registers of these two assembly output.
+The regression test is useful for two major reasons. First, it provides the LLVM 
+input, assembly output, and the corresponding command and options within the same 
+sample input file. This makes it a well-documented reference for both end users 
+and developers.
+
+Second, when developers make changes to their backend compiler—especially 
+for optimization—these tests help detect side effects or bugs caused by the 
+modifications. This is the core purpose of "regression testing."
+
+The following file includes the assembly output patterns for two subtargets 
+of the Cpu0 backend. In addition to checking opcodes, it can also verify 
+register numbers. For example, the destination register of the "andi" instruction 
+must match the first source register of the following "xori" instruction. This is 
+ensured when both are specified as register T1 in the corresponding assembly output.
 
 .. rubric:: lbdex/regression-test/Cpu0/setule.ll
 .. literalinclude:: ../lbdex/regression-test/Cpu0/setule.ll
 
+Running regression tests must occur after building LLVM. However, the following 
+README.rst and changes in related config files allow you to set up `llvm-lit` 
+for a pre-built or pre-installed LLVM environment.
 
-Run regression test must after build llvm. The following READ.rst and changes
-in related config files and llvm-lit allowing to setup llvm-lit for pre-build/
-pre-installed llvm for running llvm-lit without build llvm.
+This setup enables running `llvm-lit` without rebuilding LLVM, making the 
+regression testing more efficient when testing changes to the backend only.
 
 .. rubric:: lbdex/set-llvm-lit/README.txt
 .. literalinclude:: ../lbdex/set-llvm-lit/README.txt
@@ -445,12 +473,12 @@ set-llvm-lit % `diff -r origin modify &> set-llvm-lit.diff`
 .. rubric:: lbdex/set-llvm-lit/set-llvm-lit.diff
 .. literalinclude:: ../lbdex/set-llvm-lit/set-llvm-lit.diff
 
-- Only tools/clang/test/lit.site.cfg.py and test/lit.site.cfg.py need to be 
+- Only `tools/clang/test/lit.site.cfg.py` and `test/lit.site.cfg.py` need to be
   modified.
-  The other tools/clang/test/Unit/lit.site.cfg.py, test/Unit/lit.site.cfg.py and
-  utils/lit/tests/lit.site.cfg.in are empty and useless. However I modify them 
-  either.
 
+- The other files, `tools/clang/test/Unit/lit.site.cfg.py`,
+  `test/Unit/lit.site.cfg.py`, and `utils/lit/tests/lit.site.cfg.in`, are empty
+  and not used. However, I modified them as well for completeness.
 
 .. [#sphinx-install] https://www.sphinx-doc.org/en/master/usage/installation.html
 

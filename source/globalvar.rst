@@ -1,28 +1,29 @@
 .. _sec-globalvars:
 
-Global variables
+Global Variables
 ==================
 
 .. contents::
    :local:
    :depth: 4
 
-In the last three chapters, we only access the local variables. 
-This chapter deals global variable access translation. 
+In the last three chapters, we accessed only local variables. This chapter  
+focuses on translating global variable access.
 
-The global variable DAG translation is different from the previous DAG 
-translations until now we have. 
-It creates IR DAG nodes at run time in backend C++ code according the 
-``llc -relocation-model`` option while the others of DAG just do IR DAG to 
-Machine DAG translation directly according the input file of IR DAGs (except
+The global variable DAG translation differs from previous DAG translations  
+discussed so far. It creates IR DAG nodes at runtime in backend C++ code based  
+on the ``llc -relocation-model`` option. In contrast, other DAGs translate IR  
+DAGs directly to Machine DAGs according to the input IR DAG files (except for  
 the Pseudo instruction RetLR used in Chapter3_4).
-Readers should focus on how to add code for creating DAG nodes at run time and 
-how to define the pattern match in td for the run time created DAG nodes. 
-In addition, the machine instruction printing function for global variable 
-related assembly directive (macro) should be cared if your backend has it.
 
-Chapter6_1/ supports the global variable, let's compile ch6_1.cpp with this 
-version first, then explain the code changes after that.
+Readers should focus on how to add code for creating DAG nodes at runtime and  
+how to define pattern matching in ``.td`` files for these runtime-created DAG  
+nodes. Additionally, if your backend has assembly directives (macros) related  
+to global variables, ensure that the machine instruction printing function  
+handles them correctly.
+
+Chapter6_1/ introduces global variable support. Let's compile ``ch6_1.cpp``  
+with this version first, then review the code changes.
 
 .. rubric:: lbdex/input/ch6_1.cpp
 .. literalinclude:: ../lbdex/input/ch6_1.cpp
@@ -46,19 +47,21 @@ version first, then explain the code changes after that.
     ret i32 %3
   }
 
-Cpu0 global variable options
+Cpu0 Global Variable Options
 -----------------------------
 
-Just like Mips, Cpu0 supports both static and pic mode. 
-There are two different layout of global variables for static mode which 
-controlled by option cpu0-use-small-section. 
-Chapter6_1/ supports the global variable translation. 
-Let's run Chapter6_1/ with ch6_1.cpp via four different options 
-``llc  -relocation-model=static -cpu0-use-small-section=false``, 
-``llc  -relocation-model=static -cpu0-use-small-section=true``, 
-``llc  -relocation-model=pic -cpu0-use-small-section=false`` and
-``llc  -relocation-model=pic -cpu0-use-small-section=true`` to tracing the 
-DAGs and Cpu0 instructions.
+Like MIPS, Cpu0 supports both static and PIC modes. There are two different  
+layouts for global variables in static mode, controlled by the option  
+``cpu0-use-small-section``.
+
+Chapter6_1/ introduces global variable translation. Let's run Chapter6_1/  
+with ``ch6_1.cpp`` using four different options to trace the DAGs and Cpu0  
+instructions:
+
+- ``llc -relocation-model=static -cpu0-use-small-section=false``
+- ``llc -relocation-model=static -cpu0-use-small-section=true``
+- ``llc -relocation-model=pic -cpu0-use-small-section=false``
+- ``llc -relocation-model=pic -cpu0-use-small-section=true``
 
 .. code-block:: console
 
@@ -331,8 +334,13 @@ Summary above information to Table: Cpu0 global variable options.
    "Cpu0", "lui $2, %hi(gI); ori $2, $2, %lo(gI);", "ori	$2, $gp, %gp_rel(gI);"
    "relocation records solved", "link time", "link time"
 
-- In static, cpu0-use-small-section=true, offset between gI and .data can be calculated since the $gp is assigned at fixed address of the start of global address table.
-- In "static, cpu0-use-small-section=false", the gI high and low address (%hi(gI) and %lo(gI)) are translated into absolute address. 
+- In static mode with ``cpu0-use-small-section=true``, the offset between  
+  ``gI`` and ``.data`` can be calculated since ``$gp`` is assigned a fixed  
+  address at the start of the global address table.
+
+- In static mode with ``cpu0-use-small-section=false``, the high and low  
+  addresses of ``gI`` (``%hi(gI)`` and ``%lo(gI)``) are translated into an  
+  absolute address.
 
 .. csv-table:: Cpu0 DAGs and instructions for -relocation-model=pic
    :header: "option: cpu0-use-small-section", "false", "true"
@@ -344,26 +352,34 @@ Summary above information to Table: Cpu0 global variable options.
    "Cpu0", "ld $2, %got(gI)($gp);", "lui	$2, %got_hi(gI); add $2, $2, $gp; ld $2, %got_lo(gI)($2);"
    "relocation records solved", "link/load time", "link/load time"
 
-- In pic, offset between gI and .data cannot be calculated if the function is 
-  loaded at run time (dynamic link); the offset can be calculated if use static 
-  link.
-- In C, all variable names binding staticly. In C++, the overload variable or 
-  function are binding dynamicly.
+- In PIC mode, the offset between ``gI`` and ``.data`` cannot be calculated  
+  if the function is loaded at runtime (dynamic linking). However, the offset  
+  can be determined if static linking is used.
 
-According book of system program, there are Absolute Addressing Mode and 
-Position Independent Addressing Mode. The dynamic function must be compiled with 
-Position Independent Addressing Mode. In general, option -relocation-model is 
-used to generate either Absolute Addressing or Position Independent Addressing.
-The exception is -relocation-model=static and -cpu0-use-small-section=false.
-In this case, the register $gp is reserved to set at the start address of global 
-variable area. Cpu0 uses $gp relative addressing in this mode.
+- In C, all variable names are bound statically. In C++, overloaded variables  
+  or functions are bound dynamically.
 
-To support global variable, first add **UseSmallSectionOpt** command variable to 
-Cpu0Subtarget.cpp. 
-After that, user can run llc with option ``llc -cpu0-use-small-section=false`` 
-to specify **UseSmallSectionOpt** to false. 
-The default of **UseSmallSectionOpt** is false if without specify it further. 
-About the **cl::opt** command line variable, you can refer to here [#]_ further.
+According to the system programming book, there are two addressing modes:  
+**Absolute Addressing Mode** and **Position-Independent Addressing Mode**.  
+Dynamic functions must be compiled using Position-Independent Addressing Mode.  
+
+In general, the ``-relocation-model`` option is used to generate either  
+Absolute Addressing or Position-Independent Addressing. However, an exception  
+occurs when using ``-relocation-model=static`` with  
+``-cpu0-use-small-section=false``. In this case, the ``$gp`` register is  
+reserved and set at the start address of the global variable area. Cpu0 uses  
+``$gp``-relative addressing in this mode.
+
+To support global variables, first add the **UseSmallSectionOpt** command  
+variable to ``Cpu0Subtarget.cpp``.  
+
+After that, users can run ``llc`` with the option  
+``llc -cpu0-use-small-section=false`` to explicitly set  
+**UseSmallSectionOpt** to ``false``. By default, **UseSmallSectionOpt** is  
+``false`` unless specified otherwise.  
+
+For more details about the **cl::opt** command-line variable, refer to  
+the documentation [#]_.
 
 .. rubric:: lbdex/chapters/Chapter6_1/Cpu0Subtarget.h
 .. literalinclude:: ../lbdex/Cpu0/Cpu0Subtarget.h
@@ -404,10 +420,16 @@ About the **cl::opt** command line variable, you can refer to here [#]_ further.
   }
 
 
-The options ReserveGPOpt and NoCploadOpt will used in Cpu0 linker at later 
-Chapter.
-Next add the following code to files Cpu0BaseInfo.h, Cpu0TargetObjectFile.h, 
-Cpu0TargetObjectFile.cpp, Cpu0RegisterInfo.cpp and Cpu0ISelLowering.cpp.
+The options **ReserveGPOpt** and **NoCploadOpt** will be used in the Cpu0  
+linker in a later chapter.  
+
+Next, add the following code to the files:  
+
+- ``Cpu0BaseInfo.h``  
+- ``Cpu0TargetObjectFile.h``  
+- ``Cpu0TargetObjectFile.cpp``  
+- ``Cpu0RegisterInfo.cpp``  
+- ``Cpu0ISelLowering.cpp``  
 
 .. rubric:: lbdex/chapters/Chapter6_1/Cpu0BaseInfo.h
 .. code-block:: c++
@@ -475,19 +497,21 @@ Cpu0TargetObjectFile.cpp, Cpu0RegisterInfo.cpp and Cpu0ISelLowering.cpp.
     :start-after: #if CH >= CH6_1 //4
     :end-before: #endif
 
+The ``setOperationAction(ISD::GlobalAddress, MVT::i32, Custom)`` directive  
+informs ``llc`` that the global address operation is implemented in the C++  
+function ``Cpu0TargetLowering::LowerOperation()``. LLVM will call this function  
+only when it needs to translate the IR DAG for loading a global variable into  
+machine code.  
 
-The setOperationAction(ISD::GlobalAddress, MVT::i32, Custom) tells ``llc`` that 
-we implement global address operation in C++ function 
-Cpu0TargetLowering::LowerOperation(). LLVM will call this function only when 
-llvm want to translate IR DAG of loading global variable into machine code. 
-Although all the Custom type of IR operations set by
-setOperationAction(ISD::XXX, MVT::XXX, Custom) in construction function 
-Cpu0TargetLowering() will invoke llvm to call 
-Cpu0TargetLowering::LowerOperation() in stage "Legalized selection DAG", the 
-global address access operation can be identified by checking whether the opcode
-of DAG Node is ISD::GlobalAddress or not, furthmore. 
+Although all custom IR operations set by  
+``setOperationAction(ISD::XXX, MVT::XXX, Custom)`` in the constructor  
+``Cpu0TargetLowering()`` trigger calls to  
+``Cpu0TargetLowering::LowerOperation()`` during the "Legalized selection DAG"  
+stage, the global address access operation can be specifically identified by  
+checking whether the DAG node's opcode is ``ISD::GlobalAddress``.  
 
-Finally, add the following code in Cpu0ISelDAGToDAG.cpp and Cpu0InstrInfo.td.
+Finally, add the following code to ``Cpu0ISelDAGToDAG.cpp`` and  
+``Cpu0InstrInfo.td``.
 
 .. rubric:: lbdex/chapters/Chapter6_1/Cpu0ISelDAGToDAG.h
 .. literalinclude:: ../lbdex/Cpu0/Cpu0ISelDAGToDAG.h
@@ -545,22 +569,24 @@ Finally, add the following code in Cpu0ISelDAGToDAG.cpp and Cpu0InstrInfo.td.
     :start-after: //#if CH >= CH6_1 7
     :end-before: //#endif
 
-
 Static mode
 -------------
 
-From Table: Cpu0 global variable options, option cpu0-use-small-section=false 
-puts the global varibale in data/bss while cpu0-use-small-section=true puts in 
-sdata/sbss. The sdata stands for small data area.
-Section data and sdata are areas for global variables with initial value (such 
-as int gI = 100 in this example) while Section bss and sbss are areas for 
-global variables without initial value (for instance, int gI;).
+From the table **Cpu0 global variable options**, the option  
+``cpu0-use-small-section=false`` places global variables in ``.data/.bss``,  
+while ``cpu0-use-small-section=true`` places them in ``.sdata/.sbss``.  
+The ``.sdata`` section stands for the small data area.  
+
+The ``.data`` and ``.sdata`` sections store global variables with an initial  
+value (e.g., ``int gI = 100;``), while the ``.bss`` and ``.sbss`` sections store  
+global variables without an initial value (e.g., ``int gI;``).  
 
 data or bss
 ~~~~~~~~~~~~
 
-The data/bss are 32 bits addressable areas since Cpu0 is a 32 bits architecture. 
-Option cpu0-use-small-section=false will generate the following instructions.
+The ``.data/.bss`` sections are 32-bit addressable areas since Cpu0 is a  
+32-bit architecture. When ``cpu0-use-small-section=false`` is set, the following  
+instructions will be generated.
 
 .. code-block:: console
 

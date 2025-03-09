@@ -7,14 +7,13 @@ C++ support
    :local:
    :depth: 4
 
-This chapter supports some C++ compiler features. 
+This chapter supports some C++ compiler features.
 
+Exception Handling
+------------------
 
-Exception handle
--------------------
-
-The Chapter11_2 can be built and run with the C++ polymorphism example code of 
-ch12_inherit.cpp as follows,
+Chapter11_2 can be built and run using the C++ polymorphism example code in
+``ch12_inherit.cpp`` as follows:
 
 .. rubric:: lbdex/input/ch12_inherit.cpp
 .. code-block:: c++
@@ -31,11 +30,14 @@ ch12_inherit.cpp as follows,
   };
   ...
 
-If using cout instead of printf in ch12_inherit.cpp, it won't generate exception 
-handler IRs on Linux, whereas it will generate invoke, landing, resume 
-and unreachable exception handler IRs on iMac.
-Example code, ch12_eh.cpp, which includes **try** and **catch** exception handler 
-as the following will generate these exception handler IRs both on iMac and Linux.
+If you use ``cout`` instead of ``printf`` in ``ch12_inherit.cpp``, it will not
+generate exception handling IR on Linux. However, it will generate exception
+handling IRs such as ``invoke``, ``landingpad``, ``resume``, and
+``unreachable`` on iMac.
+
+The example code ``ch12_eh.cpp``, which includes **try** and **catch**
+exception handling, will generate these exception-related IRs on both iMac
+and Linux.
 
 .. rubric:: lbdex/input/ch12_eh.cpp
 .. literalinclude:: ../lbdex/input/ch12_eh.cpp
@@ -81,11 +83,14 @@ as the following will generate these exception handler IRs both on iMac and Linu
   ::MachineInstr *): Assertion `MRI->getVRegDef(reg) && "Register use before 
   def!"' failed.
 
-A description for the C++ exception table formats can be found here 
+A description of the C++ exception table formats can be found here
 [#itanium-exception]_.
-About the IRs of LLVM exception handling, please reference here [#exception]_.
-Chapter12_1 supports the llvm IRs of corresponding **try** and **catch** 
-exception C++ keywords. It can compile ch12_eh.bc as follows,
+
+For details about the LLVM IR used in exception handling, please refer to
+[#exception]_.
+
+Chapter12_1 supports the LLVM IRs that correspond to the C++ **try** and
+**catch** keywords. It can compile ``ch12_eh.bc`` as follows:
 
 .. rubric:: lbdex/chapters/Chapter12_1/Cpu0ISelLowering.h
 .. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.h
@@ -142,17 +147,20 @@ C++ support thread variable as the following file ch12_thread_var.cpp.
 .. literalinclude:: ../lbdex/input/ch12_thread_var.cpp
     :start-after: /// start
 
-While global variable is a single instance shared by all threads in a process, 
-thread variable has different instances for each different thread in a process. 
-The same thread share the thread variable but different threads have their own 
-thread variable with the same name [#thread-wiki]_.
+While a global variable is a single instance shared by all threads in a process,
+a thread-local variable has a separate instance for each thread in the process.
+The same thread accesses the same instance of the thread-local variable, while
+different threads have their own instances with the same variable name
+[#thread-wiki]_.
 
-To support thread variable, tlsgd, tlsldm, dtp_hi, dtp_lo, gottp, tp_hi and
-tp_lo in both evaluateRelocExpr() of Cpu0AsmParser.cpp and printImpl() of
-Cpu0MCExpr.cpp are needed, and the following code are required.
-Most of them are for relocation record handle and display since the thread 
-variable created by OS or language library which support multi-threads 
-programming.
+To support thread-local variables, symbols such as **tlsgd**, **tlsldm**,
+**dtp_hi**, **dtp_lo**, **gottp**, **tp_hi**, and **tp_lo** must be handled in
+both `evaluateRelocExpr()` of `Cpu0AsmParser.cpp` and `printImpl()` of
+`Cpu0MCExpr.cpp`.
+
+Most of these symbols are used for relocation record handling,
+because the actual thread-local storage is created by the OS or language
+runtime that supports multi-threaded programming.
 
 .. rubric:: lbdex/chapters/Chapter12_1/MCTargetDesc/Cpu0AsmBackend.cpp
 .. literalinclude:: ../lbdex/Cpu0/MCTargetDesc/Cpu0AsmBackend.cpp
@@ -348,13 +356,17 @@ programming.
     ori  $2, $2, %dtp_lo(a)
     ...
 
-In pic mode, the __thread variable access by call function __tls_get_addr with 
-the address of thread variable. 
-The c++11 standard thread_local variable is accessed by calling function _ZTW1b 
-which also call the function __tls_get_addr to get the thread_local variable 
-address. 
-In static mode, the thread variable is accessed by getting address of thread 
-variables "a" and "b" with machine instructions as follows,
+In PIC (Position-Independent Code) mode, the `__thread` variable is accessed by
+calling the function `__tls_get_addr` with the address of the thread-local
+variable as an argument.
+
+For C++11 `thread_local` variables, the compiler generates a call to the function
+`_ZTW1b`, which internally calls `__tls_get_addr` to retrieve the address of the
+`thread_local` variable.
+
+In static mode, thread-local variables are accessed directly by loading their
+addresses using machine instructions. For example, variables `a` and `b` are
+accessed through direct address calculation instructions.
 
 .. code-block:: console
 
@@ -374,13 +386,16 @@ variables "a" and "b" with machine instructions as follows,
     ori  $2, $2, %tp_lo(b)
     ...
 
-While Mips uses rdhwr instruction to access thread varaible as below, 
-Cpu0 access thread varaible without inventing any new instruction. 
-The thread variables are keeped in thread varaible memory location which 
-accessed through \%tp_hi and \%tp_lo, and furthermore, this section of memory is 
-protected through kernel mode program. 
-Thus, the user mode program cannot access this area of memory and 
-no space to breathe for hack program.
+While MIPS uses the `rdhwr` instruction to access thread-local variables, Cpu0
+accesses thread-local variables without introducing any new instructions.
+
+Thread-local variables in Cpu0 are stored in a dedicated thread-local memory
+region, which is accessed through `%tp_hi` and `%tp_lo`. This memory section is
+protected by the kernel, meaning it can only be accessed in kernel mode.
+
+As a result, user-mode programs cannot access this memory region, leaving no room
+for potential exploits or malicious programs to interfere with thread-local
+storage.
 
 .. code-block:: console
 
@@ -404,6 +419,15 @@ In static mode, the thread variable is similar to global variable.
 In general, they are same in IRs, DAGs and machine code translation. 
 List them in the following tables. 
 You can check them with debug option enabled.
+
+
+In static mode, the thread variable behaves similarly to a global variable.
+In general, they are the same in terms of LLVM IR, DAG, and machine code
+translation.
+
+You can refer to the following tables for a detailed comparison.
+
+To observe this in action, compile and check with debug options enabled.
 
 .. table:: The DAGs of thread varaible of static mode
 
@@ -452,6 +476,23 @@ compiler to controll the ordering for load/store instructions.**
 
 To solve this, **C++11 introduced memory orderings in `std::atomic`** to give 
 programmers **fine-grained control** over synchronization.
+
+
+Before **C++11**, multi-threaded programming relied on **mutexes, volatile
+variables, and platform-specific atomic operations**, which often led to
+inefficiencies and undefined behavior.
+
+For RISC CPUs, **only load/store instructions access memory.** Atomic
+instructions ensure memory consistency across multiple cores.
+
+CPUs provide atomic operations such as **compare-and-swap** [#cas-wiki]_ or
+**ll/sc (load-linked/store-conditional)**, along with **BARRIER** or **SYNC**
+instructions to enforce memory ordering. However, **C++03 did not have a language
+feature to tell the compiler how to control memory order for load/store
+instructions.**
+
+To address this, **C++11 introduced memory orderings via `std::atomic`**, giving
+programmers **fine-grained control** over synchronization and memory consistency.
 
 The Problem Before C++11
 ++++++++++++++++++++++++
@@ -610,11 +651,9 @@ Diagram Explanation:
 Comparison of Producer-Consumer with Busy Waiting
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-This section compares different implementations of the producer-consumer, 
-SPSC (Single-Producer, Single-Consumer) problem 
-using a busy-waiting algorithm in the following approaches:
-
-Would you like a **multi-producer, multi-consumer (MPMC) version** of these implementations?
+This section compares different **lock-free** implementations of the 
+producer-consumer, **SPSC (Single-Producer, Single-Consumer)** problem 
+using a **busy-waiting** algorithm in the following approaches:
 
 1. **Linux API with busy-waiting** (using `std::atomic`)
 2. **MIPS atomic and sync instructions** (using `ll`, `sc`, `sync`)
@@ -1028,11 +1067,13 @@ back in later, especially if the standard evolves in the meantime, as expected.
 Thus we are not proposing to remove the current wording 
 [#cpp-memorder-consume-remove]_.
 
-The following test files are extracted from memory_checks() of 
-clang/test/Sema/atomic-ops.c. The "__c11_atomic_xxx" builtin-functions from 
-clang defined in clang/include/clang/Basic/Builtins.def. Complie with clang
-will get the results same with :numref:`c++-f1`. Clang compile 
-memory_order_consume to the same result of memory_order_acquire. 
+The following test files are extracted from `memory_checks()` in
+`clang/test/Sema/atomic-ops.c`. The `__c11_atomic_xxx` built-in functions used
+by Clang are defined in `clang/include/clang/Basic/Builtins.def`. Compiling
+these files with Clang produces the same results as shown in :numref:`c++-f1`.
+
+Note: Clang compiles `memory_order_consume` to the same result as
+`memory_order_acquire`.
 
 .. rubric:: lbdex/input/ch12_sema_atomic-ops.c
 .. literalinclude:: ../lbdex/input/ch12_sema_atomic-ops.c
@@ -1052,17 +1093,19 @@ memory_order_consume to the same result of memory_order_acquire.
   __c11_atomic_fetch_xxx            atomicrmw xxx
   ================================  ===========
 
-C++ atomic functions supported by calling implemented functions from C++ libary.
-These implemented functions evently call "__c11_atomic_xxx" builtin-functions 
-for implementation. So, 
-"__c11_atomic_xxx" listed in above providing lower-level of better performance 
-functions for C++ programmers. An example as follows,
+C++ atomic functions are supported by calling implementation functions from the
+C++ standard library. These functions eventually call the `__c11_atomic_xxx`
+built-in functions for actual implementation.
+
+Therefore, `__c11_atomic_xxx` functions, listed above, provide a lower-level and
+higher-performance interface for C++ programmers. An example is shown below:
 
 .. rubric:: lbdex/input/ch12_c++_atomics.cpp
 .. literalinclude:: ../lbdex/input/ch12_c++_atomics.cpp
 
 
-For supporting llvm atomic IRs, the following code added to Chapter12_1.
+To support LLVM atomic IR instructions, the following code is added to
+Chapter12_1.
 
 .. rubric:: lbdex/chapters/Chapter12_1/Disassembler/Cpu0Disassembler.cpp
 .. literalinclude:: ../lbdex/Cpu0/Disassembler/Cpu0Disassembler.cpp
@@ -1198,30 +1241,40 @@ For supporting llvm atomic IRs, the following code added to Chapter12_1.
     :start-after: #if CH >= CH12_1 //2
     :end-before: #endif
 
-Since SC instruction uses RegisterOperand type in Cpu0InstrInfo.td and SC uses
-FMem node which DecoderMethod is "DecodeMem", the DecodeMem() of 
-Cpu0Disassembler.cpp need to be changed as above.
+Since the `SC` instruction uses `RegisterOperand` type in `Cpu0InstrInfo.td` and 
+`SC` uses the `FMem` node whose `DecoderMethod` is `DecodeMem`, the 
+`DecodeMem()` function in `Cpu0Disassembler.cpp` needs to be modified 
+accordingly.
 
-The atomic node defined in "let usesCustomInserter = 1 in" of Cpu0InstrInfo.td
-tells llvm calling EmitInstrWithCustomInserter() of Cpu0ISelLowering.cpp after 
-Instruction Selection stage at Cpu0TargetLowering::EmitInstrWithCustomInserter() 
-of ExpandISelPseudos::runOnMachineFunction() stage. For
-example, "def ATOMIC_LOAD_ADD_I8 : Atomic2Ops<atomic_load_add_8, CPURegs>;" will
-calling EmitInstrWithCustomInserter() with Machine Instruction Opcode 
-"ATOMIC_LOAD_ADD_I8" when it meets IR "load atomic i8*".
+The atomic node defined in `let usesCustomInserter = 1 in` within 
+`Cpu0InstrInfo.td` tells LLVM to call `EmitInstrWithCustomInserter()` in 
+`Cpu0ISelLowering.cpp` after the Instruction Selection stage, specifically in 
+the `Cpu0TargetLowering::EmitInstrWithCustomInserter()` function invoked during 
+the `ExpandISelPseudos::runOnMachineFunction()` phase.
 
-The "setInsertFencesForAtomic(true);" in Cpu0ISelLowering.cpp will trigger 
-addIRPasses() of Cpu0TargetMachine.cpp, then the createAtomicExpandPass() of 
-addIRPasses() will create llvm IR ATOMIC_FENCE. Next, the lowerATOMIC_FENCE()
-of Cpu0ISelLowering.cpp will create Cpu0ISD::Sync when it meets IR ATOMIC_FENCE
-since "setOperationAction(ISD::ATOMIC_FENCE, MVT::Other, Custom);" of 
-Cpu0SEISelLowering.cpp. Finally the pattern defined in Cpu0InstrInfo.td translate
-it into instruction "sync" by "def SYNC" and alias "SYNC 0".
+For example, the declaration
+`def ATOMIC_LOAD_ADD_I8 : Atomic2Ops<atomic_load_add_8, CPURegs>;`
+will trigger a call to `EmitInstrWithCustomInserter()` with the machine 
+instruction opcode `ATOMIC_LOAD_ADD_I8` when the IR `load atomic i8*` is 
+encountered.
 
-This part of Cpu0 backend code is same with Mips except Cpu0 has no instruction 
-"nor".
+The call to `setInsertFencesForAtomic(true);` in `Cpu0ISelLowering.cpp` will 
+trigger the `addIRPasses()` function in `Cpu0TargetMachine.cpp`, which in turn 
+invokes `createAtomicExpandPass()` to create the LLVM IR `ATOMIC_FENCE`.
 
-List the atomic IRs, corresponding DAGs and Opcode as the following table.
+Later, `lowerATOMIC_FENCE()` in `Cpu0ISelLowering.cpp` will emit a 
+`Cpu0ISD::Sync` when it sees an `ATOMIC_FENCE` IR, because of the statement 
+`setOperationAction(ISD::ATOMIC_FENCE, MVT::Other, Custom);` in 
+`Cpu0SEISelLowering.cpp`.
+
+Finally, the pattern defined in `Cpu0InstrInfo.td` will translate the DAG node 
+into the actual `sync` instruction via `def SYNC` and its alias `SYNC 0`.
+
+This part of the Cpu0 backend code is similar to Mips, except that Cpu0 does 
+not include the `nor` instruction.
+
+Below is a table listing the atomic IRs, their corresponding DAG nodes, and 
+machine opcodes.
 
 .. table:: The atomic related IRs, their corresponding DAGs and Opcode of Cpu0ISelLowering.cpp
 
@@ -1240,10 +1293,16 @@ List the atomic IRs, corresponding DAGs and Opcode as the following table.
   atomicrmw xchg              AtomicLoadSwap               ATOMIC_SWAP_XXX
   ==========================  ===========================  ===========================
 
-Input files atomics.ll and atomics-fences.ll include the llvm atomic IRs test.
-Input files ch12_atomics.cpp and ch12_atomics-fences.cpp are the C++  
-files for generating llvm atomic IRs. The C++ files need to run with clang 
-options "clang++ -pthread -std=c++11".
+The input files `atomics.ll` and `atomics-fences.ll` include tests for LLVM 
+atomic IRs.
+
+The C++ source files `ch12_atomics.cpp` and `ch12_atomics-fences.cpp` are used 
+to generate the corresponding LLVM atomic IRs. To compile these files, use the 
+following `clang++` options:
+
+::
+
+  clang++ -pthread -std=c++11
 
 
 .. [#exception] http://llvm.org/docs/ExceptionHandling.html

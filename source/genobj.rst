@@ -7,15 +7,18 @@ Generating object files
    :local:
    :depth: 4
 
-The previous chapters introducing the assembly code generation only. 
-This chapter adding the elf obj support and verify the generated obj by 
-objdump utility. With LLVM support, the Cpu0 backend can generate both big 
-endian and little endian obj files with only a few code added.  
-The Target Registration mechanism and their structure are introduced in 
-this chapter.
+The previous chapters focused solely on **assembly code generation**.  
+This chapter extends that by **adding ELF object file support**  
+and verifying the generated object files using the `objdump` utility.
 
-Similar to :numref:`asm-emit` of previous chapter, but this chapter emit binary
-obj instruction as :numref:`obj-emit`.
+With LLVM support, the **Cpu0 backend** can generate both **big-endian**  
+and **little-endian** object files with minimal additional code.
+
+Additionally, this chapter introduces the **Target Registration mechanism**  
+and its structure.
+
+Similar to :numref:`asm-emit` from the previous chapter :ref:`sec-backendstructure`, but 
+this chapter focuses on emitting **binary object instructions** as shown in :numref:`obj-emit`.
 
 .. _obj-emit:
 .. graphviz:: ../Fig/genobj/obj-emit.gv
@@ -24,9 +27,9 @@ obj instruction as :numref:`obj-emit`.
 Translate into obj file
 ------------------------
 
-Currently, we only support translation of llvm IR code into assembly code. 
-If you try running Chapter4_2/ to translate it into obj code will get the error 
-message as follows,
+Currently, the backend **only supports translating LLVM IR code into assembly code**.  
+If you attempt to compile an LLVM IR input file into an **object file** using the  
+`Chapter4_2/` compiler code, you will encounter the following error message:
 
 .. code-block:: console
 
@@ -37,10 +40,14 @@ message as follows,
   ~/llvm/test/build/bin/llc: target does not 
   support generation of this file type! 
 	
-Chapter5_1/ support obj file generation. 
-It produces obj files both for big endian and little endian with command 
-``llc -march=cpu0`` and ``llc -march=cpu0el``, respectively. 
-Run with them will get the obj files as follows,
+The `Chapter5_1/` implementation **supports object file generation**.  
+It can produce object files for both **big-endian** and **little-endian** architectures  
+using the following commands:  
+
+- **Big-endian:** `llc -march=cpu0`  
+- **Little-endian:** `llc -march=cpu0el`  
+
+Running these commands will generate the corresponding object files as shown below:
 
 .. code-block:: console
 
@@ -102,27 +109,31 @@ Run with them will get the obj files as follows,
    00a0 00302222 10002d02 34002d01 30003d01  .0""..-.4.-.0.=.
    00b0 00202320 00002d02 3800dd09 0000e03c  . # ..-.8......<      
          
+The first instruction is **"addiu $sp, -56"**, and its corresponding obj is  
+0x09ddffc8. The opcode of addiu is 0x09 (8 bits); the $sp register number  
+is 13 (0xd) (4 bits); and the immediate value is -56 (0xffc8) (16 bits),  
+so it is correct.
 
-The first instruction is **“addiu  $sp, -56”** and its corresponding obj is 
-0x09ddffc8. 
-The opcode of addiu is 0x09, 8 bits; $sp register number is 13(0xd), 4bits; and 
-the immediate is 16 bits -56(=0xffc8), so it is correct. 
-The third instruction **“st  $2, 52($fp)”** and it's corresponding obj 
-is 0x022b0034. The **st** opcode is **0x02**, $2 is 0x2, $fp is 0xb and 
-immediate is 52(0x0034). 
-Thanks to Cpu0 instruction format which opcode, register operand and 
-offset(imediate value) size are multiple of 4 bits. 
-Base on the 4 bits multiple, the obj format is easy to check by eyes. 
-The big endian (B0, B1, B2, B3) = (09, dd, ff, c8), objdump from B0 to B3 is 
-0x09ddffc8 and the little endian is (B3, B2, B1, B0) = (09, dd, ff, c8), 
-objdump from B0 to B3 is 0xc8ffdd09. 
+The third instruction **"st $2, 52($fp)"**, and its corresponding obj is  
+0x022b0034. The **st** opcode is 0x02, $2 is 0x2, $fp is 0xb, and the  
+immediate value is 52 (0x0034).
+
+Thanks to the Cpu0 instruction format, where the opcode, register operand,  
+and offset (immediate value) sizes are multiples of 4 bits, the obj format  
+is easy to verify manually.
+
+For big-endian format: (B0, B1, B2, B3) = (09, dd, ff, c8), objdump from  
+B0 to B3 is 0x09ddffc8.  
+
+For little-endian format: (B3, B2, B1, B0) = (09, dd, ff, c8), objdump from  
+B0 to B3 is 0xc8ffdd09.
 
 
 ELF obj related code
 ----------------------
 
-To support elf obj generation, the following code changed and added to 
-Chapter5_1.
+To support ELF object file generation, the following code was modified and  
+added to Chapter5_1.
 
 .. rubric:: lbdex/chapters/Chapter5_1/InstPrinter/Cpu0InstPrinter.cpp
 .. literalinclude:: ../lbdex/Cpu0/InstPrinter/Cpu0InstPrinter.cpp
@@ -195,12 +206,14 @@ Chapter5_1.
 Work flow
 ---------
 
-In Chapter3_2, OutStreamer->emitInstruction print the asm. To support elf obj 
-generation, this chapter create MCELFObjectStreamer inherited from OutStreamer
-by calling createELFStreamer in Cpu0MCTargetDesc.cpp above. Once 
-MCELFObjectStreamer is created. The OutStreamer->emitInstruction will work with
-other code added in directory MCTargetDesc of this chapter. The details of 
-expanation as follows,
+In Chapter 3_2, `OutStreamer->emitInstruction` prints the assembly code.  
+To support ELF object file generation, this chapter creates  
+`MCELFObjectStreamer`, which inherits from `OutStreamer` by calling  
+`createELFStreamer` in `Cpu0MCTargetDesc.cpp` above.  
+
+Once `MCELFObjectStreamer` is created, `OutStreamer->emitInstruction` will  
+work with other code added in the `MCTargetDesc` directory of this chapter.  
+The details of the explanation are as follows:
 
 .. rubric:: llvm/include/llvm/CodeGen/AsmPrinter.h
 .. code-block:: c++
@@ -237,43 +250,47 @@ expanation as follows,
   AsmPrinter::OutStreamer is \nMCAsmStreamer if llc -filetype=asm as 
   :numref:`print-asm`.
 
-The ELF encoder calling functions shown as :numref:`genobj-f11` above. 
-AsmPrinter::OutStreamer is set to MCObjectStreamer when by llc driver when user
-input ``llc -filetype=obj``.
+The ELF encoder calling functions are shown in :numref:`genobj-f11` above.  
+`AsmPrinter::OutStreamer` is set to `MCObjectStreamer` by the `llc` driver  
+when the user inputs ``llc -filetype=obj``.
 
 .. _genobj-f12: 
 .. graphviz:: ../Fig/genobj/instEncodeDfd.gv
    :caption: DFD flow for instruction encode
 
-The instruction operands information for encoder is got as :numref:`genobj-f12` 
-above. 
-Steps as follows,
+The instruction operand information for the encoder is obtained as shown in  
+:numref:`genobj-f12` above. The steps are as follows:
 
-  1. Function encodeInstruction() pass MI.Opcode to getBinaryCodeForInstr().
-  
-  2. getBinaryCodeForInstr() pass MI.Operand[n] to getMachineOpValue() and then,
-  
-  3. get register number by calling getMachineOpValue().
-  
-  4. getBinaryCodeForInstr() return the MI with all number of registers to encodeInstruction().
-  
-The MI.Opcode is set in Instruction Selection Stage.
-The table gen function getBinaryCodeForInstr() get all the operands information 
-from the td files set by programmer as :numref:`genobj-f13`. 
+  1. The function `encodeInstruction()` passes `MI.Opcode` to  
+     `getBinaryCodeForInstr()`.
+
+  2. `getBinaryCodeForInstr()` passes `MI.Operand[n]` to `getMachineOpValue()`,  
+     and then,
+
+  3. It retrieves the register number by calling `getMachineOpValue()`.
+
+  4. `getBinaryCodeForInstr()` returns `MI` with all register numbers to  
+     `encodeInstruction()`.
+
+The `MI.Opcode` is set in the Instruction Selection Stage.  
+The table generation function `getBinaryCodeForInstr()` gathers all operand  
+information from the `.td` files defined by the programmer, as shown in  
+:numref:`genobj-f13`.
 
 .. _genobj-f13: 
 .. graphviz:: ../Fig/genobj/getBinaryCodeForInstr.gv
    :caption: Instruction encode, for instance:  addu $v0, $at, $v1\n  v0:MI.getOperand(0), at:MI.getOperand(1), v1:MI.getOperand(2)
 
-For instance, Cpu0 backend will generate "addu $v0, $at, $v1" for the IR 
-"%0 = add %1, %2" once llvm allocate registers $v0, $at and $v1 for Operands
-%0, %1 and %2 individually. The MCOperand structure for MI.Operands[] include
-register number set in the pass of llvm allocate registers which can be got in
-getMachineOpValue().
+For instance, the Cpu0 backend will generate `"addu $v0, $at, $v1"` for the IR  
+`"%0 = add %1, %2"` once LLVM allocates registers `$v0`, `$at`, and `$v1` for  
+operands `%0`, `%1`, and `%2` individually. The `MCOperand` structure for  
+`MI.Operands[]` includes the register number set in the pass where LLVM  
+allocates registers, which can be retrieved in `getMachineOpValue()`.
 
-The getEncodingValue(Reg) in getMachineOpValue() as the following will get the
-RegNo of encode from Register name such as AT, V0, or V1, ... by using table gen
-information from Cpu0RegisterInfo.td as the following. My comment is after "///".
+The function `getEncodingValue(Reg)` in `getMachineOpValue()`, as shown below,  
+retrieves the `RegNo` for encoding from register names such as `AT`, `V0`, or  
+`V1`, using table generation information from `Cpu0RegisterInfo.td`.  
+My comments are after `"///"`.
 
 .. rubric:: include//llvm/MC/MCRegisterInfo.h
 .. code-block:: c++
@@ -363,20 +380,25 @@ information from Cpu0RegisterInfo.td as the following. My comment is after "///"
   static inline void InitCpu0MCRegisterInfo(MCRegisterInfo *RI, ...) {
     RI->InitMCRegisterInfo(..., Cpu0RegEncodingTable);
   
-The applyFixup() of Cpu0AsmBackend.cpp will fix up the **jeq**, **jub**, ... 
-instructions of "address control flow statements" or "function call statements" 
-used in later chapters.
-The setting of true or false for each relocation record in 
-needsRelocateWithSymbol() of Cpu0ELFObjectWriter.cpp depends on whethor this 
-relocation record is needed to adjust address value during link or not.
-If set true, then linker has chance to adjust this address value with correct
-information. On the other hand, if set false, then linker has no correct 
-information to adjust this relocation record. About relocation record, it will
-be introduced in later chapter ELF Support.
+The `applyFixup()` function in `Cpu0AsmBackend.cpp` will fix up the **jeq**,  
+**jub**, and other instructions related to "address control flow statements" or  
+"function call statements" used in later chapters.  
 
-When emit elf obj format instruction, the EncodeInstruction() of 
-Cpu0MCCodeEmitter.cpp will be called since it override the same name of 
-function in parent class MCCodeEmitter. 
+The setting of `true` or `false` for each relocation record in  
+`needsRelocateWithSymbol()` of `Cpu0ELFObjectWriter.cpp` depends on whether  
+this relocation record needs to adjust the address value during linking.  
+
+- If set to `true`, the linker has the opportunity to adjust this address value  
+  with the correct information.  
+- If set to `false`, the linker lacks the correct information to adjust this  
+  relocation record.  
+
+The concept of relocation records will be introduced in a later chapter on  
+**ELF Support**.  
+
+When emitting ELF object format instructions, the `EncodeInstruction()`  
+function in `Cpu0MCCodeEmitter.cpp` will be called, as it overrides the function  
+of the same name in the parent class `MCCodeEmitter`.  
 
 .. rubric:: lbdex/chapters/Chapter2/Cpu0InstrInfo.td
 .. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td
@@ -389,12 +411,15 @@ function in parent class MCCodeEmitter.
     :start-after: //@ 32-bit load.
     :end-before: //#endif
 
-As :numref:`llvmstructure-f2`, **ld** and **st** are L Type format (ADD ... are
-R Type format).
-The "let EncoderMethod = "getMemEncoding";" in Cpu0InstrInfo.td as above will 
-making llvm call function getMemEncoding() when either **ld** or **st** 
-instruction is issued in elf obj since these two instructions use **mem** 
-Operand. The following is the implementation and TableGen code for them.
+As shown in :numref:`llvmstructure-f2`, **ld** and **st** follow the L-Type  
+format, whereas **ADD** and similar instructions follow the R-Type format.  
+
+The statement `"let EncoderMethod = "getMemEncoding";"` in `Cpu0InstrInfo.td`,  
+as mentioned above, ensures that LLVM calls the function `getMemEncoding()`  
+whenever an **ld** or **st** instruction is issued in the ELF object file.  
+This happens because both of these instructions use the **mem** operand.  
+
+Below is the implementation and the corresponding TableGen code for them.  
 
 .. rubric:: lbdex/chapters/Chapter5_1/Cpu0InstrInfo.td
 .. literalinclude:: ../lbdex/chapters/Chapter5_1/Cpu0InstrInfo.td
@@ -423,9 +448,9 @@ Operand. The following is the implementation and TableGen code for them.
     } 
 
 
-The other functions in Cpu0MCCodeEmitter.cpp are called by these two functions.
+The other functions in `Cpu0MCCodeEmitter.cpp` are called by these two functions.  
 
-After encoder, the following code will write the encode instructions to buffer.
+After encoding, the following code will write the encoded instructions to the buffer.  
 
 .. rubric:: src/lib/MC/MCELFStreamer.cpp
 .. code-block:: c++
@@ -438,17 +463,17 @@ After encoder, the following code will write the encode instructions to buffer.
     ...
   }
 
-Then, ELFObjectWriter::writeObject() will write the buffer to elf file.
-
+Then, `ELFObjectWriter::writeObject()` will write the buffer to the ELF file.  
 
 Backend Target Registration Structure
 --------------------------------------
 
-Now, let's examine Cpu0MCTargetDesc.cpp.
-Cpu0MCTargetDesc.cpp do the target registration as mentioned in 
-the previous chapter here [#target-registration]_, and the assembly
-output has explained here [#add-asmprinter]_.
-List the register functions of ELF obj output as follows,
+Now, let's examine `Cpu0MCTargetDesc.cpp`.  
+`Cpu0MCTargetDesc.cpp` performs target registration as mentioned in  
+the previous chapter here [#target-registration]_. The assembly output  
+has been explained here [#add-asmprinter]_.  
+
+The register functions for ELF object output are listed as follows:
 
 .. rubric:: Register function of elf streamer
 .. code-block:: c++
@@ -472,9 +497,9 @@ List the register functions of ELF obj output as follows,
       return S;
     }
 
-Above createELFStreamer takes care the elf obj streamer. 
-:numref:`genobj-f10` as follow is MCELFStreamer inheritance tree. 
-You can find a lot of operations in that inheritance tree.
+Above, `createELFStreamer` handles the ELF object streamer.  
+:numref:`genobj-f10` below shows the `MCELFStreamer` inheritance tree.  
+You can find many operations within that inheritance tree.
 
 .. _genobj-f10:
 .. figure:: ../Fig/genobj/10.png
@@ -536,20 +561,25 @@ Above instancing MCTargetStreamer instance.
       return new Cpu0MCCodeEmitter(MCII, Ctx, true);
     }
 
-Above instancing two objects Cpu0MCCodeEmitter, one is for 
-big endian and the other is for little endian. 
-They take care the obj format generated while RegisterELFStreamer() reuse the
-elf streamer class.
+Above, two `Cpu0MCCodeEmitter` objects are instantiated. One for big-endian  
+and the other for little-endian. They handle the object format generation,  
+while `RegisterELFStreamer()` reuses the ELF streamer class.
 
-Reader maybe has the question: "What are the actual arguments in 
-createCpu0MCCodeEmitterEB(const MCInstrInfo &MCII,  const MCSubtargetInfo &STI, 
-MCContext &Ctx)?" and "When they are assigned?"
-Yes, we didn't assign it at this point, we register the createXXX() function by 
-function pointer only (according C, TargetRegistry::RegisterXXX(TheCpu0Target, 
-createXXX()) where createXXX is function pointer). 
-LLVM keeps a function pointer to createXXX() when we call target registry, and 
-will call these createXXX() function back at proper time with arguments 
-assigned during the target registration process, RegisterXXX().
+Readers may wonder:  
+"What are the actual arguments in  
+`createCpu0MCCodeEmitterEB(const MCInstrInfo &MCII,  
+const MCSubtargetInfo &STI, MCContext &Ctx)`?"  
+and "When are they assigned?"
+
+At this point, we have not assigned them yet. Instead, we register the  
+`createXXX()` function using a function pointer (according to C,  
+`TargetRegistry::RegisterXXX(TheCpu0Target, createXXX())`, where  
+`createXXX` is a function pointer).
+
+LLVM stores a function pointer to `createXXX()` when we call target  
+registration. Later, during the target registration process (`RegisterXXX()`),  
+LLVM invokes these `createXXX()` functions with the necessary arguments (LLVM
+invokes these arguments during run time in LLVM structure)`.
 
 .. rubric:: Register function of asm backend
 .. code-block:: c++
@@ -578,12 +608,13 @@ assigned during the target registration process, RegisterXXX().
       ...
       }
 
-Above Cpu0AsmBackend class is the bridge for asm to obj. 
-Two objects take care big endian and little endian, respectively. 
-It derived from MCAsmBackend. 
-Most of code for object file generated is implemented by MCELFStreamer and it's 
-parent, MCAsmBackend.
+The `Cpu0AsmBackend` class serves as the bridge between assembly and object  
+file generation. Two instances handle big-endian and little-endian formats,  
+respectively.  
 
+This class is derived from `MCAsmBackend`.  
+Most of the code responsible for object file generation is implemented in  
+`MCELFStreamer` and its parent class, `MCAsmBackend`.
 
 
 .. [#target-registration] http://jonathan2251.github.io/lbd/llvmstructure.html#target-registration
