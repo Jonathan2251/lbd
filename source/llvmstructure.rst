@@ -1,6 +1,6 @@
 .. _sec-llvmstructure:
 
-Cpu0 architecture and LLVM structure
+Cpu0 Architecture and LLVM Structure
 =====================================
 
 .. contents::
@@ -104,12 +104,14 @@ The registers are used for the following purposes:
 The Cpu0 Instruction Set
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
-The Cpu0 instruction set can be divided into three types: L-type instructions, 
-which are generally associated with memory operations, A-type instructions for 
-arithmetic operations, and J-type instructions that are typically used when 
-altering control flow (i.e. jumps).  
-:numref:`llvmstructure-f2` illustrates how the bitfields are broken down 
-for each type of instruction.
+The Cpu0 instruction set is categorized into three types:  
+
+- **L-type instructions**: Primarily used for memory operations.  
+- **A-type instructions**: Designed for arithmetic operations.  
+- **J-type instructions**: Typically used for altering control flow (e.g., jumps).  
+
+:numref:`llvmstructure-f2` illustrates the bitfield breakdown for each  
+instruction type.
 
 .. _llvmstructure-f2: 
 .. figure:: ../Fig/llvmstructure/2.png
@@ -160,52 +162,54 @@ for each type of instruction.
   catch { }             landingpad...catch                 st and ld                             I        st/ld $4 & $5 to/from stack, $4:exception address, $5: exception typeid
   ====================  =================================  ====================================  =======  ================
 
-.. note:: **What and how the llvm-ir and the ISA of a RISC CPU be selected**
+.. note:: **Selection of LLVM-IR and the ISA for a RISC CPU**
 
-  - The llvm-ir and the ISA of a RISC CPU emerged after C language. As table 
-    above, they can be selected based on C language. 
+  - LLVM-IR and the ISA of a RISC CPU emerged after the C language.  
+    As shown in the table above, they can be selected based on C language  
+    constructs.  
 
-  - Not listed in above table, LLVM-IR includes terminator instructions 
-    "switch, invoke, ...",
-    atomic and a lot of llvm-intrinsics to provide better performance
-    to backend for their specific instructions such as llvm.vector.reduce.*.
+  - Not listed in the table, LLVM-IR includes terminator instructions such as  
+    `switch`, `invoke`, and others, as well as atomic operations and a variety  
+    of LLVM intrinsics. These intrinsics provide better performance for backend  
+    implementations, such as `llvm.vector.reduce.*`.  
 
-  - For vector processing of CPU/GPU, they can use vector-type of math llvm-ir or
-    llvm-intrinsic for implementation.
+  - For vector processing on CPUs/GPUs, vector-type math LLVM-IR or  
+    LLVM intrinsics can be used for implementation.  
 
+.. note:: **Selection of the ISA for Cpu0**
 
-.. note:: **What and how the ISA of Cpu0 be selected**
+  - The original author of Cpu0 designed its ISA as a teaching material,  
+    without focusing on performance.  
 
-  - The intention of orignal author of Cpu0: Design the ISA for teaching 
-    materials without considering performance. 
+  - My goal is to refine the ISA selection and design, considering both its  
+    role as an LLVM tutorial and its basic performance as an ISA. I am not  
+    interested in a poorly designed ISA.  
 
-  - My intention of goals: Adding a goal that what ISA is good to be selected 
-    or designed considering for both to be an llvm simple tutorial material and
-    basic performance to be an ISA. I am not interested in a bad ISA.
+    - As shown in the table above, `"if (a <= b)"` can be rewritten as  
+      `"t = (a <= b)"` followed by `"if (t)"`.  
+      Thus, I designed **ISA II of Cpu0** to use `"slt + beq"` instead of  
+      `"cmp + jeq"`, reducing six conditional jump instructions  
+      (`jeq/jne/jlt/jgt/jle/jge`) to just two (`beq/bne`).  
+      This balances complexity and performance in the Cpu0 ISA.  
 
-    - As you can see from table above, "if (a <= b)" can be replaced with 
-      "t = (a <= b)" and "if (t)", so I designed the ISA II of Cpu0 "slt+beq" to 
-      replace "cmp+jeq" to reduce 
-      jeq/jne/jlt/jgt/jle/jge six intructions to two, beq/bne for the balance of
-      the complexity in Cpu0 ISA and performance.
+    - For the same reason, I adopted **slt** from **MIPS** instead of **cmp**  
+      from **ARM**. This allows the destination register to be any general-  
+      purpose register (GPR), avoiding bottlenecks caused by a shared  
+      "status register."  
 
-    - For the same reason, I hired **slt**,... from **Mips** instead of **cmp** 
-      from **ARM** as result that
-      destination register can be in any GPR for avoiding the bottle neck on the 
-      same "status register". 
+    - Floating-point operations can be implemented in software, so Cpu0  
+      only supports integer instructions. I added **clz** (count leading zeros)  
+      and **clo** (count leading ones) to Cpu0 since floating-point libraries,  
+      such as `compiler-rt/builtin`, rely on these built-in functions.  
+      Floating-point normalization can leverage **clz** and **clo** for  
+      performance improvements. Although Cpu0 could use multiple instructions  
+      to implement `llvm.clz` and `llvm.clo`, having dedicated **clz/clo**  
+      instructions allows execution in a single instruction.  
 
-    - Floating value can be implemented by software, so Cpu0 has integer 
-      instructions only. I add clz and clo to Cpu0 since the floating-lib such as 
-      compiler-rt/builtin is implemented on top of these two builtin-function.
-      Normalization for Floating precsion can use clz and clo to speedup.
-      Though Cpu0 can use a couple of instructions for handling the 
-      corresponding llvm.clz/llvm.clo, adding clz/clo can execute it in one 
-      single instruction. 
+    - I extended **ISA II of Cpu0** for better performance, following the  
+      principles of MIPS.
 
-    - I extend II of Cpu0 as reasons above for an better ISA in performace from 
-      Mips.
-
-The following table details the cpu032I instruction set:
+The following table provides details on the cpu032I instruction set:
 
 - First column F\.: meaning Format.
 
@@ -575,7 +579,7 @@ The following table details the cpu032I instruction set:
     - Ra <= Rb
 
 
-The following table details the cpu032II instruction set added:
+The following table provides details on the newly added cpu032II instruction set:
 
 .. list-table:: cpu032II Instruction Set
   :widths: 1 4 3 11 7 10
@@ -624,46 +628,56 @@ The following table details the cpu032II instruction set added:
     - BNE Ra, Rb, Cx
     - if (Ra!=Rb), PC <= PC + Cx
 
-.. note:: **Cpu0 unsigned instructions**
+.. note:: **Cpu0 Unsigned Instructions**  
 
-  Like Mips, except DIVU, the mathematic unsigned instructions such as ADDu and 
-  SUBu, are instructions of no overflow exception. 
-  The ADDu and SUBu handle both signed and unsigned integers well. 
-  For example, (ADDu 1, -2) is -1; (ADDu 0x01, 0xfffffffe) is 0xffffffff = (4G 
-  - 1). 
-  If you treat the result is negative then it is -1. 
-  On the other hand, it's (+4G - 1) if you treat the result is positive.
-  
+   Like MIPS, except for `DIVU`, arithmetic unsigned instructions such as  
+   `ADDu` and `SUBu` do not trigger overflow exceptions.  
+   The `ADDu` and `SUBu` handle both signed and unsigned integers correctly.  
 
-Why not using ADD instead of SUB?
+   For example:  
+
+   - `(ADDu 1, -2) = -1`  
+   - `(ADDu 0x01, 0xfffffffe) = 0xffffffff (4G - 1)`  
+
+   If you interpret the result as a negative value, it is `-1`.  
+   If interpreted as positive, it is `+4G - 1`.  
+
+Why Not Use ADD Instead of SUB?
 `````````````````````````````````
 
-From text book of computer introduction, we know SUB can be replaced by 
-ADD as follows,
+From introductory computer science textbooks, we know that `SUB` can be  
+replaced by `ADD` as follows:  
 
-- (A - B) = (A + (-B))
+- `(A - B) = (A + (-B))`  
 
-Since Mips uses 32 bits to represent int type of C language, if B is the 
-value of -2G, then
+Since MIPS represents `int` in C using 32 bits, consider the case where  
+`B = -2G`:  
 
-- (A - (-2G)) = (A + (2G))
+- `(A - (-2G)) = (A + 2G)`  
 
-But the problem is value -2G can be represented in 32 bits machine while 2G 
-cannot, 
-since the range of 2's complement representation for 32 bits is (-2G .. 2G-1).
-The 2's complement reprentation has the merit of fast computation in circuits
-design, it is widely used in real CPU implementation.
-That's why almost every CPU create SUB instruction, rather than using ADD 
-instead of.
+However, the problem is that while `-2G` can be represented in a 32-bit  
+machine, `+2G` cannot. This is because the range of 32-bit two's complement  
+representation is `(-2G .. 2G-1)`.  
 
+Two's complement representation allows for efficient computation in hardware  
+design, making it widely used in real CPU implementations.  
+This is why almost every CPU includes a `SUB` instruction rather than relying  
+solely on `ADD`.  
 
 The Status Register
 ~~~~~~~~~~~~~~~~~~~
 
-The Cpu0 status word register (SW) contains the state of the Negative (N), 
-Zero (Z), Carry (C), Overflow (V), Debug (D), Mode (M), and Interrupt (I) flags.
-The bit layout of the SW register is shown in :numref:`llvmstructure-f3` 
-below.
+The Cpu0 status word register (`SW`) contains the state of the following flags:  
+
+- **Negative (N)**  
+- **Zero (Z)**  
+- **Carry (C)**  
+- **Overflow (V)**  
+- **Debug (D)**  
+- **Mode (M)**  
+- **Interrupt (I)**  
+
+The bit layout of the `SW` register is shown in :numref:`llvmstructure-f3` below.
 
 .. _llvmstructure-f3: 
 .. figure:: ../Fig/llvmstructure/3.png
@@ -673,53 +687,56 @@ below.
 
   Cpu0 status word (SW) register
 
-When a CMP Ra, Rb instruction executes, the condition flags will change.
-For example:
+When a `CMP Ra, Rb` instruction executes, it updates the condition flags in the  
+status word (`SW`) register as follows:  
 
-- If Ra > Rb, then N = 0, Z = 0
-- If Ra < Rb, then N = 1, Z = 0
-- If Ra = Rb, then N = 0, Z = 1
+- **If `Ra > Rb`**, then `N = 0`, `Z = 0`  
+- **If `Ra < Rb`**, then `N = 1`, `Z = 0`  
+- **If `Ra = Rb`**, then `N = 0`, `Z = 1`  
 
-The direction (i.e. taken/not taken) of the conditional jump instructions JGT, 
-JLT, JGE, JLE, JEQ, JNE is determined by the N and Z flags in the SW register.
+The direction (i.e., taken or not taken) of conditional jump instructions  
+(`JGT`, `JLT`, `JGE`, `JLE`, `JEQ`, `JNE`) is determined by the values of the  
+`N` and `Z` flags in the `SW` register.
 
 Cpu0's Stages of Instruction Execution
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The Cpu0 architecture has a five-stage pipeline. The stages are instruction 
-fetch (IF), instruction decode (ID), execute (EX), memory access (MEM) and 
-write backe (WB).  
-Here is a description of what happens in the processor for each stage:
+The Cpu0 architecture has a five-stage pipeline. The stages are:  
+instruction fetch (IF), instruction decode (ID), execute (EX), memory access  
+(MEM), and write-back (WB).  
 
-1) Instruction fetch (IF)
+Below is a description of what happens in each stage of the processor:  
 
-- The Cpu0 fetches the instruction pointed to by the Program Counter (PC) into 
-  the Instruction Register (IR): IR = [PC].
-- The PC is then updated to point to the next instruction: PC = PC + 4.
+1) **Instruction Fetch (IF)**  
 
-2) Instruction decode (ID)
+- The Cpu0 fetches the instruction pointed to by the Program Counter (PC)  
+  into the Instruction Register (IR): `IR = [PC]`.  
+- The PC is then updated to point to the next instruction: `PC = PC + 4`.  
 
-- The control unit decodes the instruction stored in IR, which routes necessary 
-  data stored in registers to the ALU, and sets the ALU's operation mode based 
-  on the current instruction's opcode.
+2) **Instruction Decode (ID)**  
 
-3) Execute (EX)
+- The control unit decodes the instruction stored in `IR`, routes necessary  
+  data from registers to the ALU, and sets the ALU's operation mode based on  
+  the instruction's opcode.  
 
-- The ALU executes the operation designated by the control unit upon data in 
-  registers. 
-  Except load and store instructions, the result is stored in the destination 
-  register after the ALU is done. 
+3) **Execute (EX)**  
 
-4) Memory access (MEM)
+- The ALU executes the operation designated by the control unit on the data  
+  in registers.  
+- Except for load and store instructions, the result is stored in the  
+  destination register after execution.  
 
-- Read data from data cache to pipeline register MEM/WB if it is load 
-  instruction; write data from register to data cache if it is strore 
-  instruction.
-  
-5) Write-back (WB)
+4) **Memory Access (MEM)**  
 
-- Move data from pipeline register MEM/WB to Register if it is load instruction.
+- If the instruction is a load, data is read from the data cache into the  
+  pipeline register `MEM/WB`.  
+- If the instruction is a store, data is written from the register to the  
+  data cache.  
 
+5) **Write-Back (WB)**  
+
+- If the instruction is a load, data is moved from the pipeline register  
+  `MEM/WB` to the destination register.
 
 Cpu0's Interrupt Vector
 ~~~~~~~~~~~~~~~~~~~~~~~
@@ -738,22 +755,227 @@ Cpu0's Interrupt Vector
 LLVM Structure
 --------------
 
-This section introduces the compiler data structure, algorithm and mechanism 
-that llvm uses.
+This section introduces the compiler's data structures, algorithms, and  
+mechanisms used in LLVM.  
 
-Three-phase design
+SSA Form
+~~~~~~~~
+
+Static Single Assignment (SSA) form ensures that each variable is assigned  
+exactly once. In SSA form, a single instruction has one variable (destination  
+virtual registers).
+However one virtual register may map to two real registers.
+LLVM handles it by packing them into a single value, like a struct or a vector, 
+or using multiple instructions as follows:
+
+.. code-block:: console
+
+  %res = call {i32, i1} @llvm.sadd.with.overflow.i32(i32 %a, i32 %b)
+  %sum = extractvalue {i32, i1} %res, 0
+  %overflow = extractvalue {i32, i1} %res, 1
+
+.. code-block:: console
+
+  %y = call <4 x float> @llvm.ceil.v4f32(<4 x float> %x)
+
+LLVM IR follows SSA form, meaning it has an **unbounded number of virtual  
+registers**—each variable is assigned exactly once and is stored in a separate  
+virtual register.  
+
+As a result, the optimization steps in the code generation sequence—including  
+**Instruction Selection**, **Scheduling and Formation**, and **Register  
+Allocation**—retain all optimization opportunities.  
+
+For example, if we used a limited number of virtual registers instead of an  
+unlimited set, as shown in the following code:
+
+.. code-block:: console
+
+    %a = add nsw i32 1, i32 0
+    store i32 %a, i32* %c, align 4
+    %a = add nsw i32 2, i32 0
+    store i32 %a, i32* %c, align 4
+
+In the above example, a limited number of virtual registers is used, causing  
+virtual register `%a` to be assigned twice.  
+
+As a result, the compiler must generate the following code, since `%a` is  
+assigned as an output in two different statements.
+
+  => %a = add i32 1, i32 0
+      st %a,  i32* %c, 1
+      %a = add i32 2, i32 0
+      st %a,  i32* %c, 2
+
+The above code must execute sequentially.  
+
+In contrast, the SSA form shown below can be reordered and executed in parallel  
+using the following alternative version [#dragonbooks-10.2.3]_.
+
+.. code-block:: console
+
+    %a = add nsw i32 1, i32 0
+    store i32 %a, i32* %c, align 4
+    %b = add nsw i32 2, i32 0
+    store i32 %b, i32* %d, align 4
+
+  // version 1
+  => %a = add i32 1, i32 0
+      st %a,  i32* %c, 0
+      %b = add i32 2, i32 0
+      st %b,  i32* %d, 0
+
+  // version 2
+  => %a = add i32 1, i32 0
+      %b = add i32 2, i32 0
+      st %a,  i32* %c, 0
+      st %b,  i32* %d, 0
+
+  // version 3
+  => %b = add i32 2, i32 0
+      st %b,  i32* %d, 0
+      %a = add i32 1, i32 0
+      st %a,  i32* %c, 0
+
+
+DSA Form
+~~~~~~~~
+
+.. code-block:: console
+
+    for (int i = 0; i < 1000; i++) {
+      b[i] = f(g(a[i]));
+    }
+    
+For the source program above, the following represent its SSA form at both the  
+source code level and the LLVM IR level, respectively.  
+
+.. code-block:: c++
+
+    for (int i = 0; i < 1000; i++) {
+      t = g(a[i]);
+      b[i] = f(t);
+    }
+    
+.. code-block:: llvm
+
+      %pi = alloca i32
+      store i32 0, i32* %pi
+      %i = load i32, i32* %pi
+      %cmp = icmp slt i32 %i, 1000
+      br i1 %cmp, label %true, label %end
+    true:
+      %a_idx = add i32 %i, i32 %a_addr
+      %val0 = load i32, i32* %a_idx
+      %t = call i64 %g(i32 %val0)
+      %val1 = call i64 %f(i32 %t)
+      %b_idx = add i32 %i, i32 %b_addr
+      store i32 %val1, i32* %b_idx
+    end:
+
+    
+The following represents the **DSA (Dynamic Single Assignment) form**.  
+
+.. code-block:: c++
+
+    for (int i = 0; i < 1000; i++) {
+      t[i] = g(a[i]);
+      b[i] = f(t[i]);
+    }
+    
+.. code-block:: llvm
+
+      %pi = alloca i32
+      store i32 0, i32* %pi
+      %i = load i32, i32* %pi
+      %cmp = icmp slt i32 %i, 1000
+      br i1 %cmp, label %true, label %end
+    true:
+      %a_idx = add i32 %i, i32 %a_addr
+      %val0 = load i32, i32* %a_idx
+      %t_idx = add i32 %i, i32 %t_addr
+      %temp = call i64 %g(i32 %val0)
+      store i32 %temp, i32* %t_idx
+      %val1 = call i64 %f(i32 %temp)
+      %b_idx = add i32 %i, i32 %b_addr
+      store i32 %val1, i32* %b_idx
+    end:
+    
+In some internet video applications and multi-core (SMP) platforms, splitting  
+`g()` and `f()` into two separate loops can improve performance.  
+
+DSA allows this transformation, whereas SSA does not. While extra analysis on  
+`%temp` in SSA could reconstruct `%t_idx` and `%t_addr` as shown in the DSA  
+form below, compiler transformations typically follow a high-to-low approach.  
+
+Additionally, LLVM IR already loses the `for` loop structure, even though it  
+can be reconstructed through further analysis.  
+
+For this reason, in this book—as well as in most compiler-related research—the  
+discussion follows a high-to-low transformation premise. Otherwise, it would  
+fall into the domain of **reverse engineering** in assemblers or compilers.  
+
+.. code-block:: c++
+
+    for (int i = 0; i < 1000; i++) {
+      t[i] = g(a[i]);
+    }
+    
+    for (int i = 0; i < 1000; i++) {
+      b[i] = f(t[i]);
+    }
+    
+.. code-block:: llvm
+
+      %pi = alloca i32
+      store i32 0, i32* %pi
+      %i = load i32, i32* %pi
+      %cmp = icmp slt i32 %i, 1000
+      br i1 %cmp, label %true, label %end
+    true:
+      %a_idx = add i32 %i, i32 %a_addr
+      %val0 = load i32, i32* %a_idx
+      %t_idx = add i32 %i, i32 %t_addr
+      %temp = call i32 %g(i32 %val0)
+      store i32 %temp, i32* %t_idx
+    end:
+
+      %pi = alloca i32
+      store i32 0, i32* %pi
+      %i = load i32, i32* %pi
+      %cmp = icmp slt i32 %i, 1000
+      br i1 %cmp, label %true, label %end
+    true:
+      %t_idx = add i32 %i, i32 %t_addr
+      %temp = load i32, i32* %t_idx
+      %val1 = call i32 %f(i32 %temp)
+      %b_idx = add i32 %i, i32 %b_addr
+      store i32 %val1, i32* %b_idx
+    end:
+
+Now, data dependencies exist only on `t[i]` between `"t[i] = g(a[i])"` and  
+`"b[i] = f(t[i])"` for each `i = (0..999)`.  
+
+As a result, the program can execute in various orders, offering significant  
+parallel processing opportunities for **multi-core (SMP) systems** and  
+**heterogeneous processors**.  
+
+For example, `g(x)` can be executed on a **GPU**, while `f(x)` runs on a **CPU**.  
+
+Three-Phase Design
 ~~~~~~~~~~~~~~~~~~
 
-This content and the following sub-section comes from the AOSA chapter on 
-LLVM written by Chris Lattner [#aosa-book]_.
+This content and the following sub-section are adapted from the AOSA chapter  
+on LLVM written by Chris Lattner [#aosa-book]_.  
 
-The most popular design for a traditional static compiler (like most C 
-compilers) is the three phase design whose major components are the front end, 
-the optimizer and the back end, as seen in :numref:`llvmstructure-f6`. 
-The front end parses source code, checking it for errors, and builds a 
-language-specific Abstract Syntax Tree (AST) to represent the input code. 
-The AST is optionally converted to a new representation for optimization, and 
-the optimizer and back end are run on the code.
+The most common design for a traditional static compiler (such as most C  
+compilers) follows a three-phase structure, consisting of the front end,  
+the optimizer, and the back end, as shown in :numref:`llvmstructure-f6`.  
+
+The **front end** parses the source code, checks for errors, and constructs  
+a language-specific Abstract Syntax Tree (AST) to represent the input code.  
+The AST may then be converted into an intermediate representation for  
+optimization, after which the **optimizer** and **back end** process the code.
 
 .. _llvmstructure-f6: 
 .. figure:: ../Fig/llvmstructure/6.png
@@ -764,26 +986,26 @@ the optimizer and back end are run on the code.
 
   Three Major Components of a Three Phase Compiler
 
-The optimizer is responsible for doing a broad variety of transformations to 
-try to improve the code's running time, such as eliminating redundant 
-computations, and is usually more or less independent of language and target. 
-The back end (also known as the code generator) then maps the code onto the 
-target instruction set. 
-In addition to making correct code, it is responsible for generating good code 
-that takes advantage of unusual features of the supported architecture. 
-Common parts of a compiler back end include instruction selection, register 
-allocation, and instruction scheduling.
+The optimizer performs a wide range of transformations to improve code execution  
+efficiency, such as eliminating redundant computations. It is generally  
+independent of both the source language and the target architecture.  
 
-This model applies equally well to interpreters and JIT compilers. 
-The Java Virtual Machine (JVM) is also an implementation of this model, which 
-uses Java bytecode as the interface between the front end and optimizer.
+The back end, also known as the code generator, maps the optimized code onto  
+the target instruction set. In addition to producing correct code, it is  
+responsible for generating efficient code that leverages the unique features of  
+the target architecture. Common components of a compiler back end include  
+instruction selection, register allocation, and instruction scheduling.  
 
-The most important win of this classical design comes when a compiler decides 
-to support multiple source languages or target architectures. 
-If the compiler uses a common code representation in its optimizer, then a 
-front end can be written for any language that can compile to it, and a back 
-end can be written for any target that can compile from it, as shown in 
-:numref:`llvmstructure-f7`.
+This model applies equally well to interpreters and Just-In-Time (JIT)  
+compilers. The Java Virtual Machine (JVM) is an example of this model, using  
+Java bytecode as the interface between the front end and the optimizer.  
+
+The greatest advantage of this classical design becomes evident when a compiler  
+supports multiple source languages or target architectures. If the compiler's  
+optimizer uses a common intermediate representation, a front end can be written  
+for any language that compiles to this representation, and a back end can be  
+developed for any target that compiles from it, as illustrated in  
+:numref:`llvmstructure-f7`.  
 
 .. _llvmstructure-f7: 
 .. figure:: ../Fig/llvmstructure/7.png
@@ -794,47 +1016,45 @@ end can be written for any target that can compile from it, as shown in
 
   Retargetablity
 
-With this design, porting the compiler to support a new source language (e.g., 
-Algol or BASIC) requires implementing a new front end, but the existing 
-optimizer and back end can be reused. 
-If these parts weren't separated, implementing a new source language would 
-require starting over from scratch, so supporting N targets and M source 
-languages would need N*M compilers.
+With this design, porting the compiler to support a new source language  
+(e.g., Algol or BASIC) requires implementing a new front end, while the  
+existing optimizer and back end can be reused. If these components were not  
+separated, adding a new source language would require rebuilding the entire  
+compiler from scratch. Supporting `N` targets and `M` source languages would  
+then necessitate developing `N * M` compilers.  
 
-Another advantage of the three-phase design (which follows directly from 
-retargetability) is that the compiler serves a broader set of programmers than 
-it would if it only supported one source language and one target. 
-For an open source project, this means that there is a larger community of 
-potential contributors to draw from, which naturally leads to more enhancements 
-and improvements to the compiler. 
-This is the reason why open source compilers that serve many communities (like 
-GCC) tend to generate better optimized machine code than narrower compilers 
-like FreePASCAL. 
-This isn't the case for proprietary compilers, whose quality is directly 
-related to the project's budget. 
-For example, the Intel ICC Compiler is widely known for the quality of code it 
-generates, even though it serves a narrow audience.
+Another advantage of the three-phase design, which stems from its  
+retargetability, is that the compiler can serve a broader range of programmers  
+compared to one that supports only a single source language and target. For an  
+open-source project, this translates to a larger community of potential  
+contributors, leading to more enhancements and improvements.  
 
-A final major win of the three-phase design is that the skills required to 
-implement a front end are different than those required for the optimizer and 
-back end. 
-Separating these makes it easier for a "front-end person" to enhance and 
-maintain their part of the compiler. 
-While this is a social issue, not a technical one, it matters a lot in 
-practice, particularly for open source projects that want to reduce the barrier 
-to contributing as much as possible.
+This is why open-source compilers that cater to diverse communities, such as  
+GCC, often generate better-optimized machine code than narrower compilers like  
+FreePASCAL. In contrast, the quality of proprietary compilers depends directly  
+on their development budget. For example, the Intel ICC compiler is widely  
+recognized for producing high-quality machine code despite serving a smaller  
+audience.  
 
-The most important aspect of its design is the LLVM Intermediate Representation 
-(IR), which is the form it uses to represent code in the compiler. 
-LLVM IR is designed to host mid-level analyses and transformations that you 
-find in the optimizer chapter of a compiler. 
-It was designed with many specific goals in mind, including supporting 
-lightweight runtime optimizations, cross-function/interprocedural 
-optimizations, whole program analysis, and aggressive restructuring 
-transformations, etc. 
-The most important aspect of it, though, is that it is itself defined as a 
-first class language with well-defined semantics. 
-To make this concrete, here is a simple example of a .ll file:
+A final major benefit of the three-phase design is that the skills required to  
+develop a front end differ from those needed for the optimizer and back end.  
+By separating these concerns, "front-end developers" can focus on enhancing  
+and maintaining their part of the compiler. While this is a social rather than  
+a technical factor, it has a significant impact in practice—especially for  
+open-source projects aiming to lower barriers to contribution.  
+
+The most critical aspect of this design is the **LLVM Intermediate  
+Representation (IR)**, which serves as the compiler's core code representation.  
+LLVM IR is designed to support mid-level analysis and transformations commonly  
+found in the optimization phase of a compiler.  
+
+It was created with several specific goals, including support for lightweight  
+runtime optimizations, cross-function and interprocedural optimizations, whole-  
+program analysis, and aggressive restructuring transformations. However, its  
+most defining characteristic is that it is a first-class language with well-  
+defined semantics.  
+
+To illustrate this, here is a simple example of an LLVM `.ll` file:
 
 .. code-block:: llvm
 
@@ -869,57 +1089,63 @@ To make this concrete, here is a simple example of a .ll file:
     return add2(a-1, b+1);
   }
 
-As you can see from this example, LLVM IR is a low-level RISC-like virtual 
-instruction set. 
-Like a real RISC instruction set, it supports linear sequences of simple 
-instructions like add, subtract, compare, and branch. 
-These instructions are in three address form, which means that they take some 
-number of inputs and produce a result in a different register. 
-LLVM IR supports labels and generally looks like a weird form of assembly 
-language.
+As shown in this example, LLVM IR is a low-level, RISC-like virtual instruction  
+set. Like a real RISC instruction set, it supports linear sequences of simple  
+instructions such as `add`, `subtract`, `compare`, and `branch`.  
 
-Unlike most RISC instruction sets, LLVM is strongly typed with a simple type 
-system (e.g., i32 is a 32-bit integer, i32** is a pointer to pointer to 32-bit 
-integer) and some details of the machine are abstracted away. 
-For example, the calling convention is abstracted through call and ret 
-instructions and explicit arguments. 
-Another significant difference from machine code is that the LLVM IR doesn't 
-use a fixed set of named registers, it uses an infinite set of temporaries 
-named with a % character.
+These instructions follow a three-address format, meaning they take inputs and  
+produce a result in a different register. LLVM IR supports labels and generally  
+resembles an unusual form of assembly language.  
 
-Beyond being implemented as a language, LLVM IR is actually defined in three 
-isomorphic forms: the textual format above, an in-memory data structure 
-inspected and modified by optimizations themselves, and an efficient and dense 
-on-disk binary "bitcode" format. 
-The LLVM Project also provides tools to convert the on-disk format from text to 
-binary: llvm-as assembles the textual .ll file into a .bc file containing the 
-bitcode goop and llvm-dis turns a .bc file into a .ll file.
+Unlike most RISC instruction sets, LLVM IR is strongly typed and uses a simple  
+type system (e.g., `i32` represents a 32-bit integer, and `i32**` is a pointer  
+to a pointer to a 32-bit integer). Additionally, some machine-specific details  
+are abstracted away.  
 
-The intermediate representation of a compiler is interesting because it can be 
-a "perfect world" for the compiler optimizer: unlike the front end and back end 
-of the compiler, the optimizer isn't constrained by either a specific source 
-language or a specific target machine. 
-On the other hand, it has to serve both well: it has to be designed to be easy 
-for a front end to generate and be expressive enough to allow important 
-optimizations to be performed for real targets.
+For instance, the calling convention is handled through `call` and `ret`  
+instructions with explicit arguments. Another key difference from machine code  
+is that LLVM IR does not use a fixed set of named registers. Instead, it  
+employs an infinite set of temporaries prefixed with `%`.  
 
+Beyond being a language, LLVM IR exists in three isomorphic forms:
 
+- A **textual format** (as seen above).  
+- An **in-memory data structure** used by optimizations.  
+- A **compact binary "bitcode" format** stored on disk.  
+
+The LLVM project provides tools to convert between these forms:
+
+- `llvm-as` assembles a textual `.ll` file into a `.bc` file containing  
+  bitcode.  
+- `llvm-dis` disassembles a `.bc` file back into a `.ll` file.  
+
+The intermediate representation (IR) of a compiler is crucial because it  
+creates an ideal environment for optimizations. Unlike the front end and  
+back end, the optimizer is not restricted to a specific source language or  
+target machine.  
+
+However, it must effectively serve both. It should be easy for the front end  
+to generate while remaining expressive enough to enable important  
+optimizations for real hardware targets.
 
 LLVM's Target Description Files: .td
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The "mix and match" approach allows target authors to choose what makes sense 
-for their architecture and permits a large amount of code reuse across 
-different targets. 
-This brings up another challenge: each shared component needs to be able to 
-reason about target specific properties in a generic way. 
-For example, a shared register allocator needs to know the register file of 
-each target and the constraints that exist between instructions and their 
-register operands. 
-LLVM's solution to this is for each target to provide a target description 
-in a declarative domain-specific language (a set of .td files) processed by the 
-tblgen tool. 
-The (simplified) build process for the x86 target is shown in 
+The "mix and match" approach allows target authors to select components that  
+best suit their architecture, enabling significant code reuse across different  
+targets.  
+
+However, this introduces a challenge: each shared component must be capable of  
+handling target-specific properties in a generic way. For instance, a shared  
+register allocator must be aware of the register file of each target and the  
+constraints that exist between instructions and their register operands.  
+
+LLVM addresses this challenge by requiring each target to provide a target  
+description using a declarative domain-specific language, defined in a set of  
+`.td` files. These files are processed by the `tblgen` tool to generate the  
+necessary target-specific data structures.  
+
+The simplified build process for the x86 target is illustrated in  
 :numref:`llvmstructure-f8`.
 
 .. _llvmstructure-f8: 
@@ -931,11 +1157,12 @@ The (simplified) build process for the x86 target is shown in
 
   Simplified x86 Target Definition
 
-The different subsystems supported by the .td files allow target authors to 
-build up the different pieces of their target. 
-For example, the x86 back end defines a register class that holds all of its 
-32-bit registers named "GR32" (in the .td files, target specific definitions 
-are all caps) like this:
+The different subsystems supported by `.td` files enable target authors to  
+construct various components of their target architecture.  
+
+For example, the x86 backend defines a register class named `"GR32"`, which  
+contains all 32-bit registers. In `.td` files, target-specific definitions  
+are conventionally written in all capital letters. The definition is as follows:
 
 .. code-block:: c++
 
@@ -943,11 +1170,13 @@ are all caps) like this:
     [EAX, ECX, EDX, ESI, EDI, EBX, EBP, ESP,
      R8D, R9D, R10D, R11D, R14D, R15D, R12D, R13D]> { ... }
      
-The language used in .td files are Target(Hardware) Description Language that
-let llvm backend compiler engineers to define the transformation for llvm IR
-and the machine instructions of their CPUs. In frontend, compiler development
-tools provide the "Parser Generator" for compiler development; in backend,
-they provide the "Machine Code Generator" for development, as 
+The language used in `.td` files is the Target (Hardware) Description Language,  
+which allows LLVM backend compiler engineers to define the transformation from  
+LLVM IR to machine instructions for their CPUs.  
+
+In the frontend, compiler development tools provide a **Parser Generator** for  
+building compilers. In the backend, they offer a **Machine Code Generator** to  
+facilitate instruction selection and code generation, as shown in  
 :numref:`llvmstructure_frontendTblGen` and :numref:`llvmstructure_llvmTblGen`.
 
 .. _llvmstructure_frontendTblGen:
@@ -958,29 +1187,30 @@ they provide the "Machine Code Generator" for development, as
 .. graphviz:: ../Fig/llvmstructure/llvmTblGen.gv
   :caption: llvm TableGen Flow
 
+Since C++ grammar is more context-sensitive than context-free, the LLVM frontend  
+project Clang uses a hand-coded parser instead of BNF generator tools.  
 
-Since the c++'s grammar is more context-sensitive than context-free, llvm 
-frontend project clang uses handcode parser without BNF generator tools.
-In backend development, the IR to machine instructions transformation can
-get great benefits from TableGen tools. Though c++ compiler cannot get
-benefit from BNF generator tools, many computer languages and script languages
-are more context-free and can get benefit from the tools.
+In backend development, transforming IR into machine instructions benefits  
+greatly from TableGen tools. While C++ compilers do not benefit from BNF  
+generator tools, many other programming and scripting languages, which are  
+more context-free, can take advantage of them.  
 
-The following come from wiki:
+The following information comes from Wikipedia:  
 
-Java syntax has a context-free grammar that can be parsed by a simple LALR 
-parser. Parsing C++ is more complicated [#java-cpp]_.
+Java syntax has a context-free grammar that can be parsed by a simple LALR  
+parser. Parsing C++ is more complicated [#java-cpp]_.  
 
-The gnu g++ compiler abandoned BNF tools since version 3.x. 
-I think another reason beyond that c++ has more context-sensitive grammar is
-handcode parser can provide better error diagnosis than BNF tool since
-BNF tool always select the rules from BNF grammar if match.
-
+The GNU `g++` compiler abandoned BNF tools starting from version 3.x.  
+Beyond the fact that C++ has a more context-sensitive grammar, another reason  
+for this decision is that a hand-coded parser can provide better error  
+diagnostics than a BNF-based tool. BNF tools always select rules from the  
+grammar when a match is found, potentially leading to less precise error  
+reporting.
 
 LLVM Code Generation Sequence
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Following diagram come from tricore_llvm.pdf.
+Following diagram is from `tricore_llvm.pdf`.
 
 .. _llvmstructure-f9: 
 .. figure:: ../Fig/llvmstructure/9.png
@@ -988,17 +1218,18 @@ Following diagram come from tricore_llvm.pdf.
   :height: 537 px
   :align: center
 
-  tricore_llvm.pdf: Code generation sequence. On the path from LLVM code to 
-  assembly code, numerous passes are run through and several data structures 
-  are used to represent the intermediate results.
+  `tricore_llvm.pdf`: **Code Generation Sequence**  
+  On the path from LLVM code to assembly code, numerous passes are executed,  
+  and several data structures are used to represent intermediate results.
 
-LLVM is a Static Single Assignment (SSA) based representation. 
-LLVM provides an infinite virtual registers which can hold values of primitive 
-type (integral, floating point, or pointer values). 
-So, every operand can be saved in different virtual register in llvm SSA 
-representation. 
-Comment is “;” in llvm representation. 
-Following is the llvm SSA instructions.
+LLVM is a **Static Single Assignment (SSA)**-based representation.  
+It provides an infinite number of virtual registers that can hold values of  
+primitive types, including integral, floating-point, and pointer values.  
+
+In LLVM's SSA representation, each operand is stored in a separate virtual  
+register. Comments in LLVM IR are denoted by the `;` symbol.  
+
+The following are examples of LLVM SSA instructions:
 
 .. code-block:: llvm
 
@@ -1010,100 +1241,109 @@ Following is the llvm SSA instructions.
               ;  memory value to %a1
   %a3 = add i32 %a2, 1  ; add %a2 and 1 and save to %a3
 
-We explain the code generation process as below. 
-If you don't feel comfortable, please check tricore_llvm.pdf section 4.2 first. 
-You can read “The LLVM Target-Independent Code Generator” from here [#codegen]_ 
-and “LLVM Language Reference Manual” from here [#langref]_ 
-before go ahead, but we think the section 
-4.2 of tricore_llvm.pdf is enough and suggesting you read the web site 
-documents as above only when you are still not 
-quite understand, even if you have read the articles of this section and 
-next two sections for DAG and Instruction Selection.
+We explain the code generation process below.  
+If you are unfamiliar with the concepts, we recommend first reviewing  
+Section 4.2 of `tricore_llvm.pdf`.  
 
-1. Instruction Selection
+You may also refer to *The LLVM Target-Independent Code Generator* [#codegen]_  
+and the *LLVM Language Reference Manual* [#langref]_. However, we believe that  
+Section 4.2 of `tricore_llvm.pdf` provides sufficient information.  
 
-.. code-block:: console
+We suggest consulting the above web documents only if you still have  
+difficulties understanding the material, even after reading this section and  
+the next two sections on **DAG** and **Instruction Selection**.
 
-  // In this stage, transfer the llvm opcode into machine opcode, but the operand
-  //  still is llvm virtual operand.
-      store i16 0, i16* %a // store 0 of i16 type to where virtual register %a
-                           //  point to.
-  =>  st i16 0, i32* %a    // Use Cpu0 backend instruction st instead of IR store.
+1. **Instruction Selection**  
 
-2. Scheduling and Formation
+.. code-block:: console  
 
-.. code-block:: console
+  // In this stage, the LLVM opcode is transformed into a machine opcode,  
+  // but the operand remains an LLVM virtual operand.  
+      store i16 0, i16* %a  // Store 0 of i16 type to the location pointed to by %a  
+  =>  st i16 0, i32* %a     // Use the Cpu0 backend instruction `st` instead of `store`.  
 
-  // In this stage, reorder the instructions sequence for optimization in
-  //  instructions cycle or in register pressure.
-      st i32 %a, i16* %b,  i16 5 // st %a to *(%b+5)
-      st %b, i32* %c, i16 0
-      %d = ld i32* %c
-  
-  // Transfer above instructions order as follows. In RISC CPU of Mips, the ld 
-  //  %c uses the result of the previous instruction st %c. So it must waits 1
-  //  cycle. Meaning the ld cannot follow st immediately.
-  =>  st %b, i32* %c, i16 0
-      st i32 %a, i16* %b,  i16 5
-      %d = ld i32* %c, i16 0
-  // If without reorder instructions, a instruction nop which do nothing must be
-  //  filled, contribute one instruction cycle more than optimization. (Actually,
-  //  Mips is scheduled with hardware dynamically and will insert nop between st
-  //  and ld instructions if compiler didn't insert nop.)
-      st i32 %a, i16* %b,  i16 5
-      st %b, i32* %c, i16 0
-      nop
-      %d = ld i32* %c, i16 0
-  
-  // Minimum register pressure
-  //  Suppose %c is alive after the instructions basic block (meaning %c will be
-  //  used after the basic block), %a and %b are not alive after that.
-  // The following no-reorder-version need 3 registers at least
-      %a = add i32 1, i32 0
-      %b = add i32 2, i32 0
-      st %a,  i32* %c, 1
-      st %b,  i32* %c, 2
-  
-  // The reorder version needs 2 registers only (by allocate %a and %b in the same
-  //  register)
-  => %a = add i32 1, i32 0
-      st %a,  i32* %c, 1
-      %b = add i32 2, i32 0
-      st %b,  i32* %c, 2
+2. **Scheduling and Formation**  
 
-3. SSA-based Machine Code Optimization
+.. code-block:: console  
 
-   For example, common expression remove, shown in next section DAG.
-  
-4. Register Allocation
+  // In this stage, instruction order is optimized for execution cycles  
+  // or to reduce register pressure.  
+      st i32 %a, i16* %b, i16 5  // Store %a to *(%b + 5)  
+      st %b, i32* %c, i16 0  
+      %d = ld i32* %c  
 
-   Allocate real register for virtual register.
-  
-5. Prologue/Epilogue Code Insertion
+  // The instruction order is rearranged. In RISC CPUs like MIPS,  
+  // `ld %c` depends on the previous `st %c`, requiring a 1-cycle delay.  
+  // This means `ld` cannot immediately follow `st`.  
+  =>  st %b, i32* %c, i16 0  
+      st i32 %a, i16* %b, i16 5  
+      %d = ld i32* %c, i16 0  
 
-   Explain in section Add Prologue/Epilogue functions
-  
-6. Late Machine Code Optimizations
+  // Without instruction reordering, a `nop` instruction must be inserted,  
+  // adding an extra cycle. (In reality, MIPS dynamically schedules  
+  // instructions and inserts `nop` between `st` and `ld` if necessary.)  
+      st i32 %a, i16* %b, i16 5  
+      st %b, i32* %c, i16 0  
+      nop  
+      %d = ld i32* %c, i16 0  
 
-   Any “last-minute” peephole optimizations of the final machine code can be 
-   applied during this phase. 
-   For example, replace x = x * 2 by x = x < 1 for integer operand.
-  
-7. Code Emission
+  // **Minimizing Register Pressure**  
+  // Suppose `%c` remains live after the basic block, but `%a` and `%b` do not.  
+  // Without reordering, at least 3 registers are required:  
+      %a = add i32 1, i32 0  
+      %b = add i32 2, i32 0  
+      st %a, i32* %c, 1  
+      st %b, i32* %c, 2  
 
-   Finally, the completed machine code is emitted. For static compilation, 
-   the end result is an assembly code file; for JIT compilation, the opcodes 
-   of the machine instructions are written into memory. 
+  // The reordered version reduces register usage to 2 by allocating `%a`  
+  // and `%b` in the same...
 
-The llvm code generation sequence also can be obtained by 
-``llc -debug-pass=Structure`` as the following. The first 4 code generation 
-sequences from :numref:`llvmstructure-f9` are in the 
-**'DAG->DAG Pattern Instruction Selection'** of the ``llc -debug-pass=Structure`` 
-displayed. The order of Peephole Optimizations and Prologue/Epilogue Insertion
-is inconsistent between :numref:`llvmstructure-f9` and 
-``llc -debug-pass=Structure`` (please check the * in the following). 
-No need to be bothered with this since the the LLVM is under development and 
-changed from time to time. 
+  // Register allocation optimization  
+  => %a = add i32 1, i32 0  
+      st %a, i32* %c, 1  
+      %b = add i32 2, i32 0  
+      st %b, i32* %c, 2    
+
+3. **SSA-Based Machine Code Optimization**  
+
+   For example, common subexpression elimination, as shown in the next  
+   section on **DAG**.  
+
+4. **Register Allocation**  
+
+   Assign physical registers to virtual registers.  
+
+5. **Prologue/Epilogue Code Insertion**  
+
+   Explained in the section **Add Prologue/Epilogue Functions**.  
+
+6. **Late Machine Code Optimizations**  
+
+   Any "last-minute" peephole optimizations of the final machine code  
+   are applied in this phase.  
+   For example, replacing `x = x * 2` with `x = x << 1` for integer operands.  
+
+7. **Code Emission**  
+
+   The final machine code is emitted.  
+   - For **static compilation**, the output is an assembly file.  
+   - For **JIT compilation**, machine instruction opcodes are written into memory.  
+
+The LLVM code generation sequence can also be viewed using:  
+
+``llc -debug-pass=Structure``  
+
+as shown below. The first four code generation stages from  
+:numref:`llvmstructure-f9` appear in the  
+**'DAG->DAG Pattern Instruction Selection'** section of the  
+``llc -debug-pass=Structure`` output.  
+
+The order of **Peephole Optimizations** and **Prologue/Epilogue Insertion**  
+differs between :numref:`llvmstructure-f9` and  
+``llc -debug-pass=Structure`` (marked with `*` in the output).  
+
+There is no need to be concerned about this, as LLVM is continuously evolving,  
+and its internal sequence may change over time.
 
 .. code-block:: console
 
@@ -1209,195 +1449,20 @@ changed from time to time.
       * Mips Assembly Printer
         Delete Garbage Collector Information
 
-- Since Instructions Scheduling and Dead Code Removing will affect Register 
-  Allocation. However llvm does not go from later pass onto earlier pass again.
-  The Register Allocation is after Instruction Scheduling. The passes from
-  Live Variable Analysis to Greedy Register Allocator are passes for Register
-  Allocation. About Register Allocation Passes are here [#cmu-rac]_ [#ra-wiki]_.
+- Since **Instruction Scheduling** and **Dead Code Elimination** affect  
+  **Register Allocation**, LLVM does not revisit earlier passes once a later  
+  pass is completed. **Register Allocation** occurs after **Instruction  
+  Scheduling**.  
+
+  The passes from **Live Variable Analysis** to **Greedy Register Allocator**  
+  handle **Register Allocation**. More details on register allocation passes  
+  can be found here: [#cmu-rac]_ [#ra-wiki]_.  
 
 
-SSA form
-~~~~~~~~
+LLVM vs. GCC in Structure
+~~~~~~~~~~~~~~~~~~~~~~~~~
 
-SSA form says that each variable is assigned exactly once. One instruction
-in SSA form can have more than one destination virtual register.
-LLVM IR is SSA form which has unbounded virtual registers (each variable is 
-assigned exactly once and is keeped in different virtual register).
-As the result, the optimization steps used in code generation sequence which 
-include stages of **Instruction Selection**, **Scheduling and Formation** and 
-**Register Allocation**, won't loss any optimization opportunity. 
-For example, if using limited virtual registers instead of unlimited as the 
-following code,
-
-.. code-block:: console
-
-    %a = add nsw i32 1, i32 0
-    store i32 %a, i32* %c, align 4
-    %a = add nsw i32 2, i32 0
-    store i32 %a, i32* %c, align 4
-
-Above using limited virtual registers, so virtual register %a used twice. 
-Compiler have to generate the following code since it assigns virtual register 
-%a as output at two different statement.
-
-  => %a = add i32 1, i32 0
-      st %a,  i32* %c, 1
-      %a = add i32 2, i32 0
-      st %a,  i32* %c, 2
-
-Above code have to run in sequence. On the other hand, the SSA form as the 
-following can be reodered and run in parallel with the following different 
-version [#dragonbooks-10.2.3]_.
-
-.. code-block:: console
-
-    %a = add nsw i32 1, i32 0
-    store i32 %a, i32* %c, align 4
-    %b = add nsw i32 2, i32 0
-    store i32 %b, i32* %d, align 4
-
-  // version 1
-  => %a = add i32 1, i32 0
-      st %a,  i32* %c, 0
-      %b = add i32 2, i32 0
-      st %b,  i32* %d, 0
-
-  // version 2
-  => %a = add i32 1, i32 0
-      %b = add i32 2, i32 0
-      st %a,  i32* %c, 0
-      st %b,  i32* %d, 0
-
-  // version 3
-  => %b = add i32 2, i32 0
-      st %b,  i32* %d, 0
-      %a = add i32 1, i32 0
-      st %a,  i32* %c, 0
-
-
-DSA form
-~~~~~~~~
-
-.. code-block:: console
-
-    for (int i = 0; i < 1000; i++) {
-      b[i] = f(g(a[i]));
-    }
-    
-For the source program as above, the following are the SSA form in source code
-level and llvm IR level respectively.
-
-.. code-block:: c++
-
-    for (int i = 0; i < 1000; i++) {
-      t = g(a[i]);
-      b[i] = f(t);
-    }
-    
-.. code-block:: llvm
-
-      %pi = alloca i32
-      store i32 0, i32* %pi
-      %i = load i32, i32* %pi
-      %cmp = icmp slt i32 %i, 1000
-      br i1 %cmp, label %true, label %end
-    true:
-      %a_idx = add i32 %i, i32 %a_addr
-      %val0 = load i32, i32* %a_idx
-      %t = call i64 %g(i32 %val0)
-      %val1 = call i64 %f(i32 %t)
-      %b_idx = add i32 %i, i32 %b_addr
-      store i32 %val1, i32* %b_idx
-    end:
-
-    
-The following is the DSA (Dynamic Single Assignment) form.
-
-.. code-block:: c++
-
-    for (int i = 0; i < 1000; i++) {
-      t[i] = g(a[i]);
-      b[i] = f(t[i]);
-    }
-    
-.. code-block:: llvm
-
-      %pi = alloca i32
-      store i32 0, i32* %pi
-      %i = load i32, i32* %pi
-      %cmp = icmp slt i32 %i, 1000
-      br i1 %cmp, label %true, label %end
-    true:
-      %a_idx = add i32 %i, i32 %a_addr
-      %val0 = load i32, i32* %a_idx
-      %t_idx = add i32 %i, i32 %t_addr
-      %temp = call i64 %g(i32 %val0)
-      store i32 %temp, i32* %t_idx
-      %val1 = call i64 %f(i32 %temp)
-      %b_idx = add i32 %i, i32 %b_addr
-      store i32 %val1, i32* %b_idx
-    end:
-    
-In some internet video applications and muti-core (SMP) platforms, splitting g() 
-and f() to two different loop have better perfomance. DSA can split as the 
-following while SSA cannot. Of course, it's possible to do extra analysis on
-%temp of SSA and reverse it into %t_idx and %t_addr as the following DSA. But in 
-compiler discussion, the translation is from high to low level of machine code.
-Besides, as you see, the llvm ir lose the for loop information already though
-it can be reconstructed by extra analysis. So, in this book and almost every
-paper in compiler discuss with this high-to-low premise, otherwise it's talking
-about reverse engineering in assembler or compiler.
-
-
-.. code-block:: c++
-
-    for (int i = 0; i < 1000; i++) {
-      t[i] = g(a[i]);
-    }
-    
-    for (int i = 0; i < 1000; i++) {
-      b[i] = f(t[i]);
-    }
-    
-.. code-block:: llvm
-
-      %pi = alloca i32
-      store i32 0, i32* %pi
-      %i = load i32, i32* %pi
-      %cmp = icmp slt i32 %i, 1000
-      br i1 %cmp, label %true, label %end
-    true:
-      %a_idx = add i32 %i, i32 %a_addr
-      %val0 = load i32, i32* %a_idx
-      %t_idx = add i32 %i, i32 %t_addr
-      %temp = call i32 %g(i32 %val0)
-      store i32 %temp, i32* %t_idx
-    end:
-
-      %pi = alloca i32
-      store i32 0, i32* %pi
-      %i = load i32, i32* %pi
-      %cmp = icmp slt i32 %i, 1000
-      br i1 %cmp, label %true, label %end
-    true:
-      %t_idx = add i32 %i, i32 %t_addr
-      %temp = load i32, i32* %t_idx
-      %val1 = call i32 %f(i32 %temp)
-      %b_idx = add i32 %i, i32 %b_addr
-      store i32 %val1, i32* %b_idx
-    end:
-
-Now, the data dependences only exist on t[i] between "t[i] = g(a[i])" and
-"b[i] = f(t[i])" for each i = (0..999). The program can be run on many different
-order, and it provides many parallel processing opportunities for multi-core 
-(SMP) and heterogeneous processors. For instance, g(x) is run on GPU and f(x)
-is run on CPU.
-
-
-LLVM vs GCC in structure
-~~~~~~~~~~~~~~~~~~~~~~~~
-
-GCC document is here [#gnu]_ .
+The official GCC documentation can be found here: [#gnu]_.
 
 .. table:: clang vs gcc-frontend
 
@@ -1422,36 +1487,46 @@ GCC document is here [#gnu]_ .
   codgen                  tblgen for td                 codgen for md [#md]_
   ======================  ============================  =============
 
-Both LLVM IR and GIMPLE are SSA form. 
-LLVM IR originally designed to be fully reusable across arbitrary tools besides 
-compiler itself. GCC community never had desire to enable any tools besides 
-compiler (Richard Stallman resisted attempts to make IR more reusable to prevent 
-third-party commercial tools from reusing GCC's frontends). Thus GIMPLE
-(GCC's IR) was never considered to be more than an implementation detail, in 
-particular it doesn't provide a full description of compiled program (e.g. it 
-lacks program's call graph, type definitions, stack offsets and alias 
-information) [#llvm-ir-vs-gimple]_. 
+Both **LLVM IR** and **GIMPLE** use SSA form.  
 
-LLVM blog
+LLVM IR was originally designed to be fully reusable across various tools,  
+not just within the compiler itself. In contrast, the **GCC community** never  
+intended for GIMPLE to be used beyond the compiler.  
+
+Richard Stallman actively resisted efforts to make GCC's IR more reusable to  
+prevent third-party commercial tools from leveraging GCC frontends.  
+As a result, **GIMPLE (GCC's IR)** was never designed to fully describe a  
+compiled program.  
+
+For example, it lacks critical information such as the program's **call graph**,  
+**type definitions**, **stack offsets**, and **alias information**  
+[#llvm-ir-vs-gimple]_.  
+
+LLVM Blog
 ~~~~~~~~~
 
-User uses null pointer to guard code is correct. Undef is only happened in 
-compiler optimization [#null_pointer_ex]_. 
-However when user forget to bind null pointer in guarding code directly or 
-indirectly, compiler such as llvm and gcc may treat null pointer as undef and 
-optimzation out [#null_pointer]_.
+A user may rely on a **null pointer** as a guard to ensure code correctness.  
+However, **undef** values occur only during compiler optimizations  
+[#null_pointer_ex]_.  
 
+If a user fails to explicitly bind a null pointer—either directly or  
+indirectly—compilers like **LLVM** and **GCC** may interpret the null pointer  
+as **undef**, leading to unexpected optimization behavior  
+[#null_pointer]_.  
 
 CFG (Control Flow Graph)
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
-The SSA form can be depicted in CFG and do optimization through the analysis on
-CFG. Each node in the graph represents a basic block, i.e. a straight-line piece 
-of code without any jumps or jump targets; jump targets start a block, and jumps 
-end a block [#cfg-wiki]_.
+The SSA form can be represented using a **Control Flow Graph (CFG)** and  
+optimized by analyzing it.  
 
-The following is an example of CFG. **The jump/branch always in the last 
-statement of BBs (Basic Blocks)** in :numref:`cfg_ex`. 
+Each node in the graph represents a **basic block (BB)**—a straight-line  
+sequence of code without any jumps or jump targets. A jump target always  
+**starts** a basic block, while a jump **ends** one [#cfg-wiki]_.  
+
+The following is an example of a **CFG**.  
+**Jumps and branches always appear in the last statement of basic blocks (BBs)**  
+as shown in :numref:`cfg_ex`.
 
 .. rubric:: Fig/llvmstructure/cfg-ex.cpp
 .. literalinclude:: ../Fig/llvmstructure/cfg-ex.cpp
@@ -1465,33 +1540,36 @@ statement of BBs (Basic Blocks)** in :numref:`cfg_ex`.
 .. graphviz:: ../Fig/llvmstructure/cfg-ex.dot
   :caption: CFG for cfg-ex.ll
 
-
 DAG (Directed Acyclic Graph)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The SSA in each BB (Basic Block) from CFG as the previous section can be 
-represented in DAG.
+The SSA form within each **Basic Block (BB)** from the **Control Flow Graph  
+(CFG)**, as discussed in the previous section, can be represented using a  
+**Directed Acyclic Graph (DAG)**.  
 
-Many important techniques for local optimization begin by transforming a basic 
-block into DAG [#dragonbooks-8.5]_. 
-For example, the basic block code and it's corresponding DAG as 
-:numref:`llvmstructure-dag-ex`.
+Many key **local optimization** techniques begin by transforming a basic block  
+into a DAG [#dragonbooks-8.5]_.  
 
-.. _llvmstructure-dag-ex: 
-.. graphviz:: ../Fig/llvmstructure/dag-ex.gv
-   :caption: The left includes two destination register of DAG example and the 
-             right has one destination only
+For example, the basic block code and its corresponding DAG are illustrated in  
+:numref:`llvmstructure-dag-ex`.  
 
-DAG and SSA are allowed for two destination virtual registers.
-Assume ediv operation provides divide on interger which save quotient in "a" and
-remainder in "d".
-For one destination register, DAG may simplify as the right of 
-:numref:`llvmstructure-dag-ex`.
+.. _llvmstructure-dag-ex:  
+.. graphviz:: ../Fig/llvmstructure/dag-ex.gv  
+   :caption: The left example includes two destination registers, while  
+             the right has only one destination.  
 
-If b is not live on exit from the block, then we can do "common expression 
-remove" as the following table.
+DAG and SSA allow instructions to have two destination virtual registers.  
 
-.. table:: common expression remove process
+Assume the `ediv` operation performs integer division, storing the **quotient**  
+in `a` and the **remainder** in `d`.  
+
+If only one destination register is used, the DAG may be simplified, as shown  
+on the right in :numref:`llvmstructure-dag-ex`.  
+
+If `b` is not live at the exit of the block, we can apply **common subexpression  
+elimination**, as demonstrated in the table below.  
+
+.. table:: Common Subexpression Elimination Process  
   
   ====================================  ==================================================================
   Replace node b with node d             Replace b\ :sub:`0`\ , c\ :sub:`0`\ , d\ :sub:`0`\  with b, c, d
@@ -1501,135 +1579,153 @@ remove" as the following table.
   c = d + c                              c = d + c
   ====================================  ==================================================================
 
-After removing b and traversing the DAGs from bottom to top (traverse binary 
-tree by Depth-first In-order search) , the first column of above table will be 
-gotten. 
-  
-As you can imagine, the "common expression remove" can apply both in IR or 
-machine code.
+After removing `b` and traversing the DAG from bottom to top  
+(using **Depth-First In-Order Search** in a binary tree),  
+we obtain the first column of the table above.  
 
-DAG is like a tree which opcode is the node and operand (register and 
-const/immediate/offset) is leaf. 
-It can also be represented by list as prefix order in tree. 
-For example, (+ b, c), (+ b, 1) is IR DAG representation.
+As you can imagine, **common subexpression elimination** can be applied  
+both at the **IR** level and in **machine code**.  
 
-In addition to DAG optimization, the "kill" register has also mentioned in 
-section 8.5.5 of the compiler book [#dragonbooks-8.5]_. This optimization 
-method also applied in llvm implementation.
+A **DAG** resembles a tree where **opcodes** are nodes,  
+and **operands** (registers, constants, immediates, or offsets) are leaves.  
+It can also be represented as a **prefix-ordered list** in a tree structure.  
+For example, `(+ b, c)` and `(+ b, 1)` are IR DAG representations.  
 
+In addition to **DAG optimization**, **kill registers** are discussed  
+in Section 8.5.5 of the compiler book [#dragonbooks-8.5]_.  
+This optimization method is also applied in LLVM.  
 
 Instruction Selection
 ~~~~~~~~~~~~~~~~~~~~~
 
-The major function of backend is that translate IR code into machine code at 
-stage of Instruction Selection as :numref:`llvmstructure-f11`.
+A major function of the backend is to **translate IR code into machine code**  
+during **Instruction Selection**, as illustrated in :numref:`llvmstructure-f11`.  
 
-.. _llvmstructure-f11: 
-.. figure:: ../Fig/llvmstructure/11.png
-  :width: 495 px
-  :height: 116 px
-  :scale: 70 %
-  :align: center
+.. _llvmstructure-f11:  
+.. figure:: ../Fig/llvmstructure/11.png  
+  :width: 495 px  
+  :height: 116 px  
+  :scale: 70 %  
+  :align: center  
 
-  IR and it's corresponding machine instruction
+  IR and its corresponding machine instruction  
 
-For machine instruction selection, the best solution is representing IR and 
-machine instruction by DAG. 
-To simplify in view, the register leaf is skipped in 
-:numref:`llvmstructure-f12`. 
-The r\ :sub:`j`\  + r\ :sub:`k`\  is IR DAG representation (for symbol 
-notation, not llvm SSA form). 
-ADD is machine instruction.
+For **machine instruction selection**, the best approach is to represent both  
+**IR** and **machine instructions** as a **DAG**.  
 
-.. _llvmstructure-f12: 
-.. figure:: ../Fig/llvmstructure/12.png
-  :width: 986 px
-  :height: 609 px
-  :scale: 70 %
-  :align: center
+To simplify visualization, **register leaves** are omitted in  
+:numref:`llvmstructure-f12`.  
 
-  Instruction DAG representation
+The expression `rₖ + rⱼ` represents an **IR DAG** (used as a symbolic notation,  
+not in LLVM SSA form). `ADD` is the corresponding machine instruction.
 
-The IR DAG and machine instruction DAG can also represented as list. 
-For example, (+ r\ :sub:`i`\ , r\ :sub:`j`\ j) and (- r\ :sub:`i`\ , 1) are 
-lists for IR DAG; (ADD r\ :sub:`i`\ , r\ :sub:`j`\ ) and 
-(SUBI r\ :sub:`i`\ , 1) are lists for machine instruction DAG.
+.. _llvmstructure-f12:  
+.. figure:: ../Fig/llvmstructure/12.png  
+  :width: 986 px  
+  :height: 609 px  
+  :scale: 70 %  
+  :align: center  
 
-Now, let's check the ADDiu instruction defined in Cpu0InstrInfo.td as follows,
+  Instruction DAG representation  
 
-.. rubric:: lbdex/chapters/Chapter2/Cpu0InstrFormats.td
-.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrFormats.td
-    :start-after: //@class FL {
-    :end-before: //@class FL }
+The **IR DAG** and **machine instruction DAG** can also be represented as lists.  
+For example:  
 
-.. rubric:: lbdex/chapters/Chapter2/Cpu0InstrInfo.td
-.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td
-    :start-after: //#if CH >= CH2 6
+- **IR DAG lists:** `(+ rᵢ, rⱼ)` and `(- rᵢ, 1)`  
+- **Machine instruction DAG lists:** `(ADD rᵢ, rⱼ)` and `(SUBI rᵢ, 1)`  
+
+Now, let's examine the **ADDiu** instruction defined in `Cpu0InstrInfo.td`:  
+
+.. rubric:: lbdex/chapters/Chapter2/Cpu0InstrFormats.td  
+.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrFormats.td  
+    :start-after: //@class FL {  
+    :end-before: //@class FL }  
+
+.. rubric:: lbdex/chapters/Chapter2/Cpu0InstrInfo.td  
+.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td  
+    :start-after: //#if CH >= CH2 6  
+    :end-before: #endif  
+
+.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td  
+    :start-after: //#if CH >= CH2 10  
+    :end-before: #endif  
+
+.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td  
+    :start-after: //#if CH >= CH2 14  
     :end-before: #endif
-.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td
-    :start-after: //#if CH >= CH2 10
-    :end-before: #endif
-.. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td
-    :start-after: //#if CH >= CH2 14
-    :end-before: #endif
 
+:numref:`llvmstructure-f13` illustrates how pattern matching works between the  
+**IR node** `add` and the **instruction node** `ADDiu`, both defined in  
+`Cpu0InstrInfo.td`.  
 
-:numref:`llvmstructure-f13` shows how the pattern match work in the IR node, 
-**add**, and instruction node, **ADDiu**, which both defined in 
-Cpu0InstrInfo.td. In 
-this example, IR node "add %a, 5" will be translated to "addiu $r1, 5" after %a 
-is allcated to register $r1 in regiter allocation stage since the IR 
-pattern[(set RC:$ra, (OpNode RC:$rb, imm_type:$imm16))] is set in ADDiu and the
-2nd operand is "signed immediate" which matched "%a, 5". In addition to pattern 
-match, the .td also set assembly string "addiu" and op code 0x09. 
-With this information, the LLVM TableGen will generate instruction both in 
-assembly and binary automatically (the binary instruction can be issued in obj 
-file of ELF format which will be explained at later chapter). 
-Similarly, the machine instruction DAG nodes LD and ST can be translated from IR 
-DAG nodes **load** and **store**. Notice that the $rb in 
-:numref:`llvmstructure-f13` is virtual register name (not machine register). 
-The detail for :numref:`llvmstructure-f13` is depicted as 
-:numref:`llvmstructure-dag`.
- 
-.. _llvmstructure-f13: 
-.. figure:: ../Fig/llvmstructure/13.png
-  :width: 643 px
-  :height: 421 px
-  :scale: 80 %
-  :align: center
+In this example, the IR node `"add %a, 5"` is translated into `"addiu $r1, 5"`  
+after `%a` is allocated to register `$r1` during the **register allocation**  
+stage.  
 
-  Pattern match for ADDiu instruction and IR node add
+This translation occurs because the IR pattern  
+`(set RC:$ra, (OpNode RC:$rb, imm_type:$imm16))` is defined for `ADDiu`,  
+where the second operand is a **signed immediate** that matches `%a, 5`.  
 
+In addition to pattern matching, the `.td` file specifies the **assembly  
+mnemonic** `"addiu"` and the **opcode** `0x09`.  
 
-.. _llvmstructure-dag: 
-.. graphviz:: ../Fig/llvmstructure/DAG.gv
-   :caption: Pattern match for ADDiu instruction and IR node add in detail
-  
-From DAG instruction selection we mentioned, the leaf node must be a Data Node.
-ADDiu is format L type which the last operand must fits in 16 bits range.
-So, Cpu0InstrInfo.td define a PatLeaf type of immSExt16 to let llvm system know
-the PatLeaf range. If the imm16 value is out of this range, 
-**"isInt<16>(N->getSExtValue())"** will return false and this pattern won't use
-ADDiu in instruction selection stage.
+Using this information, **LLVM TableGen** automatically generates both assembly  
+instructions and binary encodings. The resulting **binary instruction** can be  
+included in an **ELF object file**, which will be explained in a later chapter.  
 
-Some cpu/fpu (floating point processor) has multiply-and-add floating point 
-instruction, fmadd. 
-It can be represented by DAG list (fadd (fmul ra, rc), rb). 
-For this implementation, we can assign fmadd DAG pattern to instruction td as 
-follows,
+Similarly, **machine instruction DAG nodes** `LD` and `ST` are translated from  
+the IR DAG nodes **load** and **store**.  
 
-.. code:: text
+Note that in :numref:`llvmstructure-f13`, `$rb` represents a **virtual register**  
+rather than a physical machine register. The details are further illustrated  
+in :numref:`llvmstructure-dag`.  
 
-  def FMADDS : AForm_1<59, 29,
-            (ops F4RC:$FRT, F4RC:$FRA, F4RC:$FRC, F4RC:$FRB),
-            "fmadds $FRT, $FRA, $FRC, $FRB",
-            [(set F4RC:$FRT, (fadd (fmul F4RC:$FRA, F4RC:$FRC),
-                         F4RC:$FRB))]>;
+.. _llvmstructure-f13:  
+.. figure:: ../Fig/llvmstructure/13.png  
+  :width: 643 px  
+  :height: 421 px  
+  :scale: 80 %  
+  :align: center  
 
-Similar with ADDiu, [(set F4RC:$FRT, (fadd (fmul F4RC:$FRA, F4RC:$FRC), 
-F4RC:$FRB))] is the pattern which include nodes **fmul** and **fadd**.
+  Pattern matching for `ADDiu` instruction and IR node `add`  
 
-Now, for the following basic block notation IR and llvm SSA IR code,
+.. _llvmstructure-dag:  
+.. graphviz:: ../Fig/llvmstructure/DAG.gv  
+   :caption: Detailed pattern matching for `ADDiu` instruction and IR node `add`  
+
+During **DAG instruction selection**, the **leaf node must be a Data Node**.  
+`ADDiu` follows the **L-type instruction format**, requiring the last operand  
+to fit within a **16-bit signed range**.  
+
+To enforce this constraint, `Cpu0InstrInfo.td` defines a **PatLeaf** type  
+`immSExt16`, allowing the LLVM system to recognize the valid operand range.  
+
+If the immediate value exceeds this range,  
+`"isInt<16>(N->getSExtValue())"` returns `false`, and the **`ADDiu` pattern  
+is not selected** during instruction selection.
+
+Some CPUs and **floating-point units (FPUs)** include a **multiply-and-add**  
+floating-point instruction, `fmadd`.  
+
+This instruction can be represented using a **DAG list** as follows:  
+`(fadd (fmul ra, rc), rb)`.  
+
+To implement this, we define the **fmadd DAG pattern** in the instruction `.td`  
+file as shown below:  
+
+.. code:: text  
+
+  def FMADDS : AForm_1<59, 29,  
+            (ops F4RC:$FRT, F4RC:$FRA, F4RC:$FRC, F4RC:$FRB),  
+            "fmadds $FRT, $FRA, $FRC, $FRB",  
+            [(set F4RC:$FRT, (fadd (fmul F4RC:$FRA, F4RC:$FRC),  
+                         F4RC:$FRB))]>;  
+
+Similar to `ADDiu`, the pattern  
+`[(set F4RC:$FRT, (fadd (fmul F4RC:$FRA, F4RC:$FRC), F4RC:$FRB))]`  
+includes both **fmul** and **fadd** nodes.  
+
+Now, consider the following **basic block notation IR** and **LLVM SSA IR** code:
 
 .. code:: text
 
@@ -1643,22 +1739,32 @@ Now, for the following basic block notation IR and llvm SSA IR code,
   %e = fadd %d, %b
   ...
 
-the Instruction Selection Process will translate this two IR DAG node 
-(fmul %a, %c) (fadd %d, %b) into one machine instruction DAG node (**fmadd** 
-%a, %c, %b), rather than translate them into two machine instruction nodes 
-**fmul** and **fadd** if the FMADDS is appear before FMUL and FADD in your td 
-file.
+The **Instruction Selection Process** will translate these two IR DAG nodes:  
+
+  `(fmul %a, %c)`  
+  `(fadd %d, %b)`  
+
+into a **single** machine instruction DAG node:  
+
+  `(**fmadd** %a, %c, %b)`  
+
+instead of translating them into **two separate** machine instruction nodes  
+(`**fmul**` and `**fadd**`).  
+
+This optimization occurs **only if** `FMADDS` appears **before** `FMUL` and  
+`FADD` in your `.td` file.
 
 .. code-block:: console
 
   %e = fmadd %a, %c, %b
   ...
 
-As you can see, the IR notation representation is easier to read than llvm SSA 
-IR form. 
-So, this notation form is used in this book sometimes.
+As you can see, the **IR notation representation** is easier to read than  
+the **LLVM SSA IR** form.  
 
-For the following basic block code,
+For this reason, this notation is occasionally used in this book.  
+
+Now, consider the following **basic block code**:
 
 .. code-block:: console
 
@@ -1666,8 +1772,8 @@ For the following basic block code,
   d = a – d
   %e = fmadd %a, %c, %b // in llvm SSA IR form
 
-We can apply :numref:`llvmstructure-f8` Instruction Tree Patterns to get the 
-following machine code,
+We can apply :numref:`llvmstructure-f8` **Instruction Tree Patterns**  
+to generate the following **machine code**:
 
 .. code-block:: console
 
@@ -1679,14 +1785,15 @@ following machine code,
   fmadd re, ra, rc, rb;
 
 
-Caller and callee saved registers
+Caller and Callee Saved Registers
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. rubric:: lbdex/input/ch9_caller_callee_save_registers.cpp
-.. literalinclude:: ../lbdex/input/ch9_caller_callee_save_registers.cpp
-    :start-after: /// start
-    
-Run Mips backend with above input will get the following result.
+.. rubric:: lbdex/input/ch9_caller_callee_save_registers.cpp  
+.. literalinclude:: ../lbdex/input/ch9_caller_callee_save_registers.cpp  
+    :start-after: /// start  
+
+Running the **MIPS backend** with the above input will produce the following  
+result:
 
 .. code-block:: console
 
@@ -1753,70 +1860,90 @@ Run Mips backend with above input will get the following result.
 
 Caller and callee saved registers definition as follows,
 
-- If the caller wants to use caller-saved registers after callee function, it
-  must save caller-saved registers' content to memory for using and restore
-  these registers from memory after function call.
-  
-- If the callee wants to use callee-saved registers, it must save its content 
-  to memory before using them and restore these registers from memory before
-  return.
+- If the **caller** wants to use **caller-saved registers** after calling a  
+  function, it must save their contents to memory before the function call  
+  and restore them afterward.  
 
-As above definition, if a register is not a callee-saved-registers, then it
-must be caller-saved-registers because the callee doesn't retore it and the 
-value is changed after callee function.
-So, Mips only define the callee-saved registers in MipsCallingConv.td, and
-can be found in CSR_O32_SaveList of MipsGenRgisterInfo.inc for the default
-ABI.
+- If the **callee** wants to use **callee-saved registers**, it must save  
+  their contents to memory before using them and restore them before returning.  
 
-As above assembly output, Mips allocates t1 variable to register $1 and no need
-to spill $1 since $1 is caller saved register. 
-On the other hand, $ra is callee saved register, so it spills at beginning of 
-the assembly output since jal uses $ra register. 
-Cpu0 $lr is the same register as Mips $ra, so it calls setAliasRegs(MF, 
-SavedRegs, Cpu0::LR) in determineCalleeSaves() of Cpu0SEFrameLowering.cpp when
-the function has called another function.
+According to the definition above, if a register is **not** callee-saved,  
+then it must be **caller-saved**, since the callee does not restore it and  
+its value may change after the function call.  
 
+Thus, **MIPS** only defines **callee-saved registers** in `MipsCallingConv.td`,  
+which can be found in `CSR_O32_SaveList` of `MipsGenRegisterInfo.inc` for the  
+default ABI.  
 
-Live in and live out register
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+From the assembly output, MIPS allocates the **t1** variable to register `$1`,  
+which does **not** need to be spilled because `$1` is a **caller-saved register**.  
 
-As the example of last sub-section. The $ra is "live in" register since the 
-return address is decided by caller. The $2 is "live out" register since the 
-return value of the function is saved in this register, and caller can get the 
-result by read it directly as the comment in above example. 
-Through mark "live in" and "live out" registers, backend provides 
-llvm middle layer information to remove useless instructions in variables 
-access. 
-Of course, llvm applies the DAG analysis mentioned in the previous sub-section 
-to finish it. 
-Since C supports seperate compilation for different functions, the "live in" 
-and "out" information from backend provides the optimization opportunity to 
-llvm. 
-LLVM provides function addLiveIn() to mark "live in" register but no function 
-addLiveOut() provided. 
-For the "live out" register, Mips backend marks it by 
-DAG=DAG.getCopyToReg(..., $2, ...) and return DAG instead, since all local 
-varaiables are not exist after function exit.
+On the other hand, `$ra` is a **callee-saved register**, so it is spilled at  
+the beginning of the assembly output, as `jal` uses the `$ra` register.  
 
+For **Cpu0**, the `$lr` register corresponds to MIPS `$ra`.  
+Thus, the function `setAliasRegs(MF, SavedRegs, Cpu0::LR)` is called in  
+`determineCalleeSaves()` within `Cpu0SEFrameLowering.cpp` when a function  
+calls another function.
 
-Create Cpu0 backend
---------------------
+Live-In and Live-Out Registers  
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~  
 
-From now on, the Cpu0 backend will be created from scratch step by step.
-To make readers easily understanding the backend structure, Cpu0 
-example code can be generated chapter by chapter through command here 
-[#chapters-ex]_.
-Cpu0 example code, lbdex, can be found at near left bottom of this web site. Or 
-here http://jonathan2251.github.io/lbd/lbdex.tar.gz.
+As seen in the previous subsection, `$ra` is a **live-in** register because  
+the return address is determined by the caller.  
 
+Similarly, `$2` is a **live-out** register since the function’s return value  
+is stored in this register. The caller retrieves the result by reading `$2`  
+directly, as noted in the previous example.  
 
-Cpu0 backend machine ID and relocation records
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+By marking **live-in** and **live-out** registers, the backend provides  
+LLVM’s **middle layer** with information to eliminate redundant variable  
+access instructions.  
 
-To create a new backend, there are some files in <<llvm root dir>> need to be 
-modified. The added information include both the ID and name of machine, and 
-relocation records. Chapter "ELF Support" include the relocation records 
-introduction. The following files are modified to add Cpu0 backend as follows,
+LLVM applies **DAG analysis**, as discussed in the previous subsection,  
+to perform this optimization.  
+
+Since **C supports separate compilation**, the **live-in** and **live-out**  
+information from the backend offers additional optimization opportunities  
+to LLVM.  
+
+LLVM provides the function `addLiveIn()` to mark a **live-in register**,  
+but it does **not** offer a corresponding `addLiveOut()` function.  
+
+Instead, the **MIPS backend** marks **live-out** registers by using:  
+
+  `DAG = DAG.getCopyToReg(..., $2, ...)`  
+
+and then returning the modified **DAG**, as all local variables cease to exist  
+after the function exits.
+
+Create Cpu0 Backend  
+--------------------  
+
+From this point onward, the **Cpu0 backend** will be created **step by step  
+from scratch**.  
+
+To help readers understand the **backend structure**, the Cpu0 example code  
+can be generated **chapter by chapter** using the command provided here  
+[#chapters-ex]_.  
+
+The **Cpu0 example code (`lbdex`)** can be found near the bottom left of  
+this website or downloaded from:  
+
+  `http://jonathan2251.github.io/lbd/lbdex.tar.gz`  
+
+Cpu0 Backend Machine ID and Relocation Records  
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~  
+
+To create a **new backend**, several files in `<<llvm root dir>>` must be  
+modified.  
+
+The required modifications include adding both the **machine ID and name**,  
+as well as defining **relocation records**.  
+
+The **ELF Support** chapter provides an introduction to **relocation records**.  
+
+The following files are modified to **add the Cpu0 backend**:
 
 .. rubric:: lbdex/llvm/modify/llvm/config-ix.cmake
 .. code:: text
@@ -2050,38 +2177,52 @@ introduction. The following files are modified to add Cpu0 backend as follows,
   }
 
 
-Creating the Initial Cpu0 .td Files
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Creating the Initial Cpu0 .td Files  
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~  
 
-As it has been discussed in the previous section, LLVM uses target description 
-files (which uses the .td file extension) to describe various components of a 
-target's backend. 
-For example, these .td files may describe a target's register set, instruction 
-set, scheduling information for instructions, and calling conventions.  
-When your backend is being compiled, the tablegen tool that ships with LLVM 
-will translate these .td files into C++ source code written to files that have 
-a .inc extension.  
-Please refer to [#tblgen]_ for more information regarding how to use tablegen.
+As discussed in the previous section, **LLVM** uses **target description files**  
+(`.td` files) to define various components of a target's backend.  
 
-Every backend has its own .td to define some target information. 
-These files have a similar syntax to C++. For Cpu0, the target description file 
-is called Cpu0Other.td, which is shown below:
+For example, these `.td` files may describe:  
+- A target's **register set**  
+- Its **instruction set**  
+- **Instruction scheduling** details  
+- **Calling conventions**  
 
-.. rubric:: lbdex/chapters/Chapter2/Cpu0.td
-.. literalinclude:: ../lbdex/chapters/Chapter2/Cpu0.td
+When the backend is compiled, **LLVM's TableGen tool** translates these `.td`  
+files into **C++ source code**, which is then written to `.inc` files.  
 
-.. rubric:: lbdex/chapters/Chapter2/Cpu0Other.td
-.. literalinclude:: ../lbdex/chapters/Chapter2/Cpu0Other.td
+For more details on how to use **TableGen**, please refer to [#tblgen]_.  
 
-Cpu0Other.td and Cpu0.td includes a few other .td files. 
-Cpu0RegisterInfo.td (shown below) describes the Cpu0's set of registers. 
-In this file, we see that each register has been given a name. For example, 
-**"def PC"** indicates that there is a register name as PC. Beside of register 
-information, it also define register class information. 
-You may have multiple register classes such as CPURegs, SR, C0Regs and GPROut. 
-GPROut defined in Cpu0RegisterInfoGPROutForOther.td which include CPURegs 
-except SW, so SW won't be allocated as the output registers in register 
-allocation stage.
+Each backend has its own `.td` files to define target-specific information.  
+These files have a **C++-like syntax**.  
+
+For **Cpu0**, the primary target description file is **Cpu0Other.td**,  
+as shown below:  
+
+.. rubric:: lbdex/chapters/Chapter2/Cpu0.td  
+.. literalinclude:: ../lbdex/chapters/Chapter2/Cpu0.td  
+
+.. rubric:: lbdex/chapters/Chapter2/Cpu0Other.td  
+.. literalinclude:: ../lbdex/chapters/Chapter2/Cpu0Other.td  
+
+`Cpu0Other.td` and `Cpu0.td` include several other `.td` files.  
+
+`Cpu0RegisterInfo.td` (shown below) describes the **Cpu0 register set**.  
+
+In this file, each register is assigned a name.  
+For example, **`def PC`** defines a register named **PC**.  
+
+In addition to **register definitions**, this file also defines **register classes**.  
+A target may have multiple register classes, such as:  
+- **CPURegs**  
+- **SR**  
+- **C0Regs**  
+- **GPROut**  
+
+The **GPROut** register class, defined in `Cpu0RegisterInfoGPROutForOther.td`,  
+includes all **CPURegs** **except** `SW`, ensuring that `SW` is **not allocated**  
+as an output register during the **register allocation stage**.
 
 .. rubric:: lbdex/chapters/Chapter2/Cpu0RegisterInfo.td
 .. literalinclude:: ../lbdex/chapters/Chapter2/Cpu0RegisterInfo.td
@@ -2090,8 +2231,9 @@ allocation stage.
 .. literalinclude:: ../lbdex/chapters/Chapter2/Cpu0RegisterInfoGPROutForOther.td
 
 
-In C++, class typically provides a structure to lay out some data and functions, 
-while definitions are used to allocate memory for specific instances of a class. 
+In C++, a **class** typically defines a structure to organize data and functions,  
+while **definitions** allocate memory for specific instances of the class.  
+
 For example:
 
 .. code-block:: c++
@@ -2101,62 +2243,78 @@ For example:
   }; 
   Date birthday;  // define birthday, an instance of Date
 
-The class **Date** has the members **year**, **month**, and **day**, but 
-these do not yet belong to an actual object. 
-By defining an instance of **Date** called **birthday**, you have allocated 
-memory for a specific object, and can set the **year**, **month**, and 
-**day** of this instance of the class.
+The class **Date** has the members **year**, **month**, and **day**,  
+but these do not yet belong to an actual object.  
 
-In .td files, class describes the structure of how data is laid out, while 
-definitions act as the specific instances of the class. 
-If you look back at the Cpu0RegisterInfo.td file, you will see a class called 
-**Cpu0Reg** which is derived from the **Register** class provided 
-by LLVM.  **Cpu0Reg** inherits all the fields that exist 
-in the **Register** class. The "let HWEncoding = Enc" which means assign field 
-HWEncoding from parameter Enc. Since Cpu0 reserve 4 bits for 16 registers in 
-instruction format, the assigned value range is from 0 to 15. 
-Once assigning the 0 to 15 to HWEncoding, the backend register number will be 
-got from the function of llvm register class since TableGen will set this 
-number automatically.
+By defining an instance of **Date** called **birthday**, memory is allocated  
+for a specific object, allowing you to set its **year**, **month**, and **day**.  
 
-The **def** keyword is used to create instances of class. 
-In the following line, the ZERO register is defined as a member of the 
+In `.td` files, a **class** describes the **structure** of how data is laid out,  
+while **definitions** act as **specific instances** of the class.  
+
+If you refer back to the `Cpu0RegisterInfo.td` file, you will see a class called  
+**Cpu0Reg**, which is derived from the **Register** class provided by **LLVM**.  
+`Cpu0Reg` **inherits all fields** from the `Register` class.  
+
+The statement **"let HWEncoding = Enc"** assigns the field `HWEncoding`  
+from the parameter `Enc`.  
+
+Since **Cpu0 reserves 4 bits for 16 registers** in its instruction format,  
+the assigned value range is **0 to 15**.  
+
+Once values between `0` and `15` are assigned to `HWEncoding`, the **backend  
+register number** is determined using **LLVM's register class functions**,  
+as **TableGen** automatically sets this number.  
+
+The **`def`** keyword is used to create instances of a class.  
+
+In the following line, the `ZERO` register is defined as a member of the  
 **Cpu0GPRReg** class:
 
 .. code-block:: c++
 
   def ZERO : Cpu0GPRReg< 0, "ZERO">, DwarfRegNum<[0]>;
 
-The **def ZERO** indicates the name of this register.  **<0, "ZERO">** are the 
-parameters used when creating this specific instance of the **Cpu0GPRReg** 
-class, thus the field **Enc** is set to 0, and the string **n** is set 
-to **ZERO**.
+The **def ZERO** statement defines the name of this register.  
+The parameters **<0, "ZERO">** are used to create this specific instance  
+of the **Cpu0GPRReg** class.  
 
-As the register lives in the **Cpu0** namespace, you can refer to the ZERO 
-register in backend C++ code by using **Cpu0::ZERO**.
+Thus, the field **Enc** is set to `0`, and the string **n** is set to `"ZERO"`.  
 
-Notice the use of the **let** expressions: these allow you to override values 
-that are initially defined in a superclass. 
-For example, **let Namespace = “Cpu0”** in the **Cpu0Reg** class will override 
-the default namespace declared in **Register** class. 
-The Cpu0RegisterInfo.td also defines that **CPURegs** is an instance of the 
-class **RegisterClass**, which is an built-in LLVM class. 
-A **RegisterClass** is a set of **Register** instances, thus **CPURegs** can be 
-described as a set of registers.
+Since this register exists in the **Cpu0** namespace, it can be referenced in  
+the backend C++ code using **Cpu0::ZERO**.  
 
-The Cpu0 instructions td is named to Cpu0InstrInfo.td which contents as follows,
+### Overriding Values with `let` Expressions  
 
-.. rubric:: lbdex/chapters/Chapter2/Cpu0InstrInfo.td
-.. literalinclude:: ../lbdex/chapters/Chapter2/Cpu0InstrInfo.td
+The **`let`** expressions allow overriding values initially defined in a  
+superclass.  
 
-The Cpu0InstrFormats.td is included by Cpu0InstInfo.td as follows,
+For example, **`let Namespace = "Cpu0"`** in the **Cpu0Reg** class  
+overrides the default namespace declared in the **Register** class.  
 
-.. rubric:: lbdex/chapters/Chapter2/Cpu0InstrFormats.td
-.. literalinclude:: ../lbdex/chapters/Chapter2/Cpu0InstrFormats.td
+Additionally, `Cpu0RegisterInfo.td` defines **CPURegs** as an instance of  
+the **RegisterClass**, a built-in **LLVM class**.  
 
-  
-ADDiu is a instance of class ArithLogicI inherited from FL, it can be 
-expanded and get member value further as follows,
+A **RegisterClass** is essentially a **set of Register instances**,  
+so **CPURegs** can be described as a set of registers.  
+
+### Cpu0 Instruction Definition  
+
+The **Cpu0 instruction** description file is named **Cpu0InstrInfo.td**.  
+Its contents are as follows:  
+
+.. rubric:: lbdex/chapters/Chapter2/Cpu0InstrInfo.td  
+.. literalinclude:: ../lbdex/chapters/Chapter2/Cpu0InstrInfo.td  
+
+The `Cpu0InstrFormats.td` file is included in **Cpu0InstrInfo.td**, as shown:  
+
+.. rubric:: lbdex/chapters/Chapter2/Cpu0InstrFormats.td  
+.. literalinclude:: ../lbdex/chapters/Chapter2/Cpu0InstrFormats.td  
+
+### Expanding `ADDiu`  
+
+`ADDiu` is an instance of the **ArithLogicI** class, which inherits from `FL`.  
+It can be further expanded to retrieve its member values as follows:
 
 .. code:: text
 
@@ -2171,32 +2329,34 @@ expanded and get member value further as follows,
     let isReMaterializable = 1;
   }
   
-So,
+So,  
 
-.. code-block:: console
-  
-  op = 0x09
-  instr_asm = “addiu”
-  OpNode = add
-  Od = simm16
-  imm_type = immSExt16
-  RC = CPURegs
+.. code-block:: console  
 
-To expand the td, some principles are:
+  op = 0x09  
+  instr_asm = "addiu"  
+  OpNode = add  
+  Od = simm16  
+  imm_type = immSExt16  
+  RC = CPURegs  
 
-- let: meaning override the existed field from parent class.
+### Expanding `.td` Files: Key Principles  
 
-  For instance: let isReMaterializable = 1; override the isReMaterializable 
-  from class instruction of Target.td.
+- **`let`**: Overrides an existing field from the parent class.  
 
-- declaration: meaning declare a new field for this class.
+  - Example: `let isReMaterializable = 1;`  
+    This overrides `isReMaterializable` from the `Instruction` class in `Target.td`.  
 
-  For instance: bits<4>  ra; declare ra field for class FL.
+- **Declaration**: Defines a new field for the class.  
 
+  - Example: `bits<4> ra;`  
+    This declares the `ra` field in the `FL` class.  
 
-The details of expanding as the following table:
+### ADDiu Expansion Details  
 
-.. table:: ADDiu expand part I
+The details of expansion are shown in the following table:  
+
+.. table:: ADDiu Expansion Part I
 
   =========  ======================  ========================================================
   ADDiu      ArithLogicI             FL                                                      
@@ -2212,7 +2372,7 @@ The details of expanding as the following table:
                                      Inst{19-16} = rb;
   =========  ======================  ========================================================
 
-.. table:: ADDiu expand part II
+.. table:: ADDiu Expansion part II
 
   =============================================================  =====================
   Cpu0Inst                                                       instruction
@@ -2228,35 +2388,43 @@ The details of expanding as the following table:
   DecoderNamespace = "Cpu0"
   =============================================================  =====================
   
-The td expanding is a lousy process.
-Similarly, LD and ST instruction definition can be expanded in this way. 
-Please notice the Pattern =  
-[(set GPROut:$ra, (add RC:$rb, immSExt16:$imm16))] which include keyword 
-**“add”**. 
-The ADDiu with **“add”** is used in sub-section Instruction Selection of last
-section. 
+The `.td` file expansion process can be cumbersome.  
+Similarly, **LD** and **ST** instruction definitions can be expanded in the  
+same manner.  
 
-File Cpu0Schedule.td include the function units and pipeline stages information
-as follows,
+Note the **Pattern**:  
 
-.. rubric:: lbdex/chapters/Chapter2/Cpu0Schedule.td
-.. literalinclude:: ../lbdex/chapters/Chapter2/Cpu0Schedule.td
+  `[(set GPROut:$ra, (add RC:$rb, immSExt16:$imm16))]`  
 
+which includes the keyword **"add"**.  
 
-Write cmake file
-~~~~~~~~~~~~~~~~
+The **ADDiu** instruction with **"add"** was used in the  
+*Instruction Selection* subsection of the previous section.  
 
-Target/Cpu0 directory has two files CMakeLists.txt, 
-contents as follows,
+### Cpu0 Scheduling Information  
 
-.. rubric:: lbdex/chapters/Chapter2/CMakeLists.txt
-.. literalinclude:: ../lbdex/chapters/Chapter2/CMakeLists.txt
+The `Cpu0Schedule.td` file includes details about **function units** and  
+**pipeline stages**, as shown below:  
 
+.. rubric:: lbdex/chapters/Chapter2/Cpu0Schedule.td  
+.. literalinclude:: ../lbdex/chapters/Chapter2/Cpu0Schedule.td  
 
-CMakeLists.txt is the make information for cmake and # is comment.
-Comments are prefixed by **#** in both files. 
-The "tablegen(" in above CMakeLists.txt is defined in 
-cmake/modules/TableGen.cmake as below, 
+### Writing the CMake File  
+
+The `Target/Cpu0` directory contains the `CMakeLists.txt` file.  
+Its contents are as follows:  
+
+.. rubric:: lbdex/chapters/Chapter2/CMakeLists.txt  
+.. literalinclude:: ../lbdex/chapters/Chapter2/CMakeLists.txt  
+
+**CMakeLists.txt** provides **build instructions** for **CMake**.  
+Comments in this file are prefixed with **#**.  
+
+The `"tablegen("` function in `CMakeLists.txt` is defined in:  
+
+  `cmake/modules/TableGen.cmake`  
+
+as shown below:
 
 .. rubric:: llvm/cmake/modules/TableGen.cmake
 .. code:: text
@@ -2288,12 +2456,16 @@ cmake/modules/TableGen.cmake as below,
     ...
   )
 
-Above "add_tablegen" in llvm/utils/TableGen/CMakeLists.txt makes the 
-"tablegen(" written in Cpu0 CMakeLists.txt an alias of llvm-tblgen
-(${project} = LLVM and ${project}_TABLEGEN_EXE = llvm-tblgen).
-The "tablegen(", "add_public_tablegen_target(Cpu0CommonTableGen)" in 
-lbdex/chapters/Chapter2/CMakeLists.txt and the following code define a target 
-"Cpu0CommonTableGen" with it's output files "Cpu0Gen*.inc" as follows,
+The `"add_tablegen"` function in `llvm/utils/TableGen/CMakeLists.txt`  
+makes `"tablegen("` in `Cpu0 CMakeLists.txt` an alias for **llvm-tblgen**  
+(where `${project} = LLVM` and `${project}_TABLEGEN_EXE = llvm-tblgen`).  
+
+The following elements define the **Cpu0CommonTableGen** target,  
+which generates the output files **Cpu0Gen*.inc**:  
+
+- `"tablegen("`  
+- `"add_public_tablegen_target(Cpu0CommonTableGen)"`  
+- The following additional code
 
 .. rubric:: llvm/cmake/modules/TableGen.cmake
 .. code:: text
@@ -2312,42 +2484,59 @@ lbdex/chapters/Chapter2/CMakeLists.txt and the following code define a target
     ...
   endfunction()
 
-Since execution file llvm-tblgen is built before compiling any llvm backend 
-source code during building llvm, the llvm-tblgen is always ready for backend's
-TableGen reguest.
+Since the **llvm-tblgen** executable is built before compiling any LLVM backend  
+source code, it is always available to handle TableGen requests during the build  
+process.  
 
-This book breaks the whole backend source code by function, add code chapter 
-by chapter.
-Don't try to understand everything in the text of book, the code added in each 
-chapter is a reading material too. 
-To understand the computer related knowledge in concept, you can ignore source 
-code, but implementing based on an existed open software cannot. 
-In programming, documentation cannot replace the source code totally. 
-Reading source code is a big opportunity in the open source development. 
+This book introduces backend source code **incrementally**, adding code  
+**chapter by chapter** based on function.  
 
-CMakeLists.txt exists in sub-directories 
-**MCTargetDesc** and **TargetInfo**. 
-The contents of MakeLists.txt in these two directories 
-instruct llvm generating Cpu0Desc and Cpu0Info libraries, repectively. 
-After building, you will find three libraries: **libLLVMCpu0CodeGen.a**, 
-**libLLVMCpu0Desc.a** and **libLLVMCpu0Info.a** in lib/ of your build 
-directory. 
-For more details please see "Building LLVM with CMake" [#cmake]_.
+### Understanding Source Code  
 
-Target Registration
+- **Don't try to understand everything from the text alone**—  
+  the code added in each chapter serves as **learning material** too.  
+- **Conceptual understanding** of computer-related knowledge can be gained  
+  without reading source code.  
+- However, **when implementing based on existing open-source software,  
+  reading source code is essential**.  
+- **Documentation cannot fully replace source code** in programming.  
+- **Reading source code is a valuable skill in open-source development**.  
+
+### CMakeLists.txt in Subdirectories  
+
+The `CMakeLists.txt` files exist in the **MCTargetDesc** and **TargetInfo**  
+subdirectories.  
+
+These files instruct LLVM to generate the **Cpu0Desc** and **Cpu0Info**  
+libraries, respectively.  
+
+After building, you will find three libraries in the `lib/` directory  
+of your build folder:  
+
+- **libLLVMCpu0CodeGen.a**  
+- **libLLVMCpu0Desc.a**  
+- **libLLVMCpu0Info.a**  
+
+For more details, refer to *"Building LLVM with CMake"* [#cmake]_.  
+
+Target Registration  
 ~~~~~~~~~~~~~~~~~~~
 
-You must also register your target with the TargetRegistry. After registration, 
-llvm tools are able to lookup and use your target at runtime. 
-The TargetRegistry can be used directly, but for most targets there are helper 
-templates which should take care of the work for you.
+You must **register your target** with the **TargetRegistry**.  
+After registration, LLVM tools can **identify and use** your target at runtime.  
 
-All targets should declare a global Target object which is used to represent 
-the target during registration. 
-Then, in the target's TargetInfo library, the target should define that object 
-and use the RegisterTarget template to register the target. 
-For example, the file TargetInfo/Cpu0TargetInfo.cpp register TheCpu0Target for 
-big endian and TheCpu0elTarget for little endian, as follows.
+Although the **TargetRegistry** can be used directly, most targets  
+utilize **helper templates** to simplify the process.  
+
+All targets should declare a **global Target object**, which represents the  
+target during registration.  
+
+Then, in the target's **TargetInfo library**, the target should define this  
+object and use the **RegisterTarget** template to register it.  
+
+For example, the file `TargetInfo/Cpu0TargetInfo.cpp` registers  
+**TheCpu0Target** for **big-endian** and **TheCpu0elTarget** for **little-endian**,  
+as shown below:
 
 .. rubric:: lbdex/chapters/Chapter2/Cpu0.h
 .. literalinclude:: ../lbdex/chapters/Chapter2/Cpu0.h
@@ -2358,8 +2547,9 @@ big endian and TheCpu0elTarget for little endian, as follows.
 .. rubric:: lbdex/chapters/Chapter2/TargetInfo/CMakeLists.txt
 .. literalinclude:: ../lbdex/Cpu0/TargetInfo/CMakeLists.txt
 
-Files Cpu0TargetMachine.cpp and MCTargetDesc/Cpu0MCTargetDesc.cpp just define 
-the empty initialize function since we register nothing for this moment.
+The files **Cpu0TargetMachine.cpp** and **MCTargetDesc/Cpu0MCTargetDesc.cpp**  
+currently define only an **empty initialization function**,  
+as no components are being registered at this stage.
 
 .. rubric:: lbdex/chapters/Chapter2/Cpu0TargetMachine.cpp
 .. literalinclude:: ../lbdex/chapters/Chapter2/Cpu0TargetMachine.cpp
@@ -2374,26 +2564,49 @@ the empty initialize function since we register nothing for this moment.
 .. literalinclude:: ../lbdex/chapters/Chapter2/MCTargetDesc/CMakeLists.txt
 
 
-Please see "Target Registration" [#target-reg]_ for reference.
+For reference, see *"Target Registration"* [#target-reg]_.  
 
+Build Libraries and `.td` Files  
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~  
 
-Build libraries and td
-~~~~~~~~~~~~~~~~~~~~~~
+Build steps: https://github.com/Jonathan2251/lbd/blob/master/README.md  
 
-Build steps https://github.com/Jonathan2251/lbd/blob/master/README.md.
-We set llvm source code in /Users/Jonathan/llvm/debug/llvm and have llvm 
-debug-build in /Users/Jonathan/llvm/debug/build. 
-About how to build llvm, please refer here [#clang]_. 
-In appendix A, we made a copy from /Users/Jonathan/llvm/debug/llvm to 
-/Users/Jonathan/llvm/test/llvm for working with my Cpu0 target backend.
-Sub-directories llvm is for source code and build is for debug 
-build directory.
+We set the LLVM source code in:  
 
-Beside directory llvm/lib/Target/Cpu0, there are a couple of files modified to 
-support cpu0 new Target, which includes both the ID and name of machine and 
-relocation records listed in the early sub-section.
-You can update your llvm working copy and find the modified files by 
-commands, cp -rf lbdex/llvm/modify/llvm/* <yourllvm/workingcopy/sourcedir>/.
+  `/Users/Jonathan/llvm/debug/llvm`  
+
+and perform a debug build in:  
+
+  `/Users/Jonathan/llvm/debug/build`  
+
+For details on how to build LLVM, refer to [#clang]_.  
+
+In **Appendix A**, we create a copy of the LLVM source directory:  
+
+  `/Users/Jonathan/llvm/debug/llvm`  
+
+to:  
+
+  `/Users/Jonathan/llvm/test/llvm`  
+
+for developing the **Cpu0 target backend**.  
+
+- The `llvm/` directory contains the **source code**.  
+- The `build/` directory is used for the **debug build**.
+
+### Modifying LLVM for Cpu0  
+
+Beyond `llvm/lib/Target/Cpu0`, several files have been modified to support  
+the **new Cpu0 target**. These modifications include:  
+
+- **Adding the target's ID and name**  
+- **Defining relocation records** (as discussed in an earlier section)  
+
+To update your LLVM working copy and apply the modifications, use:  
+
+.. code-block:: console  
+
+   cp -rf lbdex/llvm/modify/llvm/* <yourllvm/workingcopy/sourcedir>/  
 
 .. code-block:: console
 
@@ -2409,15 +2622,16 @@ commands, cp -rf lbdex/llvm/modify/llvm/* <yourllvm/workingcopy/sourcedir>/.
   llvm/include/llvm/Support/ELF.h:  EF_CPU0_ARCH_64R2 = 0x80000000, // cpu064r2
   ...
 
-Next configure the Cpu0 example code to chapter2 as follows,
+Next, configure the Cpu0 example code for **Chapter 2** as follows:
 
 .. rubric:: ~/llvm/test/llvm/lib/Target/Cpu0/Cpu0SetChapter.h
 .. code-block:: c++
 
   #define CH       CH2
 
-Beside configure chapter as above, I provide gen-chapters.sh that you
-can get each chapter code as follows,
+In addition to configuring the chapter as shown above,  
+I provide **gen-chapters.sh**, which allows you to retrieve  
+the code for each chapter as follows:
 
 .. code-block:: console
 
@@ -2429,8 +2643,8 @@ can get each chapter code as follows,
   Chapter11_1	Chapter12_1	Chapter3_1	Chapter3_3...
 
 
-Now, run the ``cmake and make`` command to build td (the following cmake 
-command is for my setting),
+Now, run the ``cmake`` and ``make`` commands to build `.td` files.  
+(The following `cmake` command is based on my setup.)
 
 .. code-block:: console
 
@@ -2448,7 +2662,8 @@ command is for my setting),
  
   118-165-78-230:build Jonathan$ 
 
-After build, you can type command ``llc –version`` to find the cpu0 backend,
+After building, you can run the command ``llc --version``  
+to verify that the Cpu0 backend is available.
 
 .. code-block:: console
 
@@ -2464,11 +2679,12 @@ After build, you can type command ``llc –version`` to find the cpu0 backend,
     cpu0el   - Cpu0el 
   ...
 
-The ``llc -version`` can display Registered Targets **“cpu0”** and **“cpu0el”**, 
-because the code in file TargetInfo/Cpu0TargetInfo.cpp we made in last 
-sub-section "Target Registration" [#asadasd]_. 
+The command ``llc --version`` will display the registered targets  
+**"cpu0"** and **"cpu0el"**,  
+as defined in `TargetInfo/Cpu0TargetInfo.cpp`  
+from the previous section, *Target Registration* [#asadasd]_.  
 
-Let's build lbdex/chapters/Chapter2 code as follows,
+Now, let's build the `lbdex/chapters/Chapter2` code as follows:
 
 .. code-block:: console
 
@@ -2490,10 +2706,15 @@ Let's build lbdex/chapters/Chapter2 code as follows,
   -- Generating done
   -- Build files have been written to: /Users/Jonathan/llvm/test/build
 
-In order to save time, we build Cpu0 target only by option 
--DLLVM_TARGETS_TO_BUILD=Cpu0.
-After that, you can find the \*.inc files in directory 
-/Users/Jonathan/llvm/test/build/lib/Target/Cpu0 as follows,
+To save time, we build only the Cpu0 target using the option:  
+
+``-DLLVM_TARGETS_TO_BUILD=Cpu0``  
+
+After the build, you can find the generated `*.inc` files in:  
+
+``/Users/Jonathan/llvm/test/build/lib/Target/Cpu0``  
+
+as shown below:
 
 .. rubric:: build/lib/Target/Cpu0/Cpu0GenRegisterInfo.inc
 .. code-block:: c++
@@ -2526,26 +2747,22 @@ After that, you can find the \*.inc files in directory
   }
   ...
 
-These \*.inc are generated by llvm-tblgen at directory 
-build/lib/Target/Cpu0 where their input files are the Cpu0 backend 
-\*.td files. 
-The llvm-tblgen is invoked by **tablegen** of 
-/Users/Jonathan/llvm/test/llvm/lib/Target/Cpu0/CMakeLists.txt. 
-These \*.inc files will be included by Cpu0 backend \*.cpp or \*.h files and 
-compile into \*.o further. 
-TableGen is the important tool illustrated in the early sub-section 
-".td: LLVM’s Target Description Files" of this chapter. 
-List it again as follows,
- 
-"The “mix and match” approach allows target authors to choose what makes sense 
-for their architecture and permits a large amount of code reuse across 
-different targets".
+These `*.inc` files are generated by `llvm-tblgen` in the  
+`build/lib/Target/Cpu0` directory, using the Cpu0 backend `*.td` files  
+as input.  
 
-Details about TableGen are here [#tblgen]_ [#tblgen-langintro]_ 
-[#tblgen-langref]_.
+The `llvm-tblgen` tool is invoked by **tablegen**  
+in `/Users/Jonathan/llvm/test/llvm/lib/Target/Cpu0/CMakeLists.txt`.  
 
+These `*.inc` files are later included in Cpu0 backend `.cpp` or `.h` files  
+and compiled into `.o` files.  
 
-Now try to run  command ``llc`` to compile input file ch3.cpp as follows,
+**TableGen** is a crucial tool, as discussed earlier in the  
+*".td: LLVM’s Target Description Files"* section of this chapter.  
+For reference, the TableGen documentation is available here:  
+[#tblgen]_ [#tblgen-langintro]_ [#tblgen-langref]_.  
+
+Now, try running the `llc` command to compile the input file `ch3.cpp`:
 
 .. rubric:: lbdex/input/ch3.cpp
 .. literalinclude:: ../lbdex/input/ch3.cpp
@@ -2561,9 +2778,13 @@ First step, compile it with clang and get output ch3.bc as follows,
   118-165-78-230:input Jonathan$ clang -target mips-unknown-linux-gnu -c 
   ch3.cpp -emit-llvm -o ch3.bc
 
-As above, compile C to .bc by ``clang -target mips-unknown-linux-gnu`` because
-Cpu0 borrows the ABI from Mips.
-Next step, transfer bitcode .bc to human readable text format as follows,
+As shown above, compile C to `.bc` using:  
+
+``clang -target mips-unknown-linux-gnu``  
+
+since Cpu0 borrows its ABI from MIPS.  
+
+Next, convert the bitcode (`.bc`) to a human-readable text format as follows:
 
 .. code-block:: console
 
@@ -2582,43 +2803,49 @@ Next step, transfer bitcode .bc to human readable text format as follows,
     ret i32 0 
   }
 
-Now, when compiling ch3.bc will get the error message as follows,
+Now, compiling `ch3.bc` will result in the following error message:  
 
-.. code-block:: console
+.. code-block:: console  
 
-  118-165-78-230:input Jonathan$ /Users/Jonathan/llvm/test/build/
-  bin/llc -march=cpu0 -relocation-model=pic -filetype=asm ch3.bc -o 
-  ch3.cpu0.s
-  ...
-  ... Assertion `target.get() && "Could not allocate target machine!"' failed 
-  ...
+  118-165-78-230:input Jonathan$ /Users/Jonathan/llvm/test/build/  
+  bin/llc -march=cpu0 -relocation-model=pic -filetype=asm ch3.bc -o  
+  ch3.cpu0.s  
+  ...  
+  ... Assertion `target.get() && "Could not allocate target machine!"' failed  
+  ...  
 
-At this point, we finish the Target Registration for Cpu0 backend. 
-The backend compiler command ``llc`` can recognize Cpu0 backend now. 
-Currently we just define target td files (Cpu0.td, Cpu0Other.td, 
-Cpu0RegisterInfo.td, ...). 
-According to LLVM structure, we need to define our target machine and include 
-those td related files. 
-The error message says we didn't define our target machine.
-This book is a step-by-step backend delvelopment. 
-You can review the houndreds lines of Chapter2 example code to see how to do 
-the Target Registration. 
+At this point, we have completed *Target Registration* for the Cpu0 backend.  
+The `llc` compiler command now recognizes the Cpu0 backend.  
+
+Currently, we have only defined the target `.td` files (`Cpu0.td`,  
+`Cpu0Other.td`, `Cpu0RegisterInfo.td`, etc.).  
+According to the LLVM structure, we need to define our target machine  
+and include these `.td` files.  
+
+The error message indicates that the target machine is not yet defined.  
+This book follows a step-by-step approach to backend development.  
+You can review the **hundreds** of lines in the Chapter 2 example code  
+to understand how *Target Registration* is implemented.  
 
 
-Options of llc for debug
-----------------------------
+Options for `llc` Debugging  
+----------------------------  
 
-llc --help-hidden
+Run the following command to see hidden `llc` options:  
 
-The following options for llc need to give a input .bc or .ll file.
+``llc --help-hidden``  
 
-- -debug:
+The following `llc` options require an input `.bc` or `.ll` file:  
 
-- -debug-pass=Structure
+- `-debug`  
+- `-debug-pass=Structure`  
+- `-print-after-all`, `-print-before-all`  
+- `-print-before="pass"` and `-print-after="pass"`  
 
-- -print-after-all, -print-before-all
+  Example:  
+  ``-print-before="postra-machine-sink" -print-after="postra-machine-sink"``  
 
-- -print-before="pass" and -print-after="pass", eg. -print-before="postra-machine-sink" and -print-after="postra-machine-sink". The pass name can be got as follows,
+  The pass name can be obtained as follows:
 
 .. code-block:: console
 
@@ -2627,33 +2854,48 @@ The following options for llc need to give a input .bc or .ll file.
   CodeGen % grep -R "INITIALIZE_PASS" |grep sink
   ./MachineSink.cpp:INITIALIZE_PASS(PostRAMachineSinking, "postra-machine-sink",
 
-- -view-dag-combine1-dags displays the DAG after being built, before the
-  first optimization pass.
-   
-- -view-legalize-dags displays the DAG before Legalization.
-  
-- -view-dag-combine2-dags displays the DAG before the second optimization
-  pass.
-  
-- -view-isel-dags displays the DAG before the Select phase. 
-  
-- -view-sched-dags displays the DAG before Scheduling.
+- `-view-dag-combine1-dags`  
+  Displays the DAG after being built, before the first optimization pass.  
 
-- -march=<string>, eg. march=mips; 
+- `-view-legalize-dags`  
+  Displays the DAG before legalization.  
 
-- -relocation-model=static/pic
+- `-view-dag-combine2-dags`  
+  Displays the DAG before the second optimization pass.  
 
-- -filetype=asm/obj
+- `-view-isel-dags`  
+  Displays the DAG before the Select phase.  
 
-Use F.dump() in code where F is class Function for passes in llvm/lib/Transformation.
+- `-view-sched-dags`  
+  Displays the DAG before scheduling.  
 
-Options of opt 
----------------
+- `-march=<string>`  
+  Specifies the target architecture (e.g., `-march=mips`).  
 
-Check from `opt --help-hidden` and LLVM passes [#llvm-passes]_. Eg. 
+- `-relocation-model=static/pic`  
+  Sets the relocation model.  
 
-- `opt -dot-cfg input.ll`: Print CFG of function to 'dot' file
-- -dot-cfg-only : Print CFG of function to 'dot' file (with no function bodies)
+- `-filetype=asm/obj`  
+  Specifies the output file type (assembly or object).  
+
+You can use `F.dump()` in the code, where `F` is an instance of the `Function`  
+class, to inspect transformations in `llvm/lib/Transformation`.  
+
+
+`opt` Debugging Options  
+------------------------  
+
+Check available options using:  
+
+``opt --help-hidden``  
+
+Refer to LLVM passes documentation [#llvm-passes]_. Examples:  
+
+- `opt -dot-cfg input.ll`  
+  Prints the CFG of a function to a `.dot` file.  
+
+- `-dot-cfg-only`  
+  Prints the CFG to a `.dot` file without function bodies.
 
 
 .. [#cpu0-chinese] Original Cpu0 architecture and ISA details (Chinese). http://ccckmit.wikidot.com/ocs:cpu0
