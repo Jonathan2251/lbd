@@ -610,11 +610,9 @@ Diagram Explanation:
 Comparison of Producer-Consumer with Busy Waiting
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-This section compares different implementations of the producer-consumer, 
-SPSC (Single-Producer, Single-Consumer) problem 
-using a busy-waiting algorithm in the following approaches:
-
-Would you like a **multi-producer, multi-consumer (MPMC) version** of these implementations?
+This section compares different **lock-free** implementations of the 
+producer-consumer, **SPSC (Single-Producer, Single-Consumer)** problem 
+using a **busy-waiting** algorithm in the following approaches:
 
 1. **Linux API with busy-waiting** (using `std::atomic`)
 2. **MIPS atomic and sync instructions** (using `ll`, `sc`, `sync`)

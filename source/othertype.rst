@@ -7,16 +7,15 @@ Other data type
    :local:
    :depth: 4
 
-Until now, we only handle both int and long type of 32 bits size. 
-This chapter introduce other types, such as pointer and those 
-are not 32-bit size which inlcude bool, char, short int and long long.
+Until now, we have only handled int and long types of 32-bit size.
+This chapter introduces other types, such as pointers and types that are not 
+32-bit, including bool, char, short int, and long long.
  
- 
-Local variable pointer
+Local Variable Pointer
 -----------------------
 
-To support pointer to local variable, add this code fragment in 
-Cpu0InstrInfo.td and Cpu0InstPrinter.cpp as follows,
+To support pointers to local variables, add the following code fragment to
+Cpu0InstrInfo.td and Cpu0InstPrinter.cpp:
 
 .. rubric:: lbdex/chapters/Chapter7_1/Cpu0InstrInfo.td
 .. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td
@@ -39,11 +38,13 @@ Cpu0InstrInfo.td and Cpu0InstPrinter.cpp as follows,
     :start-after: //#if CH >= CH7_1
     :end-before: //#endif
 
-As comment in Cpu0InstPrinter.cpp, the printMemOperandEA is added at early 
-chapter 3_2 since the DAG data node, mem_ea of Cpu0InstrInfo.td, cannot be 
-disabled by ch7_1_localpointer, only opcode node can be disabled.
-Run ch7_1_localpointer.cpp with code Chapter7_1/ which support pointer to local 
-variable, will get result as follows,
+As noted in Cpu0InstPrinter.cpp, the printMemOperandEA function was added in an 
+earlier Chapter 3.2 because the DAG data node mem_ea in Cpu0InstrInfo.td cannot 
+be disabled by ch7_1_localpointer; only the opcode node can be disabled.
+
+Run ch7_1_localpointer.cpp with the Chapter7_1/ directory, which supports 
+pointers to local variables. The expected result is as follows:
+
 
 .. rubric:: lbdex/input/ch7_1_localpointer.cpp
 .. literalinclude:: ../lbdex/input/ch7_1_localpointer.cpp
@@ -85,8 +86,8 @@ variable, will get result as follows,
 char, short int and bool
 --------------------------
 
-To support signed/unsigned type of char and short int, adding the following 
-code to Chapter7_1/.
+To support signed and unsigned char and short int, add the following
+code to Chapter7_1/:
 
 .. rubric:: lbdex/chapters/Chapter7_1/Cpu0InstrInfo.td
 .. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td
@@ -99,8 +100,7 @@ code to Chapter7_1/.
     :start-after: //#if CH >= CH7_1 5
     :end-before: //#endif
 
-
-Run Chapter7_1/ with ch7_1_char_in_struct.cpp will get the following result.
+Run Chapter7_1/ with ch7_1_char_in_struct.cpp to obtain the following result.
 
 .. rubric:: lbdex/input/ch7_1_char_in_struct.cpp
 .. literalinclude:: ../lbdex/input/ch7_1_char_in_struct.cpp
@@ -191,7 +191,7 @@ Run Chapter7_1/ with ch7_1_char_in_struct.cpp will get the following result.
     .space  1
     .size $_ZZ9test_charvE5date1, 8
 
-Run Chapter7_1/ with ch7_1_char_short.cpp will get the following result.
+Run Chapter7_1/ with ch7_1_char_short.cpp to obtain the following result.
 
 .. rubric:: lbdex/input/ch7_1_char_short.cpp
 .. literalinclude:: ../lbdex/input/ch7_1_char_short.cpp
@@ -263,15 +263,16 @@ Run Chapter7_1/ with ch7_1_char_short.cpp will get the following result.
     .end  _Z19test_unsigned_shortv
     ...
 
-As you can see lb/lh are for signed byte/short type while lbu/lhu are for 
-unsigned byte/short type. 
-To support C type-cast or type-conversion feature efficiently, Cpu0 provide 
-instruction "lb" to converse type char to int with one single instruction. 
-The other instructions lbu, lh, lhu, sb and sh are applied in both signed or 
-unsigned of type byte and short conversion. 
-Their differences have been explained in Chapter 2.
+As shown, lb/lh instructions are used for signed byte/short types, while 
+lbu/lhu are used for unsigned byte/short types.
+To efficiently support C type-casting and type-conversion features,
+Cpu0 provides the lb instruction, which converts a char to an int with a single 
+instruction.
+The instructions lbu, lh, lhu, sb, and sh are applied to both signed and 
+unsigned byte and short conversions.
+Their differences were explained in Chapter 2.
 
-To support load bool type, the following code added.
+To support loading the bool type, add the following code:
 
 .. rubric:: lbdex/chapters/Chapter7_1/Cpu0ISelLowering.cpp
 .. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.cpp
@@ -286,11 +287,13 @@ To support load bool type, the following code added.
     ...
   }
 
-The setBooleanContents() purpose as following, but I don't know it well. 
-Without it, the ch7_1_bool2.ll still works as below. 
-The IR input file ch7_1_bool2.ll is used in testing here since the c++ version
-need flow control which is not supported at this point. 
-File ch_run_backend.cpp include the test fragment for bool as below.
+The purpose of setBooleanContents() is as follows, but its details are not well 
+understood.
+Without it, ch7_1_bool2.ll still works as shown below.
+
+The IR input file ch7_1_bool2.ll is used for testing, as the C++ version
+requires flow control, which is not supported at this point.
+The file ch_run_backend.cpp includes a test fragment for bool, as shown below.
 
 .. rubric:: include/llvm/Target/TargetLowering.h
 .. code-block:: c++
@@ -351,17 +354,14 @@ File ch_run_backend.cpp include the test fragment for bool as below.
     .cfi_endproc
 
 
-The ch7_1_bool.cpp is the bool test version for C language. 
-You can run with it at Chapter8_1 to get the similar result with ch7_1_bool2.ll.
+The ch7_1_bool.cpp file provides a bool test version for C.
+You can run it in Chapter8_1/ to obtain results similar to ch7_1_bool2.ll.
 
 .. rubric:: lbdex/input/ch7_1_bool.cpp
 .. literalinclude:: ../lbdex/input/ch7_1_bool.cpp
     :start-after: /// start
-    
-    
 
-
-Summary as the following table.
+Summary Table
 
 .. table:: The C, IR, and DAG translation for char, short and bool translation (ch7_1_char_short.cpp and ch7_1_bool2.ll).
 
@@ -399,9 +399,8 @@ Summary as the following table.
 long long
 ----------
 
-Like Mips, the type long of Cpu0 is 32-bit and type long long is 64-bit for C 
-language. To support type long long, we add the following code to 
-Chapter7_1/.
+Like MIPS, the long type in Cpu0 is 32-bit, while long long is 64-bit in C.
+To support long long, add the following code to Chapter7_1/:
 
 .. rubric:: lbdex/chapters/Chapter7_1/Cpu0SEISelDAGToDAG.cpp
 .. literalinclude:: ../lbdex/Cpu0/Cpu0SEISelDAGToDAG.cpp
@@ -445,15 +444,17 @@ Chapter7_1/.
     ...
   }
 
-The added code in Cpu0ISelLowering.cpp are for shift operations which support 
-type long long 64-bit. 
-When applying operators << and >> in 64-bit variables will create DAG SHL_PARTS, 
-SRA_PARTS and SRL_PARTS those which take care the 32 bits operands during llvm 
-DAGs translation. 
-File ch9_7.cpp of 64-bit shift operations cannot be run at this 
-point. It will be verified on later chapter "Function call".
+The additional code in Cpu0ISelLowering.cpp handles shift operations for long 
+long (64-bit).
+Using the << and >> operators on 64-bit variables generates DAG SHL_PARTS,
+SRA_PARTS, and SRL_PARTS, which manage 32-bit operands during LLVM DAG 
+translation.
 
-Run Chapter7_1 with ch7_1_longlong.cpp to get the result as follows,
+At this point, ch9_7.cpp, which includes 64-bit shift operations, cannot be 
+executed.
+It will be verified in the later chapter Function Call.
+
+Run Chapter7_1/ with ch7_1_longlong.cpp to obtain the following result.
 
 .. rubric:: lbdex/input/ch7_1_longlong.cpp
 .. literalinclude:: ../lbdex/input/ch7_1_longlong.cpp
@@ -556,25 +557,26 @@ Run Chapter7_1 with ch7_1_longlong.cpp to get the result as follows,
 float and double
 -----------------
 
-Cpu0 only has integer instructions at this point. 
-For float operations, Cpu0 backend
-will call the library function to translate integer to float as follows,
+At this point, Cpu0 only supports integer instructions.
+For floating-point operations, the Cpu0 backend calls library functions
+to convert integers to floats, as follows:
 
 .. rubric:: lbdex/input/ch7_1_fmul.c
 .. literalinclude:: ../lbdex/input/ch7_1_fmul.c
 
-This float (or 
-double) function call for Cpu0 will be supported after the chapter of function 
-call. For hardware cost reason, many CPU have no hardware float instructions.
-They call library function to finish float operations. Mips sperarate float 
-operations with a sperarate co-processor for those needing "float intended" 
-application.
+Floating-point function calls for Cpu0 will be supported in the Function Call 
+chapter.
+Due to hardware cost constraints, many CPUs do not include floating-point 
+hardware instructions.
+Instead, they rely on library functions.
+MIPS separates floating-point operations into a dedicated co-processor for 
+applications that require floating-point arithmetic.
 
-In order to support float point library (part of compiler-rt) 
-[#lbt-compiler-rt]_, the following code are added to support instructions clz 
-and clo. Though clz and clo instructions are implemented in compiler-rt.
-However these two instructions are integer operations and will get better
-speed up in float point application.
+To support the floating-point library (part of compiler-rt) 
+[#lbt-compiler-rt]_, the following code is added to support clz and clo 
+instructions.
+Although these instructions are implemented in compiler-rt, they
+are integer operations that improve floating-point application performance.
 
 .. rubric:: lbdex/chapters/Chapter7_1/Cpu0InstrInfo.td
 .. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td
@@ -587,9 +589,10 @@ speed up in float point application.
 Array and struct support
 -------------------------
 
-LLVM uses getelementptr to represent the array and struct type in C. 
-Please reference here [#]_. 
-For ch7_1_globalstructoffset.cpp, the llvm IR as follows,
+LLVM uses getelementptr to represent array and struct types in C.
+For details, refer to [#]_.
+
+For ch7_1_globalstructoffset.cpp, the LLVM IR is as follows:
 
 .. rubric:: lbdex/input/ch7_1_globalstructoffset.cpp
 .. literalinclude:: ../lbdex/input/ch7_1_globalstructoffset.cpp
@@ -633,12 +636,11 @@ incorrect asm file as follows,
     ld  $2, 0($2)   // the correct one is   ld  $2, 8($2)
     ...
 
-
-For **“day = date.day”**, the correct one is **“ld $2, 8($2)”**, not 
-**“ld $2, 0($2)”**, since date.day is offset 8(date) (
-Type int is 4 bytes in Cpu0, and the date.day has fields year and month before 
-it). 
-Let's use debug option in llc to see what's wrong,
+For day = date.day, the correct instruction is 
+**ld $2, 8($2), not ld $2, 0($2),** 
+since date.day has an offset of 8 bytes (the date struct contains year and 
+month before day).
+Use the debug option in llc to analyze this:
 
 .. code-block:: console
 
@@ -740,17 +742,17 @@ Let's use debug option in llc to see what's wrong,
   ...
 
 
-Through ``llc -debug``, you can see the DAG translation process. 
-As above, the DAG list 
-for date.day (add GlobalAddress<[3 x i32]* @a> 0, Constant<8>) with 3 nodes is 
-replaced by 1 node GlobalAddress<%struct.Date* @date> + 8. 
-The DAG list for a[1] is same. 
-The replacement occurs since TargetLowering.cpp::isOffsetFoldingLegal(...) 
-return true in ``llc -static`` static addressing mode as below. 
-In Cpu0 the **ld** instruction format is **“ld $r1, offset($r2)”** which 
-meaning load $r2 address+offset to $r1. 
-So, we just replace the isOffsetFoldingLegal(...) function by override 
-mechanism as below.
+The output reveals the DAG translation process.
+As shown, the DAG node for date.day
+(add GlobalAddress<[3 x i32]* @a> 0, Constant<8>) with three nodes is replaced 
+by a single node GlobalAddress<%struct.Date* @date> + 8.
+The same applies to a[1].
+
+This replacement occurs because TargetLowering.cpp::isOffsetFoldingLegal(...)
+returns true in ``llc -static`` static addressing mode.
+In Cpu0, the **ld** instruction format is **ld $r1, offset($r2)**,
+meaning it loads the value at address($r2) + offset into $r1.
+To correct this, override isOffsetFoldingLegal(...) as follows:
 
 .. rubric:: lib/CodeGen/SelectionDAG/TargetLowering.cpp
 
@@ -778,7 +780,10 @@ mechanism as below.
     :start-after: #if CH >= CH7_1 //4
     :end-before: #endif
 
-Beyond that, we need to add the following code fragment to Cpu0ISelDAGToDAG.cpp,
+Additionally, add the following code to Cpu0ISelDAGToDAG.cpp:
+
+When SelectAddr(...) in Cpu0ISelDAGToDAG.cpp is called,
+Addr represents the DAG node for date.day:
 
 .. rubric:: lbdex/chapters/Chapter7_1/Cpu0ISelDAGToDAG.cpp
 .. literalinclude:: ../lbdex/Cpu0/Cpu0ISelDAGToDAG.cpp
@@ -793,32 +798,30 @@ Beyond that, we need to add the following code fragment to Cpu0ISelDAGToDAG.cpp,
     ...
   }
 
-Recall we have translated DAG list for date.day 
-(add GlobalAddress<[3 x i32]* @a> 0, Constant<8>) into 
-(add (add Cpu0ISD::Hi (Cpu0II::MO_ABS_HI), Cpu0ISD::Lo(Cpu0II::MO_ABS_LO)), 
-Constant<8>) by the following code in Cpu0ISelLowering.cpp.
+Recall that we have translated the DAG list for ``date.day``  
+``(add GlobalAddress<[3 x i32]* @a> 0, Constant<8>)`` into  
+
+``(add (add Cpu0ISD::Hi (Cpu0II::MO_ABS_HI), Cpu0ISD::Lo(Cpu0II::MO_ABS_LO)),``  
+``Constant<8>)``  
+
+by the following code in ``Cpu0ISelLowering.h``.
 
 .. rubric:: lbdex/chapters/Chapter6_1/Cpu0ISelLowering.h
 .. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.h
     :start-after: //@getAddrNonPIC
     :end-before: #endif // #if CH >= CH6_1
 
-So, when the SelectAddr(...) of Cpu0ISelDAGToDAG.cpp is called. 
-The Addr SDValue in SelectAddr(..., Addr, ...) is DAG list for date.day 
-(add (add Cpu0ISD::Hi (Cpu0II::MO_ABS_HI), Cpu0ISD::Lo(Cpu0II::MO_ABS_LO)), 
-Constant<8>). 
-Since Addr.getOpcode() = ISD:ADD, Addr.getOperand(0) = 
-(add Cpu0ISD::Hi (Cpu0II::MO_ABS_HI), Cpu0ISD::Lo(Cpu0II::MO_ABS_LO)) and 
-Addr.getOperand(1).getOpcode() = ISD::Constant, the Base = SDValue 
-(add Cpu0ISD::Hi (Cpu0II::MO_ABS_HI), Cpu0ISD::Lo(Cpu0II::MO_ABS_LO)) and 
-Offset = Constant<8>. 
-After set Base and Offset, the load DAG will translate the global address 
-date.day into machine instruction **“ld $r1, 8($r2)”** in Instruction Selection 
-stage.
+add (add Cpu0ISD::Hi (Cpu0II::MO_ABS_HI), Cpu0ISD::Lo(Cpu0II::MO_ABS_LO)), Constant<8>
 
-Chapter7_1/ include these changes as above, you can run it with 
-ch7_1_globalstructoffset.cpp to get the correct generated instruction 
-**“ld $r1, 8($r2)”** for date.day access, as follows.
+Since Addr.getOpcode() = ISD:ADD,
+Addr.getOperand(0) = (add Cpu0ISD::Hi (Cpu0II::MO_ABS_HI), Cpu0ISD::Lo(Cpu0II::MO_ABS_LO)),
+and Addr.getOperand(1).getOpcode() = ISD::Constant,
+we set Base to (add Cpu0ISD::Hi (Cpu0II::MO_ABS_HI), Cpu0ISD::Lo(Cpu0II::MO_ABS_LO))
+and Offset to Constant<8>.
+This ensures ld $r1, 8($r2) is correctly generated in the Instruction Selection stage.
+
+Run Chapter7_1/ with ch7_1_globalstructoffset.cpp to obtain the correct instruction.
+
 
 .. code-block:: console
 
@@ -894,6 +897,12 @@ Vector types are used when multiple primitive data are operated in parallel
 using a single instruction (SIMD) [#vector]_. Mips supports the 
 following llvm IRs "icmp slt" and "sext" for vector type, Cpu0 supports them
 either.
+
+
+Vector types enable multiple primitive data operations in parallel
+using a single instruction (SIMD) [#vector]_.
+MIPS supports **icmp slt** and **sext** LLVM IRs for vector types, which Cpu0 
+also supports.
 
 .. rubric:: lbdex/input/ch7_1_vector.cpp
 .. literalinclude:: ../lbdex/input/ch7_1_vector.cpp
@@ -1023,8 +1032,8 @@ either.
     .section  ".note.GNU-stack","",@progbits
 
   
-Since test_longlong_shift2() of ch7_1_vector.cpp needs implementation 
-storeRegToStack() of Cpu0SEInstInfo.cpp, at this point it cannot be verified.
+Since test_longlong_shift2() in ch7_1_vector.cpp requires storeRegToStack()
+in Cpu0SEInstInfo.cpp, it cannot be verified at this point.
 
 .. rubric:: lbdex/chapters/Chapter7_1/Cpu0ISelLowering.h
 .. literalinclude:: ../lbdex/Cpu0/Cpu0ISelLowering.h
