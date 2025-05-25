@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
-    <title>Arithmetic and logic instructions &#8212; Tutorial: Creating an LLVM Backend for the Cpu0 Architecture</title>
+    <title>Arithmetic and Logic Instructions &#8212; Tutorial: Creating an LLVM Backend for the Cpu0 Architecture</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="_static/haiku.css" />
     <link rel="stylesheet" type="text/css" href="_static/graphviz.css" />
@@ -23,7 +23,7 @@
   </head><body>
       <div class="header" role="banner"><h1 class="heading"><a href="index.html">
           <span>Tutorial: Creating an LLVM Backend for the Cpu0 Architecture</span></a></h1>
-        <h2 class="heading"><span>Arithmetic and logic instructions</span></h2>
+        <h2 class="heading"><span>Arithmetic and Logic Instructions</span></h2>
       </div>
       <div class="topnav" role="navigation" aria-label="top navigation">
       
@@ -40,46 +40,47 @@
         
         
   <section id="arithmetic-and-logic-instructions">
-<span id="sec-addingmoresupport"></span><h1>Arithmetic and logic instructions<a class="headerlink" href="#arithmetic-and-logic-instructions" title="Permalink to this heading">¶</a></h1>
+<span id="sec-addingmoresupport"></span><h1>Arithmetic and Logic Instructions<a class="headerlink" href="#arithmetic-and-logic-instructions" title="Permalink to this heading">¶</a></h1>
 <nav class="contents local" id="contents">
 <ul class="simple">
 <li><p><a class="reference internal" href="#arithmetic" id="id21">Arithmetic</a></p>
 <ul>
 <li><p><a class="reference internal" href="#and" id="id22"><strong>+, -, *, &lt;&lt;,</strong> and <strong>&gt;&gt;</strong></a></p></li>
-<li><p><a class="reference internal" href="#display-llvm-ir-nodes-with-graphviz" id="id23">Display llvm IR nodes with Graphviz</a></p></li>
-<li><p><a class="reference internal" href="#operator-and" id="id24">Operator % and /</a></p>
+<li><p><a class="reference internal" href="#display-llvm-ir-nodes-with-graphviz" id="id23">Display LLVM IR Nodes with Graphviz</a></p></li>
+<li><p><a class="reference internal" href="#operator-and" id="id24">Operator <code class="docutils literal notranslate"><span class="pre">%</span></code> and <code class="docutils literal notranslate"><span class="pre">/</span></code></a></p>
 <ul>
-<li><p><a class="reference internal" href="#the-dag-of" id="id25">The DAG of %</a></p></li>
-<li><p><a class="reference internal" href="#arm-solution" id="id26">Arm solution</a></p></li>
-<li><p><a class="reference internal" href="#mips-solution" id="id27">Mips solution</a></p></li>
-<li><p><a class="reference internal" href="#full-support-and" id="id28">Full support %, and /</a></p></li>
+<li><p><a class="reference internal" href="#dag-representation-of" id="id25">DAG Representation of <code class="docutils literal notranslate"><span class="pre">%</span></code></a></p></li>
+<li><p><a class="reference internal" href="#arm-solution" id="id26">ARM Solution</a></p></li>
+<li><p><a class="reference internal" href="#mips-solution" id="id27">MIPS Solution</a></p></li>
+<li><p><a class="reference internal" href="#full-support-for-and" id="id28">Full Support for <cite>%</cite> and <cite>/</cite></a></p></li>
+<li><p><a class="reference internal" href="#rotate-instructions" id="id29">Rotate Instructions</a></p></li>
 </ul>
 </li>
-<li><p><a class="reference internal" href="#rotate-instructions" id="id29">Rotate instructions</a></p></li>
 </ul>
 </li>
-<li><p><a class="reference internal" href="#logic" id="id30">Logic</a></p></li>
+<li><p><a class="reference internal" href="#logical-instructions" id="id30">Logical Instructions</a></p></li>
 <li><p><a class="reference internal" href="#summary" id="id31">Summary</a></p></li>
 </ul>
 </nav>
-<p>This chapter adds more Cpu0 arithmetic instructions support first.
-The <a class="reference external" href="http://jonathan2251.github.io/lbd/otherinst.html#display-llvm-ir-nodes-with-graphviz">section Display llvm IR nodes with Graphviz</a>
-will show you the steps of DAG optimization and their corresponding <code class="docutils literal notranslate"><span class="pre">llc</span></code>
-display options.
-These DAGs translation existed in some steps of optimization can be displayed by
-the graphic tool of Graphviz which supply useful information in graphic view.
-Logic instructions support will come after arithmetic section.
-In spite of that llvm backend handle the IR only, we get the IR from the
-corresponding C operators with designed C example code.
-Instead of focusing on classes relationship in this backend structure of last
-chapter, readers should focus on the mapping of C operators to llvm IR and
-how to define the mapping relationship of IR and instructions in td.
-HILO and C0 register class are defined in this chapter.
-Readers will know how to handle other register classes beside general
-purpose register class, and why they are needed, from this chapter.</p>
+<p>This chapter first adds support for more Cpu0 arithmetic instructions.
+The <a class="reference external" href="http://jonathan2251.github.io/lbd/otherinst.html#display-llvm-ir-nodes-with-graphviz">section Display llvm IR nodes with Graphviz</a> will show you the steps of
+DAG optimization and their corresponding <code class="docutils literal notranslate"><span class="pre">llc</span></code> display options.
+These DAG translations exist at various optimization steps and can be displayed
+using the Graphviz tool, which provides useful graphical information.</p>
+<p>Support for logic instructions will follow the arithmetic section.
+Although the LLVM backend only handles IR, we derive the IR from corresponding
+C operators using designed C example code.
+Instead of focusing on class relationships in the backend structure, as in the
+previous chapter, readers should now focus on mapping C operators to LLVM IR
+and defining the mapping relationship between IR and instructions in <code class="docutils literal notranslate"><span class="pre">.td</span></code>
+files.</p>
+<p>The <strong>HILO</strong> and <strong>C0</strong> register classes are introduced in this chapter.
+Readers will learn how to handle additional register classes beyond general-
+purpose registers and understand why they are needed.</p>
 <section id="arithmetic">
 <h2><a class="toc-backref" href="#id21" role="doc-backlink">Arithmetic</a><a class="headerlink" href="#arithmetic" title="Permalink to this heading">¶</a></h2>
-<p>The code added in Chapter4_1/ to support arithmetic instructions as follows,</p>
+<p>The code added in <code class="docutils literal notranslate"><span class="pre">Chapter4_1/</span></code> to support arithmetic instructions is
+summarized as follows:</p>
 <p class="rubric">lbdex/chapters/Chapter4_1/Cpu0Subtarget.cpp</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">static</span> <span class="n">cl</span><span class="p">::</span><span class="n">opt</span><span class="o">&lt;</span><span class="nb">bool</span><span class="o">&gt;</span> <span class="n">EnableOverflowOpt</span>
                 <span class="p">(</span><span class="s2">&quot;cpu0-enable-overflow&quot;</span><span class="p">,</span> <span class="n">cl</span><span class="p">::</span><span class="n">Hidden</span><span class="p">,</span> <span class="n">cl</span><span class="p">::</span><span class="n">init</span><span class="p">(</span><span class="n">false</span><span class="p">),</span>
@@ -491,22 +492,20 @@ SDValue Cpu0TargetLowering::PerformDAGCombine(SDNode *N, DAGCombinerInfo &amp;DC
 </div>
 <section id="and">
 <h3><a class="toc-backref" href="#id22" role="doc-backlink"><strong>+, -, *, &lt;&lt;,</strong> and <strong>&gt;&gt;</strong></a><a class="headerlink" href="#and" title="Permalink to this heading">¶</a></h3>
-<p>The ADDu, ADD, SUBu, SUB and MUL defined in Chapter4_1/Cpu0InstrInfo.td are for
-operators <strong>+, -, *</strong>.
-SHL (defined before) and SHLV are for <strong>&lt;&lt;</strong>.
-SRA, SRAV, SHR and SHRV are for <strong>&gt;&gt;</strong>.</p>
-<p>In RISC CPU, such as Mips, the multiply/divide function unit and add/sub/logic
-unit are designed from two different hardware circuits, and more, their data
-path are separate.
-Cpu0 is same, so these two function units can be executed at same time
-(instruction level parallelism).
-Reference <a class="footnote-reference brackets" href="#instrstage" id="id1" role="doc-noteref"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></a> for instruction itineraries.</p>
-<p>Chapter4_1/ can handle <strong>+, -, *, &lt;&lt;,</strong> and <strong>&gt;&gt;</strong> operators in C
-language.
-The corresponding llvm IR instructions are <strong>add, sub, mul, shl, ashr</strong>.
-The <strong>‘ashr’</strong> instruction (arithmetic shift right) returns the first operand
-shifted to the right a specified number of bits with sign extension.
-In brief, we call <strong>ashr</strong> is “shift with sign extension fill”.</p>
+<p>The <strong>ADDu</strong>, <strong>ADD</strong>, <strong>SUBu</strong>, <strong>SUB</strong>, and <strong>MUL</strong> instructions defined in
+<code class="docutils literal notranslate"><span class="pre">Chapter4_1/Cpu0InstrInfo.td</span></code> correspond to the <strong>+, -, *</strong> operators.
+<strong>SHL</strong> (defined earlier) and <strong>SHLV</strong> are used for <strong>&lt;&lt;</strong>, while <strong>SRA</strong>,
+<strong>SRAV</strong>, <strong>SHR</strong>, and <strong>SHRV</strong> handle <strong>&gt;&gt;</strong>.</p>
+<p>In RISC CPUs like MIPS, the multiply/divide function unit and add/sub/logic
+unit are implemented using separate hardware circuits with distinct data paths.
+Cpu0 follows the same approach, allowing these function units to execute
+simultaneously (instruction-level parallelism).
+Refer to <a class="footnote-reference brackets" href="#instrstage" id="id1" role="doc-noteref"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></a> for details on instruction itineraries.</p>
+<p><code class="docutils literal notranslate"><span class="pre">Chapter4_1/</span></code> supports the <strong>+, -, *, &lt;&lt;, and &gt;&gt;</strong> operators in C.
+The corresponding LLVM IR instructions are <strong>add, sub, mul, shl, and ashr</strong>.</p>
+<p>The <strong>ashr</strong> instruction (arithmetic shift right) shifts the first operand
+right by a specified number of bits with sign extension.
+In short, <strong>ashr</strong> performs “shift with sign extension fill.”</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p><strong>ashr</strong></p>
@@ -517,11 +516,11 @@ In brief, we call <strong>ashr</strong> is “shift with sign extension fill”.
 </dd>
 </dl>
 </div>
-<p>The semantic of C operator <strong>&gt;&gt;</strong> for negative operand is dependent on
-implementation.
-Most compilers translate it into “shift with sign extension fill”, and
-Mips <strong>sra</strong> is this instruction.
-Following is the Micosoft web site’s explanation,</p>
+<p>The behavior of the C <strong>&gt;&gt;</strong> operator for negative operands is
+implementation-dependent.
+Most compilers translate it as a “shift with sign extension fill,”
+which is equivalent to the MIPS <strong>sra</strong> instruction.
+The Microsoft website provides the following explanation:</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p><strong>&gt;&gt;</strong>, Microsoft Specific</p>
@@ -531,18 +530,17 @@ Although Microsoft C++ propagates the most-significant bit to fill vacated
 bit positions, there is no guarantee that other implementations will do
 likewise.</p>
 </div>
-<p>In addition to <strong>ashr</strong>, the other instruction “shift with zero filled”
-<strong>lshr</strong> in llvm (Mips implement lshr with instruction <strong>srl</strong>) has the
-following meaning.</p>
+<p>In addition to <strong>ashr</strong>, LLVM provides the <strong>lshr</strong> instruction (“logical shift
+right with zero fill”), which MIPS implements with the <strong>srl</strong> instruction.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p><strong>lshr</strong></p>
 <p>Example:
 &lt;result&gt; = lshr i8 -2, 1   ; yields {i8}:result = 0x7FFFFFFF</p>
 </div>
-<p>In llvm, IR node <strong>sra</strong> is defined for ashr IR instruction, and node <strong>srl</strong> is
-defined for lshr instruction (We don’t know why it doesn’t use ashr and lshr as
-the IR node name directly). Summary as the Table: C operator &gt;&gt; implementation.</p>
+<p>LLVM defines <strong>sra</strong> as the IR node for <strong>ashr</strong> and <strong>srl</strong> for <strong>lshr</strong>.
+(It’s unclear why LLVM does not directly use “ashr” and “lshr” as IR node names.)
+The following table summarizes C <strong>&gt;&gt;</strong> operator implementations:</p>
 <table class="docutils align-default" id="id10">
 <caption><span class="caption-number">Table 21 </span><span class="caption-text">C operator &gt;&gt; implementation</span><a class="headerlink" href="#id10" title="Permalink to this table">¶</a></caption>
 <thead>
@@ -591,11 +589,10 @@ the IR node name directly). Summary as the Table: C operator &gt;&gt; implementa
 <p><strong>srl:</strong>  Shift Right Logically</p>
 <p><strong>sra:</strong>  Shift Right Arithmetically</p>
 <p><strong>shr:</strong>  SHift Right</p>
-<p>If we consider the x &gt;&gt; 1 definition is x = x/2 for compiler implementation.
-Then as you can see from Table: C operator &gt;&gt; implementation, <strong>lshr</strong> will fail
-on some signed value (such as -2). In the same way, <strong>ashr</strong> will fail on some
-unsigned value (such as 4G-2). So, in order to satisfy this definition in
-both signed and unsigned integers of x, we need these two instructions,
+<p>If we define <strong>x &gt;&gt; 1</strong> as <strong>x = x / 2</strong>, then <strong>lshr</strong> fails for some signed
+values (e.g., -2). Similarly, <strong>ashr</strong> fails for some unsigned values
+(e.g., <strong>4G - 2</strong>).
+Thus, to correctly handle both signed and unsigned integers, we need both
 <strong>lshr</strong> and <strong>ashr</strong>.</p>
 <table class="docutils align-default" id="id11">
 <caption><span class="caption-number">Table 22 </span><span class="caption-text">C operator &lt;&lt; implementation</span><a class="headerlink" href="#id11" title="Permalink to this table">¶</a></caption>
@@ -631,18 +628,23 @@ both signed and unsigned integers of x, we need these two instructions,
 </tr>
 </tbody>
 </table>
-<p>Again, consider the x &lt;&lt; 1 definition is x = x*2.
-From Table: C operator &lt;&lt; implementation, we see <strong>lshr</strong> satisfy “unsigned
-x=1G” but fails on signed x=1G.
-It’s fine since 2G is out of 32 bits signed integer range (-2G ~ 2G-1).
-For the overflow case, no way to keep the correct result in register. So, any
-value in register is OK. You can check that <strong>lshr</strong> satisfy x = x*2, for all
-x &lt;&lt; 1 and the x result is not out of range, no matter operand x is signed
-or unsigned integer <a class="footnote-reference brackets" href="#arithmetic-shift" id="id2" role="doc-noteref"><span class="fn-bracket">[</span>2<span class="fn-bracket">]</span></a>.</p>
-<p>The ‘ashr‘ Instruction” reference here <a class="footnote-reference brackets" href="#ashr" id="id3" role="doc-noteref"><span class="fn-bracket">[</span>3<span class="fn-bracket">]</span></a>, ‘lshr‘ reference here <a class="footnote-reference brackets" href="#lshr" id="id4" role="doc-noteref"><span class="fn-bracket">[</span>4<span class="fn-bracket">]</span></a>.</p>
-<p>The srav, shlv and shrv are for two virtual input registers instructions while
-the sra, … are for 1 virtual input registers and 1 constant input operands.</p>
-<p>Now, let’s build Chapter4_1/ and run with input file ch4_math.ll as follows,</p>
+<p>Again, consider the definition of <code class="docutils literal notranslate"><span class="pre">x</span> <span class="pre">&lt;&lt;</span> <span class="pre">1</span></code> as <code class="docutils literal notranslate"><span class="pre">x</span> <span class="pre">=</span> <span class="pre">x</span> <span class="pre">*</span> <span class="pre">2</span></code>.
+From the table on C operator <code class="docutils literal notranslate"><span class="pre">&lt;&lt;</span></code> implementation, we see that <strong>lshr</strong>
+satisfies the case for “unsigned x = 1G” but fails for “signed x = 1G”.
+This is acceptable since <code class="docutils literal notranslate"><span class="pre">2G</span></code> exceeds the 32-bit signed integer range
+(<code class="docutils literal notranslate"><span class="pre">-2G</span></code> to <code class="docutils literal notranslate"><span class="pre">2G</span> <span class="pre">-</span> <span class="pre">1</span></code>).</p>
+<p>In the case of overflow, there is no way to retain the correct result
+within a register. Thus, any value stored in the register is acceptable.
+You can verify that <strong>lshr</strong> satisfies <code class="docutils literal notranslate"><span class="pre">x</span> <span class="pre">=</span> <span class="pre">x</span> <span class="pre">*</span> <span class="pre">2</span></code> for all <code class="docutils literal notranslate"><span class="pre">x</span> <span class="pre">&lt;&lt;</span> <span class="pre">1</span></code>,
+as long as the result remains within range, regardless of whether <code class="docutils literal notranslate"><span class="pre">x</span></code>
+is signed or unsigned <a class="footnote-reference brackets" href="#arithmetic-shift" id="id2" role="doc-noteref"><span class="fn-bracket">[</span>2<span class="fn-bracket">]</span></a>.</p>
+<p>The reference for the <code class="docutils literal notranslate"><span class="pre">ashr</span></code> instruction is available here <a class="footnote-reference brackets" href="#ashr" id="id3" role="doc-noteref"><span class="fn-bracket">[</span>3<span class="fn-bracket">]</span></a>,
+and for <code class="docutils literal notranslate"><span class="pre">lshr</span></code> here <a class="footnote-reference brackets" href="#lshr" id="id4" role="doc-noteref"><span class="fn-bracket">[</span>4<span class="fn-bracket">]</span></a>.</p>
+<p>The instructions <strong>srav</strong>, <strong>shlv</strong>, and <strong>shrv</strong> operate on two virtual
+input registers, while <strong>sra</strong>, <strong>…</strong>, and others operate on one virtual
+input register and one constant operand.</p>
+<p>Now, let’s build <code class="docutils literal notranslate"><span class="pre">Chapter4_1/</span></code> and run it using the input file
+<code class="docutils literal notranslate"><span class="pre">ch4_math.ll</span></code> as follows:</p>
 <p class="rubric">lbdex/input/ch4_math.ll</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>
 <span class="p">;</span> <span class="n">Function</span> <span class="n">Attrs</span><span class="p">:</span> <span class="n">nounwind</span>
@@ -704,10 +706,11 @@ the sra, … are for 1 virtual input registers and 1 constant input operands.</p
 <span class="go">        ret   $lr</span>
 </pre></div>
 </div>
-<p>Example input ch4_1_math.cpp as the following is the C file which include <strong>+, -,
-*, &lt;&lt;,</strong> and <strong>&gt;&gt;</strong> operators.
-It will generate corresponding llvm IR instructions,
-<strong>add, sub, mul, shl, ashr</strong> by clang as Chapter 3 indicated.</p>
+<p>The example input <code class="docutils literal notranslate"><span class="pre">ch4_1_math.cpp</span></code> shown below is a C file that includes
+the operators <strong>`+`</strong>, <strong>`-`</strong>, <strong>`*`</strong>, <strong>`&lt;&lt;`</strong>, and <strong>`&gt;&gt;`</strong>.</p>
+<p>Compiling this file with Clang will generate the corresponding LLVM IR
+instructions: <strong>add</strong>, <strong>sub</strong>, <strong>mul</strong>, <strong>shl</strong>, and <strong>ashr</strong>, as indicated
+in Chapter 3.</p>
 <p class="rubric">lbdex/input/ch4_1_math.cpp</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="nb">int</span> <span class="n">test_math</span><span class="p">()</span>
 <span class="p">{</span>
@@ -737,10 +740,13 @@ It will generate corresponding llvm IR instructions,
 
 </pre></div>
 </div>
-<p>Cpu0 instructions add and sub will trigger overflow exception while addu and subu
-truncate overflow value directly. Compile ch4_1_addsuboverflow.cpp with
-<code class="docutils literal notranslate"><span class="pre">llc</span> <span class="pre">-cpu0-enable-overflow=true</span></code> will generate add and sub instructions as
-follows,</p>
+<p>Cpu0 instructions <code class="docutils literal notranslate"><span class="pre">add</span></code> and <code class="docutils literal notranslate"><span class="pre">sub</span></code> will trigger an overflow exception,
+whereas <code class="docutils literal notranslate"><span class="pre">addu</span></code> and <code class="docutils literal notranslate"><span class="pre">subu</span></code> truncate overflow values directly.</p>
+<p>Compiling <code class="docutils literal notranslate"><span class="pre">ch4_1_addsuboverflow.cpp</span></code> with the following command:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">llc -cpu0-enable-overflow=true</span>
+</pre></div>
+</div>
+<p>will generate <code class="docutils literal notranslate"><span class="pre">add</span></code> and <code class="docutils literal notranslate"><span class="pre">sub</span></code> instructions as shown below:</p>
 <p class="rubric">lbdex/input/ch4_1_addsuboverflow.cpp</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1">#include &quot;debug.h&quot;</span>
 
@@ -790,27 +796,27 @@ follows,</p>
 <span class="go">      ...</span>
 </pre></div>
 </div>
-<p>In modern CPU, programmers are used to using truncate overflow instructions for
-C operators + and -.
-Anyway, through option -cpu0-enable-overflow=true, programmer get the
-chance to compile program with overflow exception program. Usually, this option
-used in debug purpose. Compile with this option can help to identify the bug and
-fix it early.</p>
+<p>In modern CPUs, programmers typically use truncate overflow instructions
+for C operators <code class="docutils literal notranslate"><span class="pre">+</span></code> and <code class="docutils literal notranslate"><span class="pre">-</span></code>.</p>
+<p>However, by using the <code class="docutils literal notranslate"><span class="pre">-cpu0-enable-overflow=true</span></code> option, programmers
+can compile programs with overflow exception handling. This option is
+mainly used for debugging purposes. Compiling with this option can help
+identify bugs early and fix them efficiently.</p>
 </section>
 <section id="display-llvm-ir-nodes-with-graphviz">
-<h3><a class="toc-backref" href="#id23" role="doc-backlink">Display llvm IR nodes with Graphviz</a><a class="headerlink" href="#display-llvm-ir-nodes-with-graphviz" title="Permalink to this heading">¶</a></h3>
-<p>The previous section, display the DAG translation process in text on terminal
-by option <code class="docutils literal notranslate"><span class="pre">llc</span> <span class="pre">-debug</span></code>.
-The <code class="docutils literal notranslate"><span class="pre">llc</span></code> also supports the graphic displaying.
-The <a class="reference external" href="http://jonathan2251.github.io/lbd/install.html#install-other-tools-on-imac">section Install other tools on iMac</a> include the download and installation
-of tool Graphivz.
-The <code class="docutils literal notranslate"><span class="pre">llc</span></code> graphic displaying with tool Graphviz is introduced in this section.
-The graphic displaying is more readable by eyes than displaying text in terminal.
-It’s not a must-have, but helps a lot especially when you are tired in tracking
-the DAG translation process.
-List the <code class="docutils literal notranslate"><span class="pre">llc</span></code> graphic support options from the sub-section “SelectionDAG
-Instruction Selection Process” of web “The LLVM Target-Independent Code Generator”
-<a class="footnote-reference brackets" href="#instructionsel" id="id5" role="doc-noteref"><span class="fn-bracket">[</span>5<span class="fn-bracket">]</span></a> as follows,</p>
+<h3><a class="toc-backref" href="#id23" role="doc-backlink">Display LLVM IR Nodes with Graphviz</a><a class="headerlink" href="#display-llvm-ir-nodes-with-graphviz" title="Permalink to this heading">¶</a></h3>
+<p>The previous section displayed the DAG translation process in text format
+on the terminal using the <code class="docutils literal notranslate"><span class="pre">llc</span> <span class="pre">-debug</span></code> option.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">llc</span></code> tool also supports graphical visualization. The
+<a class="reference external" href="http://jonathan2251.github.io/lbd/install.html#install-other-tools-on-imac">section Install other tools on iMac</a> explains how to download and
+install Graphviz, a tool for rendering DAGs.</p>
+<p>This section introduces how to use <code class="docutils literal notranslate"><span class="pre">llc</span></code> with Graphviz for graphical
+display. Viewing DAGs graphically is often easier to interpret than
+reading raw text in the terminal. While not mandatory, this visualization
+can be very helpful, especially when debugging complex DAG transformations.</p>
+<p>The following <code class="docutils literal notranslate"><span class="pre">llc</span></code> options allow graphical visualization of DAGs,
+as mentioned in the “SelectionDAG Instruction Selection Process” section
+of the LLVM Target-Independent Code Generator documentation <a class="footnote-reference brackets" href="#instructionsel" id="id5" role="doc-noteref"><span class="fn-bracket">[</span>5<span class="fn-bracket">]</span></a>:</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>The <code class="docutils literal notranslate"><span class="pre">llc</span></code> Graphviz DAG display options</p>
@@ -863,18 +869,21 @@ follows,</p>
 <p>-view-isel-dags: Optimized legalized selection DAG</p>
 <p>-view-sched-dags: Selected selection DAG</p>
 </div>
-<p>The -view-isel-dags is important and often used by an llvm backend writer
-because it is the DAGs before instruction selection.
-In order to writing the pattern match instruction in target description file
-.td, backend programmer needs knowing what the DAG nodes are for a given C
-operator.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">-view-isel-dags</span></code> option is particularly important and frequently
+used by LLVM backend developers. It displays the DAGs before instruction
+selection, providing crucial insight into how LLVM represents operations
+before they are mapped to target-specific instructions.</p>
+<p>To write pattern-matching rules in the target description file (<code class="docutils literal notranslate"><span class="pre">.td</span></code>),
+backend developers need to understand the DAG nodes corresponding to
+specific C operators. This visualization helps in accurately defining
+these patterns.</p>
 </section>
 <section id="operator-and">
-<h3><a class="toc-backref" href="#id24" role="doc-backlink">Operator % and /</a><a class="headerlink" href="#operator-and" title="Permalink to this heading">¶</a></h3>
-<section id="the-dag-of">
-<h4><a class="toc-backref" href="#id25" role="doc-backlink">The DAG of %</a><a class="headerlink" href="#the-dag-of" title="Permalink to this heading">¶</a></h4>
-<p>Example input code ch4_1_mult.cpp which contains the C operator <strong>“%”</strong> and it’s
-corresponding llvm IR, as follows,</p>
+<h3><a class="toc-backref" href="#id24" role="doc-backlink">Operator <code class="docutils literal notranslate"><span class="pre">%</span></code> and <code class="docutils literal notranslate"><span class="pre">/</span></code></a><a class="headerlink" href="#operator-and" title="Permalink to this heading">¶</a></h3>
+<section id="dag-representation-of">
+<h4><a class="toc-backref" href="#id25" role="doc-backlink">DAG Representation of <code class="docutils literal notranslate"><span class="pre">%</span></code></a><a class="headerlink" href="#dag-representation-of" title="Permalink to this heading">¶</a></h4>
+<p>The following example, <code class="docutils literal notranslate"><span class="pre">ch4_1_mult.cpp</span></code>, contains the C operator <code class="docutils literal notranslate"><span class="pre">%</span></code>
+(modulus). The corresponding LLVM IR is shown below:</p>
 <p class="rubric">lbdex/input/ch4_1_mult.cpp</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="nb">int</span> <span class="n">test_mult</span><span class="p">()</span>
 <span class="p">{</span>
@@ -900,41 +909,42 @@ corresponding llvm IR, as follows,</p>
 <span class="go">}</span>
 </pre></div>
 </div>
-<p>LLVM <strong>srem</strong> is the IR of corresponding <strong>“%”</strong>, reference here <a class="footnote-reference brackets" href="#srem" id="id6" role="doc-noteref"><span class="fn-bracket">[</span>6<span class="fn-bracket">]</span></a>.
-Copy the reference as follows,</p>
+<p>LLVM <strong>srem</strong> corresponds to the C operator <strong>“%”</strong>. Reference: <a class="footnote-reference brackets" href="#srem" id="id6" role="doc-noteref"><span class="fn-bracket">[</span>6<span class="fn-bracket">]</span></a>.
+The following note provides details on its syntax and behavior:</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p><strong>‘srem’</strong> Instruction</p>
-<p>Syntax:
+<p><strong>Syntax:</strong>
 <strong>&lt;result&gt; = srem &lt;ty&gt; &lt;op1&gt;, &lt;op2&gt;   ; yields {ty}:result</strong></p>
-<p>Overview:
-The <strong>‘srem’</strong> instruction returns the remainder from the signed division of its
-two operands. This instruction can also take vector versions of the values in
-which case the elements must be integers.</p>
-<p>Arguments:
-The two arguments to the <strong>‘srem’</strong> instruction must be integer or vector of
-integer values. Both arguments must have identical types.</p>
-<p>Semantics:
-This instruction returns the remainder of a division (where the result is
-either zero or has the same sign as the dividend, op1), not the modulo operator
-(where the result is either zero or has the same sign as the divisor, op2) of
-a value. For more information about the difference, see The Math Forum. For a
-table of how this is implemented in various languages, please see Wikipedia:
-modulo operation.</p>
-<p>Note that signed integer remainder and unsigned integer remainder are distinct
-operations; for unsigned integer remainder, use <strong>‘urem’</strong>.</p>
-<p>Taking the remainder of a division by zero leads to undefined behavior.
-Overflow also leads to undefined behavior; this is a rare case, but can occur,
-for example, by taking the remainder of a 32-bit division of -2147483648 by -1.
-(The remainder doesn’t actually overflow, but this rule lets srem be
-implemented using instructions that return both the result of the division and
-the remainder.)</p>
-<p>Example:
-&lt;result&gt; = <strong>srem i32 4, %var</strong>      ; yields {i32}:result = 4 % %var</p>
+<p><strong>Overview:</strong>
+The <strong>‘srem’</strong> instruction returns the remainder from the signed division
+of its two operands. This instruction also supports vector types, where
+the elements must be integers.</p>
+<p><strong>Arguments:</strong>
+The two arguments of the <strong>‘srem’</strong> instruction must be integers or vectors
+of integer values. Both operands must have identical types.</p>
+<p><strong>Semantics:</strong>
+This instruction returns the remainder of a signed division, meaning the
+result is either zero or has the same sign as the dividend (<strong>op1</strong>).
+It is not the modulo operator, where the result would have the same sign
+as the divisor (<strong>op2</strong>). For more details, see references such as
+The Math Forum or Wikipedia’s article on the modulo operation.</p>
+<p>Note that signed integer remainder (<strong>srem</strong>) and unsigned integer
+remainder (<strong>urem</strong>) are distinct operations. For unsigned remainder,
+use <strong>‘urem’</strong> instead.</p>
+<p>Taking the remainder of a division by zero results in undefined behavior.
+Overflow also causes undefined behavior, though it is a rare case. One such
+scenario is taking the remainder of a 32-bit division of <strong>-2147483648</strong> by
+<strong>-1</strong>, which cannot be directly represented. This rule allows <strong>srem</strong>
+to be implemented using division instructions that return both the quotient
+and the remainder.</p>
+<p><strong>Example:</strong>
+<code class="docutils literal notranslate"><span class="pre">&lt;result&gt;</span> <span class="pre">=</span> <span class="pre">srem</span> <span class="pre">i32</span> <span class="pre">4,</span> <span class="pre">%var</span></code>  ; yields <code class="docutils literal notranslate"><span class="pre">{i32}:</span> <span class="pre">result</span> <span class="pre">=</span> <span class="pre">4</span> <span class="pre">%</span> <span class="pre">%var</span></code></p>
 </div>
-<p>Run Chapter3_5/ with input file ch4_1_mult.bc via option <code class="docutils literal notranslate"><span class="pre">llc</span> <span class="pre">–view-isel-dags</span></code>,
-will get the following error message and the llvm DAGs of
-<a class="reference internal" href="#otherinst-f2"><span class="std std-numref">Fig. 28</span></a> below.</p>
+<p>To observe LLVM’s DAG representation of <strong>srem</strong>, run <code class="docutils literal notranslate"><span class="pre">llc</span> <span class="pre">–view-isel-dags</span></code>
+on the input file <code class="docutils literal notranslate"><span class="pre">ch4_1_mult.bc</span></code> in <code class="docutils literal notranslate"><span class="pre">Chapter3_5/</span></code>.
+LLVM will display an error message along with the DAG output,
+as illustrated in <a class="reference internal" href="#otherinst-f2"><span class="std std-numref">Fig. 28</span></a> below.</p>
 <div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">118-165-79-37:input Jonathan$ </span>/Users/Jonathan/llvm/test/
 <span class="go">build/bin/llc -march=cpu0 -view-isel-dags -relocation-model=</span>
 <span class="go">pic -filetype=asm ch4_1_mult.bc -o -</span>
@@ -951,23 +961,38 @@ will get the following error message and the llvm DAGs of
 <p><span class="caption-number">Fig. 28 </span><span class="caption-text">ch4_1_mult.bc DAG</span><a class="headerlink" href="#id13" title="Permalink to this image">¶</a></p>
 </figcaption>
 </figure>
-<p>LLVM replaces srem divide operation with multiply operation in DAG optimization
-because DIV operation costs more in time than MUL.
-Example code <strong>“int b = 11; b=(b+1)%12;”</strong> is translated into DAGs as
-<a class="reference internal" href="#otherinst-f2"><span class="std std-numref">Fig. 28</span></a>.
-The DAGs of generated result is verified and explained by calculating the value
-in each node.
-The 0xC*0x2AAAAAAB=0x2,00000004, (mulhs 0xC, 0x2AAAAAAAB) meaning get the Signed
-mul high word (32bits).
-Multiply with 2 operands of 1 word size probably generate the 2 word size of
-result (0x2, 0xAAAAAAAB).
-The result of high word, in this case is 0x2.
-The final result (sub 12, 12) is 0 which match the statement (11+1)%12.</p>
+<p>LLVM optimizes the <strong>srem</strong> operation by replacing division with multiplication
+in DAG optimization. This is because the <strong>DIV</strong> operation is more expensive
+in terms of execution time compared to <strong>MUL</strong>.</p>
+<p>For example, the following C code:</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="kt">int</span><span class="w"> </span><span class="n">b</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">11</span><span class="p">;</span><span class="w"></span>
+<span class="n">b</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="n">b</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="o">%</span><span class="w"> </span><span class="mi">12</span><span class="p">;</span><span class="w"></span>
+</pre></div>
+</div>
+<p>is translated into DAGs, as shown in <a class="reference internal" href="#otherinst-f2"><span class="std std-numref">Fig. 28</span></a>.
+The DAG representation is verified and explained by calculating the values
+at each node.</p>
+<p>The computation follows these steps:</p>
+<ul class="simple">
+<li><p><strong>0xC * 0x2AAAAAAB = 0x2,00000004</strong></p></li>
+<li><p><strong>mulhs(0xC, 0x2AAAAAAAB)</strong> retrieves the signed multiplication’s high
+word (upper 32 bits).</p></li>
+<li><p>A multiplication of two 32-bit operands typically produces a 64-bit result
+(e.g., <strong>0x2, 0xAAAAAAAB</strong>).</p></li>
+<li><p>In this case, the high word of the result is <strong>0x2</strong>.</p></li>
+<li><p>The final computation <strong>sub(12, 12)</strong> results in <strong>0</strong>,
+which correctly matches <strong>(11 + 1) % 12</strong>.</p></li>
+</ul>
 </section>
 <section id="arm-solution">
-<h4><a class="toc-backref" href="#id26" role="doc-backlink">Arm solution</a><a class="headerlink" href="#arm-solution" title="Permalink to this heading">¶</a></h4>
-<p>To run with ARM solution, change Cpu0InstrInfo.td and Cpu0ISelDAGToDAG.cpp from
-Chapter4_1/ as follows,</p>
+<h4><a class="toc-backref" href="#id26" role="doc-backlink">ARM Solution</a><a class="headerlink" href="#arm-solution" title="Permalink to this heading">¶</a></h4>
+<p>To run this with an ARM-based solution, modify the following files in
+<code class="docutils literal notranslate"><span class="pre">Chapter4_1/</span></code>:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">Cpu0InstrInfo.td</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Cpu0ISelDAGToDAG.cpp</span></code></p></li>
+</ul>
+<p>Make the necessary changes as follows:</p>
 <p class="rubric">lbdex/chapters/Chapter4_1/Cpu0InstrInfo.td</p>
 <div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="c1">/// Multiply and Divide Instructions.</span>
 <span class="n">def</span><span class="w"> </span><span class="n">SMMUL</span><span class="w">   </span><span class="o">:</span><span class="w"> </span><span class="n">ArithLogicR</span><span class="o">&lt;</span><span class="mh">0x41</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;smmul&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">mulhs</span><span class="p">,</span><span class="w"> </span><span class="n">IIImul</span><span class="p">,</span><span class="w"> </span><span class="n">CPURegs</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="o">&gt;</span><span class="p">;</span><span class="w"></span>
@@ -1017,16 +1042,17 @@ Chapter4_1/ as follows,</p>
 <span class="p">}</span><span class="w"></span>
 </pre></div>
 </div>
-<p>Let’s run above changes with ch4_1_mult.cpp as well as <code class="docutils literal notranslate"><span class="pre">llc</span> <span class="pre">-view-sched-dags</span></code> option
-to get <a class="reference internal" href="#otherinst-f3"><span class="std std-numref">Fig. 29</span></a>.
-Instruction SMMUL will get the high word of multiply result.</p>
+<p>Let’s apply the above changes and run them with <code class="docutils literal notranslate"><span class="pre">ch4_1_mult.cpp</span></code> using
+the <code class="docutils literal notranslate"><span class="pre">llc</span> <span class="pre">-view-sched-dags</span></code> option to generate <a class="reference internal" href="#otherinst-f3"><span class="std std-numref">Fig. 29</span></a>.</p>
+<p>The <strong>SMMUL</strong> instruction is used to extract the high word of the
+multiplication result.</p>
 <figure class="align-center" id="id14">
 <span id="otherinst-f3"></span><a class="reference internal image-reference" href="_images/31.png"><img alt="_images/31.png" src="_images/31.png" style="width: 684.0px; height: 743.0px;" /></a>
 <figcaption>
 <p><span class="caption-number">Fig. 29 </span><span class="caption-text">DAG for ch4_1_mult.bc with ARM style SMMUL</span><a class="headerlink" href="#id14" title="Permalink to this image">¶</a></p>
 </figcaption>
 </figure>
-<p>The following is the result of run above changes with ch4_1_mult.bc.</p>
+<p>The following is the result of running the above changes with <code class="docutils literal notranslate"><span class="pre">ch4_1_mult.bc</span></code>.</p>
 <div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">118-165-66-82:input Jonathan$ </span>/Users/Jonathan/llvm/test/build/bin/llc
 <span class="go">-march=cpu0 -relocation-model=pic -filetype=asm</span>
 <span class="go">ch4_1_mult.bc -o -</span>
@@ -1053,49 +1079,41 @@ Instruction SMMUL will get the high word of multiply result.</p>
 <span class="go">  ret $lr</span>
 </pre></div>
 </div>
-<p>The other instruction UMMUL and llvm IR mulhu are unsigned int type for
-operator %.
-You can check it by unmark the <strong>“unsigned int b = 11;”</strong> in ch4_1_mult.cpp.</p>
-<p>Using SMMUL instruction to get the high word of multiplication result is adopted
-in ARM.</p>
 </section>
 <section id="mips-solution">
-<h4><a class="toc-backref" href="#id27" role="doc-backlink">Mips solution</a><a class="headerlink" href="#mips-solution" title="Permalink to this heading">¶</a></h4>
-<p>Mips uses MULT instruction and save the high &amp; low part to registers HI and LO,
-respectively.
-After that, uses mfhi/mflo to move register HI/LO to your general purpose
-registers.
-ARM SMMUL is fast if you only need the HI part of result (it ignores the LO part
-of operation). ARM also provides SMULL (signed multiply long) to get the whole
-64 bits result.
-If you need the LO part of result, you can use Cpu0 MUL instruction to get the
-LO part of result only.
-Chapter4_1/ is implemented with Mips MULT style.
-We choose it as the implementation of this book for adding instructions as less
-as possible. This approach make Cpu0 better both as a tutorial architecture
-for school teaching purpose material, and an engineer learning
-materials in compiler design.
-The MULT, MULTu, MFHI, MFLO, MTHI, MTLO added in Chapter4_1/Cpu0InstrInfo.td;
-HI, LO registers in Chapter4_1/Cpu0RegisterInfo.td and Chapter4_1/MCTargetDesc/
-Cpu0BaseInfo.h; IIHiLo, IIImul in Chapter4_1/Cpu0Schedule.td; SelectMULT() in
-Chapter4_1/Cpu0ISelDAGToDAG.cpp are for Mips style implementation.</p>
-<p>The related DAG nodes, mulhs and mulhu, both are used in Chapter4_1/, which
-come from TargetSelectionDAG.td as follows,</p>
-<p class="rubric">include/llvm/Target/TargetSelectionDAG.td</p>
-<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="n">def</span><span class="w"> </span><span class="n">mulhs</span><span class="w">    </span><span class="o">:</span><span class="w"> </span><span class="n">SDNode</span><span class="o">&lt;</span><span class="s">&quot;ISD::MULHS&quot;</span><span class="w">     </span><span class="p">,</span><span class="w"> </span><span class="n">SDTIntBinOp</span><span class="p">,</span><span class="w"> </span><span class="p">[</span><span class="n">SDNPCommutative</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span><span class="w"></span>
-<span class="n">def</span><span class="w"> </span><span class="n">mulhu</span><span class="w">    </span><span class="o">:</span><span class="w"> </span><span class="n">SDNode</span><span class="o">&lt;</span><span class="s">&quot;ISD::MULHU&quot;</span><span class="w">     </span><span class="p">,</span><span class="w"> </span><span class="n">SDTIntBinOp</span><span class="p">,</span><span class="w"> </span><span class="p">[</span><span class="n">SDNPCommutative</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span><span class="w"></span>
-</pre></div>
-</div>
-<p>Except the custom type, llvm IR operations of type expand and promote will call
-Cpu0DAGToDAGISel::Select() during instruction selection of DAG translation.
-The SelectMULT() which called by Select() return the HI part of
-multiplication result to HI register for IR operations of mulhs or mulhu.
-After that, MFHI instruction moves the HI register to Cpu0 field “a” register,
-$ra.
-MFHI instruction is FL format and only use Cpu0 field “a” register, we set
-the $rb and imm16 to 0.
-<a class="reference internal" href="#otherinst-f4"><span class="std std-numref">Fig. 30</span></a> and ch4_1_mult.cpu0.s are the results of compile
-ch4_1_mult.bc.</p>
+<h4><a class="toc-backref" href="#id27" role="doc-backlink">MIPS Solution</a><a class="headerlink" href="#mips-solution" title="Permalink to this heading">¶</a></h4>
+<p>MIPS uses the <strong>MULT</strong> instruction to perform multiplication, storing the high
+and low parts of the result in the <strong>HI</strong> and <strong>LO</strong> registers, respectively.
+After that, the <strong>mfhi</strong> and <strong>mflo</strong> instructions move the values from the
+HI/LO registers to general-purpose registers.</p>
+<p>ARM’s <strong>SMMUL</strong> instruction is optimized for cases where only the high part
+of the result is needed, as it ignores the low part. ARM also provides <strong>SMULL</strong>
+(signed multiply long) to obtain the full 64-bit result.</p>
+<p>If only the low part of the result is needed, the <strong>Cpu0 MUL</strong> instruction can
+be used. The implementation in <code class="docutils literal notranslate"><span class="pre">Chapter4_1/</span></code> follows the MIPS <strong>MULT</strong> style
+to minimize the number of added instructions. This approach makes <strong>Cpu0</strong>
+suitable as both a tutorial architecture for educational purposes and a
+learning resource for compiler design.</p>
+<p>The following instructions are added in <code class="docutils literal notranslate"><span class="pre">Chapter4_1/</span></code> for the MIPS-style
+implementation:</p>
+<ul class="simple">
+<li><p><strong>MULT, MULTu, MFHI, MFLO, MTHI, MTLO</strong> in <code class="docutils literal notranslate"><span class="pre">Chapter4_1/Cpu0InstrInfo.td</span></code></p></li>
+<li><p><strong>HI, LO registers</strong> in <code class="docutils literal notranslate"><span class="pre">Chapter4_1/Cpu0RegisterInfo.td</span></code> and
+<code class="docutils literal notranslate"><span class="pre">Chapter4_1/MCTargetDesc/Cpu0BaseInfo.h</span></code></p></li>
+<li><p><strong>IIHiLo, IIImul</strong> in <code class="docutils literal notranslate"><span class="pre">Chapter4_1/Cpu0Schedule.td</span></code></p></li>
+<li><p><strong>SelectMULT()</strong> in <code class="docutils literal notranslate"><span class="pre">Chapter4_1/Cpu0ISelDAGToDAG.cpp</span></code></p></li>
+</ul>
+<p>Except for custom types, LLVM IR operations of type <strong>expand</strong> and <strong>promote</strong>
+will call <strong>Cpu0DAGToDAGISel::Select()</strong> during instruction selection in the
+DAG translation process.</p>
+<p>The function <strong>selectMULT()</strong>, which is called by <strong>select()</strong>, returns the <strong>HI</strong>
+part of the multiplication result to the <strong>HI</strong> register for IR operations
+<strong>mulhs</strong> or <strong>mulhu</strong>. After that, the <strong>MFHI</strong> instruction moves the <strong>HI</strong>
+register to the Cpu0 <strong>“a”</strong> register, <strong>$ra</strong>.</p>
+<p>Since the <strong>MFHI</strong> instruction follows the <strong>FL</strong> format and only utilizes the
+Cpu0 <strong>“a”</strong> register, we set <strong>$rb</strong> and <strong>imm16</strong> to 0.</p>
+<p><a class="reference internal" href="#otherinst-f4"><span class="std std-numref">Fig. 30</span></a> and <code class="docutils literal notranslate"><span class="pre">ch4_1_mult.cpu0.s</span></code> show the compilation results
+of <code class="docutils literal notranslate"><span class="pre">ch4_1_mult.bc</span></code>.</p>
 <figure class="align-center" id="id15">
 <span id="otherinst-f4"></span><a class="reference internal image-reference" href="_images/41.png"><img alt="_images/41.png" src="_images/41.png" style="width: 498.6px; height: 753.3000000000001px;" /></a>
 <figcaption>
@@ -1124,33 +1142,49 @@ ch4_1_mult.bc.</p>
 </pre></div>
 </div>
 </section>
-<section id="full-support-and">
-<h4><a class="toc-backref" href="#id28" role="doc-backlink">Full support %, and /</a><a class="headerlink" href="#full-support-and" title="Permalink to this heading">¶</a></h4>
-<p>The sensitive readers may find llvm using <strong>“multiplication”</strong> instead
-of <strong>“div”</strong> to get the <strong>“%”</strong> result just because our example uses
-constant as divider, <strong>“(b+1)%12”</strong> in our example.
-If programmer uses variable as the divider like <strong>“(b+1)%a”</strong>, then: what will
-happen next?
-The answer is our code will has error in handling this.</p>
-<p>Cpu0 just like Mips uses LO and HI registers to hold the <strong>“quotient”</strong> and
-<strong>“remainder”</strong>. And
-uses instructions <strong>“mflo”</strong> and <strong>“mfhi”</strong> to get the result from LO or HI
-registers furthermore.
-With this solution, the <strong>“c = a / b”</strong> can be finished by <strong>“div a, b”</strong> and
-<strong>“mflo c”</strong>; the <strong>“c = a % b”</strong> can be finished by <strong>“div a, b”</strong> and
-<strong>“mfhi c”</strong>.</p>
-<p>To supports operators <strong>“%”</strong> and <strong>“/”</strong>, the following code added in
-Chapter4_1.</p>
+<section id="full-support-for-and">
+<h4><a class="toc-backref" href="#id28" role="doc-backlink">Full Support for <cite>%</cite> and <cite>/</cite></a><a class="headerlink" href="#full-support-for-and" title="Permalink to this heading">¶</a></h4>
+<p>Attentive readers may notice that LLVM replaces <strong>division (`/`)</strong> with
+<strong>multiplication (`*`)</strong> when computing the <strong>remainder (`%`)</strong> in our
+example. This optimization occurs because the divisor in our example,
+<strong>“(b+1) % 12”</strong>, is a constant.</p>
+<p>However, what happens if the divisor is a variable, such as in
+<strong>“(b+1) % a”</strong>?
+In this case, our current implementation would fail to handle it correctly.</p>
+<p>Cpu0, like MIPS, uses the <strong>LO</strong> and <strong>HI</strong> registers to store the
+<strong>quotient</strong> and <strong>remainder</strong>, respectively. The instructions <strong>“mflo”</strong>
+and <strong>“mfhi”</strong> retrieve the results from the <strong>LO</strong> and <strong>HI</strong> registers.</p>
+<p>Using this approach:
+- The operation <strong>`c = a / b`</strong> is implemented as:</p>
+<blockquote>
+<div><div class="highlight-asm notranslate"><div class="highlight"><pre><span></span><span class="nf">div</span><span class="w"> </span><span class="no">a</span><span class="p">,</span><span class="w"> </span><span class="no">b</span><span class="w"></span>
+<span class="nf">mflo</span><span class="w"> </span><span class="no">c</span><span class="w"></span>
+</pre></div>
+</div>
+</div></blockquote>
+<ul>
+<li><p>The operation <strong>`c = a % b`</strong> is implemented as:</p>
+<div class="highlight-asm notranslate"><div class="highlight"><pre><span></span><span class="nf">div</span><span class="w"> </span><span class="no">a</span><span class="p">,</span><span class="w"> </span><span class="no">b</span><span class="w"></span>
+<span class="nf">mfhi</span><span class="w"> </span><span class="no">c</span><span class="w"></span>
+</pre></div>
+</div>
+</li>
+</ul>
+<p>To support the operators <strong>`%`</strong> and <strong>`/`</strong>, the following changes were
+added in <strong>Chapter4_1/</strong>:</p>
 <ol class="arabic simple">
-<li><p>SDIV, UDIV and it’s reference class, nodes in Cpu0InstrInfo.td.</p></li>
-<li><p>The copyPhysReg() declared and defined in Cpu0InstrInfo.h and
-Cpu0InstrInfo.cpp.</p></li>
-<li><p>The setOperationAction(ISD::SDIV, MVT::i32, Expand), …,
-setTargetDAGCombine(ISD::SDIVREM) in constructore of Cpu0ISelLowering.cpp;
-PerformDivRemCombine() and PerformDAGCombine() in Cpu0ISelLowering.cpp.</p></li>
+<li><p><strong>SDIV</strong>, <strong>UDIV</strong>, and their reference classes, as well as DAG nodes in
+<cite>Cpu0InstrInfo.td</cite>.</p></li>
+<li><p><strong>copyPhysReg()</strong>, declared in <cite>Cpu0InstrInfo.h</cite> and implemented in
+<cite>Cpu0InstrInfo.cpp</cite>.</p></li>
+<li><p><strong>setOperationAction(ISD::SDIV, MVT::i32, Expand)</strong>,
+<strong>setTargetDAGCombine(ISD::SDIVREM)</strong> in the constructor of
+<cite>Cpu0ISelLowering.cpp</cite>, along with
+<cite>PerformDivRemCombine()</cite> and <cite>PerformDAGCombine()</cite> in
+<cite>Cpu0ISelLowering.cpp</cite>.</p></li>
 </ol>
-<p>The IR instruction <strong>sdiv</strong> stands for signed div while <strong>udiv</strong> stands for
-unsigned div.</p>
+<p>The LLVM IR instruction <strong>sdiv</strong> represents <strong>signed division</strong>, while
+<strong>udiv</strong> represents <strong>unsigned division</strong>.</p>
 <p class="rubric">lbdex/input/ch4_1_mult2.cpp</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="nb">int</span> <span class="n">test_mult</span><span class="p">()</span>
 <span class="p">{</span>
@@ -1163,12 +1197,14 @@ unsigned div.</p>
 <span class="p">}</span>
 </pre></div>
 </div>
-<p>If we run with ch4_1_mult2.cpp, the <strong>“div”</strong> cannot be gotten for operator
-<strong>“%”</strong>.
-It still uses <strong>“multiplication”</strong> instead of <strong>“div”</strong> in ch4_1_mult2.cpp because
-llvm do <strong>“Constant Propagation Optimization”</strong> in this.
-The ch4_1_mod.cpp can get the <strong>“div”</strong> for <strong>“%”</strong> result since it makes
-llvm <strong>“Constant Propagation Optimization”</strong> useless in it.</p>
+<p>When running <cite>ch4_1_mult2.cpp</cite>, the <strong>`div`</strong> instruction is not generated
+for the <strong>`%`</strong> operator. Instead, LLVM still replaces it with
+<strong>multiplication (`*`)</strong>.</p>
+<p>This happens because LLVM applies <strong>Constant Propagation Optimization</strong>,
+which optimizes expressions involving constants at compile time.</p>
+<p>To force LLVM to generate a <strong>`div`</strong> instruction for <strong>`%`</strong>,
+we can use <cite>ch4_1_mod.cpp</cite>, which prevents LLVM from applying
+<strong>Constant Propagation Optimization</strong>.</p>
 <p class="rubric">lbdex/input/ch4_1_mod.cpp</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="nb">int</span> <span class="n">test_mod</span><span class="p">()</span>
 <span class="p">{</span>
@@ -1194,6 +1230,8 @@ llvm <strong>“Constant Propagation Optimization”</strong> useless in it.</p>
 </div>
 <p>To explains how to work with <strong>“div”</strong>, let’s run ch4_1_mod.cpp with debug option
 as follows,</p>
+<p>To understand how LLVM generates the <strong>`div`</strong> instruction,
+let’s run <cite>ch4_1_mod.cpp</cite> with the debug option as follows:</p>
 <div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">118-165-83-58:input Jonathan$ </span>clang -target mips-unknown-linux-gnu -c
 <span class="go">ch4_1_mod.cpp -I/Applications/Xcode.app/Contents/Developer/Platforms/</span>
 <span class="go">MacOSX.platform/Developer/SDKs/MacOSX10.8.sdk/usr/include/ -emit-llvm -o</span>
@@ -1301,20 +1339,38 @@ as follows,</p>
 <span class="go">...</span>
 </pre></div>
 </div>
-<p>Summary above DAGs translation messages into 4 steps:</p>
+<p>Summary of DAG Translation Steps:</p>
+<p>The translation of DAGs for the <strong>`%`</strong> operator follows these four steps:</p>
 <ol class="arabic simple">
-<li><p>Reduce DAG nodes in stage “Optimized lowered selection DAG” (Replacing …
-displayed before “Optimized lowered selection DAG:”).
-Since SSA form has some redundant nodes for store and load, they can be
-removed.</p></li>
-<li><p>Change DAG srem to sdivrem in stage “Legalized selection DAG”.</p></li>
-<li><p>Change DAG sdivrem to Cpu0ISD::DivRem and in stage “Optimized legalized
-selection DAG”.</p></li>
-<li><p>Add DAG “i32 = Register %HI” and “CopyFromReg …” in stage “Optimized
-legalized selection DAG”.</p></li>
+<li><p><strong>Reduce DAG Nodes</strong></p>
+<ul class="simple">
+<li><p>This occurs in the <strong>“Optimized Lowered Selection DAG”</strong> stage.</p></li>
+<li><p>Redundant store and load nodes in SSA form are removed.</p></li>
+</ul>
+</li>
+<li><p><strong>Convert `srem` to `sdivrem`</strong></p>
+<ul class="simple">
+<li><p>This transformation happens in the <strong>“Legalized Selection DAG”</strong> stage.</p></li>
+</ul>
+</li>
+<li><p><strong>Convert `sdivrem` to `Cpu0ISD::DivRem`</strong></p>
+<ul class="simple">
+<li><p>This occurs in the <strong>“Optimized Legalized Selection DAG”</strong> stage.</p></li>
+</ul>
+</li>
+<li><p><strong>Add Register Mapping for HI Register</strong></p>
+<ul class="simple">
+<li><p>In the <strong>“Optimized Legalized Selection DAG”</strong> stage, the following DAG nodes are added:
+- <cite>“i32 = Register %HI”</cite>
+- <cite>“CopyFromReg …”</cite></p></li>
+</ul>
+</li>
 </ol>
-<p>Summary as Table: Stages for C operator % and Table: Functions handle the DAG
-translation and pattern match for C operator %.</p>
+<p>For a detailed breakdown, refer to:</p>
+<ul class="simple">
+<li><p><strong>Table: Stages for C Operator `%`</strong></p></li>
+<li><p><strong>Table: Functions Handling DAG Translation and Pattern Matching for C Operator `%`</strong></p></li>
+</ul>
 <table class="docutils align-default" id="id16">
 <caption><span class="caption-number">Table 23 </span><span class="caption-text">Stages for C operator %</span><a class="headerlink" href="#id16" title="Permalink to this table">¶</a></caption>
 <thead>
@@ -1362,28 +1418,58 @@ translation and pattern match for C operator %.</p>
 </tr>
 </tbody>
 </table>
-<p>Step 2 as above, is triggered by code
-“setOperationAction(ISD::SREM, MVT::i32, Expand);” in Cpu0ISelLowering.cpp.
-About <strong>Expand</strong> please ref. <a class="footnote-reference brackets" href="#expand" id="id7" role="doc-noteref"><span class="fn-bracket">[</span>7<span class="fn-bracket">]</span></a> and <a class="footnote-reference brackets" href="#legalizetypes" id="id8" role="doc-noteref"><span class="fn-bracket">[</span>8<span class="fn-bracket">]</span></a>. Step 3 is
-triggered by code “setTargetDAGCombine(ISD::SDIVREM);” in Cpu0ISelLowering.cpp.
-Step 4 is did by PerformDivRemCombine() which called by performDAGCombine().
-Since the <strong>%</strong> corresponding <strong>srem</strong> makes the “N-&gt;hasAnyUseOfValue(1)” to
-true in PerformDivRemCombine(), it creates DAG of “CopyFromReg”.
-When using <strong>“/”</strong> in C, it will make “N-&gt;hasAnyUseOfValue(0)” to ture.
-For sdivrem, <strong>sdiv</strong> makes “N-&gt;hasAnyUseOfValue(0)” true while <strong>srem</strong> makes
-“N-&gt;hasAnyUseOfValue(1)” ture.</p>
-<p>Above steps will change the DAGs when <code class="docutils literal notranslate"><span class="pre">llc</span></code> is running. After that, the pattern
-match defined in Chapter4_1/Cpu0InstrInfo.td will translate <strong>Cpu0ISD::DivRem</strong>
-into <strong>div</strong>; and <strong>“CopyFromReg xxDAG, Register %H, Cpu0ISD::DivRem”</strong>
-to <strong>mfhi</strong>.</p>
-<p>The ch4_1_div.cpp is for <strong>/</strong> div operator test.</p>
-</section>
+<p>The more detailed transformation of DAGs during <cite>llc</cite> execution follows these
+steps:</p>
+<ol class="arabic simple" start="2">
+<li><p><strong>Convert `srem` to `sdivrem`</strong></p>
+<ul class="simple">
+<li><p>Triggered by the code:
+<code class="docutils literal notranslate"><span class="pre">`</span>
+<span class="pre">setOperationAction(ISD::SREM,</span> <span class="pre">MVT::i32,</span> <span class="pre">Expand);</span>
+<span class="pre">`</span></code></p></li>
+<li><p>Defined in <cite>Cpu0ISelLowering.cpp</cite>.</p></li>
+<li><p>For details on <strong>Expand</strong>, refer to <a class="footnote-reference brackets" href="#expand" id="id7" role="doc-noteref"><span class="fn-bracket">[</span>7<span class="fn-bracket">]</span></a> and <a class="footnote-reference brackets" href="#legalizetypes" id="id8" role="doc-noteref"><span class="fn-bracket">[</span>8<span class="fn-bracket">]</span></a>.</p></li>
+</ul>
+</li>
+<li><p><strong>Convert `sdivrem` to `Cpu0ISD::DivRem`</strong></p>
+<ul class="simple">
+<li><p>Triggered by:
+<code class="docutils literal notranslate"><span class="pre">`</span>
+<span class="pre">setTargetDAGCombine(ISD::SDIVREM);</span>
+<span class="pre">`</span></code></p></li>
+<li><p>Also defined in <cite>Cpu0ISelLowering.cpp</cite>.</p></li>
+</ul>
+</li>
+<li><p><strong>Handle `CopyFromReg` in DAG</strong></p>
+<ul class="simple">
+<li><p>Managed by <cite>PerformDivRemCombine()</cite>, which is called by
+<cite>performDAGCombine()</cite>.</p></li>
+<li><p>The <strong>`%`</strong> operator (corresponding to <cite>srem</cite>) makes
+<cite>“N-&gt;hasAnyUseOfValue(1)”</cite> true in <cite>PerformDivRemCombine()</cite>, resulting in
+<cite>“CopyFromReg”</cite> DAG creation.</p></li>
+<li><p>The <strong>`/`</strong> operator makes <cite>“N-&gt;hasAnyUseOfValue(0)”</cite> true.</p></li>
+<li><p>For <cite>sdivrem</cite>:</p>
+<ul>
+<li><p><cite>sdiv</cite> sets <cite>“N-&gt;hasAnyUseOfValue(0)”</cite> true.</p></li>
+<li><p><cite>srem</cite> sets <cite>“N-&gt;hasAnyUseOfValue(1)”</cite> true.</p></li>
+</ul>
+</li>
+</ul>
+</li>
+</ol>
+<p>Once these steps modify the DAGs during <cite>llc</cite> execution, pattern matching in
+<cite>Chapter4_1/Cpu0InstrInfo.td</cite> translates:</p>
+<ul class="simple">
+<li><p><strong>`Cpu0ISD::DivRem`</strong> → <strong>`div`</strong></p></li>
+<li><p><strong>`CopyFromReg xxDAG, Register %H, Cpu0ISD::DivRem`</strong> → <strong>`mfhi`</strong></p></li>
+</ul>
+<p>The <cite>ch4_1_div.cpp</cite> file tests the <cite>/</cite> (division) operator.</p>
 </section>
 <section id="rotate-instructions">
-<h3><a class="toc-backref" href="#id29" role="doc-backlink">Rotate instructions</a><a class="headerlink" href="#rotate-instructions" title="Permalink to this heading">¶</a></h3>
-<p>Chapter4_1 include the rotate operations translation. The instructions “rol”,
-“ror”, “rolv” and “rorv” defined in Cpu0InstrInfo.td handle the translation.
-Compile ch4_1_rotate.cpp will get Cpu0 “rol” instruction.</p>
+<h4><a class="toc-backref" href="#id29" role="doc-backlink">Rotate Instructions</a><a class="headerlink" href="#rotate-instructions" title="Permalink to this heading">¶</a></h4>
+<p><cite>Chapter4_1</cite> includes support for <strong>rotate operations</strong>.
+The instructions <strong>`rol`</strong>, <strong>`ror`</strong>, <strong>`rolv`</strong>, and <strong>`rorv`</strong> are defined in <cite>Cpu0InstrInfo.td</cite> for translation.</p>
+<p>Compiling <cite>ch4_1_rotate.cpp</cite> will generate the <cite>Cpu0 rol</cite> instruction.</p>
 <p class="rubric">lbdex/input/ch4_1_rotate.cpp</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>
 <span class="o">//</span><span class="c1">#define TEST_ROXV</span>
@@ -1446,19 +1532,21 @@ Compile ch4_1_rotate.cpp will get Cpu0 “rol” instruction.</p>
 <span class="go">  ...</span>
 </pre></div>
 </div>
-<p>Instructions “rolv” and “rorv” cannot be tested at this moment, they need
-logic “or” implementation which supported at next section.
-Like the previous subsection mentioned at this
-chapter, some IRs in function &#64;_Z16test_rotate_leftv() will be combined into
-one one IR <strong>rotl</strong> during DAGs translation.</p>
 </section>
 </section>
-<section id="logic">
-<h2><a class="toc-backref" href="#id30" role="doc-backlink">Logic</a><a class="headerlink" href="#logic" title="Permalink to this heading">¶</a></h2>
-<p>Chapter4_2 supports logic operators <strong>&amp;, |, ^, !, ==, !=, &lt;, &lt;=, &gt; and &gt;=</strong>.
-They are trivial and easy. Listing the added code with comments and table for
-these operators IR, DAG and instructions as below. Please check them with the
-run result of bc and asm instructions for ch4_2_logic.cpp as below.</p>
+</section>
+<section id="logical-instructions">
+<h2><a class="toc-backref" href="#id30" role="doc-backlink">Logical Instructions</a><a class="headerlink" href="#logical-instructions" title="Permalink to this heading">¶</a></h2>
+<p><cite>Chapter4_2</cite> introduces support for logical operators:</p>
+<p><strong>`&amp;, |, ^, !, ==, !=, &lt;, &lt;=, &gt;, &gt;=`</strong></p>
+<p>These operations are straightforward to implement.</p>
+<p>Below, you’ll find:</p>
+<ul class="simple">
+<li><p>The added code with comments</p></li>
+<li><p>A table mapping <strong>IR operations → DAG nodes → final instructions</strong></p></li>
+<li><p>The execution results of <strong>bitcode (bc) and assembly (asm) for `ch4_2_logic.cpp`</strong></p></li>
+</ul>
+<p>Please check the run results to verify the implementation.</p>
 <p class="rubric">lbdex/chapters/Chapter4_2/Cpu0InstrInfo.td</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>let Predicates = [Ch4_2] in {
 class CmpInstr&lt;bits&lt;8&gt; op, string instr_asm, 
@@ -2127,13 +2215,26 @@ int test_setxx()
 </tr>
 </tbody>
 </table>
-<p>In relation operators ==, !=, …, %0 = $3 = 5, %1 = $2 = 3 for ch4_2_logic.cpp.</p>
-<p>The “Optimized legalized selection DAG” is the last DAG stage just before the
-“instruction selection” as the previous section mentioned in this chapter.
-You can see the whole DAG stages by <code class="docutils literal notranslate"><span class="pre">llc</span> <span class="pre">-debug</span></code> option.</p>
-<p>From above result, slt spend less instructions than cmp for relation
-operators translation. Beyond that, slt uses general purpose register while
-cmp uses $sw dedicated register.</p>
+<p>For <cite>ch4_2_logic.cpp</cite>, the relation operators such as <strong>`==, !=, &lt;, &lt;=, &gt;, &gt;=`</strong>
+follow the convention where:</p>
+<ul class="simple">
+<li><p><cite>%0 = $3 = 5</cite></p></li>
+<li><p><cite>%1 = $2 = 3</cite></p></li>
+</ul>
+<p>### Optimized Legalized Selection DAG</p>
+<p>The <strong>“Optimized Legalized Selection DAG”</strong> is the final DAG stage before
+<strong>instruction selection</strong>, as mentioned earlier in this chapter.
+To view all DAG stages, use the command:</p>
+<p><strong>`llc -debug`</strong></p>
+<p>### <cite>slt</cite> vs. <cite>cmp</cite></p>
+<p>From the results, <strong>`slt`</strong> (set-less-than) requires fewer instructions than
+<strong>`cmp`</strong> for relation operator translation.</p>
+<p>Additionally:</p>
+<ul class="simple">
+<li><p><strong>`slt`</strong> operates using general-purpose registers.</p></li>
+<li><p><strong>`cmp`</strong> requires the dedicated <strong>`$sw`</strong> register.</p></li>
+</ul>
+<p>This difference makes <strong>`slt`</strong> a more efficient choice in certain scenarios.</p>
 <p class="rubric">lbdex/input/ch4_2_slt_explain.cpp</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="nb">int</span> <span class="n">test_OptSlt</span><span class="p">()</span>
 <span class="p">{</span>
@@ -2180,12 +2281,18 @@ cmp uses $sw dedicated register.</p>
 <span class="go">  ...</span>
 </pre></div>
 </div>
-<p>Run these two <cite>llc -mcpu</cite> option for Chapter4_2 with ch4_2_slt_explain.cpp to get the
-above result. Regardless of the move between $sw and general purpose register
-in <cite>llc -mcpu=cpu032I</cite>, the two cmp instructions in it will has hazard in
-instruction reorder since both of them use $sw register. The
-<cite>llc -mcpu=cpu032II</cite> has not this problem because it uses slti <a class="footnote-reference brackets" href="#quantitative" id="id9" role="doc-noteref"><span class="fn-bracket">[</span>9<span class="fn-bracket">]</span></a>.
-The slti version can reorder as follows,</p>
+<p>Run the following two <cite>llc -mcpu</cite> options with <cite>ch4_2_slt_explain.cpp</cite>
+to obtain the results discussed above.</p>
+<p>### Instruction Hazard in <cite>llc -mcpu=cpu032I</cite></p>
+<p>Regardless of the move operation between <strong>`$sw`</strong> and general-purpose registers
+in <cite>llc -mcpu=cpu032I</cite>, the two <strong>`cmp`</strong> instructions introduce a hazard
+during instruction reordering.
+This occurs because both instructions rely on the <strong>`$sw`</strong> register.</p>
+<p>### Avoiding Hazards with <cite>llc -mcpu=cpu032II</cite></p>
+<p>The <cite>llc -mcpu=cpu032II</cite> configuration avoids this issue by using <strong>`slti`</strong>
+(set-less-than immediate) <a class="footnote-reference brackets" href="#quantitative" id="id9" role="doc-noteref"><span class="fn-bracket">[</span>9<span class="fn-bracket">]</span></a>.</p>
+<p>#### Reordering Optimization with <cite>slti</cite></p>
+<p>The <strong>`slti`</strong> version allows safer instruction reordering, as demonstrated below:</p>
 <div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">...</span>
 <span class="go">ld  $2, 16($sp)</span>
 <span class="go">slti  $2, $2, 2</span>
@@ -2198,17 +2305,21 @@ The slti version can reorder as follows,</p>
 <span class="go">...</span>
 </pre></div>
 </div>
-<p>Chapter4_2 include instructions cmp and slt. Though cpu032II include both of
-these two instructions, the slt takes the priority since
-“let Predicates = [HasSlt]” appeared before “let Predicates = [HasCmp]” in
-Cpu0InstrInfo.td.</p>
+<p>Chapter 4.2 includes both <strong>`cmp`</strong> and <strong>`slt`</strong> instructions.
+Although <strong>`cpu032II`</strong> supports both instructions, <strong>`slt`</strong> takes priority
+because the directive:</p>
+<p><strong>let Predicates = [HasSlt]</strong></p>
+<p>appears <strong>before</strong>:</p>
+<p><strong>let Predicates = [HasCmp]</strong></p>
+<p>in <cite>Cpu0InstrInfo.td</cite>.</p>
 </section>
 <section id="summary">
 <h2><a class="toc-backref" href="#id31" role="doc-backlink">Summary</a><a class="headerlink" href="#summary" title="Permalink to this heading">¶</a></h2>
-<p>List C operators, IR of .bc, Optimized legalized selection DAG and Cpu0
-instructions implemented in this chapter in Table: Chapter 4 mathmetic
-operators. There are over 20 operators totally in mathmetic and logic support in
-this chapter and spend 4xx lines of source code.</p>
+<p>The following table summarizes the <strong>C operators</strong>, their corresponding
+<strong>LLVM IR</strong> (<cite>.bc</cite>), <strong>Optimized Legalized Selection DAG</strong>,
+and <strong>Cpu0 instructions</strong> implemented in this chapter.</p>
+<p>This chapter covers over <strong>20 mathematical and logical operators</strong>,
+spanning <strong>approximately 400 lines</strong> of source code.</p>
 <table class="docutils align-default" id="id20">
 <caption><span class="caption-number">Table 27 </span><span class="caption-text">Chapter 4 mathmetic operators</span><a class="headerlink" href="#id20" title="Permalink to this table">¶</a></caption>
 <thead>

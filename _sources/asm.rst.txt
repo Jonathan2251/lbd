@@ -7,10 +7,10 @@ Assembler
    :local:
    :depth: 4
 
-This chapter include the assembly programming support in Cpu0 backend.
+This chapter covers the assembly programming support in the Cpu0 backend.
 
-When it comes to assembly language programming, there are two type of
-writting in C/C++ as follows,
+When it comes to assembly language programming, there are two types of usage in
+C/C++ as follows:
 
 .. rubric:: ordinary assembly
 .. code-block:: cpp-objdump
@@ -28,17 +28,20 @@ writting in C/C++ as follows,
                        :"r"(foo), "r"(bar)
                        );
 
-In llvm, the first is supported by LLVM AsmParser, and the second is inline 
-assembly handler.
-With AsmParser and inline assembly support in Cpu0 backend, we can hand-code 
-the assembly language in C/C++ file and translate it into obj (elf format). 
+In LLVM, the first method is supported by the LLVM AsmParser, and the second by
+the inline assembly handler.  
 
+With AsmParser and inline assembly support in the Cpu0 backend, we can hand-code
+assembly language in a C/C++ file and translate it into an object file (in ELF
+format).
 
 AsmParser support
-------------------
+-----------------
 
-This section lists all the AsmParser code for Cpu0 backend with only a few 
-explanation. Please refer here [#]_ for more AsmParser explanation.
+This section lists all the AsmParser code for the Cpu0 backend, with only brief
+explanations. Please refer to [#llvmas]_ for a more detailed explanation of AsmParser.
+
+Running Chapter10_1/ with ch11_1.cpp will produce the following error message.
 
 Run Chapter10_1/ with ch11_1.cpp will get the following error message.
 
@@ -56,11 +59,11 @@ Run Chapter10_1/ with ch11_1.cpp will get the following error message.
   LLVM ERROR: Inline asm not supported by this streamer because we don't have 
   an asm parser for this target
   
-Since we havn't implemented Cpu0 assembler, it has the error message as above. 
-The Cpu0 can translate LLVM IR into assembly and obj directly, but it cannot 
-translate hand-code assembly instructions into obj. 
+Since we haven't implemented the Cpu0 assembler, the error message shown above
+occurs. Cpu0 can translate LLVM IR into assembly and object files directly, but
+it cannot translate hand-written assembly instructions into an object file.
 
-The Chapter11_1/ include AsmParser implementation as follows,
+Chapter11_1/ includes the AsmParser implementation as follows:
 
 .. rubric:: lbdex/chapters/Chapter11_1/AsmParser/Cpu0AsmParser.cpp
 .. literalinclude:: ../lbdex/Cpu0/AsmParser/Cpu0AsmParser.cpp
@@ -68,10 +71,11 @@ The Chapter11_1/ include AsmParser implementation as follows,
 .. rubric:: lbdex/chapters/Chapter11_1/AsmParser/CMakeLists.txt
 .. literalinclude:: ../lbdex/Cpu0/AsmParser/CMakeLists.txt
 
+The `Cpu0AsmParser.cpp` file contains around one thousand lines of code that
+handle assembly language parsing. With a little patience, you can understand it.
 
-The Cpu0AsmParser.cpp contains one thousand lines of code which do the assembly 
-language parsing. You can understand it with a little patience only.
-To let files in directory of AsmParser be built, modify CMakeLists.txt as follows,
+To enable building the files in the AsmParser directory, modify
+`CMakeLists.txt` as follows:
 
 .. rubric:: lbdex/chapters/Chapter11_1/CMakeLists.txt
 .. literalinclude:: ../lbdex/Cpu0/CMakeLists.txt
@@ -91,26 +95,33 @@ To let files in directory of AsmParser be built, modify CMakeLists.txt as follow
 .. literalinclude:: ../lbdex/Cpu0/Cpu0RegisterInfoGPROutForAsm.td
 
 
-The CMakeLists.txt adds code as above to generate Cpu0GenAsmMatcher.inc 
-used by Cpu0AsmParser.cpp. 
-Cpu0Asm.td include Cpu0RegisterInfoGPROutForAsm.td which define GPROut to 
-CPURegs while Cpu0Other.td include Cpu0RegisterInfoGPROutForOther.td which 
-define GPROut to CPURegs exclude SW. 
-Cpu0Other.td is used when translating llvm IR to Cpu0 instruction. 
-In latter case, the register SW is reserved for keeping the CPU status and not 
-allowed to be allocated as a general purpose register. 
-For example, if setting GPROut to include SW, when compile with C statement 
-"a = (b & c);", it may generate instruction "and $sw, $1, $2", as a result that 
-interrupt status in $sw will be destroyed. 
-When programming in assembly, instruction "andi $sw, $sw, 0xffdf" is allowed. 
-This assembly program is accepted and Cpu0 backend treats it safe since 
-assembler programmer can disable trace debug message by
-"andi $sw, $sw, 0xffdf" and enable debug message by "ori $sw, $sw, 0x0020".
-In addition, the interrupt bits can also be enabled or disabled by "ori" and 
-"andi" instructions.
+The `CMakeLists.txt` modification shown above generates `Cpu0GenAsmMatcher.inc`,
+which is used by `Cpu0AsmParser.cpp`.
 
-The EPC must set to CPURegs as follows, otherwise, MatchInstructionImpl() of 
-MatchAndEmitInstruction() will return fail for "asm("mfc0 $pc, $epc");".
+`Cpu0Asm.td` includes `Cpu0RegisterInfoGPROutForAsm.td`, which defines `GPROut`
+as mapping to `CPURegs`. Meanwhile, `Cpu0Other.td` includes
+`Cpu0RegisterInfoGPROutForOther.td`, which defines `GPROut` to map to `CPURegs`
+excluding `SW`.
+
+`Cpu0Other.td` is used when translating LLVM IR to Cpu0 instructions. In this
+case, the `SW` register is reserved for storing CPU status and must not be
+allocated as a general-purpose register.
+
+For example, if `GPROut` includes `SW`, compiling the C statement `a = (b & c);`
+might generate the instruction `and $sw, $1, $2`. This would overwrite the
+interrupt status in `$sw`.
+
+However, when programming in assembly, instructions like `andi $sw, $sw, 0xffdf`
+are allowed. This kind of assembly is accepted, and the Cpu0 backend considers
+it safe. An assembler programmer may use `andi $sw, $sw, 0xffdf` to disable
+trace debug messages, and `ori $sw, $sw, 0x0020` to enable them.
+
+Additionally, interrupt bits can also be enabled or disabled using `ori` and
+`andi` instructions.
+
+The `EPC` must be set to `CPURegs` as shown below. Otherwise,
+`MatchInstructionImpl()` in `MatchAndEmitInstruction()` will fail for the
+instruction `asm("mfc0 $pc, $epc");`.
 
 .. rubric:: lbdex/chapters/Chapter2/Cpu0RegisterInfo.td
 .. code-block:: c++
@@ -161,16 +172,18 @@ MatchAndEmitInstruction() will return fail for "asm("mfc0 $pc, $epc");".
     :start-after: #if CH >= CH11_1 3
     :end-before: //#endif
 
+In the `Cpu0InstrInfo.td` file, the directive **let ParserMethod = 
+"parseMemOperand"** declares that the method `parseMemOperand()` will be used
+to handle the **mem** operand in Cpu0 instructions such as `ld` and `st`.
 
-Above Cpu0InstrInfo.td declare the **let ParserMethod = "parseMemOperand"** and 
-implement the 
-parseMemOperand() in Cpu0AsmParser.cpp to handle the **"mem"** operand which 
-used in Cpu0 instructions ld and st. 
-For example, ld $2, 4($sp), the **mem** operand is 4($sp). 
-Accompany with **"let ParserMatchClass = Cpu0MemAsmOperand;"**, 
-LLVM will call parseMemOperand() of Cpu0AsmParser.cpp when it meets the assembly 
-**mem** operand 4($sp). With above **"let"** assignment, TableGen will generate 
-the following structure and functions in Cpu0GenAsmMatcher.inc.
+For example, in the instruction `ld $2, 4($sp)`, the **mem** operand is `4($sp)`.
+
+Together with the directive **let ParserMatchClass = Cpu0MemAsmOperand;**, LLVM
+will invoke the `parseMemOperand()` function in `Cpu0AsmParser.cpp` whenever it
+encounters a **mem** operand like `4($sp)` in assembly code.
+
+With the above **let** assignments, TableGen will generate the corresponding
+structure and functions in `Cpu0GenAsmMatcher.inc`.
 
 .. rubric:: build/lib/Target/Cpu0/Cpu0GenAsmMatcher.inc
 .. code-block:: c++
@@ -215,8 +228,8 @@ the following structure and functions in Cpu0GenAsmMatcher.inc.
   };
 
 
-Above three Pseudo Instruction definitions in Cpu0InstrInfo.td, such as 
-LoadImm32Reg, are handled by Cpu0AsmParser.cpp as follows,
+The three pseudo instruction definitions in `Cpu0InstrInfo.td`, such as
+`LoadImm32Reg`, are handled by `Cpu0AsmParser.cpp` as follows:
 
 .. rubric:: lbdex/chapters/Chapter11_1/AsmParser/Cpu0AsmParser.cpp
 .. literalinclude:: ../lbdex/Cpu0/AsmParser/Cpu0AsmParser.cpp
@@ -231,8 +244,8 @@ LoadImm32Reg, are handled by Cpu0AsmParser.cpp as follows,
     ...
   }
 
-Finally, remind that the CPURegs as below must follow the order of register 
-number because AsmParser uses them when do register number encoding.
+Finally, remember that the `CPURegs` list below must follow the order of register
+numbers, because the AsmParser uses this order when encoding register numbers.
 
 .. rubric:: lbdex/chapters/Chapter11_1/Cpu0RegisterInfo.td
 .. literalinclude:: ../lbdex/Cpu0/Cpu0RegisterInfo.td
@@ -240,7 +253,7 @@ number because AsmParser uses them when do register number encoding.
     :end-before: //#if CH >= CH4_1 2
 
 
-Run Chapter11_1/ with ch11_1.cpp to get the correct result as follows,
+Run `Chapter11_1/` with `ch11_1.cpp` to get the correct result as shown below:
 
 .. code-block:: console
 
@@ -261,12 +274,12 @@ Run Chapter11_1/ with ch11_1.cpp to get the correct result as follows,
         10:	14 32 30 00                                  	sub	$3, $2, $3
         ...
 
-The instructions cmp and jeg printed with explicit $sw displayed in assembly 
-and disassembly. You can change the code in AsmParser and Dissassembly (the last 
-chapter) to hide the $sw printed in these instructions (such as "jeq 20" 
-rather than "jeq $sw, 20").
+The instructions `cmp` and `jeg` display the `$sw` register explicitly in both
+assembly and disassembly. You can modify the code in the AsmParser and
+Disassembler (discussed in the last chapter) to hide `$sw` in these instructions
+—for example, displaying `jeq 20` instead of `jeq $sw, 20`.
 
-Both AsmParser and Cpu0AsmParser inherited from MCAsmParser as follows,
+Both `AsmParser` and `Cpu0AsmParser` inherit from `MCAsmParser` as follows:
 
 .. rubric:: llvm/lib/MC/MCParser/AsmParser.cpp
 .. code-block:: c++
@@ -276,8 +289,8 @@ Both AsmParser and Cpu0AsmParser inherited from MCAsmParser as follows,
   }
   ...
 
-AsmParser will call functions ParseInstruction() and MatchAndEmitInstruction()
-of Cpu0AsmParser as follows,
+`AsmParser` will call the `ParseInstruction()` and `MatchAndEmitInstruction()`
+functions of `Cpu0AsmParser` as follows:
 
 .. rubric:: llvm/lib/MC/MCParser/AsmParser.cpp
 .. code-block:: c++
@@ -306,11 +319,17 @@ of Cpu0AsmParser as follows,
     ...
   }
 
+
 Assembler structure
 -------------------
 
-Directory AsmParser handle the assembly to obj translation.
-The assembling Data Flow Diagram (DFD) as :numref:`asm-f1` and :numref:`asm-f2`.
+Run `llc` with the option `-debug-only=asm-matcher,cpu0-asm-parser` to observe
+how the Cpu0 assembler works.
+
+The `AsmParser` directory handles the translation from assembly to object files.
+
+The assembling Data Flow Diagram (DFD) is shown in :numref:`asm-f1` and
+:numref:`asm-f2`.
 
 .. _asm-f1: 
 .. graphviz:: ../Fig/asm/asmDfd.gv
@@ -320,17 +339,21 @@ The assembling Data Flow Diagram (DFD) as :numref:`asm-f1` and :numref:`asm-f2`.
 .. graphviz:: ../Fig/asm/asmDfdEx.gv
    :caption: Assembly flow, for instance: add $v1, $v0, $at
  
-Given an example of assembly instruction "add $v1, $v0, $at", llvm AsmParser
-kernel call backend ParseInstruction() of Cpu0AsmParser.cpp when it 
-parses and recognises that the first token at the beginning of line is identifier. 
-ParseInstruction() parses one assembly instruction, creates Operands and 
-return to llvm AsmParser. Then AsmParser calls backend MatchAndEmitInstruction() 
-to set Opcode and Operands to MCInst, then encoder can encode binary instruction
-from MCInst with the information come from Cpu0InstrInfo.td which includes binary
-value for Opcode ID and Operand IDs of the instruction.
+Given an example assembly instruction `add $v1, $v0, $at`, the LLVM AsmParser
+core calls the backend `ParseInstruction()` function in `Cpu0AsmParser.cpp`
+when it detects that the first token at the beginning of the line is an
+identifier.
 
-List the key functions and data structure of MatchAndEmitInstruction() and 
-encodeInstruction(), explaining in comments which begin with ///.
+`ParseInstruction()` parses a single assembly instruction, creates the operand
+objects, and returns them to the LLVM AsmParser. Then, the AsmParser calls the
+backend `MatchAndEmitInstruction()` function to assign the opcode and operands
+to an `MCInst`. The encoder then encodes the binary instruction from the `MCInst`
+using information from `Cpu0InstrInfo.td`, which includes the binary values for
+the opcode ID and operand IDs of the instruction.
+
+Below is a list of the key functions and data structures in
+`MatchAndEmitInstruction()` and `encodeInstruction()`, with explanations provided
+in comments beginning with `///`.
 
 .. rubric:: llvm/build/lib/Target/Cpu0/Cpu0GenAsmMatcher.inc
 .. code-block:: c++
@@ -509,34 +532,45 @@ encodeInstruction(), explaining in comments which begin with ///.
    :caption: Data flow between MatchAndEmitInstruction() and encodeInstruction(), 
              for instance: add $v1, $v0, $at
 
-MatchTable0 include all the possibile combinations of opcode and operands type.
-Even the assembly instruction of user input may pass Cpu0AsmParser in syntax 
-check, the MatchAndEmitInstruction() still can be fail. For example, instruction 
-"asm("move $3, $2);" can pass but "asm("move $3, $2, $1");" will fail. 
+`MatchTable0` includes all possible combinations of opcodes and operand types.
 
-List flow of calling functions for Cpu0AsmParser as :numref:`asm-flow`.
+Even if a user’s assembly instruction passes the syntax check in
+`Cpu0AsmParser`, `MatchAndEmitInstruction()` can still fail. For example, the
+instruction `asm("move $3, $2");` may succeed, but `asm("move $3, $2, $1");`
+will fail.
+
+The flow of function calls for `Cpu0AsmParser` is shown in :numref:`asm-flow`.
   
 .. _asm-flow: 
 .. graphviz:: ../Fig/asm/asmFlow.gv
    :caption: Flow of calling functions for Cpu0AsmParser. 
 
-- After ParseInstruction() and MatchAndEmitInstruction() will produce class 
-  MCInst.
+- After `ParseInstruction()` and `MatchAndEmitInstruction()` are called, an
+  `MCInst` object is produced.
 
-  - In MatchAndEmitInstruction(), assembly will call 
-    MCObjectStreamer::emitInstruction() for encoding to binary, reference 
-    :numref:`genobj-f11`.
+  - In `MatchAndEmitInstruction()`, the assembler calls
+    `MCObjectStreamer::emitInstruction()` to encode the instruction into binary.
+    See :numref:`genobj-f11` for reference.
 
-- Run llc with option "-debug" or "-debug-only=asm-matcher" will show debug
-  message to check the flow of assembler as follows,
+- Run `llc` with the option `-debug` or
+  `-debug-only=asm-matcher,cpu0-asm-parser` to display debug messages and trace
+  the assembler flow, as shown below.
+
+- For Cpu0, only memory operands (used in L-type or J-type instructions) will
+  trigger a call to `tryCustomParseOperand()`.
 
 .. code-block:: console
 
   input % ~/llvm/test/build/bin/clang -target mips-unknown-linux-gnu -c 
   ch11_1.cpp -emit-llvm -o ch11_1.bc
   input % ~/llvm/test/build/bin/llc -march=cpu0 -relocation-model=pic 
-  -filetype=obj -debug-only=asm-matcher ch11_1.bc -o ch11_1.cpu0.o
+  -filetype=obj -debug-only=asm-matcher,cpu0-asm-parser ch11_1.bc -o 
+  ch11_1.cpu0.o
 
+  ParseOperand
+  .. Generic Parser
+  ParseOperand
+  <ld><Register<19>><Mem<9, 8>>
   AsmMatcher: found 1 encodings with mnemonic 'ld'
   Trying to match opcode LD
     Matching formal operand class MCK_CPURegs against actual operand at index 1 
@@ -547,21 +581,40 @@ List flow of calling functions for Cpu0AsmParser as :numref:`asm-flow`.
     index 3: actual operand index out of range Opcode result: complete match, 
     selecting this opcode
 
+The other functions in `Cpu0AsmParser` are called in the following flow:
 
-The other functions in Cpu0AsmParser called as follows,
+- `ParseDirective()`  
+  → `parseDirectiveSet()`  
+  → `parseSetReorderDirective()`,  
+  `parseSetNoReorderDirective()`,  
+  `parseSetMacroDirective()`,  
+  `parseSetNoMacroDirective()`  
+  → `reportParseError()`
 
-- ParseDirective() -> parseDirectiveSet() -> parseSetReorderDirective(), parseSetNoReorderDirective(), parseSetMacroDirective(), parseSetNoMacroDirective() -> reportParseError()
+- `ParseInstruction()`  
+  → `ParseOperand()`  
+  → `MatchOperandParserImpl()` (in `Cpu0GenAsmMatcher.inc`)  
+  → `tryCustomParseOperand()` (in `Cpu0GenAsmMatcher.inc`)  
+  → `parseMemOperand()`  
+  → `parseMemOffset()`, `tryParseRegisterOperand()`
 
-- ParseInstruction() -> ParseOperand() -> MatchOperandParserImpl() of Cpu0GenAsmMatcher.inc -> tryCustomParseOperand() of Cpu0GenAsmMatcher.inc -> parseMemOperand() -> parseMemOffset(), tryParseRegisterOperand()
+- `MatchAndEmitInstruction()`  
+  → `MatchInstructionImpl()` (in `Cpu0GenAsmMatcher.inc`)  
+  → `needsExpansion()`  
+  → `expandInstruction()`
 
-- MatchAndEmitInstruction() -> MatchInstructionImpl() of Cpu0GenAsmMatcher.inc, needsExpansion(), expandInstruction()
+- `parseMemOffset()`  
+  → `parseRelocOperand()`  
+  → `getVariantKind()`
 
-- parseMemOffset() -> parseRelocOperand() -> getVariantKind()
+- `tryParseRegisterOperand()`  
+  → `tryParseRegister()`  
+  → `matchRegisterName()`  
+  → `getReg()`, `matchRegisterByNumber()`
 
-- tryParseRegisterOperand() -> tryParseRegister() -> matchRegisterName() -> getReg()), matchRegisterByNumber()
-
-- expandInstruction() -> expandLoadImm(), expandLoadAddressImm(), expandLoadAddressReg() -> EmitInstruction() of Cpu0AsmPrint.cpp
-
+- `expandInstruction()`  
+  → `expandLoadImm()`, `expandLoadAddressImm()`, `expandLoadAddressReg()`  
+  → `EmitInstruction()` (in `Cpu0AsmPrint.cpp`)
 
 Inline assembly
 ----------------
@@ -581,15 +634,18 @@ Run Chapter11_1 with ch11_2 will get the following error.
     .file "ch11_2.bc"
   error: couldn't allocate output register for constraint 'r'
 
-The ch11_2.cpp is a inline assembly example. The clang supports inline 
-assembly like gcc. 
-The inline assembly used in C/C++ when program need to access the 
-specific allocated register or memory for the C/C++ variable. For example, the 
-variable foo of ch11_2.cpp may be allocated by compiler to register $2, $3 
-or any other register. 
-The inline assembly fills the gap between high level language and 
-assembly language. Reference here [#]_. Chapter11_2 supports inline assembly 
-as follows,
+The `ch11_2.cpp` file is an inline assembly example. Clang supports inline
+assembly similarly to GCC.
+
+Inline assembly is used in C/C++ when a program needs to access a specific
+allocated register or memory location for a C/C++ variable. For example, the
+variable `foo` in `ch11_2.cpp` may be allocated by the compiler to register `$2`,
+`$3`, or another register.
+
+Inline assembly helps bridge the gap between high-level languages and assembly
+language. See reference [#inlineas]_.
+
+`Chapter11_2` adds support for inline assembly as follows:
 
 .. rubric:: lbdex/chapters/Chapter11_2/Cpu0AsmPrinter.h
 .. literalinclude:: ../lbdex/Cpu0/Cpu0AsmPrinter.h
@@ -629,9 +685,9 @@ as follows,
     :start-after: #if CH >= CH11_2
     :end-before: #endif // #if CH >= CH11_2
 
-
-Same with backend structure, the structure of inline assembly can be divided by 
-file name as Table: the structure of inline assembly.
+Similar to the backend structure, the structure of inline assembly can also be
+organized by file name, as shown in the table titled *"The structure of inline
+assembly"*.
 
 .. table:: inline assembly functions
 
@@ -644,17 +700,19 @@ file name as Table: the structure of inline assembly.
   Cpu0InstrInfo.cpp              -                              
   =============================  ================================== 
 
-Except Cpu0ISelDAGToDAG.cpp, the other functions are same with backend's compile 
-code. 
-The Cpu0ISelLowering.cpp inline asm is explained after the result of running 
-with ch11_2.cpp. 
-Cpu0ISelDAGToDAG.cpp just save OP code in SelectInlineAsmMemoryOperand(). 
-Since the the OP code is Cpu0 inline assembly instruction, 
-no llvm IR DAG translation needed further, just save OP 
-directly and return false to notify llvm system that Cpu0 backend has finished 
-processing this inline assembly instruction.
-  
-Run Chapter11_2 with ch11_2.cpp will get the following result.
+Except for `Cpu0ISelDAGToDAG.cpp`, the other functions are the same as those
+used in the backend's normal code compilation.
+
+The inline assembly handling in `Cpu0ISelLowering.cpp` is explained after showing
+the result of running with `ch11_2.cpp`.
+
+`Cpu0ISelDAGToDAG.cpp` simply saves the opcode in
+`SelectInlineAsmMemoryOperand()`. Since the opcode represents a Cpu0 inline
+assembly instruction, no further LLVM IR DAG translation is needed. The function
+just saves the opcode directly and returns `false` to notify the LLVM system that
+the Cpu0 backend has finished processing this inline assembly instruction.
+
+Run `Chapter11_2` with `ch11_2.cpp` to get the following result:
 
 .. code-block:: console
   
@@ -1120,14 +1178,17 @@ Run Chapter11_2 with ch11_2.cpp will get the following result.
     .size g, 12
 
 
-Clang translates gcc style inline assembly __asm__  into llvm IR Inline 
-Assembler Expressions first [#]_, then replace the variable registers of SSA 
-form to physical registers during llc register allocation stage. 
-From above example, 
-functions LowerAsmOperandForConstraint() and getSingleConstraintMatchWeight() 
-of Cpu0ISelLowering.cpp will create different range of const operand by I, J, 
-K, L, N, O, or P, and register operand by r . For instance, the following 
-__asm__ will create the llvm asm immediately after it.
+Clang first translates GCC-style inline assembly (`__asm__`) into LLVM IR
+Inline Assembler Expressions [#cia]_. Then, during the `llc` register allocation
+stage, it replaces the SSA-form variable registers with physical registers.
+
+In the above example, the functions `LowerAsmOperandForConstraint()` and
+`getSingleConstraintMatchWeight()` in `Cpu0ISelLowering.cpp` generate different
+ranges of constant operands based on constraint codes `I`, `J`, `K`, `L`, `N`,
+`O`, or `P`, and register operands based on `r`.
+
+For instance, the following `__asm__` generates the corresponding LLVM inline
+assembly immediately after it:
 
 .. code-block:: cpp-objdump
 
@@ -1162,19 +1223,26 @@ __asm__ will create the llvm asm immediately after it.
 
   %14 = call i32 asm sideeffect "addiu $0,$1,$2", "=r,r,P"(i32 %13, i32 5) #0, !srcloc !7
 
-The r in __asm__ will generate register, \%1, in llvm IR asm while I 
-in __asm__ will generate const operand, -5, in llvm IR asm. Remind, 
-the LowerAsmOperandForConstraint() limit the range of positive or negative const 
-operand value to 16 bits since FL type immediate operand is 16 bits in Cpu0 
-instruction. So, the range of N is -65535 to -1 and the range of P is 65535 to 1. 
-For any value out of 
-the range, the code in LowerAsmOperandForConstraint() will treat it as error 
-since FL instruction format has limitation of 16 bits.
+The `r` constraint in `__asm__` will generate a register operand (e.g., `%1`) in
+LLVM IR inline assembly. The `I` constraint will generate a constant operand
+(e.g., `-5`) in LLVM IR inline assembly.
 
+Note that `LowerAsmOperandForConstraint()` limits the range of positive and
+negative constant operand values to 16 bits, since the FL-type immediate operand
+in Cpu0 instructions is 16 bits.
 
-.. [#] http://www.embecosm.com/appnotes/ean10/ean10-howto-llvmas-1.0.html
+As a result:
 
-.. [#] http://www.ibiblio.org/gferg/ldp/GCC-Inline-Assembly-HOWTO.html
+- The range of `N` is from `-65535` to `-1`.
+- The range of `P` is from `1` to `65535`.
 
-.. [#] http://llvm.org/docs/LangRef.html#inline-assembler-expressions
+Any value outside of these ranges is treated as an error in
+`LowerAsmOperandForConstraint()`, due to the 16-bit limitation of the FL
+instruction format.
+
+.. [#llvmas] http://www.embecosm.com/appnotes/ean10/ean10-howto-llvmas-1.0.html
+
+.. [#inlineas] http://www.ibiblio.org/gferg/ldp/GCC-Inline-Assembly-HOWTO.html
+
+.. [#cia] http://llvm.org/docs/LangRef.html#inline-assembler-expressions
 

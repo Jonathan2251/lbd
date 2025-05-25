@@ -1,30 +1,30 @@
 .. _sec-appendix-installing:
 
-Appendix A: Getting Started: Installing LLVM and the Cpu0 example code
+Appendix A: Getting Started: Installing LLVM and the Cpu0 Example Code
 ======================================================================
 
 .. contents::
    :local:
    :depth: 4
 
-Cpu0 example code, lbdex, can be found near left bottom of this web site. Or 
-here http://jonathan2251.github.io/lbd/lbdex.tar.gz.
+The Cpu0 example code, `lbdex`, can be found at the lower left section of this
+website, or directly via this link:
+http://jonathan2251.github.io/lbd/lbdex.tar.gz.
 
-For information in using ``cmake`` to build LLVM, please refer to the "Building 
-LLVM with CMake" [#llvm-cmake]_ documentation for further information. 
+For details on using ``cmake`` to build LLVM, refer to "Building LLVM with 
+CMake" [#llvm-cmake]_ documentation.
 
-We install two llvm directories in this chapter. One is the directory 
-~/llvm/debug/ which contains the clang and clang++ compiler we will use to 
-translate the C/C++ input file into llvm IR. 
-The other is the directory ~/llvm/test/ which contains our cpu0 backend 
-program and clang.
+We will install two LLVM directories in this chapter. One is the directory 
+``~/llvm/debug/``, which contains the `clang` and `clang++` compilers used to 
+translate C/C++ source files into LLVM IR. The other is ``~/llvm/test/``, which 
+contains our Cpu0 backend program and another `clang` build.
 
-Build steps
-------------
+Build Steps
+-----------
 
-On linux, multi-threading -DLLVM_PARALLEL_COMPILE_JOBS=4, need more than 16GB
-memory. I create 64GB of swapfile to fix the problem of link failure
-[#swapfile1]_ [#swapfile2]_. The iMac has no this problem.
+On Linux, using multi-threading (`-DLLVM_PARALLEL_COMPILE_JOBS=4`) requires more 
+than 16GB of memory. I created a 64GB swap file to avoid link failures 
+[#swapfile1]_ [#swapfile2]_. iMac systems typically do not encounter this issue.
 
 .. code-block:: console
 
@@ -33,28 +33,30 @@ memory. I create 64GB of swapfile to fix the problem of link failure
   ...
   /swapfile       swap            swap    default         0       0
 
-After setup brew install for iMac or install necessory packages. Build as 
+After installing necessary packages (via `brew` on iMac), follow the build 
+instructions here:
 https://github.com/Jonathan2251/lbd/blob/master/README.md.
-
 
 Setting Up Your Mac
 -------------------
 
-Brew install and setup first [#installbrew]_.
+Install Homebrew first [#installbrew]_:
 
 .. code-block:: console
 
   % /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 
-Then add brew command to your path as the bottom of installed message of bash above, like the 
-following.
+After installation, add the `brew` command to your shell's PATH, as shown in the 
+final message of the install script. The command typically looks like the 
+following:
 
 .. code-block:: console
 
   % echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >> /Users/cschen/.zprofile
   % eval "$(/opt/homebrew/bin/brew shellenv)"
 
-Brew install in China, use the following install.sh instead [#installbrew-china]_.
+For installing Homebrew in China, use the following install script instead
+[#installbrew-china]_.
 
 .. code-block:: console
 
@@ -85,10 +87,11 @@ Brew install in China, use the following install.sh instead [#installbrew-china]
 
 
 
-Install Icarus Verilog tool on iMac
+Install Icarus Verilog Tool on iMac
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Install Icarus Verilog tool by command ``brew install icarus-verilog`` as follows,
+Install Icarus Verilog using the command ``brew install icarus-verilog`` as
+shown below:
 
 .. code-block:: console
 
@@ -103,30 +106,27 @@ Install Icarus Verilog tool by command ``brew install icarus-verilog`` as follow
   /usr/local/Cellar/icarus-verilog/0.9.5: 39 files, 12M, built in 55 seconds
 
 
-Install other tools on iMac
+Install Other Tools on iMac
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Install cmake and ninja as follows,
+Install CMake and Ninja with the following command:
 
 .. code-block:: console
 
-  $ brew install cmake
-  $ brew install ninja
+  brew install cmake ninja
 
-Install Graphviz for display llvm IR nodes in debugging, 
-[#graphviz-dm]_. 
+Install Graphviz for displaying LLVM IR nodes during debugging [#graphviz-dm]_.
 
 .. code-block:: console
 
   % brew install graphviz
 
+Information about using Graphviz with LLVM is available in the section
+"SelectionDAG Instruction Selection Process" of "The LLVM Target-Independent
+Code Generator" [#isp]_, and in the section "Viewing graphs while debugging
+code" of the "LLVM Programmer’s Manual" [#vgwdc]_.
 
-The Graphviz information for llvm is at section "SelectionDAG Instruction 
-Selection Process" " of "The LLVM Target-Independent Code Generator" here 
-[#isp]_  and at section "Viewing graphs while debugging code" of "LLVM 
-Programmer’s Manual" here [#vgwdc]_.
-  
-Install binutils by command ``brew install binutils`` as follows,
+Install binutils with the following command:
 
 .. code-block:: console
 
@@ -155,16 +155,16 @@ Setting Up Your Linux Machine
 Install Icarus Verilog tool on Linux
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Download icarus verilog as follows [#icarus]_,
+Download Icarus Verilog as follows [#icarus]_.
 
 .. code-block:: console
 
   $ git clone http://iverilog.icarus.com/
 
 
-Follow the README or INSTALL file guide to install it. 
+Follow the README or INSTALL file guide to install it.
 
-Install `sh autoconf.sh` dependences and other dependences as follows,
+Install `sh autoconf.sh` dependencies and other dependencies as follows,
 
 .. code-block:: console
 
@@ -175,7 +175,7 @@ Install `sh autoconf.sh` dependences and other dependences as follows,
   patchutils bc zlib1g-dev libexpat-dev
   $ sh autoconf.sh
 
-Then install icarus as follows,
+Then install Icarus Verilog using the following commands,
 
 .. code-block:: console
 
@@ -186,10 +186,10 @@ Then install icarus as follows,
   $ make check
 
 
-Install other tools on Linux
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Install Other Tools on Linux
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Install cmake and ninja as follows,
+Install CMake and Ninja as follows,
 
 .. code-block:: console
 
@@ -212,8 +212,9 @@ Install cmake and ninja as follows,
   $ sudo apt install ninja-build 
   
 
-Download Graphviz from [#graphviz-download]_ according your 
-Linux distribution. Files compare tools Kdiff3 came from web site [#kdiff3]_. 
+Download Graphviz from [#graphviz-download]_ according to your Linux
+distribution. The file comparison tool KDiff3 can be downloaded from the
+website [#kdiff3]_.
 
 .. code-block:: console
 
@@ -221,7 +222,7 @@ Linux distribution. Files compare tools Kdiff3 came from web site [#kdiff3]_.
   $ dot -V
   dot - graphviz version 2.40.1 (20161225.0304)
 
-Set "~/.profile" as follows,
+Set ``~/.profile`` as follows,
 
 .. rubric:: ~/.profile
 .. code-block:: text
@@ -242,7 +243,7 @@ Set "~/.profile" as follows,
 Toolchain
 ---------
 
-List some gnu and llvm tools as follows,
+List some GNU and LLVM tools as follows,
 
 .. code-block:: console
 
@@ -259,10 +260,13 @@ List some gnu and llvm tools as follows,
   % man otool
   otool-classic - object file displaying tool
     ...
-    -L     Display the names and version numbers of the shared libraries that the object file uses, as well as the shared library ID if the file is a shared library.
+    -L     Display the names and version numbers of the shared libraries that 
+           the object file uses, as well as the shared library ID if the file 
+           is a shared library.
   % otool -L a.out   
   a.out:
-  	/usr/lib/libSystem.B.dylib (compatibility version 1.0.0, current version 1292.100.5)
+  	/usr/lib/libSystem.B.dylib (compatibility version 1.0.0, current 
+        version 1292.100.5)
 
   // Linux
   ~/git/lbd/lbdex/input$ man objcopy

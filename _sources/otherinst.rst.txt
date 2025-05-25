@@ -1,32 +1,35 @@
 .. _sec-addingmoresupport:
 
-Arithmetic and logic instructions
+Arithmetic and Logic Instructions
 =================================
 
 .. contents::
    :local:
    :depth: 4
 
-This chapter adds more Cpu0 arithmetic instructions support first.
-The `section Display llvm IR nodes with Graphviz`_ 
-will show you the steps of DAG optimization and their corresponding ``llc`` 
-display options. 
-These DAGs translation existed in some steps of optimization can be displayed by 
-the graphic tool of Graphviz which supply useful information in graphic view. 
-Logic instructions support will come after arithmetic section.
-In spite of that llvm backend handle the IR only, we get the IR from the 
-corresponding C operators with designed C example code. 
-Instead of focusing on classes relationship in this backend structure of last
-chapter, readers should focus on the mapping of C operators to llvm IR and 
-how to define the mapping relationship of IR and instructions in td. 
-HILO and C0 register class are defined in this chapter. 
-Readers will know how to handle other register classes beside general 
-purpose register class, and why they are needed, from this chapter.
+This chapter first adds support for more Cpu0 arithmetic instructions.  
+The `section Display llvm IR nodes with Graphviz`_ will show you the steps of  
+DAG optimization and their corresponding ``llc`` display options.  
+These DAG translations exist at various optimization steps and can be displayed  
+using the Graphviz tool, which provides useful graphical information.  
+
+Support for logic instructions will follow the arithmetic section.  
+Although the LLVM backend only handles IR, we derive the IR from corresponding  
+C operators using designed C example code.  
+Instead of focusing on class relationships in the backend structure, as in the  
+previous chapter, readers should now focus on mapping C operators to LLVM IR  
+and defining the mapping relationship between IR and instructions in ``.td``  
+files.  
+
+The **HILO** and **C0** register classes are introduced in this chapter.  
+Readers will learn how to handle additional register classes beyond general-  
+purpose registers and understand why they are needed.  
 
 Arithmetic
------------
+----------
 
-The code added in Chapter4_1/ to support arithmetic instructions as follows,
+The code added in ``Chapter4_1/`` to support arithmetic instructions is  
+summarized as follows:  
 
 .. rubric:: lbdex/chapters/Chapter4_1/Cpu0Subtarget.cpp
 .. literalinclude:: ../lbdex/Cpu0/Cpu0Subtarget.cpp
@@ -169,24 +172,23 @@ The code added in Chapter4_1/ to support arithmetic instructions as follows,
 **+, -, \*, <<,** and **>>**
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The ADDu, ADD, SUBu, SUB and MUL defined in Chapter4_1/Cpu0InstrInfo.td are for
-operators **+, -, \***.
-SHL (defined before) and SHLV are for **<<**.
-SRA, SRAV, SHR and SHRV are for **>>**.
+The **ADDu**, **ADD**, **SUBu**, **SUB**, and **MUL** instructions defined in  
+``Chapter4_1/Cpu0InstrInfo.td`` correspond to the **+, -, \*** operators.  
+**SHL** (defined earlier) and **SHLV** are used for **<<**, while **SRA**,  
+**SRAV**, **SHR**, and **SHRV** handle **>>**.  
 
-In RISC CPU, such as Mips, the multiply/divide function unit and add/sub/logic 
-unit are designed from two different hardware circuits, and more, their data 
-path are separate. 
-Cpu0 is same, so these two function units can be executed at same time 
-(instruction level parallelism). 
-Reference [#instrstage]_ for instruction itineraries.
+In RISC CPUs like MIPS, the multiply/divide function unit and add/sub/logic  
+unit are implemented using separate hardware circuits with distinct data paths.  
+Cpu0 follows the same approach, allowing these function units to execute  
+simultaneously (instruction-level parallelism).  
+Refer to [#instrstage]_ for details on instruction itineraries.  
 
-Chapter4_1/ can handle **+, -, \*, <<,** and **>>** operators in C 
-language. 
-The corresponding llvm IR instructions are **add, sub, mul, shl, ashr**. 
-The **'ashr'** instruction (arithmetic shift right) returns the first operand 
-shifted to the right a specified number of bits with sign extension. 
-In brief, we call **ashr** is “shift with sign extension fill”.
+``Chapter4_1/`` supports the **+, -, \*, <<, and >>** operators in C.  
+The corresponding LLVM IR instructions are **add, sub, mul, shl, and ashr**.  
+
+The **ashr** instruction (arithmetic shift right) shifts the first operand  
+right by a specified number of bits with sign extension.  
+In short, **ashr** performs "shift with sign extension fill."
 
 .. note:: **ashr**
 
@@ -197,11 +199,11 @@ In brief, we call **ashr** is “shift with sign extension fill”.
     
     <result> = ashr i32 1, 32  ; undefined
 
-The semantic of C operator **>>** for negative operand is dependent on 
-implementation. 
-Most compilers translate it into “shift with sign extension fill”, and 
-Mips **sra** is this instruction. 
-Following is the Micosoft web site's explanation,
+The behavior of the C **>>** operator for negative operands is  
+implementation-dependent.  
+Most compilers translate it as a "shift with sign extension fill,"  
+which is equivalent to the MIPS **sra** instruction.  
+The Microsoft website provides the following explanation:  
 
 .. note:: **>>**, Microsoft Specific
 
@@ -211,19 +213,17 @@ Following is the Micosoft web site's explanation,
   bit positions, there is no guarantee that other implementations will do 
   likewise.
 
-In addition to **ashr**, the other instruction “shift with zero filled” 
-**lshr** in llvm (Mips implement lshr with instruction **srl**) has the 
-following meaning. 
+In addition to **ashr**, LLVM provides the **lshr** instruction ("logical shift  
+right with zero fill"), which MIPS implements with the **srl** instruction.  
 
 .. note:: **lshr**
 
   Example:
   <result> = lshr i8 -2, 1   ; yields {i8}:result = 0x7FFFFFFF 
   
-In llvm, IR node **sra** is defined for ashr IR instruction, and node **srl** is 
-defined for lshr instruction (We don't know why it doesn't use ashr and lshr as 
-the IR node name directly). Summary as the Table: C operator >> implementation.
-
+LLVM defines **sra** as the IR node for **ashr** and **srl** for **lshr**.  
+(It's unclear why LLVM does not directly use "ashr" and "lshr" as IR node names.)  
+The following table summarizes C **>>** operator implementations:
 
 .. table:: C operator >> implementation
 
@@ -251,12 +251,11 @@ the IR node name directly). Summary as the Table: C operator >> implementation.
 **shr:**  SHift Right
 
 
-If we consider the x >> 1 definition is x = x/2 for compiler implementation.
-Then as you can see from Table: C operator >> implementation, **lshr** will fail 
-on some signed value (such as -2). In the same way, **ashr** will fail on some 
-unsigned value (such as 4G-2). So, in order to satisfy this definition in 
-both signed and unsigned integers of x, we need these two instructions, 
-**lshr** and **ashr**.
+If we define **x >> 1** as **x = x / 2**, then **lshr** fails for some signed  
+values (e.g., -2). Similarly, **ashr** fails for some unsigned values  
+(e.g., **4G - 2**).  
+Thus, to correctly handle both signed and unsigned integers, we need both  
+**lshr** and **ashr**.  
 
 .. table:: C operator << implementation
 
@@ -273,21 +272,27 @@ both signed and unsigned integers of x, we need these two instructions,
   unsigned example after x << 1           0x80000000 i.e 2G
   ======================================= ======================
 
-Again, consider the x << 1 definition is x = x*2. 
-From Table: C operator << implementation, we see **lshr** satisfy "unsigned 
-x=1G" but fails on signed x=1G. 
-It's fine since 2G is out of 32 bits signed integer range (-2G ~ 2G-1). 
-For the overflow case, no way to keep the correct result in register. So, any 
-value in register is OK. You can check that **lshr** satisfy x = x*2, for all 
-x << 1 and the x result is not out of range, no matter operand x is signed 
-or unsigned integer [#arithmetic-shift]_.
+Again, consider the definition of ``x << 1`` as ``x = x * 2``.  
+From the table on C operator ``<<`` implementation, we see that **lshr**  
+satisfies the case for "unsigned x = 1G" but fails for "signed x = 1G".  
+This is acceptable since ``2G`` exceeds the 32-bit signed integer range  
+(``-2G`` to ``2G - 1``).  
 
-The ‘ashr‘ Instruction" reference here [#ashr]_, ‘lshr‘ reference here [#lshr]_.
+In the case of overflow, there is no way to retain the correct result  
+within a register. Thus, any value stored in the register is acceptable.  
+You can verify that **lshr** satisfies ``x = x * 2`` for all ``x << 1``,  
+as long as the result remains within range, regardless of whether ``x``  
+is signed or unsigned [#arithmetic-shift]_.  
 
-The srav, shlv and shrv are for two virtual input registers instructions while 
-the sra, ... are for 1 virtual input registers and 1 constant input operands.
+The reference for the ``ashr`` instruction is available here [#ashr]_,  
+and for ``lshr`` here [#lshr]_.  
 
-Now, let's build Chapter4_1/ and run with input file ch4_math.ll as follows,
+The instructions **srav**, **shlv**, and **shrv** operate on two virtual  
+input registers, while **sra**, **...**, and others operate on one virtual  
+input register and one constant operand.  
+
+Now, let's build ``Chapter4_1/`` and run it using the input file  
+``ch4_math.ll`` as follows:
 
 .. rubric:: lbdex/input/ch4_math.ll
 .. literalinclude:: ../lbdex/input/ch4_math.ll
@@ -322,20 +327,28 @@ Now, let's build Chapter4_1/ and run with input file ch4_math.ll as follows,
 	  ret	$lr
 
 
-Example input ch4_1_math.cpp as the following is the C file which include **+, -, 
-\*, <<,** and **>>** operators. 
-It will generate corresponding llvm IR instructions, 
-**add, sub, mul, shl, ashr** by clang as Chapter 3 indicated.
+The example input ``ch4_1_math.cpp`` shown below is a C file that includes  
+the operators **`+`**, **`-`**, **`*`**, **`<<`**, and **`>>`**.  
+
+Compiling this file with Clang will generate the corresponding LLVM IR  
+instructions: **add**, **sub**, **mul**, **shl**, and **ashr**, as indicated  
+in Chapter 3.  
 
 .. rubric:: lbdex/input/ch4_1_math.cpp
 .. literalinclude:: ../lbdex/input/ch4_1_math.cpp
     :start-after: /// start
 
     
-Cpu0 instructions add and sub will trigger overflow exception while addu and subu
-truncate overflow value directly. Compile ch4_1_addsuboverflow.cpp with 
-``llc -cpu0-enable-overflow=true`` will generate add and sub instructions as 
-follows,
+Cpu0 instructions ``add`` and ``sub`` will trigger an overflow exception,  
+whereas ``addu`` and ``subu`` truncate overflow values directly.  
+
+Compiling ``ch4_1_addsuboverflow.cpp`` with the following command:  
+
+.. code-block:: console
+
+   llc -cpu0-enable-overflow=true  
+
+will generate ``add`` and ``sub`` instructions as shown below:
 
 .. rubric:: lbdex/input/ch4_1_addsuboverflow.cpp
 .. literalinclude:: ../lbdex/input/ch4_1_addsuboverflow.cpp
@@ -365,29 +378,32 @@ follows,
 	sub	$3, $4, $3
 	...
 
-In modern CPU, programmers are used to using truncate overflow instructions for
-C operators + and -. 
-Anyway, through option -cpu0-enable-overflow=true, programmer get the
-chance to compile program with overflow exception program. Usually, this option
-used in debug purpose. Compile with this option can help to identify the bug and
-fix it early.
+In modern CPUs, programmers typically use truncate overflow instructions  
+for C operators ``+`` and ``-``.  
 
+However, by using the ``-cpu0-enable-overflow=true`` option, programmers  
+can compile programs with overflow exception handling. This option is  
+mainly used for debugging purposes. Compiling with this option can help  
+identify bugs early and fix them efficiently.  
 
-Display llvm IR nodes with Graphviz
+Display LLVM IR Nodes with Graphviz
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The previous section, display the DAG translation process in text on terminal 
-by option ``llc -debug``. 
-The ``llc`` also supports the graphic displaying. 
-The `section Install other tools on iMac`_ include the download and installation
-of tool Graphivz. 
-The ``llc`` graphic displaying with tool Graphviz is introduced in this section. 
-The graphic displaying is more readable by eyes than displaying text in terminal. 
-It's not a must-have, but helps a lot especially when you are tired in tracking 
-the DAG translation process. 
-List the ``llc`` graphic support options from the sub-section "SelectionDAG 
-Instruction Selection Process" of web "The LLVM Target-Independent Code Generator" 
-[#instructionsel]_ as follows,
+The previous section displayed the DAG translation process in text format  
+on the terminal using the ``llc -debug`` option.  
+
+The ``llc`` tool also supports graphical visualization. The  
+`section Install other tools on iMac`_ explains how to download and  
+install Graphviz, a tool for rendering DAGs.  
+
+This section introduces how to use ``llc`` with Graphviz for graphical  
+display. Viewing DAGs graphically is often easier to interpret than  
+reading raw text in the terminal. While not mandatory, this visualization  
+can be very helpful, especially when debugging complex DAG transformations.  
+
+The following ``llc`` options allow graphical visualization of DAGs,  
+as mentioned in the "SelectionDAG Instruction Selection Process" section  
+of the LLVM Target-Independent Code Generator documentation [#instructionsel]_:
 
 .. note:: The ``llc`` Graphviz DAG display options
 
@@ -457,21 +473,24 @@ follows,
   
   -view-sched-dags: Selected selection DAG
 
-The -view-isel-dags is important and often used by an llvm backend writer 
-because it is the DAGs before instruction selection. 
-In order to writing the pattern match instruction in target description file 
-.td, backend programmer needs knowing what the DAG nodes are for a given C 
-operator.
+The ``-view-isel-dags`` option is particularly important and frequently  
+used by LLVM backend developers. It displays the DAGs before instruction  
+selection, providing crucial insight into how LLVM represents operations  
+before they are mapped to target-specific instructions.  
 
+To write pattern-matching rules in the target description file (``.td``),  
+backend developers need to understand the DAG nodes corresponding to  
+specific C operators. This visualization helps in accurately defining  
+these patterns.  
 
-Operator % and /
-~~~~~~~~~~~~~~~~~~
+Operator ``%`` and ``/``
+~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The DAG of %
-+++++++++++++++
+DAG Representation of ``%``
++++++++++++++++++++++++++++++
 
-Example input code ch4_1_mult.cpp which contains the C operator **“%”** and it's 
-corresponding llvm IR, as follows,
+The following example, ``ch4_1_mult.cpp``, contains the C operator ``%``  
+(modulus). The corresponding LLVM IR is shown below:
 
 .. rubric:: lbdex/input/ch4_1_mult.cpp
 .. literalinclude:: ../lbdex/input/ch4_1_mult.cpp
@@ -491,48 +510,48 @@ corresponding llvm IR, as follows,
     ret i32 %4
   }
 
-LLVM **srem** is the IR of corresponding **“%”**, reference here [#srem]_. 
-Copy the reference as follows,
+LLVM **srem** corresponds to the C operator **“%”**. Reference: [#srem]_.  
+The following note provides details on its syntax and behavior:
 
-.. note:: **'srem'** Instruction 
+.. note:: **'srem'** Instruction  
 
-  Syntax:
-  **<result> = srem <ty> <op1>, <op2>   ; yields {ty}:result**
-    
-  Overview:
-  The **'srem'** instruction returns the remainder from the signed division of its 
-  two operands. This instruction can also take vector versions of the values in 
-  which case the elements must be integers.
-  
-  Arguments:
-  The two arguments to the **'srem'** instruction must be integer or vector of 
-  integer values. Both arguments must have identical types.
-  
-  Semantics:
-  This instruction returns the remainder of a division (where the result is 
-  either zero or has the same sign as the dividend, op1), not the modulo operator 
-  (where the result is either zero or has the same sign as the divisor, op2) of 
-  a value. For more information about the difference, see The Math Forum. For a 
-  table of how this is implemented in various languages, please see Wikipedia: 
-  modulo operation.
-  
-  Note that signed integer remainder and unsigned integer remainder are distinct 
-  operations; for unsigned integer remainder, use **'urem'**.
-  
-  Taking the remainder of a division by zero leads to undefined behavior. 
-  Overflow also leads to undefined behavior; this is a rare case, but can occur, 
-  for example, by taking the remainder of a 32-bit division of -2147483648 by -1. 
-  (The remainder doesn't actually overflow, but this rule lets srem be 
-  implemented using instructions that return both the result of the division and 
-  the remainder.)
-  
-  Example:
-  <result> = **srem i32 4, %var**      ; yields {i32}:result = 4 % %var
+  **Syntax:**  
+  **<result> = srem <ty> <op1>, <op2>   ; yields {ty}:result**  
 
+  **Overview:**  
+  The **'srem'** instruction returns the remainder from the signed division  
+  of its two operands. This instruction also supports vector types, where  
+  the elements must be integers.  
 
-Run Chapter3_5/ with input file ch4_1_mult.bc via option ``llc –view-isel-dags``, 
-will get the following error message and the llvm DAGs of 
-:numref:`otherinst-f2` below.
+  **Arguments:**  
+  The two arguments of the **'srem'** instruction must be integers or vectors  
+  of integer values. Both operands must have identical types.  
+
+  **Semantics:**  
+  This instruction returns the remainder of a signed division, meaning the  
+  result is either zero or has the same sign as the dividend (**op1**).  
+  It is not the modulo operator, where the result would have the same sign  
+  as the divisor (**op2**). For more details, see references such as  
+  The Math Forum or Wikipedia’s article on the modulo operation.  
+
+  Note that signed integer remainder (**srem**) and unsigned integer  
+  remainder (**urem**) are distinct operations. For unsigned remainder,  
+  use **'urem'** instead.  
+
+  Taking the remainder of a division by zero results in undefined behavior.  
+  Overflow also causes undefined behavior, though it is a rare case. One such  
+  scenario is taking the remainder of a 32-bit division of **-2147483648** by  
+  **-1**, which cannot be directly represented. This rule allows **srem**  
+  to be implemented using division instructions that return both the quotient  
+  and the remainder.  
+
+  **Example:**  
+  ``<result> = srem i32 4, %var``  ; yields ``{i32}: result = 4 % %var``  
+
+To observe LLVM’s DAG representation of **srem**, run ``llc –view-isel-dags``  
+on the input file ``ch4_1_mult.bc`` in ``Chapter3_5/``.  
+LLVM will display an error message along with the DAG output,  
+as illustrated in :numref:`otherinst-f2` below.
 
 .. code-block:: console
 
@@ -555,26 +574,43 @@ will get the following error message and the llvm DAGs of
 
   ch4_1_mult.bc DAG
 
-LLVM replaces srem divide operation with multiply operation in DAG optimization 
-because DIV operation costs more in time than MUL. 
-Example code **“int b = 11; b=(b+1)%12;”** is translated into DAGs as
-:numref:`otherinst-f2`. 
-The DAGs of generated result is verified and explained by calculating the value 
-in each node. 
-The 0xC*0x2AAAAAAB=0x2,00000004, (mulhs 0xC, 0x2AAAAAAAB) meaning get the Signed 
-mul high word (32bits). 
-Multiply with 2 operands of 1 word size probably generate the 2 word size of 
-result (0x2, 0xAAAAAAAB). 
-The result of high word, in this case is 0x2. 
-The final result (sub 12, 12) is 0 which match the statement (11+1)%12.
+LLVM optimizes the **srem** operation by replacing division with multiplication  
+in DAG optimization. This is because the **DIV** operation is more expensive  
+in terms of execution time compared to **MUL**.  
 
+For example, the following C code:
+
+.. code-block:: c++
+
+  int b = 11;
+  b = (b + 1) % 12;
+
+is translated into DAGs, as shown in :numref:`otherinst-f2`.  
+The DAG representation is verified and explained by calculating the values  
+at each node.  
+
+The computation follows these steps:  
+
+- **0xC * 0x2AAAAAAB = 0x2,00000004**  
+- **mulhs(0xC, 0x2AAAAAAAB)** retrieves the signed multiplication's high  
+  word (upper 32 bits).  
+- A multiplication of two 32-bit operands typically produces a 64-bit result  
+  (e.g., **0x2, 0xAAAAAAAB**).  
+- In this case, the high word of the result is **0x2**.  
+- The final computation **sub(12, 12)** results in **0**,  
+  which correctly matches **(11 + 1) % 12**.  
+
+ARM Solution
+++++++++++++
+
+To run this with an ARM-based solution, modify the following files in  
+``Chapter4_1/``:  
+
+- ``Cpu0InstrInfo.td``  
+- ``Cpu0ISelDAGToDAG.cpp``  
+
+Make the necessary changes as follows:
  
-Arm solution
-+++++++++++++
-
-To run with ARM solution, change Cpu0InstrInfo.td and Cpu0ISelDAGToDAG.cpp from 
-Chapter4_1/ as follows,
-
 .. rubric:: lbdex/chapters/Chapter4_1/Cpu0InstrInfo.td
 .. code-block:: c++
 
@@ -627,9 +663,11 @@ Chapter4_1/ as follows,
   }
 
 
-Let's run above changes with ch4_1_mult.cpp as well as ``llc -view-sched-dags`` option 
-to get :numref:`otherinst-f3`. 
-Instruction SMMUL will get the high word of multiply result.
+Let's apply the above changes and run them with ``ch4_1_mult.cpp`` using  
+the ``llc -view-sched-dags`` option to generate :numref:`otherinst-f3`.  
+
+The **SMMUL** instruction is used to extract the high word of the  
+multiplication result.
 
 .. _otherinst-f3:
 .. figure:: ../Fig/otherinst/3.png
@@ -640,7 +678,7 @@ Instruction SMMUL will get the high word of multiply result.
 
   DAG for ch4_1_mult.bc with ARM style SMMUL
 
-The following is the result of run above changes with ch4_1_mult.bc.
+The following is the result of running the above changes with ``ch4_1_mult.bc``.
 
 .. code-block:: console
 
@@ -670,56 +708,47 @@ The following is the result of run above changes with ch4_1_mult.bc.
     ret $lr
 
 
-The other instruction UMMUL and llvm IR mulhu are unsigned int type for 
-operator %. 
-You can check it by unmark the **“unsigned int b = 11;”** in ch4_1_mult.cpp.
+MIPS Solution
++++++++++++++
 
-Using SMMUL instruction to get the high word of multiplication result is adopted 
-in ARM. 
+MIPS uses the **MULT** instruction to perform multiplication, storing the high 
+and low parts of the result in the **HI** and **LO** registers, respectively. 
+After that, the **mfhi** and **mflo** instructions move the values from the 
+HI/LO registers to general-purpose registers.
 
+ARM's **SMMUL** instruction is optimized for cases where only the high part 
+of the result is needed, as it ignores the low part. ARM also provides **SMULL** 
+(signed multiply long) to obtain the full 64-bit result.
 
-Mips solution
-++++++++++++++
+If only the low part of the result is needed, the **Cpu0 MUL** instruction can 
+be used. The implementation in ``Chapter4_1/`` follows the MIPS **MULT** style 
+to minimize the number of added instructions. This approach makes **Cpu0** 
+suitable as both a tutorial architecture for educational purposes and a 
+learning resource for compiler design.
 
-Mips uses MULT instruction and save the high & low part to registers HI and LO,
-respectively. 
-After that, uses mfhi/mflo to move register HI/LO to your general purpose 
-registers. 
-ARM SMMUL is fast if you only need the HI part of result (it ignores the LO part 
-of operation). ARM also provides SMULL (signed multiply long) to get the whole 
-64 bits result.
-If you need the LO part of result, you can use Cpu0 MUL instruction to get the 
-LO part of result only. 
-Chapter4_1/ is implemented with Mips MULT style. 
-We choose it as the implementation of this book for adding instructions as less 
-as possible. This approach make Cpu0 better both as a tutorial architecture 
-for school teaching purpose material, and an engineer learning 
-materials in compiler design.
-The MULT, MULTu, MFHI, MFLO, MTHI, MTLO added in Chapter4_1/Cpu0InstrInfo.td; 
-HI, LO registers in Chapter4_1/Cpu0RegisterInfo.td and Chapter4_1/MCTargetDesc/
-Cpu0BaseInfo.h; IIHiLo, IIImul in Chapter4_1/Cpu0Schedule.td; SelectMULT() in
-Chapter4_1/Cpu0ISelDAGToDAG.cpp are for Mips style implementation.
+The following instructions are added in ``Chapter4_1/`` for the MIPS-style 
+implementation:
 
-The related DAG nodes, mulhs and mulhu, both are used in Chapter4_1/, which
-come from TargetSelectionDAG.td as follows,
-  
-.. rubric:: include/llvm/Target/TargetSelectionDAG.td
-.. code-block:: c++
+- **MULT, MULTu, MFHI, MFLO, MTHI, MTLO** in ``Chapter4_1/Cpu0InstrInfo.td``
+- **HI, LO registers** in ``Chapter4_1/Cpu0RegisterInfo.td`` and 
+  ``Chapter4_1/MCTargetDesc/Cpu0BaseInfo.h``
+- **IIHiLo, IIImul** in ``Chapter4_1/Cpu0Schedule.td``
+- **SelectMULT()** in ``Chapter4_1/Cpu0ISelDAGToDAG.cpp``
 
-  def mulhs    : SDNode<"ISD::MULHS"     , SDTIntBinOp, [SDNPCommutative]>;
-  def mulhu    : SDNode<"ISD::MULHU"     , SDTIntBinOp, [SDNPCommutative]>;
+Except for custom types, LLVM IR operations of type **expand** and **promote** 
+will call **Cpu0DAGToDAGISel::Select()** during instruction selection in the 
+DAG translation process. 
 
-  
-Except the custom type, llvm IR operations of type expand and promote will call 
-Cpu0DAGToDAGISel::Select() during instruction selection of DAG translation. 
-The SelectMULT() which called by Select() return the HI part of 
-multiplication result to HI register for IR operations of mulhs or mulhu. 
-After that, MFHI instruction moves the HI register to Cpu0 field "a" register, 
-$ra. 
-MFHI instruction is FL format and only use Cpu0 field "a" register, we set 
-the $rb and imm16 to 0. 
-:numref:`otherinst-f4` and ch4_1_mult.cpu0.s are the results of compile 
-ch4_1_mult.bc.
+The function **selectMULT()**, which is called by **select()**, returns the **HI** 
+part of the multiplication result to the **HI** register for IR operations 
+**mulhs** or **mulhu**. After that, the **MFHI** instruction moves the **HI** 
+register to the Cpu0 **"a"** register, **$ra**.
+
+Since the **MFHI** instruction follows the **FL** format and only utilizes the 
+Cpu0 **"a"** register, we set **$rb** and **imm16** to 0. 
+
+:numref:`otherinst-f4` and ``ch4_1_mult.cpu0.s`` show the compilation results 
+of ``ch4_1_mult.bc``.
 
 .. _otherinst-f4:
 .. figure:: ../Fig/otherinst/4.png
@@ -753,50 +782,67 @@ ch4_1_mult.bc.
     ret $lr
     
 
-Full support \%, and /
-++++++++++++++++++++++
+Full Support for `%` and `/`
+++++++++++++++++++++++++++++
 
-The sensitive readers may find llvm using **“multiplication”** instead 
-of **“div”** to get the **“\%”** result just because our example uses 
-constant as divider, **“(b+1)\%12”** in our example. 
-If programmer uses variable as the divider like **“(b+1)\%a”**, then: what will 
-happen next? 
-The answer is our code will has error in handling this. 
+Attentive readers may notice that LLVM replaces **division (`/`)** with  
+**multiplication (`*`)** when computing the **remainder (`%`)** in our  
+example. This optimization occurs because the divisor in our example,  
+**"(b+1) % 12"**, is a constant.
 
-Cpu0 just like Mips uses LO and HI registers to hold the **"quotient"** and 
-**"remainder"**. And 
-uses instructions **“mflo”** and **“mfhi”** to get the result from LO or HI 
-registers furthermore. 
-With this solution, the **“c = a / b”** can be finished by **“div a, b”** and 
-**“mflo c”**; the **“c = a \% b”** can be finished by **“div a, b”** and 
-**“mfhi c”**.
- 
-To supports operators **“\%”** and **“/”**, the following code added in 
-Chapter4_1.
+However, what happens if the divisor is a variable, such as in  
+**"(b+1) % a"**?  
+In this case, our current implementation would fail to handle it correctly.
 
-1. SDIV, UDIV and it's reference class, nodes in Cpu0InstrInfo.td.
+Cpu0, like MIPS, uses the **LO** and **HI** registers to store the  
+**quotient** and **remainder**, respectively. The instructions **"mflo"**  
+and **"mfhi"** retrieve the results from the **LO** and **HI** registers.  
 
-2. The copyPhysReg() declared and defined in Cpu0InstrInfo.h and 
-   Cpu0InstrInfo.cpp.
+Using this approach:
+- The operation **`c = a / b`** is implemented as:
+  
+  .. code-block:: asm
+  
+     div a, b  
+     mflo c  
 
-3. The setOperationAction(ISD::SDIV, MVT::i32, Expand), ..., 
-   setTargetDAGCombine(ISD::SDIVREM) in constructore of Cpu0ISelLowering.cpp;  
-   PerformDivRemCombine() and PerformDAGCombine() in Cpu0ISelLowering.cpp.
+- The operation **`c = a % b`** is implemented as:
 
+  .. code-block:: asm
 
-The IR instruction **sdiv** stands for signed div while **udiv** stands for 
-unsigned div.
+     div a, b  
+     mfhi c  
+
+To support the operators **`%`** and **`/`**, the following changes were  
+added in **Chapter4_1/**:
+
+1. **SDIV**, **UDIV**, and their reference classes, as well as DAG nodes in  
+   `Cpu0InstrInfo.td`.
+2. **copyPhysReg()**, declared in `Cpu0InstrInfo.h` and implemented in  
+   `Cpu0InstrInfo.cpp`.
+3. **setOperationAction(ISD::SDIV, MVT::i32, Expand)**,  
+   **setTargetDAGCombine(ISD::SDIVREM)** in the constructor of  
+   `Cpu0ISelLowering.cpp`, along with  
+   `PerformDivRemCombine()` and `PerformDAGCombine()` in  
+   `Cpu0ISelLowering.cpp`.
+
+The LLVM IR instruction **sdiv** represents **signed division**, while  
+**udiv** represents **unsigned division**.
 
 .. rubric:: lbdex/input/ch4_1_mult2.cpp
 .. literalinclude:: ../lbdex/input/ch4_1_mult2.cpp
     :start-after: /// start
 
-If we run with ch4_1_mult2.cpp, the **“div”** cannot be gotten for operator 
-**“%”**. 
-It still uses **"multiplication"** instead of **"div"** in ch4_1_mult2.cpp because 
-llvm do **“Constant Propagation Optimization”** in this. 
-The ch4_1_mod.cpp can get the **“div”** for **“%”** result since it makes 
-llvm **“Constant Propagation Optimization”** useless in it. 
+When running `ch4_1_mult2.cpp`, the **`div`** instruction is not generated  
+for the **`%`** operator. Instead, LLVM still replaces it with  
+**multiplication (`*`)**.  
+
+This happens because LLVM applies **Constant Propagation Optimization**,  
+which optimizes expressions involving constants at compile time.
+
+To force LLVM to generate a **`div`** instruction for **`%`**,  
+we can use `ch4_1_mod.cpp`, which prevents LLVM from applying  
+**Constant Propagation Optimization**.
   
 .. rubric:: lbdex/input/ch4_1_mod.cpp
 .. literalinclude:: ../lbdex/input/ch4_1_mod.cpp
@@ -816,6 +862,9 @@ llvm **“Constant Propagation Optimization”** useless in it.
 
 To explains how to work with **“div”**, let's run ch4_1_mod.cpp with debug option
 as follows,
+
+To understand how LLVM generates the **`div`** instruction,  
+let's run `ch4_1_mod.cpp` with the debug option as follows:
 
 .. code-block:: console
 
@@ -925,24 +974,33 @@ as follows,
   => 0x24490e8: i32,glue = SDIV 0x2447320, 0x2447448 [ORD=9]
   ...
 
+Summary of DAG Translation Steps:
 
-Summary above DAGs translation messages into 4 steps:
+The translation of DAGs for the **`%`** operator follows these four steps:
 
-1. Reduce DAG nodes in stage "Optimized lowered selection DAG" (Replacing ... 
-   displayed before "Optimized lowered selection DAG:"). 
-   Since SSA form has some redundant nodes for store and load, they can be 
-   removed.
+1. **Reduce DAG Nodes**
+ 
+   - This occurs in the **"Optimized Lowered Selection DAG"** stage.
+   - Redundant store and load nodes in SSA form are removed.
 
-2. Change DAG srem to sdivrem in stage "Legalized selection DAG".
+2. **Convert `srem` to `sdivrem`**
 
-3. Change DAG sdivrem to Cpu0ISD::DivRem and in stage "Optimized legalized 
-   selection DAG".
+   - This transformation happens in the **"Legalized Selection DAG"** stage.
 
-4. Add DAG "i32 = Register %HI" and "CopyFromReg ..." in stage "Optimized 
-   legalized selection DAG".
+3. **Convert `sdivrem` to `Cpu0ISD::DivRem`**
 
-Summary as Table: Stages for C operator % and Table: Functions handle the DAG 
-translation and pattern match for C operator %.
+   - This occurs in the **"Optimized Legalized Selection DAG"** stage.
+
+4. **Add Register Mapping for HI Register**
+
+   - In the **"Optimized Legalized Selection DAG"** stage, the following DAG nodes are added:  
+     - `"i32 = Register %HI"`  
+     - `"CopyFromReg ..."`
+
+For a detailed breakdown, refer to:
+
+- **Table: Stages for C Operator `%`**
+- **Table: Functions Handling DAG Translation and Pattern Matching for C Operator `%`**
 
 .. table:: Stages for C operator %
 
@@ -968,32 +1026,55 @@ translation and pattern match for C operator %.
   CopyFromReg xx, Hi, xx => mfhi        MFLO (Cpu0InstrInfo.td)
   ====================================  ============================
 
+The more detailed transformation of DAGs during `llc` execution follows these 
+steps:
 
-Step 2 as above, is triggered by code 
-"setOperationAction(ISD::SREM, MVT::i32, Expand);" in Cpu0ISelLowering.cpp. 
-About **Expand** please ref. [#expand]_ and [#legalizetypes]_. Step 3 is 
-triggered by code "setTargetDAGCombine(ISD::SDIVREM);" in Cpu0ISelLowering.cpp.
-Step 4 is did by PerformDivRemCombine() which called by performDAGCombine().
-Since the **%** corresponding **srem** makes the "N->hasAnyUseOfValue(1)" to 
-true in PerformDivRemCombine(), it creates DAG of "CopyFromReg". 
-When using **"/"** in C, it will make "N->hasAnyUseOfValue(0)" to ture.
-For sdivrem, **sdiv** makes "N->hasAnyUseOfValue(0)" true while **srem** makes 
-"N->hasAnyUseOfValue(1)" ture.
+2. **Convert `srem` to `sdivrem`**
 
-Above steps will change the DAGs when ``llc`` is running. After that, the pattern 
-match defined in Chapter4_1/Cpu0InstrInfo.td will translate **Cpu0ISD::DivRem** 
-into **div**; and **"CopyFromReg xxDAG, Register %H, Cpu0ISD::DivRem"** 
-to **mfhi**.
+   - Triggered by the code:  
+     ```
+     setOperationAction(ISD::SREM, MVT::i32, Expand);
+     ```
+   - Defined in `Cpu0ISelLowering.cpp`.  
+   - For details on **Expand**, refer to [#expand]_ and [#legalizetypes]_.
 
-The ch4_1_div.cpp is for **/** div operator test.
+3. **Convert `sdivrem` to `Cpu0ISD::DivRem`**
+
+   - Triggered by:  
+     ```
+     setTargetDAGCombine(ISD::SDIVREM);
+     ```
+   - Also defined in `Cpu0ISelLowering.cpp`.
+
+4. **Handle `CopyFromReg` in DAG**
+
+   - Managed by `PerformDivRemCombine()`, which is called by 
+     `performDAGCombine()`.  
+   - The **`%`** operator (corresponding to `srem`) makes 
+     `"N->hasAnyUseOfValue(1)"` true in `PerformDivRemCombine()`, resulting in 
+     `"CopyFromReg"` DAG creation.  
+   - The **`/`** operator makes `"N->hasAnyUseOfValue(0)"` true.  
+   - For `sdivrem`:
+ 
+     - `sdiv` sets `"N->hasAnyUseOfValue(0)"` true.  
+     - `srem` sets `"N->hasAnyUseOfValue(1)"` true.  
+
+Once these steps modify the DAGs during `llc` execution, pattern matching in  
+`Chapter4_1/Cpu0InstrInfo.td` translates:
+
+- **`Cpu0ISD::DivRem`** → **`div`**  
+- **`CopyFromReg xxDAG, Register %H, Cpu0ISD::DivRem`** → **`mfhi`**  
+
+The `ch4_1_div.cpp` file tests the `/` (division) operator.
 
 
-Rotate instructions
-~~~~~~~~~~~~~~~~~~~~
+Rotate Instructions
++++++++++++++++++++
 
-Chapter4_1 include the rotate operations translation. The instructions "rol", 
-"ror", "rolv" and "rorv" defined in Cpu0InstrInfo.td handle the translation.
-Compile ch4_1_rotate.cpp will get Cpu0 "rol" instruction.
+`Chapter4_1` includes support for **rotate operations**.  
+The instructions **`rol`**, **`ror`**, **`rolv`**, and **`rorv`** are defined in `Cpu0InstrInfo.td` for translation.  
+
+Compiling `ch4_1_rotate.cpp` will generate the `Cpu0 rol` instruction.
 
 .. rubric:: lbdex/input/ch4_1_rotate.cpp
 .. literalinclude:: ../lbdex/input/ch4_1_rotate.cpp
@@ -1029,20 +1110,23 @@ Compile ch4_1_rotate.cpp will get Cpu0 "rol" instruction.
     rol $2, $2, 30
     ...
 
-Instructions "rolv" and "rorv" cannot be tested at this moment, they need 
-logic "or" implementation which supported at next section. 
-Like the previous subsection mentioned at this 
-chapter, some IRs in function @_Z16test_rotate_leftv() will be combined into 
-one one IR **rotl** during DAGs translation.
 
+Logical Instructions
+--------------------
 
-Logic
--------
+`Chapter4_2` introduces support for logical operators:  
 
-Chapter4_2 supports logic operators **&, |, ^, !, ==, !=, <, <=, > and >=**.
-They are trivial and easy. Listing the added code with comments and table for 
-these operators IR, DAG and instructions as below. Please check them with the
-run result of bc and asm instructions for ch4_2_logic.cpp as below.
+**`&, |, ^, !, ==, !=, <, <=, >, >=`**  
+
+These operations are straightforward to implement.  
+
+Below, you’ll find:  
+
+- The added code with comments  
+- A table mapping **IR operations → DAG nodes → final instructions**  
+- The execution results of **bitcode (bc) and assembly (asm) for `ch4_2_logic.cpp`**  
+
+Please check the run results to verify the implementation.
 
 .. rubric:: lbdex/chapters/Chapter4_2/Cpu0InstrInfo.td
 .. literalinclude:: ../lbdex/Cpu0/Cpu0InstrInfo.td
@@ -1262,15 +1346,31 @@ run result of bc and asm instructions for ch4_2_logic.cpp as below.
                                                                                        - andi $2, $2, 1
   ==========  =================================  ====================================  =======================
 
-In relation operators ==, !=, ..., %0 = $3 = 5, %1 = $2 = 3 for ch4_2_logic.cpp.
+For `ch4_2_logic.cpp`, the relation operators such as **`==, !=, <, <=, >, >=`**  
+follow the convention where:  
 
-The "Optimized legalized selection DAG" is the last DAG stage just before the 
-"instruction selection" as the previous section mentioned in this chapter. 
-You can see the whole DAG stages by ``llc -debug`` option.
+- `%0 = $3 = 5`  
+- `%1 = $2 = 3`  
 
-From above result, slt spend less instructions than cmp for relation 
-operators translation. Beyond that, slt uses general purpose register while 
-cmp uses $sw dedicated register.
+### Optimized Legalized Selection DAG
+
+The **"Optimized Legalized Selection DAG"** is the final DAG stage before  
+**instruction selection**, as mentioned earlier in this chapter.  
+To view all DAG stages, use the command:  
+
+**`llc -debug`**
+
+### `slt` vs. `cmp`
+
+From the results, **`slt`** (set-less-than) requires fewer instructions than 
+**`cmp`** for relation operator translation.  
+
+Additionally:
+
+- **`slt`** operates using general-purpose registers.  
+- **`cmp`** requires the dedicated **`$sw`** register.  
+
+This difference makes **`slt`** a more efficient choice in certain scenarios.
 
 .. rubric:: lbdex/input/ch4_2_slt_explain.cpp
 .. literalinclude:: ../lbdex/input/ch4_2_slt_explain.cpp
@@ -1309,12 +1409,24 @@ cmp uses $sw dedicated register.
     st  $2, 8($sp)
     ...
 
-Run these two `llc -mcpu` option for Chapter4_2 with ch4_2_slt_explain.cpp to get the 
-above result. Regardless of the move between \$sw and general purpose register 
-in `llc -mcpu=cpu032I`, the two cmp instructions in it will has hazard in 
-instruction reorder since both of them use \$sw register. The  
-`llc -mcpu=cpu032II` has not this problem because it uses slti [#Quantitative]_. 
-The slti version can reorder as follows,
+Run the following two `llc -mcpu` options with `ch4_2_slt_explain.cpp`  
+to obtain the results discussed above.
+
+### Instruction Hazard in `llc -mcpu=cpu032I`
+
+Regardless of the move operation between **`$sw`** and general-purpose registers  
+in `llc -mcpu=cpu032I`, the two **`cmp`** instructions introduce a hazard  
+during instruction reordering.  
+This occurs because both instructions rely on the **`$sw`** register.
+
+### Avoiding Hazards with `llc -mcpu=cpu032II`
+
+The `llc -mcpu=cpu032II` configuration avoids this issue by using **`slti`**  
+(set-less-than immediate) [#Quantitative]_.
+
+#### Reordering Optimization with `slti`
+
+The **`slti`** version allows safer instruction reordering, as demonstrated below:
 
 .. code-block:: console
 
@@ -1329,19 +1441,27 @@ The slti version can reorder as follows,
     st  $2, 12($sp)
     ...
 
-Chapter4_2 include instructions cmp and slt. Though cpu032II include both of 
-these two instructions, the slt takes the priority since 
-"let Predicates = [HasSlt]" appeared before "let Predicates = [HasCmp]" in 
-Cpu0InstrInfo.td.
+Chapter 4.2 includes both **`cmp`** and **`slt`** instructions.  
+Although **`cpu032II`** supports both instructions, **`slt`** takes priority  
+because the directive:
 
+**let Predicates = [HasSlt]**
+
+appears **before**:
+
+**let Predicates = [HasCmp]**
+
+in `Cpu0InstrInfo.td`.
 
 Summary
 --------
 
-List C operators, IR of .bc, Optimized legalized selection DAG and Cpu0 
-instructions implemented in this chapter in Table: Chapter 4 mathmetic 
-operators. There are over 20 operators totally in mathmetic and logic support in
-this chapter and spend 4xx lines of source code. 
+The following table summarizes the **C operators**, their corresponding  
+**LLVM IR** (`.bc`), **Optimized Legalized Selection DAG**,  
+and **Cpu0 instructions** implemented in this chapter.
+
+This chapter covers over **20 mathematical and logical operators**,  
+spanning **approximately 400 lines** of source code.
 
 .. table:: Chapter 4 mathmetic operators
 

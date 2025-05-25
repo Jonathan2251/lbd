@@ -46,27 +46,27 @@
 <li><p><a class="reference internal" href="#pipeline-architecture" id="id16">Pipeline architecture</a></p></li>
 <li><p><a class="reference internal" href="#control-flow-statement" id="id17">Control flow statement</a></p></li>
 <li><p><a class="reference internal" href="#long-branch-support" id="id18">Long branch support</a></p></li>
-<li><p><a class="reference internal" href="#cpu0-backend-optimization-remove-useless-jmp" id="id19">Cpu0 backend Optimization: Remove useless JMP</a></p></li>
+<li><p><a class="reference internal" href="#cpu0-backend-optimization-remove-useless-jmp" id="id19">Cpu0 Backend Optimization: Remove Useless JMP</a></p></li>
 <li><p><a class="reference internal" href="#fill-branch-delay-slot" id="id20">Fill Branch Delay Slot</a></p></li>
 <li><p><a class="reference internal" href="#conditional-instruction" id="id21">Conditional instruction</a></p></li>
 <li><p><a class="reference internal" href="#phi-node" id="id22">Phi node</a></p></li>
 <li><p><a class="reference internal" href="#risc-cpu-knowledge" id="id23">RISC CPU knowledge</a></p></li>
 </ul>
 </nav>
-<p>This chapter illustrates the corresponding IR for control flow statements, such as
-<strong>“if else”</strong>, <strong>“while”</strong> and <strong>“for”</strong> loop statements in C, and how to
-translate these control flow statements of llvm IR into Cpu0 instructions in
-section I. In <a class="reference external" href="http://jonathan2251.github.io/lbd/ctrlflow.html#cpu0-backend-optimization-remove-useless-jmp">section Remove useless JMP</a>,
-an optimization pass of control flow for backend is introduced.
-It’s a simple tutorial program to let readers know how to add a
-backend optimization pass and program it.
-<a class="reference external" href="http://jonathan2251.github.io/lbd/ctrlflow.html#conditional-instruction">section Conditional instruction</a>, includes the Conditional
-Instructions Handling since clang will generate specific IRs, select and
-select_cc, to support the backend optimiation in control flow statement.</p>
+<p>This chapter illustrates the corresponding IR for control flow statements, such
+as <strong>“if-else”</strong>, <strong>“while”</strong>, and <strong>“for”</strong> loop statements in C. It also
+explains how to translate these LLVM IR control flow statements into Cpu0
+instructions in <em>Section I</em>.</p>
+<p>In <a class="reference external" href="http://jonathan2251.github.io/lbd/ctrlflow.html#cpu0-backend-optimization-remove-useless-jmp">section Remove useless JMP</a>, a control flow optimization pass for the
+backend is introduced. It serves as a simple tutorial program to help readers
+understand how to add and implement a backend optimization pass.</p>
+<p><a class="reference external" href="http://jonathan2251.github.io/lbd/ctrlflow.html#conditional-instruction">section Conditional instruction</a> includes handling for conditional
+instructions, since Clang generates specific IR instructions, <cite>select</cite> and
+<cite>select_cc</cite>, to support control flow optimizations in the backend.</p>
 <section id="pipeline-architecture">
 <h2><a class="toc-backref" href="#id16" role="doc-backlink">Pipeline architecture</a><a class="headerlink" href="#pipeline-architecture" title="Permalink to this heading">¶</a></h2>
-<p>The following figures are from book “Computer Architecture A Quantitative
-Approach Fourth Edition”.</p>
+<p>The following figures are from the book <em>Computer Architecture: A Quantitative
+Approach, Fourth Edition</em>.</p>
 <figure class="align-center" id="id10">
 <span id="ctrl-pipeline"></span><a class="reference internal image-reference" href="_images/5_stage_pipeline.png"><img alt="_images/5_stage_pipeline.png" src="_images/5_stage_pipeline.png" style="width: 966.0px; height: 396.0px;" /></a>
 <figcaption>
@@ -74,8 +74,11 @@ Approach Fourth Edition”.</p>
 </figcaption>
 </figure>
 <ul class="simple">
-<li><p>IF: Instruction fetch cycle; ID: Instruction decode/register fetch cycle;
-EX: Execution/effective address cycle; MEM: Memory access; WB: Write-back cycle.</p></li>
+<li><p><strong>IF</strong>: Instruction Fetch cycle</p></li>
+<li><p><strong>ID</strong>: Instruction Decode/Register Fetch cycle</p></li>
+<li><p><strong>EX</strong>: Execution/Effective Address cycle</p></li>
+<li><p><strong>MEM</strong>: Memory Access cycle</p></li>
+<li><p><strong>WB</strong>: Write-Back cycle</p></li>
 </ul>
 <figure class="align-center" id="id11">
 <span id="ctrl-super-pipeline"></span><a class="reference internal image-reference" href="_images/super_pipeline.png"><img alt="_images/super_pipeline.png" src="_images/super_pipeline.png" style="width: 947.0px; height: 492.0px;" /></a>
@@ -83,21 +86,23 @@ EX: Execution/effective address cycle; MEM: Memory access; WB: Write-back cycle.
 <p><span class="caption-number">Fig. 37 </span><span class="caption-text">Super pipeline</span><a class="headerlink" href="#id11" title="Permalink to this image">¶</a></p>
 </figcaption>
 </figure>
-<p>Multibanked Caches as <a class="reference internal" href="#ctrlflow-cache-banks"><span class="std std-numref">Fig. 38</span></a> to Increase Cache Bandwidth.</p>
+<p>Multibanked caches (see <a class="reference internal" href="#ctrlflow-cache-banks"><span class="std std-numref">Fig. 38</span></a>) are used to increase
+cache bandwidth.</p>
 <figure class="align-center" id="id12">
 <span id="ctrlflow-cache-banks"></span><a class="reference internal image-reference" href="_images/cache_banks.png"><img alt="_images/cache_banks.png" src="_images/cache_banks.png" style="width: 770.0px; height: 253.0px;" /></a>
 <figcaption>
 <p><span class="caption-number">Fig. 38 </span><span class="caption-text">Interleaved cache banks</span><a class="headerlink" href="#id12" title="Permalink to this image">¶</a></p>
 </figcaption>
 </figure>
-<p>Block size in cache L1 is usualy 16-256 bytes. Euipped with with multibanked
-Caches can provide super-pipeline as <a class="reference internal" href="#ctrl-super-pipeline"><span class="std std-numref">Fig. 37</span></a> and
-superscalar (multi-issues pipeline) archtectures for fetching
-(4*block-size/instruction-size) instructions in a cycle.</p>
+<p>The block size in L1 cache is usually between 16 and 256 bytes. Equipped with
+multibanked caches, a system can support super-pipelined
+(<a class="reference internal" href="#ctrl-super-pipeline"><span class="std std-numref">Fig. 37</span></a>) and superscalar (multi-issue pipeline)
+architectures, allowing the fetch of
+<cite>(4 * block_size / instruction_size)</cite> instructions per cycle.</p>
 </section>
 <section id="control-flow-statement">
 <h2><a class="toc-backref" href="#id17" role="doc-backlink">Control flow statement</a><a class="headerlink" href="#control-flow-statement" title="Permalink to this heading">¶</a></h2>
-<p>Run ch8_1_1.cpp with clang will get result as follows,</p>
+<p>Running <cite>ch8_1_1.cpp</cite> with Clang will produce the following result:</p>
 <p class="rubric">lbdex/input/ch8_1_1.cpp</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="nb">int</span> <span class="n">test_ifctrl</span><span class="p">()</span>
 <span class="p">{</span>
@@ -124,14 +129,18 @@ superscalar (multi-issues pipeline) archtectures for fetching
 <span class="w">  </span><span class="p">...</span><span class="w"></span>
 </pre></div>
 </div>
-<p>The <strong>“icmp ne”</strong> stands for integer compare NotEqual, <strong>“slt”</strong> stands for Set
-Less Than, <strong>“sle”</strong> stands for Set Less or Equal.
-Run version Chapter8_1/ with <code class="docutils literal notranslate"><span class="pre">llc</span>&#160; <span class="pre">-view-isel-dags</span></code> or <code class="docutils literal notranslate"><span class="pre">-debug</span></code> option, you
-can see the <strong>if</strong> statement is translated into
-(br (brcond (%1, setcc(%2, Constant&lt;c&gt;, setne)), BasicBlock_02), BasicBlock_01).
-Ignore %1, then we will get the form (br (brcond (setcc(%2, Constant&lt;c&gt;, setne)),
-BasicBlock_02), BasicBlock_01).
-For explanation, listing the IR DAG as follows,</p>
+<p>The <strong>“icmp ne”</strong> stands for <em>integer compare NotEqual</em>, <strong>“slt”</strong> stands for
+<em>Set Less Than</em>, and <strong>“sle”</strong> stands for <em>Set Less or Equal</em>.</p>
+<p>Run version <cite>Chapter8_1/</cite> with the <code class="docutils literal notranslate"><span class="pre">llc</span> <span class="pre">-view-isel-dags</span></code> or <code class="docutils literal notranslate"><span class="pre">-debug</span></code> option.
+You will see that the <strong>if</strong> statement is translated into the form:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">br</span> <span class="p">(</span><span class="n">brcond</span> <span class="p">(</span><span class="o">%</span><span class="mi">1</span><span class="p">,</span> <span class="n">setcc</span><span class="p">(</span><span class="o">%</span><span class="mi">2</span><span class="p">,</span> <span class="n">Constant</span><span class="o">&lt;</span><span class="n">c</span><span class="o">&gt;</span><span class="p">,</span> <span class="n">setne</span><span class="p">)),</span> <span class="n">BasicBlock_02</span><span class="p">),</span> <span class="n">BasicBlock_01</span>
+</pre></div>
+</div>
+<p>If we ignore <cite>%1</cite>, it simplifies to:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">br</span> <span class="p">(</span><span class="n">brcond</span> <span class="p">(</span><span class="n">setcc</span><span class="p">(</span><span class="o">%</span><span class="mi">2</span><span class="p">,</span> <span class="n">Constant</span><span class="o">&lt;</span><span class="n">c</span><span class="o">&gt;</span><span class="p">,</span> <span class="n">setne</span><span class="p">)),</span> <span class="n">BasicBlock_02</span><span class="p">),</span> <span class="n">BasicBlock_01</span>
+</pre></div>
+</div>
+<p>For explanation, the corresponding IR DAG is listed as follows:</p>
 <div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">Optimized legalized selection DAG: BB#0 &#39;_Z11test_ifctrlv:entry&#39;</span>
 <span class="go">  SelectionDAG has 12 nodes:</span>
 <span class="go">    ...</span>
@@ -141,15 +150,16 @@ For explanation, listing the IR DAG as follows,</p>
 <span class="go">    t13: ch = br t11, BasicBlock:ch&lt;if.then 0x10305a288&gt;</span>
 </pre></div>
 </div>
-<p>We want to translate them into Cpu0 instruction DAGs as follows,</p>
+<p>We want to translate them into Cpu0 instruction DAGs as follows:</p>
 <div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">addiu %3, ZERO, Constant&lt;c&gt;</span>
 <span class="go">cmp %2, %3</span>
 <span class="go">jne BasicBlock_02</span>
 <span class="go">jmp BasicBlock_01</span>
 </pre></div>
 </div>
-<p>For the last IR br, we translate unconditional branch (br BasicBlock_01) into
-jmp BasicBlock_01 by the following pattern definition,</p>
+<p>For the last IR <cite>br</cite>, we translate the unconditional branch
+(<cite>br BasicBlock_01</cite>) into <cite>jmp BasicBlock_01</cite> using the following pattern
+definition:</p>
 <p class="rubric">lbdex/chapters/Chapter8_1/Cpu0InstrInfo.td</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>// Unconditional branch, such as JMP
 let Predicates = [Ch8_1] in {
@@ -168,12 +178,12 @@ class UncondBranch&lt;bits&lt;8&gt; op, string instr_asm&gt;:
 <span class="go">def JMP     : UncondBranch&lt;0x26, &quot;jmp&quot;&gt;;</span>
 </pre></div>
 </div>
-<p>The pattern [(br bb:$imm24)] in class UncondBranch is translated into jmp
-machine instruction.
-The translation for the pair Cpu0 instructions, <strong>cmp</strong> and <strong>jne</strong>, is not
-happened before this chapter.
-To solve this chained IR to machine instructions translation, we define the
-following pattern,</p>
+<p>The pattern <code class="docutils literal notranslate"><span class="pre">[(br</span> <span class="pre">bb:$imm24)]</span></code> in class <cite>UncondBranch</cite> is translated into the
+<cite>jmp</cite> machine instruction.</p>
+<p>The translation for the pair of Cpu0 instructions, <strong>cmp</strong> and <strong>jne</strong>, has not
+been handled prior to this chapter.</p>
+<p>To support this chained IR-to-machine-instruction translation, we define the
+following pattern:</p>
 <p class="rubric">lbdex/chapters/Chapter8_1/Cpu0InstrInfo.td</p>
 <div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="c1">// brcond patterns</span>
 <span class="n">multiclass</span><span class="w"> </span><span class="n">BrcondPatsCmp</span><span class="o">&lt;</span><span class="n">RegisterClass</span><span class="w"> </span><span class="n">RC</span><span class="p">,</span><span class="w"> </span><span class="n">Instruction</span><span class="w"> </span><span class="n">JEQOp</span><span class="p">,</span><span class="w"> </span><span class="n">Instruction</span><span class="w"> </span><span class="n">JNEOp</span><span class="p">,</span><span class="w"></span>
@@ -189,30 +199,38 @@ following pattern,</p>
 <span class="p">}</span><span class="w"></span>
 </pre></div>
 </div>
-<p>Since the aboved BrcondPats pattern uses RC (Register Class) as operand, the
-following ADDiu pattern defined in Chapter2 will generate instruction
-<strong>addiu</strong> before the instruction <strong>cmp</strong> for the first IR,
-<strong>setcc(%2, Constant&lt;c&gt;, setne)</strong>, as above.</p>
+<p>Since the above <cite>BrcondPats</cite> pattern uses RC (Register Class) as an operand,
+the following <cite>ADDiu</cite> pattern defined in Chapter 2 will generate the
+instruction <strong>addiu</strong> before the <strong>cmp</strong> instruction for the first IR,
+<strong>setcc(%2, Constant&lt;c&gt;, setne)</strong>, as shown above.</p>
 <p class="rubric">lbdex/chapters/Chapter2/Cpu0InstrInfo.td</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>// Small immediates
 def : Pat&lt;(i32 immSExt16:$in),
           (ADDiu ZERO, imm:$in)&gt;;
 </pre></div>
 </div>
-<p>The definition of BrcondPats supports setne, seteq, setlt, …, register operand
-compare and setult, setugt, …, for unsigned int type. In addition to seteq
-and setne, we define setueq and setune by refering Mips code, even though
-we don’t find how to generate setune IR from C language.
-We have tried to define unsigned int type, but clang still generates setne
-instead of setune.
-The order of Pattern Search is from the order of their appearing in context.
-The last pattern (brcond RC:$cond, bb:$dst) means branch to $dst
-if $cond != 0. So we set the corresponding translation to
-(JNEOp (CMPOp RC:$cond, ZEROReg), bb:$dst).</p>
-<p>The CMP instruction will set the result to register SW, and then JNE check the
-condition based on SW status as <a class="reference internal" href="#ctrlflow-f1"><span class="std std-numref">Fig. 39</span></a>.
-Since SW belongs to a different register class, it will be
-correct even an instruction is inserted between CMP and JNE as follows,</p>
+<p>The definition of <cite>BrcondPats</cite> supports <cite>setne</cite>, <cite>seteq</cite>, <cite>setlt</cite>, and other
+register operand compares, as well as <cite>setult</cite>, <cite>setugt</cite>, and others for
+unsigned integer types.</p>
+<p>In addition to <cite>seteq</cite> and <cite>setne</cite>, we define <cite>setueq</cite> and <cite>setune</cite> by referring
+to MIPS code, although we have not found how to generate <cite>setune</cite> IR from C
+language.</p>
+<p>We have tried to define unsigned int types, but Clang still generates <cite>setne</cite>
+instead of <cite>setune</cite>.</p>
+<p>The order of pattern search follows their order of appearance in the context.</p>
+<p>The last pattern</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>(brcond RC:$cond, bb:$dst)
+</pre></div>
+</div>
+<p>means branch to <cite>$dst</cite> if <cite>$cond != 0</cite>. Therefore, we set the corresponding
+translation to:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>(JNEOp (CMPOp RC:$cond, ZEROReg), bb:$dst)
+</pre></div>
+</div>
+<p>The <cite>CMP</cite> instruction sets the result to register <cite>SW</cite>, and then <cite>JNE</cite> checks
+the condition based on the <cite>SW</cite> status as shown in <a class="reference internal" href="#ctrlflow-f1"><span class="std std-numref">Fig. 39</span></a>.</p>
+<p>Since <cite>SW</cite> belongs to a different register class, the translation remains
+correct even if an instruction is inserted between <cite>CMP</cite> and <cite>JNE</cite>, as follows:</p>
 <figure class="align-center" id="id13">
 <span id="ctrlflow-f1"></span><a class="reference internal image-reference" href="_images/11.png"><img alt="_images/11.png" src="_images/11.png" style="width: 223.0px; height: 232.5px;" /></a>
 <figcaption>
@@ -227,8 +245,8 @@ correct even an instruction is inserted between CMP and JNE as follows,</p>
 <span class="go">jne BasicBlock_02</span>
 </pre></div>
 </div>
-<p>The reserved registers setting by the following
-function code we defined before,</p>
+<p>The reserved registers are set by the following function code that we defined
+previously:</p>
 <p class="rubric">lbdex/chapters/Chapter3_1/Cpu0RegisterInfo.cpp</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">BitVector</span> <span class="n">Cpu0RegisterInfo</span><span class="p">::</span>
 <span class="n">getReservedRegs</span><span class="p">(</span><span class="n">const</span> <span class="n">MachineFunction</span> <span class="o">&amp;</span><span class="n">MF</span><span class="p">)</span> <span class="n">const</span> <span class="p">{</span>
@@ -246,13 +264,14 @@ function code we defined before,</p>
 
 </pre></div>
 </div>
-<p>Although the following definition in Cpu0RegisterInfo.td has no real effect in
-Reserved Registers, it’s better to comment the Reserved Registers in it for
-readability. Setting SW in both register classes CPURegs and SR to allow access
-SW by RISC instructions like <code class="docutils literal notranslate"><span class="pre">andi</span></code>, and allow programmers use
-traditional assembly instruction <code class="docutils literal notranslate"><span class="pre">cmp</span></code>.
-The copyPhysReg() is called when both DestReg and SrcReg are belonging to
-different Register Classes.</p>
+<p>Although the following definition in <cite>Cpu0RegisterInfo.td</cite> has no real effect
+on reserved registers, it is better to comment the reserved registers in it
+for readability.</p>
+<p>Setting <cite>SW</cite> in both register classes <cite>CPURegs</cite> and <cite>SR</cite> allows access to <cite>SW</cite>
+by RISC instructions like <code class="docutils literal notranslate"><span class="pre">andi</span></code>, and also lets programmers use traditional
+assembly instructions like <code class="docutils literal notranslate"><span class="pre">cmp</span></code>.</p>
+<p>The <cite>copyPhysReg()</cite> function is called when both <cite>DestReg</cite> and <cite>SrcReg</cite> belong
+to different register classes.</p>
 <p class="rubric">lbdex/chapters/Chapter2/Cpu0RegisterInfo.td</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">//===----------------------------------------------------------------------===//</span>
 
@@ -285,9 +304,9 @@ different Register Classes.</p>
 
 </pre></div>
 </div>
-<p>Chapter8_1/ include support for control flow statement.
-Run with it as well as the following <code class="docutils literal notranslate"><span class="pre">llc</span></code> option, you will get the obj file.
-Dump it’s content by gobjdump or hexdump after as follows,</p>
+<p>Chapter8_1/ includes support for control flow statements.
+Run it along with the following <code class="docutils literal notranslate"><span class="pre">llc</span></code> option to generate the object file.
+Dump its content using <cite>gobjdump</cite> or <cite>hexdump</cite> as shown below:</p>
 <div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">  118-165-79-206:input Jonathan$ /Users/Jonathan/llvm/test/</span>
 <span class="go">  build/bin/llc -march=cpu0 -mcpu=cpu032I -relocation-model=pic</span>
 <span class="go">  -filetype=asm ch8_1_1.bc -o -</span>
@@ -315,17 +334,16 @@ Dump it’s content by gobjdump or hexdump after as follows,</p>
 <span class="go">0000090 31 00 00 10 36 00 00 00 ..........................</span>
 </pre></div>
 </div>
-<p>The immediate value of jne (op 0x31) is 16; The offset between jne and $BB0_2
-is 20 (5 words = 5*4 bytes). Suppose the jne address is X, then the label
-$BB0_2 is X+20.
-Cpu0’s instruction set is designed as a RISC CPU with 5 stages of pipeline just
-like 5 stages of Mips.
-Cpu0 do branch instruction execution at decode stage which like mips too.
-After the jne instruction fetched, the PC (Program Counter) is X+4 since cpu0
-update PC at fetch stage.
-The $BB0_2 address is equal to PC+16 for the jne branch instruction execute at
-decode stage.
-List and explain this again as follows,</p>
+<p>The immediate value of <cite>jne</cite> (opcode 0x31) is 16. The offset between <cite>jne</cite> and
+<cite>$BB0_2</cite> is 20 bytes (5 words = 5 * 4 bytes). Suppose the address of <cite>jne</cite> is X,
+then the label <cite>$BB0_2</cite> is located at X + 20.</p>
+<p>Cpu0’s instruction set is designed as a RISC CPU with a 5-stage pipeline,
+similar to the MIPS architecture. Cpu0 executes branch instructions at the
+decode stage, just like MIPS.</p>
+<p>After the <cite>jne</cite> instruction is fetched, the Program Counter (PC) is updated to
+X + 4, since Cpu0 updates the PC during the fetch stage. The address of <cite>$BB0_2</cite>
+is equal to PC + 16, because the <cite>jne</cite> instruction executes at the decode stage.</p>
+<p>This can be listed and explained again as follows:</p>
 <div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">              // Fetch instruction stage for jne instruction. The fetch stage</span>
 <span class="go">              // can be divided into 2 cycles. First cycle fetch the</span>
 <span class="go">              // instruction. Second cycle adjust PC = PC+4.</span>
@@ -341,13 +359,15 @@ List and explain this again as follows,</p>
 <span class="go">  ld  $4, 32($fp)</span>
 </pre></div>
 </div>
-<p>If Cpu0 do <strong>“jne”</strong> in execution stage, then we should set PC=PC+12,
-offset of ($BB0_2, jne $BB02) – 8, in this example.</p>
-<p>In reality, the conditional branch is important in performance of CPU design.
-According bench mark information, every 7 instructions will meet 1 branch
-instruction in average.
-The cpu032I spends 2 instructions in conditional branch, (jne(cmp…)), while
-cpu032II use one instruction (bne) as follws,</p>
+<p>If Cpu0 performs the <strong>“jne”</strong> instruction in the execution stage, then we should
+set <cite>PC = PC + 12</cite>, which equals the offset of <cite>($BB0_2 - jne)</cite> minus 8,
+in this example.</p>
+<p>In reality, conditional branches are critical to CPU performance. According to
+benchmark data, on average, one branch instruction occurs every seven
+instructions.</p>
+<p>The <cite>cpu032I</cite> requires two instructions for a conditional branch:
+<cite>jne(cmp…)</cite>. In contrast, <cite>cpu032II</cite> uses a single instruction (<cite>bne</cite>)
+as follows:</p>
 <div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">JonathantekiiMac:input Jonathan$ </span>/Users/Jonathan/llvm/test/
 <span class="go">build/bin/llc -march=cpu0 -mcpu=cpu032I -relocation-model=pic</span>
 <span class="go">-filetype=asm ch8_1_1.bc -o -</span>
@@ -366,16 +386,18 @@ cpu032II use one instruction (bne) as follws,</p>
 <span class="gp">$</span>BB0_1:
 </pre></div>
 </div>
-<p>Beside brcond explained in this section, above code also include DAG opcode
-<strong>br_jt</strong> and label <strong>JumpTable</strong> which occurs during DAG translation for
-some kind of program.</p>
-<p>The ch8_1_ctrl.cpp include <strong>“nest if”</strong> <strong>“for loop”</strong>, <strong>“while loop”</strong>,
-<strong>“continue”</strong>, <strong>“break”</strong> and <strong>“goto”</strong>.
-The ch8_1_br_jt.cpp is for <strong>br_jt</strong> and <strong>JumpTable</strong> test.
-The ch8_1_blockaddr.cpp is for <strong>blockaddress</strong> and <strong>indirectbr</strong> test.
-You can run with them if you like to test more.</p>
-<p>List the control flow statements of C, IR, DAG and Cpu0 instructions as the
-following table.</p>
+<p>Besides the <cite>brcond</cite> explained in this section, the code above also includes
+the DAG opcode <strong>br_jt</strong> and label <strong>JumpTable</strong>, which appear during DAG
+translation for certain types of programs.</p>
+<p>The file <cite>ch8_1_ctrl.cpp</cite> includes examples of control flow statements such as
+<strong>“nested if”</strong>, <strong>“for loop”</strong>, <strong>“while loop”</strong>, <strong>“continue”</strong>,
+<strong>“break”</strong>, and <strong>“goto”</strong>.</p>
+<p>The file <cite>ch8_1_br_jt.cpp</cite> is used to test <strong>br_jt</strong> and <strong>JumpTable</strong> behavior.</p>
+<p>The file <cite>ch8_1_blockaddr.cpp</cite> is for testing <strong>blockaddress</strong> and
+<strong>indirectbr</strong> instructions.</p>
+<p>You can run these examples if you want to explore more control flow features.</p>
+<p>List the control flow statements of C, corresponding LLVM IR, DAG nodes, and
+Cpu0 instructions in the following table.</p>
 <table class="docutils align-default" id="id14">
 <caption><span class="caption-number">Table 33 </span><span class="caption-text">Control flow statements of C, IR, DAG and Cpu0 instructions</span><a class="headerlink" href="#id14" title="Permalink to this table">¶</a></caption>
 <tbody>
@@ -405,11 +427,13 @@ following table.</p>
 </section>
 <section id="long-branch-support">
 <h2><a class="toc-backref" href="#id18" role="doc-backlink">Long branch support</a><a class="headerlink" href="#long-branch-support" title="Permalink to this heading">¶</a></h2>
-<p>As last section, cpu032II uses beq and bne to improve performance but the jump
-offset reduces from 24 bits to 16 bits. If program exists more than 16 bits,
-cpu032II will fail to generate code. Mips backend has solution and Cpu0 hire
-the solution from it.</p>
-<p>To support long branch the following code added in Chapter8_1.</p>
+<p>As explained in the last section, <cite>cpu032II</cite> uses <cite>beq</cite> and <cite>bne</cite> instructions
+to improve performance. However, this change reduces the jump offset
+from 24 bits to 16 bits. If a program contains a branch that exceeds the 16-bit
+offset range, <cite>cpu032II</cite> will fail to generate valid code.</p>
+<p>The MIPS backend has a solution to this limitation, and <cite>Cpu0</cite> adopts a
+similar approach.</p>
+<p>To support long branches, the following code was added in Chapter8_1.</p>
 <p class="rubric">lbdex/chapters/Chapter8_2/CMakeLists.txt</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>  <span class="n">Cpu0LongBranch</span><span class="o">.</span><span class="n">cpp</span>
 </pre></div>
@@ -1024,7 +1048,7 @@ bool Cpu0MCInstLower::lowerLongBranch(const MachineInstr *MI,
 <span class="p">}</span>
 </pre></div>
 </div>
-<p>The code of Chapter8_2 will compile the following example as follows,</p>
+<p>The code of Chapter8_2 will compile the following example as follows:</p>
 <p class="rubric">lbdex/input/ch8_2_longbranch.cpp</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="nb">int</span> <span class="n">test_longbranch</span><span class="p">()</span>
 <span class="p">{</span>
@@ -1101,23 +1125,22 @@ bool Cpu0MCInstLower::lowerLongBranch(const MachineInstr *MI,
 </div>
 </section>
 <section id="cpu0-backend-optimization-remove-useless-jmp">
-<h2><a class="toc-backref" href="#id19" role="doc-backlink">Cpu0 backend Optimization: Remove useless JMP</a><a class="headerlink" href="#cpu0-backend-optimization-remove-useless-jmp" title="Permalink to this heading">¶</a></h2>
-<p>LLVM uses functional pass both in code generation and optimization.
-Following the 3 tiers of compiler architecture, LLVM do most optimization in
-middle tier of LLVM IR, SSA form.
-Beyond middle tier optimization, there are opportunities in
-optimization which depend on backend features.
-The “fill delay slot” in Mips is an example of backend optimization used in
-pipeline RISC machine.
-You can port it from Mips if your backend is a pipeline RISC with
-delay slot.
-In this section, we apply the “delete useless jmp” in Cpu0
-backend optimization.
-This algorithm is simple and effective to be a perfect tutorial in optimization.
-Through this example, you can understand how to add an optimization pass and
-coding your complicated optimization algorithm on your backend in real project.</p>
-<p>Chapter8_2/ supports “delete useless jmp” optimization algorithm which add
-codes as follows,</p>
+<h2><a class="toc-backref" href="#id19" role="doc-backlink">Cpu0 Backend Optimization: Remove Useless JMP</a><a class="headerlink" href="#cpu0-backend-optimization-remove-useless-jmp" title="Permalink to this heading">¶</a></h2>
+<p>LLVM uses functional passes in both code generation and optimization. Following
+the three-tier architecture of a compiler, LLVM performs most optimizations in
+the middle tier, working on the LLVM IR in SSA form.</p>
+<p>Beyond middle-tier optimizations, there are opportunities for backend-specific
+optimizations that depend on target architecture features. For example, “fill
+delay slot” in the Mips backend is a backend optimization used in pipelined RISC
+machines. You can port this technique from Mips if your backend also supports
+pipeline RISC with delay slots.</p>
+<p>In this section, we implement the “remove useless jmp” optimization in the Cpu0
+backend. This algorithm is simple and effective, making it a perfect tutorial
+for learning how to add an optimization pass. Through this example, you can
+understand how to introduce an optimization pass and implement a more complex
+optimization algorithm tailored for your backend in a real-world project.</p>
+<p>The <cite>Chapter8_2/</cite> directory supports the “remove useless jmp” optimization
+algorithm and includes the added code as follows:</p>
 <p class="rubric">lbdex/chapters/Chapter8_2/CMakeLists.txt</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>  <span class="n">Cpu0DelUselessJMP</span><span class="o">.</span><span class="n">cpp</span>
 </pre></div>
@@ -1242,16 +1265,15 @@ FunctionPass *llvm::createCpu0DelJmpPass(Cpu0TargetMachine &amp;tm) {
 #endif
 </pre></div>
 </div>
-<p>As above code, except Cpu0DelUselessJMP.cpp, other files are changed for
-registering class DelJmp as a functional pass.
-As the comment of above code, MBB is the current
-block and MBBN is the next block. For each last instruction of every MBB, we
-check whether or not it is the JMP instruction and its Operand is the next
-basic block.
-By getMBB() in MachineOperand, you can get the MBB address.
-For the member functions of MachineOperand, please check
-include/llvm/CodeGen/MachineOperand.h
-Now, let’s run Chapter8_2/ with ch8_2_deluselessjmp.cpp for explanation.</p>
+<p>As the above code shows, except for Cpu0DelUselessJMP.cpp, other files are
+changed to register the class DelJmp as a functional pass.</p>
+<p>As the comment in the code explains, MBB is the current basic block, and MBBN
+is the next block. For each last instruction of every MBB, we check whether it
+is a JMP instruction and if its operand is the next basic block.</p>
+<p>Using getMBB() in MachineOperand, you can get the address of the MBB. For more
+information about the member functions of MachineOperand, please check the file
+include/llvm/CodeGen/MachineOperand.h.</p>
+<p>Now, let’s run Chapter8_2/ with ch8_2_deluselessjmp.cpp for further explanation.</p>
 <p class="rubric">lbdex/input/ch8_2_deluselessjmp.cpp</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="nb">int</span> <span class="n">test_DelUselessJMP</span><span class="p">()</span>
 <span class="p">{</span>
@@ -1301,29 +1323,32 @@ Now, let’s run Chapter8_2/ with ch8_2_deluselessjmp.cpp for explanation.</p>
 <span class="go"> ...</span>
 </pre></div>
 </div>
-<p>The terminal displays “Number of useless jmp deleted” by <code class="docutils literal notranslate"><span class="pre">llc</span> <span class="pre">-stats</span></code> option
-because we set the “STATISTIC(NumDelJmp, “Number of useless jmp deleted”)” in
-code. It deletes 2 jmp instructions from block “# BB#0” and “$BB0_6”.
-You can check it by <code class="docutils literal notranslate"><span class="pre">llc</span> <span class="pre">-enable-cpu0-del-useless-jmp=false</span></code> option to see
-the difference to non-optimization version.
-If you run with ch8_1_1.cpp, you will find 10 jmp instructions are deleted from
-120 lines of assembly code, which meaning 8% improvement in speed and code size
-<a class="footnote-reference brackets" href="#cache-speed" id="id1" role="doc-noteref"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></a>.</p>
+<p>The terminal displays “Number of useless jmp deleted” when running with the
+<code class="docutils literal notranslate"><span class="pre">llc</span> <span class="pre">-stats</span></code> option, because we set the
+<code class="docutils literal notranslate"><span class="pre">STATISTIC(NumDelJmp,</span> <span class="pre">&quot;Number</span> <span class="pre">of</span> <span class="pre">useless</span> <span class="pre">jmp</span> <span class="pre">deleted&quot;)</span></code> in the code. It
+deletes 2 jmp instructions from block <code class="docutils literal notranslate"><span class="pre">#</span> <span class="pre">BB#0</span></code> and <code class="docutils literal notranslate"><span class="pre">$BB0_6</span></code>.</p>
+<p>You can verify this by using the <code class="docutils literal notranslate"><span class="pre">llc</span> <span class="pre">-enable-cpu0-del-useless-jmp=false</span></code>
+option to compare with the non-optimized version.</p>
+<p>If you run with ch8_1_1.cpp, you will find 10 jmp instructions are deleted from
+120 lines of assembly code. This implies about 8% improvement in both speed and
+code size <a class="footnote-reference brackets" href="#cache-speed" id="id1" role="doc-noteref"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></a>.</p>
 </section>
 <section id="fill-branch-delay-slot">
 <h2><a class="toc-backref" href="#id20" role="doc-backlink">Fill Branch Delay Slot</a><a class="headerlink" href="#fill-branch-delay-slot" title="Permalink to this heading">¶</a></h2>
 <p>Cpu0 instruction set is designed to be a classical RISC pipeline machine.
-Classical RISC machine has many perfect features <a class="footnote-reference brackets" href="#quantitative" id="id2" role="doc-noteref"><span class="fn-bracket">[</span>3<span class="fn-bracket">]</span></a> <a class="footnote-reference brackets" href="#wiki-pipeline" id="id3" role="doc-noteref"><span class="fn-bracket">[</span>4<span class="fn-bracket">]</span></a>.
-I change Cpu0 backend to a 5 stages of classical RISC pipeline machine with
-one delay slot like some of Mips model (The original Cpu0 from its author, is a
-3 stages of RISC machine).
-With this change, the backend needs
-filling the NOP instruction in the branch delay slot.
-In order to make this tutorial simple for learning, Cpu0 backend code not
-fill the branch delay slot with any useful instruction for optimization.
-Readers can reference the MipsDelaySlotFiller.cpp to know how to insert useful
-instructions in backend optimization.
-Following code added in Chapter8_2 for NOP fill in Branch Delay Slot.</p>
+Classical RISC machines have many ideal features <a class="footnote-reference brackets" href="#quantitative" id="id2" role="doc-noteref"><span class="fn-bracket">[</span>3<span class="fn-bracket">]</span></a>
+<a class="footnote-reference brackets" href="#wiki-pipeline" id="id3" role="doc-noteref"><span class="fn-bracket">[</span>4<span class="fn-bracket">]</span></a>.</p>
+<p>I modified the Cpu0 backend to support a 5-stage classical RISC pipeline with
+one delay slot, similar to some Mips models. (The original Cpu0 backend from
+its author used a 3-stage pipeline.)</p>
+<p>With this change, the backend needs to insert a NOP instruction in the branch
+delay slot.</p>
+<p>To keep this tutorial simple, the Cpu0 backend does not attempt to fill the
+delay slot with useful instructions for optimization. Readers can refer to
+<code class="docutils literal notranslate"><span class="pre">MipsDelaySlotFiller.cpp</span></code> for an example of how to do this kind of backend
+optimization.</p>
+<p>The following code was added in Chapter8_2 for NOP insertion in the branch
+delay slot.</p>
 <p class="rubric">lbdex/chapters/Chapter8_2/CMakeLists.txt</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>  <span class="n">Cpu0DelaySlotFiller</span><span class="o">.</span><span class="n">cpp</span>
 </pre></div>
@@ -1448,10 +1473,12 @@ FunctionPass *llvm::createCpu0DelaySlotFillerPass(Cpu0TargetMachine &amp;tm) {
 #endif
 </pre></div>
 </div>
-<p>To make the basic block label remains same, statement MIBundleBuilder() needs
-to be inserted after the statement BuildMI(…, NOP) of Cpu0DelaySlotFiller.cpp.
-MIBundleBuilder() make both the branch instruction and NOP bundled into one
-instruction (first part is branch instruction and second part is NOP).</p>
+<p>To ensure the basic block label remains unchanged, the statement
+<code class="docutils literal notranslate"><span class="pre">MIBundleBuilder()</span></code> must be inserted after the <code class="docutils literal notranslate"><span class="pre">BuildMI(...,</span> <span class="pre">NOP)</span></code>
+statement in <code class="docutils literal notranslate"><span class="pre">Cpu0DelaySlotFiller.cpp</span></code>.</p>
+<p><code class="docutils literal notranslate"><span class="pre">MIBundleBuilder()</span></code> bundles the branch instruction and the NOP into a single
+instruction unit. The first part is the branch instruction, and the second part
+is the NOP.</p>
 <p class="rubric">lbdex/chapters/Chapter3_2/Cpu0AsmPrinter.cpp</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">//-</span> <span class="n">emitInstruction</span><span class="p">()</span> <span class="n">must</span> <span class="n">exists</span> <span class="ow">or</span> <span class="n">will</span> <span class="n">have</span> <span class="n">run</span> <span class="n">time</span> <span class="n">error</span><span class="o">.</span>
 <span class="n">void</span> <span class="n">Cpu0AsmPrinter</span><span class="p">::</span><span class="n">emitInstruction</span><span class="p">(</span><span class="n">const</span> <span class="n">MachineInstr</span> <span class="o">*</span><span class="n">MI</span><span class="p">)</span> <span class="p">{</span>
@@ -1478,14 +1505,13 @@ instruction (first part is branch instruction and second part is NOP).</p>
 <span class="p">}</span>
 </pre></div>
 </div>
-<p>In order to print the NOP, the Cpu0AsmPrinter.cpp of Chapter3_2 prints all
-bundle instructions in loop.
-Without the loop, only the first part of the bundle instruction
-(branch instruction only) is printed.
-In llvm 3.1 the basice block label remains same even if you didn’t do the bundle
-after it.
-But for some reasons, it changed in llvm at some later version and you need doing
-“bundle” in order to keep block label unchanged at later llvm phase.</p>
+<p>In order to print the NOP, the <code class="docutils literal notranslate"><span class="pre">Cpu0AsmPrinter.cpp</span></code> of Chapter3_2 prints all
+bundle instructions in a loop. Without the loop, only the first part of the
+bundle instruction (branch instruction only) is printed.</p>
+<p>In LLVM 3.1, the basic block label remains the same even if you do not bundle
+after it. But for some reason, this behavior changed in a later LLVM version,
+and now you need to perform the “bundle” to keep the block label unchanged in
+later LLVM phases.</p>
 </section>
 <section id="conditional-instruction">
 <h2><a class="toc-backref" href="#id21" role="doc-backlink">Conditional instruction</a><a class="headerlink" href="#conditional-instruction" title="Permalink to this heading">¶</a></h2>
@@ -1514,7 +1540,7 @@ int test_movx_2()
 
 </pre></div>
 </div>
-<p>Run Chapter8_1 with ch8_2_select.cpp will get the following result.</p>
+<p>Run Chapter8_1 with <code class="docutils literal notranslate"><span class="pre">ch8_2_select.cpp</span></code> will get the following result.</p>
 <div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">114-37-150-209:input Jonathan$ </span>clang -O1 -target mips-unknown-linux-gnu
 <span class="go">-c ch8_2_select.cpp -emit-llvm -o ch8_2_select.bc</span>
 <span class="gp">114-37-150-209:input Jonathan$ </span>~/llvm/test/build/bin/
@@ -1557,12 +1583,12 @@ int test_movx_2()
 <span class="go">LLVM ERROR: Cannot select: 0x39f47c0: i32 = select_cc ...</span>
 </pre></div>
 </div>
-<p>As above llvm IR, ch8_2_select.bc, clang generates <strong>select</strong> IR for
-small basic control block (if statement only include one assign statement).
-This <strong>select</strong> IR is the result of optimization for CPUs with conditional
-instructions support.
-And from above error message, obviously IR <strong>select</strong> is changed to
-<strong>select_cc</strong> during DAG optimization stages.</p>
+<p>As shown in the above LLVM IR from ch8_2_select.bc, Clang generates a <strong>select</strong>
+IR for small control blocks (e.g., an if-statement containing only one
+assignment). This <strong>select</strong> IR is the result of an optimization for CPUs that
+support conditional instructions.</p>
+<p>From the error message above, it is clear that the IR <strong>select</strong> is transformed
+into <strong>select_cc</strong> during the DAG (Directed Acyclic Graph) optimization stage.</p>
 <p>Chapter8_2 supports <strong>select</strong> with the following code added and changed.</p>
 <p class="rubric">lbdex/chapters/Chapter8_2/Cpu0InstrInfo.td</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">let</span> <span class="n">Predicates</span> <span class="o">=</span> <span class="p">[</span><span class="n">Ch8_2</span><span class="p">]</span> <span class="ow">in</span> <span class="p">{</span>
@@ -1692,14 +1718,14 @@ defm : MovnPats&lt;CPURegs, CPURegs, MOVN_I_I, XOR&gt;;
 <span class="p">}</span>
 </pre></div>
 </div>
-<p>Set ISD::SELECT_CC to “Expand” will stop llvm optimization from merging “setcc”
-and “select” into one IR “select_cc” <a class="footnote-reference brackets" href="#wb" id="id4" role="doc-noteref"><span class="fn-bracket">[</span>2<span class="fn-bracket">]</span></a>.
-Next the LowerOperation() return Op code directly for ISD::SELECT.
-Finally the pattern defined in Cpu0CondMov.td will
-translate the <strong>select</strong> IR into conditional instruction, <strong>movz</strong> or <strong>movn</strong>.
-Let’s run Chapter8_2 with ch8_2_select.cpp to get the following result.
-Again, the cpu032II uses <strong>slt</strong> instead of <strong>cmp</strong> has a little improved in
-instructions number.</p>
+<p>Setting <cite>ISD::SELECT_CC</cite> to “Expand” prevents LLVM from optimizing by merging
+<cite>setcc</cite> and <cite>select</cite> into a single IR instruction <cite>select_cc</cite> <a class="footnote-reference brackets" href="#wb" id="id4" role="doc-noteref"><span class="fn-bracket">[</span>2<span class="fn-bracket">]</span></a>.</p>
+<p>Next, the <cite>LowerOperation()</cite> function directly returns the opcode for
+<cite>ISD::SELECT</cite>. Finally, the pattern defined in <cite>Cpu0CondMov.td</cite> translates the
+<strong>select</strong> IR into conditional instructions, <strong>movz</strong> or <strong>movn</strong>.</p>
+<p>Let’s run Chapter8_2 with <cite>ch8_2_select.cpp</cite> to get the following result.</p>
+<p>Again, <cite>cpu032II</cite> uses <strong>slt</strong> instead of <strong>cmp</strong>, resulting in a slight
+reduction in instruction count.</p>
 <div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">114-37-150-209:input Jonathan$ </span>~/llvm/test/build/bin/llc
 <span class="go">-march=cpu0 -mcpu=cpu032I -relocation-model=static -filetype=asm ch8_2_select.bc -o -</span>
 <span class="go">...</span>
@@ -1715,27 +1741,25 @@ instructions number.</p>
 <span class="go">      ...</span>
 </pre></div>
 </div>
-<p>The clang uses <strong>select</strong> IR in small basic block
-to reduce the branch cost in pipeline machine since the branch will make the
-pipeline “stall”.
-But it needs the conditional instruction support <a class="footnote-reference brackets" href="#quantitative" id="id5" role="doc-noteref"><span class="fn-bracket">[</span>3<span class="fn-bracket">]</span></a>.
-If your backend has no conditional instruction and needs clang compiler with
-optimization option <strong>O1</strong> above level, you can change clang to force it
-generating traditional branch basic block instead of generating IR <strong>select</strong>.
-RISC CPU came from the advantage of pipeline and add more and more instruction
-when time passed.
-Compare Mips and ARM, the Mips has only <strong>movz</strong> and <strong>movn</strong> two
-instructions while ARM has many. We create Cpu0 instructions as a simple
-instructions RISC pipeline machine for compiler toolchain tutorial.
-However the <strong>cmp</strong> instruction is hired because many programmer is used to
-it in past and now (ARM use it).
-This instruction matches the thinking in assembly programming,
-but the <strong>slt</strong> instruction is more efficient in RISC pipleline.
-If you designed a backend aimed for C/C++ highlevel language, you may consider
-<strong>slt</strong> instead of <strong>cmp</strong> since assembly code are rare used in programming and
-beside, the assembly programmer can accept <strong>slt</strong> not difficultly since usually
-they are professional.</p>
-<p>File ch8_2_select2.cpp will generate IR <strong>select</strong> if compile with <code class="docutils literal notranslate"><span class="pre">clang</span> <span class="pre">-O1</span></code>.</p>
+<p>Clang uses the <strong>select</strong> IR in small basic blocks to reduce branch costs in
+pipeline machines, as branches can cause pipeline stalls. However, this
+optimization requires support for conditional instructions <a class="footnote-reference brackets" href="#quantitative" id="id5" role="doc-noteref"><span class="fn-bracket">[</span>3<span class="fn-bracket">]</span></a>.</p>
+<p>If your backend lacks conditional instruction support but still needs to compile
+with Clang optimization level <strong>-O1</strong> or higher, you can modify Clang to force it
+to generate traditional branching blocks instead of the <strong>select</strong> IR.</p>
+<p>RISC CPUs were originally designed to take advantage of pipelining, and over
+time, they have incorporated more instructions. For example, MIPS provides only
+<strong>movz</strong> and <strong>movn</strong>, while ARM supports a wider range of conditional
+instructions.</p>
+<p>We created the Cpu0 instruction set as a simple RISC pipeline machine for
+educational use in compiler toolchain tutorials. Although Cpu0 includes a <strong>cmp</strong>
+instruction, which many programmers are familiar with (as used in ARM), the
+<strong>slt</strong> instruction is more efficient in a RISC pipeline.</p>
+<p>If you are designing a backend for high-level languages like C/C++, it may be
+better to use <strong>slt</strong> instead of <strong>cmp</strong>, since assembly is rarely used directly,
+and professional assembly programmers can easily adapt to <strong>slt</strong>.</p>
+<p>File <cite>ch8_2_select2.cpp</cite> will generate the <strong>select</strong> IR if compiled with
+<code class="docutils literal notranslate"><span class="pre">clang</span> <span class="pre">-O1</span></code>.</p>
 <p class="rubric">lbdex/input/ch8_2_select2.cpp</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>
 <span class="o">//</span> <span class="n">The</span> <span class="n">following</span> <span class="n">files</span> <span class="n">will</span> <span class="n">generate</span> <span class="n">IR</span> <span class="n">select</span> <span class="n">when</span> <span class="nb">compile</span> <span class="k">with</span> <span class="n">clang</span> <span class="o">-</span><span class="n">O1</span> <span class="n">but</span> 
@@ -1792,8 +1816,8 @@ following table.</p>
 </tr>
 </tbody>
 </table>
-<p>File ch8_2_select_global_pic.cpp mentioned in Chapter Global variables can be
-tested now as follows,</p>
+<p>The file <cite>ch8_2_select_global_pic.cpp</cite>, mentioned in the chapter “Global
+Variables”, can now be tested as follows:</p>
 <p class="rubric">lbdex/input/ch8_2_select_global_pic.cpp</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">volatile</span> <span class="nb">int</span> <span class="n">a1</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
 <span class="n">volatile</span> <span class="nb">int</span> <span class="n">b1</span> <span class="o">=</span> <span class="mi">2</span><span class="p">;</span>
@@ -1907,13 +1931,12 @@ tested now as follows,</p>
 </section>
 <section id="phi-node">
 <h2><a class="toc-backref" href="#id22" role="doc-backlink">Phi node</a><a class="headerlink" href="#phi-node" title="Permalink to this heading">¶</a></h2>
-<p>Since phi node is popular used in SSA form <a class="footnote-reference brackets" href="#ssa-wiki" id="id6" role="doc-noteref"><span class="fn-bracket">[</span>5<span class="fn-bracket">]</span></a>, llvm applies
-phi node in IR for optimization work either.
-Phi node exists for “live variable analysis”. An example for C is here
-<a class="footnote-reference brackets" href="#phi-ex" id="id7" role="doc-noteref"><span class="fn-bracket">[</span>6<span class="fn-bracket">]</span></a>.
-As mentioned in wiki web site of reference above, through finding dominance
-frontiers, compiler knows where to insert phi functions.
-The following input let you know the benefits of phi node as follows,</p>
+<p>Since the phi node is widely used in SSA form <a class="footnote-reference brackets" href="#ssa-wiki" id="id6" role="doc-noteref"><span class="fn-bracket">[</span>5<span class="fn-bracket">]</span></a>, LLVM applies phi
+nodes in its IR for optimization purposes as well. Phi nodes are used for
+<strong>live variable analysis</strong>. An example in C can be found here <a class="footnote-reference brackets" href="#phi-ex" id="id7" role="doc-noteref"><span class="fn-bracket">[</span>6<span class="fn-bracket">]</span></a>.</p>
+<p>As mentioned on the referenced wiki page, the compiler determines where to
+insert phi functions by computing <strong>dominance frontiers</strong>.</p>
+<p>The following input demonstrates the benefits of using phi nodes:</p>
 <p class="rubric">lbdex/input/ch8_2_phinode.cpp</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="nb">int</span> <span class="n">test_phinode</span><span class="p">(</span><span class="nb">int</span> <span class="n">a</span> <span class="p">,</span> <span class="nb">int</span> <span class="n">b</span><span class="p">,</span> <span class="nb">int</span> <span class="n">c</span><span class="p">)</span>
 <span class="p">{</span>
@@ -1934,7 +1957,7 @@ The following input let you know the benefits of phi node as follows,</p>
 <span class="p">}</span>
 </pre></div>
 </div>
-<p>Compile it with debug build clang for O3 as follows,</p>
+<p>Compile it with a debug build of Clang using the <cite>-O3</cite> optimization level as follows:</p>
 <div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">114-43-212-251:input Jonathan$ </span>~/llvm/debug/build/bin/clang
 <span class="go">-O3 -target mips-unknown-linux-gnu -c ch8_2_phinode.cpp -emit-llvm -o</span>
 <span class="go">ch8_2_phinode.bc</span>
@@ -1967,15 +1990,18 @@ The following input let you know the benefits of phi node as follows,</p>
 <span class="go">}</span>
 </pre></div>
 </div>
-<p>Because SSA form, the llvm ir for destination variable <cite>a</cite> in different basic
-block (if then, else) must use different name. But how does the source variable
-<cite>a</cite> in “d = a + b;” be named? The basic block “a = a-1;” and “a = a+2;” have different
-names. The basic block “a = a-1;” uses %dec and the basic block “a = a+2;” uses “%add”
-as destination variable name in SSA llvm ir.
-In order to solve the source variable name from different basic blocks in SSA form,
-the phi structure is created as above. The compiler option O0 as the following
-doesn’t apply phi node. Instead, it uses store to solve the source variable name
-from different basic block.</p>
+<p>Because of SSA form, the LLVM IR must use different names for the destination
+variable <cite>a</cite> in different basic blocks (e.g., <em>if-then</em>, <em>else</em>). But how is
+the source variable <cite>a</cite> in the statement <cite>d = a + b;</cite> named?</p>
+<p>In SSA form, the basic block containing <cite>a = a - 1;</cite> uses <cite>%dec</cite> as the destination
+variable, and the one containing <cite>a = a + 2;</cite> uses <cite>%add</cite>. Since the source value
+for <cite>a</cite> in <cite>d = a + b;</cite> comes from different basic blocks, a <cite>phi</cite> node is used
+to resolve this.</p>
+<p>The <cite>phi</cite> structure merges values from different control flow paths to produce a
+single value for use in subsequent instructions.</p>
+<p>When compiled with optimization level <cite>-O0</cite>, Clang does not apply <cite>phi</cite> nodes.
+Instead, it uses memory operations like <cite>store</cite> and <cite>load</cite> to handle variable
+values across different basic blocks.</p>
 <div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">114-43-212-251:input Jonathan$ </span>~/llvm/debug/build/bin/clang
 <span class="go">-O0 -target mips-unknown-linux-gnu -c ch8_2_phinode.cpp -emit-llvm -o</span>
 <span class="go">ch8_2_phinode.bc</span>
@@ -2040,54 +2066,59 @@ from different basic block.</p>
 <span class="go">}</span>
 </pre></div>
 </div>
-<p>Compile with <code class="docutils literal notranslate"><span class="pre">clang</span> <span class="pre">-O3</span></code> generate phi function. The phi function can
-assign virtual register value directly from multi basic blocks.
-Compile with <code class="docutils literal notranslate"><span class="pre">clang</span> <span class="pre">-O0</span></code> doesn’t generate phi, it assigns virtual register
-value by loading stack slot where the stack slot is saved in each of multi
-basic blocks before.
-In this example the pointer of %a.addr point to the stack slot, and
-“store i32 %inc, i32* %a.addr, align 4”, “store i32 %dec, i32* %a.addr, align 4”,
-“store i32 %add, i32* %a.addr, align 4” in label if.then:, if.then2: and
-if.then5:, respectively. In other words, it needs 3 store instructions.
-It’s possible that compiler finds that the a == 0 is always true after
-optimization analysis through phi node.
-If so, the phi node version will bring better
-result because <code class="docutils literal notranslate"><span class="pre">clang</span> <span class="pre">-O0</span></code> version uses load and store with pointer %a.addr
-which may cut the optimization opportunity.
-Compiler books discuss the Control Flow Graph (CFG) analysis through dominance
-frontiers calculation for setting phi node. Then compiler apply the global
-optimization on CFG with phi node, and remove phi node by replacing with
-“load store” at the end.</p>
-<p>If you are interested in more details than the wiki web site, please refer book
-here <a class="footnote-reference brackets" href="#phi-book" id="id8" role="doc-noteref"><span class="fn-bracket">[</span>7<span class="fn-bracket">]</span></a> for phi node, or book here <a class="footnote-reference brackets" href="#dominator-dragonbooks" id="id9" role="doc-noteref"><span class="fn-bracket">[</span>8<span class="fn-bracket">]</span></a> for the
-dominator tree analysis if you have this book.</p>
+<p>When compiled with <code class="docutils literal notranslate"><span class="pre">clang</span> <span class="pre">-O3</span></code>, the compiler generates <cite>phi</cite> functions.
+The <cite>phi</cite> function assigns a virtual register value directly from multiple
+basic blocks.</p>
+<p>In contrast, compiling with <code class="docutils literal notranslate"><span class="pre">clang</span> <span class="pre">-O0</span></code> does not generate <cite>phi</cite> nodes.
+Instead, it assigns the virtual register value by loading from a stack slot,
+which is written in each of the multiple basic blocks.</p>
+<p>In this example, the pointer <cite>%a.addr</cite> points to the stack slot. The store
+instructions:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">store</span> <span class="pre">i32</span> <span class="pre">%inc,</span> <span class="pre">i32*</span> <span class="pre">%a.addr,</span> <span class="pre">align</span> <span class="pre">4</span></code> in label <cite>if.then:</cite></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">store</span> <span class="pre">i32</span> <span class="pre">%dec,</span> <span class="pre">i32*</span> <span class="pre">%a.addr,</span> <span class="pre">align</span> <span class="pre">4</span></code> in label <cite>if.then2:</cite></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">store</span> <span class="pre">i32</span> <span class="pre">%add,</span> <span class="pre">i32*</span> <span class="pre">%a.addr,</span> <span class="pre">align</span> <span class="pre">4</span></code> in label <cite>if.then5:</cite></p></li>
+</ul>
+</div></blockquote>
+<p>These instructions show that three <cite>store`s are needed in the `</cite>-O0`` version.</p>
+<p>With optimization, the compiler may determine that the condition <cite>a == 0</cite> is
+always true. In such cases, the <cite>phi</cite> node version may produce better results,
+since the <code class="docutils literal notranslate"><span class="pre">-O0</span></code> version uses <cite>load</cite> and <cite>store</cite> with the pointer <cite>%a.addr</cite>,
+which can hinder further optimization.</p>
+<p>Compiler textbooks discuss how the Control Flow Graph (CFG) analysis uses
+dominance frontier calculations to determine where to insert <cite>phi</cite> nodes.
+After inserting <cite>phi</cite> nodes, the compiler performs global optimization on the
+CFG and eventually removes the <cite>phi</cite> nodes by replacing them with <cite>load</cite> and
+<cite>store</cite> instructions.</p>
+<p>If you are interested in more technical details beyond what’s provided in the
+wiki reference, see <a class="footnote-reference brackets" href="#phi-book" id="id8" role="doc-noteref"><span class="fn-bracket">[</span>7<span class="fn-bracket">]</span></a> for <cite>phi</cite> node coverage, or refer to
+<a class="footnote-reference brackets" href="#dominator-dragonbooks" id="id9" role="doc-noteref"><span class="fn-bracket">[</span>8<span class="fn-bracket">]</span></a> for dominator tree analysis if you have the book.</p>
 </section>
 <section id="risc-cpu-knowledge">
 <h2><a class="toc-backref" href="#id23" role="doc-backlink">RISC CPU knowledge</a><a class="headerlink" href="#risc-cpu-knowledge" title="Permalink to this heading">¶</a></h2>
-<p>As mentioned in the previous section, Cpu0 is a RISC
-(Reduced Instruction Set
-Computer) CPU with 5 stages of pipeline.
-RISC CPU is full in the world, even the X86 of CISC (Complex Instruction Set
-Computer) is RISC inside (It translates CISC instruction into
-micro-instructions which do pipeline as RISC).
-Knowledge with RISC concept may make you satisfied in compiler design.
-List these two excellent books we have read for reference.
-Sure, there are many books in Computer Architecture and some of them contain
-real RISC CPU knowledge needed, but these two are excellent and popular.</p>
-<p>Computer Organization and Design: The Hardware/Software Interface (The Morgan
-Kaufmann Series in Computer Architecture and Design)</p>
-<p>Computer Architecture: A Quantitative Approach (The Morgan Kaufmann Series in
-Computer Architecture and Design)</p>
-<p>The book of “Computer Organization and Design: The Hardware/Software Interface”
-(there are 4 editions at the book is written) is for the introduction, while
-“Computer Architecture: A Quantitative Approach” is more complicate and deep
-in CPU architecture (there are 5 editions at the book is written).</p>
-<p>Above two books use Mips CPU as an example since Mips is more RISC-like than
-other market CPUs.
-ARM serials of CPU dominate the embedded market especially in mobile phone and
-other portable devices. The following book is good which I am reading now.</p>
-<p>ARM System Developer’s Guide: Designing and Optimizing System Software
-(The Morgan Kaufmann Series in Computer Architecture and Design).</p>
+<p>As mentioned in the previous section, Cpu0 is a RISC (Reduced Instruction Set
+Computer) CPU with a 5-stage pipeline. RISC CPUs dominate the world today.
+Even the x86 architecture, traditionally classified as CISC (Complex Instruction
+Set Computer), internally translates its complex instructions into
+micro-instructions that are pipelined like RISC.</p>
+<p>Understanding RISC concepts can be very helpful and rewarding for compiler
+design.</p>
+<p>Below are two excellent and popular books we have read and recommend for
+reference. Although there are many books on computer architecture, these two
+stand out for their clarity and depth:</p>
+<ul class="simple">
+<li><p><em>Computer Organization and Design: The Hardware/Software Interface</em>
+(The Morgan Kaufmann Series in Computer Architecture and Design)</p></li>
+<li><p><em>Computer Architecture: A Quantitative Approach</em>
+(The Morgan Kaufmann Series in Computer Architecture and Design)</p></li>
+</ul>
+<p>The book <em>Computer Organization and Design</em> (available in 4 editions at the
+time of writing) serves as an introductory text, while <em>Computer Architecture:
+A Quantitative Approach</em> (with 5 editions) explores more advanced and
+in-depth topics in CPU architecture.</p>
+<p>Both books use the MIPS CPU as a reference example, since MIPS is more
+RISC-like than many other commercial CPUs.</p>
 <aside class="footnote brackets" id="cache-speed" role="note">
 <span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id1">1</a><span class="fn-bracket">]</span></span>
 <p>On a platform with cache and DRAM, the cache miss costs

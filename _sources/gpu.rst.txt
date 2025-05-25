@@ -1,38 +1,39 @@
 .. _sec-gpu:
 
-The concept of GPU compiler
+The Concept of GPU Compiler
 ===========================
 
 .. contents::
    :local:
    :depth: 4
 
-Basicly CPU is SISD (Single Instruction Single Data) Architecture in each core.
-The multimedia instructions in CPU are smaller scaled of SIMD (Single 
-Instruction Multiple Data) while GPU is a large scaled of SIMD processor, 
-coloring millions of pixels of image in few mini seconds.
-Since the 2D or 3D graphic processing provides large opportunity in parallel
-data processing, GPU hardware usually composed tens thousands of functional 
-units in each chip for N-Vidia and other's manufacturers.
+Basically, a CPU is a SISD (Single Instruction Single Data) architecture in each
+core. The multimedia instructions in CPUs are smaller-scale forms of SIMD (Single
+Instruction Multiple Data), while GPUs are large-scale SIMD processors, capable of
+coloring millions of image pixels in just a few milliseconds.
 
-This chapter is giving an overview for how 3D animation to be created and run on
-CPU+GPU first. 
-After that, providing a concept in GPU compiler and HW featrues for graphic 
-application.
-Finally, explaining how GPU has taking more applications from 
-CPU through GPGPU concept and related standards emerged.
+Since 2D and 3D graphic processing offers great potential for parallel data
+processing, GPU hardware typically includes tens of thousands of functional units
+per chip, as seen in products by NVIDIA and other manufacturers.
 
-Webiste, Basic theory of 3D graphics with OpenGL, [#cg_basictheory]_.
+This chapter provides an overview of how 3D animation is created and executed on
+a CPU+GPU system. Following that, it introduces GPU compilers and hardware
+features relevant to graphics applications. Finally, it explains how GPUs have
+taken on more computational tasks traditionally handled by CPUs, through the
+GPGPU (General-Purpose computing on Graphics Processing Units) concept and the
+emergence of related standards.
 
-Concept in graphic and system
------------------------------
+Website: Basic Theory of 3D Graphics with OpenGL [#cg_basictheory]_.
 
-3D modeling
+Concept in Graphics and Systems
+-------------------------------
+
+3D Modeling
 ~~~~~~~~~~~
 
-Through creating 3D model with Triangles or Quads along on skin, the 3D model
-is created with polygon mesh [#polygon]_ formed by all the vertices on the first image 
-as :numref:`modeling1`.
+By creating 3D models with triangles or quads on a surface, the model is formed
+using a polygon mesh [#polygon]_. This mesh consists of all the vertices shown in
+the first image as :numref:`modeling1`.
 
 .. _modeling1: 
 .. figure:: ../Fig/gpu/modeling1.png
@@ -41,15 +42,17 @@ as :numref:`modeling1`.
 
   Creating 3D model and texturing
 
-After the next smooth shading [#polygon]_, the vertices and edge lines are covered 
-with color (or remove edges, actually edge never has black line), and model looks 
-much more smooth [#shading]_. 
-Further, after texturing (texture mapping), the model looks real more 
-[#texturemapping]_.
- 
-To get to know how animation for a 3D modeling, please look video here [#animation1]_.
-According to the video for skeleton animation, setting the joints poistion at different 
-poses and giving time to each pose (keyframe) as :numref:`animation`.
+After applying smooth shading [#polygon]_, the vertices and edge lines are
+covered with color (or the edges are visually removed—edges never actually have
+black outlines). As a result, the model appears much smoother [#shading]_.
+
+Furthermore, after texturing (texture mapping), the model looks even more
+realistic [#texturemapping]_.
+
+To understand how animation works for a 3D model, please refer to the video here
+[#animation1]_. According to the video on skeleton animation, joints are positioned
+at different poses and assigned timing (keyframes), as illustrated in
+:numref:`animation`.
 
 .. _animation: 
 .. figure:: ../Fig/gpu/animation.png
@@ -58,18 +61,18 @@ poses and giving time to each pose (keyframe) as :numref:`animation`.
 
   Set time point at keyframes
 
+In this series of videos, you will see 3D modeling tools generating Java code
+instead of C/C++ code calling OpenGL API and shaders. This is because Java can
+call OpenGL API through a wrapper library [#joglwiki]_.
 
-In this series of videos, you find the 3D modeling tools creating Java instead of
-C/C++ code calling OpenGL api and shaders. It's because Java can call OpenGL api
-through a wrapper library [#joglwiki]_.
+Every CAD software manufacturer, such as AutoDesk and Blender, has their own
+proprietary format. To solve interoperability problems, neutral or open source
+formats were created as intermediate formats to convert between proprietary
+formats.
 
-Every CAD software manufacturer such as AutoDesk and Blender has their own proprietary 
-format. To solve the problem of interoperability, neutral or open source formats were 
-invented as intermediate formats for converting between two proprietary formats. 
-Naturally, these formats have become hugely popular now.
-Two famous examples of neutral formats are STL (with a .STL extension) and COLLADA 
-(with a .DAE extension). Here is the list, where the 3D file formats are marked 
-with their type.
+Naturally, these neutral formats have become very popular. Two famous examples
+are STL (with a `.STL` extension) and COLLADA (with a `.DAE` extension). Below
+is a list showing 3D file formats along with their types.
 
 .. table:: 3D file formats [#3dfmt]_
 
@@ -116,13 +119,13 @@ in film production, but the industry has now shifted more towards OBJ, FBX,
 and Alembic [#3dfmt]_.
 
 
-Graphic HW and SW stack
+Graphic HW and SW Stack
 ~~~~~~~~~~~~~~~~~~~~~~~
 
 - https://en.wikipedia.org/wiki/Free_and_open-source_graphics_device_driver
 
-The block diagram of Graphic Processing Unit (GPU) as 
-:numref:`gpu_block_diagram`. 
+The block diagram of the Graphic Processing Unit (GPU) is shown in
+:numref:`gpu_block_diagram`.
 
 .. _gpu_block_diagram: 
 .. figure:: ../Fig/gpu/gpu-block-diagram.png
@@ -132,7 +135,8 @@ The block diagram of Graphic Processing Unit (GPU) as
   Components of a GPU: GPU has accelerated video decoding and encoding 
   [#wiki-gpu]_
 
-The role of CPU and GPU for graphic animation as :numref:`graphic_cpu_gpu`.
+The roles of the CPU and GPU in graphic animation are illustrated in
+:numref:`graphic_cpu_gpu`.
 
 .. _graphic_cpu_gpu: 
 .. figure:: ../Fig/gpu/graphic-cpu-gpu.png
@@ -169,51 +173,52 @@ the CSF into individual data structure for each SIMD processor to execute as
 :numref:`graphic_gpu_csf`. The firmware version of MCU is updated by MCU itself
 usually.
 
-The driver run on CPU side as :numref:`graphic_sw_stack`. 
-The OpenGL Api will call
-driver's function eventually and driver finish the function's work via issuing
-GPU-HW's command and/or sending data to GPU.
-Even so, GPU's rendor work from the data of 3D vertex, colors, ... sending from 
-CPU and storing in GPU's memory or shared memory consume more computing power
-than CPU.
+The driver runs on the CPU side as shown in :numref:`graphic_sw_stack`.  
+The OpenGL API eventually calls the driver's functions, and the driver  
+executes these functions by issuing commands to the GPU hardware and/or  
+sending data to the GPU.  
+
+Even so, the GPU’s rendering work, which uses data such as 3D vertices and  
+colors sent from the CPU and stored in GPU or shared memory, consumes  
+more computing power than the CPU.
 
 .. _graphic_sw_stack: 
 .. graphviz:: ../Fig/gpu/graphic-sw-stack.gv
   :caption: Graphic SW Stack
 
-- According the previous section, after user create skeleton and skin for each
-  model and set keyframes time through 3D modeling tool, the 3D modeling tool 
-  can either generate Java code which calling JOGL (Java OpenGL) [#joglwiki]_, 
-  or generate OpenCL API directly. The frame data can be calculated from 
-  interplation between keyframes.
+- According to the previous section, after the user creates a skeleton and skin  
+  for each model and sets keyframe times using a 3D modeling tool, the tool can  
+  either generate Java code that calls JOGL (Java OpenGL) [#joglwiki]_ or generate  
+  OpenCL APIs directly. The frame data can be calculated by interpolating between  
+  keyframes.
 
-- As above, every animation the client CPU program set new position of obect 
-  (vertices) and colors, the data of one frame, server (driver and GPU) does 
-  the 3D to 2D rendering. Higher-level
-  libraries and frameworks on top of OpenGL provide animation framework and 
-  tools to generate OpenGL API and shaders from 3D model. 
+- As described above, for each animation frame, the client (CPU) program sets the  
+  new positions of objects (vertices) and colors while the  
+  server (driver and GPU) performs the 3D-to-2D rendering. Higher-level libraries  
+  and frameworks on top of OpenGL provide animation frameworks and tools to  
+  generate OpenGL APIs and shaders from 3D models.
 
-- Shader may call Builtin-functions which written from Compute Shader, spriv or 
-  LLVM-IR. LLVM libclc is a project for builtin-functions in OpenCL which can 
-  be used in OpenGL too [#libclc]_. 
-  Like CPU's builtin-functions, new GPU ISA/architecture has to implement their 
-  builtin-functions or porting from open source such as libclc.
+- Shaders may call built-in functions written in Compute Shaders, SPIR-V, or  
+  LLVM-IR. LLVM `libclc` is a project for OpenCL built-in functions, which can  
+  also be used in OpenGL [#libclc]_. Like CPU built-ins, new GPU ISAs or  
+  architectures must implement their own built-ins or port them from open source  
+  projects like `libclc`.
 
-- 3D model (CPU) does the rendering animation to generate each frame between
-  keyframes (poses) while GPU does the rendering pipeline from each frame to
-  each pixel's value.
+- The 3D model (on CPU) performs rendering animations to generate each frame  
+  between keyframes (poses), while the GPU executes the rendering pipeline  
+  from each frame down to each pixel’s value.
 
-- These frames data existed in the form of VAO (Vertex Array Object) in OpenGL.
-  It will be explaned in later `section OpenGL`_.
+- These frame data are stored in the form of VAOs (Vertex Array Objects) in  
+  OpenGL. This will be explained in a later section: `OpenGL`_.
 
-- In addition, OpenGL provides vertex buffer object (VBO) allowing 
-  vertex array data to be stored in high-performance graphics memory on the 
-  server side and promotes efficient data transfer [#vbo]_ [#classorvbo]_.
+- Additionally, OpenGL provides VBOs (Vertex Buffer Objects), which allow  
+  vertex array data to be stored in high-performance graphics memory on the  
+  server side and enable efficient data transfer [#vbo]_ [#classorvbo]_.
 
-- 3D animation SW provides a lot of builtin shaders. Programmer can write
-  their shaders to the game engine.
+- 3D animation software provides many built-in shaders. Programmers can also  
+  write their own shaders for use in game engines.
 
-The flow for 3D/2D graphic processing as :numref:`opengl_flow`.
+The flow for 3D/2D graphic processing is shown in :numref:`opengl_flow`.
 
 .. _opengl_flow: 
 .. graphviz:: ../Fig/gpu/opengl-flow.gv
@@ -233,8 +238,8 @@ The flow for 3D/2D graphic processing as :numref:`opengl_flow`.
 .. rubric:: VSync
 .. code-block:: text
 
-  No tearing, GPU and Display run at same refresh rate since GPU refresh faster
-  than Display.
+  No tearing occurs when the GPU and display operate at the same refresh rate,  
+  since the GPU refreshes faster than the display as shown below.
 
                 A    B
 
@@ -244,8 +249,8 @@ The flow for 3D/2D graphic processing as :numref:`opengl_flow`.
 
               B      A
 
-  Tearing, GPU has exactly refresh cycles but VSync takes one cycle more.
-  than Display.
+  Tearing occurs when the GPU has exact refresh cycles but VSync takes  
+  one more cycle than the display as shown below.
 
                 A
 
@@ -255,8 +260,8 @@ The flow for 3D/2D graphic processing as :numref:`opengl_flow`.
 
               B      A
 
-  Avoid tearing, GPU has refresh rate 1/2 of Display's refresh rate.
-  than Display.
+  To avoid tearing, the GPU runs at half the refresh rate of the display,  
+  as shown below.
 
                 A          B
 
@@ -318,21 +323,26 @@ The flow for 3D/2D graphic processing as :numref:`opengl_flow`.
   but gamers generally prefer G-SYNC over FreeSync as the latter may cause 
   ghosting, where old images leave behind artifacts [#g-sync]_.
 
+
 Basic geometry in computer graphics
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-This section instroduces the basic geometry math for computer graphics. 
-The complete concept can be found in
-Book: "Computer graphics principles and practice 3rd editon, authors: JOHN F, 
-...". But it is 1 thousand of pages.
-This book is very complete and may take much time to understand every detail.
+This section introduces the basic geometry math used in computer graphics.  
+The complete concept can be found in the book *Computer Graphics: Principles  
+and Practice, 3rd Edition*, authored by John F. et al. However, the book  
+contains over a thousand pages.
+
+It is very comprehensive and may take considerable time to understand all the  
+details.
 
 Color
 +++++
 
-- Additive colors in light as :numref:`additive-colors` [#additive-colors-wiki]_  
-  [#additive-colors-ytube]_. If in paints, it adds shade and become light grey
-  since it add shade (dark color) [#additive-colors-shade]_.
+- Additive colors in light are shown in :numref:`additive-colors`  
+  [#additive-colors-wiki]_ [#additive-colors-ytube]_.
+
+- In the case of paints, additive colors produce shades and become light gray  
+  due to the addition of darker pigments [#additive-colors-shade]_.
 
 .. _additive-colors: 
 .. figure:: ../Fig/gpu/additive-colors.png
@@ -343,26 +353,31 @@ Color
 
 .. note:: **Additive colors**
 
-  I know it's not match human's intuition. However the additive colors RGB in 
-  light become totally white light, and the additive colors RGB in paints become
-  light grey paint is reasonalbe since light has no shade. This result comes from
-  the sense of human's eyes. When no light no color can be sensed by eyes. 
-  Computer engineers should know if you try to explore the very basic nature, 
-  then it is fields of physics or human's eyes structure in bilogy.
- 
+   I know it doesn't match human intuition. However, additive RGB colors in  
+   light combine to produce white light, while additive RGB in paints result in  
+   light gray paint. This makes sense because light has no shade. This result  
+   stems from the way human eyes perceive color. Without light, no color can be  
+   sensed by the eyes.
+
+   Computer engineers should understand that exploring the underlying reasons  
+   falls into the realms of physics or the biology of the human eye structure.
+
 Transformation
 ++++++++++++++
 
-Objects (Triangle/Quad) can be moved in 2D/3D with martix representation in wiki 
-here [#wiki-transformation]_. The rotation matrix in wiki is derived from wiki
-here [#wiki-rotation]_.
+Objects (Triangle/Quad) can be moved in 2D/3D using matrix representation, as  
+explained in this wiki page [#wiki-transformation]_.
 
-Every 
-computer graphics book has provided topics of transformation of object and 
-position in space. Chapter 4 of Blue book: OpenGL SuperBible 7th Edition give
-a short description (40 pages) and useful concept is a good material for 
-knowing the concept. Given the following for Quaternion Product (Hamilton 
-product) from Wiki [#wiki-quaternion]_ since the book miss this.
+The rotation matrix used is derived from another wiki page  
+[#wiki-rotation]_.
+
+Every computer graphics book covers the topic of transformation of objects and  
+their positions in space. Chapter 4 of the *Blue Book: OpenGL SuperBible, 7th  
+Edition* provides a short but useful 40-page description of transformation  
+concepts. It is a good material for understanding the basics.
+
+The following Quaternion Product (Hamilton product) is from the wiki  
+[#wiki-quaternion]_ since it is not covered in the book.
 
 .. math::
 
@@ -375,7 +390,8 @@ product) from Wiki [#wiki-quaternion]_ since the book miss this.
 
   Cooridinates Transform Pipeline [#cg_basictheory]_
 
-Detail for :numref:`trans_steps` on website [#cg_basictheory]_.
+Details for :numref:`trans_steps` can be found on the website
+[#cg_basictheory]_.
 
 Projection
 ++++++++++
@@ -385,26 +401,28 @@ Projection
   :align: center
   :scale: 15 %
 
-Only objects in the cone between near and far planes are projected to 2D for 
-prospective projection..
+Only objects within the cone between near and far planes are projected to 2D  
+in perspective projection.
 
-Prospective projection and orthographic projection (used in CAD tools) from 3D
-to 2D can be represented by transformation matrix in the previous section 
-[#wiki-prospective-projection]_.
+Perspective and orthographic projections (used in CAD tools) from 3D to 2D  
+can be represented by transformation matrices as described in the previous  
+section [#wiki-prospective-projection]_.
 
 Cross product
 +++++++++++++
 
-Both Triangles or Quads are ploygon. So, objects can be formed with ploygon in
-both 2D and 3D. About transfermation in 2D or 3D, almost every book of computer 
-graphics has mentioned well already. This section introduces the most important 
-concept and method for deciding Inner and Outer planes, then a point or object
-can be checked for showing or hidding during 2D or 3D rendering.
+Both triangles and quads are polygons. So, objects can be formed with  
+polygons in both 2D and 3D. The transformation in 2D or 3D is well covered in  
+almost every computer graphics book. This section introduces the most  
+important concept and method for determining inner and outer planes. Then,  
+a point or object can be checked for visibility during 2D or 3D rendering.
 
-Any **area** of polygon can be calculated by dividing into Triangles or Quads. And
-any area of Triangle or Quad can be calculated by cross product in 3D.
-The cross product in **3D** is defined by the formula and can be represented with 
-matrix notation as proved here [#cross-product-wiki]_.
+Any **area** of a polygon can be calculated by dividing it into triangles or  
+quads. The area of a triangle or quad can be calculated using the cross  
+product in 3D.
+
+The cross product in **3D** is defined by the formula and can be represented  
+with matrix notation, as shown here [#cross-product-wiki]_.
 
 .. math::
 
@@ -419,8 +437,8 @@ matrix notation as proved here [#cross-product-wiki]_.
   b_1& b_2& b_3 
   \end{vmatrix}
 
-The cross product in **2D** is defined by the formula and can be represented with matrix
-notation as proved here 
+The cross product in **2D** is defined by a formula and can be represented  
+with matrix notation, as proven here  
 [#cross-product-2d-proof]_ [#cross-product-2d-proof2]_.
 
 .. math::
@@ -440,7 +458,8 @@ notation as proved here
   b_1& b_2
   \end{bmatrix}
 
-After above matrix form is proved, the Antisymmetric may be proved as follows,
+After the above matrix form is proven, the antisymmetry property  
+may be demonstrated as follows:
 
 .. math::
 
@@ -469,14 +488,16 @@ After above matrix form is proved, the Antisymmetric may be proved as follows,
   \end{bmatrix} =
   -b \mathsf x a 
 
-In 2D, any two points :math:`\text{ from } P_i \text{ to } P_{i+1}` can form a 
-vector and decide inner side or outer side.
-For example, as :numref:`inward-edge-normals`, :math:`\Theta` is the angle
-from :math:`P_iP_{i+1}` to :math:`P_iP'_{i+1} = 180^\circ`. 
-So, with right-hand rule, counter clockwise order, any 
-:math:`P_iQ` between :math:`P_iP_{i+1}` to :math:`P_iP'_{i+1}`, the angle of 
-:math:`P_iP_{i+1}` to :math:`P_iQ = \theta, 0^\circ < \theta < 180^\circ` 
-then the inward direction be decided. 
+In 2D, any two points :math:`\text{from } P_i \text{ to } P_{i+1}` can form a  
+vector and determine the inner or outer side.  
+
+For example, as shown in :numref:`inward-edge-normals`, :math:`\Theta` is the  
+angle from :math:`P_iP_{i+1}` to :math:`P_iP'_{i+1} = 180^\circ`.  
+
+Using the right-hand rule and counter-clockwise order, any vector  
+:math:`P_iQ` between :math:`P_iP_{i+1}` and :math:`P_iP'_{i+1}`, with angle  
+:math:`\theta` such that :math:`0^\circ < \theta < 180^\circ`, indicates the  
+inward direction.
 
 .. _inward-edge-normals: 
 .. figure:: ../Fig/gpu/inward-edge-normals.png
@@ -492,33 +513,36 @@ then the inward direction be decided.
 
   Inward and outward in 2D for a vector.
 
-Base on this observation, the rule for inward and outward to any vector as
-:numref:`inward-edge-normals`. Face the same direction of a specific vector, 
-the left side is inward and right side is outward as 
+Based on this observation, the rule for inward and outward vectors is shown in  
+:numref:`inward-edge-normals`. Facing the same direction as a specific vector,  
+the left side is inward and the right side is outward, as shown in  
 :numref:`2d-vector-inward`.
 
-For each edge :math:`P_i - P_{i+1}`, the inward edge normal is the vector 
-:math:`\mathsf x\; v_i`; the outward edge normal is :math:`\; -\; \mathsf x\; v_i`.
-Where :math:`\; \mathsf x\; v_i` is coss-product(:math:`\mathsf v_i`) as 
-:numref:`inward-edge-normals`.
+For each edge :math:`P_i - P_{i+1}`, the inward edge normal is the vector  
+:math:`\mathsf{x} \; v_i`; the outward edge normal is  
+:math:`- \; \mathsf{x} \; v_i`, where :math:`\mathsf{x} \; v_i` is the  
+cross-product of :math:`v_i`, as shown in :numref:`inward-edge-normals`.
 
+A polygon can be created from a set of vertices. Suppose  
+:math:`(P_0, P_1, ..., P_n)` defines a polygon. The line segments  
+:math:`P_0P_1, P_1P_2`, etc., are the polygon’s edges. The vectors  
+:math:`v_0 = P_1 - P_0, v_1 = P_2 - P_1, ..., v_n = P_0 - P_n` represent those  
+edges.
 
-Polygon can be created from vertices. 
-Suppose that :math:`(P_0, P_1, ..., P_n)` is a polygon. The line segments 
-:math:`P_0P_1, P_1P_2`, etc., are the edges of the polygon; the vectors 
-:math:`v_0 = P_1 - P_0, v_1 = P_2 - P_1, ..., v_n = P_0 - P_n` are the edges 
-of the polygon. Through counter clockwise, the left side is inward, then the
-inward region of polygon can be decided.
+Using counter-clockwise ordering, the left side is inward. Thus, the inward  
+region of a polygon can be determined.
 
-For a convex polygon whose vertices are listed in counter clockwise order, the 
-inward edge normals point toward the interior of the polygon, and the outward 
-edge normals point toward the unbounded exterior of the polygon, 
-corresponding to our ordinary intuition. But if the vertices of a polygon are 
-given in clockwise order, the interior and exterior swap roles. 
+For a convex polygon with vertices listed in counter-clockwise order, the  
+inward edge normals point toward the interior of the polygon, and the outward  
+edge normals point toward the unbounded exterior. This matches our usual  
+intuition.
 
-This cross product has an important property: Going from v to ×v involves a 
-rotation by 90◦ in the same direction as the rotation that takes the positive 
-x-axis to the positive y-axis.
+However, if the polygon vertices are listed in clockwise order, the interior  
+and exterior definitions are reversed.
+
+This cross product has an important property: going from :math:`v` to  
+:math:`\times v` involves a 90° rotation in the same direction as the  
+rotation from the positive x-axis to the positive y-axis.
 
 .. _in-polygon: 
 .. figure:: ../Fig/gpu/polygon.png
@@ -527,17 +551,20 @@ x-axis to the positive y-axis.
 
   Draw a polygon with vectices counter clockwise
 
-As :numref:`in-polygon`, when drawing polygon with vectors(lines) counter 
-clockwise, the ploygon will be created and the two sides of a vector(line) 
-can be indentified [#cgpap]_. 
-Further a point in polygon or out of polygon can be identified.
-One simple way of finding whether the point is inside or outside a simple 
-polygon is to test how many times a ray, starting from the point and going in 
-any fixed direction, intersects the edges of the polygon. If the point is on 
-the outside of the polygon the ray will intersect its edge an even number of 
-times. If the point is on the inside of the polygon then it will intersect the 
-edge an odd number of times [#wiki-point-in-polygon]_.
+As shown in :numref:`in-polygon`, when drawing a polygon with vectors (lines)  
+in counter-clockwise order, the polygon will be formed, and the two sides of  
+each vector (line) can be identified [#cgpap]_.
 
+Furthermore, whether a point is inside or outside the polygon can be  
+determined.
+
+One simple method to test whether a point lies inside or outside a simple  
+polygon is to cast a ray from the point in any fixed direction and count how  
+many times it intersects the edges of the polygon.
+
+If the point is outside the polygon, the ray will intersect its edges an even  
+number of times. If the point is inside the polygon, it will intersect the  
+edges an odd number of times [#wiki-point-in-polygon]_.
 
 .. _3d-cross-product: 
 .. figure:: ../Fig/gpu/3d-cross-product.png
@@ -546,13 +573,18 @@ edge an odd number of times [#wiki-point-in-polygon]_.
 
   Cross product definition in 3D
 
+In the same way, by following the counter-clockwise direction to create a  
+2D polygon step by step, a 3D polygon can be constructed.
 
-In the same way, through following the same direction counter clockwise to 
-create 2D polygon one by one, then the 3D polygon will be created.
-As :numref:`3d-cross-product` from wiki [#cross-product-wiki]_, the inward 
-direction can be decided with a x b < 0 and outward is a x b > 0 in OpenGL.
-Replace a, b with x, y as :numref:`ogl-pointing-outwards` axis z+ is the 
-outer surface and z- is the inner surface [#ogl-point-outwards]_.
+As shown in :numref:`3d-cross-product` from the wiki  
+[#cross-product-wiki]_, the inward direction is determined by  
+:math:`a \times b < 0`, and the outward direction is determined by  
+:math:`a \times b > 0` in OpenGL.
+
+Replacing :math:`a` and :math:`b` with :math:`x` and :math:`y`, as shown in  
+:numref:`ogl-pointing-outwards`, the positive Z-axis (:math:`z+`) represents  
+the outer surface, while the negative Z-axis (:math:`z-`) represents the  
+inner surface [#ogl-point-outwards]_.
 
 .. _ogl-pointing-outwards: 
 .. figure:: ../Fig/gpu/ogl-pointing-outwards.png
@@ -568,22 +600,25 @@ outer surface and z- is the inner surface [#ogl-point-outwards]_.
 
   3D polygon with directions on each plane
 
-The :numref:`in-3d-polygon` is an example of 3D polygon created by 2D triangles.
-The direction of plane (triangle) as the line perpendicular to the plane.
+The :numref:`in-3d-polygon` shows an example of a 3D polygon created from 2D  
+triangles. The direction of the plane (triangle) is given by the line  
+perpendicular to the plane.
 
-Cast a ray from the 3D point along X-axis and check how many intersections with 
-outer object you find. Depending on the intersection number on each axis (even 
-or odd) you can understand if your point is inside or outside 
+Cast a ray from the 3D point along the X-axis and count how many intersections  
+with the outer object occur. Depending on the number of intersections along  
+each axis (even or odd), you can understan if the point is inside or outside  
 [#point-in-3d-object]_.
-Inside is odd and outside is even. As :numref:`in-3d-object`, points on the 
-line going through the object satisfy this rule.
+
+An odd number means inside, and an even number means outside. As shown in  
+:numref:`in-3d-object`, points on the line passing through the object satisfy  
+this rule.
 
 .. _in-3d-object: 
 .. figure:: ../Fig/gpu/in-3d-object.png
   :align: center
   :scale: 50 %
 
-  Point in or out 3D object
+  Point is inside or outside of 3D object
 
 .. rubric:: OpenGL uses counter clockwise and pointing outwards as default [#vbo]_.
 .. code-block:: c++
@@ -610,12 +645,13 @@ line going through the object satisfy this rule.
      .5f,-.5f,-.5f,  -.5f,-.5f,-.5f,  -.5f, .5f,-.5f,  .5f, .5f,-.5f  // v4,v7,v6,v5 (back)
   };
 
-From code above, we can see that OpenGL uses counter clockwise and pointing
-outwards as default. However OpenGL provides glFrontFace(GL_CW) for clockwise 
-[#ogl_frontface]_.
+From the code above, we can see that OpenGL uses counter-clockwise and  
+pointing outwards as the default. However, OpenGL provides  
+``glFrontFace(GL_CW)`` for clockwise winding [#ogl_frontface]_.
 
-For group of objects, scene graph provides better animation and saving memory 
-[#scene-graph-wiki]_.
+For a group of objects, a scene graph provides better animation support and  
+saves memory [#scene-graph-wiki]_.
+
 
 OpenGL
 ------
@@ -623,8 +659,8 @@ OpenGL
 Example of OpenGL program
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The following example from openGL redbook and example code [#redbook]_ 
-[#redbook-examples]_.
+The following example is from the OpenGL Red Book and its example code  
+[#redbook]_ [#redbook-examples]_.
 
 .. rubric:: References/triangles.vert
 .. literalinclude:: ../References/triangles.vert
@@ -641,38 +677,48 @@ Init():
 
 - Generate Vertex Array VAOs and bind VAOs[0].
 
-  (glGenVertexArrays( NumVAOs, VAOs ); glBindVertexArray( VAOs[Triangles] ); 
-  glCreateBuffers( NumBuffers, Buffers );)
-  A vertex-array object holds various data related to a collection of vertices. 
-  Those data are stored in buffer objects and managed by the currently bound 
-  vertex-array object. 
+  (glGenVertexArrays(NumVAOs, VAOs);  
+  glBindVertexArray(VAOs[Triangles]);  
+  glCreateBuffers(NumBuffers, Buffers);)
 
-  - glBindBuffer( GL_ARRAY_BUFFER, Buffers[ArrayBuffer] );
-    
-    Because there are many different places where buffer objects can be in OpenGL, when we bind a buffer, we need to specify which what we’d like to use it for. In our example, because we’re storing vertex data into the buffer, we use GL_ARRAY_BUFFER. The place where the buffer is bound is known as the binding target. 
+  A vertex-array object holds various data related to a collection of vertices.  
+  Those data are stored in buffer objects and managed by the currently bound  
+  vertex-array object.
 
-- According counter clockwise rule in previous section, Triangle Primitives are
-  defined in varaible vertices. After binding OpenGL 
-  VBO Buffers[0] to vertices, vertices data will send to memory of 
-  server(gpu).
-  Think of the "active" buffer as just a global variable, and there are a bunch 
-  of functions which use the active buffer instead of using a parameter. 
-  These global state variables are the ugly side of OpenGL [#vao-vbo-binding]_
-  and can be replaced with glVertexArrayVertexBuffer(), 
-  glVertexArrayAttribFormat(), ..., then call glBindVertexArray(vao)
-  before drawing in OpenGL 4.5 [#ogl-vavb]_ [#ogl-bluebook-p152]_.
+  - glBindBuffer(GL_ARRAY_BUFFER, Buffers[ArrayBuffer]);
 
-- glVertexAttribPointer( vPosition, 2, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(0) ):
-  During gpu rendering, each vertex position will be held in vPosition and pass
-  to "triangles.vert" shader because LoadShaders( shaders ).
+    Because there are many different places where buffer objects can be in  
+    OpenGL, when we bind a buffer, we need to specify what we’d like to use it  
+    for. In our example, because we’re storing vertex data into the buffer,  
+    we use GL_ARRAY_BUFFER. The place where the buffer is bound is known as the  
+    binding target.
+
+- According to the counter-clockwise rule in the previous section, triangle  
+  primitives are defined in variable `vertices`. After binding OpenGL  
+  VBO Buffers[0] to `vertices`, vertex data will be sent to the memory of  
+  the server (GPU).  
+
+  Think of the "active" buffer as just a global variable, and there are a bunch  
+  of functions that use the active buffer instead of taking using a parameter.  
+  These global state variables are the ugly side of OpenGL [#vao-vbo-binding]_  
+  and can be replaced with `glVertexArrayVertexBuffer()`,  
+  `glVertexArrayAttribFormat()`, etc. Then call `glBindVertexArray(vao)` before  
+  drawing in OpenGL 4.5 [#ogl-vavb]_ [#ogl-bluebook-p152]_.
+
+- glVertexAttribPointer(vPosition, 2, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(0)):
+
+  During GPU rendering, each vertex position will be held in `vPosition` and  
+  passed to the "triangles.vert" shader through the `LoadShaders(shaders)`  
+  function.
 
 glfwSwapBuffers(window):
 
-- You’ve already used double buffering for animation. Double buffering is done 
-  by making the main color buffer have two parts: a front buffer that’s 
-  displayed in your window; and a back buffer, which is where you render the 
-  new image. When you swap the buffers (by calling glfwSwapBuffers(), for 
-  example), the front and back buffers are exchanged [#redbook-colorbuffer]_.
+- You’ve already used double buffering for animation. Double buffering is done  
+  by making the main color buffer have two parts: a front buffer that’s  
+  displayed in your window; and a back buffer, which is where you render the  
+  new image. When you swap the buffers (by calling `glfwSwapBuffers()`, for  
+  example), the front and back buffers are exchanged  
+  [#redbook-colorbuffer]_.
 
 display():
 
@@ -750,17 +796,19 @@ Since we have 6 vertices in our buffer, this shader will be executed 6 times by
 the GPU (once per vertex)! We can also expect all 6 instances of the shader to 
 be executed in parallel, since a GPU have so many cores.
 
+
 3D Rendering
 ~~~~~~~~~~~~
 
-Based on the previous section of 3D modeling, the 3D modeling tool will generate
-3D vertex model and OpenGL code, then programmers may hand-change OpenGL code and
-add or modify shaders. The 3D animation will trigger the 3D rendering for each
-2D image drawing.
+Based on the previous section of 3D modeling, the 3D modeling tool will  
+generate a 3D vertex model and OpenGL code. Then, programmers may manually  
+modify the OpenGL code and add or update shaders. The 3D animation will  
+trigger the 3D rendering process for each 2D image drawing.
 
-3D rendering is the process of converting 3D models into 2D images on a computer 
-[#3drendering_wiki]_. 
-The steps as the following :numref:`short_rendering_pipeline`.
+3D rendering is the process of converting 3D models into 2D images on a  
+computer [#3drendering_wiki]_.
+
+The steps are shown in :numref:`short_rendering_pipeline`.
 
 .. _short_rendering_pipeline: 
 .. figure:: ../Fig/gpu/short-rendering-pipeline.png
@@ -772,8 +820,8 @@ The steps as the following :numref:`short_rendering_pipeline`.
 - A fragment can be treated as a pixel in 3D spaces, which is aligned with the 
   pixel grid, with attributes such as position, color, normal and texture.
 
-The complete steps as the following :numref:`rendering_pipeline1` 
-from OpenGL website [#rendering]_ and the website has descripiton for each stage.
+The complete steps are shown in :numref:`rendering_pipeline1`, from the OpenGL  
+website [#rendering]_. The website also provides a description for each stage.
 
 .. _rendering_pipeline1: 
 .. figure:: ../Fig/gpu/rendering_pipeline.png
@@ -782,8 +830,8 @@ from OpenGL website [#rendering]_ and the website has descripiton for each stage
 
   Diagram of the Rendering Pipeline. The blue boxes are programmable shader stages.
 
-In addition, list OpenGL rendering pipeline Figure 1.2 and stage from book 
-"OpenGL Programming Guide 9th Edition" [#redbook]_ as follows,
+In addition, list the OpenGL rendering pipeline Figure 1.2 and its stages  
+from the book *OpenGL Programming Guide, 9th Edition* [#redbook]_ as follows:
 
 .. _OpenGL_pipeline: 
 .. figure:: ../Fig/gpu/OpenGL-pipeline.png
@@ -794,31 +842,75 @@ In addition, list OpenGL rendering pipeline Figure 1.2 and stage from book
 
    \clearpage
 
-.. list-table:: OpenGL rendering pipeline from page 10 of book "OpenGL Programming Guide 9th Edition" [#redbook]_ and [#rendering]_.
-  :widths: 20 60
-  :header-rows: 1
+.. list-table:: OpenGL rendering pipeline from page 10 of book
+   "OpenGL Programming Guide 9th Edition" [#redbook]_ and [#rendering]_.
+   :widths: 20 60
+   :header-rows: 1
 
-  * - Stage.
-    - Description
-  * - Vertex Specification
-    - After setting data as the example of previous section, glDrawArrays() will send data to gpu through buffer objects.
-  * - Vertex Shading
-    - **Vertex -> Vertex and other data such as color for later passes.** For each vertex that is issued by a drawing command, a vertex shader will be called to process the data associated with that vertex.
-  * - Tessellation Shading
-    - **Create more detail on demand when room in.** After the vertex shader has processed each vertex’s associated data, the tessellation shader stage will continue processing that data, if it’s been activated. Reference below.
-  * - Geometry Shading
-    - **The next shader stage, geometry shading, allows additional processing of individual geometric primitives, including creating new ones, before rasterization.** Chapter 10 of Red Book [#redbook]_ has details.
-  * - Primitive Assembly
-    - The previous shading stages all operate on vertices, with the information about how those vertices are organized into geometric primitives being carried along internal to OpenGL. **The primitive assembly stage organizes the vertices into their associated geometric primitives in preparation for clipping and rasterization.**
-  * - Clipping
-    - **Clipping hidden parts.** Occasionally, vertices will be outside of the viewport—the region of the window where you’re permitted to draw—and cause the primitive associated with that vertex to be modified so none of its pixels are outside of the viewport. This operation is called clipping and is handled automatically by OpenGL.
-  * - Rasterization
-    - **Vertex -> Fragment.** The job of the rasterizer is to determine which screen locations are covered by a particular piece of geometry (point, line, or triangle). Knowing those locations, along with the input vertex data, the rasterizer linearly interpolates the data values for each varying variable in the fragment shader and sends those values as inputs into your fragment shader. A fragment can be treated as a pixel in 3D spaces, which is aligned with the pixel grid, with attributes such as position, color, normal and texture.
-  * - Fragment Shading
-    - **Determine color for each pixel.** The final stage where you have programmable control over the color of a screen location is fragment shading. In this shader stage, you use a shader to determine the fragment’s final color (although the next stage, per-fragment operations, can modify the color one last time) and potentially its depth value. Fragment shaders are very powerful, as they often employ texture mapping to augment the colors provided by the vertex processing stages. A fragment shader may also terminate processing a fragment if it determines the fragment shouldn’t be drawn; this process is called fragment discard. A helpful way of thinking about the difference between shaders that deal with vertices and fragment shaders is this: vertex shading (including tessellation and geometry shading) determines where on the screen a primitive is, while fragment shading uses that information to determine what color that fragment will be.
-  * - Per-Fragment Operations
-    - During this stage, a fragment’s visibility is determined using depth testing (also commonly known as z-buffering) and stencil testing. If a fragment successfully makes it through all of the enabled tests, it may be written directly to the framebuffer, updating the color (and possibly depth value) of its pixel, or **if blending is enabled, the fragment’s color will be combined with the pixel’s current color to generate a new color that is written into the framebuffer.**
-
+   * - Stage.
+     - Description
+   * - Vertex Specification
+     - After setting data as in the previous section, ``glDrawArrays()`` sends
+       data to the GPU through buffer objects.
+   * - Vertex Shading
+     - **Vertex → Vertex and other data such as color for later passes.**
+       For each vertex issued by a drawing command, a vertex shader processes
+       the data associated with that vertex.
+   * - Tessellation Shading
+     - **Create more detail on demand when zoomed in.**
+       After the vertex shader processes each vertex, the tessellation shader
+       stage (if active) continues processing. See reference below.
+   * - Geometry Shading
+     - **Allows additional processing of geometric primitives.**
+       This stage may create new primitives before rasterization. See Chapter 10
+       of the Red Book [#redbook]_.
+   * - Primitive Assembly
+     - The previous shading stages all operate on vertices, with the information 
+       about how those vertices are organized into geometric primitives being 
+       carried along internal to OpenGL. 
+       **The primitive assembly stage organizes the vertices into their 
+       associated geometric primitives in preparation for clipping and 
+       rasterization.**
+   * - Clipping
+     - **Clipping hidden parts.** Occasionally, vertices will be outside of the 
+       viewport—the region of the window where you’re permitted to draw—and 
+       cause the primitive associated with that vertex to be modified so none 
+       of its pixels are outside of the viewport. 
+       This operation is called clipping and is handled automatically by OpenGL.
+   * - Rasterization
+     - **Vertex -> Fragment.** The job of the rasterizer is to determine which 
+       screen locations are covered by a particular piece of geometry (point, 
+       line, or triangle). Knowing those locations, along with the input vertex 
+       data, the rasterizer linearly interpolates the data values for each 
+       varying variable in the fragment shader and sends those values as inputs 
+       into your fragment shader. A fragment can be treated as a pixel in 3D 
+       spaces, which is aligned with the pixel grid, with attributes such as 
+       position, color, normal and texture.
+   * - Fragment Shading
+     - **Determine color for each pixel.** 
+       The final stage where you have programmable control over the color of 
+       a screen location is fragment shading. In this shader stage, you use a 
+       shader to determine the fragment’s final color (although the next stage, 
+       per-fragment operations, can modify the color one last time) and 
+       potentially its depth value. Fragment shaders are very powerful, as they 
+       often employ texture mapping to augment the colors provided by the 
+       vertex processing stages. A fragment shader may also terminate 
+       processing a fragment if it determines the fragment shouldn’t be drawn; 
+       this process is called fragment discard. A helpful way of thinking about 
+       the difference between shaders that deal with vertices and fragment 
+       shaders is this: vertex shading (including tessellation and geometry 
+       shading) determines where on the screen a primitive is, while fragment 
+       shading uses that information to determine what color that fragment will 
+       be.
+   * - Per-Fragment Operations
+     - During this stage, a fragment’s visibility is determined using depth 
+       testing (also commonly known as z-buffering) and stencil testing. 
+       If a fragment successfully makes it through all of the enabled tests, 
+       it may be written directly to the framebuffer, updating the color 
+       (and possibly depth value) of its pixel, or 
+       **if blending is enabled, the fragment’s color will be combined with 
+       the pixel’s current color to generate a new color that is written into 
+       the framebuffer.**
 
 - Tessellation Shading: 
   The core problem that Tessellation deals with is the static nature of 3D models
@@ -856,12 +948,16 @@ face(flame) from time to time [#2danimation]_.
 GLSL (GL Shader Language)
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
-OpenGL is a standard for designing 2D/3D animation in computer graphic.
-To do animation well, OpenGL provides a lots of api(functions) call for
-graphic processing. The 3D model construction tools such as Maya, Blender, ..., etc,
-only need to call this api to finish the 3D to 2D projecting function in computer.
-Any GPU hardware dependent code in these api provided by GPU manufacturer.
-An OpenGL program looks like the following,
+OpenGL is a standard specification for designing 2D and 3D graphics and animation
+in computer graphics. To support advanced animation and rendering, OpenGL provides
+a large set of APIs (functions) for graphics processing. Popular 3D modeling and
+animation tools—such as Maya, Blender, and others—can utilize these APIs to handle
+3D-to-2D projection and rendering directly on the computer.
+
+The hardware-specific implementation of these APIs is provided by GPU manufacturers,
+ensuring that rendering is optimized for the underlying hardware.
+
+An OpenGL program typically follows a structure like the example below:
 
 .. rubric:: Vertex shader
 .. code-block:: c++
@@ -899,16 +995,31 @@ An OpenGL program looks like the following,
     ...
   }
 
-The last main() is programed by user obviously. Let's explain what the first two 
-main() work for. 
-As you know, the OpenGL is a lots of api to let programmer display the 3D object 
-into 2D computer screen explained from book of concept of computer graphic.
-3D graphic model can set light and object texture by user firstly, and calculating the 
-postion of each vertex secondly, then color for each pixel automatically by 3D software 
-and GPU thirdly, finally display the color of each pixel in computer screen.
-But in order to let user/programmer add some special effect or decoration in 
-coordinate for each vertex or in color for each pixel, OpenGL provides these two 
-functions to do it. 
+The last `main()` function in an OpenGL application is written by the user, as expected. 
+Now, let’s explain the purpose of the first two main components of the OpenGL pipeline.
+
+As discussed in the *Concepts of Computer Graphics* textbook, OpenGL provides a 
+rich set of APIs that allow programmers to render 3D objects onto a 2D computer screen.
+The general rendering process follows these steps:
+
+1. The user sets up lighting, textures, and object materials.
+2. The system calculates the position of each vertex in 3D space.
+3. The GPU and rendering pipeline automatically determine the color of each pixel 
+   based on lighting, textures, and interpolation.
+4. The final image is displayed on the screen by writing pixel colors to the framebuffer.
+
+To give programmers the flexibility to add custom effects or visual enhancements—such 
+as modifying vertex positions for animation or applying unique coloring—OpenGL provides
+two programmable stages in the graphics pipeline:
+
+- **Vertex Shader:** Allows the user to customize how vertex coordinates are 
+  transformed and processed.
+- **Fragment Shader:** Allows the user to define how each pixel (fragment) is shaded 
+  and colored, enabling effects like lighting, textures, and transparency.
+
+These shaders are written by the user and compiled at runtime, providing powerful 
+control over the rendering process.
+
 OpenGL uses fragment shader instead of pixel is : "Fragment shaders are a more 
 accurate name for the same functionality as Pixel shaders. They aren’t pixels 
 yet, since the output still has to past several tests (depth, alpha, stencil) 
@@ -938,15 +1049,19 @@ hardware replacement [#onlinecompile]_.
 OpenGL Shader compiler
 ~~~~~~~~~~~~~~~~~~~~~~
 
-OpenGL standard is here [#openglspec]_. The OpenGL is for desktop computer or server
-while the OpenGL ES is for embedded system [#opengleswiki]_. Though shaders are only
-a small part of the whole OpenGL software/hardware system. It is still a large effort 
-to finish the compiler implementation since there are lots of api need to be 
-implemented.
-For example, there are 80 related texture APIs [#textureapi]_.
-This implementation can be done by generating llvm extended intrinsic functions 
-from shader parser of frontend compiler as well as llvm backend converting those intrinsic 
-to gpu instructions as follows,
+The OpenGL standard is defined in [#openglspec]_. OpenGL is primarily designed for 
+desktop computers and servers, whereas OpenGL ES is a subset tailored for embedded systems 
+[#opengleswiki]_.
+
+Although shaders represent only a small part of the entire OpenGL software/hardware 
+stack, implementing a compiler for them is still a significant undertaking. This is 
+because a large number of APIs need to be supported. For instance, there are over 80 
+texture-related APIs alone [#textureapi]_.
+
+A practical approach to implementing such a compiler involves generating LLVM extended 
+intrinsic functions from the shader frontend (parser and AST generator). These intrinsics 
+can then be lowered into GPU-specific instructions in the LLVM backend. The overall 
+workflow is illustrated as follows:
 
 .. rubric:: Fragment shader
 .. code-block:: c++
@@ -985,22 +1100,27 @@ to gpu instructions as follows,
 
   .tex_a // Driver set the index of gpu descriptor regsters here
 
-As the bottom of code above, .tex_a memory address includes the Texture Object
-which binding by driver in on-line compilation/linking. Through binding Texture
-Object (SW) and Texture Unit (HW) with OpenGL API, gpu will uses Texture Unit HW
-resources efficiently. Explaining it the following. 
-      
-About llvm intrinsic extended function, please refer this book here [#intrinsiccpu0]_.
+As shown at the end of the code above, the `.tex_a` memory address contains the Texture 
+Object, which is bound by the driver during online compilation and linking. By binding 
+a Texture Object (software representation) to a Texture Unit (hardware resource) via 
+OpenGL API calls, the GPU can access and utilize Texture Unit hardware efficiently. 
+This binding mechanism ensures that texture sampling and mapping are executed with 
+minimal overhead during rendering.
+
+For more information about LLVM extended intrinsic functions, please refer to 
+[#intrinsiccpu0]_.
 
 .. code-block:: c++
 
   gvec4 texture(gsampler2D sampler, vec2 P, [float bias]);
 
 
-GPU provides 'Texture Unit' to speedup fragment shader. However the 
-‘Texture Unit’ HW is expensive resouce and only few of them in a GPU. 
-Driver can associate ‘Texture Unit’ to sampler variable by OpenGL api 
-and switch between shaders as the following statements.
+GPUs provide *Texture Units* to accelerate texture access in fragment shaders. 
+However, *Texture Units* are expensive hardware resources, and only a limited number 
+are available on a GPU. To manage this limitation, the OpenGL driver can associate 
+a *Texture Unit* with a `sampler` variable using OpenGL API calls. This association 
+can be updated or switched between shaders as needed. The following statements 
+demonstrate how to bind and switch *Texture Units* across shaders:
 
 .. _sampling: 
 .. figure:: ../Fig/gpu/sampling_diagram.png
@@ -1009,26 +1129,29 @@ and switch between shaders as the following statements.
 
   Relationships between the texturing concept [#textureobject]_.
 
-The :numref:`sampling` as above.
-The texture object is not bound directly into the shader (where the actual 
-sampling takes place). Instead, it is bound to a 'texture unit' whose index 
-is passed to the shader. So the shader reaches the texture object by going 
-through the texture unit. There are usually multiple texture units available 
-and the exact number depends on the capability of your graphic card [#textureobject]_. 
-A texture unit, also called a texture mapping unit (TMU) or a texture processing 
-unit (TPU), is a hardware component in a GPU that does sampling operation.
-The argument sampler in texture function as above is sampler_2d index from
-'teuxture unit' for texture object [#textureobject]_. 
+As shown in :numref:`sampling`, the texture object is not bound directly to a shader 
+(where sampling operations occur). Instead, it is bound to a *texture unit*, and the 
+index of this texture unit is passed to the shader. This means the shader accesses 
+the texture object through the assigned texture unit. Most GPUs support multiple 
+texture units, though the exact number depends on the hardware capabilities 
+[#textureobject]_.
 
-'sampler uniform variable':
+A *texture unit*—also known as a *Texture Mapping Unit (TMU)* or *Texture Processing Unit (TPU)*—
+is a dedicated hardware component in the GPU that performs texture sampling operations.
 
-There is a group of special uniform variables for that, according to the texture 
-target: 'sampler1D', 'sampler2D', 'sampler3D', 'samplerCube', etc. 
-You can create as many 'sampler uniform variables' as you want and assign the 
-value of a texture unit to each one from the application. 
-Whenever you call a sampling function on a 'sampler uniform variable' the 
-corresponding texture unit (and texture object) will be used [#textureobject]_.
+The `sampler` argument in the texture sampling function refers to a `sampler2D` (or similar)
+uniform variable. This variable represents the texture unit index used to access the 
+associated texture object [#textureobject]_.
 
+**Sampler Uniform Variables**:
+
+OpenGL provides a set of special uniform variables for texture sampling, named according to 
+the texture target: `sampler1D`, `sampler2D`, `sampler3D`, `samplerCube`, etc.
+
+You can create as many *sampler uniform variables* as needed and assign each one to a 
+specific texture unit index using OpenGL API calls. Whenever a sampling function is 
+invoked with a sampler uniform, the GPU uses the texture unit (and its bound texture object) 
+associated with that sampler [#textureobject]_.
 
 .. _sampling_binding: 
 .. figure:: ../Fig/gpu/sampling_diagram_binding.png
@@ -1036,16 +1159,18 @@ corresponding texture unit (and texture object) will be used [#textureobject]_.
 
   Binding sampler variables [#tpu]_.
 
-As :numref:`sampling_binding`, the Java api
-gl.bindTexture binding 'Texture Object' to 'Texture Unit'. 
-The gl.getUniformLocation and gl.uniform1i associate 'Texture Unit' to
-'sampler uniform variables'. 
+As shown in :numref:`sampling_binding`, the Java API function `gl.bindTexture()` 
+binds a *Texture Object* to a specific *Texture Unit*. Then, using 
+`gl.getUniformLocation()` and `gl.uniform1i()`, you associate the *Texture Unit* 
+with a *sampler uniform variable* in the shader.
 
-gl.uniform1i(xLoc, 1): where 1 is 
-'Texture Unit 1', 2 is 'Texture Unit 2', ..., etc [#tpu]_.
+For example, `gl.uniform1i(xLoc, 1)` assigns *Texture Unit 1* to the sampler variable 
+at location `xLoc`. Similarly, passing `2` would refer to *Texture Unit 2*, and so on 
+[#tpu]_.
 
-The following figure depicts how driver read metadata from compiled glsl obj,
-OpenGL api associate 'Sample Variable' and gpu executing texture instruction.
+The following figure illustrates how the OpenGL driver reads metadata from a compiled 
+GLSL object, how the OpenGL API links *sampler uniform variables* to *Texture Units*, 
+and how the GPU executes the corresponding texture instructions.
 
 .. _driverSamplerTable: 
 .. figure:: ../Fig/gpu/driverSamplerTable.png
@@ -1053,50 +1178,61 @@ OpenGL api associate 'Sample Variable' and gpu executing texture instruction.
 
   Associating Sampler Variables and gpu executing texture instruction
 
-Explaining the detail steps for figure above as the following.
+Explaining the detailed steps for the figure above:
 
-1. In order to let the 'texture unit' binding by driver, frontend compiler must
-pass the metadata of 'sampler uniform variable' (sampler_2d_var in this example) 
-[#samplervar]_ to backend, and backend must 
-allocate the metadata of 'sampler uniform variable' in the compiled 
-binary file [#metadata]_. 
+1. To enable the GPU driver to bind the *texture unit*, the frontend compiler 
+   must pass metadata for each *sampler uniform variable* 
+   (e.g., `sampler_2d_var` in this example) [#samplervar]_ to the backend. 
+   The backend then allocates and embeds this metadata in the compiled binary 
+   file [#metadata]_.
 
-2. After gpu driver executing glsl on-line compiling,
-driver read this metadata from compiled binary file and maintain a 
-table of {name, type, location} for each 'sampler uniform variable'.
-Driver also fill this information to Texture Desciptor in GPU's memory.
+2. During the on-line compilation of the GLSL shader, the GPU driver reads 
+   this metadata from the compiled binary file. It constructs an internal 
+   table mapping each *sampler uniform variable* to its attributes, such as 
+   `{name, type, location}`. This mapping allows the driver to properly 
+   populate the *Texture Descriptor* in the GPU’s memory, linking the variable 
+   to a specific *texture unit*.
 
-3. Api,
-
-.. code-block:: c++
-
-  xLoc = gl.getUniformLocation(prog, "x"); // prog: glsl program, xLoc
-  
-will get the location from the table for 'sampler uniform variable' x that
-driver created.
-
-SAMPLER_2D: is integer value for Sampler2D type.
-
-
-4. Api,
+3. API:
 
 .. code-block:: c++
 
-  gl.uniform1i( xLoc, 1 );
-  
-will binding xLoc of 'sampler uniform variable' x to 
-'Texture Unit 1' by writing 1 to the glsl binary metadata location of
-'sampler uniform variable' x as follows,
+   xLoc = gl.getUniformLocation(prog, "x"); // prog: GLSL program, xLoc: location of sampler variable "x"
+
+This API call queries the location of the `sampler uniform variable` named `"x"` 
+from the internal table that the driver created after parsing the shader metadata.
+
+The returned `xLoc` value corresponds to the location field associated with `"x"`, 
+which will later be used to bind a specific *texture unit* to this sampler variable 
+via `gl.uniform1i(xLoc, unit_index)`.
+
+`SAMPLER_2D` is the internal representation (usually an integer) that identifies 
+a `sampler2D` type in the shader.
+
+4. API:
+
+.. code-block:: c++
+
+   gl.uniform1i(xLoc, 1);
+
+This API call binds the sampler uniform variable `x` (located at `xLoc`) to 
+**Texture Unit 1**. It works by writing the integer value `1` to the internal 
+GLSL program memory at the location of the sampler variable `x`, as indicated 
+by `xLoc`.
 
 .. code-block:: console
 
-  {xLoc, 1} : 1 is 'Texture Unit 1', xLoc is the location(memory address) of 'sampler uniform variable' x
-  
-This api will set the texture descriptors in gpu with this {xLoc, 1} 
-information.
-Next, driver set the index or memory address of gpu texture descriptors to 
-variable .tex_a of memory address. For example as diagram, driver set k to 
-.tex_a.
+   {xLoc, 1} : 1 is 'Texture Unit 1', xLoc is the memory address of 'sampler uniform variable' x
+
+After this call, the OpenGL driver updates the **Texture Descriptor** table in GPU 
+memory with this `{xLoc, 1}` information.
+
+Next, the driver associates the memory address or index of the GPU's texture descriptor 
+with a hardware register or pointer used during fragment shader execution. For example, 
+as shown in the diagram, the driver may write a pointer `k` to the `.tex_a` field in memory.
+
+This `.tex_a` address is used by the GPU to locate the correct **Texture Unit** 
+and access the texture object during shader execution.
   
 5.
 
@@ -1134,35 +1270,86 @@ this pixel at texture image [#ptxtex]_.
 
 If it is 1d texture instruction, the tex.1d as follows,
 
+
+5. GPU Execution of Texture Instruction
+
 .. code-block:: console
 
+   // GPU machine code
+   load $1, tex_a;
+   sample2d_inst $1, $2, $3  // $1: tex_a, $2: %uv_2d, $3: %bias
+
+   .tex_a // Set by driver to index of GPU descriptor at step 4
+
+When the GPU executes the texture sampling instruction (e.g., `sample2d_inst`), it uses 
+the `.tex_a` address, which was assigned by the driver in step 4, to access the appropriate 
+**Texture Descriptor** from GPU memory. This descriptor corresponds to **Texture Unit 1** 
+because of the earlier API call:
+
+.. code-block:: c++
+
+   gl.uniform1i(xLoc, 1);
+
+If the GPU hardware provides dedicated **texture descriptor registers** or memory structures, 
+the driver maps `.tex_a` to those structures [#descriptorreg]_.
+
+**Example (NVIDIA PTX texture instruction):**
+
+.. code-block:: console
+
+   // The content of tex_a is bound to a texture unit, as in step 4
+   tex.3d.v4.s32.s32 {r1,r2,r3,r4}, [tex_a, {f1,f2,f3,f4}];
+
+   .tex_a
+
+Here, the `.tex_a` register holds the texture binding information set by the driver. 
+The vector `{f1, f2, f3}` represents the 3D coordinates (x, y, z) provided by the shader 
+or program logic. The `f4` value is ignored for 3D textures.
+
+This `tex.3d` instruction performs a texture fetch from the bound 3D texture and loads 
+the resulting color values into general-purpose registers:
+
+- `r1`: Red
+- `r2`: Green
+- `r3`: Blue
+- `r4`: Alpha
+
+The **fragment shader** can then use or modify this color value based on further calculations 
+or blending logic [#ptxtex]_.
+
+If a 1D texture is used instead, the texture instruction would look like:
+
+.. code-block:: console
+
+  // For compatibility with prior versions of PTX, the square brackets are not 
+  // required and .v4 coordinate vectors are allowed for any geometry, with 
+  // the extra elements being ignored.
   tex.1d.v4.s32.f32  {r1,r2,r3,r4}, [tex_a, {f1}];
 
-Since 'Texture Unit' is limited hardware accelerator on gpu, OpenGL
-providing api to user program for binding 'Texture Unit' to 'Sampler Variables'.
-As a result, user program is allowed doing load balance in using 'Texture Unit'
-through OpenGL api without recompiling glsl. 
-Fast texture sampling is one of the key requirements for good GPU performance 
-[#tpu]_.
+Since the 'Texture Unit' is a limited hardware accelerator on the GPU, OpenGL  
+provides APIs that allow user programs to bind 'Texture Units' to 'Sampler  
+Variables'. As a result, user programs can balance the use of 'Texture Units'  
+efficiently through OpenGL APIs without recompiling GLSL. Fast texture sampling  
+is one of the key requirements for good GPU performance [#tpu]_.
 
-In addition to api for binding texture, OpenGL provides glTexParameteri api to
-do Texture Wrapping [#texturewrapper]_. 
-Furthmore the texture instruction for some gpu may including S# T# values in operands.
-Same with associating 'Sampler Variables' to 'Texture Unit', S# and T# are
-location of memory associated to Texture Wrapping descriptor registers allowing 
-user program to change Wrapping option without re-compiling glsl.
+In addition to the API for binding textures, OpenGL provides the  
+``glTexParameteri`` API for texture wrapping [#texturewrapper]_. Furthermore, the  
+texture instruction for some GPUs may include S# and T# values in the operands.  
+Similar to associating 'Sampler Variables' to 'Texture Units', S# and T# are  
+memory locations associated with texture wrapping descriptor registers. This  
+allows user programs to change wrapping options without recompiling GLSL.
 
-Even glsl frontend compiler always expanding function call into inline function 
-as well as llvm intrinsic extended function providing an easy way to do code 
-generation through llvm td (Target Description) file written, 
-GPU backend compiler is still a little complex than CPU backend. 
-(But when considering the effort in frontend compier such as clang, or other 
-toolchain such
-as linker and gdb/lldb, of course, CPU compiler is not easier than
-GPU compiler.)
+Even though the GLSL frontend compiler always expands function calls into inline  
+functions, and LLVM intrinsic extensions provide an easy way to generate code  
+through LLVM's target description (TD) files, the GPU backend compiler is still  
+somewhat more complex than the CPU backend.
 
-Here is the software stack of 3D graphic system for OpenGL in linux [#mesawiki]_.
-And mesa open source website is here [#mesa]_.
+(However, considering the effort required for the CPU frontend compiler such as  
+Clang, or toolchains like the linker and GDB/LLDB, the overall difficulty of  
+building a CPU compiler is not necessarily less than that of a GPU compiler.)
+
+Here is the software stack of the 3D graphics system for OpenGL on Linux  
+[#mesawiki]_. The Mesa open source project website is here [#mesa]_.
 
 GPU Architecture
 ----------------
@@ -1177,12 +1364,11 @@ GPU Architecture
 SIMT
 ~~~~
 
-Single instruction, multiple threads (SIMT) is an execution model used in 
-parallel computing where single instruction, multiple data (SIMD) is combined 
+Single instruction, multiple threads (SIMT) is an execution model used in  
+parallel computing, where single instruction, multiple data (SIMD) is combined  
 with multithreading [#simt-wiki]_.
 
-The leading GPU architecture of Nvidia's gpu is as the following 
-figures.
+The leading GPU architecture of Nvidia GPUs is shown in the following figures.
 
 .. _threadslanes: 
 .. figure:: ../Fig/gpu/threads-lanes.png
@@ -1212,14 +1398,17 @@ figures.
   Multithreaded SIMD Processor (Streaming Multiprocessor SM) figure from book 
   [#Quantitative-gpu-sm]_
 
-.. note:: A SIMD Thread executed by SIMD Processor, a.k.a. SM, processes 32 
-          elements.
-          Number of registers in a Thread Block =
-          16 (SM) * 32 (Cuda Thread) * 64 (TLR, Thread Level Register) = 32768 
-          Register file.
-          Fermi has a mode bit that offers the choice of using 64 KB of SRAM as 
-          a 16 KB L1 cache with 48 KB of Local Memory or as a 48 KB L1 cache 
-          with 16 KB of Local Memory [#Quantitative-gpu-l1]_.
+.. note::
+
+   A SIMD thread executed by a SIMD processor, also known as an SM, processes  
+   32 elements.  
+
+   Number of registers in a thread block =  
+   16 (SMs) * 32 (CUDA threads) * 64 (TLRs, Thread-Level Registers) = 32,768  
+   registers in the register file.
+   Fermi has a mode bit that offers the choice of using 64 KB of SRAM as 
+   a 16 KB L1 cache with 48 KB of Local Memory or as a 48 KB L1 cache 
+   with 16 KB of Local Memory [#Quantitative-gpu-l1]_.
 
 .. _threadblock: 
 .. figure:: ../Fig/gpu/threadblock.jpg
@@ -1228,20 +1417,18 @@ figures.
 
   SM select Thread Blocks to run
 
-- Two level of scheduler. 
+- Two levels of scheduling:
 
-  - Level 1: Thread Block Scheduler: 
-    Whenever an SM executes a thread block, all the threads inside the 
-    thread block are executed at the same time. 
-    When any of thread in Warp not ready for operands data dependence, context
-    switching between Warps. 
-    When switching away from a particular warp, all the data of that warp remains 
-    in the register file so that it can be quickly resumed when its operands 
-    become ready [#wiki-tbcp]_.
+  - Level 1: Thread Block Scheduler  
+    When an SM executes a thread block, all the threads within the block are  
+    are executed at the same time. If any thread in a warp is not ready due to 
+    operand data dependencies, the scheduler switches context between warps.  
+    During a context switch, all the data of the current warp remains in the  
+    register file so it can resume quickly once its operands are ready  
+    [#wiki-tbcp]_.
 
-- Level 2: Warp Scheduler:
-  Cuda Threads in the same Warp.
-
+  - Level 2: Warp Scheduler  
+    Manages CUDA threads within the same warp.
 
 .. code:: c++
 
@@ -1261,8 +1448,9 @@ figures.
   :align: center
   :scale: 50 %
 
-  Mapping 8192 elements of matmul for Nvidia's GPU (figure from book 
-  [#Quantitative-grid]_). SIMT: 16 SIMD Threads in 1 Thread Block.
+  Mapping 8192 elements of matrix multiplication for Nvidia's GPU  
+  (figure from [#Quantitative-grid]_).  
+  SIMT: 16 SIMD threads in one thread block.
 
 .. _gpu-mem: 
 .. figure:: ../Fig/gpu/memory.png
@@ -1277,7 +1465,7 @@ figures.
 
 Summarize as table below.
  
-.. list-table:: More Descriptive Name for Cuda term in Fermi GPU.
+.. list-table:: More Descriptive Name for Cuda term in Fermi G:PU.
   :widths: 15 15 10 40
   :header-rows: 1
 
@@ -1306,28 +1494,29 @@ Summarize as table below.
   * - SIMD Thread (run by SIMD Processor)
     - Warp (run by Streaming Multiprocessor, SM)
     - Each SIMD Processor has 16 SIMD Threads. 
-    - Each SIMD Processor has Memory:Local Memory as :numref:`gpu-mem`. Local 
-      Memory is shared by the SIMD Lanes within a multithreaded SIMD Processor, 
-      but this memory is not shared between multithreaded SIMD Processors. 
-      Warp has it's own PC and may map to
-      one whole function or part of function. Compiler and run time may assign
-      them to the same Warp or different Warps [#Quantitative-gpu-warp]_.
+    - Each SIMD processor includes local memory, as in :numref:`gpu-mem`. Local
+      memory is shared among SIMD lanes within a SIMD processor but not across
+      different SIMD processors. A warp has its own PC and may correspond to a
+      whole function or part of a function. Compiler and runtime may assign
+      functions to the same or different warps
+      [#Quantitative-gpu-warp]_.
   * - SIMD Lane
     - Cuda Thread
     - Each SIMD Thread has 16 Lanes..
     - A vertical cut of a thread of SIMD instructions corresponding to 
       one element executed by one SIMD Lane. It is a vector instruction with 
       processing 16-elements. SIMD Lane registers: each Lane has its TLR 
-      (Thread Level Registers) which is allocated from Register file (32768 x 
+      (Thread Level Registers) allocated from Register file (32768 x 
       32-bit) by SM as :numref:`sm`.
   * - Chime
     - Chime
     - Each SIMD Lane has 2 chimes.
     - One clock rate of rest of chip executes 2 data elements on two Cuda-core 
-      as :numref:`sm`.
-      Vector length is 32 (32 elements). SIMD Lanes is 16. Chime is 2. 
-      This ALU clock cycles, also known as “ping pong” cycles.
+      as in :numref:`sm`.
+      Vector length is 32 (32 elements), SIMD Lanes = 16. Chime = 2. 
+      Chimes refer to ALU cycles that run in "ping-pong" mode.
       As :numref:`grid` for the later Fermi-generation GPUs.
+
 
 Vertex unit
 ~~~~~~~~~~~
@@ -1350,7 +1539,7 @@ Speedup Features
   gather-scatter. The VMIPS instructions are LVI (load vector indexed or gather) 
   and SVI (store vector indexed or scatter) [#Quantitative-gpu-gs]_. 
 
-- Address Coalescing: GPU provides this feature explained as follows, 
+- Address Coalescing: This is a feature provided by the GPU, explained as follows.
 
   - Note that unlike vector architectures, GPUs don’t have separate instructions 
     for sequential data transfers, strided data transfers, and gather-scatter 
@@ -1400,7 +1589,7 @@ General purpose GPU
 --------------------
 
 Since GLSL shaders provide a general way for writing C code in them, if applying
-a software frame work instead of OpenGL api, then the system can run some data
+a software frame work instead of OpenGL API, then the system can run some data
 parallel computation on GPU for speeding up and even get CPU and GPU executing 
 simultaneously. Furthmore, any language that allows the code running on the CPU to poll 
 a GPU shader for return values, can create a GPGPU framework [#gpgpuwiki]_.
@@ -1409,7 +1598,8 @@ a GPU shader for return values, can create a GPGPU framework [#gpgpuwiki]_.
 Mapping data in GPU
 ~~~~~~~~~~~~~~~~~~~
 
-As previous section GPU, the subset of y[]=a*x[]+y[] array-calculation as follows,
+As described in the previous section on GPUs, the subset of the array
+calculation `y[] = a * x[] + y[]` is shown as follows:
 
 .. code:: text
 
@@ -1487,8 +1677,9 @@ As previous section GPU, the subset of y[]=a*x[]+y[] array-calculation as follow
 
 - For Lane Mask, refer to [#VMR]_ [#Quantitative-gpu-asm-daxpy]_.
 
-The following table explains how the elemements of saxpy() maps to lane of SIMD 
-Thread(Warp) of Thread Block(Core) of Grid.
+The following table explains how the elements of `saxpy()` are mapped to the
+lanes of a SIMD Thread (Warp), which belongs to a Thread Block (Core) within
+a Grid.
 
 .. list-table:: Mapping saxpy code to :numref:`grid`.
   :widths: 8 17 55
@@ -1514,11 +1705,11 @@ Thread(Warp) of Thread Block(Core) of Grid.
 - You could say that it has 16 lanes, the vector length would be 32, and the 
   chime is 2 clock cycles.
 
-- The mape of y[0..31] = a * x[0..31] * y[0..31] to <Core, Warp, Cuda Thread> 
-  of GPU as the following table. x[0..31] map to 32 Cuda Threads; two Cuda
-  Thread map to one SIMD lane.
+- The mape of `y[0..31] = a * x[0..31] * y[0..31]` to `<Core, Warp, Cuda Thread>`
+  of GPU as the following table. `x[0..31]` map to 32 Cuda Threads; two Cuda
+  Threads map to one SIMD lane.
 
-.. table:: Map (Core,Warp) to saxpy
+.. table:: Map `<Core, Warp>` to saxpy
 
   ============  =================================================  =================================================  =======  ===========================================
   -             Warp-0                                             Warp-1                                             ...      Warp-15
@@ -1528,22 +1719,25 @@ Thread(Warp) of Thread Block(Core) of Grid.
   Core-15       y[7680..7711] = a * ...                            ...                                                ...      y[8160..8191] = a * x[8160..8191] + y[8160..8191] 
   ============  =================================================  =================================================  =======  ===========================================
 
-- Each Cuda Thread run GPU function-code saxpy. Fermi has Register file (32768 x
-  32-bit).
-  As :numref:`sm`, Number of registers in a Thread Block = 16 (SM) * 32 (Cuda 
-  Thread) * 64 (TLR, Thread Level Register) = 32768 x 32-bit (Register file).
+- Each Cuda Thread runs the GPU function code `saxpy`. Fermi has a register file  
+  of size 32768 x 32-bit.  
+  As shown in :numref:`sm`, the number of registers in a Thread Block is:  
+  16 (SM) * 32 (Cuda Threads) * 64 (TLR, Thread Level Register) =  
+  32768 x 32-bit (Register file).
 
-- When mapping to the fragments/pixels in graphic GPU, x[0..15] corresponding to
-  a two dimensions of tile of fragments/pixels at pixel[0..3][0..3] since image
-  uses tile base for grouping closest color together.
+- When mapping to fragments/pixels in a graphics GPU, `x[0..15]` corresponds to  
+  a two-dimensional tile of fragments/pixels at `pixel[0..3][0..3]`, since images  
+  use tile-based grouping to cluster similar colors together.
+
 
 Work between CPU and GPU in Cuda
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Above daxpy() GPU code did not mention the host (CPU) side of code for triggering
-GPU's function.
-The following is host (CPU) side of a CUDA example to call saxpy on GPU [#cudaex]_ 
-as follows,
+The previous `daxpy()` GPU code did not include the host (CPU) side code that  
+triggers the GPU function.
+
+The following example shows the host (CPU) side of a CUDA program that calls  
+`saxpy` on the GPU [#cudaex]_:
 
 .. code-block:: c++
 
@@ -1568,29 +1762,37 @@ as follows,
     ...
   }
 
-The main() run on CPU while the saxpy() run on GPU. 
-CPU copy the data from x and y to the corresponding device arrays d_x and d_y 
-using cudaMemcpy.
-The saxpy kernel is launched by the statement: 
-saxpy<<<(N+255)/256, 256>>>(N, 2.0, d_x, d_y);
-In this case we launch the kernel with thread blocks containing 512 elements, 
-and use integer arithmetic to determine the number of thread blocks required to 
-process all N elements of the arrays ((N+255)/256)
-Through cudaMemcpyHostToDevice and cudaMemcpyDeviceToHost, CPU can pass data in 
-x and y arrays to GPU and get result from GPU to y array. 
-Since both of these memory transfers trigger the DMA functions without CPU operation,
-it may speed up by running both CPU/GPU with their data in their own cache 
-repectively.
-After DMA memcpy from cpu's memory to gpu's, gpu operates the whole loop of matrix 
-operation for "y[] = a*x[]+y[];"
-instructions with one Grid.
+The `main()` function runs on the CPU, while `saxpy()` runs on the GPU.  
+The CPU copies data from `x` and `y` to the corresponding device arrays `d_x`  
+and `d_y` using `cudaMemcpy`.
 
-GPU persues throughput from SIMD application. Can hide cache-miss latence from 
-SMT. As result GPU may hasn't L2 and L3 like CPU for each core since GPU is highly 
-latency-tolerant multithreading for data parallel application [#gpu-latency-tolerant]_.
-DMA memcpy map the data in cpu memory to each l1 cache of core on gpu memory.
-Many gpu provides operations scatter and gather to access DRAM data for stream 
-processing [#Quantitative-gpu-sparse-matrix]_ [#gpgpuwiki]_ [#shadingl1]_.
+The `saxpy` kernel is launched with the following statement:
+
+.. code-block:: c++
+
+   saxpy<<<(N+255)/256, 256>>>(N, 2.0, d_x, d_y);
+
+This launches the kernel with thread blocks containing 256 threads, and uses  
+integer arithmetic to determine the number of thread blocks needed to process  
+all `N` elements in the arrays. The expression `(N+255)/256` ensures full  
+coverage of the input data.
+
+Using `cudaMemcpyHostToDevice` and `cudaMemcpyDeviceToHost`, the CPU can pass  
+data in `x` and `y` to the GPU, and retrieve the results back to `y`.
+
+Since both memory transfers are handled by DMA and do not require CPU operation,  
+the performance can be improved by running CPU and GPU independently, each  
+accessing their own cache.
+
+After the DMA copy from CPU memory to GPU memory, the GPU performs the full  
+matrix operation loop for `y[] = a * x[] + y[];` using a single Grid of threads.
+
+DMA `memcpy` maps the data in CPU memory to each L1 cache of a core on GPU  
+memory.
+
+Many GPUs support scatter and gather operations to access DRAM efficiently  
+for stream processing tasks [#Quantitative-gpu-sparse-matrix]_ [#gpgpuwiki]_  
+[#shadingl1]_.
 
 When the GPU function is dense computation in array such as MPEG4 encoder or
 deep learning for tuning weights, it may get much speed up [#mpeg4speedup]_. 
@@ -1601,7 +1803,8 @@ memory transferred. It is important for GPGPU applications to have high arithmet
 intensity else the memory access latency will limit computational speedup 
 [#gpgpuwiki]_. 
 
-Wiki here [#gpuspeedup]_ includes speedup applications for gpu as follows:
+Wiki here [#gpuspeedup]_ includes GPU-accelerated applications for speedup  
+as follows:
 
 General Purpose Computing on GPU, has found its way into fields as diverse as 
 machine learning, oil exploration, scientific image processing, linear algebra,
@@ -1627,18 +1830,23 @@ compressing [#gpuspeedup]_ gives the more applications for GPU acceleration.
                              
 .. note:: **GPU-Cache**
  
-  In theory for data parallel application in GPU's SMT, GPU can schedule more
-  threads and pursues throughput rather speedup for one single thread as SISD in
-  CPU. However in reality, GPU provides small L1 cache like CPU's and fill the 
-  cache-miss with scheduline another thread. So, GPU may has no L2 and L3 while
-  CPU has deep level of caches.
+  In theory, for data-parallel applications using GPU's SMT, the GPU can schedule  
+  more threads and aims for throughput rather than speedup of a single thread,  
+  as seen in SISD on CPUs.  
+  
+  However, in practice, GPUs provide only a small L1 cache, similar to CPUs,  
+  and handle cache misses by scheduling another thread.  
+  
+  As a result, GPUs often lack L2 and L3 caches, which are common in CPUs with  
+  deeper cache hierarchies.
 
 Volta (Cuda thread/SIMD lane with PC, Program Couner and Call Stack)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-One way the compiler handles this is by keeping executing
-instructions in order and if some threads don’t have to execute certain instructions it switches off those threads and turns them
-on their relevant instructions and switches off the other threads, this process is called masking.
+One way the compiler handles this is by keeping executing instructions in order 
+and if some threads don’t have to execute certain instructions it switches off 
+those threads and turns them on their relevant instructions and switches off 
+the other threads, this process is called masking.
 
 .. _pre-volta-1: 
 .. figure:: ../Fig/gpu/pre-volta-1.png
@@ -1654,8 +1862,8 @@ on their relevant instructions and switches off the other threads, this process 
 
   Volta Warp with Per-Thread Program Counter and Call Stack [#Volta]_
 
-- After Volta GPU of Nvidia, each thread in Warp has it's own PC as 
-  :numref:`volta-1`. 
+- After Nvidia's Volta GPU, each thread in a warp has its own program counter  
+  (PC), as shown in :numref:`volta-1`.
 
 .. code:: text
 
@@ -1671,9 +1879,9 @@ on their relevant instructions and switches off the other threads, this process 
 - Volta’s independent thread scheduling allows the GPU to yield execution of 
   any thread, either to make better use of execution resources or to allow 
   one thread to wait for data to be produced by another.
-  As above example [#Volta]_, each thread can progress with it's own PC. So,
-  the different threads in the same Warp can run insert_ater() function 
-  in dependently without waiting lock().
+  As the above example [#Volta]_, each thread can progress with its own PC. 
+  Therefore, different threads in the same warp can run  
+  ``insert_after()`` independently without waiting for ``lock()``.
 
 - Provide both thread in group efficency and independently thread progression.
 
@@ -1685,8 +1893,8 @@ on their relevant instructions and switches off the other threads, this process 
   at sub-warp granularity, while the convergence optimizer in Volta will still 
   group together threads which are executing the same code and run them in 
   parallel for maximum efficiency.
-  In Cuda Applications, this feature provides more parallel 
-  opportunities with __syncwarp() to user programmers as :numref:`volta-2`.
+  In Cuda Applications, this feature provides more parallel opportunities with 
+  __syncwarp() to user programmers as shown in :numref:`volta-2`.
 
 .. _volta-2: 
 .. figure:: ../Fig/gpu/volta-2.png
@@ -1830,9 +2038,9 @@ In order to let lanes in the same SIMD processor work efficently, data unifomity
 analysis will provide many optimization opporturnities in register allocation,
 transformation and code generation [#llvm-uniformity]_.
 
-Now, you find llvm IR expanding from cpu to gpu becoming influentially more and
-more. And actually, llvm IR expanding from version 3.1 util now as I can feel.
-
+LLVM IR expansion from CPU to GPU is becoming increasingly influential. 
+In fact, LLVM IR has been expanding steadily from version 3.1 until now, 
+as I have observed.
 
 Accelerate ML/DL on OpenCL/SYCL
 -------------------------------
@@ -1845,14 +2053,15 @@ Accelerate ML/DL on OpenCL/SYCL
   Implement ML graph scheduler both on compiler and runtime
 
 
-As :numref:`opengl_ml_graph`, the Device of GPU or CPU+NPU is able to run the 
-whole ML graph. 
-However if the Device has NPU only, then the CPU operation such as Avg-Pool
-has to run on Host side which add communication cost between Host and Device.
+As shown in :numref:`opengl_ml_graph`, the Device, such as a GPU or a CPU+NPU, 
+is capable of running the entire ML graph. However, if the Device has only 
+an NPU, then operations like Avg-Pool, which require CPU support, must run 
+on the Host side. This introduces communication overhead between the Host 
+and the Device.
 
-Like OpenGL's shader, the "kernel" function may be compiled on-line or off-line
-and sending to GPU as programmable functions.
- 
+Similar to OpenGL shaders, the "kernel" function may be compiled either 
+on-line or off-line and then sent to the GPU as a programmable function.
+
 In order to run ML (Machine Learning) efficiently, all platforms for ML on 
 GPU/NPU implement scheduling SW both on graph compiler and runtime. 
 **If OpenCL can extend to support ML graph, then graph compiler such as TVM or 
@@ -1877,10 +2086,11 @@ programmers** [#paper-graph-on-opencl]_. Cuda graph is an idea  like this
   SYCL = C++ template and compiler for Data Parallel Applications on AI on CPUs, 
   GPUs and HPGAs.
 
-- DPC++ (OneDPC) compiler: Based on SYCL, DPC++ can compile DPC++ language for
-  CPU host and GPU device. DPC++ (Data Parallel C++) is a language from Intel and
-  maybe accepted by C++ which GPU side (Kernal code) is C++ without exception 
-  handler [#dpcpp]_ [#dpcpp-book]_.
+- DPC++ (OneDPC) compiler: Based on SYCL, DPC++ can compile the DPC++ language 
+  for both CPU host and GPU device. DPC++ (Data Parallel C++) is a language 
+  developed by Intel and may be adopted into standard C++. The GPU-side 
+  (kernel code) is written in C++ but does not support exception handling 
+  [#dpcpp]_ [#dpcpp-book]_.
 
   - Features of Kernel Code:
     

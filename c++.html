@@ -43,16 +43,40 @@
 <span id="sec-c"></span><h1>C++ support<a class="headerlink" href="#c-support" title="Permalink to this heading">¶</a></h1>
 <nav class="contents local" id="contents">
 <ul class="simple">
-<li><p><a class="reference internal" href="#exception-handle" id="id25">Exception handle</a></p></li>
-<li><p><a class="reference internal" href="#thread-variable" id="id26">Thread variable</a></p></li>
-<li><p><a class="reference internal" href="#atomic" id="id27">Atomic</a></p></li>
+<li><p><a class="reference internal" href="#exception-handling" id="id26">Exception Handling</a></p></li>
+<li><p><a class="reference internal" href="#thread-variable" id="id27">Thread variable</a></p></li>
+<li><p><a class="reference internal" href="#c-memory-order" id="id28">C++ Memory Order </a></p>
+<ul>
+<li><p><a class="reference internal" href="#background" id="id29">Background</a></p>
+<ul>
+<li><p><a class="reference internal" href="#the-problem-before-c-11" id="id30">The Problem Before C++11</a></p></li>
+<li><p><a class="reference internal" href="#c-11-memory-model-solution" id="id31">C++11 Memory Model Solution</a></p></li>
+<li><p><a class="reference internal" href="#key-memory-order-introductions" id="id32">Key Memory Order Introductions</a></p></li>
+<li><p><a class="reference internal" href="#conclusion" id="id33">Conclusion</a></p></li>
+<li><p><a class="reference internal" href="#example-usage-in-code" id="id34">Example Usage in Code</a></p></li>
+<li><p><a class="reference internal" href="#id10" id="id35">Conclusion</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#example-code-for-producer-consumer" id="id36">Example code for producer-consumer</a></p></li>
+<li><p><a class="reference internal" href="#comparison-of-producer-consumer-with-busy-waiting" id="id37">Comparison of Producer-Consumer with Busy Waiting</a></p>
+<ul>
+<li><p><a class="reference internal" href="#linux-api-with-busy-waiting-using-std-atomic" id="id38">1. Linux API with Busy Waiting (Using <cite>std::atomic</cite>)</a></p></li>
+<li><p><a class="reference internal" href="#mips-atomic-and-sync-instructions-ll-sc-sync" id="id39">2. MIPS Atomic and Sync Instructions (<cite>ll</cite>, <cite>sc</cite>, <cite>sync</cite>)</a></p></li>
+<li><p><a class="reference internal" href="#c-memory-order-lock-free-busy-waiting" id="id40">3. C++ Memory Order (Lock-Free, Busy-Waiting)</a></p></li>
+<li><p><a class="reference internal" href="#comparison-table" id="id41">Comparison Table</a></p></li>
+<li><p><a class="reference internal" href="#id11" id="id42">Conclusion</a></p></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#cpu0-implementation-for-memory-order" id="id43">Cpu0 implementation for memory-order</a></p></li>
 </ul>
 </nav>
 <p>This chapter supports some C++ compiler features.</p>
-<section id="exception-handle">
-<h2><a class="toc-backref" href="#id25" role="doc-backlink">Exception handle</a><a class="headerlink" href="#exception-handle" title="Permalink to this heading">¶</a></h2>
-<p>The Chapter11_2 can be built and run with the C++ polymorphism example code of
-ch12_inherit.cpp as follows,</p>
+<section id="exception-handling">
+<h2><a class="toc-backref" href="#id26" role="doc-backlink">Exception Handling</a><a class="headerlink" href="#exception-handling" title="Permalink to this heading">¶</a></h2>
+<p>Chapter11_2 can be built and run using the C++ polymorphism example code in
+<code class="docutils literal notranslate"><span class="pre">ch12_inherit.cpp</span></code> as follows:</p>
 <p class="rubric">lbdex/input/ch12_inherit.cpp</p>
 <div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="p">...</span><span class="w"></span>
 <span class="k">class</span><span class="w"> </span><span class="nc">CPolygon</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="c1">// _ZTVN10__cxxabiv117__class_type_infoE for parent class</span>
@@ -67,11 +91,13 @@ ch12_inherit.cpp as follows,</p>
 <span class="p">...</span><span class="w"></span>
 </pre></div>
 </div>
-<p>If using cout instead of printf in ch12_inherit.cpp, it won’t generate exception
-handler IRs on Linux, whereas it will generate invoke, landing, resume
-and unreachable exception handler IRs on iMac.
-Example code, ch12_eh.cpp, which includes <strong>try</strong> and <strong>catch</strong> exception handler
-as the following will generate these exception handler IRs both on iMac and Linux.</p>
+<p>If you use <code class="docutils literal notranslate"><span class="pre">cout</span></code> instead of <code class="docutils literal notranslate"><span class="pre">printf</span></code> in <code class="docutils literal notranslate"><span class="pre">ch12_inherit.cpp</span></code>, it will not
+generate exception handling IR on Linux. However, it will generate exception
+handling IRs such as <code class="docutils literal notranslate"><span class="pre">invoke</span></code>, <code class="docutils literal notranslate"><span class="pre">landingpad</span></code>, <code class="docutils literal notranslate"><span class="pre">resume</span></code>, and
+<code class="docutils literal notranslate"><span class="pre">unreachable</span></code> on iMac.</p>
+<p>The example code <code class="docutils literal notranslate"><span class="pre">ch12_eh.cpp</span></code>, which includes <strong>try</strong> and <strong>catch</strong>
+exception handling, will generate these exception-related IRs on both iMac
+and Linux.</p>
 <p class="rubric">lbdex/input/ch12_eh.cpp</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">Ex1</span> <span class="p">{};</span>
 <span class="n">void</span> <span class="n">throw_exception</span><span class="p">(</span><span class="nb">int</span> <span class="n">a</span><span class="p">,</span> <span class="nb">int</span> <span class="n">b</span><span class="p">)</span> <span class="p">{</span>
@@ -131,11 +157,12 @@ as the following will generate these exception handler IRs both on iMac and Linu
 <span class="go">def!&quot;&#39; failed.</span>
 </pre></div>
 </div>
-<p>A description for the C++ exception table formats can be found here
-<a class="footnote-reference brackets" href="#itanium-exception" id="id1" role="doc-noteref"><span class="fn-bracket">[</span>2<span class="fn-bracket">]</span></a>.
-About the IRs of LLVM exception handling, please reference here <a class="footnote-reference brackets" href="#exception" id="id2" role="doc-noteref"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></a>.
-Chapter12_1 supports the llvm IRs of corresponding <strong>try</strong> and <strong>catch</strong>
-exception C++ keywords. It can compile ch12_eh.bc as follows,</p>
+<p>A description of the C++ exception table formats can be found here
+<a class="footnote-reference brackets" href="#itanium-exception" id="id1" role="doc-noteref"><span class="fn-bracket">[</span>2<span class="fn-bracket">]</span></a>.</p>
+<p>For details about the LLVM IR used in exception handling, please refer to
+<a class="footnote-reference brackets" href="#exception" id="id2" role="doc-noteref"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></a>.</p>
+<p>Chapter12_1 supports the LLVM IRs that correspond to the C++ <strong>try</strong> and
+<strong>catch</strong> keywords. It can compile <code class="docutils literal notranslate"><span class="pre">ch12_eh.bc</span></code> as follows:</p>
 <p class="rubric">lbdex/chapters/Chapter12_1/Cpu0ISelLowering.h</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>    <span class="o">///</span> <span class="n">If</span> <span class="n">a</span> <span class="n">physical</span> <span class="n">register</span><span class="p">,</span> <span class="n">this</span> <span class="n">returns</span> <span class="n">the</span> <span class="n">register</span> <span class="n">that</span> <span class="n">receives</span> <span class="n">the</span>
     <span class="o">///</span> <span class="n">exception</span> <span class="n">address</span> <span class="n">on</span> <span class="n">entry</span> <span class="n">to</span> <span class="n">an</span> <span class="n">EH</span> <span class="n">pad</span><span class="o">.</span>
@@ -192,7 +219,7 @@ $BB1_5:                                 # %return
 </div>
 </section>
 <section id="thread-variable">
-<h2><a class="toc-backref" href="#id26" role="doc-backlink">Thread variable</a><a class="headerlink" href="#thread-variable" title="Permalink to this heading">¶</a></h2>
+<h2><a class="toc-backref" href="#id27" role="doc-backlink">Thread variable</a><a class="headerlink" href="#thread-variable" title="Permalink to this heading">¶</a></h2>
 <p>C++ support thread variable as the following file ch12_thread_var.cpp.</p>
 <p class="rubric">lbdex/input/ch12_thread_var.cpp</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">__thread</span> <span class="nb">int</span> <span class="n">a</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
@@ -211,16 +238,18 @@ $BB1_5:                                 # %return
 
 </pre></div>
 </div>
-<p>While global variable is a single instance shared by all threads in a process,
-thread variable has different instances for each different thread in a process.
-The same thread share the thread variable but different threads have their own
-thread variable with the same name <a class="footnote-reference brackets" href="#thread-wiki" id="id3" role="doc-noteref"><span class="fn-bracket">[</span>3<span class="fn-bracket">]</span></a>.</p>
-<p>To support thread variable, tlsgd, tlsldm, dtp_hi, dtp_lo, gottp, tp_hi and
-tp_lo in both evaluateRelocExpr() of Cpu0AsmParser.cpp and printImpl() of
-Cpu0MCExpr.cpp are needed, and the following code are required.
-Most of them are for relocation record handle and display since the thread
-variable created by OS or language library which support multi-threads
-programming.</p>
+<p>While a global variable is a single instance shared by all threads in a process,
+a thread-local variable has a separate instance for each thread in the process.
+The same thread accesses the same instance of the thread-local variable, while
+different threads have their own instances with the same variable name
+<a class="footnote-reference brackets" href="#thread-wiki" id="id3" role="doc-noteref"><span class="fn-bracket">[</span>3<span class="fn-bracket">]</span></a>.</p>
+<p>To support thread-local variables, symbols such as <strong>tlsgd</strong>, <strong>tlsldm</strong>,
+<strong>dtp_hi</strong>, <strong>dtp_lo</strong>, <strong>gottp</strong>, <strong>tp_hi</strong>, and <strong>tp_lo</strong> must be handled in
+both <cite>evaluateRelocExpr()</cite> of <cite>Cpu0AsmParser.cpp</cite> and <cite>printImpl()</cite> of
+<cite>Cpu0MCExpr.cpp</cite>.</p>
+<p>Most of these symbols are used for relocation record handling,
+because the actual thread-local storage is created by the OS or language
+runtime that supports multi-threaded programming.</p>
 <p class="rubric">lbdex/chapters/Chapter12_1/MCTargetDesc/Cpu0AsmBackend.cpp</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">const</span> <span class="n">MCFixupKindInfo</span> <span class="o">&amp;</span><span class="n">Cpu0AsmBackend</span><span class="p">::</span>
 <span class="n">getFixupKindInfo</span><span class="p">(</span><span class="n">MCFixupKind</span> <span class="n">Kind</span><span class="p">)</span> <span class="n">const</span> <span class="p">{</span>
@@ -612,13 +641,15 @@ _Z15test_thread_varv:
   ...
 </pre></div>
 </div>
-<p>In pic mode, the __thread variable access by call function __tls_get_addr with
-the address of thread variable.
-The c++11 standard thread_local variable is accessed by calling function _ZTW1b
-which also call the function __tls_get_addr to get the thread_local variable
-address.
-In static mode, the thread variable is accessed by getting address of thread
-variables “a” and “b” with machine instructions as follows,</p>
+<p>In PIC (Position-Independent Code) mode, the <cite>__thread</cite> variable is accessed by
+calling the function <cite>__tls_get_addr</cite> with the address of the thread-local
+variable as an argument.</p>
+<p>For C++11 <cite>thread_local</cite> variables, the compiler generates a call to the function
+<cite>_ZTW1b</cite>, which internally calls <cite>__tls_get_addr</cite> to retrieve the address of the
+<cite>thread_local</cite> variable.</p>
+<p>In static mode, thread-local variables are accessed directly by loading their
+addresses using machine instructions. For example, variables <cite>a</cite> and <cite>b</cite> are
+accessed through direct address calculation instructions.</p>
 <div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">JonathantekiiMac:input Jonathan$ </span>/Users/Jonathan/llvm/test/build/
 <span class="go">bin/llc -march=cpu0 -relocation-model=static -filetype=asm</span>
 <span class="go">ch12_thread_var.bc -o ch12_thread_var.cpu0.static.s</span>
@@ -635,13 +666,14 @@ ori  $2, $2, %tp_lo(b)
 ...
 </pre></div>
 </div>
-<p>While Mips uses rdhwr instruction to access thread varaible as below,
-Cpu0 access thread varaible without inventing any new instruction.
-The thread variables are keeped in thread varaible memory location which
-accessed through %tp_hi and %tp_lo, and furthermore, this section of memory is
-protected through kernel mode program.
-Thus, the user mode program cannot access this area of memory and
-no space to breathe for hack program.</p>
+<p>While MIPS uses the <cite>rdhwr</cite> instruction to access thread-local variables, Cpu0
+accesses thread-local variables without introducing any new instructions.</p>
+<p>Thread-local variables in Cpu0 are stored in a dedicated thread-local memory
+region, which is accessed through <cite>%tp_hi</cite> and <cite>%tp_lo</cite>. This memory section is
+protected by the kernel, meaning it can only be accessed in kernel mode.</p>
+<p>As a result, user-mode programs cannot access this memory region, leaving no room
+for potential exploits or malicious programs to interfere with thread-local
+storage.</p>
 <div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">JonathantekiiMac:input Jonathan$ </span>/Users/Jonathan/llvm/test/build/
 <span class="go">bin/llc -march=mips -relocation-model=static -filetype=asm</span>
 <span class="go">ch12_thread_var.bc -o -</span>
@@ -663,8 +695,13 @@ no space to breathe for hack program.</p>
 In general, they are same in IRs, DAGs and machine code translation.
 List them in the following tables.
 You can check them with debug option enabled.</p>
-<table class="docutils align-default" id="id19">
-<caption><span class="caption-number">Table 39 </span><span class="caption-text">The DAGs of thread varaible of static mode</span><a class="headerlink" href="#id19" title="Permalink to this table">¶</a></caption>
+<p>In static mode, the thread variable behaves similarly to a global variable.
+In general, they are the same in terms of LLVM IR, DAG, and machine code
+translation.</p>
+<p>You can refer to the following tables for a detailed comparison.</p>
+<p>To observe this in action, compile and check with debug options enabled.</p>
+<table class="docutils align-default" id="id18">
+<caption><span class="caption-number">Table 39 </span><span class="caption-text">The DAGs of thread varaible of static mode</span><a class="headerlink" href="#id18" title="Permalink to this table">¶</a></caption>
 <thead>
 <tr class="row-odd"><th class="head"><p>stage</p></th>
 <th class="head"><p>DAG</p></th>
@@ -694,8 +731,8 @@ You can check them with debug option enabled.</p>
 </tr>
 </tbody>
 </table>
-<table class="docutils align-default" id="id20">
-<caption><span class="caption-number">Table 40 </span><span class="caption-text">The DAGs of local_thread varaible of static mode</span><a class="headerlink" href="#id20" title="Permalink to this table">¶</a></caption>
+<table class="docutils align-default" id="id19">
+<caption><span class="caption-number">Table 40 </span><span class="caption-text">The DAGs of local_thread varaible of static mode</span><a class="headerlink" href="#id19" title="Permalink to this table">¶</a></caption>
 <thead>
 <tr class="row-odd"><th class="head"><p>stage</p></th>
 <th class="head"><p>DAG</p></th>
@@ -726,44 +763,569 @@ You can check them with debug option enabled.</p>
 </tbody>
 </table>
 </section>
-<section id="atomic">
-<h2><a class="toc-backref" href="#id27" role="doc-backlink">Atomic</a><a class="headerlink" href="#atomic" title="Permalink to this heading">¶</a></h2>
-<p>In tradition, C uses different API which provided by OS or library to support
-multi-thread programming. For example, posix thread API on unix/linux, MS
-windows API, …, etc. In order to achieve synchronization to solve race
-condition between threads, OS provide their own lock or semaphore functions to
-programmer. But this solution is OS dependent.
-After c++11, programmer can use atomic to program and run the code
-on every different platform since the thread and atomic are part of c++ standard.
-Beside of portability, the other important benifit is the compiler can generate
-high performance code by the target hardware instructions rather than couting on
-lock() function only <a class="footnote-reference brackets" href="#atomic-wiki" id="id4" role="doc-noteref"><span class="fn-bracket">[</span>5<span class="fn-bracket">]</span></a> <a class="footnote-reference brackets" href="#atomic-stackoverflow" id="id5" role="doc-noteref"><span class="fn-bracket">[</span>6<span class="fn-bracket">]</span></a>
-<a class="footnote-reference brackets" href="#atomic-herbsutter" id="id6" role="doc-noteref"><span class="fn-bracket">[</span>7<span class="fn-bracket">]</span></a>.</p>
-<p>Compare-and-swap operation <a class="footnote-reference brackets" href="#cas-wiki" id="id7" role="doc-noteref"><span class="fn-bracket">[</span>9<span class="fn-bracket">]</span></a> is used to implement synchronization
-primitives like semaphores and mutexes, as well as more sophisticated
-wait-free and lock-free <a class="footnote-reference brackets" href="#lf-wiki" id="id8" role="doc-noteref"><span class="fn-bracket">[</span>8<span class="fn-bracket">]</span></a> algorithms.
-For atomic variables, Mips lock instructions, ll and sc, to solve the race
-condition problem. The semantic as follows,</p>
+<section id="c-memory-order">
+<h2><a class="toc-backref" href="#id28" role="doc-backlink">C++ Memory Order <a class="footnote-reference brackets" href="#cpp-mem-order" id="id4" role="doc-noteref"><span class="fn-bracket">[</span>5<span class="fn-bracket">]</span></a></a><a class="headerlink" href="#c-memory-order" title="Permalink to this heading">¶</a></h2>
+<section id="background">
+<h3><a class="toc-backref" href="#id29" role="doc-backlink">Background</a><a class="headerlink" href="#background" title="Permalink to this heading">¶</a></h3>
+<p>Before <strong>C++11</strong>, multi-threaded programming relied on <strong>mutexes, volatile
+variables, and platform-specific atomic operations</strong>, leading to inefficiencies
+and undefined behavior.</p>
+<p>For RISC CPU, <strong>only load/store instruction have accessed memory.</strong>
+Atomic instructions are memory access instructions to provide memory consistence
+for multi-cores.</p>
+<p>CPU has atomic operations (compare-and-swap <a class="footnote-reference brackets" href="#cas-wiki" id="id5" role="doc-noteref"><span class="fn-bracket">[</span>6<span class="fn-bracket">]</span></a> or ll/sc instruction)
+and BARRIER or
+SYNC instructions to support memory order. <strong>However no C++ statements tell
+compiler to controll the ordering for load/store instructions.</strong></p>
+<p>To solve this, <strong>C++11 introduced memory orderings in `std::atomic`</strong> to give
+programmers <strong>fine-grained control</strong> over synchronization.</p>
+<p>Before <strong>C++11</strong>, multi-threaded programming relied on <strong>mutexes, volatile
+variables, and platform-specific atomic operations</strong>, which often led to
+inefficiencies and undefined behavior.</p>
+<p>For RISC CPUs, <strong>only load/store instructions access memory.</strong> Atomic
+instructions ensure memory consistency across multiple cores.</p>
+<p>CPUs provide atomic operations such as <strong>compare-and-swap</strong> <a class="footnote-reference brackets" href="#cas-wiki" id="id6" role="doc-noteref"><span class="fn-bracket">[</span>6<span class="fn-bracket">]</span></a> or
+<strong>ll/sc (load-linked/store-conditional)</strong>, along with <strong>BARRIER</strong> or <strong>SYNC</strong>
+instructions to enforce memory ordering. However, <strong>C++03 did not have a language
+feature to tell the compiler how to control memory order for load/store
+instructions.</strong></p>
+<p>To address this, <strong>C++11 introduced memory orderings via `std::atomic`</strong>, giving
+programmers <strong>fine-grained control</strong> over synchronization and memory consistency.</p>
+<section id="the-problem-before-c-11">
+<h4><a class="toc-backref" href="#id30" role="doc-backlink">The Problem Before C++11</a><a class="headerlink" href="#the-problem-before-c-11" title="Permalink to this heading">¶</a></h4>
+<ol class="arabic simple">
+<li><p><strong>Unspecified Behavior in Multi-threading</strong></p>
 <ul class="simple">
-<li><p>Load-link returns the current value of a memory location, while a subsequent
-store-conditional to the same memory location will store a new value only if
-no updates have occurred to that location since the load-link.
-If any updates have occurred, the store-conditional is guaranteed to fail,
-even if the value read by the load-link has since been restored. <a class="footnote-reference brackets" href="#ll-wiki" id="id9" role="doc-noteref"><span class="fn-bracket">[</span>10<span class="fn-bracket">]</span></a></p></li>
+<li><p>The C++98/03 standard had <strong>no formal memory model</strong>.</p></li>
+<li><p>Compilers <strong>optimized code aggressively</strong>, leading to race conditions.</p></li>
+<li><p>Without a memory model, a compiler may not apply such optimizations to
+multi-threaded programs at all, or it may apply optimizations that are
+incompatible with multi-threading, leading to bugs <a class="footnote-reference brackets" href="#atomic-wiki" id="id7" role="doc-noteref"><span class="fn-bracket">[</span>7<span class="fn-bracket">]</span></a>.</p></li>
 </ul>
-<p>Mips sync and ARM/X86-64 memory-barrier instruction <a class="footnote-reference brackets" href="#mb-wiki" id="id10" role="doc-noteref"><span class="fn-bracket">[</span>11<span class="fn-bracket">]</span></a> provide
-synchronization mechanism very efficiently in some scenarios.</p>
-<p>Mips sync <a class="footnote-reference brackets" href="#mips-sync" id="id11" role="doc-noteref"><span class="fn-bracket">[</span>12<span class="fn-bracket">]</span></a> is explained simply as follows,</p>
-<p>A Simple Description:
-SYNC affects only uncached and cached coherent loads and stores. The loads and
-stores that occur prior to the SYNC must be completed before the loads and
-stores after the SYNC are allowed to start.
-Loads are completed when the destination register is written. Stores are completed
-when the stored value is visible to every other processor in the system.</p>
+</li>
+<li><p><strong>Reliance on Volatile and Platform-specific Primitives</strong></p>
+<ul class="simple">
+<li><p><cite>volatile</cite> <strong>did not</strong> prevent reordering by the compiler.</p></li>
+<li><p>Programmers had to use <strong>OS-specific APIs (e.g., `pthread_mutex`)</strong>
+<a class="footnote-reference brackets" href="#atomic-stackoverflow" id="id8" role="doc-noteref"><span class="fn-bracket">[</span>8<span class="fn-bracket">]</span></a>.</p></li>
+</ul>
+</li>
+<li><p><strong>Inefficient Synchronization Mechanisms</strong></p>
+<ul class="simple">
+<li><p>Mutexes ensured correctness but <strong>caused performance overhead</strong>.</p></li>
+<li><p><strong>Spin-locks wasted CPU cycles</strong> due to busy-waiting.</p></li>
+</ul>
+</li>
+</ol>
+</section>
+<section id="c-11-memory-model-solution">
+<h4><a class="toc-backref" href="#id31" role="doc-backlink">C++11 Memory Model Solution</a><a class="headerlink" href="#c-11-memory-model-solution" title="Permalink to this heading">¶</a></h4>
+<p>C++11 introduced <strong>a well-defined memory model</strong> and <strong>atomic operations</strong> with
+<strong>memory orderings</strong>, allowing programmers to control hardware-level
+optimizations.</p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p><strong>Feature</strong></p></th>
+<th class="head"><p><strong>Description</strong></p></th>
+<th class="head"><p><strong>Benefit</strong></p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><cite>std::atomic</cite></p></td>
+<td><p>Provides lock-free atomic variables</p></td>
+<td><p>Faster than mutexes</p></td>
+</tr>
+<tr class="row-odd"><td><p>Memory Orderings (<cite>std::memory_order</cite>)</p></td>
+<td><p>Controls instruction reordering</p></td>
+<td><p>Fine-grained optimization</p></td>
+</tr>
+<tr class="row-even"><td><p>Sequential Consistency (<cite>memory_order_seq_cst</cite>)</p></td>
+<td><p>Strongest ordering, default behavior</p></td>
+<td><p>Prevents race conditions</p></td>
+</tr>
+<tr class="row-odd"><td><p>Acquire-Release (<cite>memory_order_acquire/release</cite>)</p></td>
+<td><p>Synchronization without mutexes</p></td>
+<td><p>Efficient producer-consumer</p></td>
+</tr>
+<tr class="row-even"><td><p>Relaxed Ordering (<cite>memory_order_relaxed</cite>)</p></td>
+<td><p>Allows reordering for performance</p></td>
+<td><p>Best for atomic counters</p></td>
+</tr>
+</tbody>
+</table>
+<table class="docutils align-default" id="id20">
+<caption><span class="caption-number">Table 41 </span><span class="caption-text">C++ memory order</span><a class="headerlink" href="#id20" title="Permalink to this table">¶</a></caption>
+<thead>
+<tr class="row-odd"><th class="head"><p><strong>Memory Order</strong></p></th>
+<th class="head"><p><strong>Description</strong></p></th>
+<th class="head"><p><strong>Use Cases</strong></p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><cite>memory_order_relaxed</cite></p></td>
+<td><p>No ordering guarantees; only atomicity.</p></td>
+<td><p>Non-dependent atomic counters, statistics.</p></td>
+</tr>
+<tr class="row-odd"><td><p><cite>memory_order_consume</cite></p></td>
+<td><p>Data-dependent ordering (deprecated in practice).</p></td>
+<td><p>Rarely used; intended for pointer chains.</p></td>
+</tr>
+<tr class="row-even"><td><p><cite>memory_order_acquire</cite></p></td>
+<td><p>Ensures preceding reads/writes are visible.</p></td>
+<td><p>Locks, consumer threads.</p></td>
+</tr>
+<tr class="row-odd"><td><p><cite>memory_order_release</cite></p></td>
+<td><p>Ensures following reads/writes are visible.</p></td>
+<td><p>Locks, producer threads.</p></td>
+</tr>
+<tr class="row-even"><td><p><cite>memory_order_acq_rel</cite></p></td>
+<td><p>Combines acquire + release.</p></td>
+<td><p>Read-modify-write operations, synchronization.</p></td>
+</tr>
+<tr class="row-odd"><td><p><cite>memory_order_seq_cst</cite></p></td>
+<td><p>Strongest ordering; global sequential consistency.</p></td>
+<td><p>Default behavior, safest but can be slow.</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="key-memory-order-introductions">
+<h4><a class="toc-backref" href="#id32" role="doc-backlink">Key Memory Order Introductions</a><a class="headerlink" href="#key-memory-order-introductions" title="Permalink to this heading">¶</a></h4>
+<ol class="arabic simple">
+<li><p><strong>Sequential Consistency (`memory_order_seq_cst`)</strong></p>
+<ul class="simple">
+<li><p><strong>Prevents reordering globally.</strong></p></li>
+<li><p><strong>Ensures</strong> all threads observe operations in the same order.</p></li>
+<li><p><strong>Default behavior</strong> of <cite>std::atomic</cite>.</p></li>
+<li><p>Provides <strong>global order of operations</strong>, preventing out-of-order execution.</p></li>
+<li><p>The safest but can cause <strong>performance overhead</strong>.</p></li>
+</ul>
+</li>
+<li><p><strong>Acquire-Release (`memory_order_acquire/release`)</strong></p>
+<ul class="simple">
+<li><p><strong>Efficient alternative to mutexes.</strong></p></li>
+<li><p><cite>acquire</cite>: Ensures earlier loads are visible.</p></li>
+<li><p><cite>release</cite>: Ensures later stores are visible.</p></li>
+<li><p>Used in <strong>lock-free producer-consumer models</strong> <a class="footnote-reference brackets" href="#lf-wiki" id="id9" role="doc-noteref"><span class="fn-bracket">[</span>9<span class="fn-bracket">]</span></a>.</p></li>
+</ul>
+</li>
+<li><p><strong>Relaxed Ordering (`memory_order_relaxed`)</strong></p>
+<ul class="simple">
+<li><p>Allows <strong>maximum performance</strong> without ordering constraints.</p></li>
+<li><p>Best for <strong>counters and statistics</strong> that don’t need synchronization.</p></li>
+<li><p>Example: <strong>Atomic counters</strong> that don’t require ordering.</p></li>
+</ul>
+</li>
+<li><p><strong>`memory_order_acq_rel`</strong></p></li>
+</ol>
+<blockquote>
+<div><ul class="simple">
+<li><p>Used in <strong>atomic read-modify-write operations</strong> like <cite>fetch_add</cite>.</p></li>
+<li><p>Ensures proper ordering in concurrent updates.</p></li>
+</ul>
+</div></blockquote>
+</section>
+<section id="conclusion">
+<h4><a class="toc-backref" href="#id33" role="doc-backlink">Conclusion</a><a class="headerlink" href="#conclusion" title="Permalink to this heading">¶</a></h4>
+<ul class="simple">
+<li><p><strong>C++11 introduced memory order to define a consistent multi-threaded model.</strong></p></li>
+<li><p><strong>It prevents race conditions while optimizing performance.</strong></p></li>
+<li><p><strong>Use relaxed ordering for performance, acquire-release for synchronization,
+and sequential consistency for safety.</strong></p></li>
+</ul>
+</section>
+<section id="example-usage-in-code">
+<h4><a class="toc-backref" href="#id34" role="doc-backlink">Example Usage in Code</a><a class="headerlink" href="#example-usage-in-code" title="Permalink to this heading">¶</a></h4>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="n">std</span><span class="o">::</span><span class="n">atomic</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span><span class="w"> </span><span class="n">counter</span><span class="p">(</span><span class="mi">0</span><span class="p">);</span><span class="w"></span>
+
+<span class="kt">void</span><span class="w"> </span><span class="nf">producer</span><span class="p">()</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="n">counter</span><span class="p">.</span><span class="n">store</span><span class="p">(</span><span class="mi">42</span><span class="p">,</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">memory_order_release</span><span class="p">);</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
+
+<span class="kt">void</span><span class="w"> </span><span class="nf">consumer</span><span class="p">()</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="n">value</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">counter</span><span class="p">.</span><span class="n">load</span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="n">memory_order_acquire</span><span class="p">);</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
+</pre></div>
+</div>
+<ul class="simple">
+<li><p><strong>Ensures `consumer()` sees the updated value from `producer()` safely.</strong></p></li>
+<li><p>Avoids <strong>race conditions</strong> without unnecessary locking.</p></li>
+</ul>
+</section>
+<section id="id10">
+<h4><a class="toc-backref" href="#id35" role="doc-backlink">Conclusion</a><a class="headerlink" href="#id10" title="Permalink to this heading">¶</a></h4>
+<ul class="simple">
+<li><p>Use <strong>`memory_order_relaxed`</strong> for <strong>performance</strong> when ordering is
+unnecessary.</p></li>
+<li><p>Use <strong>`memory_order_acquire/release`</strong> for <strong>synchronization</strong> between
+threads.</p></li>
+<li><p>Use <strong>`memory_order_seq_cst`</strong> when you need <strong>global ordering but at a
+performance cost</strong>.</p></li>
+</ul>
+</section>
+</section>
+<section id="example-code-for-producer-consumer">
+<h3><a class="toc-backref" href="#id36" role="doc-backlink">Example code for producer-consumer</a><a class="headerlink" href="#example-code-for-producer-consumer" title="Permalink to this heading">¶</a></h3>
+<p>Example code of C++ code for producer-consumer as follows,</p>
+<p class="rubric">References/c++/mem-order-ex1.cpp (C++ code of memory order for
+producer-consumer)</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>#include &lt;iostream&gt;
+#include &lt;thread&gt;
+#include &lt;atomic&gt;
+
+std::atomic&lt;int&gt; data(0);
+std::atomic&lt;bool&gt; ready(false);
+
+void producer() {
+    data.store(42, std::memory_order_relaxed); // Store value
+    ready.store(true, std::memory_order_release); // Release signal
+}
+
+void consumer() {
+    while (!ready.load(std::memory_order_acquire)); // Wait for ready signal
+
+    // Ensure that this print sees the correct value of `data`
+    std::cout &lt;&lt; &quot;Data: &quot; &lt;&lt; data.load(std::memory_order_relaxed) &lt;&lt; std::endl;
+}
+
+int main() {
+    std::thread t1(producer);
+    std::thread t2(consumer);
+
+    t1.join();
+    t2.join();
+
+    return 0;
+}
+
+</pre></div>
+</div>
+<p>Explaining as <a class="reference internal" href="#mem-o-hw"><span class="std std-numref">Fig. 57</span></a> and follows,</p>
+<figure class="align-default" id="id21">
+<span id="mem-o-hw"></span><div class="graphviz"><img src="_images/graphviz-95e351b5cf89d1a459cfaadd204004716c249546.png" alt="digraph MemoryOrderAcquireCache {
+    rankdir=TB;
+    node [shape=box, fontname=&quot;Helvetica&quot;];
+
+    // Main memory
+    MainMemory [label=&quot;Main Memory&quot;, shape=cylinder, style=filled, fillcolor=lightgray];
+
+    // CPU caches
+    subgraph cluster_cache1 {
+        label=&quot;CPU Core 1 Cache (Thread 1 - Producer)&quot;;
+        style=dashed;
+        Cache1_Data [label=&quot;data=42 (Stale?)&quot;];
+        Cache1_Ready [label=&quot;ready=true&quot;];
+    }
+
+    subgraph cluster_cache2 {
+        label=&quot;CPU Core 2 Cache (Thread 2 - Consumer)&quot;;
+        style=dashed;
+        Cache2_Data [label=&quot;data=?&quot;];
+        Cache2_Ready [label=&quot;ready=false&quot;];
+    }
+
+    // Threads
+    Thread1 [label=&quot;Thread 1 (Producer)&quot;];
+    Thread2 [label=&quot;Thread 2 (Consumer)&quot;];
+
+    // Memory operations in Thread 1 (Producer)
+    Thread1 -&gt; Cache1_Data [label=&quot;data.store(42, relaxed)&quot;];
+    Thread1 -&gt; Cache1_Ready [label=&quot;ready.store(true, release)&quot;];
+    
+    // Memory propagation
+    Cache1_Ready -&gt; MainMemory [label=&quot;ready=true propagated&quot;, color=red];
+    MainMemory -&gt; Cache2_Ready [label=&quot;Consumer sees ready=true (Acquire)&quot;, color=red];
+
+    // Memory operations in Thread 2 (Consumer)
+    Thread2 -&gt; Cache2_Ready [label=&quot;while (!ready.load(acquire));&quot;];
+    Cache2_Ready -&gt; Cache2_Data [label=&quot;data.load(relaxed)&quot;, color=blue];
+
+    // Synchronization path
+    Cache1_Ready -&gt; Cache2_Ready [label=&quot;Acquire-Release Sync&quot;, style=dashed, color=purple];
+}" class="graphviz" /></div>
+<figcaption>
+<p><span class="caption-number">Fig. 57 </span><span class="caption-text">Diagram for mem-order-ex1.cpp</span><a class="headerlink" href="#id21" title="Permalink to this image">¶</a></p>
+</figcaption>
+</figure>
+<p>Diagram Explanation:</p>
+<ul class="simple">
+<li><p><strong>CPU Core 1 (Thread 1 - Producer)</strong></p>
+<ul>
+<li><p>Writes 42 to data with memory_order_relaxed (not immediately visible).</p></li>
+<li><p>Writes true to ready with memory_order_release, ensuring prior stores are
+visible before this write.</p></li>
+</ul>
+</li>
+<li><p><strong>Main Memory</strong></p>
+<ul>
+<li><p>ready=true propagates to main memory, making it visible to all cores.</p></li>
+</ul>
+</li>
+<li><p><strong>CPU Core 2 (Thread 2 - Consumer)</strong></p>
+<ul>
+<li><p>Waits until ready=true with memory_order_acquire, ensuring visibility of all
+previous writes.</p></li>
+<li><p>After acquiring ready, loads data, which is now guaranteed to be 42.</p></li>
+</ul>
+</li>
+</ul>
+</section>
+<section id="comparison-of-producer-consumer-with-busy-waiting">
+<h3><a class="toc-backref" href="#id37" role="doc-backlink">Comparison of Producer-Consumer with Busy Waiting</a><a class="headerlink" href="#comparison-of-producer-consumer-with-busy-waiting" title="Permalink to this heading">¶</a></h3>
+<p>This section compares different <strong>lock-free</strong> implementations of the
+producer-consumer, <strong>SPSC (Single-Producer, Single-Consumer)</strong> problem
+using a <strong>busy-waiting</strong> algorithm in the following approaches:</p>
+<ol class="arabic simple">
+<li><p><strong>Linux API with busy-waiting</strong> (using <cite>std::atomic</cite>)</p></li>
+<li><p><strong>MIPS atomic and sync instructions</strong> (using <cite>ll</cite>, <cite>sc</cite>, <cite>sync</cite>)</p></li>
+<li><p><strong>C++ memory order</strong> (lock-free, busy-waiting)</p></li>
+</ol>
+<p>Each approach avoids locks (<strong>lock-free</strong>) but relies on busy-waiting, which
+affects performance.</p>
+<section id="linux-api-with-busy-waiting-using-std-atomic">
+<h4><a class="toc-backref" href="#id38" role="doc-backlink">1. Linux API with Busy Waiting (Using <cite>std::atomic</cite>)</a><a class="headerlink" href="#linux-api-with-busy-waiting-using-std-atomic" title="Permalink to this heading">¶</a></h4>
+<p>This implementation uses <cite>std::atomic&lt;int&gt;</cite> for atomic operations and a circular
+buffer for data exchange. It relies on busy-waiting when the buffer is full or empty.</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;iostream&gt;</span><span class="cp"></span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;array&gt;</span><span class="cp"></span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;atomic&gt;</span><span class="cp"></span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;thread&gt;</span><span class="cp"></span>
+
+<span class="k">constexpr</span><span class="w"> </span><span class="kt">size_t</span><span class="w"> </span><span class="n">BUFFER_SIZE</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">8</span><span class="p">;</span><span class="w"></span>
+<span class="n">std</span><span class="o">::</span><span class="n">array</span><span class="o">&lt;</span><span class="kt">int</span><span class="p">,</span><span class="w"> </span><span class="n">BUFFER_SIZE</span><span class="o">&gt;</span><span class="w"> </span><span class="n">buffer</span><span class="p">;</span><span class="w"></span>
+<span class="n">std</span><span class="o">::</span><span class="n">atomic</span><span class="o">&lt;</span><span class="kt">size_t</span><span class="o">&gt;</span><span class="w"> </span><span class="n">head</span><span class="p">(</span><span class="mi">0</span><span class="p">);</span><span class="w"></span>
+<span class="n">std</span><span class="o">::</span><span class="n">atomic</span><span class="o">&lt;</span><span class="kt">size_t</span><span class="o">&gt;</span><span class="w"> </span><span class="n">tail</span><span class="p">(</span><span class="mi">0</span><span class="p">);</span><span class="w"></span>
+
+<span class="kt">bool</span><span class="w"> </span><span class="nf">enqueue</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">item</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="kt">size_t</span><span class="w"> </span><span class="n">current_tail</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">tail</span><span class="p">.</span><span class="n">load</span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="n">memory_order_relaxed</span><span class="p">);</span><span class="w"></span>
+<span class="w">    </span><span class="kt">size_t</span><span class="w"> </span><span class="n">next_tail</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="n">current_tail</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="o">%</span><span class="w"> </span><span class="n">BUFFER_SIZE</span><span class="p">;</span><span class="w"></span>
+
+<span class="w">    </span><span class="k">while</span><span class="w"> </span><span class="p">(</span><span class="n">next_tail</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">head</span><span class="p">.</span><span class="n">load</span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="n">memory_order_acquire</span><span class="p">))</span><span class="w"> </span><span class="p">{}</span><span class="w"> </span><span class="c1">// Busy-wait</span>
+
+<span class="w">    </span><span class="n">buffer</span><span class="p">[</span><span class="n">current_tail</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">item</span><span class="p">;</span><span class="w"></span>
+<span class="w">    </span><span class="n">tail</span><span class="p">.</span><span class="n">store</span><span class="p">(</span><span class="n">next_tail</span><span class="p">,</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">memory_order_release</span><span class="p">);</span><span class="w"></span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="nb">true</span><span class="p">;</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
+
+<span class="kt">bool</span><span class="w"> </span><span class="nf">dequeue</span><span class="p">(</span><span class="kt">int</span><span class="o">&amp;</span><span class="w"> </span><span class="n">item</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="kt">size_t</span><span class="w"> </span><span class="n">current_head</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">head</span><span class="p">.</span><span class="n">load</span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="n">memory_order_relaxed</span><span class="p">);</span><span class="w"></span>
+
+<span class="w">    </span><span class="k">while</span><span class="w"> </span><span class="p">(</span><span class="n">current_head</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">tail</span><span class="p">.</span><span class="n">load</span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="n">memory_order_acquire</span><span class="p">))</span><span class="w"> </span><span class="p">{}</span><span class="w"> </span><span class="c1">// Busy-wait</span>
+
+<span class="w">    </span><span class="n">item</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">buffer</span><span class="p">[</span><span class="n">current_head</span><span class="p">];</span><span class="w"></span>
+<span class="w">    </span><span class="n">head</span><span class="p">.</span><span class="n">store</span><span class="p">((</span><span class="n">current_head</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="o">%</span><span class="w"> </span><span class="n">BUFFER_SIZE</span><span class="p">,</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">memory_order_release</span><span class="p">);</span><span class="w"></span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="nb">true</span><span class="p">;</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
+
+<span class="kt">void</span><span class="w"> </span><span class="nf">producer</span><span class="p">()</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">&lt;=</span><span class="w"> </span><span class="mi">10</span><span class="p">;</span><span class="w"> </span><span class="o">++</span><span class="n">i</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">        </span><span class="n">enqueue</span><span class="p">(</span><span class="n">i</span><span class="p">);</span><span class="w"></span>
+<span class="w">        </span><span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;Produced: &quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span><span class="w"></span>
+<span class="w">    </span><span class="p">}</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
+
+<span class="kt">void</span><span class="w"> </span><span class="nf">consumer</span><span class="p">()</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="n">item</span><span class="p">;</span><span class="w"></span>
+<span class="w">    </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">&lt;=</span><span class="w"> </span><span class="mi">10</span><span class="p">;</span><span class="w"> </span><span class="o">++</span><span class="n">i</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">        </span><span class="n">dequeue</span><span class="p">(</span><span class="n">item</span><span class="p">);</span><span class="w"></span>
+<span class="w">        </span><span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;Consumed: &quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">item</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span><span class="w"></span>
+<span class="w">    </span><span class="p">}</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
+
+<span class="kt">int</span><span class="w"> </span><span class="nf">main</span><span class="p">()</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="kr">thread</span><span class="w"> </span><span class="n">prod</span><span class="p">(</span><span class="n">producer</span><span class="p">);</span><span class="w"></span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="kr">thread</span><span class="w"> </span><span class="n">cons</span><span class="p">(</span><span class="n">consumer</span><span class="p">);</span><span class="w"></span>
+
+<span class="w">    </span><span class="n">prod</span><span class="p">.</span><span class="n">join</span><span class="p">();</span><span class="w"></span>
+<span class="w">    </span><span class="n">cons</span><span class="p">.</span><span class="n">join</span><span class="p">();</span><span class="w"></span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
+</pre></div>
+</div>
+</section>
+<section id="mips-atomic-and-sync-instructions-ll-sc-sync">
+<h4><a class="toc-backref" href="#id39" role="doc-backlink">2. MIPS Atomic and Sync Instructions (<cite>ll</cite>, <cite>sc</cite>, <cite>sync</cite>)</a><a class="headerlink" href="#mips-atomic-and-sync-instructions-ll-sc-sync" title="Permalink to this heading">¶</a></h4>
+<p>This implementation uses MIPS low-level atomic instructions (<cite>ll</cite>, <cite>sc</cite>, <cite>sync</cite>).
+It ensures atomicity using <cite>ll/sc</cite> and relies on busy-waiting.</p>
+<div class="highlight-nasm notranslate"><div class="highlight"><pre><span></span><span class="nf">.data</span><span class="w"></span>
+<span class="nl">buffer:</span><span class="w"> </span><span class="nf">.space</span><span class="w"> </span><span class="mi">4</span><span class="w">     </span><span class="c1"># Shared buffer (1 item)</span><span class="w"></span>
+<span class="nl">flag:</span><span class="w">   </span><span class="nf">.word</span><span class="w"> </span><span class="mi">0</span><span class="w">      </span><span class="c1"># 0 = empty, 1 = full</span><span class="w"></span>
+
+<span class="nf">.text</span><span class="w"></span>
+<span class="nf">.globl</span><span class="w"> </span><span class="nv">producer</span><span class="p">,</span><span class="w"> </span><span class="nv">consumer</span><span class="w"></span>
+
+<span class="nl">producer:</span><span class="w"></span>
+<span class="w">    </span><span class="nf">li</span><span class="w"> </span><span class="kc">$</span><span class="nv">t0</span><span class="p">,</span><span class="w"> </span><span class="mi">10</span><span class="w">       </span><span class="c1"># Produce 10 items</span><span class="w"></span>
+<span class="nl">produce_loop:</span><span class="w"></span>
+<span class="w">    </span><span class="nf">bgtz</span><span class="w"> </span><span class="kc">$</span><span class="nv">t0</span><span class="p">,</span><span class="w"> </span><span class="nv">produce_item</span><span class="w"></span>
+<span class="w">    </span><span class="nf">j</span><span class="w"> </span><span class="nv">end</span><span class="w"></span>
+
+<span class="nl">produce_item:</span><span class="w"></span>
+<span class="w">    </span><span class="c1"># Busy-wait until buffer is empty</span><span class="w"></span>
+<span class="nl">wait_empty:</span><span class="w"></span>
+<span class="w">    </span><span class="nf">ll</span><span class="w"> </span><span class="kc">$</span><span class="nv">t1</span><span class="p">,</span><span class="w"> </span><span class="nv">flag</span><span class="w"></span>
+<span class="w">    </span><span class="nf">bne</span><span class="w"> </span><span class="kc">$</span><span class="nv">t1</span><span class="p">,</span><span class="w"> </span><span class="kc">$</span><span class="nv">zero</span><span class="p">,</span><span class="w"> </span><span class="nv">wait_empty</span><span class="w"></span>
+
+<span class="w">    </span><span class="nf">li</span><span class="w"> </span><span class="kc">$</span><span class="nv">t2</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="w"></span>
+<span class="w">    </span><span class="nf">sc</span><span class="w"> </span><span class="kc">$</span><span class="nv">t2</span><span class="p">,</span><span class="w"> </span><span class="nv">flag</span><span class="w"></span>
+<span class="w">    </span><span class="nf">beqz</span><span class="w"> </span><span class="kc">$</span><span class="nv">t2</span><span class="p">,</span><span class="w"> </span><span class="nv">wait_empty</span><span class="w">  </span><span class="c1"># Retry if store failed</span><span class="w"></span>
+
+<span class="w">    </span><span class="nf">li</span><span class="w"> </span><span class="kc">$</span><span class="nv">t3</span><span class="p">,</span><span class="w"> </span><span class="mi">42</span><span class="w"></span>
+<span class="w">    </span><span class="nf">sw</span><span class="w"> </span><span class="kc">$</span><span class="nv">t3</span><span class="p">,</span><span class="w"> </span><span class="nv">buffer</span><span class="w"></span>
+
+<span class="w">    </span><span class="nf">sync</span><span class="w"></span>
+
+<span class="w">    </span><span class="nf">sub</span><span class="w"> </span><span class="kc">$</span><span class="nv">t0</span><span class="p">,</span><span class="w"> </span><span class="kc">$</span><span class="nv">t0</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="w"></span>
+<span class="w">    </span><span class="nf">j</span><span class="w"> </span><span class="nv">produce_loop</span><span class="w"></span>
+
+<span class="nl">end:</span><span class="w"></span>
+<span class="w">    </span><span class="nf">jr</span><span class="w"> </span><span class="kc">$</span><span class="nv">ra</span><span class="w"></span>
+
+<span class="nl">consumer:</span><span class="w"></span>
+<span class="w">    </span><span class="nf">li</span><span class="w"> </span><span class="kc">$</span><span class="nv">t0</span><span class="p">,</span><span class="w"> </span><span class="mi">10</span><span class="w"></span>
+<span class="nl">consume_loop:</span><span class="w"></span>
+<span class="w">    </span><span class="nf">bgtz</span><span class="w"> </span><span class="kc">$</span><span class="nv">t0</span><span class="p">,</span><span class="w"> </span><span class="nv">consume_item</span><span class="w"></span>
+<span class="w">    </span><span class="nf">j</span><span class="w"> </span><span class="nv">end</span><span class="w"></span>
+
+<span class="nl">consume_item:</span><span class="w"></span>
+<span class="w">    </span><span class="c1"># Busy-wait until buffer is full</span><span class="w"></span>
+<span class="nl">wait_full:</span><span class="w"></span>
+<span class="w">    </span><span class="nf">ll</span><span class="w"> </span><span class="kc">$</span><span class="nv">t1</span><span class="p">,</span><span class="w"> </span><span class="nv">flag</span><span class="w"></span>
+<span class="w">    </span><span class="nf">beqz</span><span class="w"> </span><span class="kc">$</span><span class="nv">t1</span><span class="p">,</span><span class="w"> </span><span class="nv">wait_full</span><span class="w"></span>
+
+<span class="w">    </span><span class="nf">lw</span><span class="w"> </span><span class="kc">$</span><span class="nv">t3</span><span class="p">,</span><span class="w"> </span><span class="nv">buffer</span><span class="w"></span>
+<span class="w">    </span><span class="nf">li</span><span class="w"> </span><span class="kc">$</span><span class="nv">t2</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="w"></span>
+<span class="w">    </span><span class="nf">sc</span><span class="w"> </span><span class="kc">$</span><span class="nv">t2</span><span class="p">,</span><span class="w"> </span><span class="nv">flag</span><span class="w"></span>
+<span class="w">    </span><span class="nf">beqz</span><span class="w"> </span><span class="kc">$</span><span class="nv">t2</span><span class="p">,</span><span class="w"> </span><span class="nv">wait_full</span><span class="w"></span>
+
+<span class="w">    </span><span class="nf">sync</span><span class="w"></span>
+
+<span class="w">    </span><span class="nf">sub</span><span class="w"> </span><span class="kc">$</span><span class="nv">t0</span><span class="p">,</span><span class="w"> </span><span class="kc">$</span><span class="nv">t0</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="w"></span>
+<span class="w">    </span><span class="nf">j</span><span class="w"> </span><span class="nv">consume_loop</span><span class="w"></span>
+</pre></div>
+</div>
+</section>
+<section id="c-memory-order-lock-free-busy-waiting">
+<h4><a class="toc-backref" href="#id40" role="doc-backlink">3. C++ Memory Order (Lock-Free, Busy-Waiting)</a><a class="headerlink" href="#c-memory-order-lock-free-busy-waiting" title="Permalink to this heading">¶</a></h4>
+<p>This implementation uses <cite>std::memory_order</cite> for atomic synchronization.
+It relies on <strong>lock-free operations</strong> and busy-waiting when the queue is full or empty.</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;atomic&gt;</span><span class="cp"></span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;array&gt;</span><span class="cp"></span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;iostream&gt;</span><span class="cp"></span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;thread&gt;</span><span class="cp"></span>
+
+<span class="k">template</span><span class="w"> </span><span class="o">&lt;</span><span class="k">typename</span><span class="w"> </span><span class="nc">T</span><span class="p">,</span><span class="w"> </span><span class="kt">size_t</span><span class="w"> </span><span class="n">SIZE</span><span class="o">&gt;</span><span class="w"></span>
+<span class="k">class</span><span class="w"> </span><span class="nc">LockFreeQueue</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="k">private</span><span class="o">:</span><span class="w"></span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">array</span><span class="o">&lt;</span><span class="n">T</span><span class="p">,</span><span class="w"> </span><span class="n">SIZE</span><span class="o">&gt;</span><span class="w"> </span><span class="n">buffer</span><span class="p">;</span><span class="w"></span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">atomic</span><span class="o">&lt;</span><span class="kt">size_t</span><span class="o">&gt;</span><span class="w"> </span><span class="n">head</span><span class="p">{</span><span class="mi">0</span><span class="p">};</span><span class="w"></span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">atomic</span><span class="o">&lt;</span><span class="kt">size_t</span><span class="o">&gt;</span><span class="w"> </span><span class="n">tail</span><span class="p">{</span><span class="mi">0</span><span class="p">};</span><span class="w"></span>
+
+<span class="k">public</span><span class="o">:</span><span class="w"></span>
+<span class="w">    </span><span class="kt">bool</span><span class="w"> </span><span class="n">enqueue</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">T</span><span class="o">&amp;</span><span class="w"> </span><span class="n">item</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">        </span><span class="kt">size_t</span><span class="w"> </span><span class="n">current_tail</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">tail</span><span class="p">.</span><span class="n">load</span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="n">memory_order_relaxed</span><span class="p">);</span><span class="w"></span>
+<span class="w">        </span><span class="kt">size_t</span><span class="w"> </span><span class="n">next_tail</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="n">current_tail</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="o">%</span><span class="w"> </span><span class="n">SIZE</span><span class="p">;</span><span class="w"></span>
+
+<span class="w">        </span><span class="k">while</span><span class="w"> </span><span class="p">(</span><span class="n">next_tail</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">head</span><span class="p">.</span><span class="n">load</span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="n">memory_order_acquire</span><span class="p">))</span><span class="w"> </span><span class="p">{}</span><span class="w"> </span><span class="c1">// Busy-wait</span>
+
+<span class="w">        </span><span class="n">buffer</span><span class="p">[</span><span class="n">current_tail</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">item</span><span class="p">;</span><span class="w"></span>
+<span class="w">        </span><span class="n">tail</span><span class="p">.</span><span class="n">store</span><span class="p">(</span><span class="n">next_tail</span><span class="p">,</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">memory_order_release</span><span class="p">);</span><span class="w"></span>
+<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="nb">true</span><span class="p">;</span><span class="w"></span>
+<span class="w">    </span><span class="p">}</span><span class="w"></span>
+
+<span class="w">    </span><span class="kt">bool</span><span class="w"> </span><span class="n">dequeue</span><span class="p">(</span><span class="n">T</span><span class="o">&amp;</span><span class="w"> </span><span class="n">item</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">        </span><span class="kt">size_t</span><span class="w"> </span><span class="n">current_head</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">head</span><span class="p">.</span><span class="n">load</span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="n">memory_order_relaxed</span><span class="p">);</span><span class="w"></span>
+
+<span class="w">        </span><span class="k">while</span><span class="w"> </span><span class="p">(</span><span class="n">current_head</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">tail</span><span class="p">.</span><span class="n">load</span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="n">memory_order_acquire</span><span class="p">))</span><span class="w"> </span><span class="p">{}</span><span class="w"> </span><span class="c1">// Busy-wait</span>
+
+<span class="w">        </span><span class="n">item</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">buffer</span><span class="p">[</span><span class="n">current_head</span><span class="p">];</span><span class="w"></span>
+<span class="w">        </span><span class="n">head</span><span class="p">.</span><span class="n">store</span><span class="p">((</span><span class="n">current_head</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="o">%</span><span class="w"> </span><span class="n">SIZE</span><span class="p">,</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">memory_order_release</span><span class="p">);</span><span class="w"></span>
+<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="nb">true</span><span class="p">;</span><span class="w"></span>
+<span class="w">    </span><span class="p">}</span><span class="w"></span>
+<span class="p">};</span><span class="w"></span>
+
+<span class="n">LockFreeQueue</span><span class="o">&lt;</span><span class="kt">int</span><span class="p">,</span><span class="w"> </span><span class="mi">8</span><span class="o">&gt;</span><span class="w"> </span><span class="n">queue</span><span class="p">;</span><span class="w"></span>
+
+<span class="kt">void</span><span class="w"> </span><span class="nf">producer</span><span class="p">()</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">&lt;=</span><span class="w"> </span><span class="mi">10</span><span class="p">;</span><span class="w"> </span><span class="o">++</span><span class="n">i</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">        </span><span class="n">queue</span><span class="p">.</span><span class="n">enqueue</span><span class="p">(</span><span class="n">i</span><span class="p">);</span><span class="w"></span>
+<span class="w">        </span><span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;Produced: &quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span><span class="w"></span>
+<span class="w">    </span><span class="p">}</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
+
+<span class="kt">void</span><span class="w"> </span><span class="nf">consumer</span><span class="p">()</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="n">item</span><span class="p">;</span><span class="w"></span>
+<span class="w">    </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">&lt;=</span><span class="w"> </span><span class="mi">10</span><span class="p">;</span><span class="w"> </span><span class="o">++</span><span class="n">i</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">        </span><span class="n">queue</span><span class="p">.</span><span class="n">dequeue</span><span class="p">(</span><span class="n">item</span><span class="p">);</span><span class="w"></span>
+<span class="w">        </span><span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;Consumed: &quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">item</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span><span class="w"></span>
+<span class="w">    </span><span class="p">}</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
+
+<span class="kt">int</span><span class="w"> </span><span class="nf">main</span><span class="p">()</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="kr">thread</span><span class="w"> </span><span class="n">prod</span><span class="p">(</span><span class="n">producer</span><span class="p">);</span><span class="w"></span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="kr">thread</span><span class="w"> </span><span class="n">cons</span><span class="p">(</span><span class="n">consumer</span><span class="p">);</span><span class="w"></span>
+
+<span class="w">    </span><span class="n">prod</span><span class="p">.</span><span class="n">join</span><span class="p">();</span><span class="w"></span>
+<span class="w">    </span><span class="n">cons</span><span class="p">.</span><span class="n">join</span><span class="p">();</span><span class="w"></span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
+</pre></div>
+</div>
+</section>
+<section id="comparison-table">
+<h4><a class="toc-backref" href="#id41" role="doc-backlink">Comparison Table</a><a class="headerlink" href="#comparison-table" title="Permalink to this heading">¶</a></h4>
+<p>The following table summarizes the differences between the three implementations:</p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Approach</p></th>
+<th class="head"><p>Blocking?</p></th>
+<th class="head"><p>Busy-Waiting?</p></th>
+<th class="head"><p>Performance</p></th>
+<th class="head"><p>Scalability</p></th>
+<th class="head"><p>Portability</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><strong>Linux API (Busy-Waiting)</strong></p></td>
+<td><p>No</p></td>
+<td><p>Yes</p></td>
+<td><p>Medium</p></td>
+<td><p>Medium</p></td>
+<td><p>High</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>MIPS (`ll`, `sc`, `sync`)</strong></p></td>
+<td><p>No</p></td>
+<td><p>Yes</p></td>
+<td><p>High</p></td>
+<td><p>Low</p></td>
+<td><p>Low (MIPS Only)</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>C++ `std::memory_order`</strong></p></td>
+<td><p>No</p></td>
+<td><p>Yes</p></td>
+<td><p>High</p></td>
+<td><p>High</p></td>
+<td><p>High</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="id11">
+<h4><a class="toc-backref" href="#id42" role="doc-backlink">Conclusion</a><a class="headerlink" href="#id11" title="Permalink to this heading">¶</a></h4>
+<ul class="simple">
+<li><p>The <strong>Linux API version</strong> is <strong>portable</strong>, but suffers from <strong>busy-waiting inefficiency</strong>.</p></li>
+<li><p>The <strong>MIPS atomic version</strong> is <strong>optimized for MIPS CPUs</strong>, but lacks <strong>portability</strong>.</p></li>
+<li><p>The <strong>C++ memory order version</strong> is the best balance between <strong>performance and portability</strong>.</p></li>
+</ul>
+</section>
+</section>
+</section>
+<section id="cpu0-implementation-for-memory-order">
+<h2><a class="toc-backref" href="#id43" role="doc-backlink">Cpu0 implementation for memory-order</a><a class="headerlink" href="#cpu0-implementation-for-memory-order" title="Permalink to this heading">¶</a></h2>
 <p>In order to support atomic in C++ and java, llvm provides the atomic IRs and
-memory ordering here <a class="footnote-reference brackets" href="#atomics-llvm" id="id12" role="doc-noteref"><span class="fn-bracket">[</span>13<span class="fn-bracket">]</span></a> <a class="footnote-reference brackets" href="#llvmlang-ordering" id="id13" role="doc-noteref"><span class="fn-bracket">[</span>14<span class="fn-bracket">]</span></a>. C++ memory order
-is explained and exampled here <a class="footnote-reference brackets" href="#cpp-mem-order" id="id14" role="doc-noteref"><span class="fn-bracket">[</span>15<span class="fn-bracket">]</span></a>. The chapter 19
-of book DPC++ <a class="footnote-reference brackets" href="#dpcpp-memorder" id="id15" role="doc-noteref"><span class="fn-bracket">[</span>16<span class="fn-bracket">]</span></a> explains the memory ordering better and I add
+memory ordering here <a class="footnote-reference brackets" href="#atomics-llvm" id="id12" role="doc-noteref"><span class="fn-bracket">[</span>13<span class="fn-bracket">]</span></a> <a class="footnote-reference brackets" href="#llvmlang-ordering" id="id13" role="doc-noteref"><span class="fn-bracket">[</span>14<span class="fn-bracket">]</span></a>.</p>
+<p>The chapter 19
+of book DPC++ <a class="footnote-reference brackets" href="#dpcpp-memorder" id="id14" role="doc-noteref"><span class="fn-bracket">[</span>15<span class="fn-bracket">]</span></a> explains the memory ordering better and I add
 the related code fragment of lbdex/input/atomics.ll to it for explanation as
 follows,</p>
 <ul class="simple">
@@ -866,27 +1428,27 @@ acquire the same atomic variable as the memory_order_release definition.
 Mips’ ll and sc quarantees this feature of “cmpxchg seq_cst”.
 Second Sync guarantees “cmpxchg seq_cst” complete before the next R/W.</p>
 <p>There are several restrictions on which memory orders are supported by each
-operation. <a class="reference internal" href="#c-f1"><span class="std std-numref">Fig. 57</span></a> (from book Figure 19-10) summarizes which
+operation. <a class="reference internal" href="#c-f1"><span class="std std-numref">Fig. 58</span></a> (from book Figure 19-10) summarizes which
 combinations are valid.</p>
-<figure class="align-center" id="id21">
+<figure class="align-center" id="id22">
 <span id="c-f1"></span><a class="reference internal image-reference" href="_images/Fig-19-10-book-dpc++.png"><img alt="_images/Fig-19-10-book-dpc++.png" src="_images/Fig-19-10-book-dpc++.png" style="width: 633.0px; height: 368.0px;" /></a>
 <figcaption>
-<p><span class="caption-number">Fig. 57 </span><span class="caption-text">Supporting atomic operations with memory_order</span><a class="headerlink" href="#id21" title="Permalink to this image">¶</a></p>
+<p><span class="caption-number">Fig. 58 </span><span class="caption-text">Supporting atomic operations with memory_order</span><a class="headerlink" href="#id22" title="Permalink to this image">¶</a></p>
 </figcaption>
 </figure>
 <p>Load operations do not write values to memory and are therefore incompatible
 with release semantics. Similarly, store operations do not read values from
 memory and are therefore incompatible with acquire semantics. The remaining
 read-modify-write atomic operations and fences are compatible with all memory
-orderings <a class="footnote-reference brackets" href="#dpcpp-memorder" id="id16" role="doc-noteref"><span class="fn-bracket">[</span>16<span class="fn-bracket">]</span></a>.</p>
+orderings <a class="footnote-reference brackets" href="#dpcpp-memorder" id="id15" role="doc-noteref"><span class="fn-bracket">[</span>15<span class="fn-bracket">]</span></a>.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p><strong>C++ memory_order_consume</strong></p>
 </div>
-<figure class="align-center" id="id22">
+<figure class="align-center" id="id23">
 <span id="c-f2"></span><a class="reference internal image-reference" href="_images/Fig-19-9-book-dpc++.png"><img alt="_images/Fig-19-9-book-dpc++.png" src="_images/Fig-19-9-book-dpc++.png" style="width: 578.0px; height: 594.0px;" /></a>
 <figcaption>
-<p><span class="caption-number">Fig. 58 </span><span class="caption-text">Comparing standard C++ and SYCL/DPC++ memory models</span><a class="headerlink" href="#id22" title="Permalink to this image">¶</a></p>
+<p><span class="caption-number">Fig. 59 </span><span class="caption-text">Comparing standard C++ and SYCL/DPC++ memory models</span><a class="headerlink" href="#id23" title="Permalink to this image">¶</a></p>
 </figcaption>
 </figure>
 <p>The C++ memory model additionally includes memory_order::consume, with similar
@@ -894,7 +1456,7 @@ behavior to memory_order::acquire. however, the C++17 standard discourages its
 use, noting that its definition is being revised. its inclusion in dpC++ has
 therefore been postponed to a future version.</p>
 <p>For a few years now, compilers have treated consume as a synonym for acquire
-<a class="footnote-reference brackets" href="#cpp-memorder-consume-as-acquire" id="id17" role="doc-noteref"><span class="fn-bracket">[</span>17<span class="fn-bracket">]</span></a>.</p>
+<a class="footnote-reference brackets" href="#cpp-memorder-consume-as-acquire" id="id16" role="doc-noteref"><span class="fn-bracket">[</span>16<span class="fn-bracket">]</span></a>.</p>
 <p>The current expectation is that the replacement facility will rely on core
 memory model and atomics definitions very similar to what’s currently there.
 Since memory_order_consume does have a profound impact on the memory model,
@@ -902,12 +1464,13 @@ removing this text would allow drastic simplification, but conversely would
 make it very difficult to add anything along the lines of memory_order_consume
 back in later, especially if the standard evolves in the meantime, as expected.
 Thus we are not proposing to remove the current wording
-<a class="footnote-reference brackets" href="#cpp-memorder-consume-remove" id="id18" role="doc-noteref"><span class="fn-bracket">[</span>18<span class="fn-bracket">]</span></a>.</p>
-<p>The following test files are extracted from memory_checks() of
-clang/test/Sema/atomic-ops.c. The “__c11_atomic_xxx” builtin-functions from
-clang defined in clang/include/clang/Basic/Builtins.def. Complie with clang
-will get the results same with <a class="reference internal" href="#c-f1"><span class="std std-numref">Fig. 57</span></a>. Clang compile
-memory_order_consume to the same result of memory_order_acquire.</p>
+<a class="footnote-reference brackets" href="#cpp-memorder-consume-remove" id="id17" role="doc-noteref"><span class="fn-bracket">[</span>17<span class="fn-bracket">]</span></a>.</p>
+<p>The following test files are extracted from <cite>memory_checks()</cite> in
+<cite>clang/test/Sema/atomic-ops.c</cite>. The <cite>__c11_atomic_xxx</cite> built-in functions used
+by Clang are defined in <cite>clang/include/clang/Basic/Builtins.def</cite>. Compiling
+these files with Clang produces the same results as shown in <a class="reference internal" href="#c-f1"><span class="std std-numref">Fig. 58</span></a>.</p>
+<p>Note: Clang compiles <cite>memory_order_consume</cite> to the same result as
+<cite>memory_order_acquire</cite>.</p>
 <p class="rubric">lbdex/input/ch12_sema_atomic-ops.c</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">//</span> <span class="n">clang</span> <span class="o">-</span><span class="n">S</span> <span class="n">ch12_sema_atomic</span><span class="o">-</span><span class="n">ops</span><span class="o">.</span><span class="n">c</span> <span class="o">-</span><span class="n">emit</span><span class="o">-</span><span class="n">llvm</span> <span class="o">-</span><span class="n">o</span> <span class="o">-</span>
 <span class="o">//</span> <span class="n">Uses</span> <span class="o">/</span><span class="n">opt</span><span class="o">/</span><span class="n">homebrew</span><span class="o">/</span><span class="n">opt</span><span class="o">/</span><span class="n">llvm</span><span class="o">/</span><span class="nb">bin</span><span class="o">/</span><span class="n">clang</span> <span class="ow">in</span> <span class="n">macOS</span><span class="o">.</span>
@@ -1045,8 +1608,8 @@ memory_order_consume to the same result of memory_order_acquire.</p>
 <span class="p">}</span>
 </pre></div>
 </div>
-<table class="docutils align-default" id="id23">
-<caption><span class="caption-number">Table 41 </span><span class="caption-text">Atomic related between clang’s builtin and llvm ir</span><a class="headerlink" href="#id23" title="Permalink to this table">¶</a></caption>
+<table class="docutils align-default" id="id24">
+<caption><span class="caption-number">Table 42 </span><span class="caption-text">Atomic related between clang’s builtin and llvm ir</span><a class="headerlink" href="#id24" title="Permalink to this table">¶</a></caption>
 <thead>
 <tr class="row-odd"><th class="head"><p>clang’s builtin</p></th>
 <th class="head"><p>llvm ir</p></th>
@@ -1070,11 +1633,11 @@ memory_order_consume to the same result of memory_order_acquire.</p>
 </tr>
 </tbody>
 </table>
-<p>C++ atomic functions supported by calling implemented functions from C++ libary.
-These implemented functions evently call “__c11_atomic_xxx” builtin-functions
-for implementation. So,
-“__c11_atomic_xxx” listed in above providing lower-level of better performance
-functions for C++ programmers. An example as follows,</p>
+<p>C++ atomic functions are supported by calling implementation functions from the
+C++ standard library. These functions eventually call the <cite>__c11_atomic_xxx</cite>
+built-in functions for actual implementation.</p>
+<p>Therefore, <cite>__c11_atomic_xxx</cite> functions, listed above, provide a lower-level and
+higher-performance interface for C++ programmers. An example is shown below:</p>
 <p class="rubric">lbdex/input/ch12_c++_atomics.cpp</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">//</span> <span class="n">clang</span> <span class="o">-</span><span class="n">S</span> <span class="n">ch12_c</span><span class="o">++</span><span class="n">_atomics</span><span class="o">.</span><span class="n">cpp</span> <span class="o">-</span><span class="n">emit</span><span class="o">-</span><span class="n">llvm</span> <span class="o">-</span><span class="n">o</span> <span class="o">-</span>
 <span class="o">//</span> <span class="n">Uses</span> <span class="o">/</span><span class="n">opt</span><span class="o">/</span><span class="n">homebrew</span><span class="o">/</span><span class="n">opt</span><span class="o">/</span><span class="n">llvm</span><span class="o">/</span><span class="nb">bin</span><span class="o">/</span><span class="n">clang</span> <span class="ow">in</span> <span class="n">macOS</span><span class="o">.</span>
@@ -1092,7 +1655,8 @@ functions for C++ programmers. An example as follows,</p>
 <span class="p">}</span>
 </pre></div>
 </div>
-<p>For supporting llvm atomic IRs, the following code added to Chapter12_1.</p>
+<p>To support LLVM atomic IR instructions, the following code is added to
+Chapter12_1.</p>
 <p class="rubric">lbdex/chapters/Chapter12_1/Disassembler/Cpu0Disassembler.cpp</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">static</span> <span class="n">DecodeStatus</span> <span class="n">DecodeMem</span><span class="p">(</span><span class="n">MCInst</span> <span class="o">&amp;</span><span class="n">Inst</span><span class="p">,</span>
                               <span class="n">unsigned</span> <span class="n">Insn</span><span class="p">,</span>
@@ -1866,28 +2430,35 @@ Cpu0TargetLowering::emitAtomicCmpSwapPartword(MachineInstr &amp;MI,
 <span class="p">}</span>
 </pre></div>
 </div>
-<p>Since SC instruction uses RegisterOperand type in Cpu0InstrInfo.td and SC uses
-FMem node which DecoderMethod is “DecodeMem”, the DecodeMem() of
-Cpu0Disassembler.cpp need to be changed as above.</p>
-<p>The atomic node defined in “let usesCustomInserter = 1 in” of Cpu0InstrInfo.td
-tells llvm calling EmitInstrWithCustomInserter() of Cpu0ISelLowering.cpp after
-Instruction Selection stage at Cpu0TargetLowering::EmitInstrWithCustomInserter()
-of ExpandISelPseudos::runOnMachineFunction() stage. For
-example, “def ATOMIC_LOAD_ADD_I8 : Atomic2Ops&lt;atomic_load_add_8, CPURegs&gt;;” will
-calling EmitInstrWithCustomInserter() with Machine Instruction Opcode
-“ATOMIC_LOAD_ADD_I8” when it meets IR “load atomic i8*”.</p>
-<p>The “setInsertFencesForAtomic(true);” in Cpu0ISelLowering.cpp will trigger
-addIRPasses() of Cpu0TargetMachine.cpp, then the createAtomicExpandPass() of
-addIRPasses() will create llvm IR ATOMIC_FENCE. Next, the lowerATOMIC_FENCE()
-of Cpu0ISelLowering.cpp will create Cpu0ISD::Sync when it meets IR ATOMIC_FENCE
-since “setOperationAction(ISD::ATOMIC_FENCE, MVT::Other, Custom);” of
-Cpu0SEISelLowering.cpp. Finally the pattern defined in Cpu0InstrInfo.td translate
-it into instruction “sync” by “def SYNC” and alias “SYNC 0”.</p>
-<p>This part of Cpu0 backend code is same with Mips except Cpu0 has no instruction
-“nor”.</p>
-<p>List the atomic IRs, corresponding DAGs and Opcode as the following table.</p>
-<table class="docutils align-default" id="id24">
-<caption><span class="caption-number">Table 42 </span><span class="caption-text">The atomic related IRs, their corresponding DAGs and Opcode of Cpu0ISelLowering.cpp</span><a class="headerlink" href="#id24" title="Permalink to this table">¶</a></caption>
+<p>Since the <cite>SC</cite> instruction uses <cite>RegisterOperand</cite> type in <cite>Cpu0InstrInfo.td</cite> and
+<cite>SC</cite> uses the <cite>FMem</cite> node whose <cite>DecoderMethod</cite> is <cite>DecodeMem</cite>, the
+<cite>DecodeMem()</cite> function in <cite>Cpu0Disassembler.cpp</cite> needs to be modified
+accordingly.</p>
+<p>The atomic node defined in <cite>let usesCustomInserter = 1 in</cite> within
+<cite>Cpu0InstrInfo.td</cite> tells LLVM to call <cite>EmitInstrWithCustomInserter()</cite> in
+<cite>Cpu0ISelLowering.cpp</cite> after the Instruction Selection stage, specifically in
+the <cite>Cpu0TargetLowering::EmitInstrWithCustomInserter()</cite> function invoked during
+the <cite>ExpandISelPseudos::runOnMachineFunction()</cite> phase.</p>
+<p>For example, the declaration
+<cite>def ATOMIC_LOAD_ADD_I8 : Atomic2Ops&lt;atomic_load_add_8, CPURegs&gt;;</cite>
+will trigger a call to <cite>EmitInstrWithCustomInserter()</cite> with the machine
+instruction opcode <cite>ATOMIC_LOAD_ADD_I8</cite> when the IR <cite>load atomic i8*</cite> is
+encountered.</p>
+<p>The call to <cite>setInsertFencesForAtomic(true);</cite> in <cite>Cpu0ISelLowering.cpp</cite> will
+trigger the <cite>addIRPasses()</cite> function in <cite>Cpu0TargetMachine.cpp</cite>, which in turn
+invokes <cite>createAtomicExpandPass()</cite> to create the LLVM IR <cite>ATOMIC_FENCE</cite>.</p>
+<p>Later, <cite>lowerATOMIC_FENCE()</cite> in <cite>Cpu0ISelLowering.cpp</cite> will emit a
+<cite>Cpu0ISD::Sync</cite> when it sees an <cite>ATOMIC_FENCE</cite> IR, because of the statement
+<cite>setOperationAction(ISD::ATOMIC_FENCE, MVT::Other, Custom);</cite> in
+<cite>Cpu0SEISelLowering.cpp</cite>.</p>
+<p>Finally, the pattern defined in <cite>Cpu0InstrInfo.td</cite> will translate the DAG node
+into the actual <cite>sync</cite> instruction via <cite>def SYNC</cite> and its alias <cite>SYNC 0</cite>.</p>
+<p>This part of the Cpu0 backend code is similar to Mips, except that Cpu0 does
+not include the <cite>nor</cite> instruction.</p>
+<p>Below is a table listing the atomic IRs, their corresponding DAG nodes, and
+machine opcodes.</p>
+<table class="docutils align-default" id="id25">
+<caption><span class="caption-number">Table 43 </span><span class="caption-text">The atomic related IRs, their corresponding DAGs and Opcode of Cpu0ISelLowering.cpp</span><a class="headerlink" href="#id25" title="Permalink to this table">¶</a></caption>
 <thead>
 <tr class="row-odd"><th class="head"><p>IR</p></th>
 <th class="head"><p>DAG</p></th>
@@ -1937,10 +2508,14 @@ it into instruction “sync” by “def SYNC” and alias “SYNC 0”.</p>
 </tr>
 </tbody>
 </table>
-<p>Input files atomics.ll and atomics-fences.ll include the llvm atomic IRs test.
-Input files ch12_atomics.cpp and ch12_atomics-fences.cpp are the C++
-files for generating llvm atomic IRs. The C++ files need to run with clang
-options “clang++ -pthread -std=c++11”.</p>
+<p>The input files <cite>atomics.ll</cite> and <cite>atomics-fences.ll</cite> include tests for LLVM
+atomic IRs.</p>
+<p>The C++ source files <cite>ch12_atomics.cpp</cite> and <cite>ch12_atomics-fences.cpp</cite> are used
+to generate the corresponding LLVM atomic IRs. To compile these files, use the
+following <cite>clang++</cite> options:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">clang</span><span class="o">++</span> <span class="o">-</span><span class="n">pthread</span> <span class="o">-</span><span class="n">std</span><span class="o">=</span><span class="n">c</span><span class="o">++</span><span class="mi">11</span>
+</pre></div>
+</div>
 <aside class="footnote brackets" id="exception" role="note">
 <span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id2">1</a><span class="fn-bracket">]</span></span>
 <p><a class="reference external" href="http://llvm.org/docs/ExceptionHandling.html">http://llvm.org/docs/ExceptionHandling.html</a></p>
@@ -1957,20 +2532,25 @@ options “clang++ -pthread -std=c++11”.</p>
 <span class="label"><span class="fn-bracket">[</span>4<span class="fn-bracket">]</span></span>
 <p><a class="reference external" href="https://cplusplus.com/reference/atomic/">https://cplusplus.com/reference/atomic/</a></p>
 </aside>
-<aside class="footnote brackets" id="atomic-wiki" role="note">
+<aside class="footnote brackets" id="cpp-mem-order" role="note">
 <span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id4">5</a><span class="fn-bracket">]</span></span>
+<p><a class="reference external" href="https://en.cppreference.com/w/cpp/atomic/memory_order">https://en.cppreference.com/w/cpp/atomic/memory_order</a></p>
+</aside>
+<aside class="footnote brackets" id="cas-wiki" role="note">
+<span class="label"><span class="fn-bracket">[</span>6<span class="fn-bracket">]</span></span>
+<span class="backrefs">(<a role="doc-backlink" href="#id5">1</a>,<a role="doc-backlink" href="#id6">2</a>)</span>
+<p><a class="reference external" href="https://en.wikipedia.org/wiki/Compare-and-swap">https://en.wikipedia.org/wiki/Compare-and-swap</a></p>
+</aside>
+<aside class="footnote brackets" id="atomic-wiki" role="note">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id7">7</a><span class="fn-bracket">]</span></span>
 <p><a class="reference external" href="https://en.wikipedia.org/wiki/Memory_model_%28programming%29">https://en.wikipedia.org/wiki/Memory_model_%28programming%29</a></p>
 </aside>
 <aside class="footnote brackets" id="atomic-stackoverflow" role="note">
-<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id5">6</a><span class="fn-bracket">]</span></span>
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id8">8</a><span class="fn-bracket">]</span></span>
 <p><a class="reference external" href="http://stackoverflow.com/questions/6319146/c11-introduced-a-standardized-memory-model-what-does-it-mean-and-how-is-it-g">http://stackoverflow.com/questions/6319146/c11-introduced-a-standardized-memory-model-what-does-it-mean-and-how-is-it-g</a></p>
 </aside>
-<aside class="footnote brackets" id="atomic-herbsutter" role="note">
-<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id6">7</a><span class="fn-bracket">]</span></span>
-<p><a class="reference external" href="http://herbsutter.com/2013/02/11/atomic-weapons-the-c-memory-model-and-modern-hardware/">http://herbsutter.com/2013/02/11/atomic-weapons-the-c-memory-model-and-modern-hardware/</a></p>
-</aside>
 <aside class="footnote brackets" id="lf-wiki" role="note">
-<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id8">8</a><span class="fn-bracket">]</span></span>
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id9">9</a><span class="fn-bracket">]</span></span>
 <p>An algorithm is wait-free if every operation has a bound on the
 number of steps the algorithm will take before the operation completes. In
 other words, wait-free algorithm has no starvation. Lock-freedom allows
@@ -1984,20 +2564,16 @@ contend for the same mutex lock or spinlock, then the algorithm is not lock-free
 (If we suspend one thread that holds the lock, then the second thread will block.)
 <a class="reference external" href="https://en.wikipedia.org/wiki/Non-blocking_algorithm">https://en.wikipedia.org/wiki/Non-blocking_algorithm</a></p>
 </aside>
-<aside class="footnote brackets" id="cas-wiki" role="note">
-<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id7">9</a><span class="fn-bracket">]</span></span>
-<p><a class="reference external" href="https://en.wikipedia.org/wiki/Compare-and-swap">https://en.wikipedia.org/wiki/Compare-and-swap</a></p>
-</aside>
 <aside class="footnote brackets" id="ll-wiki" role="note">
-<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id9">10</a><span class="fn-bracket">]</span></span>
+<span class="label"><span class="fn-bracket">[</span>10<span class="fn-bracket">]</span></span>
 <p><a class="reference external" href="https://en.wikipedia.org/wiki/Load-link/store-conditional">https://en.wikipedia.org/wiki/Load-link/store-conditional</a></p>
 </aside>
 <aside class="footnote brackets" id="mb-wiki" role="note">
-<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id10">11</a><span class="fn-bracket">]</span></span>
+<span class="label"><span class="fn-bracket">[</span>11<span class="fn-bracket">]</span></span>
 <p><a class="reference external" href="https://en.wikipedia.org/wiki/Memory_barrier">https://en.wikipedia.org/wiki/Memory_barrier</a></p>
 </aside>
 <aside class="footnote brackets" id="mips-sync" role="note">
-<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id11">12</a><span class="fn-bracket">]</span></span>
+<span class="label"><span class="fn-bracket">[</span>12<span class="fn-bracket">]</span></span>
 <p>From page A-158, it is same with ARM’s barrier that all instructions before SYNC are completed before issuing the instructions after SYNC. Page 167 (A-155) of <a class="reference external" href="https://www.cs.cmu.edu/afs/cs/academic/class/15740-f97/public/doc/mips-isa.pdf">https://www.cs.cmu.edu/afs/cs/academic/class/15740-f97/public/doc/mips-isa.pdf</a></p>
 </aside>
 <aside class="footnote brackets" id="atomics-llvm" role="note">
@@ -2008,21 +2584,17 @@ contend for the same mutex lock or spinlock, then the algorithm is not lock-free
 <span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id13">14</a><span class="fn-bracket">]</span></span>
 <p><a class="reference external" href="http://llvm.org/docs/LangRef.html#ordering">http://llvm.org/docs/LangRef.html#ordering</a></p>
 </aside>
-<aside class="footnote brackets" id="cpp-mem-order" role="note">
-<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id14">15</a><span class="fn-bracket">]</span></span>
-<p><a class="reference external" href="https://en.cppreference.com/w/cpp/atomic/memory_order">https://en.cppreference.com/w/cpp/atomic/memory_order</a></p>
-</aside>
 <aside class="footnote brackets" id="dpcpp-memorder" role="note">
-<span class="label"><span class="fn-bracket">[</span>16<span class="fn-bracket">]</span></span>
-<span class="backrefs">(<a role="doc-backlink" href="#id15">1</a>,<a role="doc-backlink" href="#id16">2</a>)</span>
+<span class="label"><span class="fn-bracket">[</span>15<span class="fn-bracket">]</span></span>
+<span class="backrefs">(<a role="doc-backlink" href="#id14">1</a>,<a role="doc-backlink" href="#id15">2</a>)</span>
 <p>Section “The memory_order Enumeration Class” which include figure 19-10 of book <a class="reference external" href="https://link.springer.com/book/10.1007/978-1-4842-5574-2">https://link.springer.com/book/10.1007/978-1-4842-5574-2</a></p>
 </aside>
 <aside class="footnote brackets" id="cpp-memorder-consume-as-acquire" role="note">
-<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id17">17</a><span class="fn-bracket">]</span></span>
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id16">16</a><span class="fn-bracket">]</span></span>
 <p><a class="reference external" href="https://stackoverflow.com/questions/65336409/what-does-memory-order-consume-really-do">https://stackoverflow.com/questions/65336409/what-does-memory-order-consume-really-do</a></p>
 </aside>
 <aside class="footnote brackets" id="cpp-memorder-consume-remove" role="note">
-<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id18">18</a><span class="fn-bracket">]</span></span>
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id17">17</a><span class="fn-bracket">]</span></span>
 <p><a class="reference external" href="https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2016/p0371r1.html">https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2016/p0371r1.html</a></p>
 </aside>
 </section>

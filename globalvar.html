@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
-    <title>Global variables &#8212; Tutorial: Creating an LLVM Backend for the Cpu0 Architecture</title>
+    <title>Global Variables &#8212; Tutorial: Creating an LLVM Backend for the Cpu0 Architecture</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="_static/haiku.css" />
     <link rel="stylesheet" type="text/css" href="_static/graphviz.css" />
@@ -23,7 +23,7 @@
   </head><body>
       <div class="header" role="banner"><h1 class="heading"><a href="index.html">
           <span>Tutorial: Creating an LLVM Backend for the Cpu0 Architecture</span></a></h1>
-        <h2 class="heading"><span>Global variables</span></h2>
+        <h2 class="heading"><span>Global Variables</span></h2>
       </div>
       <div class="topnav" role="navigation" aria-label="top navigation">
       
@@ -40,10 +40,10 @@
         
         
   <section id="global-variables">
-<span id="sec-globalvars"></span><h1>Global variables<a class="headerlink" href="#global-variables" title="Permalink to this heading">¶</a></h1>
+<span id="sec-globalvars"></span><h1>Global Variables<a class="headerlink" href="#global-variables" title="Permalink to this heading">¶</a></h1>
 <nav class="contents local" id="contents">
 <ul class="simple">
-<li><p><a class="reference internal" href="#cpu0-global-variable-options" id="id12">Cpu0 global variable options</a></p></li>
+<li><p><a class="reference internal" href="#cpu0-global-variable-options" id="id12">Cpu0 Global Variable Options</a></p></li>
 <li><p><a class="reference internal" href="#static-mode" id="id13">Static mode</a></p>
 <ul>
 <li><p><a class="reference internal" href="#data-or-bss" id="id14">data or bss</a></p></li>
@@ -60,20 +60,20 @@
 <li><p><a class="reference internal" href="#summary" id="id20">Summary</a></p></li>
 </ul>
 </nav>
-<p>In the last three chapters, we only access the local variables.
-This chapter deals global variable access translation.</p>
-<p>The global variable DAG translation is different from the previous DAG
-translations until now we have.
-It creates IR DAG nodes at run time in backend C++ code according the
-<code class="docutils literal notranslate"><span class="pre">llc</span> <span class="pre">-relocation-model</span></code> option while the others of DAG just do IR DAG to
-Machine DAG translation directly according the input file of IR DAGs (except
-the Pseudo instruction RetLR used in Chapter3_4).
-Readers should focus on how to add code for creating DAG nodes at run time and
-how to define the pattern match in td for the run time created DAG nodes.
-In addition, the machine instruction printing function for global variable
-related assembly directive (macro) should be cared if your backend has it.</p>
-<p>Chapter6_1/ supports the global variable, let’s compile ch6_1.cpp with this
-version first, then explain the code changes after that.</p>
+<p>In the last three chapters, we accessed only local variables. This chapter
+focuses on translating global variable access.</p>
+<p>The global variable DAG translation differs from previous DAG translations
+discussed so far. It creates IR DAG nodes at runtime in backend C++ code based
+on the <code class="docutils literal notranslate"><span class="pre">llc</span> <span class="pre">-relocation-model</span></code> option. In contrast, other DAGs translate IR
+DAGs directly to Machine DAGs according to the input IR DAG files (except for
+the Pseudo instruction RetLR used in Chapter3_4).</p>
+<p>Readers should focus on how to add code for creating DAG nodes at runtime and
+how to define pattern matching in <code class="docutils literal notranslate"><span class="pre">.td</span></code> files for these runtime-created DAG
+nodes. Additionally, if your backend has assembly directives (macros) related
+to global variables, ensure that the machine instruction printing function
+handles them correctly.</p>
+<p>Chapter6_1/ introduces global variable support. Let’s compile <code class="docutils literal notranslate"><span class="pre">ch6_1.cpp</span></code>
+with this version first, then review the code changes.</p>
 <p class="rubric">lbdex/input/ch6_1.cpp</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="nb">int</span> <span class="n">gStart</span> <span class="o">=</span> <span class="mi">3</span><span class="p">;</span>
 <span class="nb">int</span> <span class="n">gI</span> <span class="o">=</span> <span class="mi">100</span><span class="p">;</span>
@@ -105,17 +105,19 @@ version first, then explain the code changes after that.</p>
 </pre></div>
 </div>
 <section id="cpu0-global-variable-options">
-<h2><a class="toc-backref" href="#id12" role="doc-backlink">Cpu0 global variable options</a><a class="headerlink" href="#cpu0-global-variable-options" title="Permalink to this heading">¶</a></h2>
-<p>Just like Mips, Cpu0 supports both static and pic mode.
-There are two different layout of global variables for static mode which
-controlled by option cpu0-use-small-section.
-Chapter6_1/ supports the global variable translation.
-Let’s run Chapter6_1/ with ch6_1.cpp via four different options
-<code class="docutils literal notranslate"><span class="pre">llc</span>&#160; <span class="pre">-relocation-model=static</span> <span class="pre">-cpu0-use-small-section=false</span></code>,
-<code class="docutils literal notranslate"><span class="pre">llc</span>&#160; <span class="pre">-relocation-model=static</span> <span class="pre">-cpu0-use-small-section=true</span></code>,
-<code class="docutils literal notranslate"><span class="pre">llc</span>&#160; <span class="pre">-relocation-model=pic</span> <span class="pre">-cpu0-use-small-section=false</span></code> and
-<code class="docutils literal notranslate"><span class="pre">llc</span>&#160; <span class="pre">-relocation-model=pic</span> <span class="pre">-cpu0-use-small-section=true</span></code> to tracing the
-DAGs and Cpu0 instructions.</p>
+<h2><a class="toc-backref" href="#id12" role="doc-backlink">Cpu0 Global Variable Options</a><a class="headerlink" href="#cpu0-global-variable-options" title="Permalink to this heading">¶</a></h2>
+<p>Like MIPS, Cpu0 supports both static and PIC modes. There are two different
+layouts for global variables in static mode, controlled by the option
+<code class="docutils literal notranslate"><span class="pre">cpu0-use-small-section</span></code>.</p>
+<p>Chapter6_1/ introduces global variable translation. Let’s run Chapter6_1/
+with <code class="docutils literal notranslate"><span class="pre">ch6_1.cpp</span></code> using four different options to trace the DAGs and Cpu0
+instructions:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">llc</span> <span class="pre">-relocation-model=static</span> <span class="pre">-cpu0-use-small-section=false</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">llc</span> <span class="pre">-relocation-model=static</span> <span class="pre">-cpu0-use-small-section=true</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">llc</span> <span class="pre">-relocation-model=pic</span> <span class="pre">-cpu0-use-small-section=false</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">llc</span> <span class="pre">-relocation-model=pic</span> <span class="pre">-cpu0-use-small-section=true</span></code></p></li>
+</ul>
 <div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">118-165-78-166:input Jonathan$ </span>clang -target mips-unknown-linux-gnu -c
 <span class="go">ch6_1.cpp -emit-llvm -o ch6_1.bc</span>
 <span class="gp">118-165-78-166:input Jonathan$ </span>/Users/Jonathan/llvm/test/build/
@@ -426,8 +428,12 @@ DAGs and Cpu0 instructions.</p>
 </tbody>
 </table>
 <ul class="simple">
-<li><p>In static, cpu0-use-small-section=true, offset between gI and .data can be calculated since the $gp is assigned at fixed address of the start of global address table.</p></li>
-<li><p>In “static, cpu0-use-small-section=false”, the gI high and low address (%hi(gI) and %lo(gI)) are translated into absolute address.</p></li>
+<li><p>In static mode with <code class="docutils literal notranslate"><span class="pre">cpu0-use-small-section=true</span></code>, the offset between
+<code class="docutils literal notranslate"><span class="pre">gI</span></code> and <code class="docutils literal notranslate"><span class="pre">.data</span></code> can be calculated since <code class="docutils literal notranslate"><span class="pre">$gp</span></code> is assigned a fixed
+address at the start of the global address table.</p></li>
+<li><p>In static mode with <code class="docutils literal notranslate"><span class="pre">cpu0-use-small-section=false</span></code>, the high and low
+addresses of <code class="docutils literal notranslate"><span class="pre">gI</span></code> (<code class="docutils literal notranslate"><span class="pre">%hi(gI)</span></code> and <code class="docutils literal notranslate"><span class="pre">%lo(gI)</span></code>) are translated into an
+absolute address.</p></li>
 </ul>
 <table class="docutils align-default" id="id11">
 <caption><span class="caption-number">Table 30 </span><span class="caption-text">Cpu0 DAGs and instructions for -relocation-model=pic</span><a class="headerlink" href="#id11" title="Permalink to this table">¶</a></caption>
@@ -466,25 +472,29 @@ DAGs and Cpu0 instructions.</p>
 </tbody>
 </table>
 <ul class="simple">
-<li><p>In pic, offset between gI and .data cannot be calculated if the function is
-loaded at run time (dynamic link); the offset can be calculated if use static
-link.</p></li>
-<li><p>In C, all variable names binding staticly. In C++, the overload variable or
-function are binding dynamicly.</p></li>
+<li><p>In PIC mode, the offset between <code class="docutils literal notranslate"><span class="pre">gI</span></code> and <code class="docutils literal notranslate"><span class="pre">.data</span></code> cannot be calculated
+if the function is loaded at runtime (dynamic linking). However, the offset
+can be determined if static linking is used.</p></li>
+<li><p>In C, all variable names are bound statically. In C++, overloaded variables
+or functions are bound dynamically.</p></li>
 </ul>
-<p>According book of system program, there are Absolute Addressing Mode and
-Position Independent Addressing Mode. The dynamic function must be compiled with
-Position Independent Addressing Mode. In general, option -relocation-model is
-used to generate either Absolute Addressing or Position Independent Addressing.
-The exception is -relocation-model=static and -cpu0-use-small-section=false.
-In this case, the register $gp is reserved to set at the start address of global
-variable area. Cpu0 uses $gp relative addressing in this mode.</p>
-<p>To support global variable, first add <strong>UseSmallSectionOpt</strong> command variable to
-Cpu0Subtarget.cpp.
-After that, user can run llc with option <code class="docutils literal notranslate"><span class="pre">llc</span> <span class="pre">-cpu0-use-small-section=false</span></code>
-to specify <strong>UseSmallSectionOpt</strong> to false.
-The default of <strong>UseSmallSectionOpt</strong> is false if without specify it further.
-About the <strong>cl::opt</strong> command line variable, you can refer to here <a class="footnote-reference brackets" href="#id6" id="id1" role="doc-noteref"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></a> further.</p>
+<p>According to the system programming book, there are two addressing modes:
+<strong>Absolute Addressing Mode</strong> and <strong>Position-Independent Addressing Mode</strong>.
+Dynamic functions must be compiled using Position-Independent Addressing Mode.</p>
+<p>In general, the <code class="docutils literal notranslate"><span class="pre">-relocation-model</span></code> option is used to generate either
+Absolute Addressing or Position-Independent Addressing. However, an exception
+occurs when using <code class="docutils literal notranslate"><span class="pre">-relocation-model=static</span></code> with
+<code class="docutils literal notranslate"><span class="pre">-cpu0-use-small-section=false</span></code>. In this case, the <code class="docutils literal notranslate"><span class="pre">$gp</span></code> register is
+reserved and set at the start address of the global variable area. Cpu0 uses
+<code class="docutils literal notranslate"><span class="pre">$gp</span></code>-relative addressing in this mode.</p>
+<p>To support global variables, first add the <strong>UseSmallSectionOpt</strong> command
+variable to <code class="docutils literal notranslate"><span class="pre">Cpu0Subtarget.cpp</span></code>.</p>
+<p>After that, users can run <code class="docutils literal notranslate"><span class="pre">llc</span></code> with the option
+<code class="docutils literal notranslate"><span class="pre">llc</span> <span class="pre">-cpu0-use-small-section=false</span></code> to explicitly set
+<strong>UseSmallSectionOpt</strong> to <code class="docutils literal notranslate"><span class="pre">false</span></code>. By default, <strong>UseSmallSectionOpt</strong> is
+<code class="docutils literal notranslate"><span class="pre">false</span></code> unless specified otherwise.</p>
+<p>For more details about the <strong>cl::opt</strong> command-line variable, refer to
+the documentation <a class="footnote-reference brackets" href="#id6" id="id1" role="doc-noteref"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></a>.</p>
 <p class="rubric">lbdex/chapters/Chapter6_1/Cpu0Subtarget.h</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">extern</span> <span class="nb">bool</span> <span class="n">Cpu0ReserveGP</span><span class="p">;</span>
 <span class="n">extern</span> <span class="nb">bool</span> <span class="n">Cpu0NoCpload</span><span class="p">;</span>
@@ -538,10 +548,16 @@ About the <strong>cl::opt</strong> command line variable, you can refer to here 
 <span class="p">}</span><span class="w"></span>
 </pre></div>
 </div>
-<p>The options ReserveGPOpt and NoCploadOpt will used in Cpu0 linker at later
-Chapter.
-Next add the following code to files Cpu0BaseInfo.h, Cpu0TargetObjectFile.h,
-Cpu0TargetObjectFile.cpp, Cpu0RegisterInfo.cpp and Cpu0ISelLowering.cpp.</p>
+<p>The options <strong>ReserveGPOpt</strong> and <strong>NoCploadOpt</strong> will be used in the Cpu0
+linker in a later chapter.</p>
+<p>Next, add the following code to the files:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">Cpu0BaseInfo.h</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Cpu0TargetObjectFile.h</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Cpu0TargetObjectFile.cpp</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Cpu0RegisterInfo.cpp</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Cpu0ISelLowering.cpp</span></code></p></li>
+</ul>
 <p class="rubric">lbdex/chapters/Chapter6_1/Cpu0BaseInfo.h</p>
 <div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="k">enum</span><span class="w"> </span><span class="nc">TOF</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
 <span class="w">  </span><span class="p">...</span><span class="w"></span>
@@ -809,17 +825,19 @@ Cpu0TargetObjectFile::SelectSectionForGlobal(
 }
 </pre></div>
 </div>
-<p>The setOperationAction(ISD::GlobalAddress, MVT::i32, Custom) tells <code class="docutils literal notranslate"><span class="pre">llc</span></code> that
-we implement global address operation in C++ function
-Cpu0TargetLowering::LowerOperation(). LLVM will call this function only when
-llvm want to translate IR DAG of loading global variable into machine code.
-Although all the Custom type of IR operations set by
-setOperationAction(ISD::XXX, MVT::XXX, Custom) in construction function
-Cpu0TargetLowering() will invoke llvm to call
-Cpu0TargetLowering::LowerOperation() in stage “Legalized selection DAG”, the
-global address access operation can be identified by checking whether the opcode
-of DAG Node is ISD::GlobalAddress or not, furthmore.</p>
-<p>Finally, add the following code in Cpu0ISelDAGToDAG.cpp and Cpu0InstrInfo.td.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">setOperationAction(ISD::GlobalAddress,</span> <span class="pre">MVT::i32,</span> <span class="pre">Custom)</span></code> directive
+informs <code class="docutils literal notranslate"><span class="pre">llc</span></code> that the global address operation is implemented in the C++
+function <code class="docutils literal notranslate"><span class="pre">Cpu0TargetLowering::LowerOperation()</span></code>. LLVM will call this function
+only when it needs to translate the IR DAG for loading a global variable into
+machine code.</p>
+<p>Although all custom IR operations set by
+<code class="docutils literal notranslate"><span class="pre">setOperationAction(ISD::XXX,</span> <span class="pre">MVT::XXX,</span> <span class="pre">Custom)</span></code> in the constructor
+<code class="docutils literal notranslate"><span class="pre">Cpu0TargetLowering()</span></code> trigger calls to
+<code class="docutils literal notranslate"><span class="pre">Cpu0TargetLowering::LowerOperation()</span></code> during the “Legalized selection DAG”
+stage, the global address access operation can be specifically identified by
+checking whether the DAG node’s opcode is <code class="docutils literal notranslate"><span class="pre">ISD::GlobalAddress</span></code>.</p>
+<p>Finally, add the following code to <code class="docutils literal notranslate"><span class="pre">Cpu0ISelDAGToDAG.cpp</span></code> and
+<code class="docutils literal notranslate"><span class="pre">Cpu0InstrInfo.td</span></code>.</p>
 <p class="rubric">lbdex/chapters/Chapter6_1/Cpu0ISelDAGToDAG.h</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>  <span class="n">SDNode</span> <span class="o">*</span><span class="n">getGlobalBaseReg</span><span class="p">();</span>
 </pre></div>
@@ -926,16 +944,18 @@ def : WrapperPat&lt;tglobaladdr, ORi, GPROut&gt;;
 </section>
 <section id="static-mode">
 <h2><a class="toc-backref" href="#id13" role="doc-backlink">Static mode</a><a class="headerlink" href="#static-mode" title="Permalink to this heading">¶</a></h2>
-<p>From Table: Cpu0 global variable options, option cpu0-use-small-section=false
-puts the global varibale in data/bss while cpu0-use-small-section=true puts in
-sdata/sbss. The sdata stands for small data area.
-Section data and sdata are areas for global variables with initial value (such
-as int gI = 100 in this example) while Section bss and sbss are areas for
-global variables without initial value (for instance, int gI;).</p>
+<p>From the table <strong>Cpu0 global variable options</strong>, the option
+<code class="docutils literal notranslate"><span class="pre">cpu0-use-small-section=false</span></code> places global variables in <code class="docutils literal notranslate"><span class="pre">.data/.bss</span></code>,
+while <code class="docutils literal notranslate"><span class="pre">cpu0-use-small-section=true</span></code> places them in <code class="docutils literal notranslate"><span class="pre">.sdata/.sbss</span></code>.
+The <code class="docutils literal notranslate"><span class="pre">.sdata</span></code> section stands for the small data area.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">.data</span></code> and <code class="docutils literal notranslate"><span class="pre">.sdata</span></code> sections store global variables with an initial
+value (e.g., <code class="docutils literal notranslate"><span class="pre">int</span> <span class="pre">gI</span> <span class="pre">=</span> <span class="pre">100;</span></code>), while the <code class="docutils literal notranslate"><span class="pre">.bss</span></code> and <code class="docutils literal notranslate"><span class="pre">.sbss</span></code> sections store
+global variables without an initial value (e.g., <code class="docutils literal notranslate"><span class="pre">int</span> <span class="pre">gI;</span></code>).</p>
 <section id="data-or-bss">
 <h3><a class="toc-backref" href="#id14" role="doc-backlink">data or bss</a><a class="headerlink" href="#data-or-bss" title="Permalink to this heading">¶</a></h3>
-<p>The data/bss are 32 bits addressable areas since Cpu0 is a 32 bits architecture.
-Option cpu0-use-small-section=false will generate the following instructions.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">.data/.bss</span></code> sections are 32-bit addressable areas since Cpu0 is a
+32-bit architecture. When <code class="docutils literal notranslate"><span class="pre">cpu0-use-small-section=false</span></code> is set, the following
+instructions will be generated.</p>
 <div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">  ...</span>
 <span class="go">  lui $2, %hi(gI)</span>
 <span class="go">  ori $2, $2, %lo(gI)</span>

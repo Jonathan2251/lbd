@@ -18,8 +18,8 @@
     <link rel="author" title="About these documents" href="about.html" />
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Global variables" href="globalvar.html" />
-    <link rel="prev" title="Arithmetic and logic instructions" href="otherinst.html" /> 
+    <link rel="next" title="Global Variables" href="globalvar.html" />
+    <link rel="prev" title="Arithmetic and Logic Instructions" href="otherinst.html" /> 
   </head><body>
       <div class="header" role="banner"><h1 class="heading"><a href="index.html">
           <span>Tutorial: Creating an LLVM Backend for the Cpu0 Architecture</span></a></h1>
@@ -28,11 +28,11 @@
       <div class="topnav" role="navigation" aria-label="top navigation">
       
         <p>
-        «&#160;&#160;<a href="otherinst.html">Arithmetic and logic instructions</a>
+        «&#160;&#160;<a href="otherinst.html">Arithmetic and Logic Instructions</a>
         &#160;&#160;::&#160;&#160;
         <a class="uplink" href="index.html">Contents</a>
         &#160;&#160;::&#160;&#160;
-        <a href="globalvar.html">Global variables</a>&#160;&#160;»
+        <a href="globalvar.html">Global Variables</a>&#160;&#160;»
         </p>
 
       </div>
@@ -49,14 +49,15 @@
 <li><p><a class="reference internal" href="#backend-target-registration-structure" id="id11">Backend Target Registration Structure</a></p></li>
 </ul>
 </nav>
-<p>The previous chapters introducing the assembly code generation only.
-This chapter adding the elf obj support and verify the generated obj by
-objdump utility. With LLVM support, the Cpu0 backend can generate both big
-endian and little endian obj files with only a few code added.
-The Target Registration mechanism and their structure are introduced in
-this chapter.</p>
-<p>Similar to <a class="reference internal" href="backendstructure.html#asm-emit"><span class="std std-numref">Fig. 23</span></a> of previous chapter, but this chapter emit binary
-obj instruction as <a class="reference internal" href="#obj-emit"><span class="std std-numref">Fig. 31</span></a>.</p>
+<p>The previous chapters focused solely on <strong>assembly code generation</strong>.
+This chapter extends that by <strong>adding ELF object file support</strong>
+and verifying the generated object files using the <cite>objdump</cite> utility.</p>
+<p>With LLVM support, the <strong>Cpu0 backend</strong> can generate both <strong>big-endian</strong>
+and <strong>little-endian</strong> object files with minimal additional code.</p>
+<p>Additionally, this chapter introduces the <strong>Target Registration mechanism</strong>
+and its structure.</p>
+<p>Similar to <a class="reference internal" href="backendstructure.html#asm-emit"><span class="std std-numref">Fig. 23</span></a> from the previous chapter <a class="reference internal" href="backendstructure.html#sec-backendstructure"><span class="std std-ref">Backend structure</span></a>, but
+this chapter focuses on emitting <strong>binary object instructions</strong> as shown in <a class="reference internal" href="#obj-emit"><span class="std std-numref">Fig. 31</span></a>.</p>
 <figure class="align-default" id="id3">
 <span id="obj-emit"></span><div class="graphviz"><img src="_images/graphviz-b40e0fb4a01facfff92985fa79b6516432d62ff4.png" alt="digraph G {
   rankdir=LR;
@@ -71,9 +72,9 @@ obj instruction as <a class="reference internal" href="#obj-emit"><span class="s
 </figure>
 <section id="translate-into-obj-file">
 <h2><a class="toc-backref" href="#id8" role="doc-backlink">Translate into obj file</a><a class="headerlink" href="#translate-into-obj-file" title="Permalink to this heading">¶</a></h2>
-<p>Currently, we only support translation of llvm IR code into assembly code.
-If you try running Chapter4_2/ to translate it into obj code will get the error
-message as follows,</p>
+<p>Currently, the backend <strong>only supports translating LLVM IR code into assembly code</strong>.
+If you attempt to compile an LLVM IR input file into an <strong>object file</strong> using the
+<cite>Chapter4_2/</cite> compiler code, you will encounter the following error message:</p>
 <div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">bin$ pwd</span>
 <span class="gp">$</span>HOME/llvm/test/build/bin/
 <span class="go">bin$ llc -march=cpu0 -relocation-model=pic -filetype=obj ch4_1_math_math.bc -o</span>
@@ -82,10 +83,14 @@ message as follows,</p>
 <span class="go">support generation of this file type!</span>
 </pre></div>
 </div>
-<p>Chapter5_1/ support obj file generation.
-It produces obj files both for big endian and little endian with command
-<code class="docutils literal notranslate"><span class="pre">llc</span> <span class="pre">-march=cpu0</span></code> and <code class="docutils literal notranslate"><span class="pre">llc</span> <span class="pre">-march=cpu0el</span></code>, respectively.
-Run with them will get the obj files as follows,</p>
+<p>The <cite>Chapter5_1/</cite> implementation <strong>supports object file generation</strong>.
+It can produce object files for both <strong>big-endian</strong> and <strong>little-endian</strong> architectures
+using the following commands:</p>
+<ul class="simple">
+<li><p><strong>Big-endian:</strong> <cite>llc -march=cpu0</cite></p></li>
+<li><p><strong>Little-endian:</strong> <cite>llc -march=cpu0el</cite></p></li>
+</ul>
+<p>Running these commands will generate the corresponding object files as shown below:</p>
 <div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">input$ cat ch4_1_math.cpu0.s</span>
 <span class="go">...</span>
 <span class="go">  .set  nomacro</span>
@@ -145,24 +150,25 @@ Run with them will get the obj files as follows,</p>
 <span class="go"> 00b0 00202320 00002d02 3800dd09 0000e03c  . # ..-.8......&lt;</span>
 </pre></div>
 </div>
-<p>The first instruction is <strong>“addiu  $sp, -56”</strong> and its corresponding obj is
-0x09ddffc8.
-The opcode of addiu is 0x09, 8 bits; $sp register number is 13(0xd), 4bits; and
-the immediate is 16 bits -56(=0xffc8), so it is correct.
-The third instruction <strong>“st  $2, 52($fp)”</strong> and it’s corresponding obj
-is 0x022b0034. The <strong>st</strong> opcode is <strong>0x02</strong>, $2 is 0x2, $fp is 0xb and
-immediate is 52(0x0034).
-Thanks to Cpu0 instruction format which opcode, register operand and
-offset(imediate value) size are multiple of 4 bits.
-Base on the 4 bits multiple, the obj format is easy to check by eyes.
-The big endian (B0, B1, B2, B3) = (09, dd, ff, c8), objdump from B0 to B3 is
-0x09ddffc8 and the little endian is (B3, B2, B1, B0) = (09, dd, ff, c8),
-objdump from B0 to B3 is 0xc8ffdd09.</p>
+<p>The first instruction is <strong>“addiu $sp, -56”</strong>, and its corresponding obj is
+0x09ddffc8. The opcode of addiu is 0x09 (8 bits); the $sp register number
+is 13 (0xd) (4 bits); and the immediate value is -56 (0xffc8) (16 bits),
+so it is correct.</p>
+<p>The third instruction <strong>“st $2, 52($fp)”</strong>, and its corresponding obj is
+0x022b0034. The <strong>st</strong> opcode is 0x02, $2 is 0x2, $fp is 0xb, and the
+immediate value is 52 (0x0034).</p>
+<p>Thanks to the Cpu0 instruction format, where the opcode, register operand,
+and offset (immediate value) sizes are multiples of 4 bits, the obj format
+is easy to verify manually.</p>
+<p>For big-endian format: (B0, B1, B2, B3) = (09, dd, ff, c8), objdump from
+B0 to B3 is 0x09ddffc8.</p>
+<p>For little-endian format: (B3, B2, B1, B0) = (09, dd, ff, c8), objdump from
+B0 to B3 is 0xc8ffdd09.</p>
 </section>
 <section id="elf-obj-related-code">
 <h2><a class="toc-backref" href="#id9" role="doc-backlink">ELF obj related code</a><a class="headerlink" href="#elf-obj-related-code" title="Permalink to this heading">¶</a></h2>
-<p>To support elf obj generation, the following code changed and added to
-Chapter5_1.</p>
+<p>To support ELF object file generation, the following code was modified and
+added to Chapter5_1.</p>
 <p class="rubric">lbdex/chapters/Chapter5_1/InstPrinter/Cpu0InstPrinter.cpp</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1">#include &quot;MCTargetDesc/Cpu0MCExpr.h&quot;</span>
 </pre></div>
@@ -1179,12 +1185,13 @@ Cpu0MCCodeEmitter::getMemEncoding(const MCInst &amp;MI, unsigned OpNo,
 </section>
 <section id="work-flow">
 <h2><a class="toc-backref" href="#id10" role="doc-backlink">Work flow</a><a class="headerlink" href="#work-flow" title="Permalink to this heading">¶</a></h2>
-<p>In Chapter3_2, OutStreamer-&gt;emitInstruction print the asm. To support elf obj
-generation, this chapter create MCELFObjectStreamer inherited from OutStreamer
-by calling createELFStreamer in Cpu0MCTargetDesc.cpp above. Once
-MCELFObjectStreamer is created. The OutStreamer-&gt;emitInstruction will work with
-other code added in directory MCTargetDesc of this chapter. The details of
-expanation as follows,</p>
+<p>In Chapter 3_2, <cite>OutStreamer-&gt;emitInstruction</cite> prints the assembly code.
+To support ELF object file generation, this chapter creates
+<cite>MCELFObjectStreamer</cite>, which inherits from <cite>OutStreamer</cite> by calling
+<cite>createELFStreamer</cite> in <cite>Cpu0MCTargetDesc.cpp</cite> above.</p>
+<p>Once <cite>MCELFObjectStreamer</cite> is created, <cite>OutStreamer-&gt;emitInstruction</cite> will
+work with other code added in the <cite>MCTargetDesc</cite> directory of this chapter.
+The details of the explanation are as follows:</p>
 <p class="rubric">llvm/include/llvm/CodeGen/AsmPrinter.h</p>
 <div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">AsmPrinter</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="k">public</span><span class="w"> </span><span class="n">MachineFunctionPass</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
 <span class="k">public</span><span class="o">:</span><span class="w"></span>
@@ -1263,9 +1270,9 @@ expanation as follows,</p>
 AsmPrinter::OutStreamer is nMCAsmStreamer if llc -filetype=asm as
 <a class="reference internal" href="backendstructure.html#print-asm"><span class="std std-numref">Fig. 24</span></a>.</p></li>
 </ul>
-<p>The ELF encoder calling functions shown as <a class="reference internal" href="#genobj-f11"><span class="std std-numref">Fig. 32</span></a> above.
-AsmPrinter::OutStreamer is set to MCObjectStreamer when by llc driver when user
-input <code class="docutils literal notranslate"><span class="pre">llc</span> <span class="pre">-filetype=obj</span></code>.</p>
+<p>The ELF encoder calling functions are shown in <a class="reference internal" href="#genobj-f11"><span class="std std-numref">Fig. 32</span></a> above.
+<cite>AsmPrinter::OutStreamer</cite> is set to <cite>MCObjectStreamer</cite> by the <cite>llc</cite> driver
+when the user inputs <code class="docutils literal notranslate"><span class="pre">llc</span> <span class="pre">-filetype=obj</span></code>.</p>
 <figure class="align-default" id="id5">
 <span id="genobj-f12"></span><div class="graphviz"><img src="_images/graphviz-760eed9aa185fa562f3070e92a0f79eee8bed6a6.png" alt="digraph G {
   rankdir=TB;
@@ -1292,20 +1299,23 @@ input <code class="docutils literal notranslate"><span class="pre">llc</span> <s
 <p><span class="caption-number">Fig. 33 </span><span class="caption-text">DFD flow for instruction encode</span><a class="headerlink" href="#id5" title="Permalink to this image">¶</a></p>
 </figcaption>
 </figure>
-<p>The instruction operands information for encoder is got as <a class="reference internal" href="#genobj-f12"><span class="std std-numref">Fig. 33</span></a>
-above.
-Steps as follows,</p>
+<p>The instruction operand information for the encoder is obtained as shown in
+<a class="reference internal" href="#genobj-f12"><span class="std std-numref">Fig. 33</span></a> above. The steps are as follows:</p>
 <blockquote>
 <div><ol class="arabic simple">
-<li><p>Function encodeInstruction() pass MI.Opcode to getBinaryCodeForInstr().</p></li>
-<li><p>getBinaryCodeForInstr() pass MI.Operand[n] to getMachineOpValue() and then,</p></li>
-<li><p>get register number by calling getMachineOpValue().</p></li>
-<li><p>getBinaryCodeForInstr() return the MI with all number of registers to encodeInstruction().</p></li>
+<li><p>The function <cite>encodeInstruction()</cite> passes <cite>MI.Opcode</cite> to
+<cite>getBinaryCodeForInstr()</cite>.</p></li>
+<li><p><cite>getBinaryCodeForInstr()</cite> passes <cite>MI.Operand[n]</cite> to <cite>getMachineOpValue()</cite>,
+and then,</p></li>
+<li><p>It retrieves the register number by calling <cite>getMachineOpValue()</cite>.</p></li>
+<li><p><cite>getBinaryCodeForInstr()</cite> returns <cite>MI</cite> with all register numbers to
+<cite>encodeInstruction()</cite>.</p></li>
 </ol>
 </div></blockquote>
-<p>The MI.Opcode is set in Instruction Selection Stage.
-The table gen function getBinaryCodeForInstr() get all the operands information
-from the td files set by programmer as <a class="reference internal" href="#genobj-f13"><span class="std std-numref">Fig. 34</span></a>.</p>
+<p>The <cite>MI.Opcode</cite> is set in the Instruction Selection Stage.
+The table generation function <cite>getBinaryCodeForInstr()</cite> gathers all operand
+information from the <cite>.td</cite> files defined by the programmer, as shown in
+<a class="reference internal" href="#genobj-f13"><span class="std std-numref">Fig. 34</span></a>.</p>
 <figure class="align-default" id="id6">
 <span id="genobj-f13"></span><div class="graphviz"><img src="_images/graphviz-7ea631171be09d802a787afd41b3ec2965dd8e56.png" alt="digraph G {
   rankdir=LR;
@@ -1363,14 +1373,15 @@ from the td files set by programmer as <a class="reference internal" href="#geno
 <p><span class="caption-number">Fig. 34 </span><span class="caption-text">Instruction encode, for instance:  addu $v0, $at, $v1n  v0:MI.getOperand(0), at:MI.getOperand(1), v1:MI.getOperand(2)</span><a class="headerlink" href="#id6" title="Permalink to this image">¶</a></p>
 </figcaption>
 </figure>
-<p>For instance, Cpu0 backend will generate “addu $v0, $at, $v1” for the IR
-“%0 = add %1, %2” once llvm allocate registers $v0, $at and $v1 for Operands
-%0, %1 and %2 individually. The MCOperand structure for MI.Operands[] include
-register number set in the pass of llvm allocate registers which can be got in
-getMachineOpValue().</p>
-<p>The getEncodingValue(Reg) in getMachineOpValue() as the following will get the
-RegNo of encode from Register name such as AT, V0, or V1, … by using table gen
-information from Cpu0RegisterInfo.td as the following. My comment is after “///”.</p>
+<p>For instance, the Cpu0 backend will generate <cite>“addu $v0, $at, $v1”</cite> for the IR
+<cite>“%0 = add %1, %2”</cite> once LLVM allocates registers <cite>$v0</cite>, <cite>$at</cite>, and <cite>$v1</cite> for
+operands <cite>%0</cite>, <cite>%1</cite>, and <cite>%2</cite> individually. The <cite>MCOperand</cite> structure for
+<cite>MI.Operands[]</cite> includes the register number set in the pass where LLVM
+allocates registers, which can be retrieved in <cite>getMachineOpValue()</cite>.</p>
+<p>The function <cite>getEncodingValue(Reg)</cite> in <cite>getMachineOpValue()</cite>, as shown below,
+retrieves the <cite>RegNo</cite> for encoding from register names such as <cite>AT</cite>, <cite>V0</cite>, or
+<cite>V1</cite>, using table generation information from <cite>Cpu0RegisterInfo.td</cite>.
+My comments are after <cite>“///”</cite>.</p>
 <p class="rubric">include//llvm/MC/MCRegisterInfo.h</p>
 <div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="kt">void</span><span class="w"> </span><span class="nf">InitMCRegisterInfo</span><span class="p">(...,</span><span class="w"></span>
 <span class="w">                        </span><span class="k">const</span><span class="w"> </span><span class="kt">uint16_t</span><span class="w"> </span><span class="o">*</span><span class="n">RET</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
@@ -1455,19 +1466,23 @@ information from Cpu0RegisterInfo.td as the following. My comment is after “//
 <span class="w">  </span><span class="n">RI</span><span class="o">-&gt;</span><span class="n">InitMCRegisterInfo</span><span class="p">(...,</span><span class="w"> </span><span class="n">Cpu0RegEncodingTable</span><span class="p">);</span><span class="w"></span>
 </pre></div>
 </div>
-<p>The applyFixup() of Cpu0AsmBackend.cpp will fix up the <strong>jeq</strong>, <strong>jub</strong>, …
-instructions of “address control flow statements” or “function call statements”
-used in later chapters.
-The setting of true or false for each relocation record in
-needsRelocateWithSymbol() of Cpu0ELFObjectWriter.cpp depends on whethor this
-relocation record is needed to adjust address value during link or not.
-If set true, then linker has chance to adjust this address value with correct
-information. On the other hand, if set false, then linker has no correct
-information to adjust this relocation record. About relocation record, it will
-be introduced in later chapter ELF Support.</p>
-<p>When emit elf obj format instruction, the EncodeInstruction() of
-Cpu0MCCodeEmitter.cpp will be called since it override the same name of
-function in parent class MCCodeEmitter.</p>
+<p>The <cite>applyFixup()</cite> function in <cite>Cpu0AsmBackend.cpp</cite> will fix up the <strong>jeq</strong>,
+<strong>jub</strong>, and other instructions related to “address control flow statements” or
+“function call statements” used in later chapters.</p>
+<p>The setting of <cite>true</cite> or <cite>false</cite> for each relocation record in
+<cite>needsRelocateWithSymbol()</cite> of <cite>Cpu0ELFObjectWriter.cpp</cite> depends on whether
+this relocation record needs to adjust the address value during linking.</p>
+<ul class="simple">
+<li><p>If set to <cite>true</cite>, the linker has the opportunity to adjust this address value
+with the correct information.</p></li>
+<li><p>If set to <cite>false</cite>, the linker lacks the correct information to adjust this
+relocation record.</p></li>
+</ul>
+<p>The concept of relocation records will be introduced in a later chapter on
+<strong>ELF Support</strong>.</p>
+<p>When emitting ELF object format instructions, the <cite>EncodeInstruction()</cite>
+function in <cite>Cpu0MCCodeEmitter.cpp</cite> will be called, as it overrides the function
+of the same name in the parent class <cite>MCCodeEmitter</cite>.</p>
 <p class="rubric">lbdex/chapters/Chapter2/Cpu0InstrInfo.td</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">//</span> <span class="n">Address</span> <span class="n">operand</span>
 <span class="k">def</span> <span class="nf">mem</span> <span class="p">:</span> <span class="n">Operand</span><span class="o">&lt;</span><span class="n">iPTR</span><span class="o">&gt;</span> <span class="p">{</span>
@@ -1491,12 +1506,13 @@ function in parent class MCCodeEmitter.</p>
 <span class="p">}</span>
 </pre></div>
 </div>
-<p>As <a class="reference internal" href="llvmstructure.html#llvmstructure-f2"><span class="std std-numref">Fig. 4</span></a>, <strong>ld</strong> and <strong>st</strong> are L Type format (ADD … are
-R Type format).
-The “let EncoderMethod = “getMemEncoding”;” in Cpu0InstrInfo.td as above will
-making llvm call function getMemEncoding() when either <strong>ld</strong> or <strong>st</strong>
-instruction is issued in elf obj since these two instructions use <strong>mem</strong>
-Operand. The following is the implementation and TableGen code for them.</p>
+<p>As shown in <a class="reference internal" href="llvmstructure.html#llvmstructure-f2"><span class="std std-numref">Fig. 4</span></a>, <strong>ld</strong> and <strong>st</strong> follow the L-Type
+format, whereas <strong>ADD</strong> and similar instructions follow the R-Type format.</p>
+<p>The statement <cite>“let EncoderMethod = “getMemEncoding”;”</cite> in <cite>Cpu0InstrInfo.td</cite>,
+as mentioned above, ensures that LLVM calls the function <cite>getMemEncoding()</cite>
+whenever an <strong>ld</strong> or <strong>st</strong> instruction is issued in the ELF object file.
+This happens because both of these instructions use the <strong>mem</strong> operand.</p>
+<p>Below is the implementation and the corresponding TableGen code for them.</p>
 <p class="rubric">lbdex/chapters/Chapter5_1/Cpu0InstrInfo.td</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">mem</span> <span class="p">:</span> <span class="n">Operand</span><span class="o">&lt;</span><span class="n">iPTR</span><span class="o">&gt;</span> <span class="p">{</span>
   <span class="n">let</span> <span class="n">PrintMethod</span> <span class="o">=</span> <span class="s2">&quot;printMemOperand&quot;</span><span class="p">;</span>
@@ -1540,8 +1556,8 @@ Operand. The following is the implementation and TableGen code for them.</p>
 <span class="p">}</span><span class="w"></span>
 </pre></div>
 </div>
-<p>The other functions in Cpu0MCCodeEmitter.cpp are called by these two functions.</p>
-<p>After encoder, the following code will write the encode instructions to buffer.</p>
+<p>The other functions in <cite>Cpu0MCCodeEmitter.cpp</cite> are called by these two functions.</p>
+<p>After encoding, the following code will write the encoded instructions to the buffer.</p>
 <p class="rubric">src/lib/MC/MCELFStreamer.cpp</p>
 <div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="kt">void</span><span class="w"> </span><span class="nf">MCELFStreamer::EmitInstToData</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">MCInst</span><span class="w"> </span><span class="o">&amp;</span><span class="n">Inst</span><span class="p">,</span><span class="w"></span>
 <span class="w">                                   </span><span class="k">const</span><span class="w"> </span><span class="n">MCSubtargetInfo</span><span class="w"> </span><span class="o">&amp;</span><span class="n">STI</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
@@ -1552,15 +1568,15 @@ Operand. The following is the implementation and TableGen code for them.</p>
 <span class="p">}</span><span class="w"></span>
 </pre></div>
 </div>
-<p>Then, ELFObjectWriter::writeObject() will write the buffer to elf file.</p>
+<p>Then, <cite>ELFObjectWriter::writeObject()</cite> will write the buffer to the ELF file.</p>
 </section>
 <section id="backend-target-registration-structure">
 <h2><a class="toc-backref" href="#id11" role="doc-backlink">Backend Target Registration Structure</a><a class="headerlink" href="#backend-target-registration-structure" title="Permalink to this heading">¶</a></h2>
-<p>Now, let’s examine Cpu0MCTargetDesc.cpp.
-Cpu0MCTargetDesc.cpp do the target registration as mentioned in
-the previous chapter here <a class="footnote-reference brackets" href="#target-registration" id="id1" role="doc-noteref"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></a>, and the assembly
-output has explained here <a class="footnote-reference brackets" href="#add-asmprinter" id="id2" role="doc-noteref"><span class="fn-bracket">[</span>2<span class="fn-bracket">]</span></a>.
-List the register functions of ELF obj output as follows,</p>
+<p>Now, let’s examine <cite>Cpu0MCTargetDesc.cpp</cite>.
+<cite>Cpu0MCTargetDesc.cpp</cite> performs target registration as mentioned in
+the previous chapter here <a class="footnote-reference brackets" href="#target-registration" id="id1" role="doc-noteref"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></a>. The assembly output
+has been explained here <a class="footnote-reference brackets" href="#add-asmprinter" id="id2" role="doc-noteref"><span class="fn-bracket">[</span>2<span class="fn-bracket">]</span></a>.</p>
+<p>The register functions for ELF object output are listed as follows:</p>
 <p class="rubric">Register function of elf streamer</p>
 <div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="c1">// Register the elf streamer.</span>
 <span class="n">TargetRegistry</span><span class="o">::</span><span class="n">RegisterELFStreamer</span><span class="p">(</span><span class="o">*</span><span class="n">T</span><span class="p">,</span><span class="w"> </span><span class="n">createMCStreamer</span><span class="p">);</span><span class="w"></span>
@@ -1582,9 +1598,9 @@ List the register functions of ELF obj output as follows,</p>
 <span class="w">  </span><span class="p">}</span><span class="w"></span>
 </pre></div>
 </div>
-<p>Above createELFStreamer takes care the elf obj streamer.
-<a class="reference internal" href="#genobj-f10"><span class="std std-numref">Fig. 35</span></a> as follow is MCELFStreamer inheritance tree.
-You can find a lot of operations in that inheritance tree.</p>
+<p>Above, <cite>createELFStreamer</cite> handles the ELF object streamer.
+<a class="reference internal" href="#genobj-f10"><span class="std std-numref">Fig. 35</span></a> below shows the <cite>MCELFStreamer</cite> inheritance tree.
+You can find many operations within that inheritance tree.</p>
 <figure class="align-center" id="id7">
 <span id="genobj-f10"></span><a class="reference internal image-reference" href="_images/101.png"><img alt="_images/101.png" src="_images/101.png" style="width: 783.0px; height: 596.0px;" /></a>
 <figcaption>
@@ -1639,19 +1655,22 @@ You can find a lot of operations in that inheritance tree.</p>
 <span class="w">  </span><span class="p">}</span><span class="w"></span>
 </pre></div>
 </div>
-<p>Above instancing two objects Cpu0MCCodeEmitter, one is for
-big endian and the other is for little endian.
-They take care the obj format generated while RegisterELFStreamer() reuse the
-elf streamer class.</p>
-<p>Reader maybe has the question: “What are the actual arguments in
-createCpu0MCCodeEmitterEB(const MCInstrInfo &amp;MCII,  const MCSubtargetInfo &amp;STI,
-MCContext &amp;Ctx)?” and “When they are assigned?”
-Yes, we didn’t assign it at this point, we register the createXXX() function by
-function pointer only (according C, TargetRegistry::RegisterXXX(TheCpu0Target,
-createXXX()) where createXXX is function pointer).
-LLVM keeps a function pointer to createXXX() when we call target registry, and
-will call these createXXX() function back at proper time with arguments
-assigned during the target registration process, RegisterXXX().</p>
+<p>Above, two <cite>Cpu0MCCodeEmitter</cite> objects are instantiated. One for big-endian
+and the other for little-endian. They handle the object format generation,
+while <cite>RegisterELFStreamer()</cite> reuses the ELF streamer class.</p>
+<p>Readers may wonder:
+“What are the actual arguments in
+<cite>createCpu0MCCodeEmitterEB(const MCInstrInfo &amp;MCII,
+const MCSubtargetInfo &amp;STI, MCContext &amp;Ctx)</cite>?”
+and “When are they assigned?”</p>
+<p>At this point, we have not assigned them yet. Instead, we register the
+<cite>createXXX()</cite> function using a function pointer (according to C,
+<cite>TargetRegistry::RegisterXXX(TheCpu0Target, createXXX())</cite>, where
+<cite>createXXX</cite> is a function pointer).</p>
+<p>LLVM stores a function pointer to <cite>createXXX()</cite> when we call target
+registration. Later, during the target registration process (<cite>RegisterXXX()</cite>),
+LLVM invokes these <cite>createXXX()</cite> functions with the necessary arguments (LLVM
+invokes these arguments during run time in LLVM structure)`.</p>
 <p class="rubric">Register function of asm backend</p>
 <div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="c1">// Register the asm backend.</span>
 <span class="n">TargetRegistry</span><span class="o">::</span><span class="n">RegisterMCAsmBackend</span><span class="p">(</span><span class="n">TheCpu0Target</span><span class="p">,</span><span class="w"></span>
@@ -1678,11 +1697,12 @@ assigned during the target registration process, RegisterXXX().</p>
 <span class="w">    </span><span class="p">}</span><span class="w"></span>
 </pre></div>
 </div>
-<p>Above Cpu0AsmBackend class is the bridge for asm to obj.
-Two objects take care big endian and little endian, respectively.
-It derived from MCAsmBackend.
-Most of code for object file generated is implemented by MCELFStreamer and it’s
-parent, MCAsmBackend.</p>
+<p>The <cite>Cpu0AsmBackend</cite> class serves as the bridge between assembly and object
+file generation. Two instances handle big-endian and little-endian formats,
+respectively.</p>
+<p>This class is derived from <cite>MCAsmBackend</cite>.
+Most of the code responsible for object file generation is implemented in
+<cite>MCELFStreamer</cite> and its parent class, <cite>MCAsmBackend</cite>.</p>
 <aside class="footnote brackets" id="target-registration" role="note">
 <span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id1">1</a><span class="fn-bracket">]</span></span>
 <p><a class="reference external" href="http://jonathan2251.github.io/lbd/llvmstructure.html#target-registration">http://jonathan2251.github.io/lbd/llvmstructure.html#target-registration</a></p>
@@ -1699,11 +1719,11 @@ parent, MCAsmBackend.</p>
       <div class="bottomnav" role="navigation" aria-label="bottom navigation">
       
         <p>
-        «&#160;&#160;<a href="otherinst.html">Arithmetic and logic instructions</a>
+        «&#160;&#160;<a href="otherinst.html">Arithmetic and Logic Instructions</a>
         &#160;&#160;::&#160;&#160;
         <a class="uplink" href="index.html">Contents</a>
         &#160;&#160;::&#160;&#160;
-        <a href="globalvar.html">Global variables</a>&#160;&#160;»
+        <a href="globalvar.html">Global Variables</a>&#160;&#160;»
         </p>
 
       </div>
