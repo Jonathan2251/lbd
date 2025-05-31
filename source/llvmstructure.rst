@@ -39,6 +39,55 @@ Finally, there are compiler knowledge like DAG (Directed-Acyclic-Graph) and
 instruction selection needed in llvm backend design, and they are explained 
 here. 
 
+
+BNF Auto-Generated Parsers vs. Handwritten Parsers
+--------------------------------------------------
+
+Why doesn't the Clang compiler use YACC/LEX tools to parse C++?
+
+Clang does not use YACC/LEX because **C++ is too complex and context-sensitive**
+for traditional parser generators. YACC and LEX work with context-free grammars, 
+but C++ has many context-sensitive features, such as:
+
+- Ambiguous syntax (e.g., "A a(B());" could be a function or object).
+- The meaning of identifiers depending on prior declarations.
+- The need for semantic analysis during parsing, especially in templates.
+
+Clang uses a hand-written recursive descent parser that integrates semantic
+analysis, allows better error recovery, and provides precise diagnostics. This
+approach is more maintainable and flexible for a complex language like C++.
+
+------------------------------------------------------------------------------
+
+Is there any parser tool that can solve these problems?
+
+Some modern parser tools are more powerful than YACC/LEX, but none can fully
+replace Clang’s hand-written parser for C++.
+
+- ANTLR supports LL(*) parsing with semantic predicates and limited context
+  sensitivity. However, parsing C++ still requires a lot of custom logic.
+- PEG (Parsing Expression Grammars) and Packrat parsers support unlimited
+  lookahead and backtracking, but they cannot resolve semantic context.
+- Bison with GLR parsing can handle ambiguous grammars but lacks deep semantic
+  integration [#so-parsing]_.
+- Tree-sitter is fast and good for syntax highlighting but not suitable for
+  compilers.
+
+In summary, while modern tools improve on YACC/LEX, **the complexity of C++ still
+requires a custom parser that deeply integrates with semantic analysis and type
+resolution. Clang’s approach remains the most practical for full C++ support.
+Moreover the error messages and recovery are still weaker than Clang**.
+
+While C++ compilers do not benefit from BNF  
+generator tools, many other programming and scripting languages, which are  
+more context-free, can take advantage of them. 
+The following information comes from Wikipedia:  
+
+Java syntax has a context-free grammar that can be parsed by a simple LALR  
+parser. Parsing C++ is more complicated [#java-cpp]_.  
+
+The GNU `g++` compiler abandoned BNF tools starting from version 3.x.  
+
 Cpu0 Processor Architecture Details
 -----------------------------------
 
@@ -802,6 +851,8 @@ virtual register `%a` to be assigned twice.
 As a result, the compiler must generate the following code, since `%a` is  
 assigned as an output in two different statements.
 
+.. code-block:: console
+
   => %a = add i32 1, i32 0
       st %a,  i32* %c, 1
       %a = add i32 2, i32 0
@@ -908,7 +959,8 @@ DSA allows this transformation, whereas SSA does not. While extra analysis on
 `%temp` in SSA could reconstruct `%t_idx` and `%t_addr` as shown in the DSA  
 form below, compiler transformations typically follow a high-to-low approach.  
 
-Additionally, LLVM IR already loses the `for` loop structure, even though it  
+Additionally, LLVM IR already loses the `for` loop structure, even though part
+of the losted information  
 can be reconstructed through further analysis.  
 
 For this reason, in this book—as well as in most compiler-related research—the  
@@ -1186,26 +1238,6 @@ facilitate instruction selection and code generation, as shown in
 .. _llvmstructure_llvmTblGen:
 .. graphviz:: ../Fig/llvmstructure/llvmTblGen.gv
   :caption: llvm TableGen Flow
-
-Since C++ grammar is more context-sensitive than context-free, the LLVM frontend  
-project Clang uses a hand-coded parser instead of BNF generator tools.  
-
-In backend development, transforming IR into machine instructions benefits  
-greatly from TableGen tools. While C++ compilers do not benefit from BNF  
-generator tools, many other programming and scripting languages, which are  
-more context-free, can take advantage of them.  
-
-The following information comes from Wikipedia:  
-
-Java syntax has a context-free grammar that can be parsed by a simple LALR  
-parser. Parsing C++ is more complicated [#java-cpp]_.  
-
-The GNU `g++` compiler abandoned BNF tools starting from version 3.x.  
-Beyond the fact that C++ has a more context-sensitive grammar, another reason  
-for this decision is that a hand-coded parser can provide better error  
-diagnostics than a BNF-based tool. BNF tools always select rules from the  
-grammar when a match is found, potentially leading to less precise error  
-reporting.
 
 LLVM Code Generation Sequence
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -2898,6 +2930,10 @@ Refer to LLVM passes documentation [#llvm-passes]_. Examples:
   Prints the CFG to a `.dot` file without function bodies.
 
 
+.. [#so-parsing] https://stackoverflow.com/questions/4172342/complexity-of-parsing-c
+
+.. [#java-cpp] https://en.wikipedia.org/wiki/Comparison_of_Java_and_C%2B%2B
+
 .. [#cpu0-chinese] Original Cpu0 architecture and ISA details (Chinese). http://ccckmit.wikidot.com/ocs:cpu0
 
 .. [#cpu0-english] English translation of Cpu0 description. http://translate.google.com.tw/translate?js=n&prev=_t&hl=zh-TW&ie=UTF-8&layout=2&eotf=1&sl=zh-CN&tl=en&u=http://ccckmit.wikidot.com/ocs:cpu0
@@ -2913,8 +2949,6 @@ Refer to LLVM passes documentation [#llvm-passes]_. Examples:
 .. [#call-note] jsub cx is direct call for 24 bits value of cx while jalr $rb is indirect call for 32 bits value of register $rb.
 
 .. [#jr-note] Both JR and RET has same opcode (actually they are the same instruction for Cpu0 hardware). When user writes "jr $t9" meaning it jumps to address of register $t9; when user writes "jr $lr" meaning it jump back to the caller function (since $lr is the return address). For user read ability, Cpu0 prints "ret $lr" instead of "jr $lr".
-
-.. [#java-cpp] https://en.wikipedia.org/wiki/Comparison_of_Java_and_C%2B%2B
 
 .. [#aosa-book] Chris Lattner, **LLVM**. Published in The Architecture of Open Source Applications. http://www.aosabook.org/en/llvm.html
 

@@ -65,8 +65,9 @@ Version 12.0.17, not released yet.
 
 Version 12.0.16, Released May 24, 2026.
 
-  Chatgpt: Refine my English for the input rst format texts I input the 
-  following and output rst format with <= 80 characters each line.
+  Chatgpt: Refine my English for the input reStructuredText (reST) format I 
+  provide below, and output the corrected version in reST format with each 
+  line no longer than 80 characters.
 
 Version 12.0.15.4, Released September 22, 2024.
 
