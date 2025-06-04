@@ -1,0 +1,34 @@
+digraph SPIRV_Deployment {
+    rankdir=LR;
+    node [shape=box, style=filled, fillcolor=lightgray, fontname="Helvetica"];
+
+    subgraph cluster_glsl {
+        label = "From GLSL";
+        glsl_src [label="GLSL Shader (.vert/.frag)", fillcolor=lightblue];
+        glsl_compiler [label="glslangValidator\n(or similar compiler)", fillcolor=lightgreen];
+        spirv_glsl [label="SPIR-V (from GLSL)", fillcolor=gold];
+        glsl_src -> glsl_compiler -> spirv_glsl;
+    }
+
+    subgraph cluster_opencl {
+        label = "From OpenCL C";
+        opencl_src [label="OpenCL C (.cl)", fillcolor=lightblue];
+        clang_spirv [label="Clang + SPIR-V Backend", fillcolor=lightgreen];
+        spirv_opencl [label="SPIR-V (from OpenCL C)", fillcolor=gold];
+        opencl_src -> clang_spirv -> spirv_opencl;
+    }
+
+    subgraph cluster_opencl_runtime {
+        label = "OpenCL Runtime (Host)";
+        spirv_loader [label="clCreateProgramWithIL()", fillcolor=orange];
+        spirv_glsl -> spirv_loader;
+        spirv_opencl -> spirv_loader;
+        spirv_loader -> device_driver [label="Load SPIR-V into driver"];
+        device_driver [label="OpenCL Driver\n(SPIR-V → Device IR → Machine Code)", fillcolor=plum];
+        device_driver -> execution [label="Compiled & Run on device"];
+        execution [label="Execute on OpenCL Device", fillcolor=lightyellow];
+    }
+
+    // Styling
+    edge [fontname="Helvetica"];
+}

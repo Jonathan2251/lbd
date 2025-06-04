@@ -1922,6 +1922,115 @@ OpenCL, Vulkan and spir-v
   ==========   ============  =====================
 
 
+.. _spirv_deploy: 
+.. graphviz:: ../Fig/gpu/spirv-deploy.gv
+  :caption: OpenCL and GLSL(OpenGL)
+
+Identifying SPIR-V Source Language (OpenCL vs GLSL)
+###################################################
+
+SPIR-V binaries contain metadata that can help identify whether they
+were generated from OpenCL, GLSL, or another language.
+
+- Execution Model
+
+  Defined by the `OpEntryPoint` instruction. It is a strong indicator
+  of the source language.
+  
+  +----------------+----------------------+-------------------------------+
+  | ExecutionModel | Typical Source       | Notes                         |
+  +================+======================+===============================+
+  | Kernel         | OpenCL               | Used only by OpenCL C         |
+  +----------------+----------------------+-------------------------------+
+  | GLCompute      | GLSL or HLSL         | Used in compute shaders       |
+  +----------------+----------------------+-------------------------------+
+  | Fragment       | GLSL or HLSL         | For pixel shaders             |
+  +----------------+----------------------+-------------------------------+
+  | Vertex         | GLSL or HLSL         | For vertex shaders            |
+  +----------------+----------------------+-------------------------------+
+
+- Capabilities
+  
+  Declared using `OpCapability`. They provide clues about the SPIR-V's
+  execution model and source.
+  
+  +----------------+------------------------+
+  | Capability     | Likely Source          |
+  +================+========================+
+  | Kernel         | OpenCL                 |
+  +----------------+------------------------+
+  | Addresses      | OpenCL                 |
+  +----------------+------------------------+
+  | Linkage        | OpenCL                 |
+  +----------------+------------------------+
+  | Shader         | GLSL or HLSL           |
+  +----------------+------------------------+
+
+- Extensions
+  
+  Declared using `OpExtension`. Some are tied to specific compilers
+  or languages.
+  
+  +----------------------------------------+---------------------------+
+  | Extension                              | Likely Source             |
+  +========================================+===========================+
+  | SPV_KHR_no_integer_wrap_decoration     | OpenCL                    |
+  +----------------------------------------+---------------------------+
+  | SPV_INTEL_unified_shared_memory        | OpenCL (Intel)            |
+  +----------------------------------------+---------------------------+
+  | SPV_AMD_shader_ballot                  | GLSL (graphics)           |
+  +----------------------------------------+---------------------------+
+
+- Memory Model
+
+  Defined by `OpMemoryModel`.
+  
+  - `OpenCL`    → OpenCL source
+  - `GLSL450`   → GLSL or HLSL source
+
+- How to Inspect
+
+  Use the `spirv-dis` tool to disassemble SPIR-V to human-readable form:
+
+  .. code-block:: bash
+
+     spirv-dis kernel.spv -o kernel.spvasm
+
+  Look for these at the top of the file:
+
+  Example (GLSL):
+
+  .. code-block:: none
+
+     OpCapability Shader
+     OpMemoryModel Logical GLSL450
+     OpEntryPoint GLCompute %main "main"
+
+  Example (OpenCL):
+  
+  .. code-block:: none
+
+     OpCapability Kernel
+     OpCapability Addresses
+     OpMemoryModel Logical OpenCL
+     OpEntryPoint Kernel %foo "foo"
+
+Summary
++++++++
+
++--------------------------+------------------+
+| Feature                  | Indicates        |
++==========================+==================+
+| OpEntryPoint Kernel      | OpenCL           |
++--------------------------+------------------+
+| OpCapability Shader      | GLSL or HLSL     |
++--------------------------+------------------+
+| OpMemoryModel OpenCL     | OpenCL           |
++--------------------------+------------------+
+| OpMemoryModel GLSL450    | GLSL or HLSL     |
++--------------------------+------------------+
+
+
 .. _opencl_to_spirv: 
 .. figure:: ../Fig/gpu/opencl-to-spirv-offine-compilation.png
   :align: center
@@ -1932,7 +2041,7 @@ OpenCL, Vulkan and spir-v
 - clang: Compile OpenCL to spirv for runtime+driver. Or compile OpenCL to llvm, then
   "SPIR-V LLVM Translator" translate llvm to spirv for runtime+driver.
 
-- clspv: Compile OpenCL to spirv for tuntime
+- clspv: Compile OpenCL to spirv directly.
 
 
 .. _glsl_spirv: 
