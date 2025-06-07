@@ -1921,13 +1921,45 @@ OpenCL, Vulkan and spir-v
   Vulkan       SPIR-V        IR
   ==========   ============  =====================
 
+.. _glsl_spirv: 
+.. graphviz:: ../Fig/gpu/glsl-spirv.gv
+  :caption: Convertion between glsl and spirv
+
+.. _opencl_to_spirv: 
+.. figure:: ../Fig/gpu/opencl-to-spirv-offine-compilation.png
+  :align: center
+  :scale: 40 %
+
+  Offline Compilation of OpenCL Kernels into SPIR-V Using Open Source Tooling [#opencl-to-spirv]_
+
+- clang: Compile OpenCL to spirv for runtime+driver. Or compile OpenCL to llvm, then
+  "SPIR-V LLVM Translator" translate llvm to spirv for runtime+driver.
+
+- clspv: Compile OpenCL to spirv directly.
+
+.. _gpu_compiler_toolchain: 
+.. graphviz:: ../Fig/gpu/gpu-compiler-toolchain.gv
+  :caption: GPU Compiler Components and Flow
+
+The flow and relationships among GLSL, OpenCL, SPIR-V (Vulkan/OpenCL), LLVM IR, 
+and the GPU compiler are shown in the :numref:`spirv`, :numref:`glsl_spirv`, 
+:numref:`opencl_to_spirv` and :numref:`gpu_compiler_toolchain`.
+As shown in :numref:`gpu_compiler_toolchain`, OpenCL-C to SPIR-V (OpenCL) can
+be compiled using **clang + llvm-spirv** tools or a proprietary converter. 
+
+As shown in :numref:`gpu_compiler_toolchain`, both GLSL and OpenCL use frontend 
+tools to generate SPIR-V. 
+The driver can invoke either the GLSL or OpenCL compiler based on metadata 
+fields in the SPIR-V, as illustrated in :numref:`spirv_deploy` and the 
+following figures, which describe offline compilation from GLSL/OpenCL to 
+SPIR-V and online execution using the generated SPIR-V files.
 
 .. _spirv_deploy: 
 .. graphviz:: ../Fig/gpu/spirv-deploy.gv
-  :caption: OpenCL and GLSL(OpenGL)
+  :caption: Compiling and Deploying GPU Code from GLSL, Vulkan, and OpenCL
 
-Identifying SPIR-V Source Language (OpenCL vs GLSL)
-###################################################
+**The following explains how the driver identifies whether the SPIR-V source is 
+from GLSL or OpenCL.**
 
 SPIR-V binaries contain metadata that can help identify whether they
 were generated from OpenCL, GLSL, or another language.
@@ -2016,7 +2048,7 @@ were generated from OpenCL, GLSL, or another language.
      OpEntryPoint Kernel %foo "foo"
 
 Summary
-+++++++
+~~~~~~~
 
 +--------------------------+------------------+
 | Feature                  | Indicates        |
@@ -2029,24 +2061,6 @@ Summary
 +--------------------------+------------------+
 | OpMemoryModel GLSL450    | GLSL or HLSL     |
 +--------------------------+------------------+
-
-
-.. _opencl_to_spirv: 
-.. figure:: ../Fig/gpu/opencl-to-spirv-offine-compilation.png
-  :align: center
-  :scale: 40 %
-
-  Offline Compilation of OpenCL Kernels into SPIR-V Using Open Source Tooling [#opencl-to-spirv]_
-
-- clang: Compile OpenCL to spirv for runtime+driver. Or compile OpenCL to llvm, then
-  "SPIR-V LLVM Translator" translate llvm to spirv for runtime+driver.
-
-- clspv: Compile OpenCL to spirv directly.
-
-
-.. _glsl_spirv: 
-.. graphviz:: ../Fig/gpu/glsl-spirv.gv
-  :caption: Convertion between glsl and spirv
 
 - Comparsion for OpenCL and OpenGL's compute shader.
 
