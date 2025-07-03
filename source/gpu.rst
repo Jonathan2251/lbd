@@ -1553,8 +1553,79 @@ Speedup Features
 Buffers
 ~~~~~~~
 
-In addition to texture units and instructions, GPU provides different Buffers
-to speedup OpenGL pipeline rendering [#buffers-redbook]_.
+In addition to texture units and instructions, CPU and GPU provides different 
+Buffers to speedup OpenGL pipeline rendering [#buffers-redbook]_.
+
+.. list-table:: Graphics Buffers
+   :widths: 20 10 14 16 20 20
+   :header-rows: 1
+
+   * - Buffer Type
+     - Access
+     - Location
+     - API/Usage
+     - Function
+     - Description
+   * - Vertex Buffer (VBO)
+     - Read
+     - GPU
+     - OpenGL, Vulkan
+     - Store vertex attributes
+     - Holds data like position, normal, and texture coords for drawing geometry.
+   * - Index Buffer (IBO/EBO)
+     - Read
+     - GPU
+     - OpenGL, Vulkan
+     - Reuse vertex data
+     - Stores indices into the vertex buffer to avoid duplication.
+   * - Uniform Buffer (UBO)
+     - Read
+     - GPU or Shared
+     - OpenGL, Vulkan
+     - Constant input data
+     - Shares transformation matrices, lighting, or material data across shaders.
+   * - Shader Storage Buffer (SSBO)
+     - Read/Write
+     - GPU or Shared
+     - OpenGL, Vulkan
+     - General data exchange
+     - Flexible, large buffers accessible for structured shader I/O.
+   * - Constant Buffer
+     - Read
+     - GPU or Shared
+     - DirectX, Vulkan
+     - Fast uniform access
+     - Optimized for fast access to frequently read small data.
+   * - Image / Texture Buffer
+     - Read/Write
+     - GPU
+     - OpenGL, Vulkan
+     - Sample/store pixels
+     - Stores image data for sampling or read/write image operations in shaders.
+   * - Color Buffer
+     - Write
+     - GPU
+     - OpenGL, Vulkan
+     - Store final pixel color
+     - Stores output of fragment shaders; used for display or post-processing.
+   * - Depth Buffer (Z-Buffer)
+     - Write/Read
+     - GPU
+     - OpenGL, Vulkan
+     - Visibility testing
+     - Stores per-pixel depth values for hidden surface removal.
+   * - Frame Buffer
+     - Write
+     - GPU
+     - OpenGL, Vulkan
+     - Store render output
+     - Holds final color, depth, or other rendered output.
+   * - Stencil Buffer
+     - Read/Write
+     - GPU
+     - OpenGL, Vulkan
+     - Pixel masking
+     - Used to conditionally discard or preserve pixels in the pipeline.
 
 - Color buffer
 
@@ -1572,11 +1643,6 @@ to speedup OpenGL pipeline rendering [#buffers-redbook]_.
   depth-buffer values are overwritten by pixels with smaller values 
   [#redbook-p156]_ [#z-buffer-wiki]_ [#depthstencils-ogl]_.
 
-- Stencil Buffer
-
-  In the simplest case, the stencil buffer is used to limit the area of 
-  rendering (stenciling) [#stencils-buffer-wiki]_ [#depthstencils-ogl]_.  
-
 - Frame Buffer
 
   OpenGL offers: the color, depth and stencil buffers. 
@@ -1584,6 +1650,76 @@ to speedup OpenGL pipeline rendering [#buffers-redbook]_.
   seen, a framebuffer is an area in memory that can be rendered to 
   [#framebuffers-ogl]_. 
 
+- Stencil Buffer
+
+  In the simplest case, the stencil buffer is used to limit the area of 
+  rendering (stenciling) [#stencils-buffer-wiki]_ [#depthstencils-ogl]_.  
+
+
+.. list-table:: Compute Buffers
+   :widths: 20 10 14 16 20 20
+   :header-rows: 1
+
+   * - Buffer Type
+     - Access
+     - Location
+     - API/Usage
+     - Function
+     - Description
+   * - Compute Buffer
+     - Read/Write
+     - GPU or Shared
+     - OpenCL, Vulkan, CUDA
+     - Parallel compute data
+     - Buffers used in compute kernels or shaders for general processing.
+   * - Atomic Buffer
+     - Read/Write (Atomic)
+     - GPU
+     - OpenGL, Vulkan
+     - Shared counters/data
+     - Used with atomic ops for synchronization or accumulation.
+   * - Acceleration Structure Buffer
+     - Read
+     - GPU
+     - Vulkan RT, DXR
+     - Ray tracing acceleration
+     - Holds spatial hierarchy (BVH) for ray traversal efficiency.
+   * - Indirect Draw Buffer
+     - Read
+     - GPU
+     - Vulkan, DirectX
+     - GPU-issued draw
+     - Stores draw/dispatch args to issue commands without CPU.
+
+- DXR: DirectX Raytracing — a D3D12 extension for real-time ray tracing using 
+  GPU acceleration.
+
+- Indirect Draw Buffer: A GPU-side buffer holding draw parameters so that GPU 
+  (not CPU) can issue rendering work dynamically.
+ 
+
+.. list-table:: System-Level and Utility Buffers
+   :widths: 20 10 14 16 20 20
+   :header-rows: 1
+
+   * - Buffer Type
+     - Access
+     - Location
+     - API/Usage
+     - Function
+     - Description
+   * - Command Buffer
+     - Write (CPU) / Read (GPU)
+     - Host → GPU
+     - Vulkan, DirectX12
+     - Submit work
+     - Encapsulates commands like draw, dispatch, and memory ops.
+   * - Parking / Staging Buffer
+     - Read/Write
+     - Host-visible
+     - Vulkan, CUDA
+     - Temporary transfer
+     - Temporary CPU-visible buffer for uploading/downloading GPU data.
 
 General purpose GPU
 --------------------
