@@ -1,0 +1,30 @@
+digraph gpu_memory {
+  rankdir=LR;
+  node [shape=box style=rounded fontsize=10];
+
+  subgraph cluster_shared {
+    label = "Shared Memory (Integrated GPU)";
+    CPU [label="CPU\n(Caches, DMA)"];
+    GPU [label="iGPU\n(DMA Engine)"];
+    MC [label="Shared\nMemory Controller"];
+    DRAM [label="System RAM\n(DDR/LPDDR)"];
+
+    CPU -> MC -> DRAM;
+    GPU -> MC;
+    GPU -> DRAM [style=dashed, label="DMA"];
+  }
+
+  subgraph cluster_dedicated {
+    label = "Dedicated Memory (Discrete GPU)";
+    CPU2 [label="CPU\n(Caches)"];
+    SYS_RAM [label="System RAM"];
+    GPU2 [label="dGPU\n(Caches, DMA)"];
+    VRAM [label="VRAM\n(GDDR/HBM)"];
+
+    CPU2 -> SYS_RAM;
+    GPU2 -> VRAM;
+  }
+
+  edge [style=invis];
+  DRAM -> CPU2;
+}

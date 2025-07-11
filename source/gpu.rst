@@ -1721,6 +1721,96 @@ Buffers to speedup OpenGL pipeline rendering [#buffers-redbook]_.
      - Temporary transfer
      - Temporary CPU-visible buffer for uploading/downloading GPU data.
 
+
+VRAM
+~~~~
+
+**Reason:**
+
+**1. Since CPU and GPU have different requirements, a shared memory design cannot 
+match the performance of dedicated GPU memory.**
+
+**2. In systems with shared memory (like integrated GPUs), both the CPU and GPU 
+access the same physical memory (DRAM). This leads to several forms of 
+contention:**
+
+  - a. Cache Coherency Overhead
+
+  - b. DMA Contention
+
+  - c. Bus & Memory Controller Bottleneck
+
+A discrete GPU has its own dedicated memory (VRAM) while an integrated GPU (iGPU)
+shares memory with the CPU.
+
+Dedicated GPU memory (VRAM) outperforms shared CPU-GPU memory due to
+higher bandwidth, lower latency, parallel access optimization, and no
+contention with CPU resources.
+
+**Key Differences:**
+
+.. _mem: 
+.. graphviz:: ../Fig/gpu/mem.gv
+  :caption: iGPU versus dGPU
+
++----------------------+-----------------------------+------------------------------+
+| Feature              | Shared Memory (CPU + iGPU)  | Dedicated GPU Memory (dGPU)  |
++======================+=============================+==============================+
+| Bandwidth            | Lower (DDR/LPDDR)           | Higher (GDDR/HBM)            |
++----------------------+-----------------------------+------------------------------+
+| Latency              | Higher                      | Lower                        |
++----------------------+-----------------------------+------------------------------+
+| Parallel Access      | Limited                     | Optimized for many threads   |
++----------------------+-----------------------------+------------------------------+
+| Cache Coherency      | Required (with CPU)         | Not required                 |
++----------------------+-----------------------------+------------------------------+
+| DMA Bandwidth        | Shared with CPU             | GPU has exclusive DMA access |
++----------------------+-----------------------------+------------------------------+
+| Memory Contention    | Yes                         | No                           |
++----------------------+-----------------------------+------------------------------+
+| Performance          | Lower:                      | Higher:                      |
+|                      | Bandwidth bottlenecks,      | Wide memory bandwidth,       |
+|                      | CPU-GPU interference and    | Parallel thread access and   |
+|                      | Cache/DMA conflicts         | Low latency memory access    |
++----------------------+-----------------------------+------------------------------+
+
+**Summary:**
+
+Dedicated memory allows the GPU to run high-throughput workloads without
+interference from the CPU. It provides wide bandwidth (1), optimized
+parallel access (2), and low-latency paths (3), avoiding cache and DMA
+conflicts for superior performance.
+
+(1). Wide bandwidth: Dedicated GPU memory (VRAM) is often based on GDDR6, 
+GDDR6X, or HBM2/3, which are much faster than standard system RAM (DDR4/DDR5).
+
+  Typical bandwidths:
+
+    - GDDR6: ~448–768 GB/s
+
+    - HBM2: up to 1 TB/s+
+
+    - DDR5 (shared memory): ~50–80 GB/s
+
+  Impact: Faster access to textures, vertex buffers, and framebuffers—critical for rendering and compute tasks.
+
+(2). Optimized parallel access: 
+
+  - VRAM is optimized for the massively parallel architecture of GPUs.
+
+  - It allows thousands of threads to access memory simultaneously without stalling.
+
+  Shared system memory is optimized for CPU access patterns, not thousands of GPU threads.
+
+(3). Low-latency paths: 
+
+  - Dedicated memory is physically closer to the GPU die.
+
+  - No need to traverse the PCIe bus like discrete GPUs accessing system RAM.
+
+  In shared memory systems (like integrated GPUs), memory access may have to go through a memory controller shared with the CPU, adding delay.
+
+
 General purpose GPU
 --------------------
 
