@@ -957,6 +957,9 @@ animation tools—such as Maya, Blender, and others—can utilize these APIs to 
 The hardware-specific implementation of these APIs is provided by GPU manufacturers,
 ensuring that rendering is optimized for the underlying hardware.
 
+Examples
+++++++++
+
 An OpenGL program typically follows a structure like the example below:
 
 .. rubric:: Vertex shader
@@ -1045,8 +1048,266 @@ add up this few mini-seconds of on-line compilation time in running OpenGL
 program is a good choice for dealing the cases of driver software or gpu 
 hardware replacement [#onlinecompile]_. 
 
+Goals
++++++
 
-OpenGL Shader compiler
+Goals of GLSL Shader Language:
+
+GLSL was designed for real-time graphics using programmable GPUs.
+
+1. Programmable Pipeline:
+
+- Custom control over vertex, fragment, and other pipeline stages
+- Enables dynamic effects, lighting, animation, and transformations
+
+2. GPU Acceleration
+
+- Executes on GPU cores for massive parallel performance
+- Optimized for matrix and vector operations common in graphics
+
+3. Cross-Platform Compatibility:
+
+- Runs consistently across OSes and hardware via OpenGL
+- Avoids vendor lock-in for portable shader code
+
+4. C-Like Syntax
+
+- Familiar syntax for developers used to C-style languages
+- Supports functions, loops, conditionals, and custom types
+
+5. Fine-Grained Rendering Control
+
+- Direct access to geometry, color, texture, lighting parameters
+- Enables advanced effects like shadows, fog, reflections
+
+6. Real-Time Interactivity
+
+- Responds to user input, time, and animations at runtime
+- Suitable for games, simulations, and creative tools
+
+7. Minimal Host Dependency
+
+- Executes within the graphics driver context
+- No need for external libraries, file I/O, or system calls
+
+GLSL vs. C: Feature Overview
++++++++++++++++++++++++++++++
+
+GLSL expands upon C for GPU-based graphics programming.
+
+**Additions to C:**
+
+1. Specialized Data Types
+
+- vec2, vec3, vec4: float vectors
+- mat2, mat3, mat4: float matrices
+- bvec, ivec, uvec, dvec: boolean and integer vectors
+- sampler2D, samplerCube: texture samplers
+
+2. Pipeline Qualifiers
+
+- attribute, varying (legacy)
+- in, out, inout: stage and parameter I/O
+- uniform: uniform variables are set externally by the host application 
+  (e.g., OpenGL) and remain constant across all shader invocations for 
+  a draw call.
+- layout(location = x): set GPU variable locations
+- precision qualifiers: lowp, mediump, highp
+
+3. Built-in Functions
+
+- texture(), reflect(), refract(), normalize()
+- mix(), smoothstep(): interpolation and blending
+- dot(), cross(), transpose(), inverse(): math ops
+- dFdx(), dFdy(), fwidth(): pixel derivatives
+
+4. Swizzling
+
+- .xyzw, .rgba, .stpq access vector components
+- e.g., vec4 pos = vec3(1, 2, 3).xyzx
+
+5. Shader-Specific Keywords
+
+- discard: drop fragments early
+- gl_Position, gl_FragColor, gl_VertexID: built-ins
+- subroutine, patch, sample: advanced pipeline control
+
+**Removals and Restrictions:**
+
+1. No Pointers or Memory Access
+
+- No * or & operators
+- No malloc, free
+
+2. No File I/O or Standard C Libs
+
+- No stdio.h, printf(), fopen()
+
+3. No Recursion
+
+- Recursive functions not allowed
+
+4. No #include Support
+
+- Files can't be included via preprocessor
+
+5. Limited Control Flow
+
+- goto not allowed
+- Loops must be statically determinable in many cases for compiler optimization as follows:
+
+.. rubric:: Example for loops must be statically determinable in many cases
+.. code-block:: c++
+
+  const int MAX_LIGHTS = 10;
+  for (int i = 0; i < MAX_LIGHTS; ++i) {
+    // Safe: MAX_LIGHTS is a compile-time constant
+  }
+
+6. Restricted C Keywords
+
+- typedef, union, enum, class, namespace, inline, etc.
+- Reserved or disallowed
+
+**Notes:**
+
+- Changes help GPU execute safely in parallel
+- Designed for real-time, interactive graphics
+
+GLSL Qualifiers by Shader Stage
++++++++++++++++++++++++++++++++
+
+**Vertex Shader:**
+
+- in: Receives per-vertex attributes from buffer objects
+- out: Passes data to next stage (e.g., fragment shader)
+- uniform: Global parameters like matrices or lighting
+- layout(location = x): Binds input/output to attribute index
+- const: Compile-time constants
+- Cannot use interpolation qualifiers on inputs
+
+**Fragment Shader:**
+
+- in: Receives interpolated data from previous stage
+- out: Writes final color to framebuffer
+- uniform: Global parameters like textures or lighting
+- flat: Disables interpolation; uses provoking vertex
+- smooth: Enables perspective-correct interpolation (default)
+- noperspective: Linear interpolation in screen space
+- centroid: Samples within primitive area (for multisampling)
+- sample: Per-sample interpolation (GLSL 4.0+)
+- discard: Terminates fragment processing early
+
+**Compute Shader:**
+
+- layout(local_size_x = x): Defines workgroup size
+- uniform: Input parameters from host
+- buffer: Shader storage buffer access
+- shared: Shared memory among invocations in a workgroup
+- image2D, image3D: Direct image access
+- coherent, volatile, restrict: Memory access control
+- readonly, writeonly: Access mode for image/buffer
+
+**Common Across Stages:**
+
+- const: Immutable values
+- uniform: Host-set global parameters
+- layout(binding = x): Bind uniform/buffer/image to index
+- precise: Ensures consistent computation
+- invariant: Prevents variation across shader executions
+
+**Notes:**
+
+- attribute and varying are deprecated (use in/out instead)
+- Interpolation qualifiers only affect fragment shader inputs
+- Uniforms are shared across all stages and remain constant
+
+.. rubric:: Examples of GLSL Qualifiers by Shader Stage
+.. code-block:: c++
+
+  // ==============================================
+  // Vertex Shader: Qualifier Summary (GLSL)
+  // ==============================================
+
+  // Vertex inputs
+  layout(location = 0) in vec3 aPosition;   // in: per-vertex attribute
+  layout(location = 1) in vec3 aNormal;
+
+  // Outputs to fragment shader
+  out vec3 vNormal;                         // out: passes to next stage
+
+  // Uniforms
+  uniform mat4 uModelMatrix;               // uniform: global parameter
+  uniform mat4 uViewProjectionMatrix;
+
+  // Constants
+  const float PI = 3.14159265;             // const: compile-time constant
+
+  void main() {
+    vNormal = aNormal;
+    gl_Position = uViewProjectionMatrix * uModelMatrix * vec4(aPosition, 1.0);
+  }
+
+  // ==============================================
+  // Fragment Shader: Qualifier Summary (GLSL)
+  // ==============================================
+
+  // Inputs from vertex shader
+  in vec3 vNormal;                          // in: interpolated input
+
+  // Output to framebuffer
+  out vec4 fragColor;                       // out: final pixel color
+
+  // Uniforms
+  uniform vec3 uLightDirection;            // uniform: shared global input
+  uniform vec3 uBaseColor;
+
+  // Interpolation control
+  // flat in vec3 vFlatColor;              // flat: no interpolation
+  // smooth in vec3 vSmoothColor;         // smooth: default interpolation
+  // noperspective in vec3 vLinearColor;  // noperspective: screen-space linear
+
+  void main() {
+    float brightness = max(dot(normalize(vNormal), uLightDirection), 0.0);
+    fragColor = vec4(uBaseColor * brightness, 1.0);
+  }
+
+  // ==============================================
+  // Compute Shader: Qualifier Summary (GLSL)
+  // ==============================================
+
+  #version 430
+
+  // Workgroup size
+  layout(local_size_x = 16, local_size_y = 16) in;
+
+  // Shared memory
+  shared float tileData[256];              // shared: intra-group memory
+
+  // Uniforms
+  uniform float uTime;                     // uniform: global input
+
+  // Buffer access
+  layout(std430, binding = 0) buffer DataBuffer {
+    float values[];
+  };
+
+  // Image access
+  layout(binding = 1, rgba32f) uniform image2D uImage;
+
+  // Memory qualifiers
+  // coherent, volatile, restrict, readonly, writeonly
+
+  void main() {
+    uint idx = gl_GlobalInvocationID.x;
+    values[idx] += sin(uTime);           // buffer write
+    imageStore(uImage, ivec2(idx, 0), vec4(values[idx])); // image write
+  }
+
+
+
+
+OpenGL Shader Compiler
 ~~~~~~~~~~~~~~~~~~~~~~
 
 The OpenGL standard is defined in [#openglspec]_. OpenGL is primarily designed for 
