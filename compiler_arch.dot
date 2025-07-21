@@ -1,0 +1,52 @@
+digraph CompilerPipeline {
+    rankdir=LR;
+    node [shape=box, style=filled];
+
+    // FRONTEND
+    subgraph cluster_frontend {
+        label = "Frontend";
+        color = lightblue;
+
+        Lex [label=".l (Lex Rules)", fillcolor=lightcyan];
+        Yacc [label=".y (Yacc Grammar)", fillcolor=lightcyan];
+        Flex [label="Flex", fillcolor=lightskyblue];
+        Bison [label="Bison", fillcolor=lightskyblue];
+        Lexer [label="Lexer", fillcolor=lightgoldenrod1];
+        Parser [label="Parser", fillcolor=lightgoldenrod1];
+        AST [label="AST", fillcolor=khaki];
+
+        Lex -> Flex -> Lexer;
+        Yacc -> Bison -> Parser;
+        Lexer -> AST;
+        Parser -> AST;
+    }
+
+    // MIDDLE END
+    subgraph cluster_middleend {
+        label = "Middle End";
+        color = lightgreen;
+
+        TableGenIR [label="TableGen (.td) - IRDefs", fillcolor=mediumseagreen];
+        IRGen [label="IR Generation", fillcolor=palegreen];
+        Optimizer [label="Optimizer Passes", fillcolor=palegreen];
+        OptimizedIR [label="Optimized IR", fillcolor=palegreen];
+
+        TableGenIR -> IRGen;
+        AST -> IRGen -> Optimizer -> OptimizedIR;
+    }
+
+    // BACKEND
+    subgraph cluster_backend {
+        label = "Backend";
+        color = lightcoral;
+
+        TableGenBE [label="TableGen (.td) - InstrDefs, RegDefs", fillcolor=indianred1];
+        ISel [label="Instruction Selector", fillcolor=salmon];
+        CodeGen [label="Code Generator", fillcolor=salmon];
+        Assembler [label="Assembler", fillcolor=salmon];
+        Binary [label="Binary Executable", fillcolor=mistyrose];
+
+        TableGenBE -> ISel;
+        OptimizedIR -> ISel -> CodeGen -> Assembler -> Binary;
+    }
+}

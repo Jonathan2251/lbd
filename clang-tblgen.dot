@@ -1,0 +1,59 @@
+digraph TableGenInClang {
+    rankdir=LR;
+    node [shape=box, style=filled];
+
+    subgraph cluster_tablegen_input {
+        label = "TableGen Inputs (.td)";
+        color = lightcyan;
+
+        AttrTD [label="Attr.td\n(Attributes)", fillcolor=lightblue];
+        DiagTD [label="Diagnostic.td\n(Diagnostics)", fillcolor=lightblue];
+        OptTD  [label="Options.td\n(Command-line Options)", fillcolor=lightblue];
+        ASTTD  [label="AST.td\n(AST Nodes)", fillcolor=lightblue];
+    }
+
+    subgraph cluster_tablegen_tool {
+        label = "TableGen Tool";
+        color = lightgoldenrod1;
+
+        TableGen [label="llvm-tblgen", fillcolor=khaki];
+    }
+
+    subgraph cluster_generated_files {
+        label = "Generated .inc Files";
+        color = lightgreen;
+
+        AttrInc [label="AttrImpl.inc / Attrs.inc", fillcolor=palegreen];
+        DiagInc [label="DiagGroups.inc / DiagnosticCommonKinds.inc", fillcolor=palegreen];
+        OptInc  [label="OptParser.inc", fillcolor=lightseagreen];
+        ASTInc  [label="ASTNode.inc", fillcolor=mediumseagreen];
+    }
+
+    subgraph cluster_clang_code {
+        label = "Clang Source Code";
+        color = tomato;
+
+        AttrCpp [label="SemaAttr.cpp", fillcolor=salmon];
+        DiagCpp [label="DiagnosticsEngine.cpp", fillcolor=salmon];
+        OptCpp  [label="CompilerInvocation.cpp", fillcolor=salmon];
+        ASTCpp  [label="ASTContext.cpp", fillcolor=salmon];
+    }
+
+    // Edges: td -> tblgen
+    AttrTD -> TableGen;
+    DiagTD -> TableGen;
+    OptTD  -> TableGen;
+    ASTTD  -> TableGen;
+
+    // tblgen -> inc files
+    TableGen -> AttrInc;
+    TableGen -> DiagInc;
+    TableGen -> OptInc;
+    TableGen -> ASTInc;
+
+    // inc files -> clang source
+    AttrInc -> AttrCpp;
+    DiagInc -> DiagCpp;
+    OptInc  -> OptCpp;
+    ASTInc  -> ASTCpp;
+}

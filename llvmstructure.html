@@ -43,45 +43,51 @@
 <span id="sec-llvmstructure"></span><h1>Cpu0 Architecture and LLVM Structure<a class="headerlink" href="#cpu0-architecture-and-llvm-structure" title="Permalink to this heading">¶</a></h1>
 <nav class="contents local" id="contents">
 <ul class="simple">
-<li><p><a class="reference internal" href="#cpu0-processor-architecture-details" id="id77">Cpu0 Processor Architecture Details</a></p>
+<li><p><a class="reference internal" href="#bnf-auto-generated-parsers-vs-handwritten-parsers" id="id77">BNF Auto-Generated Parsers vs. Handwritten Parsers</a></p>
 <ul>
-<li><p><a class="reference internal" href="#brief-introduction" id="id78">Brief introduction</a></p></li>
-<li><p><a class="reference internal" href="#the-cpu0-instruction-set" id="id79">The Cpu0 Instruction Set</a></p>
-<ul>
-<li><p><a class="reference internal" href="#why-not-use-add-instead-of-sub" id="id80">Why Not Use ADD Instead of SUB?</a></p></li>
+<li><p><a class="reference internal" href="#why-doesn-t-the-clang-compiler-use-yacc-lex-tools-to-parse-c" id="id78">Why doesn’t the Clang compiler use YACC/LEX tools to parse C++?</a></p></li>
+<li><p><a class="reference internal" href="#compiler-compiler-tools-for-context-sensitive-c-parsing" id="id79">Compiler-Compiler Tools for Context-Sensitive C++ Parsing</a></p></li>
 </ul>
 </li>
-<li><p><a class="reference internal" href="#the-status-register" id="id81">The Status Register</a></p></li>
-<li><p><a class="reference internal" href="#cpu0-s-stages-of-instruction-execution" id="id82">Cpu0’s Stages of Instruction Execution</a></p></li>
-<li><p><a class="reference internal" href="#cpu0-s-interrupt-vector" id="id83">Cpu0’s Interrupt Vector</a></p></li>
-</ul>
-</li>
-<li><p><a class="reference internal" href="#llvm-structure" id="id84">LLVM Structure</a></p>
+<li><p><a class="reference internal" href="#cpu0-processor-architecture-details" id="id80">Cpu0 Processor Architecture Details</a></p>
 <ul>
-<li><p><a class="reference internal" href="#ssa-form" id="id85">SSA Form</a></p></li>
-<li><p><a class="reference internal" href="#dsa-form" id="id86">DSA Form</a></p></li>
-<li><p><a class="reference internal" href="#three-phase-design" id="id87">Three-Phase Design</a></p></li>
-<li><p><a class="reference internal" href="#llvm-s-target-description-files-td" id="id88">LLVM’s Target Description Files: .td</a></p></li>
-<li><p><a class="reference internal" href="#llvm-code-generation-sequence" id="id89">LLVM Code Generation Sequence</a></p></li>
-<li><p><a class="reference internal" href="#llvm-vs-gcc-in-structure" id="id90">LLVM vs. GCC in Structure</a></p></li>
-<li><p><a class="reference internal" href="#llvm-blog" id="id91">LLVM Blog</a></p></li>
-<li><p><a class="reference internal" href="#cfg-control-flow-graph" id="id92">CFG (Control Flow Graph)</a></p></li>
-<li><p><a class="reference internal" href="#dag-directed-acyclic-graph" id="id93">DAG (Directed Acyclic Graph)</a></p></li>
-<li><p><a class="reference internal" href="#instruction-selection" id="id94">Instruction Selection</a></p></li>
-<li><p><a class="reference internal" href="#caller-and-callee-saved-registers" id="id95">Caller and Callee Saved Registers</a></p></li>
-<li><p><a class="reference internal" href="#live-in-and-live-out-registers" id="id96">Live-In and Live-Out Registers</a></p></li>
-</ul>
-</li>
-<li><p><a class="reference internal" href="#create-cpu0-backend" id="id97">Create Cpu0 Backend</a></p>
+<li><p><a class="reference internal" href="#brief-introduction" id="id81">Brief introduction</a></p></li>
+<li><p><a class="reference internal" href="#the-cpu0-instruction-set" id="id82">The Cpu0 Instruction Set</a></p>
 <ul>
-<li><p><a class="reference internal" href="#cpu0-backend-machine-id-and-relocation-records" id="id98">Cpu0 Backend Machine ID and Relocation Records</a></p></li>
-<li><p><a class="reference internal" href="#creating-the-initial-cpu0-td-files" id="id99">Creating the Initial Cpu0 .td Files</a></p></li>
-<li><p><a class="reference internal" href="#target-registration" id="id100">Target Registration</a></p></li>
-<li><p><a class="reference internal" href="#build-libraries-and-td-files" id="id101">Build Libraries and <cite>.td</cite> Files</a></p></li>
+<li><p><a class="reference internal" href="#why-not-use-add-instead-of-sub" id="id83">Why Not Use ADD Instead of SUB?</a></p></li>
 </ul>
 </li>
-<li><p><a class="reference internal" href="#options-for-llc-debugging" id="id102">Options for <cite>llc</cite> Debugging</a></p></li>
-<li><p><a class="reference internal" href="#opt-debugging-options" id="id103"><cite>opt</cite> Debugging Options</a></p></li>
+<li><p><a class="reference internal" href="#the-status-register" id="id84">The Status Register</a></p></li>
+<li><p><a class="reference internal" href="#cpu0-s-stages-of-instruction-execution" id="id85">Cpu0’s Stages of Instruction Execution</a></p></li>
+<li><p><a class="reference internal" href="#cpu0-s-interrupt-vector" id="id86">Cpu0’s Interrupt Vector</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#llvm-structure" id="id87">LLVM Structure</a></p>
+<ul>
+<li><p><a class="reference internal" href="#ssa-form" id="id88">SSA Form</a></p></li>
+<li><p><a class="reference internal" href="#dsa-form" id="id89">DSA Form</a></p></li>
+<li><p><a class="reference internal" href="#three-phase-design" id="id90">Three-Phase Design</a></p></li>
+<li><p><a class="reference internal" href="#llvm-s-target-description-files-td" id="id91">LLVM’s Target Description Files: .td</a></p></li>
+<li><p><a class="reference internal" href="#llvm-code-generation-sequence" id="id92">LLVM Code Generation Sequence</a></p></li>
+<li><p><a class="reference internal" href="#llvm-vs-gcc-in-structure" id="id93">LLVM vs. GCC in Structure</a></p></li>
+<li><p><a class="reference internal" href="#llvm-blog" id="id94">LLVM Blog</a></p></li>
+<li><p><a class="reference internal" href="#cfg-control-flow-graph" id="id95">CFG (Control Flow Graph)</a></p></li>
+<li><p><a class="reference internal" href="#dag-directed-acyclic-graph" id="id96">DAG (Directed Acyclic Graph)</a></p></li>
+<li><p><a class="reference internal" href="#instruction-selection" id="id97">Instruction Selection</a></p></li>
+<li><p><a class="reference internal" href="#caller-and-callee-saved-registers" id="id98">Caller and Callee Saved Registers</a></p></li>
+<li><p><a class="reference internal" href="#live-in-and-live-out-registers" id="id99">Live-In and Live-Out Registers</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#create-cpu0-backend" id="id100">Create Cpu0 Backend</a></p>
+<ul>
+<li><p><a class="reference internal" href="#cpu0-backend-machine-id-and-relocation-records" id="id101">Cpu0 Backend Machine ID and Relocation Records</a></p></li>
+<li><p><a class="reference internal" href="#creating-the-initial-cpu0-td-files" id="id102">Creating the Initial Cpu0 .td Files</a></p></li>
+<li><p><a class="reference internal" href="#target-registration" id="id103">Target Registration</a></p></li>
+<li><p><a class="reference internal" href="#build-libraries-and-td-files" id="id104">Build Libraries and <cite>.td</cite> Files</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#options-for-llc-debugging" id="id105">Options for <cite>llc</cite> Debugging</a></p></li>
+<li><p><a class="reference internal" href="#opt-debugging-options" id="id106"><cite>opt</cite> Debugging Options</a></p></li>
 </ul>
 </nav>
 <p>Before you begin this tutorial, you should know that you can always try to
@@ -111,15 +117,161 @@ which will be used in next chapter.</p>
 <p>Finally, there are compiler knowledge like DAG (Directed-Acyclic-Graph) and
 instruction selection needed in llvm backend design, and they are explained
 here.</p>
+<section id="bnf-auto-generated-parsers-vs-handwritten-parsers">
+<h2><a class="toc-backref" href="#id77" role="doc-backlink">BNF Auto-Generated Parsers vs. Handwritten Parsers</a><a class="headerlink" href="#bnf-auto-generated-parsers-vs-handwritten-parsers" title="Permalink to this heading">¶</a></h2>
+<section id="why-doesn-t-the-clang-compiler-use-yacc-lex-tools-to-parse-c">
+<h3><a class="toc-backref" href="#id78" role="doc-backlink">Why doesn’t the Clang compiler use YACC/LEX tools to parse C++?</a><a class="headerlink" href="#why-doesn-t-the-clang-compiler-use-yacc-lex-tools-to-parse-c" title="Permalink to this heading">¶</a></h3>
+<p>Clang does not use YACC/LEX because <strong>C++ is too complex and context-sensitive</strong>
+for traditional parser generators. YACC and LEX work with context-free grammars,
+but C++ has many context-sensitive features, especially in templates below:</p>
+<p class="rubric">Context-sensitive template instantiation</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;iostream&gt;</span><span class="cp"></span>
+
+<span class="k">template</span><span class="w"> </span><span class="o">&lt;</span><span class="k">typename</span><span class="w"> </span><span class="nc">T</span><span class="o">&gt;</span><span class="w"></span>
+<span class="kt">void</span><span class="w"> </span><span class="n">f</span><span class="p">(</span><span class="n">T</span><span class="w"> </span><span class="n">x</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;Template f(T)&quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
+
+<span class="kt">void</span><span class="w"> </span><span class="n">f</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">x</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;Non-template f(int)&quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
+
+<span class="kt">int</span><span class="w"> </span><span class="n">main</span><span class="p">()</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="n">f</span><span class="p">(</span><span class="mi">42</span><span class="p">);</span><span class="w">        </span><span class="c1">// Which one gets called?</span>
+<span class="w">    </span><span class="n">f</span><span class="p">(</span><span class="sc">&#39;a&#39;</span><span class="p">);</span><span class="w">       </span><span class="c1">// Template or non-template?</span>
+<span class="w">    </span><span class="n">f</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span><span class="p">(</span><span class="sc">&#39;a&#39;</span><span class="p">);</span><span class="w">  </span><span class="c1">// Explicit template instantiation</span>
+<span class="p">}</span><span class="w"></span>
+</pre></div>
+</div>
+<p>In the C++ code above, both f(42) and f(‘a’) can match either the template
+function or the non-template function.</p>
+<p>🤯 Why This Is Hard for YACC:</p>
+<p>YACC works with context-free grammars, but this example requires:</p>
+<ul class="simple">
+<li><p>Template argument deduction: The compiler must infer T from the call.</p></li>
+<li><p>Overload resolution: It must choose between the template and non-template
+versions.</p></li>
+<li><p>Implicit conversions: ‘a’ can be converted to int, which affects overload
+ranking.</p></li>
+<li><p>Explicit template instantiation: f&lt;int&gt;(‘a’) forces the template, but YACC
+doesn’t track template types.</p></li>
+</ul>
+<p>To model this in YACC:</p>
+<p>You’d need to simulate template instantiation and ranking — which is way beyond
+what YACC was designed for.</p>
+<p>This kind of logic is not just syntactic — it’s deeply semantic. That’s why
+compilers like Clang use handwritten parsers with tight integration between
+parsing and semantic analysis.</p>
+<p>Clang doesn’t use YACC/LEX because:</p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Feature</p></th>
+<th class="head"><p>YACC/LEX</p></th>
+<th class="head"><p>Hand-written Parser</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Handles context-sensitive grammar</p></td>
+<td><p>❌</p></td>
+<td><p>✅</p></td>
+</tr>
+<tr class="row-odd"><td><p>Good error recovery</p></td>
+<td><p>❌</p></td>
+<td><p>✅</p></td>
+</tr>
+<tr class="row-even"><td><p>Integration with semantic analysis</p></td>
+<td><p>❌</p></td>
+<td><p>✅</p></td>
+</tr>
+<tr class="row-odd"><td><p>Easy to maintain/extend for C++</p></td>
+<td><p>❌</p></td>
+<td><p>✅</p></td>
+</tr>
+<tr class="row-even"><td><p>Fine-grained control</p></td>
+<td><p>❌</p></td>
+<td><p>✅</p></td>
+</tr>
+</tbody>
+</table>
+<p>The GNU <cite>g++</cite> compiler abandoned BNF tools starting from version 3.x.</p>
+</section>
+<section id="compiler-compiler-tools-for-context-sensitive-c-parsing">
+<h3><a class="toc-backref" href="#id79" role="doc-backlink">Compiler-Compiler Tools for Context-Sensitive C++ Parsing</a><a class="headerlink" href="#compiler-compiler-tools-for-context-sensitive-c-parsing" title="Permalink to this heading">¶</a></h3>
+<p>While traditional tools like YACC/Lex are limited to context-free grammars,
+modern compiler construction requires handling context-sensitive features —
+especially in C++ templates, overload resolution, and semantic analysis.
+Below is a list of tools that attempt to address these challenges.</p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Tool</p></th>
+<th class="head"><p>Generates Parser Code?</p></th>
+<th class="head"><p>Context-Sensitive Support?</p></th>
+<th class="head"><p>Notes</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>ANTLR</p></td>
+<td><p>✅ Yes</p></td>
+<td><p>⚠️ Limited</p></td>
+<td><p>Supports semantic predicates; struggles with full C++ complexity</p></td>
+</tr>
+<tr class="row-odd"><td><p>BNFLite</p></td>
+<td><p>✅ Yes</p></td>
+<td><p>⚠️ Partial</p></td>
+<td><p>Lightweight C++ template library; ideal for DSLs, not full C++</p></td>
+</tr>
+<tr class="row-even"><td><p>PEGTL</p></td>
+<td><p>✅ Yes</p></td>
+<td><p>⚠️ Limited</p></td>
+<td><p>PEG-based parser combinator library in C++; expressive but limited</p></td>
+</tr>
+<tr class="row-odd"><td><p>GLR Parsers (Elsa)</p></td>
+<td><p>✅ Yes</p></td>
+<td><p>✅ Yes</p></td>
+<td><p>Can handle ambiguity and deferred resolution; used in research</p></td>
+</tr>
+<tr class="row-even"><td><p>Clang LibTooling</p></td>
+<td><p>✅ Yes (via AST)</p></td>
+<td><p>✅ Yes</p></td>
+<td><p>Offers full C++ parsing + semantic analysis; industrial-grade tooling</p></td>
+</tr>
+</tbody>
+</table>
+<p>Why Most Tools Fall Short:</p>
+<ul class="simple">
+<li><p>C++ templates are <strong>Turing-complete</strong>, making static analysis alone insufficient.</p></li>
+<li><p>Overload resolution requires understanding <strong>types, scopes, and conversions</strong>.</p></li>
+<li><p>C++ syntax is <strong>deeply ambiguous</strong>, defying context-free parsing strategies.</p></li>
+</ul>
+<p>Recommended Approach:</p>
+<p>For building C++ parsers:</p>
+<ul class="simple">
+<li><p>Use <strong>GLR-based tools</strong> like Elsa if ambiguity and template complexity must
+be handled directly.</p></li>
+<li><p>Or leverage <strong>Clang LibTooling</strong> for full semantic integration, AST
+manipulation, and robust code analysis.</p></li>
+</ul>
+<p>In summary, while modern tools improve on YACC/LEX, <strong>the complexity of C++ still
+requires a custom parser that deeply integrates with semantic analysis and type
+resolution. Clang’s approach remains the most practical for full C++ support.
+Moreover the error messages and recovery are still weaker than Clang</strong>.</p>
+<p>While C++ compilers do not benefit from BNF
+generator tools, many other programming and scripting languages, which are
+more context-free, can take advantage of them.
+The following information comes from Wikipedia:</p>
+<p>Java syntax has a context-free grammar that can be parsed by a simple LALR
+parser. Parsing C++ is more complicated <a class="footnote-reference brackets" href="#java-cpp" id="id2" role="doc-noteref"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></a>.</p>
+</section>
+</section>
 <section id="cpu0-processor-architecture-details">
-<h2><a class="toc-backref" href="#id77" role="doc-backlink">Cpu0 Processor Architecture Details</a><a class="headerlink" href="#cpu0-processor-architecture-details" title="Permalink to this heading">¶</a></h2>
-<p>This section is based on materials available here <a class="footnote-reference brackets" href="#cpu0-chinese" id="id2" role="doc-noteref"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></a> (Chinese)
-and here <a class="footnote-reference brackets" href="#cpu0-english" id="id3" role="doc-noteref"><span class="fn-bracket">[</span>2<span class="fn-bracket">]</span></a> (English). However, I changed some ISA from original
+<h2><a class="toc-backref" href="#id80" role="doc-backlink">Cpu0 Processor Architecture Details</a><a class="headerlink" href="#cpu0-processor-architecture-details" title="Permalink to this heading">¶</a></h2>
+<p>This section is based on materials available here <a class="footnote-reference brackets" href="#cpu0-chinese" id="id3" role="doc-noteref"><span class="fn-bracket">[</span>2<span class="fn-bracket">]</span></a> (Chinese)
+and here <a class="footnote-reference brackets" href="#cpu0-english" id="id4" role="doc-noteref"><span class="fn-bracket">[</span>3<span class="fn-bracket">]</span></a> (English). However, I changed some ISA from original
 Cpu0 for designing a simple integer operational CPU and llvm backend. This is
 my intention for writing this book that I want to know what a simple and robotic
 CPU ISA and llvm backend can be.</p>
 <section id="brief-introduction">
-<h3><a class="toc-backref" href="#id78" role="doc-backlink">Brief introduction</a><a class="headerlink" href="#brief-introduction" title="Permalink to this heading">¶</a></h3>
+<h3><a class="toc-backref" href="#id81" role="doc-backlink">Brief introduction</a><a class="headerlink" href="#brief-introduction" title="Permalink to this heading">¶</a></h3>
 <p>Cpu0 is a 32-bit architecture. It has 16 general purpose registers (R0, …,
 R15), co-processor registers (like Mips), and other special registers. Its
 structure is illustrated in <a class="reference internal" href="#llvmstructure-f1"><span class="std std-numref">Fig. 3</span></a> below.</p>
@@ -204,7 +356,7 @@ structure is illustrated in <a class="reference internal" href="#llvmstructure-f
 </table>
 </section>
 <section id="the-cpu0-instruction-set">
-<h3><a class="toc-backref" href="#id79" role="doc-backlink">The Cpu0 Instruction Set</a><a class="headerlink" href="#the-cpu0-instruction-set" title="Permalink to this heading">¶</a></h3>
+<h3><a class="toc-backref" href="#id82" role="doc-backlink">The Cpu0 Instruction Set</a><a class="headerlink" href="#the-cpu0-instruction-set" title="Permalink to this heading">¶</a></h3>
 <p>The Cpu0 instruction set is categorized into three types:</p>
 <ul class="simple">
 <li><p><strong>L-type instructions</strong>: Primarily used for memory operations.</p></li>
@@ -220,7 +372,7 @@ instruction type.</p>
 </figcaption>
 </figure>
 <table class="docutils align-default" id="id54">
-<caption><span class="caption-number">Table 5 </span><span class="caption-text">C, llvm-ir <a class="footnote-reference brackets" href="#langref" id="id4" role="doc-noteref"><span class="fn-bracket">[</span>13<span class="fn-bracket">]</span></a> and Cpu0</span><a class="headerlink" href="#id54" title="Permalink to this table">¶</a></caption>
+<caption><span class="caption-number">Table 5 </span><span class="caption-text">C, llvm-ir <a class="footnote-reference brackets" href="#langref" id="id5" role="doc-noteref"><span class="fn-bracket">[</span>13<span class="fn-bracket">]</span></a> and Cpu0</span><a class="headerlink" href="#id54" title="Permalink to this table">¶</a></caption>
 <thead>
 <tr class="row-odd"><th class="head"><p>C</p></th>
 <th class="head"><p>llvm-ir</p></th>
@@ -362,7 +514,7 @@ br i1 &lt;cond&gt;, …</p></td>
 </tbody>
 </table>
 <table class="docutils align-default" id="id55">
-<caption><span class="caption-number">Table 6 </span><span class="caption-text">C++, llvm-ir <a class="footnote-reference brackets" href="#langref" id="id5" role="doc-noteref"><span class="fn-bracket">[</span>13<span class="fn-bracket">]</span></a> and Cpu0</span><a class="headerlink" href="#id55" title="Permalink to this table">¶</a></caption>
+<caption><span class="caption-number">Table 6 </span><span class="caption-text">C++, llvm-ir <a class="footnote-reference brackets" href="#langref" id="id6" role="doc-noteref"><span class="fn-bracket">[</span>13<span class="fn-bracket">]</span></a> and Cpu0</span><a class="headerlink" href="#id55" title="Permalink to this table">¶</a></caption>
 <thead>
 <tr class="row-odd"><th class="head"><p>C++</p></th>
 <th class="head"><p>llvm-ir</p></th>
@@ -485,14 +637,14 @@ principles of MIPS.</p></li>
 <td><p>03</p></td>
 <td><p>Load byte</p></td>
 <td><p>LB Ra, [Rb+Cx]</p></td>
-<td><p>Ra &lt;= (byte)[Rb+Cx] <a class="footnote-reference brackets" href="#lb-note" id="id6" role="doc-noteref"><span class="fn-bracket">[</span>3<span class="fn-bracket">]</span></a></p></td>
+<td><p>Ra &lt;= (byte)[Rb+Cx] <a class="footnote-reference brackets" href="#lb-note" id="id7" role="doc-noteref"><span class="fn-bracket">[</span>4<span class="fn-bracket">]</span></a></p></td>
 </tr>
 <tr class="row-even"><td><p>L</p></td>
 <td><p>LBu</p></td>
 <td><p>04</p></td>
 <td><p>Load byte unsigned</p></td>
 <td><p>LBu Ra, [Rb+Cx]</p></td>
-<td><p>Ra &lt;= (byte)[Rb+Cx] <a class="footnote-reference brackets" href="#lb-note" id="id7" role="doc-noteref"><span class="fn-bracket">[</span>3<span class="fn-bracket">]</span></a></p></td>
+<td><p>Ra &lt;= (byte)[Rb+Cx] <a class="footnote-reference brackets" href="#lb-note" id="id8" role="doc-noteref"><span class="fn-bracket">[</span>4<span class="fn-bracket">]</span></a></p></td>
 </tr>
 <tr class="row-odd"><td><p>L</p></td>
 <td><p>SB</p></td>
@@ -506,14 +658,14 @@ principles of MIPS.</p></li>
 <td><p>06</p></td>
 <td><p>Load half word</p></td>
 <td><p>LH Ra, [Rb+Cx]</p></td>
-<td><p>Ra &lt;= (2bytes)[Rb+Cx] <a class="footnote-reference brackets" href="#lb-note" id="id8" role="doc-noteref"><span class="fn-bracket">[</span>3<span class="fn-bracket">]</span></a></p></td>
+<td><p>Ra &lt;= (2bytes)[Rb+Cx] <a class="footnote-reference brackets" href="#lb-note" id="id9" role="doc-noteref"><span class="fn-bracket">[</span>4<span class="fn-bracket">]</span></a></p></td>
 </tr>
 <tr class="row-odd"><td><p>L</p></td>
 <td><p>LHu</p></td>
 <td><p>07</p></td>
 <td><p>Load half word unsigned</p></td>
 <td><p>LHu Ra, [Rb+Cx]</p></td>
-<td><p>Ra &lt;= (2bytes)[Rb+Cx] <a class="footnote-reference brackets" href="#lb-note" id="id9" role="doc-noteref"><span class="fn-bracket">[</span>3<span class="fn-bracket">]</span></a></p></td>
+<td><p>Ra &lt;= (2bytes)[Rb+Cx] <a class="footnote-reference brackets" href="#lb-note" id="id10" role="doc-noteref"><span class="fn-bracket">[</span>4<span class="fn-bracket">]</span></a></p></td>
 </tr>
 <tr class="row-even"><td><p>L</p></td>
 <td><p>SH</p></td>
@@ -562,28 +714,28 @@ principles of MIPS.</p></li>
 <td><p>11</p></td>
 <td><p>Add unsigned</p></td>
 <td><p>ADD Ra, Rb, Rc</p></td>
-<td><p>Ra &lt;= Rb + Rc <a class="footnote-reference brackets" href="#u-note" id="id10" role="doc-noteref"><span class="fn-bracket">[</span>4<span class="fn-bracket">]</span></a></p></td>
+<td><p>Ra &lt;= Rb + Rc <a class="footnote-reference brackets" href="#u-note" id="id11" role="doc-noteref"><span class="fn-bracket">[</span>5<span class="fn-bracket">]</span></a></p></td>
 </tr>
 <tr class="row-odd"><td><p>A</p></td>
 <td><p>SUBu</p></td>
 <td><p>12</p></td>
 <td><p>Sub unsigned</p></td>
 <td><p>SUB Ra, Rb, Rc</p></td>
-<td><p>Ra &lt;= Rb - Rc <a class="footnote-reference brackets" href="#u-note" id="id11" role="doc-noteref"><span class="fn-bracket">[</span>4<span class="fn-bracket">]</span></a></p></td>
+<td><p>Ra &lt;= Rb - Rc <a class="footnote-reference brackets" href="#u-note" id="id12" role="doc-noteref"><span class="fn-bracket">[</span>5<span class="fn-bracket">]</span></a></p></td>
 </tr>
 <tr class="row-even"><td><p>A</p></td>
 <td><p>ADD</p></td>
 <td><p>13</p></td>
 <td><p>Add</p></td>
 <td><p>ADD Ra, Rb, Rc</p></td>
-<td><p>Ra &lt;= Rb + Rc <a class="footnote-reference brackets" href="#u-note" id="id12" role="doc-noteref"><span class="fn-bracket">[</span>4<span class="fn-bracket">]</span></a></p></td>
+<td><p>Ra &lt;= Rb + Rc <a class="footnote-reference brackets" href="#u-note" id="id13" role="doc-noteref"><span class="fn-bracket">[</span>5<span class="fn-bracket">]</span></a></p></td>
 </tr>
 <tr class="row-odd"><td><p>A</p></td>
 <td><p>SUB</p></td>
 <td><p>14</p></td>
 <td><p>Subtract</p></td>
 <td><p>SUB Ra, Rb, Rc</p></td>
-<td><p>Ra &lt;= Rb - Rc <a class="footnote-reference brackets" href="#u-note" id="id13" role="doc-noteref"><span class="fn-bracket">[</span>4<span class="fn-bracket">]</span></a></p></td>
+<td><p>Ra &lt;= Rb - Rc <a class="footnote-reference brackets" href="#u-note" id="id14" role="doc-noteref"><span class="fn-bracket">[</span>5<span class="fn-bracket">]</span></a></p></td>
 </tr>
 <tr class="row-even"><td><p>A</p></td>
 <td><p>CLZ</p></td>
@@ -667,14 +819,14 @@ principles of MIPS.</p></li>
 <td><p>20</p></td>
 <td><p>Shift right</p></td>
 <td><p>SRA Ra, Rb, Cx</p></td>
-<td><p>Ra &lt;= Rb ‘&gt;&gt; Cx <a class="footnote-reference brackets" href="#sra-note" id="id14" role="doc-noteref"><span class="fn-bracket">[</span>6<span class="fn-bracket">]</span></a></p></td>
+<td><p>Ra &lt;= Rb ‘&gt;&gt; Cx <a class="footnote-reference brackets" href="#sra-note" id="id15" role="doc-noteref"><span class="fn-bracket">[</span>7<span class="fn-bracket">]</span></a></p></td>
 </tr>
 <tr class="row-even"><td><p>A</p></td>
 <td><p>SRAV</p></td>
 <td><p>21</p></td>
 <td><p>Shift right</p></td>
 <td><p>SRAV Ra, Rb, Rc</p></td>
-<td><p>Ra &lt;= Rb ‘&gt;&gt; Rc <a class="footnote-reference brackets" href="#sra-note" id="id15" role="doc-noteref"><span class="fn-bracket">[</span>6<span class="fn-bracket">]</span></a></p></td>
+<td><p>Ra &lt;= Rb ‘&gt;&gt; Rc <a class="footnote-reference brackets" href="#sra-note" id="id16" role="doc-noteref"><span class="fn-bracket">[</span>7<span class="fn-bracket">]</span></a></p></td>
 </tr>
 <tr class="row-odd"><td><p>A</p></td>
 <td><p>SHLV</p></td>
@@ -709,14 +861,14 @@ principles of MIPS.</p></li>
 <td><p>2A</p></td>
 <td><p>Compare</p></td>
 <td><p>CMP Ra, Rb</p></td>
-<td><p>SW &lt;= (Ra cond Rb) <a class="footnote-reference brackets" href="#cond-note" id="id16" role="doc-noteref"><span class="fn-bracket">[</span>5<span class="fn-bracket">]</span></a></p></td>
+<td><p>SW &lt;= (Ra cond Rb) <a class="footnote-reference brackets" href="#cond-note" id="id17" role="doc-noteref"><span class="fn-bracket">[</span>6<span class="fn-bracket">]</span></a></p></td>
 </tr>
 <tr class="row-even"><td><p>A</p></td>
 <td><p>CMPu</p></td>
 <td><p>2B</p></td>
 <td><p>Compare</p></td>
 <td><p>CMPu Ra, Rb</p></td>
-<td><p>SW &lt;= (Ra cond Rb) <a class="footnote-reference brackets" href="#cond-note" id="id17" role="doc-noteref"><span class="fn-bracket">[</span>5<span class="fn-bracket">]</span></a></p></td>
+<td><p>SW &lt;= (Ra cond Rb) <a class="footnote-reference brackets" href="#cond-note" id="id18" role="doc-noteref"><span class="fn-bracket">[</span>6<span class="fn-bracket">]</span></a></p></td>
 </tr>
 <tr class="row-odd"><td><p>J</p></td>
 <td><p>JEQ</p></td>
@@ -772,7 +924,7 @@ principles of MIPS.</p></li>
 <td><p>39</p></td>
 <td><p>Indirect jump</p></td>
 <td><p>JALR Rb</p></td>
-<td><p>LR &lt;= PC; PC &lt;= Rb <a class="footnote-reference brackets" href="#call-note" id="id18" role="doc-noteref"><span class="fn-bracket">[</span>7<span class="fn-bracket">]</span></a></p></td>
+<td><p>LR &lt;= PC; PC &lt;= Rb <a class="footnote-reference brackets" href="#call-note" id="id19" role="doc-noteref"><span class="fn-bracket">[</span>8<span class="fn-bracket">]</span></a></p></td>
 </tr>
 <tr class="row-odd"><td><p>J</p></td>
 <td><p>BAL</p></td>
@@ -793,7 +945,7 @@ principles of MIPS.</p></li>
 <td><p>3C</p></td>
 <td><p>Return from subroutine</p></td>
 <td><p>JR $1 or RET LR</p></td>
-<td><p>PC &lt;= LR <a class="footnote-reference brackets" href="#jr-note" id="id19" role="doc-noteref"><span class="fn-bracket">[</span>8<span class="fn-bracket">]</span></a></p></td>
+<td><p>PC &lt;= LR <a class="footnote-reference brackets" href="#jr-note" id="id20" role="doc-noteref"><span class="fn-bracket">[</span>9<span class="fn-bracket">]</span></a></p></td>
 </tr>
 <tr class="row-even"><td><p>A</p></td>
 <td><p>MULT</p></td>
@@ -954,7 +1106,7 @@ The <cite>ADDu</cite> and <cite>SUBu</cite> handle both signed and unsigned inte
 If interpreted as positive, it is <cite>+4G - 1</cite>.</p>
 </div>
 <section id="why-not-use-add-instead-of-sub">
-<h4><a class="toc-backref" href="#id80" role="doc-backlink">Why Not Use ADD Instead of SUB?</a><a class="headerlink" href="#why-not-use-add-instead-of-sub" title="Permalink to this heading">¶</a></h4>
+<h4><a class="toc-backref" href="#id83" role="doc-backlink">Why Not Use ADD Instead of SUB?</a><a class="headerlink" href="#why-not-use-add-instead-of-sub" title="Permalink to this heading">¶</a></h4>
 <p>From introductory computer science textbooks, we know that <cite>SUB</cite> can be
 replaced by <cite>ADD</cite> as follows:</p>
 <ul class="simple">
@@ -975,7 +1127,7 @@ solely on <cite>ADD</cite>.</p>
 </section>
 </section>
 <section id="the-status-register">
-<h3><a class="toc-backref" href="#id81" role="doc-backlink">The Status Register</a><a class="headerlink" href="#the-status-register" title="Permalink to this heading">¶</a></h3>
+<h3><a class="toc-backref" href="#id84" role="doc-backlink">The Status Register</a><a class="headerlink" href="#the-status-register" title="Permalink to this heading">¶</a></h3>
 <p>The Cpu0 status word register (<cite>SW</cite>) contains the state of the following flags:</p>
 <ul class="simple">
 <li><p><strong>Negative (N)</strong></p></li>
@@ -1005,7 +1157,7 @@ status word (<cite>SW</cite>) register as follows:</p>
 <cite>N</cite> and <cite>Z</cite> flags in the <cite>SW</cite> register.</p>
 </section>
 <section id="cpu0-s-stages-of-instruction-execution">
-<h3><a class="toc-backref" href="#id82" role="doc-backlink">Cpu0’s Stages of Instruction Execution</a><a class="headerlink" href="#cpu0-s-stages-of-instruction-execution" title="Permalink to this heading">¶</a></h3>
+<h3><a class="toc-backref" href="#id85" role="doc-backlink">Cpu0’s Stages of Instruction Execution</a><a class="headerlink" href="#cpu0-s-stages-of-instruction-execution" title="Permalink to this heading">¶</a></h3>
 <p>The Cpu0 architecture has a five-stage pipeline. The stages are:
 instruction fetch (IF), instruction decode (ID), execute (EX), memory access
 (MEM), and write-back (WB).</p>
@@ -1053,7 +1205,7 @@ data cache.</p></li>
 </ul>
 </section>
 <section id="cpu0-s-interrupt-vector">
-<h3><a class="toc-backref" href="#id83" role="doc-backlink">Cpu0’s Interrupt Vector</a><a class="headerlink" href="#cpu0-s-interrupt-vector" title="Permalink to this heading">¶</a></h3>
+<h3><a class="toc-backref" href="#id86" role="doc-backlink">Cpu0’s Interrupt Vector</a><a class="headerlink" href="#cpu0-s-interrupt-vector" title="Permalink to this heading">¶</a></h3>
 <table class="docutils align-default" id="id59">
 <caption><span class="caption-number">Table 9 </span><span class="caption-text">Cpu0’s Interrupt Vector</span><a class="headerlink" href="#id59" title="Permalink to this table">¶</a></caption>
 <thead>
@@ -1076,11 +1228,11 @@ data cache.</p></li>
 </section>
 </section>
 <section id="llvm-structure">
-<h2><a class="toc-backref" href="#id84" role="doc-backlink">LLVM Structure</a><a class="headerlink" href="#llvm-structure" title="Permalink to this heading">¶</a></h2>
+<h2><a class="toc-backref" href="#id87" role="doc-backlink">LLVM Structure</a><a class="headerlink" href="#llvm-structure" title="Permalink to this heading">¶</a></h2>
 <p>This section introduces the compiler’s data structures, algorithms, and
 mechanisms used in LLVM.</p>
 <section id="ssa-form">
-<h3><a class="toc-backref" href="#id85" role="doc-backlink">SSA Form</a><a class="headerlink" href="#ssa-form" title="Permalink to this heading">¶</a></h3>
+<h3><a class="toc-backref" href="#id88" role="doc-backlink">SSA Form</a><a class="headerlink" href="#ssa-form" title="Permalink to this heading">¶</a></h3>
 <p>Static Single Assignment (SSA) form ensures that each variable is assigned
 exactly once. In SSA form, a single instruction has one variable (destination
 virtual registers).
@@ -1113,17 +1265,15 @@ unlimited set, as shown in the following code:</p>
 virtual register <cite>%a</cite> to be assigned twice.</p>
 <p>As a result, the compiler must generate the following code, since <cite>%a</cite> is
 assigned as an output in two different statements.</p>
-<blockquote>
-<div><dl class="simple">
-<dt>=&gt; %a = add i32 1, i32 0</dt><dd><p>st %a,  i32* %c, 1
-%a = add i32 2, i32 0
-st %a,  i32* %c, 2</p>
-</dd>
-</dl>
-</div></blockquote>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">=&gt; %a = add i32 1, i32 0</span>
+<span class="go">    st %a,  i32* %c, 1</span>
+<span class="gp">    %</span><span class="nv">a</span> <span class="o">=</span> add i32 <span class="m">2</span>, i32 <span class="m">0</span>
+<span class="go">    st %a,  i32* %c, 2</span>
+</pre></div>
+</div>
 <p>The above code must execute sequentially.</p>
 <p>In contrast, the SSA form shown below can be reordered and executed in parallel
-using the following alternative version <a class="footnote-reference brackets" href="#dragonbooks-10-2-3" id="id20" role="doc-noteref"><span class="fn-bracket">[</span>16<span class="fn-bracket">]</span></a>.</p>
+using the following alternative version <a class="footnote-reference brackets" href="#dragonbooks-10-2-3" id="id21" role="doc-noteref"><span class="fn-bracket">[</span>16<span class="fn-bracket">]</span></a>.</p>
 <div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">  %</span><span class="nv">a</span> <span class="o">=</span> add nsw i32 <span class="m">1</span>, i32 <span class="m">0</span>
 <span class="go">  store i32 %a, i32* %c, align 4</span>
 <span class="gp">  %</span><span class="nv">b</span> <span class="o">=</span> add nsw i32 <span class="m">2</span>, i32 <span class="m">0</span>
@@ -1150,7 +1300,7 @@ using the following alternative version <a class="footnote-reference brackets" h
 </div>
 </section>
 <section id="dsa-form">
-<h3><a class="toc-backref" href="#id86" role="doc-backlink">DSA Form</a><a class="headerlink" href="#dsa-form" title="Permalink to this heading">¶</a></h3>
+<h3><a class="toc-backref" href="#id89" role="doc-backlink">DSA Form</a><a class="headerlink" href="#dsa-form" title="Permalink to this heading">¶</a></h3>
 <div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">for (int i = 0; i &lt; 1000; i++) {</span>
 <span class="go">  b[i] = f(g(a[i]));</span>
 <span class="go">}</span>
@@ -1208,7 +1358,8 @@ source code level and the LLVM IR level, respectively.</p>
 <p>DSA allows this transformation, whereas SSA does not. While extra analysis on
 <cite>%temp</cite> in SSA could reconstruct <cite>%t_idx</cite> and <cite>%t_addr</cite> as shown in the DSA
 form below, compiler transformations typically follow a high-to-low approach.</p>
-<p>Additionally, LLVM IR already loses the <cite>for</cite> loop structure, even though it
+<p>Additionally, LLVM IR already loses the <cite>for</cite> loop structure, even though part
+of the losted information
 can be reconstructed through further analysis.</p>
 <p>For this reason, in this book—as well as in most compiler-related research—the
 discussion follows a high-to-low transformation premise. Otherwise, it would
@@ -1257,9 +1408,9 @@ parallel processing opportunities for <strong>multi-core (SMP) systems</strong> 
 <p>For example, <cite>g(x)</cite> can be executed on a <strong>GPU</strong>, while <cite>f(x)</cite> runs on a <strong>CPU</strong>.</p>
 </section>
 <section id="three-phase-design">
-<h3><a class="toc-backref" href="#id87" role="doc-backlink">Three-Phase Design</a><a class="headerlink" href="#three-phase-design" title="Permalink to this heading">¶</a></h3>
+<h3><a class="toc-backref" href="#id90" role="doc-backlink">Three-Phase Design</a><a class="headerlink" href="#three-phase-design" title="Permalink to this heading">¶</a></h3>
 <p>This content and the following sub-section are adapted from the AOSA chapter
-on LLVM written by Chris Lattner <a class="footnote-reference brackets" href="#aosa-book" id="id21" role="doc-noteref"><span class="fn-bracket">[</span>10<span class="fn-bracket">]</span></a>.</p>
+on LLVM written by Chris Lattner <a class="footnote-reference brackets" href="#aosa-book" id="id22" role="doc-noteref"><span class="fn-bracket">[</span>10<span class="fn-bracket">]</span></a>.</p>
 <p>The most common design for a traditional static compiler (such as most C
 compilers) follows a three-phase structure, consisting of the front end,
 the optimizer, and the back end, as shown in <a class="reference internal" href="#llvmstructure-f6"><span class="std std-numref">Fig. 6</span></a>.</p>
@@ -1395,7 +1546,7 @@ to generate while remaining expressive enough to enable important
 optimizations for real hardware targets.</p>
 </section>
 <section id="llvm-s-target-description-files-td">
-<h3><a class="toc-backref" href="#id88" role="doc-backlink">LLVM’s Target Description Files: .td</a><a class="headerlink" href="#llvm-s-target-description-files-td" title="Permalink to this heading">¶</a></h3>
+<h3><a class="toc-backref" href="#id91" role="doc-backlink">LLVM’s Target Description Files: .td</a><a class="headerlink" href="#llvm-s-target-description-files-td" title="Permalink to this heading">¶</a></h3>
 <p>The “mix and match” approach allows target authors to select components that
 best suit their architecture, enabling significant code reuse across different
 targets.</p>
@@ -1477,24 +1628,9 @@ facilitate instruction selection and code generation, as shown in
 <p><span class="caption-number">Fig. 10 </span><span class="caption-text">llvm TableGen Flow</span><a class="headerlink" href="#id64" title="Permalink to this image">¶</a></p>
 </figcaption>
 </figure>
-<p>Since C++ grammar is more context-sensitive than context-free, the LLVM frontend
-project Clang uses a hand-coded parser instead of BNF generator tools.</p>
-<p>In backend development, transforming IR into machine instructions benefits
-greatly from TableGen tools. While C++ compilers do not benefit from BNF
-generator tools, many other programming and scripting languages, which are
-more context-free, can take advantage of them.</p>
-<p>The following information comes from Wikipedia:</p>
-<p>Java syntax has a context-free grammar that can be parsed by a simple LALR
-parser. Parsing C++ is more complicated <a class="footnote-reference brackets" href="#java-cpp" id="id22" role="doc-noteref"><span class="fn-bracket">[</span>9<span class="fn-bracket">]</span></a>.</p>
-<p>The GNU <cite>g++</cite> compiler abandoned BNF tools starting from version 3.x.
-Beyond the fact that C++ has a more context-sensitive grammar, another reason
-for this decision is that a hand-coded parser can provide better error
-diagnostics than a BNF-based tool. BNF tools always select rules from the
-grammar when a match is found, potentially leading to less precise error
-reporting.</p>
 </section>
 <section id="llvm-code-generation-sequence">
-<h3><a class="toc-backref" href="#id89" role="doc-backlink">LLVM Code Generation Sequence</a><a class="headerlink" href="#llvm-code-generation-sequence" title="Permalink to this heading">¶</a></h3>
+<h3><a class="toc-backref" href="#id92" role="doc-backlink">LLVM Code Generation Sequence</a><a class="headerlink" href="#llvm-code-generation-sequence" title="Permalink to this heading">¶</a></h3>
 <p>Following diagram is from <cite>tricore_llvm.pdf</cite>.</p>
 <figure class="align-center" id="id65">
 <span id="llvmstructure-f9"></span><a class="reference internal image-reference" href="_images/9.png"><img alt="_images/9.png" src="_images/9.png" style="width: 1030px; height: 537px;" /></a>
@@ -1727,7 +1863,7 @@ can be found here: <a class="footnote-reference brackets" href="#cmu-rac" id="id
 </ul>
 </section>
 <section id="llvm-vs-gcc-in-structure">
-<h3><a class="toc-backref" href="#id90" role="doc-backlink">LLVM vs. GCC in Structure</a><a class="headerlink" href="#llvm-vs-gcc-in-structure" title="Permalink to this heading">¶</a></h3>
+<h3><a class="toc-backref" href="#id93" role="doc-backlink">LLVM vs. GCC in Structure</a><a class="headerlink" href="#llvm-vs-gcc-in-structure" title="Permalink to this heading">¶</a></h3>
 <p>The official GCC documentation can be found here: <a class="footnote-reference brackets" href="#gnu" id="id27" role="doc-noteref"><span class="fn-bracket">[</span>17<span class="fn-bracket">]</span></a>.</p>
 <table class="docutils align-default" id="id66">
 <caption><span class="caption-number">Table 10 </span><span class="caption-text">clang vs gcc-frontend</span><a class="headerlink" href="#id66" title="Permalink to this table">¶</a></caption>
@@ -1800,7 +1936,7 @@ compiled program.</p>
 <a class="footnote-reference brackets" href="#llvm-ir-vs-gimple" id="id33" role="doc-noteref"><span class="fn-bracket">[</span>23<span class="fn-bracket">]</span></a>.</p>
 </section>
 <section id="llvm-blog">
-<h3><a class="toc-backref" href="#id91" role="doc-backlink">LLVM Blog</a><a class="headerlink" href="#llvm-blog" title="Permalink to this heading">¶</a></h3>
+<h3><a class="toc-backref" href="#id94" role="doc-backlink">LLVM Blog</a><a class="headerlink" href="#llvm-blog" title="Permalink to this heading">¶</a></h3>
 <p>A user may rely on a <strong>null pointer</strong> as a guard to ensure code correctness.
 However, <strong>undef</strong> values occur only during compiler optimizations
 <a class="footnote-reference brackets" href="#null-pointer-ex" id="id34" role="doc-noteref"><span class="fn-bracket">[</span>24<span class="fn-bracket">]</span></a>.</p>
@@ -1810,7 +1946,7 @@ as <strong>undef</strong>, leading to unexpected optimization behavior
 <a class="footnote-reference brackets" href="#null-pointer" id="id35" role="doc-noteref"><span class="fn-bracket">[</span>25<span class="fn-bracket">]</span></a>.</p>
 </section>
 <section id="cfg-control-flow-graph">
-<h3><a class="toc-backref" href="#id92" role="doc-backlink">CFG (Control Flow Graph)</a><a class="headerlink" href="#cfg-control-flow-graph" title="Permalink to this heading">¶</a></h3>
+<h3><a class="toc-backref" href="#id95" role="doc-backlink">CFG (Control Flow Graph)</a><a class="headerlink" href="#cfg-control-flow-graph" title="Permalink to this heading">¶</a></h3>
 <p>The SSA form can be represented using a <strong>Control Flow Graph (CFG)</strong> and
 optimized by analyzing it.</p>
 <p>Each node in the graph represents a <strong>basic block (BB)</strong>—a straight-line
@@ -1908,7 +2044,7 @@ as shown in <a class="reference internal" href="#cfg-ex"><span class="std std-nu
 </figure>
 </section>
 <section id="dag-directed-acyclic-graph">
-<h3><a class="toc-backref" href="#id93" role="doc-backlink">DAG (Directed Acyclic Graph)</a><a class="headerlink" href="#dag-directed-acyclic-graph" title="Permalink to this heading">¶</a></h3>
+<h3><a class="toc-backref" href="#id96" role="doc-backlink">DAG (Directed Acyclic Graph)</a><a class="headerlink" href="#dag-directed-acyclic-graph" title="Permalink to this heading">¶</a></h3>
 <p>The SSA form within each <strong>Basic Block (BB)</strong> from the <strong>Control Flow Graph
 (CFG)</strong>, as discussed in the previous section, can be represented using a
 <strong>Directed Acyclic Graph (DAG)</strong>.</p>
@@ -2002,7 +2138,7 @@ in Section 8.5.5 of the compiler book <a class="footnote-reference brackets" hre
 This optimization method is also applied in LLVM.</p>
 </section>
 <section id="instruction-selection">
-<h3><a class="toc-backref" href="#id94" role="doc-backlink">Instruction Selection</a><a class="headerlink" href="#instruction-selection" title="Permalink to this heading">¶</a></h3>
+<h3><a class="toc-backref" href="#id97" role="doc-backlink">Instruction Selection</a><a class="headerlink" href="#instruction-selection" title="Permalink to this heading">¶</a></h3>
 <p>A major function of the backend is to <strong>translate IR code into machine code</strong>
 during <strong>Instruction Selection</strong>, as illustrated in <a class="reference internal" href="#llvmstructure-f11"><span class="std std-numref">Fig. 14</span></a>.</p>
 <figure class="align-center" id="id71">
@@ -2218,7 +2354,7 @@ to generate the following <strong>machine code</strong>:</p>
 </div>
 </section>
 <section id="caller-and-callee-saved-registers">
-<h3><a class="toc-backref" href="#id95" role="doc-backlink">Caller and Callee Saved Registers</a><a class="headerlink" href="#caller-and-callee-saved-registers" title="Permalink to this heading">¶</a></h3>
+<h3><a class="toc-backref" href="#id98" role="doc-backlink">Caller and Callee Saved Registers</a><a class="headerlink" href="#caller-and-callee-saved-registers" title="Permalink to this heading">¶</a></h3>
 <p class="rubric">lbdex/input/ch9_caller_callee_save_registers.cpp</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">extern</span> <span class="nb">int</span> <span class="n">add1</span><span class="p">(</span><span class="nb">int</span> <span class="n">x</span><span class="p">);</span>
 
@@ -2320,7 +2456,7 @@ Thus, the function <cite>setAliasRegs(MF, SavedRegs, Cpu0::LR)</cite> is called 
 calls another function.</p>
 </section>
 <section id="live-in-and-live-out-registers">
-<h3><a class="toc-backref" href="#id96" role="doc-backlink">Live-In and Live-Out Registers</a><a class="headerlink" href="#live-in-and-live-out-registers" title="Permalink to this heading">¶</a></h3>
+<h3><a class="toc-backref" href="#id99" role="doc-backlink">Live-In and Live-Out Registers</a><a class="headerlink" href="#live-in-and-live-out-registers" title="Permalink to this heading">¶</a></h3>
 <p>As seen in the previous subsection, <cite>$ra</cite> is a <strong>live-in</strong> register because
 the return address is determined by the caller.</p>
 <p>Similarly, <cite>$2</cite> is a <strong>live-out</strong> register since the function’s return value
@@ -2345,7 +2481,7 @@ after the function exits.</p>
 </section>
 </section>
 <section id="create-cpu0-backend">
-<h2><a class="toc-backref" href="#id97" role="doc-backlink">Create Cpu0 Backend</a><a class="headerlink" href="#create-cpu0-backend" title="Permalink to this heading">¶</a></h2>
+<h2><a class="toc-backref" href="#id100" role="doc-backlink">Create Cpu0 Backend</a><a class="headerlink" href="#create-cpu0-backend" title="Permalink to this heading">¶</a></h2>
 <p>From this point onward, the <strong>Cpu0 backend</strong> will be created <strong>step by step
 from scratch</strong>.</p>
 <p>To help readers understand the <strong>backend structure</strong>, the Cpu0 example code
@@ -2357,7 +2493,7 @@ this website or downloaded from:</p>
 <div><p><cite>http://jonathan2251.github.io/lbd/lbdex.tar.gz</cite></p>
 </div></blockquote>
 <section id="cpu0-backend-machine-id-and-relocation-records">
-<h3><a class="toc-backref" href="#id98" role="doc-backlink">Cpu0 Backend Machine ID and Relocation Records</a><a class="headerlink" href="#cpu0-backend-machine-id-and-relocation-records" title="Permalink to this heading">¶</a></h3>
+<h3><a class="toc-backref" href="#id101" role="doc-backlink">Cpu0 Backend Machine ID and Relocation Records</a><a class="headerlink" href="#cpu0-backend-machine-id-and-relocation-records" title="Permalink to this heading">¶</a></h3>
 <p>To create a <strong>new backend</strong>, several files in <cite>&lt;&lt;llvm root dir&gt;&gt;</cite> must be
 modified.</p>
 <p>The required modifications include adding both the <strong>machine ID and name</strong>,
@@ -2616,7 +2752,7 @@ elseif (LLVM_NATIVE_ARCH MATCHES &quot;cpu0&quot;)
 </div>
 </section>
 <section id="creating-the-initial-cpu0-td-files">
-<h3><a class="toc-backref" href="#id99" role="doc-backlink">Creating the Initial Cpu0 .td Files</a><a class="headerlink" href="#creating-the-initial-cpu0-td-files" title="Permalink to this heading">¶</a></h3>
+<h3><a class="toc-backref" href="#id102" role="doc-backlink">Creating the Initial Cpu0 .td Files</a><a class="headerlink" href="#creating-the-initial-cpu0-td-files" title="Permalink to this heading">¶</a></h3>
 <p>As discussed in the previous section, <strong>LLVM</strong> uses <strong>target description files</strong>
 (<cite>.td</cite> files) to define various components of a target’s backend.</p>
 <p>For example, these <cite>.td</cite> files may describe:
@@ -3559,7 +3695,7 @@ of your build folder:</p>
 <p>For more details, refer to <em>“Building LLVM with CMake”</em> <a class="footnote-reference brackets" href="#cmake" id="id41" role="doc-noteref"><span class="fn-bracket">[</span>28<span class="fn-bracket">]</span></a>.</p>
 </section>
 <section id="target-registration">
-<h3><a class="toc-backref" href="#id100" role="doc-backlink">Target Registration</a><a class="headerlink" href="#target-registration" title="Permalink to this heading">¶</a></h3>
+<h3><a class="toc-backref" href="#id103" role="doc-backlink">Target Registration</a><a class="headerlink" href="#target-registration" title="Permalink to this heading">¶</a></h3>
 <p>You must <strong>register your target</strong> with the <strong>TargetRegistry</strong>.
 After registration, LLVM tools can <strong>identify and use</strong> your target at runtime.</p>
 <p>Although the <strong>TargetRegistry</strong> can be used directly, most targets
@@ -3792,7 +3928,7 @@ as no components are being registered at this stage.</p>
 <p>For reference, see <em>“Target Registration”</em> <a class="footnote-reference brackets" href="#target-reg" id="id42" role="doc-noteref"><span class="fn-bracket">[</span>29<span class="fn-bracket">]</span></a>.</p>
 </section>
 <section id="build-libraries-and-td-files">
-<h3><a class="toc-backref" href="#id101" role="doc-backlink">Build Libraries and <cite>.td</cite> Files</a><a class="headerlink" href="#build-libraries-and-td-files" title="Permalink to this heading">¶</a></h3>
+<h3><a class="toc-backref" href="#id104" role="doc-backlink">Build Libraries and <cite>.td</cite> Files</a><a class="headerlink" href="#build-libraries-and-td-files" title="Permalink to this heading">¶</a></h3>
 <p>Build steps: <a class="reference external" href="https://github.com/Jonathan2251/lbd/blob/master/README.md">https://github.com/Jonathan2251/lbd/blob/master/README.md</a></p>
 <p>We set the LLVM source code in:</p>
 <blockquote>
@@ -4016,7 +4152,7 @@ to understand how <em>Target Registration</em> is implemented.</p>
 </section>
 </section>
 <section id="options-for-llc-debugging">
-<h2><a class="toc-backref" href="#id102" role="doc-backlink">Options for <cite>llc</cite> Debugging</a><a class="headerlink" href="#options-for-llc-debugging" title="Permalink to this heading">¶</a></h2>
+<h2><a class="toc-backref" href="#id105" role="doc-backlink">Options for <cite>llc</cite> Debugging</a><a class="headerlink" href="#options-for-llc-debugging" title="Permalink to this heading">¶</a></h2>
 <p>Run the following command to see hidden <cite>llc</cite> options:</p>
 <p><code class="docutils literal notranslate"><span class="pre">llc</span> <span class="pre">--help-hidden</span></code></p>
 <p>The following <cite>llc</cite> options require an input <cite>.bc</cite> or <cite>.ll</cite> file:</p>
@@ -4058,7 +4194,7 @@ Specifies the output file type (assembly or object).</p></li>
 class, to inspect transformations in <cite>llvm/lib/Transformation</cite>.</p>
 </section>
 <section id="opt-debugging-options">
-<h2><a class="toc-backref" href="#id103" role="doc-backlink"><cite>opt</cite> Debugging Options</a><a class="headerlink" href="#opt-debugging-options" title="Permalink to this heading">¶</a></h2>
+<h2><a class="toc-backref" href="#id106" role="doc-backlink"><cite>opt</cite> Debugging Options</a><a class="headerlink" href="#opt-debugging-options" title="Permalink to this heading">¶</a></h2>
 <p>Check available options using:</p>
 <p><code class="docutils literal notranslate"><span class="pre">opt</span> <span class="pre">--help-hidden</span></code></p>
 <p>Refer to LLVM passes documentation <a class="footnote-reference brackets" href="#llvm-passes" id="id48" role="doc-noteref"><span class="fn-bracket">[</span>35<span class="fn-bracket">]</span></a>. Examples:</p>
@@ -4068,49 +4204,49 @@ Prints the CFG of a function to a <cite>.dot</cite> file.</p></li>
 <li><p><cite>-dot-cfg-only</cite>
 Prints the CFG to a <cite>.dot</cite> file without function bodies.</p></li>
 </ul>
-<aside class="footnote brackets" id="cpu0-chinese" role="note">
+<aside class="footnote brackets" id="java-cpp" role="note">
 <span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id2">1</a><span class="fn-bracket">]</span></span>
+<p><a class="reference external" href="https://en.wikipedia.org/wiki/Comparison_of_Java_and_C%2B%2B">https://en.wikipedia.org/wiki/Comparison_of_Java_and_C%2B%2B</a></p>
+</aside>
+<aside class="footnote brackets" id="cpu0-chinese" role="note">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id3">2</a><span class="fn-bracket">]</span></span>
 <p>Original Cpu0 architecture and ISA details (Chinese). <a class="reference external" href="http://ccckmit.wikidot.com/ocs:cpu0">http://ccckmit.wikidot.com/ocs:cpu0</a></p>
 </aside>
 <aside class="footnote brackets" id="cpu0-english" role="note">
-<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id3">2</a><span class="fn-bracket">]</span></span>
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id4">3</a><span class="fn-bracket">]</span></span>
 <p>English translation of Cpu0 description. <a class="reference external" href="http://translate.google.com.tw/translate?js=n&amp;prev=_t&amp;hl=zh-TW&amp;ie=UTF-8&amp;layout=2&amp;eotf=1&amp;sl=zh-CN&amp;tl=en&amp;u=http://ccckmit.wikidot.com/ocs:cpu0">http://translate.google.com.tw/translate?js=n&amp;prev=_t&amp;hl=zh-TW&amp;ie=UTF-8&amp;layout=2&amp;eotf=1&amp;sl=zh-CN&amp;tl=en&amp;u=http://ccckmit.wikidot.com/ocs:cpu0</a></p>
 </aside>
 <aside class="footnote brackets" id="lb-note" role="note">
-<span class="label"><span class="fn-bracket">[</span>3<span class="fn-bracket">]</span></span>
-<span class="backrefs">(<a role="doc-backlink" href="#id6">1</a>,<a role="doc-backlink" href="#id7">2</a>,<a role="doc-backlink" href="#id8">3</a>,<a role="doc-backlink" href="#id9">4</a>)</span>
+<span class="label"><span class="fn-bracket">[</span>4<span class="fn-bracket">]</span></span>
+<span class="backrefs">(<a role="doc-backlink" href="#id7">1</a>,<a role="doc-backlink" href="#id8">2</a>,<a role="doc-backlink" href="#id9">3</a>,<a role="doc-backlink" href="#id10">4</a>)</span>
 <p>The difference between LB and LBu is signed and unsigned byte value expand to a word size. For example, After LB Ra, [Rb+Cx], Ra is 0xffffff80(= -128) if byte [Rb+Cx] is 0x80; Ra is 0x0000007f(= 127) if byte [Rb+Cx] is 0x7f. After LBu Ra, [Rb+Cx], Ra is 0x00000080(= 128) if byte [Rb+Cx] is 0x80; Ra is 0x0000007f(= 127) if byte [Rb+Cx] is 0x7f. Difference between LH and LHu is similar.</p>
 </aside>
 <aside class="footnote brackets" id="u-note" role="note">
-<span class="label"><span class="fn-bracket">[</span>4<span class="fn-bracket">]</span></span>
-<span class="backrefs">(<a role="doc-backlink" href="#id10">1</a>,<a role="doc-backlink" href="#id11">2</a>,<a role="doc-backlink" href="#id12">3</a>,<a role="doc-backlink" href="#id13">4</a>)</span>
+<span class="label"><span class="fn-bracket">[</span>5<span class="fn-bracket">]</span></span>
+<span class="backrefs">(<a role="doc-backlink" href="#id11">1</a>,<a role="doc-backlink" href="#id12">2</a>,<a role="doc-backlink" href="#id13">3</a>,<a role="doc-backlink" href="#id14">4</a>)</span>
 <p>The only difference between ADDu instruction and the ADD instruction is that the ADDU instruction never causes an Integer Overflow exception. SUBu and SUB is similar.</p>
 </aside>
 <aside class="footnote brackets" id="cond-note" role="note">
-<span class="label"><span class="fn-bracket">[</span>5<span class="fn-bracket">]</span></span>
-<span class="backrefs">(<a role="doc-backlink" href="#id16">1</a>,<a role="doc-backlink" href="#id17">2</a>)</span>
+<span class="label"><span class="fn-bracket">[</span>6<span class="fn-bracket">]</span></span>
+<span class="backrefs">(<a role="doc-backlink" href="#id17">1</a>,<a role="doc-backlink" href="#id18">2</a>)</span>
 <p>CMP is signed-compare while CMPu is unsigned. Conditions include the following comparisons: &gt;, &gt;=, ==, !=, &lt;=, &lt;. SW is actually set by the subtraction of the two register operands, and the flags indicate which conditions are present.</p>
 </aside>
 <aside class="footnote brackets" id="sra-note" role="note">
-<span class="label"><span class="fn-bracket">[</span>6<span class="fn-bracket">]</span></span>
-<span class="backrefs">(<a role="doc-backlink" href="#id14">1</a>,<a role="doc-backlink" href="#id15">2</a>)</span>
+<span class="label"><span class="fn-bracket">[</span>7<span class="fn-bracket">]</span></span>
+<span class="backrefs">(<a role="doc-backlink" href="#id15">1</a>,<a role="doc-backlink" href="#id16">2</a>)</span>
 <p>Rb ‘&gt;&gt; Cx, Rb ‘&gt;&gt; Rc: Shift with signed bit remain.</p>
 </aside>
 <aside class="footnote brackets" id="call-note" role="note">
-<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id18">7</a><span class="fn-bracket">]</span></span>
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id19">8</a><span class="fn-bracket">]</span></span>
 <p>jsub cx is direct call for 24 bits value of cx while jalr $rb is indirect call for 32 bits value of register $rb.</p>
 </aside>
 <aside class="footnote brackets" id="jr-note" role="note">
-<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id19">8</a><span class="fn-bracket">]</span></span>
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id20">9</a><span class="fn-bracket">]</span></span>
 <p>Both JR and RET has same opcode (actually they are the same instruction for Cpu0 hardware). When user writes “jr $t9” meaning it jumps to address of register $t9; when user writes “jr $lr” meaning it jump back to the caller function (since $lr is the return address). For user read ability, Cpu0 prints “ret $lr” instead of “jr $lr”.</p>
-</aside>
-<aside class="footnote brackets" id="java-cpp" role="note">
-<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id22">9</a><span class="fn-bracket">]</span></span>
-<p><a class="reference external" href="https://en.wikipedia.org/wiki/Comparison_of_Java_and_C%2B%2B">https://en.wikipedia.org/wiki/Comparison_of_Java_and_C%2B%2B</a></p>
 </aside>
 <aside class="footnote brackets" id="aosa-book" role="note">
 <span class="label"><span class="fn-bracket">[</span>10<span class="fn-bracket">]</span></span>
-<span class="backrefs">(<a role="doc-backlink" href="#id1">1</a>,<a role="doc-backlink" href="#id21">2</a>)</span>
+<span class="backrefs">(<a role="doc-backlink" href="#id1">1</a>,<a role="doc-backlink" href="#id22">2</a>)</span>
 <p>Chris Lattner, <strong>LLVM</strong>. Published in The Architecture of Open Source Applications. <a class="reference external" href="http://www.aosabook.org/en/llvm.html">http://www.aosabook.org/en/llvm.html</a></p>
 </aside>
 <aside class="footnote brackets" id="chapters-ex" role="note">
@@ -4123,7 +4259,7 @@ Prints the CFG to a <cite>.dot</cite> file without function bodies.</p></li>
 </aside>
 <aside class="footnote brackets" id="langref" role="note">
 <span class="label"><span class="fn-bracket">[</span>13<span class="fn-bracket">]</span></span>
-<span class="backrefs">(<a role="doc-backlink" href="#id4">1</a>,<a role="doc-backlink" href="#id5">2</a>,<a role="doc-backlink" href="#id24">3</a>)</span>
+<span class="backrefs">(<a role="doc-backlink" href="#id5">1</a>,<a role="doc-backlink" href="#id6">2</a>,<a role="doc-backlink" href="#id24">3</a>)</span>
 <p><a class="reference external" href="http://llvm.org/docs/LangRef.html">http://llvm.org/docs/LangRef.html</a></p>
 </aside>
 <aside class="footnote brackets" id="cmu-rac" role="note">
@@ -4135,7 +4271,7 @@ Prints the CFG to a <cite>.dot</cite> file without function bodies.</p></li>
 <p><a class="reference external" href="https://en.wikipedia.org/wiki/Register_allocation">https://en.wikipedia.org/wiki/Register_allocation</a></p>
 </aside>
 <aside class="footnote brackets" id="dragonbooks-10-2-3" role="note">
-<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id20">16</a><span class="fn-bracket">]</span></span>
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id21">16</a><span class="fn-bracket">]</span></span>
 <p>Refer section 10.2.3 of book Compilers: Principles,
 Techniques, and Tools (2nd Edition)</p>
 </aside>

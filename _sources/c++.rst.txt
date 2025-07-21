@@ -454,32 +454,56 @@ To observe this in action, compile and check with debug options enabled.
   ==========================  ===========================
 
 
-C++ Memory Order [#cpp-mem-order]_
-----------------------------------
+C++ Memory Order [#cpp-mem-order]_ [#mem-order-wiki]_ [#atomic-stackoverflow]_ 
+------------------------------------------------------------------------------
 
+**Memory Order::**
+
+- **Memory Order is the rules that define how operations on shared memory 
+  appear to multiple threads — especially the ordering of reads/writes.**
+
+- **These rules ensure correct execution in parallel programs, as demonstrated 
+  in the example below.**
+
+.. rubric:: 🧠 Example (Wrong Without Memory Order)
+.. code-block:: c++
+
+  volatile bool ready = false;
+  ...
+
+  // Thread A
+  x = 42;
+  ready = true;
+
+  // Thread B
+  if (ready)
+    std::cout << x; // May print garbage if `x = 42` is reordered!
+
+.. rubric:: 💡 Fixing with Memory Order
+.. code-block:: c++
+
+  std::atomic<bool> ready = false;
+  ...
+
+  // Thread A
+  x.store(42, std::memory_order_relaxed);
+  ready.store(true, std::memory_order_release);
+
+  // Thread B
+  if (ready.load(std::memory_order_acquire))
+    print(x.load(std::memory_order_relaxed));
+
+- memory_order_release tells the compiler/CPU: “All writes before this must be completed first.”
+- memory_order_acquire tells the reader: “No reads after this can move before it.”
+
+Now x = 42 is guaranteed to happen before ready = true, as seen by Thread B.
 
 Background
 ~~~~~~~~~~
 
-Before **C++11**, multi-threaded programming relied on **mutexes, volatile 
-variables, and platform-specific atomic operations**, leading to inefficiencies 
-and undefined behavior.
-
-For RISC CPU, **only load/store instruction have accessed memory.** 
-Atomic instructions are memory access instructions to provide memory consistence
-for multi-cores.
-
-CPU has atomic operations (compare-and-swap [#cas-wiki]_ or ll/sc instruction) 
-and BARRIER or
-SYNC instructions to support memory order. **However no C++ statements tell
-compiler to controll the ordering for load/store instructions.**
-
-To solve this, **C++11 introduced memory orderings in `std::atomic`** to give 
-programmers **fine-grained control** over synchronization.
-
-
 Before **C++11**, multi-threaded programming relied on **mutexes, volatile
-variables, and platform-specific atomic operations**, which often led to
+variables, and platform-specific atomic operations (such as atomic_load(&a) and 
+atomic_store(&a, 42)**, which often led to
 inefficiencies and undefined behavior.
 
 For RISC CPUs, **only load/store instructions access memory.** Atomic
@@ -495,35 +519,55 @@ To address this, **C++11 introduced memory orderings via `std::atomic`**, giving
 programmers **fine-grained control** over synchronization and memory consistency.
 
 The Problem Before C++11
-++++++++++++++++++++++++
+~~~~~~~~~~~~~~~~~~~~~~~~
 
-1. **Unspecified Behavior in Multi-threading**
+**No standard atomic operations → non-portable.**
 
-   - The C++98/03 standard had **no formal memory model**.  
-   - Compilers **optimized code aggressively**, leading to race conditions.
-   - Without a memory model, a compiler may not apply such optimizations to 
-     multi-threaded programs at all, or it may apply optimizations that are 
-     incompatible with multi-threading, leading to bugs [#atomic-wiki]_.
-
-2. **Reliance on Volatile and Platform-specific Primitives**
-
-   - `volatile` **did not** prevent reordering by the compiler.  
-   - Programmers had to use **OS-specific APIs (e.g., `pthread_mutex`)** 
-     [#atomic-stackoverflow]_.
-
-3. **Inefficient Synchronization Mechanisms**
-
-   - Mutexes ensured correctness but **caused performance overhead**.  
-   - **Spin-locks wasted CPU cycles** due to busy-waiting.
+- Developers had to use compiler-specific intrinsics (like GCC’s __sync_*, 
+  MSVC’s Interlocked*) or inline assembly, making code non-portable.
 
 C++11 Memory Model Solution
-+++++++++++++++++++++++++++
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+.. note:: 
+
+   **Non-blocking algorithm:**
+   In computer science, an algorithm is called non-blocking if failure or 
+   suspension of any thread cannot cause failure or suspension of another thread.
+
+   If a suspended thread can temporarily release its mutex and reacquire it 
+   upon resuming, while always producing correct results, then the algorithm is
+   non-blocking.
+
+   **Wait-free: no starvation.**
+   
+   An algorithm is wait-free if every operation has a bound on the 
+   number of steps the algorithm will take before the operation completes. In 
+   other words, wait-free algorithm has no starvation.
+
+   **Lock-free: progressive, allow starvation.**
+   
+   Lock-freedom allows 
+   individual threads to starve but guarantees system-wide throughput. An 
+   algorithm is lock-free if, when the program threads are run for a 
+   sufficiently long time, at least one of the threads makes progress (for 
+   some sensible definition of progress). 
+
+   All wait-free algorithms are lock-free. 
+   In particular, if one thread is suspended, then a lock-free algorithm guarantees 
+   that the remaining threads can still make progress. Hence, if two threads can 
+   contend for the same mutex lock or spinlock, then the algorithm is not lock-free. 
+   (If we suspend one thread that holds the lock, then the second thread will block.) 
+   [#lf-wiki]_.
+
+   Based on this definition, any algorithm that retains a mutex without 
+   allowing temporary release does not qualify as lock-free.
+   
 C++11 introduced **a well-defined memory model** and **atomic operations** with 
 **memory orderings**, allowing programmers to control hardware-level 
 optimizations.
 
-.. table::
+.. table:: C++ memory order A
 
    ================================================  ===============================================  ========================
    **Feature**                                       **Description**                                  **Benefit**
@@ -535,7 +579,7 @@ optimizations.
    Relaxed Ordering (`memory_order_relaxed`)         Allows reordering for performance                Best for atomic counters
    ================================================  ===============================================  ========================
 
-.. table:: C++ memory order
+.. table:: C++ memory order B
 
    ============================  ==================================================   ================================================
    **Memory Order**              **Description**                                      **Use Cases**
@@ -548,8 +592,8 @@ optimizations.
    `memory_order_seq_cst`        Strongest ordering; global sequential consistency.   Default behavior, safest but can be slow.
    ============================  ==================================================   ================================================
 
-Key Memory Order Introductions
-++++++++++++++++++++++++++++++
+
+Explanation:
 
 1. **Sequential Consistency (`memory_order_seq_cst`)**
 
@@ -564,7 +608,6 @@ Key Memory Order Introductions
    - **Efficient alternative to mutexes.**  
    - `acquire`: Ensures earlier loads are visible.  
    - `release`: Ensures later stores are visible.  
-   - Used in **lock-free producer-consumer models** [#lf-wiki]_.
 
 3. **Relaxed Ordering (`memory_order_relaxed`)**
 
@@ -577,35 +620,7 @@ Key Memory Order Introductions
   - Used in **atomic read-modify-write operations** like `fetch_add`.  
   - Ensures proper ordering in concurrent updates.
 
-
-Conclusion
-++++++++++
-
-- **C++11 introduced memory order to define a consistent multi-threaded model.**
-- **It prevents race conditions while optimizing performance.**
-- **Use relaxed ordering for performance, acquire-release for synchronization, 
-  and sequential consistency for safety.**
-
-Example Usage in Code
-+++++++++++++++++++++
-
-.. code-block:: cpp
-
-    std::atomic<int> counter(0);
-
-    void producer() {
-        counter.store(42, std::memory_order_release);
-    }
-
-    void consumer() {
-        int value = counter.load(std::memory_order_acquire);
-    }
-
-- **Ensures `consumer()` sees the updated value from `producer()` safely.**
-- Avoids **race conditions** without unnecessary locking.
-
-Conclusion
-++++++++++
+Summary:
 
 - Use **`memory_order_relaxed`** for **performance** when ordering is 
   unnecessary.
@@ -646,257 +661,6 @@ Diagram Explanation:
   - Waits until ready=true with memory_order_acquire, ensuring visibility of all
     previous writes.
   - After acquiring ready, loads data, which is now guaranteed to be 42.
-
-
-Comparison of Producer-Consumer with Busy Waiting
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-This section compares different **lock-free** implementations of the 
-producer-consumer, **SPSC (Single-Producer, Single-Consumer)** problem 
-using a **busy-waiting** algorithm in the following approaches:
-
-1. **Linux API with busy-waiting** (using `std::atomic`)
-2. **MIPS atomic and sync instructions** (using `ll`, `sc`, `sync`)
-3. **C++ memory order** (lock-free, busy-waiting)
-
-Each approach avoids locks (**lock-free**) but relies on busy-waiting, which 
-affects performance.
-
-1. Linux API with Busy Waiting (Using `std::atomic`)
-++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-This implementation uses `std::atomic<int>` for atomic operations and a circular 
-buffer for data exchange. It relies on busy-waiting when the buffer is full or empty.
-
-.. code-block:: cpp
-
-    #include <iostream>
-    #include <array>
-    #include <atomic>
-    #include <thread>
-
-    constexpr size_t BUFFER_SIZE = 8;
-    std::array<int, BUFFER_SIZE> buffer;
-    std::atomic<size_t> head(0);
-    std::atomic<size_t> tail(0);
-
-    bool enqueue(int item) {
-        size_t current_tail = tail.load(std::memory_order_relaxed);
-        size_t next_tail = (current_tail + 1) % BUFFER_SIZE;
-
-        while (next_tail == head.load(std::memory_order_acquire)) {} // Busy-wait
-
-        buffer[current_tail] = item;
-        tail.store(next_tail, std::memory_order_release);
-        return true;
-    }
-
-    bool dequeue(int& item) {
-        size_t current_head = head.load(std::memory_order_relaxed);
-
-        while (current_head == tail.load(std::memory_order_acquire)) {} // Busy-wait
-
-        item = buffer[current_head];
-        head.store((current_head + 1) % BUFFER_SIZE, std::memory_order_release);
-        return true;
-    }
-
-    void producer() {
-        for (int i = 1; i <= 10; ++i) {
-            enqueue(i);
-            std::cout << "Produced: " << i << std::endl;
-        }
-    }
-
-    void consumer() {
-        int item;
-        for (int i = 1; i <= 10; ++i) {
-            dequeue(item);
-            std::cout << "Consumed: " << item << std::endl;
-        }
-    }
-
-    int main() {
-        std::thread prod(producer);
-        std::thread cons(consumer);
-
-        prod.join();
-        cons.join();
-        return 0;
-    }
-
-2. MIPS Atomic and Sync Instructions (`ll`, `sc`, `sync`)
-++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-This implementation uses MIPS low-level atomic instructions (`ll`, `sc`, `sync`). 
-It ensures atomicity using `ll/sc` and relies on busy-waiting.
-
-.. code-block:: nasm
-
-    .data
-    buffer: .space 4     # Shared buffer (1 item)
-    flag:   .word 0      # 0 = empty, 1 = full
-
-    .text
-    .globl producer, consumer
-
-    producer:
-        li $t0, 10       # Produce 10 items
-    produce_loop:
-        bgtz $t0, produce_item
-        j end
-
-    produce_item:
-        # Busy-wait until buffer is empty
-    wait_empty:
-        ll $t1, flag
-        bne $t1, $zero, wait_empty
-
-        li $t2, 1
-        sc $t2, flag
-        beqz $t2, wait_empty  # Retry if store failed
-
-        li $t3, 42
-        sw $t3, buffer
-
-        sync
-
-        sub $t0, $t0, 1
-        j produce_loop
-
-    end:
-        jr $ra
-
-    consumer:
-        li $t0, 10
-    consume_loop:
-        bgtz $t0, consume_item
-        j end
-
-    consume_item:
-        # Busy-wait until buffer is full
-    wait_full:
-        ll $t1, flag
-        beqz $t1, wait_full
-
-        lw $t3, buffer
-        li $t2, 0
-        sc $t2, flag
-        beqz $t2, wait_full
-
-        sync
-
-        sub $t0, $t0, 1
-        j consume_loop
-
-3. C++ Memory Order (Lock-Free, Busy-Waiting)
-+++++++++++++++++++++++++++++++++++++++++++++
-
-This implementation uses `std::memory_order` for atomic synchronization. 
-It relies on **lock-free operations** and busy-waiting when the queue is full or empty.
-
-.. code-block:: cpp
-
-    #include <atomic>
-    #include <array>
-    #include <iostream>
-    #include <thread>
-
-    template <typename T, size_t SIZE>
-    class LockFreeQueue {
-    private:
-        std::array<T, SIZE> buffer;
-        std::atomic<size_t> head{0};
-        std::atomic<size_t> tail{0};
-
-    public:
-        bool enqueue(const T& item) {
-            size_t current_tail = tail.load(std::memory_order_relaxed);
-            size_t next_tail = (current_tail + 1) % SIZE;
-
-            while (next_tail == head.load(std::memory_order_acquire)) {} // Busy-wait
-
-            buffer[current_tail] = item;
-            tail.store(next_tail, std::memory_order_release);
-            return true;
-        }
-
-        bool dequeue(T& item) {
-            size_t current_head = head.load(std::memory_order_relaxed);
-
-            while (current_head == tail.load(std::memory_order_acquire)) {} // Busy-wait
-
-            item = buffer[current_head];
-            head.store((current_head + 1) % SIZE, std::memory_order_release);
-            return true;
-        }
-    };
-
-    LockFreeQueue<int, 8> queue;
-
-    void producer() {
-        for (int i = 1; i <= 10; ++i) {
-            queue.enqueue(i);
-            std::cout << "Produced: " << i << std::endl;
-        }
-    }
-
-    void consumer() {
-        int item;
-        for (int i = 1; i <= 10; ++i) {
-            queue.dequeue(item);
-            std::cout << "Consumed: " << item << std::endl;
-        }
-    }
-
-    int main() {
-        std::thread prod(producer);
-        std::thread cons(consumer);
-
-        prod.join();
-        cons.join();
-        return 0;
-    }
-
-Comparison Table
-++++++++++++++++
-
-The following table summarizes the differences between the three implementations:
-
-.. list-table::
-   :header-rows: 1
-
-   * - Approach
-     - Blocking?
-     - Busy-Waiting?
-     - Performance
-     - Scalability
-     - Portability
-   * - **Linux API (Busy-Waiting)**
-     - No
-     - Yes
-     - Medium
-     - Medium
-     - High
-   * - **MIPS (`ll`, `sc`, `sync`)**
-     - No
-     - Yes
-     - High
-     - Low
-     - Low (MIPS Only)
-   * - **C++ `std::memory_order`**
-     - No
-     - Yes
-     - High
-     - High
-     - High
-
-Conclusion
-++++++++++
-
-- The **Linux API version** is **portable**, but suffers from **busy-waiting inefficiency**.
-- The **MIPS atomic version** is **optimized for MIPS CPUs**, but lacks **portability**.
-- The **C++ memory order version** is the best balance between **performance and portability**.
 
 
 Cpu0 implementation for memory-order
@@ -1315,24 +1079,13 @@ following `clang++` options:
 
 .. [#cpp-mem-order] https://en.cppreference.com/w/cpp/atomic/memory_order
 
-.. [#cas-wiki] https://en.wikipedia.org/wiki/Compare-and-swap
-
-.. [#atomic-wiki] https://en.wikipedia.org/wiki/Memory_model_%28programming%29
+.. [#mem-order-wiki] https://en.wikipedia.org/wiki/Memory_model_%28programming%29
 
 .. [#atomic-stackoverflow] http://stackoverflow.com/questions/6319146/c11-introduced-a-standardized-memory-model-what-does-it-mean-and-how-is-it-g
 
-.. [#lf-wiki] An algorithm is wait-free if every operation has a bound on the 
-   number of steps the algorithm will take before the operation completes. In 
-   other words, wait-free algorithm has no starvation. Lock-freedom allows 
-   individual threads to starve but guarantees system-wide throughput. An 
-   algorithm is lock-free if, when the program threads are run for a 
-   sufficiently long time, at least one of the threads makes progress (for 
-   some sensible definition of progress). All wait-free algorithms are lock-free. 
-   In particular, if one thread is suspended, then a lock-free algorithm guarantees 
-   that the remaining threads can still make progress. Hence, if two threads can 
-   contend for the same mutex lock or spinlock, then the algorithm is not lock-free. 
-   (If we suspend one thread that holds the lock, then the second thread will block.) 
-   https://en.wikipedia.org/wiki/Non-blocking_algorithm
+.. [#cas-wiki] https://en.wikipedia.org/wiki/Compare-and-swap
+
+.. [#lf-wiki] https://en.wikipedia.org/wiki/Non-blocking_algorithm
 
 .. [#ll-wiki] https://en.wikipedia.org/wiki/Load-link/store-conditional
 

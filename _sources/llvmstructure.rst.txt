@@ -39,6 +39,112 @@ Finally, there are compiler knowledge like DAG (Directed-Acyclic-Graph) and
 instruction selection needed in llvm backend design, and they are explained 
 here. 
 
+
+BNF Auto-Generated Parsers vs. Handwritten Parsers
+--------------------------------------------------
+
+Why doesn't the Clang compiler use YACC/LEX tools to parse C++?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Clang does not use YACC/LEX because **C++ is too complex and context-sensitive**
+for traditional parser generators. YACC and LEX work with context-free grammars, 
+but C++ has many context-sensitive features, especially in templates below:
+
+.. rubric:: Context-sensitive template instantiation
+.. literalinclude:: ../References/cpp-template.cpp
+   :language: c++
+
+In the C++ code above, both f(42) and f('a') can match either the template 
+function or the non-template function.
+
+🤯 Why This Is Hard for YACC:
+
+YACC works with context-free grammars, but this example requires:
+
+- Template argument deduction: The compiler must infer T from the call.
+
+- Overload resolution: It must choose between the template and non-template 
+  versions.
+
+- Implicit conversions: 'a' can be converted to int, which affects overload 
+  ranking.
+
+- Explicit template instantiation: f<int>('a') forces the template, but YACC 
+  doesn’t track template types.
+
+To model this in YACC:
+
+You’d need to simulate template instantiation and ranking — which is way beyond 
+what YACC was designed for.
+
+This kind of logic is not just syntactic — it’s deeply semantic. That’s why 
+compilers like Clang use handwritten parsers with tight integration between 
+parsing and semantic analysis.
+
+Clang doesn’t use YACC/LEX because:
+
+==================================  ========  ====================
+Feature                             YACC/LEX  Hand-written Parser
+==================================  ========  ====================
+Handles context-sensitive grammar   ❌        ✅
+Good error recovery                 ❌        ✅
+Integration with semantic analysis  ❌        ✅
+Easy to maintain/extend for C++     ❌        ✅
+Fine-grained control                ❌        ✅
+==================================  ========  ====================
+
+The GNU `g++` compiler abandoned BNF tools starting from version 3.x.  
+
+
+Compiler-Compiler Tools for Context-Sensitive C++ Parsing
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+While traditional tools like YACC/Lex are limited to context-free grammars, 
+modern compiler construction requires handling context-sensitive features — 
+especially in C++ templates, overload resolution, and semantic analysis. 
+Below is a list of tools that attempt to address these challenges.
+
+====================  ========================  ============================  =======================================================================
+Tool                  Generates Parser Code?    Context-Sensitive Support?    Notes
+====================  ========================  ============================  =======================================================================
+ANTLR                 ✅ Yes                    ⚠️ Limited                     Supports semantic predicates; struggles with full C++ complexity
+BNFLite               ✅ Yes                    ⚠️ Partial                     Lightweight C++ template library; ideal for DSLs, not full C++
+PEGTL                 ✅ Yes                    ⚠️ Limited                     PEG-based parser combinator library in C++; expressive but limited
+GLR Parsers (Elsa)    ✅ Yes                    ✅ Yes                        Can handle ambiguity and deferred resolution; used in research
+Clang LibTooling      ✅ Yes (via AST)          ✅ Yes                        Offers full C++ parsing + semantic analysis; industrial-grade tooling
+====================  ========================  ============================  =======================================================================
+
+Why Most Tools Fall Short:
+
+- C++ templates are **Turing-complete**, making static analysis alone insufficient.
+
+- Overload resolution requires understanding **types, scopes, and conversions**.
+
+- C++ syntax is **deeply ambiguous**, defying context-free parsing strategies.
+
+Recommended Approach:
+
+For building C++ parsers:
+
+- Use **GLR-based tools** like Elsa if ambiguity and template complexity must 
+  be handled directly.
+
+- Or leverage **Clang LibTooling** for full semantic integration, AST 
+  manipulation, and robust code analysis.
+
+In summary, while modern tools improve on YACC/LEX, **the complexity of C++ still
+requires a custom parser that deeply integrates with semantic analysis and type
+resolution. Clang’s approach remains the most practical for full C++ support.
+Moreover the error messages and recovery are still weaker than Clang**.
+
+While C++ compilers do not benefit from BNF  
+generator tools, many other programming and scripting languages, which are  
+more context-free, can take advantage of them. 
+The following information comes from Wikipedia:  
+
+Java syntax has a context-free grammar that can be parsed by a simple LALR  
+parser. Parsing C++ is more complicated [#java-cpp]_.  
+
 Cpu0 Processor Architecture Details
 -----------------------------------
 
@@ -802,6 +908,8 @@ virtual register `%a` to be assigned twice.
 As a result, the compiler must generate the following code, since `%a` is  
 assigned as an output in two different statements.
 
+.. code-block:: console
+
   => %a = add i32 1, i32 0
       st %a,  i32* %c, 1
       %a = add i32 2, i32 0
@@ -908,7 +1016,8 @@ DSA allows this transformation, whereas SSA does not. While extra analysis on
 `%temp` in SSA could reconstruct `%t_idx` and `%t_addr` as shown in the DSA  
 form below, compiler transformations typically follow a high-to-low approach.  
 
-Additionally, LLVM IR already loses the `for` loop structure, even though it  
+Additionally, LLVM IR already loses the `for` loop structure, even though part
+of the losted information  
 can be reconstructed through further analysis.  
 
 For this reason, in this book—as well as in most compiler-related research—the  
@@ -1186,26 +1295,6 @@ facilitate instruction selection and code generation, as shown in
 .. _llvmstructure_llvmTblGen:
 .. graphviz:: ../Fig/llvmstructure/llvmTblGen.gv
   :caption: llvm TableGen Flow
-
-Since C++ grammar is more context-sensitive than context-free, the LLVM frontend  
-project Clang uses a hand-coded parser instead of BNF generator tools.  
-
-In backend development, transforming IR into machine instructions benefits  
-greatly from TableGen tools. While C++ compilers do not benefit from BNF  
-generator tools, many other programming and scripting languages, which are  
-more context-free, can take advantage of them.  
-
-The following information comes from Wikipedia:  
-
-Java syntax has a context-free grammar that can be parsed by a simple LALR  
-parser. Parsing C++ is more complicated [#java-cpp]_.  
-
-The GNU `g++` compiler abandoned BNF tools starting from version 3.x.  
-Beyond the fact that C++ has a more context-sensitive grammar, another reason  
-for this decision is that a hand-coded parser can provide better error  
-diagnostics than a BNF-based tool. BNF tools always select rules from the  
-grammar when a match is found, potentially leading to less precise error  
-reporting.
 
 LLVM Code Generation Sequence
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -2898,6 +2987,9 @@ Refer to LLVM passes documentation [#llvm-passes]_. Examples:
   Prints the CFG to a `.dot` file without function bodies.
 
 
+
+.. [#java-cpp] https://en.wikipedia.org/wiki/Comparison_of_Java_and_C%2B%2B
+
 .. [#cpu0-chinese] Original Cpu0 architecture and ISA details (Chinese). http://ccckmit.wikidot.com/ocs:cpu0
 
 .. [#cpu0-english] English translation of Cpu0 description. http://translate.google.com.tw/translate?js=n&prev=_t&hl=zh-TW&ie=UTF-8&layout=2&eotf=1&sl=zh-CN&tl=en&u=http://ccckmit.wikidot.com/ocs:cpu0
@@ -2913,8 +3005,6 @@ Refer to LLVM passes documentation [#llvm-passes]_. Examples:
 .. [#call-note] jsub cx is direct call for 24 bits value of cx while jalr $rb is indirect call for 32 bits value of register $rb.
 
 .. [#jr-note] Both JR and RET has same opcode (actually they are the same instruction for Cpu0 hardware). When user writes "jr $t9" meaning it jumps to address of register $t9; when user writes "jr $lr" meaning it jump back to the caller function (since $lr is the return address). For user read ability, Cpu0 prints "ret $lr" instead of "jr $lr".
-
-.. [#java-cpp] https://en.wikipedia.org/wiki/Comparison_of_Java_and_C%2B%2B
 
 .. [#aosa-book] Chris Lattner, **LLVM**. Published in The Architecture of Open Source Applications. http://www.aosabook.org/en/llvm.html
 
