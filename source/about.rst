@@ -63,6 +63,15 @@ Revision history
 
 Version 12.0.17, not released yet.
 
+Version 12.0.16.1, Released July 20, 2026.
+
+  llvmstructure.rst: add section "BNF Auto-Generated Parsers vs. Handwritten 
+  Parsers".
+  c++.rst: Rewrite section 'C++ Memory Order'.
+  gpu.rst: section 'OpenCL, Vulkan and spir-v', subsections 'Buffers'.
+  add 'Descrete GPU', 'Goals', 'GLSL vs. C: Feature Overview' and
+  'GLSL Qualifiers by Shader Stage' in subsection 'GLSL (GL Shader Language)'.
+
 Version 12.0.16, Released May 24, 2026.
 
   Chatgpt: Refine my English for the input reStructuredText (reST) format I 
