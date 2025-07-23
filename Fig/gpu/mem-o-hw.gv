@@ -9,14 +9,14 @@ digraph MemoryOrderAcquireCache {
     subgraph cluster_cache1 {
         label="CPU Core 1 Cache (Thread 1 - Producer)";
         style=dashed;
-        Cache1_Data [label="data=42 (Stale?)"];
+        Cache1_Data [label="data.push_back(i * 10);"];
         Cache1_Ready [label="ready=true"];
     }
 
     subgraph cluster_cache2 {
         label="CPU Core 2 Cache (Thread 2 - Consumer)";
         style=dashed;
-        Cache2_Data [label="data=?"];
+        Cache2_Data [label="std::cout << data[i];"];
         Cache2_Ready [label="ready=false"];
     }
 
@@ -25,7 +25,7 @@ digraph MemoryOrderAcquireCache {
     Thread2 [label="Thread 2 (Consumer)"];
 
     // Memory operations in Thread 1 (Producer)
-    Thread1 -> Cache1_Data [label="data.store(42, relaxed)"];
+    Thread1 -> Cache1_Data;
     Thread1 -> Cache1_Ready [label="ready.store(true, release)"];
     
     // Memory propagation
