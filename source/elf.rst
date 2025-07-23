@@ -657,7 +657,7 @@ List the tracing of `decodeInstruction()` by enabling "#if 1" in
   #include "Cpu0GenDisassemblerTables.inc"
 
 
-.. literalinclude:: ../log-include-in-lbd/ch3.disas.log
+.. literalinclude:: ../References/ch3.disas.log
 
 
 Based on the debug log above, pick the example "addiu $sp, $sp, -8", 
