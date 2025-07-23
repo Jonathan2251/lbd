@@ -63,6 +63,9 @@ Revision history
 
 Version 12.0.17, not released yet.
 
+Version 12.0.16.2, Released July 20, 2026.
+  c++.rst: Rewrite section 'C++ Memory Order'.
+
 Version 12.0.16.1, Released July 20, 2026.
 
   llvmstructure.rst: add section "BNF Auto-Generated Parsers vs. Handwritten 

@@ -462,41 +462,7 @@ C++ Memory Order [#cpp-mem-order]_ [#mem-order-wiki]_ [#atomic-stackoverflow]_
 - **Memory Order is the rules that define how operations on shared memory 
   appear to multiple threads — especially the ordering of reads/writes.**
 
-- **These rules ensure correct execution in parallel programs, as demonstrated 
-  in the example below.**
-
-.. rubric:: 🧠 Example (Wrong Without Memory Order)
-.. code-block:: c++
-
-  volatile bool ready = false;
-  ...
-
-  // Thread A
-  x = 42;
-  ready = true;
-
-  // Thread B
-  if (ready)
-    std::cout << x; // May print garbage if `x = 42` is reordered!
-
-.. rubric:: 💡 Fixing with Memory Order
-.. code-block:: c++
-
-  std::atomic<bool> ready = false;
-  ...
-
-  // Thread A
-  x.store(42, std::memory_order_relaxed);
-  ready.store(true, std::memory_order_release);
-
-  // Thread B
-  if (ready.load(std::memory_order_acquire))
-    print(x.load(std::memory_order_relaxed));
-
-- memory_order_release tells the compiler/CPU: “All writes before this must be completed first.”
-- memory_order_acquire tells the reader: “No reads after this can move before it.”
-
-Now x = 42 is guaranteed to happen before ready = true, as seen by Thread B.
+- **These rules ensure correct execution in parallel programs.**
 
 Background
 ~~~~~~~~~~
@@ -521,10 +487,89 @@ programmers **fine-grained control** over synchronization and memory consistency
 The Problem Before C++11
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
-**No standard atomic operations → non-portable.**
+1. **No standard atomic operations → non-portable.**
 
-- Developers had to use compiler-specific intrinsics (like GCC’s __sync_*, 
-  MSVC’s Interlocked*) or inline assembly, making code non-portable.
+   - Developers had to use compiler-specific intrinsics (like GCC’s __sync_*, 
+     MSVC’s Interlocked*) or inline assembly, making code non-portable.
+
+2. **Unspecified Behavior in Multi-threading** 
+ 
+   - The C++98/03 standard had **no formal memory model**.
+   - Compilers **optimized code aggressively**, leading to race conditions.
+
+3. **Reliance on Volatile and Platform-specific Primitives**
+
+   - `volatile` **did not** prevent reordering by the compiler.
+   - Programmers had to use **OS-specific APIs (e.g., `pthread_mutex`)**.
+
+4. **Inefficient Synchronization Mechanisms**
+
+   - Mutexes ensured correctness but **caused performance overhead**.
+   - **Spin-locks wasted CPU cycles** due to busy-waiting.
+
+The following C++ example demonstrates a producer–consumer pattern to explain
+the problems listed above.
+
+.. rubric:: References/c++/mem-order-ex1.cpp (C++ code of memory order for 
+            producer-consumer)
+.. literalinclude:: ../References/c++/mem-order-ex1.cpp
+
+The example above illustrates how C++ memory ordering guarantees that 'data' 
+becomes visible to other threads before 'ready' is set in the producer thread. 
+When the consumer thread detects that `'ready == true'`, it can safely access 
+the corresponding data value. See :numref:`mem_o_hw`.
+
+If the program instead uses 'volatile', as shown in the following example, 
+correctness depends on explicit synchronization. 
+Platform-specific mechanisms such as CPU memory barriers or operating 
+system–level functions are required to prevent instruction reordering—for 
+example, ensuring that the store data operations are not moved after 
+`'ready = true'`.
+
+However, barriers and synchronization primitives at the CPU level only prevent 
+hardware reordering. 
+They do not stop the compiler from reordering instructions during optimization. 
+To suppress compiler-level reordering, mutexes or atomic constructs are 
+necessary—but these may introduce **performance overhead**.
+
+.. code-block:: c++
+
+  volatile bool ready(false);
+
+  void producer() {
+    // Populate data
+    for (int i = 0; i < 10; ++i) {
+        data.push_back(i * 10);
+    }
+    asm("__sync__"); // rely on sync or barrier in CPU instruction. 
+    // Release store: Ensures all writes to 'data' are visible before 'ready' is set.
+    ready = true; // Release signal
+  }
+
+
+.. _mem_o_hw:
+.. graphviz:: ../Fig/gpu/mem-o-hw.gv
+  :caption: Diagram for mem-order-ex1.cpp
+
+Diagram Explanation:
+
+- **CPU Core 1 (Thread 1 - Producer)**
+
+  - Writes all elements to 'data' with memory_order_relaxed (not immediately visible).
+  - Writes true to ready with memory_order_release, ensuring prior stores are 
+    visible before this write.
+
+- **Main Memory**
+
+  - `'ready=true'` propagates to main memory, making it visible to all cores.
+
+- **CPU Core 2 (Thread 2 - Consumer)**
+
+  - Waits until `'ready=true'` with memory_order_acquire, ensuring visibility 
+    of all previous writes.
+  - After acquiring ready, output all elements from 'data', which are now 
+    reliably published by the producer thread..
+
 
 C++11 Memory Model Solution
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -628,39 +673,6 @@ Summary:
   threads.
 - Use **`memory_order_seq_cst`** when you need **global ordering but at a 
   performance cost**.
-
-Example code for producer-consumer
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Example code of C++ code for producer-consumer as follows,
-
-.. rubric:: References/c++/mem-order-ex1.cpp (C++ code of memory order for 
-            producer-consumer)
-.. literalinclude:: ../References/c++/mem-order-ex1.cpp
-
-Explaining as :numref:`mem_o_hw` and follows,
-
-.. _mem_o_hw:
-.. graphviz:: ../Fig/gpu/mem-o-hw.gv
-  :caption: Diagram for mem-order-ex1.cpp
-
-Diagram Explanation:
-
-- **CPU Core 1 (Thread 1 - Producer)**
-
-  - Writes 42 to data with memory_order_relaxed (not immediately visible).
-  - Writes true to ready with memory_order_release, ensuring prior stores are 
-    visible before this write.
-
-- **Main Memory**
-
-  - ready=true propagates to main memory, making it visible to all cores.
-
-- **CPU Core 2 (Thread 2 - Consumer)**
-
-  - Waits until ready=true with memory_order_acquire, ensuring visibility of all
-    previous writes.
-  - After acquiring ready, loads data, which is now guaranteed to be 42.
 
 
 Cpu0 implementation for memory-order

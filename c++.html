@@ -50,10 +50,9 @@
 <li><p><a class="reference internal" href="#background" id="id27">Background</a></p></li>
 <li><p><a class="reference internal" href="#the-problem-before-c-11" id="id28">The Problem Before C++11</a></p></li>
 <li><p><a class="reference internal" href="#c-11-memory-model-solution" id="id29">C++11 Memory Model Solution</a></p></li>
-<li><p><a class="reference internal" href="#example-code-for-producer-consumer" id="id30">Example code for producer-consumer</a></p></li>
 </ul>
 </li>
-<li><p><a class="reference internal" href="#cpu0-implementation-for-memory-order" id="id31">Cpu0 implementation for memory-order</a></p></li>
+<li><p><a class="reference internal" href="#cpu0-implementation-for-memory-order" id="id30">Cpu0 implementation for memory-order</a></p></li>
 </ul>
 </nav>
 <p>This chapter supports some C++ compiler features.</p>
@@ -753,40 +752,8 @@ translation.</p>
 <ul class="simple">
 <li><p><strong>Memory Order is the rules that define how operations on shared memory
 appear to multiple threads — especially the ordering of reads/writes.</strong></p></li>
-<li><p><strong>These rules ensure correct execution in parallel programs, as demonstrated
-in the example below.</strong></p></li>
+<li><p><strong>These rules ensure correct execution in parallel programs.</strong></p></li>
 </ul>
-<p class="rubric">🧠 Example (Wrong Without Memory Order)</p>
-<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="k">volatile</span><span class="w"> </span><span class="kt">bool</span><span class="w"> </span><span class="n">ready</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">false</span><span class="p">;</span><span class="w"></span>
-<span class="p">...</span><span class="w"></span>
-
-<span class="c1">// Thread A</span>
-<span class="n">x</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">42</span><span class="p">;</span><span class="w"></span>
-<span class="n">ready</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">true</span><span class="p">;</span><span class="w"></span>
-
-<span class="c1">// Thread B</span>
-<span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">ready</span><span class="p">)</span><span class="w"></span>
-<span class="w">  </span><span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">x</span><span class="p">;</span><span class="w"> </span><span class="c1">// May print garbage if `x = 42` is reordered!</span>
-</pre></div>
-</div>
-<p class="rubric">💡 Fixing with Memory Order</p>
-<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="n">std</span><span class="o">::</span><span class="n">atomic</span><span class="o">&lt;</span><span class="kt">bool</span><span class="o">&gt;</span><span class="w"> </span><span class="n">ready</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">false</span><span class="p">;</span><span class="w"></span>
-<span class="p">...</span><span class="w"></span>
-
-<span class="c1">// Thread A</span>
-<span class="n">x</span><span class="p">.</span><span class="n">store</span><span class="p">(</span><span class="mi">42</span><span class="p">,</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">memory_order_relaxed</span><span class="p">);</span><span class="w"></span>
-<span class="n">ready</span><span class="p">.</span><span class="n">store</span><span class="p">(</span><span class="nb">true</span><span class="p">,</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">memory_order_release</span><span class="p">);</span><span class="w"></span>
-
-<span class="c1">// Thread B</span>
-<span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">ready</span><span class="p">.</span><span class="n">load</span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="n">memory_order_acquire</span><span class="p">))</span><span class="w"></span>
-<span class="w">  </span><span class="n">print</span><span class="p">(</span><span class="n">x</span><span class="p">.</span><span class="n">load</span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="n">memory_order_relaxed</span><span class="p">));</span><span class="w"></span>
-</pre></div>
-</div>
-<ul class="simple">
-<li><p>memory_order_release tells the compiler/CPU: “All writes before this must be completed first.”</p></li>
-<li><p>memory_order_acquire tells the reader: “No reads after this can move before it.”</p></li>
-</ul>
-<p>Now x = 42 is guaranteed to happen before ready = true, as seen by Thread B.</p>
 <section id="background">
 <h3><a class="toc-backref" href="#id27" role="doc-backlink">Background</a><a class="headerlink" href="#background" title="Permalink to this heading">¶</a></h3>
 <p>Before <strong>C++11</strong>, multi-threaded programming relied on <strong>mutexes, volatile
@@ -805,10 +772,171 @@ programmers <strong>fine-grained control</strong> over synchronization and memor
 </section>
 <section id="the-problem-before-c-11">
 <h3><a class="toc-backref" href="#id28" role="doc-backlink">The Problem Before C++11</a><a class="headerlink" href="#the-problem-before-c-11" title="Permalink to this heading">¶</a></h3>
-<p><strong>No standard atomic operations → non-portable.</strong></p>
+<ol class="arabic simple">
+<li><p><strong>No standard atomic operations → non-portable.</strong></p>
 <ul class="simple">
 <li><p>Developers had to use compiler-specific intrinsics (like GCC’s __sync_*,
 MSVC’s Interlocked*) or inline assembly, making code non-portable.</p></li>
+</ul>
+</li>
+<li><p><strong>Unspecified Behavior in Multi-threading</strong></p>
+<ul class="simple">
+<li><p>The C++98/03 standard had <strong>no formal memory model</strong>.</p></li>
+<li><p>Compilers <strong>optimized code aggressively</strong>, leading to race conditions.</p></li>
+</ul>
+</li>
+<li><p><strong>Reliance on Volatile and Platform-specific Primitives</strong></p>
+<ul class="simple">
+<li><p><cite>volatile</cite> <strong>did not</strong> prevent reordering by the compiler.</p></li>
+<li><p>Programmers had to use <strong>OS-specific APIs (e.g., `pthread_mutex`)</strong>.</p></li>
+</ul>
+</li>
+<li><p><strong>Inefficient Synchronization Mechanisms</strong></p>
+<ul class="simple">
+<li><p>Mutexes ensured correctness but <strong>caused performance overhead</strong>.</p></li>
+<li><p><strong>Spin-locks wasted CPU cycles</strong> due to busy-waiting.</p></li>
+</ul>
+</li>
+</ol>
+<p>The following C++ example demonstrates a producer–consumer pattern to explain
+the problems listed above.</p>
+<p class="rubric">References/c++/mem-order-ex1.cpp (C++ code of memory order for
+producer-consumer)</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>#include &lt;iostream&gt;
+#include &lt;thread&gt;
+#include &lt;vector&gt;
+#include &lt;atomic&gt;
+
+std::atomic&lt;int&gt; data(0);
+std::atomic&lt;bool&gt; ready(false);
+
+void producer() {
+    // Populate data
+    for (int i = 0; i &lt; 10; ++i) {
+        data.push_back(i * 10);
+    }
+    // Release store: Ensures all writes to &#39;data&#39; are visible before &#39;ready&#39; is set.
+    ready.store(true, std::memory_order_release); // Release signal
+}
+
+void consumer() {
+    // Acquire load: Ensures all writes that happened before the release store are visible.
+    while (!ready.load(std::memory_order_acquire)); // Wait for ready signal
+
+    // Ensure that this print sees the correct value of `data`
+    for (int i = 0; i &lt; 10; ++i) {
+        std::cout &lt;&lt; data[i];
+    }
+}
+
+int main() {
+    std::thread t1(producer);
+    std::thread t2(consumer);
+
+    t1.join();
+    t2.join();
+
+    return 0;
+}
+
+</pre></div>
+</div>
+<p>The example above illustrates how C++ memory ordering guarantees that ‘data’
+becomes visible to other threads before ‘ready’ is set in the producer thread.
+When the consumer thread detects that <cite>‘ready == true’</cite>, it can safely access
+the corresponding data value. See <a class="reference internal" href="#mem-o-hw"><span class="std std-numref">Fig. 57</span></a>.</p>
+<p>If the program instead uses ‘volatile’, as shown in the following example,
+correctness depends on explicit synchronization.
+Platform-specific mechanisms such as CPU memory barriers or operating
+system–level functions are required to prevent instruction reordering—for
+example, ensuring that the store data operations are not moved after
+<cite>‘ready = true’</cite>.</p>
+<p>However, barriers and synchronization primitives at the CPU level only prevent
+hardware reordering.
+They do not stop the compiler from reordering instructions during optimization.
+To suppress compiler-level reordering, mutexes or atomic constructs are
+necessary—but these may introduce <strong>performance overhead</strong>.</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="k">volatile</span><span class="w"> </span><span class="kt">bool</span><span class="w"> </span><span class="nf">ready</span><span class="p">(</span><span class="nb">false</span><span class="p">);</span><span class="w"></span>
+
+<span class="kt">void</span><span class="w"> </span><span class="nf">producer</span><span class="p">()</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">  </span><span class="c1">// Populate data</span>
+<span class="w">  </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="mi">10</span><span class="p">;</span><span class="w"> </span><span class="o">++</span><span class="n">i</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">      </span><span class="n">data</span><span class="p">.</span><span class="n">push_back</span><span class="p">(</span><span class="n">i</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mi">10</span><span class="p">);</span><span class="w"></span>
+<span class="w">  </span><span class="p">}</span><span class="w"></span>
+<span class="w">  </span><span class="k">asm</span><span class="p">(</span><span class="s">&quot;__sync__&quot;</span><span class="p">);</span><span class="w"> </span><span class="c1">// rely on sync or barrier in CPU instruction.</span>
+<span class="w">  </span><span class="c1">// Release store: Ensures all writes to &#39;data&#39; are visible before &#39;ready&#39; is set.</span>
+<span class="w">  </span><span class="n">ready</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">true</span><span class="p">;</span><span class="w"> </span><span class="c1">// Release signal</span>
+<span class="p">}</span><span class="w"></span>
+</pre></div>
+</div>
+<figure class="align-default" id="id17">
+<span id="mem-o-hw"></span><div class="graphviz"><img src="_images/graphviz-2d3b0f4335c93b71ad179dff5ae77ca5488a6e92.png" alt="digraph MemoryOrderAcquireCache {
+    rankdir=TB;
+    node [shape=box, fontname=&quot;Helvetica&quot;];
+
+    // Main memory
+    MainMemory [label=&quot;Main Memory&quot;, shape=cylinder, style=filled, fillcolor=lightgray];
+
+    // CPU caches
+    subgraph cluster_cache1 {
+        label=&quot;CPU Core 1 Cache (Thread 1 - Producer)&quot;;
+        style=dashed;
+        Cache1_Data [label=&quot;data.push_back(i * 10);&quot;];
+        Cache1_Ready [label=&quot;ready=true&quot;];
+    }
+
+    subgraph cluster_cache2 {
+        label=&quot;CPU Core 2 Cache (Thread 2 - Consumer)&quot;;
+        style=dashed;
+        Cache2_Data [label=&quot;std::cout &lt;&lt; data[i];&quot;];
+        Cache2_Ready [label=&quot;ready=false&quot;];
+    }
+
+    // Threads
+    Thread1 [label=&quot;Thread 1 (Producer)&quot;];
+    Thread2 [label=&quot;Thread 2 (Consumer)&quot;];
+
+    // Memory operations in Thread 1 (Producer)
+    Thread1 -&gt; Cache1_Data;
+    Thread1 -&gt; Cache1_Ready [label=&quot;ready.store(true, release)&quot;];
+    
+    // Memory propagation
+    Cache1_Ready -&gt; MainMemory [label=&quot;ready=true propagated&quot;, color=red];
+    MainMemory -&gt; Cache2_Ready [label=&quot;Consumer sees ready=true (Acquire)&quot;, color=red];
+
+    // Memory operations in Thread 2 (Consumer)
+    Thread2 -&gt; Cache2_Ready [label=&quot;while (!ready.load(acquire));&quot;];
+    Cache2_Ready -&gt; Cache2_Data [label=&quot;data.load(relaxed)&quot;, color=blue];
+
+    // Synchronization path
+    Cache1_Ready -&gt; Cache2_Ready [label=&quot;Acquire-Release Sync&quot;, style=dashed, color=purple];
+}" class="graphviz" /></div>
+<figcaption>
+<p><span class="caption-number">Fig. 57 </span><span class="caption-text">Diagram for mem-order-ex1.cpp</span><a class="headerlink" href="#id17" title="Permalink to this image">¶</a></p>
+</figcaption>
+</figure>
+<p>Diagram Explanation:</p>
+<ul class="simple">
+<li><p><strong>CPU Core 1 (Thread 1 - Producer)</strong></p>
+<ul>
+<li><p>Writes all elements to ‘data’ with memory_order_relaxed (not immediately visible).</p></li>
+<li><p>Writes true to ready with memory_order_release, ensuring prior stores are
+visible before this write.</p></li>
+</ul>
+</li>
+<li><p><strong>Main Memory</strong></p>
+<ul>
+<li><p><cite>‘ready=true’</cite> propagates to main memory, making it visible to all cores.</p></li>
+</ul>
+</li>
+<li><p><strong>CPU Core 2 (Thread 2 - Consumer)</strong></p>
+<ul>
+<li><p>Waits until <cite>‘ready=true’</cite> with memory_order_acquire, ensuring visibility
+of all previous writes.</p></li>
+<li><p>After acquiring ready, output all elements from ‘data’, which are now
+reliably published by the producer thread..</p></li>
+</ul>
+</li>
 </ul>
 </section>
 <section id="c-11-memory-model-solution">
@@ -843,8 +971,8 @@ allowing temporary release does not qualify as lock-free.</p>
 <p>C++11 introduced <strong>a well-defined memory model</strong> and <strong>atomic operations</strong> with
 <strong>memory orderings</strong>, allowing programmers to control hardware-level
 optimizations.</p>
-<table class="docutils align-default" id="id17">
-<caption><span class="caption-number">Table 41 </span><span class="caption-text">C++ memory order A</span><a class="headerlink" href="#id17" title="Permalink to this table">¶</a></caption>
+<table class="docutils align-default" id="id18">
+<caption><span class="caption-number">Table 41 </span><span class="caption-text">C++ memory order A</span><a class="headerlink" href="#id18" title="Permalink to this table">¶</a></caption>
 <thead>
 <tr class="row-odd"><th class="head"><p><strong>Feature</strong></p></th>
 <th class="head"><p><strong>Description</strong></p></th>
@@ -874,8 +1002,8 @@ optimizations.</p>
 </tr>
 </tbody>
 </table>
-<table class="docutils align-default" id="id18">
-<caption><span class="caption-number">Table 42 </span><span class="caption-text">C++ memory order B</span><a class="headerlink" href="#id18" title="Permalink to this table">¶</a></caption>
+<table class="docutils align-default" id="id19">
+<caption><span class="caption-number">Table 42 </span><span class="caption-text">C++ memory order B</span><a class="headerlink" href="#id19" title="Permalink to this table">¶</a></caption>
 <thead>
 <tr class="row-odd"><th class="head"><p><strong>Memory Order</strong></p></th>
 <th class="head"><p><strong>Description</strong></p></th>
@@ -952,115 +1080,9 @@ threads.</p></li>
 performance cost</strong>.</p></li>
 </ul>
 </section>
-<section id="example-code-for-producer-consumer">
-<h3><a class="toc-backref" href="#id30" role="doc-backlink">Example code for producer-consumer</a><a class="headerlink" href="#example-code-for-producer-consumer" title="Permalink to this heading">¶</a></h3>
-<p>Example code of C++ code for producer-consumer as follows,</p>
-<p class="rubric">References/c++/mem-order-ex1.cpp (C++ code of memory order for
-producer-consumer)</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>#include &lt;iostream&gt;
-#include &lt;thread&gt;
-#include &lt;atomic&gt;
-
-std::atomic&lt;int&gt; data(0);
-std::atomic&lt;bool&gt; ready(false);
-
-void producer() {
-    data.store(42, std::memory_order_relaxed); // Store value
-    ready.store(true, std::memory_order_release); // Release signal
-}
-
-void consumer() {
-    while (!ready.load(std::memory_order_acquire)); // Wait for ready signal
-
-    // Ensure that this print sees the correct value of `data`
-    std::cout &lt;&lt; &quot;Data: &quot; &lt;&lt; data.load(std::memory_order_relaxed) &lt;&lt; std::endl;
-}
-
-int main() {
-    std::thread t1(producer);
-    std::thread t2(consumer);
-
-    t1.join();
-    t2.join();
-
-    return 0;
-}
-
-</pre></div>
-</div>
-<p>Explaining as <a class="reference internal" href="#mem-o-hw"><span class="std std-numref">Fig. 57</span></a> and follows,</p>
-<figure class="align-default" id="id19">
-<span id="mem-o-hw"></span><div class="graphviz"><img src="_images/graphviz-95e351b5cf89d1a459cfaadd204004716c249546.png" alt="digraph MemoryOrderAcquireCache {
-    rankdir=TB;
-    node [shape=box, fontname=&quot;Helvetica&quot;];
-
-    // Main memory
-    MainMemory [label=&quot;Main Memory&quot;, shape=cylinder, style=filled, fillcolor=lightgray];
-
-    // CPU caches
-    subgraph cluster_cache1 {
-        label=&quot;CPU Core 1 Cache (Thread 1 - Producer)&quot;;
-        style=dashed;
-        Cache1_Data [label=&quot;data=42 (Stale?)&quot;];
-        Cache1_Ready [label=&quot;ready=true&quot;];
-    }
-
-    subgraph cluster_cache2 {
-        label=&quot;CPU Core 2 Cache (Thread 2 - Consumer)&quot;;
-        style=dashed;
-        Cache2_Data [label=&quot;data=?&quot;];
-        Cache2_Ready [label=&quot;ready=false&quot;];
-    }
-
-    // Threads
-    Thread1 [label=&quot;Thread 1 (Producer)&quot;];
-    Thread2 [label=&quot;Thread 2 (Consumer)&quot;];
-
-    // Memory operations in Thread 1 (Producer)
-    Thread1 -&gt; Cache1_Data [label=&quot;data.store(42, relaxed)&quot;];
-    Thread1 -&gt; Cache1_Ready [label=&quot;ready.store(true, release)&quot;];
-    
-    // Memory propagation
-    Cache1_Ready -&gt; MainMemory [label=&quot;ready=true propagated&quot;, color=red];
-    MainMemory -&gt; Cache2_Ready [label=&quot;Consumer sees ready=true (Acquire)&quot;, color=red];
-
-    // Memory operations in Thread 2 (Consumer)
-    Thread2 -&gt; Cache2_Ready [label=&quot;while (!ready.load(acquire));&quot;];
-    Cache2_Ready -&gt; Cache2_Data [label=&quot;data.load(relaxed)&quot;, color=blue];
-
-    // Synchronization path
-    Cache1_Ready -&gt; Cache2_Ready [label=&quot;Acquire-Release Sync&quot;, style=dashed, color=purple];
-}" class="graphviz" /></div>
-<figcaption>
-<p><span class="caption-number">Fig. 57 </span><span class="caption-text">Diagram for mem-order-ex1.cpp</span><a class="headerlink" href="#id19" title="Permalink to this image">¶</a></p>
-</figcaption>
-</figure>
-<p>Diagram Explanation:</p>
-<ul class="simple">
-<li><p><strong>CPU Core 1 (Thread 1 - Producer)</strong></p>
-<ul>
-<li><p>Writes 42 to data with memory_order_relaxed (not immediately visible).</p></li>
-<li><p>Writes true to ready with memory_order_release, ensuring prior stores are
-visible before this write.</p></li>
-</ul>
-</li>
-<li><p><strong>Main Memory</strong></p>
-<ul>
-<li><p>ready=true propagates to main memory, making it visible to all cores.</p></li>
-</ul>
-</li>
-<li><p><strong>CPU Core 2 (Thread 2 - Consumer)</strong></p>
-<ul>
-<li><p>Waits until ready=true with memory_order_acquire, ensuring visibility of all
-previous writes.</p></li>
-<li><p>After acquiring ready, loads data, which is now guaranteed to be 42.</p></li>
-</ul>
-</li>
-</ul>
-</section>
 </section>
 <section id="cpu0-implementation-for-memory-order">
-<h2><a class="toc-backref" href="#id31" role="doc-backlink">Cpu0 implementation for memory-order</a><a class="headerlink" href="#cpu0-implementation-for-memory-order" title="Permalink to this heading">¶</a></h2>
+<h2><a class="toc-backref" href="#id30" role="doc-backlink">Cpu0 implementation for memory-order</a><a class="headerlink" href="#cpu0-implementation-for-memory-order" title="Permalink to this heading">¶</a></h2>
 <p>In order to support atomic in C++ and java, llvm provides the atomic IRs and
 memory ordering here <a class="footnote-reference brackets" href="#atomics-llvm" id="id9" role="doc-noteref"><span class="fn-bracket">[</span>13<span class="fn-bracket">]</span></a> <a class="footnote-reference brackets" href="#llvmlang-ordering" id="id10" role="doc-noteref"><span class="fn-bracket">[</span>14<span class="fn-bracket">]</span></a>.</p>
 <p>The chapter 19
