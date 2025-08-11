@@ -487,10 +487,10 @@ programmers **fine-grained control** over synchronization and memory consistency
 The Problem Before C++11
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
-1. **No standard atomic operations → non-portable.**
+1. **No standard atomic operations → source code imcompatible.**
 
    - Developers had to use compiler-specific intrinsics (like GCC’s __sync_*, 
-     MSVC’s Interlocked*) or inline assembly, making code non-portable.
+     MSVC’s Interlocked*) or inline assembly, making source code imcompatible.
 
 2. **Unspecified Behavior in Multi-threading** 
  

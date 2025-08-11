@@ -1625,9 +1625,24 @@ GPU Architecture
 SIMT
 ~~~~
 
-Single instruction, multiple threads (SIMT) is an execution model used in  
-parallel computing, where single instruction, multiple data (SIMD) is combined  
-with multithreading [#simt-wiki]_.
+Single instruction, multiple threads (SIMT) is an execution model used in 
+parallel computing where a single central "Control Unit" broadcasts an 
+instruction to multiple "Processing Units" for them to all optionally perform 
+simultaneous synchronous and fully-independent parallel execution of that one 
+instruction. **Each PU has its own independent data and address registers, its 
+own independent Memory, but no PU in the array has a Program counter** 
+[#simt-wiki]_.
+
+Summary:
+
+- Each Control Unit has a Program Counter (PC) and  has tens of Processor Unit 
+  (PU).
+
+- Each Processor Unit (PU) has it's General Purpose Register Set (GPR) and stack
+  memory.
+
+- The PU is a pipleline execution unit compared to CPU architecture.
+
 
 The leading GPU architecture of Nvidia GPUs is shown in the following figures.
 
