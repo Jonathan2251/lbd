@@ -43,6 +43,14 @@ here.
 BNF Auto-Generated Parsers vs. Handwritten Parsers
 --------------------------------------------------
 
+**Context Free Grammar:**
+
+- “A context-free grammar defines a language that can be parsed independently
+  of surrounding input context; each production rule applies based solely on 
+  the current nonterminal, not on neighboring symbols.”
+
+- All context-free grammars (CFGs) can be expressed in Backus-Naur Form (BNF).
+
 Why doesn't the Clang compiler use YACC/LEX tools to parse C++?
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -54,12 +62,34 @@ but C++ has many context-sensitive features, especially in templates below:
 .. literalinclude:: ../References/cpp-template.cpp
    :language: c++
 
+.. code-block:: c++
+
+  References % clang++ -DFUNCTION=1 -DTEMPLATE=0 cpp-template.cpp
+  References % ./a.out                                           
+  Non-template f(int)
+  Non-template f(int)
+  References % clang++ -DFUNCTION=0 -DTEMPLATE=1 cpp-template.cpp
+  References % ./a.out                                           
+  Template f(T)
+  Template f(T)
+  Template f(T)
+  References % clang++ -DFUNCTION=1 -DTEMPLATE=1 cpp-template.cpp
+  References % ./a.out                                           
+  Non-template f(int)
+  Template f(T)
+  Template f(T)
+
 In the C++ code above, both f(42) and f('a') can match either the template 
 function or the non-template function.
 
 🤯 Why This Is Hard for YACC:
 
-YACC works with context-free grammars, but this example requires:
+YACC operates on context-free grammars, but this example is context-sensitive.
+The expression f('a'); selects a template if a template definition exists; 
+otherwise, it selects a function if a function definition exists. As a result, 
+this behavior cannot be implemented using BNF-based tools like YACC/LEX.
+
+To parse this example, the following are required:
 
 - Template argument deduction: The compiler must infer T from the call.
 

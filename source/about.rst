@@ -63,6 +63,10 @@ Revision history
 
 Version 12.0.17, not released yet.
 
+Version 12.0.16.3, Released Augest 10, 2026.
+  llvmstructure.rst: Modify subsection 'Why doesn’t the Clang compiler use YACC/LEX tools to parse C++?'.
+  gpu.rst: Modify subsection 'SIMT'.
+
 Version 12.0.16.2, Released July 22, 2026.
   c++.rst: Rewrite section 'C++ Memory Order'.
 
