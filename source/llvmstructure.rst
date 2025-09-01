@@ -40,141 +40,6 @@ instruction selection needed in llvm backend design, and they are explained
 here. 
 
 
-BNF Auto-Generated Parsers vs. Handwritten Parsers
---------------------------------------------------
-
-**Context Free Grammar:**
-
-- “A context-free grammar defines a language that can be parsed independently
-  of surrounding input context; each production rule applies based solely on 
-  the current nonterminal, not on neighboring symbols.”
-
-- All context-free grammars (CFGs) can be expressed in Backus-Naur Form (BNF).
-
-Why doesn't the Clang compiler use YACC/LEX tools to parse C++?
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Clang does not use YACC/LEX because **C++ is too complex and context-sensitive**
-for traditional parser generators. YACC and LEX work with context-free grammars, 
-but C++ has many context-sensitive features, especially in templates below:
-
-.. rubric:: Context-sensitive template instantiation
-.. literalinclude:: ../References/cpp-template.cpp
-   :language: c++
-
-.. code-block:: c++
-
-  References % clang++ -DFUNCTION=1 -DTEMPLATE=0 cpp-template.cpp
-  References % ./a.out                                           
-  Non-template f(int)
-  Non-template f(int)
-  References % clang++ -DFUNCTION=0 -DTEMPLATE=1 cpp-template.cpp
-  References % ./a.out                                           
-  Template f(T)
-  Template f(T)
-  Template f(T)
-  References % clang++ -DFUNCTION=1 -DTEMPLATE=1 cpp-template.cpp
-  References % ./a.out                                           
-  Non-template f(int)
-  Template f(T)
-  Template f(T)
-
-In the C++ code above, both f(42) and f('a') can match either the template 
-function or the non-template function.
-
-🤯 Why This Is Hard for YACC:
-
-YACC operates on context-free grammars, but this example is context-sensitive.
-The expression f('a'); selects a template if a template definition exists; 
-otherwise, it selects a function if a function definition exists. As a result, 
-this behavior cannot be implemented using BNF-based tools like YACC/LEX.
-
-To parse this example, the following are required:
-
-- Template argument deduction: The compiler must infer T from the call.
-
-- Overload resolution: It must choose between the template and non-template 
-  versions.
-
-- Implicit conversions: 'a' can be converted to int, which affects overload 
-  ranking.
-
-- Explicit template instantiation: f<int>('a') forces the template, but YACC 
-  doesn’t track template types.
-
-To model this in YACC:
-
-You’d need to simulate template instantiation and ranking — which is way beyond 
-what YACC was designed for.
-
-This kind of logic is not just syntactic — it’s deeply semantic. That’s why 
-compilers like Clang use handwritten parsers with tight integration between 
-parsing and semantic analysis.
-
-Clang doesn’t use YACC/LEX because:
-
-==================================  ========  ====================
-Feature                             YACC/LEX  Hand-written Parser
-==================================  ========  ====================
-Handles context-sensitive grammar   ❌        ✅
-Good error recovery                 ❌        ✅
-Integration with semantic analysis  ❌        ✅
-Easy to maintain/extend for C++     ❌        ✅
-Fine-grained control                ❌        ✅
-==================================  ========  ====================
-
-The GNU `g++` compiler abandoned BNF tools starting from version 3.x.  
-
-
-Compiler-Compiler Tools for Context-Sensitive C++ Parsing
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-While traditional tools like YACC/Lex are limited to context-free grammars, 
-modern compiler construction requires handling context-sensitive features — 
-especially in C++ templates, overload resolution, and semantic analysis. 
-Below is a list of tools that attempt to address these challenges.
-
-====================  ========================  ============================  =======================================================================
-Tool                  Generates Parser Code?    Context-Sensitive Support?    Notes
-====================  ========================  ============================  =======================================================================
-ANTLR                 ✅ Yes                    ⚠️ Limited                     Supports semantic predicates; struggles with full C++ complexity
-BNFLite               ✅ Yes                    ⚠️ Partial                     Lightweight C++ template library; ideal for DSLs, not full C++
-PEGTL                 ✅ Yes                    ⚠️ Limited                     PEG-based parser combinator library in C++; expressive but limited
-GLR Parsers (Elsa)    ✅ Yes                    ✅ Yes                        Can handle ambiguity and deferred resolution; used in research
-Clang LibTooling      ✅ Yes (via AST)          ✅ Yes                        Offers full C++ parsing + semantic analysis; industrial-grade tooling
-====================  ========================  ============================  =======================================================================
-
-Why Most Tools Fall Short:
-
-- C++ templates are **Turing-complete**, making static analysis alone insufficient.
-
-- Overload resolution requires understanding **types, scopes, and conversions**.
-
-- C++ syntax is **deeply ambiguous**, defying context-free parsing strategies.
-
-Recommended Approach:
-
-For building C++ parsers:
-
-- Use **GLR-based tools** like Elsa if ambiguity and template complexity must 
-  be handled directly.
-
-- Or leverage **Clang LibTooling** for full semantic integration, AST 
-  manipulation, and robust code analysis.
-
-In summary, while modern tools improve on YACC/LEX, **the complexity of C++ still
-requires a custom parser that deeply integrates with semantic analysis and type
-resolution. Clang’s approach remains the most practical for full C++ support.
-Moreover the error messages and recovery are still weaker than Clang**.
-
-While C++ compilers do not benefit from BNF  
-generator tools, many other programming and scripting languages, which are  
-more context-free, can take advantage of them. 
-The following information comes from Wikipedia:  
-
-Java syntax has a context-free grammar that can be parsed by a simple LALR  
-parser. Parsing C++ is more complicated [#java-cpp]_.  
-
 Cpu0 Processor Architecture Details
 -----------------------------------
 
@@ -886,6 +751,147 @@ Cpu0's Interrupt Vector
   0x04      Error Handle
   0x08      Interrupt
   ========  ===========
+
+
+Clang
+-----
+
+LLVM is middleware for compilers, with Clang as its frontend.
+The Clang project provides a language front-end and tooling infrastructure for 
+languages in the C language family (C, C++, Objective C/C++, OpenCL, and CUDA) 
+for the LLVM project. 
+
+**Context Free Grammar:**
+
+- “A context-free grammar defines a language that can be parsed independently
+  of surrounding input context; each production rule applies based solely on 
+  the current nonterminal, not on neighboring symbols.”
+
+- All context-free grammars (CFGs) can be expressed in Backus-Naur Form (BNF).
+
+Why doesn't the Clang compiler use YACC/LEX tools to parse C++?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Clang does not use YACC/LEX because **C++ is too complex and context-sensitive**
+for traditional parser generators. YACC and LEX work with context-free grammars, 
+but C++ has many context-sensitive features, especially in templates below:
+
+.. rubric:: Context-sensitive template instantiation
+.. literalinclude:: ../References/cpp-template.cpp
+   :language: c++
+
+.. code-block:: c++
+
+  References % clang++ -DFUNCTION=1 -DTEMPLATE=0 cpp-template.cpp
+  References % ./a.out                                           
+  Non-template f(int)
+  Non-template f(int)
+  References % clang++ -DFUNCTION=0 -DTEMPLATE=1 cpp-template.cpp
+  References % ./a.out                                           
+  Template f(T)
+  Template f(T)
+  Template f(T)
+  References % clang++ -DFUNCTION=1 -DTEMPLATE=1 cpp-template.cpp
+  References % ./a.out                                           
+  Non-template f(int)
+  Template f(T)
+  Template f(T)
+
+In the C++ code above, both f(42) and f('a') can match either the template 
+function or the non-template function.
+
+🤯 Why This Is Hard for YACC:
+
+YACC operates on context-free grammars, but this example is context-sensitive.
+The expression f('a'); selects a template if a template definition exists; 
+otherwise, it selects a function if a function definition exists. As a result, 
+this behavior cannot be implemented using BNF-based tools like YACC/LEX.
+
+To parse this example, the following are required:
+
+- Template argument deduction: The compiler must infer T from the call.
+
+- Overload resolution: It must choose between the template and non-template 
+  versions.
+
+- Implicit conversions: 'a' can be converted to int, which affects overload 
+  ranking.
+
+- Explicit template instantiation: f<int>('a') forces the template, but YACC 
+  doesn’t track template types.
+
+To model this in YACC:
+
+You’d need to simulate template instantiation and ranking — which is way beyond 
+what YACC was designed for.
+
+This kind of logic is not just syntactic — it’s deeply semantic. That’s why 
+compilers like Clang use handwritten parsers with tight integration between 
+parsing and semantic analysis.
+
+Clang doesn’t use YACC/LEX because:
+
+==================================  ========  ====================
+Feature                             YACC/LEX  Hand-written Parser
+==================================  ========  ====================
+Handles context-sensitive grammar   ❌        ✅
+Good error recovery                 ❌        ✅
+Integration with semantic analysis  ❌        ✅
+Easy to maintain/extend for C++     ❌        ✅
+Fine-grained control                ❌        ✅
+==================================  ========  ====================
+
+The GNU `g++` compiler abandoned BNF tools starting from version 3.x.  
+
+
+Compiler-Compiler Tools for Context-Sensitive C++ Parsing
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+While traditional tools like YACC/Lex are limited to context-free grammars, 
+modern compiler construction requires handling context-sensitive features — 
+especially in C++ templates, overload resolution, and semantic analysis. 
+Below is a list of tools that attempt to address these challenges.
+
+====================  ========================  ============================  =======================================================================
+Tool                  Generates Parser Code?    Context-Sensitive Support?    Notes
+====================  ========================  ============================  =======================================================================
+ANTLR                 ✅ Yes                    ⚠️ Limited                     Supports semantic predicates; struggles with full C++ complexity
+BNFLite               ✅ Yes                    ⚠️ Partial                     Lightweight C++ template library; ideal for DSLs, not full C++
+PEGTL                 ✅ Yes                    ⚠️ Limited                     PEG-based parser combinator library in C++; expressive but limited
+GLR Parsers (Elsa)    ✅ Yes                    ✅ Yes                        Can handle ambiguity and deferred resolution; used in research
+Clang LibTooling      ✅ Yes (via AST)          ✅ Yes                        Offers full C++ parsing + semantic analysis; industrial-grade tooling
+====================  ========================  ============================  =======================================================================
+
+Why Most Tools Fall Short:
+
+- C++ templates are **Turing-complete**, making static analysis alone insufficient.
+
+- Overload resolution requires understanding **types, scopes, and conversions**.
+
+- C++ syntax is **deeply ambiguous**, defying context-free parsing strategies.
+
+Recommended Approach:
+
+For building C++ parsers:
+
+- Use **GLR-based tools** like Elsa if ambiguity and template complexity must 
+  be handled directly.
+
+- Or leverage **Clang LibTooling** for full semantic integration, AST 
+  manipulation, and robust code analysis.
+
+In summary, while modern tools improve on YACC/LEX, **the complexity of C++ still
+requires a custom parser that deeply integrates with semantic analysis and type
+resolution. Clang’s approach remains the most practical for full C++ support.
+Moreover the error messages and recovery are still weaker than Clang**.
+
+While C++ compilers do not benefit from BNF  
+generator tools, many other programming and scripting languages, which are  
+more context-free, can take advantage of them. 
+The following information comes from Wikipedia:  
+
+Java syntax has a context-free grammar that can be parsed by a simple LALR  
+parser. Parsing C++ is more complicated [#java-cpp]_.  
 
 
 LLVM Structure
@@ -2947,8 +2953,11 @@ You can review the **hundreds** of lines in the Chapter 2 example code
 to understand how *Target Registration* is implemented.  
 
 
+Debug options
+-------------
+
 Options for `llc` Debugging  
-----------------------------  
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Run the following command to see hidden `llc` options:  
 
@@ -3002,7 +3011,7 @@ class, to inspect transformations in `llvm/lib/Transformation`.
 
 
 `opt` Debugging Options  
-------------------------  
+~~~~~~~~~~~~~~~~~~~~~~~ 
 
 Check available options using:  
 
