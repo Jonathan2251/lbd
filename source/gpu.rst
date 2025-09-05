@@ -29,7 +29,7 @@ Concept in Graphics and Systems
 -------------------------------
 
 3D Modeling
-~~~~~~~~~~~
+***********
 
 By creating 3D models with triangles or quads on a surface, the model is formed
 using a polygon mesh [#polygon]_. This mesh consists of all the vertices shown in
@@ -120,7 +120,7 @@ and Alembic [#3dfmt]_.
 
 
 Graphic HW and SW Stack
-~~~~~~~~~~~~~~~~~~~~~~~
+***********************
 
 - https://en.wikipedia.org/wiki/Free_and_open-source_graphics_device_driver
 
@@ -325,7 +325,7 @@ The flow for 3D/2D graphic processing is shown in :numref:`opengl_flow`.
 
 
 Basic geometry in computer graphics
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+***********************************
 
 This section introduces the basic geometry math used in computer graphics.  
 The complete concept can be found in the book *Computer Graphics: Principles  
@@ -336,7 +336,7 @@ It is very comprehensive and may take considerable time to understand all the
 details.
 
 Color
-+++++
+^^^^^
 
 - Additive colors in light are shown in :numref:`additive-colors`  
   [#additive-colors-wiki]_ [#additive-colors-ytube]_.
@@ -363,7 +363,7 @@ Color
    falls into the realms of physics or the biology of the human eye structure.
 
 Transformation
-++++++++++++++
+^^^^^^^^^^^^^^
 
 Objects (Triangle/Quad) can be moved in 2D/3D using matrix representation, as  
 explained in this wiki page [#wiki-transformation]_.
@@ -394,7 +394,7 @@ Details for :numref:`trans_steps` can be found on the website
 [#cg_basictheory]_.
 
 Projection
-++++++++++
+^^^^^^^^^^
 
 .. _ViewFrustum: 
 .. figure:: ../Fig/gpu/ViewFrustum.png
@@ -409,7 +409,7 @@ can be represented by transformation matrices as described in the previous
 section [#wiki-prospective-projection]_.
 
 Cross product
-+++++++++++++
+^^^^^^^^^^^^^
 
 Both triangles and quads are polygons. So, objects can be formed with  
 polygons in both 2D and 3D. The transformation in 2D or 3D is well covered in  
@@ -657,7 +657,7 @@ OpenGL
 ------
 
 Example of OpenGL program
-~~~~~~~~~~~~~~~~~~~~~~~~~
+*************************
 
 The following example is from the OpenGL Red Book and its example code  
 [#redbook]_ [#redbook-examples]_.
@@ -798,7 +798,7 @@ be executed in parallel, since a GPU have so many cores.
 
 
 3D Rendering
-~~~~~~~~~~~~
+************
 
 Based on the previous section of 3D modeling, the 3D modeling tool will  
 generate a 3D vertex model and OpenGL code. Then, programmers may manually  
@@ -946,7 +946,7 @@ face(flame) from time to time [#2danimation]_.
 
 
 GLSL (GL Shader Language)
-~~~~~~~~~~~~~~~~~~~~~~~~~
+*************************
 
 OpenGL is a standard specification for designing 2D and 3D graphics and animation
 in computer graphics. To support advanced animation and rendering, OpenGL provides
@@ -958,7 +958,7 @@ The hardware-specific implementation of these APIs is provided by GPU manufactur
 ensuring that rendering is optimized for the underlying hardware.
 
 Examples
-++++++++
+^^^^^^^^
 
 An OpenGL program typically follows a structure like the example below:
 
@@ -1049,7 +1049,7 @@ program is a good choice for dealing the cases of driver software or gpu
 hardware replacement [#onlinecompile]_. 
 
 Goals
-+++++
+^^^^^
 
 Goals of GLSL Shader Language:
 
@@ -1091,7 +1091,7 @@ GLSL was designed for real-time graphics using programmable GPUs.
 - No need for external libraries, file I/O, or system calls
 
 GLSL vs. C: Feature Overview
-+++++++++++++++++++++++++++++
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 GLSL expands upon C for GPU-based graphics programming.
 
@@ -1175,7 +1175,7 @@ GLSL expands upon C for GPU-based graphics programming.
 - Designed for real-time, interactive graphics
 
 GLSL Qualifiers by Shader Stage
-+++++++++++++++++++++++++++++++
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 **Vertex Shader:**
 
@@ -1305,10 +1305,8 @@ GLSL Qualifiers by Shader Stage
   }
 
 
-
-
 OpenGL Shader Compiler
-~~~~~~~~~~~~~~~~~~~~~~
+**********************
 
 The OpenGL standard is defined in [#openglspec]_. OpenGL is primarily designed for 
 desktop computers and servers, whereas OpenGL ES is a subset tailored for embedded systems 
@@ -1622,8 +1620,190 @@ GPU Architecture
 
   Terms in Nvidia's gpu (figure from book [#Quantitative-gpu-terms]_)
 
-SIMT
-~~~~
+
+GPU Hardware Units
+******************
+
+As the block diagram of the Graphic Processing Unit (GPU) is shown in
+:numref:`gpu_block_diagram`.
+A GPU (graphics processing unit) is built as a massively parallel processor 
+with several specialized processing units inside. 
+A GPU is not just “many cores” — it’s a mix of general-purpose compute units 
+(ALUs, SFUs, Tensor Cores), graphics-specific units (TMUs, ROPs, rasterizers, 
+ray-tracing cores), and memory/display processors, all interconnected with 
+high-bandwidth memory systems.
+At the hardware level, a modern GPU typically contains:
+
+This section introduces the major hardware units inside a modern GPU and
+their relationship to graphics and compute workloads.
+
+1. Streaming Multiprocessors (SMs) / Compute Units (CUs)
+
+- **Role:** The central execution units of the GPU.
+
+- **Components:**
+
+  - **Arithmetic Logic Units (ALUs):** Perform integer and floating-point
+    arithmetic in scalar operation and includes vector operation in most GPU
+    for each thread. Often include separate pipelines for FP32, FP64, and INT32.
+  - **Special Function Units (SFUs):** Accelerate transcendental operations
+    such as sin, cos, exp, and log. These would be very slow if only computed 
+    by ALUs.
+  - **Load/Store Units (LD/ST):** Handle memory reads and writes between
+    registers, shared memory, and global memory.
+    It is important because memory latency is huge compared to ALU ops.
+  - **Warp/Wavefront Scheduler:** Groups threads into *warps* (NVIDIA, 32 threads)
+    or *wavefronts* (AMD, 64 threads) and schedules instructions to hide latency.
+  - **Registers:** Fast, private storage allocated per-thread.
+  - **Memory stack:** Private stack memory per-thread.
+  - **Shared Memory:** On-chip scratchpad memory shared among threads of a block.
+
+- **Usage:**
+
+  - Executes programmable shader stages (vertex, tessellation, geometry,
+    fragment/compute shaders).
+  - Handles both graphics rendering and general-purpose computation (CUDA, OpenCL).
+
+2. Tensor Cores / Matrix Units
+
+- **Role:** Specialized hardware for accelerating matrix-multiply-and-accumulate
+  operations.
+- **Features:**
+  - Support mixed-precision arithmetic (e.g., FP16 input with FP32 accumulation).
+  - Perform small matrix multiplications (e.g., 4×4) in a single cycle.
+- **Usage:**
+  - Designed for deep learning training and inference.
+  - Orders of magnitude faster than executing matrix multiplications on general ALUs.
+
+3. Texture Mapping Units (TMUs)
+
+- **Role:** Specialized for texture sampling and filtering in graphics.
+- **Functions:**
+
+  - **Texture Addressing:** Convert texture coordinates (UV) into texel addresses.
+  - **Filtering:** Apply bilinear, trilinear, or anisotropic filtering to
+    improve visual quality.
+  - **Compression Support:** Decode compressed texture formats such as BCn, ASTC.
+
+- **Usage:**
+
+  - Invoked during fragment shading when sampling textures.
+  - Optimized for locality and high-throughput memory access.
+
+- **Details:**
+
+  - As depicted in `section OpenGL Shader Compiler`_.
+
+4. Raster Operations Units (ROPs)
+
+- **Role:** Final stage of pixel processing in the graphics pipeline.
+- **Functions:**
+
+  - Perform depth and stencil testing.
+  - Apply blending operations for transparency and antialiasing.
+  - Handle multisample anti-aliasing (MSAA).
+  - Write final pixel data into the framebuffer in VRAM.
+
+- **Usage:**
+
+  - Essential for converting fragment outputs into visible image pixels.
+
+5. Geometry and Rasterization Units
+
+- **Role:** Fixed-function units that bridge programmable shaders with
+  pixel-level rendering.
+- **Functions:**
+
+  - Assemble vertices into primitives (triangles, lines).
+  - Clip primitives against the view frustum.
+  - Perform perspective division and viewport transformation.
+  - Rasterize primitives into fragments (potential pixels).
+
+- **Usage:**
+
+  - Feed fragment shaders with interpolated per-fragment attributes
+    (color, depth, texture coordinates).
+
+6. Ray-Tracing Cores [#wiki-ray-tracing]_
+
+- **Role:** Hardware acceleration for real-time ray tracing.
+- **Components:**
+
+  - **BVH Traversal Units:** Walk bounding volume hierarchies to efficiently
+    locate candidate geometry for intersection.
+  - **Ray-Triangle Intersection Units:** Compute exact intersection points
+    between rays and primitives.
+
+- **Usage:**
+
+  - Enable realistic lighting effects such as reflections, shadows, and
+    global illumination.
+  - Not part of the traditional OpenGL pipeline, but exposed via extensions
+    or modern APIs (Vulkan, DirectX Raytracing).
+
+7. Memory Subsystem
+
+- **Role:** Provide extremely high bandwidth to keep thousands of GPU threads active.
+- **Hierarchy:**
+
+  - **Registers:** Fastest, private storage per-thread.
+  - **Shared Memory / L1 Cache:** On-chip memory per-SM, low latency, shared
+    among threads in a block.
+  - **L2 Cache:** Larger, shared across all SMs; reduces global memory traffic.
+  - **VRAM (GDDR6, HBM):** High-bandwidth external memory; throughput in the
+    hundreds of GB/s to multiple TB/s.
+  - **Memory Controllers:** Handle request scheduling, coalescing, and error correction.
+
+- **Usage:**
+  - Critical for both compute and graphics; performance often limited by memory bandwidth.
+
+8. Display and Video Processing Units
+
+- **Role:** Specialized fixed-function engines for display output and multimedia.
+- **Components:**
+
+  - **Display Controllers:** Drive monitors via HDMI, DisplayPort. Support scaling,
+    color correction, and adaptive sync (G-Sync, FreeSync).
+  - **Video Encode/Decode Engines:** Dedicated ASICs for codecs such as H.264,
+    H.265/HEVC, and AV1. Examples include NVIDIA NVENC, AMD VCN, and Intel QuickSync.
+
+- **Usage:**
+  - Offload video playback, streaming, and screen presentation from general-purpose SMs.
+
+All Together
+
+**GPU provides the following hardware to accelerate graphics rendering pipeline as follows:**
+
+🔹 Simplified Flow (OpenGL → Hardware)
+	1.	Vertex Fetch → VRAM & Memory Controllers.
+	2.	Vertex Shader → SM cores.
+	3.	Geometry/Tessellation → SM cores.
+	4.	Rasterization → Raster units.
+	5.	Fragment Shader → SM cores + TMUs (texture sampling).
+	6.	Depth/Stencil/Blending → ROPs.
+	7.	Framebuffer Write → L2 cache & VRAM → Display Controller.
+
+**Variable Rate Shading (VRS) Support**
+
+By utilizing certain GPU units as outlined below, Variable Rate Shading (VRS) can be 
+supported [#vrs]_.
+
+- Rasterizer:
+
+  - Decides how many fragments per pixel (or group of pixels) will actually be shaded.
+  - Instead of generating 1 fragment per pixel, it may shade 1 fragment for a 2×2 or 4×4 block and reuse that result.
+
+- Fragment Shader Cores (SMs/CUs):
+
+  - Still run the shading code, but at a reduced frequency (fewer fragment invocations).
+
+- ROPs (and pipeline integration):
+
+  - Apply results to the framebuffer, handling blending/depth as usual.
+
+
+SM (SIMT)
+*********
 
 Single instruction, multiple threads (SIMT) is an execution model used in 
 parallel computing where a single central "Control Unit" broadcasts an 
@@ -1794,42 +1974,366 @@ Summarize as table below.
       As :numref:`grid` for the later Fermi-generation GPUs.
 
 
-Vertex unit
-~~~~~~~~~~~
+Address Coalescing and gather-scatter
+*************************************
 
-VAR unit
-++++++++
+The Load/Store Units (LD/ST) is important because memory latency is huge 
+compared to ALU ops.
+Some GPUs provide Address Coalescing and gather-scatter to accelerate memory 
+access.
 
-VAR Variable Rate Shading Unit [#var]_.
-
-
-Texture unit
-~~~~~~~~~~~~
-
-As depicted in `section OpenGL Shader Compiler`_.
-
-Speedup Features
-~~~~~~~~~~~~~~~~
-
-- Gather-scatter data transfer: HW support sparse vector access is called 
-  gather-scatter. The VMIPS instructions are LVI (load vector indexed or gather) 
-  and SVI (store vector indexed or scatter) [#Quantitative-gpu-gs]_. 
-
-- Address Coalescing: This is a feature provided by the GPU, explained as follows.
+- Address Coalescing: **Memory coalescing is the process of merging memory 
+  requests from threads in a warp (NVIDIA: 32 threads, AMD: 64 threads) into as 
+  few memory transactions as possible.**
 
   - Note that unlike vector architectures, GPUs don’t have separate instructions 
     for sequential data transfers, strided data transfers, and gather-scatter 
     data transfers. All data transfers are gather-scatter! To regain the 
     efficiency of sequential (unit-stride) data transfers, GPUs include special 
-    Address Coalescing hardware to recognize when the SIMD Lanes within a thread of 
-    SIMD instructions are col- lectively issuing sequential addresses 
-    [#Quantitative-gpu-ac]_..
+    Address Coalescing hardware to recognize when the SIMD Lanes within a thread 
+    of SIMD instructions are collectively issuing sequential addresses. That 
+    runtime hardware then notifies the Memory Interface Unit to request a block 
+    transfer of 32 sequential words. To get this important performance 
+    improvement, the GPU programmer must ensure that adjacent CUDA Threads access
+    nearby addresses at the same time that can be coalesced into one or a 
+    few memory or cache blocks, which our example does [#Quantitative-gpu-ac]_.
+
+- Gather-scatter data transfer: **HW support sparse vector access is called 
+  gather-scatter.** The VMIPS instructions are LVI (load vector indexed or gather) 
+  and SVI (store vector indexed or scatter) [#Quantitative-gpu-gs]_. 
+
+**1. Address Coalescing in GPU Memory Transactions**
+
+**Definition:**
+Memory coalescing is the process of merging memory requests from threads
+in a warp (NVIDIA: 32 threads, AMD: 64 threads) into as few memory
+transactions as possible.
+
+**How It Works:**
+
+- If threads access **contiguous and aligned addresses**, the hardware
+  combines them into a single memory transaction.
+- If threads access **strided or random addresses**, the GPU must issue
+  multiple transactions, wasting bandwidth.
+
+**Examples:**
+
+- *Coalesced (efficient):*
+
+  .. code-block:: c
+
+     // Each thread accesses consecutive elements
+     value = A[threadId];
+
+  → One transaction for 32 threads.
+
+- *Non-coalesced (inefficient):*
+
+  .. code-block:: c
+
+     // Each thread accesses strided elements
+     value = A[threadId * 100];
+
+  → Many transactions required due to striding.
 
 
-Buffers
-~~~~~~~
+**2. Gather–Scatter in Sparse Matrix Access**
 
-In addition to texture units and instructions, CPU and GPU provides different 
+**Definition:**
+Gather–scatter refers to memory operations where each GPU thread in a warp
+loads from or stores to irregular memory addresses. This is common in sparse
+matrix operations, where non-zero elements are stored in compressed formats.
+
+**Sparse Matrix Example (CSR format):**
+
+- *CSR (Compressed Sparse Row)* stores three arrays:
+  - ``values[]``: non-zero entries of the matrix
+  - ``colIndex[]``: column indices for each non-zero
+  - ``rowPtr[]``: index into ``values[]`` for each row
+
+- Sparse matrix-vector multiplication (SpMV):
+
+  .. code-block:: c
+
+     for row in matrix:
+         for idx = rowPtr[row] to rowPtr[row+1]:
+             col = colIndex[idx];      // gather index
+             val = values[idx];        // gather nonzero
+             y[row] += val * x[col];   // scatter result
+
+**Characteristics:**
+
+- **Gather:** Each thread loads from potentially scattered locations
+  (``values[idx]`` or ``x[col]``).
+- **Scatter:** Results may be written back to irregular output locations
+  (``y[row]``).
+- **Challenge: These accesses often break memory coalescing, leading to
+  multiple memory transactions. An example is shown as follows:**
+
+**An example in a sparse matrix where coalescing outperforms gather-scatter:**
+
+**Sparse Matrix Access: CSR vs ELLPACK**
+
+**1. CSR Format (Gather–Scatter, Poor Coalescing)**
+
+**Storage:**
+- ``values[]``: nonzero entries
+- ``colIndex[]``: column indices
+- ``rowPtr[]``: index offsets for each row
+
+**Access Pattern:**
+- Each thread processes one row.
+- Uses ``rowPtr`` to look up nonzeros.
+- Accesses ``x[col]`` with irregular indices.
+
+**Example:**
+
+Matrix A (4×8):
+
+::
+
+   Row 0: [ 5, 0, 0, 0, 9, 0, 0, 2 ]
+   Row 1: [ 0, 3, 0, 0, 0, 0, 0, 4 ]
+   Row 2: [ 7, 0, 8, 0, 0, 0, 0, 0 ]
+   Row 3: [ 0, 0, 0, 6, 0, 0, 1, 0 ]
+
+CSR storage:
+
+::
+
+   values   = [5, 9, 2, 3, 4, 7, 8, 6, 1]
+   colIndex = [0, 4, 7, 1, 7, 0, 2, 3, 6]
+   rowPtr   = [0, 3, 5, 7, 9]
+
+**Problem:**
+- Threads in a warp read from *scattered addresses* in ``x[col]``.
+- Memory accesses cannot be merged → multiple transactions per warp.
+
+.. graphviz::
+
+   digraph G {
+     rankdir=LR;
+     node [shape=box, style=rounded];
+
+     subgraph cluster0 {
+       label="Warp Threads";
+       t0 [label="Thread 0"];
+       t1 [label="Thread 1"];
+       t2 [label="Thread 2"];
+       t3 [label="Thread 3"];
+     }
+
+     subgraph cluster1 {
+       label="Scattered x[] Access (CSR)";
+       a0 [label="x[0]"];
+       a1 [label="x[4]"];
+       a2 [label="x[7]"];
+       a3 [label="x[1]"];
+       a4 [label="x[2]"];
+       a5 [label="x[3]"];
+       a6 [label="x[6]"];
+     }
+
+     t0 -> a0;
+     t0 -> a1;
+     t0 -> a2;
+
+     t1 -> a3;
+     t1 -> a2;
+
+     t2 -> a0;
+     t2 -> a4;
+
+     t3 -> a5;
+     t3 -> a6;
+   }
+
+
+**2. ELLPACK Format (Coalesced Access)**
+
+**Storage:**
+- Pad all rows to the same number of nonzeros.
+- Store in **column-major order**.
+
+**Example:**
+
+::
+
+   val = [
+     [5, 3, 7, 6],   // first nonzero of each row
+     [9, 4, 8, 1],   // second nonzero
+     [2, 0, 0, 0]    // third nonzero (padded)
+   ]
+
+   colIdx = [
+     [0, 1, 0, 3],
+     [4, 7, 2, 6],
+     [7, -, -, -]
+   ]
+
+**Access Pattern:**
+- Each thread still handles one row.
+- Warp accesses the *same column across rows* simultaneously.
+- Memory is contiguous → coalesced transactions.
+
+.. graphviz::
+
+   digraph G {
+     rankdir=LR;
+     node [shape=box, style=rounded];
+
+     subgraph cluster0 {
+       label="Warp Threads";
+       t0 [label="Thread 0"];
+       t1 [label="Thread 1"];
+       t2 [label="Thread 2"];
+       t3 [label="Thread 3"];
+     }
+
+     subgraph cluster1 {
+       label="Coalesced val[] Access (ELL)";
+       b0 [label="val[0][0]"];
+       b1 [label="val[0][1]"];
+       b2 [label="val[0][2]"];
+       b3 [label="val[0][3]"];
+     }
+
+     t0 -> b0;
+     t1 -> b1;
+     t2 -> b2;
+     t3 -> b3;
+   }
+
+**Benefit:**
+- Threads in a warp read *contiguous addresses*.
+- Hardware merges requests into one memory transaction.
+- Bandwidth utilization is much higher.
+
+---
+
+**3. Summary**
+
+- **CSR:** Flexible, no padding, but poor coalescing due to irregular
+  gathers and scatters.
+- **ELL:** Requires padding, but greatly improves coalescing by aligning
+  warp memory accesses.
+- **Real GPU libraries** (e.g., cuSPARSE) often use **HYB (Hybrid = CSR + ELL)**
+  to balance memory efficiency and performance.
+
+
+**Optimization Approaches:**
+
+- Reordering data (ELLPACK, block-sparse formats).
+- Using shared memory to reorganize irregular accesses.
+- Assigning warps to rows or segments for better alignment.
+
+**Hardware Considerations:**
+
+- Transactions occur in aligned chunks (e.g., 32, 64, 128 bytes).
+- Misaligned or scattered addresses increase the number of transactions.
+- Caches and shared memory can partially hide penalties, but bandwidth
+  efficiency still depends on coalesced access.
+
+**Summary:**
+
+- Gather–scatter is fundamental for sparse matrix access but typically
+  results in non-coalesced memory patterns.
+- Address coalescing is critical for high GPU throughput; restructuring
+  data to improve coalescing often provides significant performance gains.
+
+VRAM
+****
+
+**Reason:**
+
+**1. Since CPU and GPU have different requirements, a shared memory design cannot 
+match the performance of dedicated GPU memory.**
+
+**2. In systems with shared memory (like integrated GPUs), both the CPU and GPU 
+access the same physical memory (DRAM). This leads to several forms of 
+contention:**
+
+  - a. Cache Coherency Overhead
+
+  - b. DMA Contention
+
+  - c. Bus & Memory Controller Bottleneck
+
+A discrete GPU has its own dedicated memory (VRAM) while an integrated GPU (iGPU)
+shares memory with the CPU.
+
+Dedicated GPU memory (VRAM) outperforms shared CPU-GPU memory due to
+higher bandwidth, lower latency, parallel access optimization, and no
+contention with CPU resources.
+
+**Key Differences:**
+
+.. _mem: 
+.. graphviz:: ../Fig/gpu/mem.gv
+  :caption: iGPU versus dGPU
+
++----------------------+-----------------------------+------------------------------+
+| Feature              | Shared Memory (CPU + iGPU)  | Dedicated GPU Memory (dGPU)  |
++======================+=============================+==============================+
+| Bandwidth            | Lower (DDR/LPDDR)           | Higher (GDDR/HBM)            |
++----------------------+-----------------------------+------------------------------+
+| Latency              | Higher                      | Lower                        |
++----------------------+-----------------------------+------------------------------+
+| Parallel Access      | Limited                     | Optimized for many threads   |
++----------------------+-----------------------------+------------------------------+
+| Cache Coherency      | Required (with CPU)         | Not required                 |
++----------------------+-----------------------------+------------------------------+
+| DMA Bandwidth        | Shared with CPU             | GPU has exclusive DMA access |
++----------------------+-----------------------------+------------------------------+
+| Memory Contention    | Yes                         | No                           |
++----------------------+-----------------------------+------------------------------+
+| Performance          | Lower:                      | Higher:                      |
+|                      | Bandwidth bottlenecks,      | Wide memory bandwidth,       |
+|                      | CPU-GPU interference and    | Parallel thread access and   |
+|                      | Cache/DMA conflicts         | Low latency memory access    |
++----------------------+-----------------------------+------------------------------+
+
+**Summary:**
+
+Dedicated memory allows the GPU to run high-throughput workloads without
+interference from the CPU. It provides wide bandwidth (1), optimized
+parallel access (2), and low-latency paths (3), avoiding cache and DMA
+conflicts for superior performance.
+
+(1). Wide bandwidth: Dedicated GPU memory (VRAM) is often based on GDDR6, 
+GDDR6X, or HBM2/3, which are much faster than standard system RAM (DDR4/DDR5).
+
+  Typical bandwidths:
+
+    - GDDR6: ~448–768 GB/s
+
+    - HBM2: up to 1 TB/s+
+
+    - DDR5 (shared memory): ~50–80 GB/s
+
+  Impact: Faster access to textures, vertex buffers, and framebuffers—critical for rendering and compute tasks.
+
+(2). Optimized parallel access: 
+
+  - VRAM is optimized for the massively parallel architecture of GPUs.
+
+  - It allows thousands of threads to access memory simultaneously without stalling.
+
+  Shared system memory is optimized for CPU access patterns, not thousands of GPU threads.
+
+(3). Low-latency paths: 
+
+  - Dedicated memory is physically closer to the GPU die.
+
+  - No need to traverse the PCIe bus like discrete GPUs accessing system RAM.
+
+  In shared memory systems (like integrated GPUs), memory access may have to go through a memory controller shared with the CPU, adding delay.
+
+
+System Features -- Buffers
+**************************
+
+CPU and GPU provides different 
 Buffers to speedup OpenGL pipeline rendering [#buffers-redbook]_.
 
 .. list-table:: Graphics Buffers
@@ -1998,95 +2502,6 @@ Buffers to speedup OpenGL pipeline rendering [#buffers-redbook]_.
      - Temporary CPU-visible buffer for uploading/downloading GPU data.
 
 
-VRAM
-~~~~
-
-**Reason:**
-
-**1. Since CPU and GPU have different requirements, a shared memory design cannot 
-match the performance of dedicated GPU memory.**
-
-**2. In systems with shared memory (like integrated GPUs), both the CPU and GPU 
-access the same physical memory (DRAM). This leads to several forms of 
-contention:**
-
-  - a. Cache Coherency Overhead
-
-  - b. DMA Contention
-
-  - c. Bus & Memory Controller Bottleneck
-
-A discrete GPU has its own dedicated memory (VRAM) while an integrated GPU (iGPU)
-shares memory with the CPU.
-
-Dedicated GPU memory (VRAM) outperforms shared CPU-GPU memory due to
-higher bandwidth, lower latency, parallel access optimization, and no
-contention with CPU resources.
-
-**Key Differences:**
-
-.. _mem: 
-.. graphviz:: ../Fig/gpu/mem.gv
-  :caption: iGPU versus dGPU
-
-+----------------------+-----------------------------+------------------------------+
-| Feature              | Shared Memory (CPU + iGPU)  | Dedicated GPU Memory (dGPU)  |
-+======================+=============================+==============================+
-| Bandwidth            | Lower (DDR/LPDDR)           | Higher (GDDR/HBM)            |
-+----------------------+-----------------------------+------------------------------+
-| Latency              | Higher                      | Lower                        |
-+----------------------+-----------------------------+------------------------------+
-| Parallel Access      | Limited                     | Optimized for many threads   |
-+----------------------+-----------------------------+------------------------------+
-| Cache Coherency      | Required (with CPU)         | Not required                 |
-+----------------------+-----------------------------+------------------------------+
-| DMA Bandwidth        | Shared with CPU             | GPU has exclusive DMA access |
-+----------------------+-----------------------------+------------------------------+
-| Memory Contention    | Yes                         | No                           |
-+----------------------+-----------------------------+------------------------------+
-| Performance          | Lower:                      | Higher:                      |
-|                      | Bandwidth bottlenecks,      | Wide memory bandwidth,       |
-|                      | CPU-GPU interference and    | Parallel thread access and   |
-|                      | Cache/DMA conflicts         | Low latency memory access    |
-+----------------------+-----------------------------+------------------------------+
-
-**Summary:**
-
-Dedicated memory allows the GPU to run high-throughput workloads without
-interference from the CPU. It provides wide bandwidth (1), optimized
-parallel access (2), and low-latency paths (3), avoiding cache and DMA
-conflicts for superior performance.
-
-(1). Wide bandwidth: Dedicated GPU memory (VRAM) is often based on GDDR6, 
-GDDR6X, or HBM2/3, which are much faster than standard system RAM (DDR4/DDR5).
-
-  Typical bandwidths:
-
-    - GDDR6: ~448–768 GB/s
-
-    - HBM2: up to 1 TB/s+
-
-    - DDR5 (shared memory): ~50–80 GB/s
-
-  Impact: Faster access to textures, vertex buffers, and framebuffers—critical for rendering and compute tasks.
-
-(2). Optimized parallel access: 
-
-  - VRAM is optimized for the massively parallel architecture of GPUs.
-
-  - It allows thousands of threads to access memory simultaneously without stalling.
-
-  Shared system memory is optimized for CPU access patterns, not thousands of GPU threads.
-
-(3). Low-latency paths: 
-
-  - Dedicated memory is physically closer to the GPU die.
-
-  - No need to traverse the PCIe bus like discrete GPUs accessing system RAM.
-
-  In shared memory systems (like integrated GPUs), memory access may have to go through a memory controller shared with the CPU, adding delay.
-
-
 General purpose GPU
 --------------------
 
@@ -2098,7 +2513,7 @@ a GPU shader for return values, can create a GPGPU framework [#gpgpuwiki]_.
 
 
 Mapping data in GPU
-~~~~~~~~~~~~~~~~~~~
+*******************
 
 As described in the previous section on GPUs, the subset of the array
 calculation `y[] = a * x[] + y[]` is shown as follows:
@@ -2233,7 +2648,7 @@ a Grid.
 
 
 Work between CPU and GPU in Cuda
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+********************************
 
 The previous `daxpy()` GPU code did not include the host (CPU) side code that  
 triggers the GPU function.
@@ -2343,7 +2758,7 @@ compressing [#gpuspeedup]_ gives the more applications for GPU acceleration.
   deeper cache hierarchies.
 
 Volta (Cuda thread/SIMD lane with PC, Program Couner and Call Stack)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+********************************************************************
 
 One way the compiler handles this is by keeping executing instructions in order 
 and if some threads don’t have to execute certain instructions it switches off 
@@ -2550,7 +2965,7 @@ were generated from OpenCL, GLSL, or another language.
      OpEntryPoint Kernel %foo "foo"
 
 Summary
-~~~~~~~
+*******
 
 +--------------------------+------------------+
 | Feature                  | Indicates        |
@@ -2769,7 +3184,7 @@ Open Sources
 
 .. [#cpu-gpu-role] https://stackoverflow.com/questions/47426655/cpu-and-gpu-in-3d-game-whos-doing-what
 
-.. [#mesawiki] https://en.wikipedia.org/wiki/Mesa_(computer_graphics)
+.. [#mesawiki] <https://en.wikipedia.org/wiki/Mesa_(computer_graphics)>
 
 .. [#csf] https://developer.arm.com/documentation/102813/0107/GPU-activity
 
@@ -2837,13 +3252,13 @@ Open Sources
 
 .. [#glumpy-shaders] https://glumpy.github.io/modern-gl.html
 
-.. [#ogl-qualifier] https://www.khronos.org/opengl/wiki/Type_Qualifier_(GLSL)
+.. [#ogl-qualifier] <https://www.khronos.org/opengl/wiki/Type_Qualifier_(GLSL)>
 
-.. [#ogl-qualifier-deprecate] https://www.khronos.org/opengl/wiki/Type_Qualifier_(GLSL)#Removed_qualifiers
+.. [#ogl-qualifier-deprecate] <https://www.khronos.org/opengl/wiki/Type_Qualifier_(GLSL)#Removed_qualifiers>
 
 .. [#github-attr-varying-depr] https://github.com/vispy/vispy/issues/242
 
-.. [#ogl-layout-q] https://www.khronos.org/opengl/wiki/Layout_Qualifier_(GLSL)
+.. [#ogl-layout-q] <https://www.khronos.org/opengl/wiki/Layout_Qualifier_(GLSL)>
 
 .. [#fragmentshader_reason] https://community.khronos.org/t/pixel-vs-fragment-shader/52838
 
@@ -2932,7 +3347,9 @@ Open Sources
 .. [#Quantitative-gpu-threadblock] search these words from section 4.4 of A Quantitative Approach 5th edition (The
        Morgan Kaufmann Series in Computer Architecture and Design)
 
-.. [#var] https://developer.nvidia.com/vrworks/graphics/variablerateshading
+.. [#wiki-ray-tracing] <https://en.wikipedia.org/wiki/Ray_tracing_(graphics)>
+
+.. [#vrs] https://developer.nvidia.com/vrworks/graphics/variablerateshading
 
 .. [#Quantitative-gpu-gs] Page 280 of Computer Architecture: A Quantitative Approach 5th edition (The
        Morgan Kaufmann Series in Computer Architecture and Design)
@@ -2940,7 +3357,7 @@ Open Sources
 .. [#Quantitative-gpu-ac] Page 300 of Computer Architecture: A Quantitative Approach 5th edition (The
        Morgan Kaufmann Series in Computer Architecture and Design)
 
-.. [#wiki-tbcp] `https://en.wikipedia.org/wiki/Thread_block_(CUDA_programming)`
+.. [#wiki-tbcp] <https://en.wikipedia.org/wiki/Thread_block_(CUDA_programming)>
  
 .. [#Quantitative-gpu-warp] Book Figure 4.14 and 4.24 of Computer Architecture: A Quantitative Approach 5th edition (The
        Morgan Kaufmann Series in Computer Architecture and Design)

@@ -61,7 +61,12 @@ https://github.com/Jonathan2251/lbd/blob/master/README.md
 Revision history
 ----------------
 
-Version 12.0.17, not released yet.
+Version 12.0.18, not released yet.
+
+Version 12.0.17, Released September 7, 2026.
+  c++.rst: Rewrite section 'C++ Memory Order'.
+  llvmstructure.rst: Refine the order of sections.
+  gpu.rst: Refine subsection 'GPU Hardware Units'.
 
 Version 12.0.16.3, Released Augest 10, 2026.
   llvmstructure.rst: Modify subsection 'Why doesn’t the Clang compiler use YACC/LEX tools to parse C++?'.
