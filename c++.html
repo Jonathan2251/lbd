@@ -47,7 +47,7 @@
 <li><p><a class="reference internal" href="#thread-variable" id="id25">Thread variable</a></p></li>
 <li><p><a class="reference internal" href="#c-memory-order" id="id26">C++ Memory Order   </a></p>
 <ul>
-<li><p><a class="reference internal" href="#background" id="id27">Background</a></p></li>
+<li><p><a class="reference internal" href="#source-code-compatibility" id="id27">Source Code Compatibility</a></p></li>
 <li><p><a class="reference internal" href="#the-problem-before-c-11" id="id28">The Problem Before C++11</a></p></li>
 <li><p><a class="reference internal" href="#c-11-memory-model-solution" id="id29">C++11 Memory Model Solution</a></p></li>
 </ul>
@@ -748,114 +748,16 @@ translation.</p>
 </section>
 <section id="c-memory-order">
 <h2><a class="toc-backref" href="#id26" role="doc-backlink">C++ Memory Order <a class="footnote-reference brackets" href="#cpp-mem-order" id="id4" role="doc-noteref"><span class="fn-bracket">[</span>5<span class="fn-bracket">]</span></a> <a class="footnote-reference brackets" href="#mem-order-wiki" id="id5" role="doc-noteref"><span class="fn-bracket">[</span>6<span class="fn-bracket">]</span></a> <a class="footnote-reference brackets" href="#atomic-stackoverflow" id="id6" role="doc-noteref"><span class="fn-bracket">[</span>7<span class="fn-bracket">]</span></a></a><a class="headerlink" href="#c-memory-order" title="Permalink to this heading">¶</a></h2>
-<p><strong>Memory Order::</strong></p>
+<section id="source-code-compatibility">
+<h3><a class="toc-backref" href="#id27" role="doc-backlink">Source Code Compatibility</a><a class="headerlink" href="#source-code-compatibility" title="Permalink to this heading">¶</a></h3>
+<p><strong>Memory Order:</strong></p>
 <ul class="simple">
 <li><p><strong>Memory Order is the rules that define how operations on shared memory
 appear to multiple threads — especially the ordering of reads/writes.</strong></p></li>
 <li><p><strong>These rules ensure correct execution in parallel programs.</strong></p></li>
+<li><p>C++ Memory Order makes <strong>“source code compatible”</strong> across different platforms
+as shown below.</p></li>
 </ul>
-<section id="background">
-<h3><a class="toc-backref" href="#id27" role="doc-backlink">Background</a><a class="headerlink" href="#background" title="Permalink to this heading">¶</a></h3>
-<p>Before <strong>C++11</strong>, multi-threaded programming relied on <strong>mutexes, volatile
-variables, and platform-specific atomic operations (such as atomic_load(&amp;a) and
-atomic_store(&amp;a, 42)</strong>, which often led to
-inefficiencies and undefined behavior.</p>
-<p>For RISC CPUs, <strong>only load/store instructions access memory.</strong> Atomic
-instructions ensure memory consistency across multiple cores.</p>
-<p>CPUs provide atomic operations such as <strong>compare-and-swap</strong> <a class="footnote-reference brackets" href="#cas-wiki" id="id7" role="doc-noteref"><span class="fn-bracket">[</span>8<span class="fn-bracket">]</span></a> or
-<strong>ll/sc (load-linked/store-conditional)</strong>, along with <strong>BARRIER</strong> or <strong>SYNC</strong>
-instructions to enforce memory ordering. However, <strong>C++03 did not have a language
-feature to tell the compiler how to control memory order for load/store
-instructions.</strong></p>
-<p>To address this, <strong>C++11 introduced memory orderings via `std::atomic`</strong>, giving
-programmers <strong>fine-grained control</strong> over synchronization and memory consistency.</p>
-</section>
-<section id="the-problem-before-c-11">
-<h3><a class="toc-backref" href="#id28" role="doc-backlink">The Problem Before C++11</a><a class="headerlink" href="#the-problem-before-c-11" title="Permalink to this heading">¶</a></h3>
-<ol class="arabic simple">
-<li><p><strong>No standard atomic operations → source code imcompatible.</strong></p>
-<ul class="simple">
-<li><p>Developers had to use compiler-specific intrinsics (like GCC’s __sync_*,
-MSVC’s Interlocked*) or inline assembly, making source code imcompatible.</p></li>
-</ul>
-</li>
-<li><p><strong>Unspecified Behavior in Multi-threading</strong></p>
-<ul class="simple">
-<li><p>The C++98/03 standard had <strong>no formal memory model</strong>.</p></li>
-<li><p>Compilers <strong>optimized code aggressively</strong>, leading to race conditions.</p></li>
-</ul>
-</li>
-<li><p><strong>Reliance on Volatile and Platform-specific Primitives</strong></p>
-<ul class="simple">
-<li><p><cite>volatile</cite> <strong>did not</strong> prevent reordering by the compiler.</p></li>
-<li><p>Programmers had to use <strong>OS-specific APIs (e.g., `pthread_mutex`)</strong>.</p></li>
-</ul>
-</li>
-<li><p><strong>Inefficient Synchronization Mechanisms</strong></p>
-<ul class="simple">
-<li><p>Mutexes ensured correctness but <strong>caused performance overhead</strong>.</p></li>
-<li><p><strong>Spin-locks wasted CPU cycles</strong> due to busy-waiting.</p></li>
-</ul>
-</li>
-</ol>
-<p>The following C++ example demonstrates a producer–consumer pattern to explain
-the problems listed above.</p>
-<p class="rubric">References/c++/mem-order-ex1.cpp (C++ code of memory order for
-producer-consumer)</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>#include &lt;iostream&gt;
-#include &lt;thread&gt;
-#include &lt;vector&gt;
-#include &lt;atomic&gt;
-
-std::atomic&lt;int&gt; data(0);
-std::atomic&lt;bool&gt; ready(false);
-
-void producer() {
-    // Populate data
-    for (int i = 0; i &lt; 10; ++i) {
-        data.push_back(i * 10);
-    }
-    // Release store: Ensures all writes to &#39;data&#39; are visible before &#39;ready&#39; is set.
-    ready.store(true, std::memory_order_release); // Release signal
-}
-
-void consumer() {
-    // Acquire load: Ensures all writes that happened before the release store are visible.
-    while (!ready.load(std::memory_order_acquire)); // Wait for ready signal
-
-    // Ensure that this print sees the correct value of `data`
-    for (int i = 0; i &lt; 10; ++i) {
-        std::cout &lt;&lt; data[i];
-    }
-}
-
-int main() {
-    std::thread t1(producer);
-    std::thread t2(consumer);
-
-    t1.join();
-    t2.join();
-
-    return 0;
-}
-
-</pre></div>
-</div>
-<p>The example above illustrates how C++ memory ordering guarantees that ‘data’
-becomes visible to other threads before ‘ready’ is set in the producer thread.
-When the consumer thread detects that <cite>‘ready == true’</cite>, it can safely access
-the corresponding data value. See <a class="reference internal" href="#mem-o-hw"><span class="std std-numref">Fig. 57</span></a>.</p>
-<p>If the program instead uses ‘volatile’, as shown in the following example,
-correctness depends on explicit synchronization.
-Platform-specific mechanisms such as CPU memory barriers or operating
-system–level functions are required to prevent instruction reordering—for
-example, ensuring that the store data operations are not moved after
-<cite>‘ready = true’</cite>.</p>
-<p>However, barriers and synchronization primitives at the CPU level only prevent
-hardware reordering.
-They do not stop the compiler from reordering instructions during optimization.
-To suppress compiler-level reordering, mutexes or atomic constructs are
-necessary—but these may introduce <strong>performance overhead</strong>.</p>
 <div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="k">volatile</span><span class="w"> </span><span class="kt">bool</span><span class="w"> </span><span class="nf">ready</span><span class="p">(</span><span class="nb">false</span><span class="p">);</span><span class="w"></span>
 
 <span class="kt">void</span><span class="w"> </span><span class="nf">producer</span><span class="p">()</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
@@ -866,6 +768,16 @@ necessary—but these may introduce <strong>performance overhead</strong>.</p>
 <span class="w">  </span><span class="k">asm</span><span class="p">(</span><span class="s">&quot;__sync__&quot;</span><span class="p">);</span><span class="w"> </span><span class="c1">// rely on sync or barrier in CPU instruction.</span>
 <span class="w">  </span><span class="c1">// Release store: Ensures all writes to &#39;data&#39; are visible before &#39;ready&#39; is set.</span>
 <span class="w">  </span><span class="n">ready</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">true</span><span class="p">;</span><span class="w"> </span><span class="c1">// Release signal</span>
+<span class="p">}</span><span class="w"></span>
+
+<span class="kt">void</span><span class="w"> </span><span class="nf">consumer</span><span class="p">()</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">  </span><span class="c1">// Acquire load: Ensures all writes that happened before the release store are visible.</span>
+<span class="w">  </span><span class="k">while</span><span class="w"> </span><span class="p">(</span><span class="o">!</span><span class="n">ready</span><span class="p">);</span><span class="w"> </span><span class="c1">// Wait for ready signal</span>
+
+<span class="w">  </span><span class="c1">// Ensure that this print sees the correct value of `data`</span>
+<span class="w">  </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="mi">10</span><span class="p">;</span><span class="w"> </span><span class="o">++</span><span class="n">i</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">      </span><span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">data</span><span class="p">[</span><span class="n">i</span><span class="p">];</span><span class="w"></span>
+<span class="w">  </span><span class="p">}</span><span class="w"></span>
 <span class="p">}</span><span class="w"></span>
 </pre></div>
 </div>
@@ -919,9 +831,14 @@ necessary—but these may introduce <strong>performance overhead</strong>.</p>
 <ul class="simple">
 <li><p><strong>CPU Core 1 (Thread 1 - Producer)</strong></p>
 <ul>
-<li><p>Writes all elements to ‘data’ with memory_order_relaxed (not immediately visible).</p></li>
-<li><p>Writes true to ready with memory_order_release, ensuring prior stores are
-visible before this write.</p></li>
+<li><p>Writes all elements to ‘data’ (not immediately visible).</p></li>
+<li><p>asm(“__sync__”) ensuring prior stores are  visible before writing true to
+ready, “ready = true”.</p>
+<ul>
+<li><p>All memory access instructions (load/store) must be completed after
+asm(“__sync__”).</p></li>
+</ul>
+</li>
 </ul>
 </li>
 <li><p><strong>Main Memory</strong></p>
@@ -931,13 +848,125 @@ visible before this write.</p></li>
 </li>
 <li><p><strong>CPU Core 2 (Thread 2 - Consumer)</strong></p>
 <ul>
-<li><p>Waits until <cite>‘ready=true’</cite> with memory_order_acquire, ensuring visibility
+<li><p>Waits until <cite>‘ready=true’</cite>, ensuring visibility
 of all previous writes.</p></li>
 <li><p>After acquiring ready, output all elements from ‘data’, which are now
 reliably published by the producer thread..</p></li>
 </ul>
 </li>
 </ul>
+<p>Above inline assembly asm(“__sync__”) has the following problem:</p>
+<p><strong>No standard atomic operations → source code imcompatible.</strong></p>
+<blockquote>
+<div><ul class="simple">
+<li><p>Developers had to use compiler-specific intrinsics (like GCC’s __sync_*,
+MSVC’s Interlocked*) or inline assembly, making source code imcompatible.</p></li>
+</ul>
+</div></blockquote>
+<p>The following C++11 example solve the problem of source code imcompatible.</p>
+<p class="rubric">References/c++/mem-order-ex1.cpp (C++ code of memory order for
+producer-consumer)</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>#include &lt;iostream&gt;
+#include &lt;thread&gt;
+#include &lt;vector&gt;
+#include &lt;atomic&gt;
+
+std::atomic&lt;int&gt; data(0);
+std::atomic&lt;bool&gt; ready(false);
+
+void producer() {
+    // Populate data
+    for (int i = 0; i &lt; 10; ++i) {
+        data.push_back(i * 10);
+    }
+    // Release store: Ensures all writes to &#39;data&#39; are visible before &#39;ready&#39; is set.
+    ready.store(true, std::memory_order_release); // Release signal
+}
+
+void consumer() {
+    // Acquire load: Ensures all writes that happened before the release store are visible.
+    while (!ready.load(std::memory_order_acquire)); // Wait for ready signal
+
+    // Ensure that this print sees the correct value of `data`
+    for (int i = 0; i &lt; 10; ++i) {
+        std::cout &lt;&lt; data[i];
+    }
+}
+
+int main() {
+    std::thread t1(producer);
+    std::thread t2(consumer);
+
+    t1.join();
+    t2.join();
+
+    return 0;
+}
+
+</pre></div>
+</div>
+<ul>
+<li><p>memory_order::release</p>
+<p>Same as asm(“__sync__”), read and write operations appearing before the
+operation in the program must occur before it and are completed after
+“ready.store(true, std::memory_order_release)”.</p>
+</li>
+<li><p>memory_order::acquire</p>
+<p>Same as load volatile varaible “ready”, read and write operations appearing
+after the operation in the program must occur after it (i.e., they cannot be
+re-ordered before the operation,
+“while (!ready.load(std::memory_order_acquire))”).</p>
+</li>
+</ul>
+<p><strong>Summary:</strong></p>
+<p>C++ Memory Order makes <strong>“source code compatible”</strong> across different platforms.</p>
+</section>
+<section id="the-problem-before-c-11">
+<h3><a class="toc-backref" href="#id28" role="doc-backlink">The Problem Before C++11</a><a class="headerlink" href="#the-problem-before-c-11" title="Permalink to this heading">¶</a></h3>
+<p>Before <strong>C++11</strong>, multi-threaded programming relied on <strong>mutexes, volatile
+variables, and platform-specific atomic operations (such as atomic_load(&amp;a) and
+atomic_store(&amp;a, 42)</strong>, which often led to
+inefficiencies and undefined behavior.</p>
+<p>For RISC CPUs, <strong>only load/store instructions access memory.</strong> Atomic
+instructions ensure memory consistency across multiple cores.</p>
+<p>CPUs provide atomic operations such as <strong>compare-and-swap</strong> <a class="footnote-reference brackets" href="#cas-wiki" id="id7" role="doc-noteref"><span class="fn-bracket">[</span>8<span class="fn-bracket">]</span></a> or
+<strong>ll/sc (load-linked/store-conditional)</strong>, along with <strong>BARRIER</strong> or <strong>SYNC</strong>
+instructions to enforce memory ordering. However, <strong>C++03 did not have a language
+feature to tell the compiler how to control memory order for load/store
+instructions.</strong></p>
+<p>To address this, <strong>C++11 introduced memory orderings via `std::atomic`</strong>, giving
+programmers <strong>fine-grained control</strong> over synchronization and memory consistency.</p>
+<ol class="arabic simple">
+<li><p><strong>No standard atomic operations → source code imcompatible.</strong></p>
+<ul class="simple">
+<li><p>Developers had to use compiler-specific intrinsics (like GCC’s __sync_*,
+MSVC’s Interlocked*) or inline assembly, making source code imcompatible.</p></li>
+</ul>
+</li>
+<li><p><strong>Unspecified Behavior in Multi-threading</strong></p>
+<ul class="simple">
+<li><p>The C++98/03 standard had <strong>no formal memory model</strong>.</p></li>
+<li><p>Compilers <strong>optimized code aggressively</strong>, leading to race conditions.</p></li>
+</ul>
+</li>
+<li><p><strong>Reliance on Volatile and Platform-specific Primitives</strong></p>
+<ul class="simple">
+<li><p><cite>volatile</cite> <strong>did not</strong> prevent reordering by the compiler.</p>
+<ul>
+<li><p>Though some compilers may choose to avoid reordering around volatile
+accesses.</p></li>
+</ul>
+</li>
+<li><p>Programmers had to use <strong>OS-specific APIs (e.g., `pthread_mutex`)</strong>.</p></li>
+</ul>
+</li>
+<li><p><strong>Inefficient Synchronization Mechanisms</strong></p>
+<ul class="simple">
+<li><p>Mutexes ensured correctness but <strong>caused performance overhead</strong>.</p></li>
+<li><p><strong>Spin-locks wasted CPU cycles</strong> due to busy-waiting.</p></li>
+</ul>
+</li>
+</ol>
 </section>
 <section id="c-11-memory-model-solution">
 <h3><a class="toc-backref" href="#id29" role="doc-backlink">C++11 Memory Model Solution</a><a class="headerlink" href="#c-11-memory-model-solution" title="Permalink to this heading">¶</a></h3>

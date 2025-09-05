@@ -457,15 +457,102 @@ To observe this in action, compile and check with debug options enabled.
 C++ Memory Order [#cpp-mem-order]_ [#mem-order-wiki]_ [#atomic-stackoverflow]_ 
 ------------------------------------------------------------------------------
 
-**Memory Order::**
+Source Code Compatibility
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+**Memory Order:**
 
 - **Memory Order is the rules that define how operations on shared memory 
   appear to multiple threads — especially the ordering of reads/writes.**
 
 - **These rules ensure correct execution in parallel programs.**
 
-Background
-~~~~~~~~~~
+- C++ Memory Order makes **"source code compatible"** across different platforms
+  as shown below.
+
+.. code-block:: c++
+
+  volatile bool ready(false);
+
+  void producer() {
+    // Populate data
+    for (int i = 0; i < 10; ++i) {
+        data.push_back(i * 10);
+    }
+    asm("__sync__"); // rely on sync or barrier in CPU instruction. 
+    // Release store: Ensures all writes to 'data' are visible before 'ready' is set.
+    ready = true; // Release signal
+  }
+  
+  void consumer() {
+    // Acquire load: Ensures all writes that happened before the release store are visible.
+    while (!ready); // Wait for ready signal
+
+    // Ensure that this print sees the correct value of `data`
+    for (int i = 0; i < 10; ++i) {
+        std::cout << data[i];
+    }
+  }
+
+.. _mem_o_hw:
+.. graphviz:: ../Fig/gpu/mem-o-hw.gv
+  :caption: Diagram for mem-order-ex1.cpp
+
+Diagram Explanation:
+
+- **CPU Core 1 (Thread 1 - Producer)**
+
+  - Writes all elements to 'data' (not immediately visible).
+  - asm("__sync__") ensuring prior stores are  visible before writing true to 
+    ready, "ready = true".
+
+    - All memory access instructions (load/store) must be completed after 
+      asm("__sync__"). 
+
+- **Main Memory**
+
+  - `'ready=true'` propagates to main memory, making it visible to all cores.
+
+- **CPU Core 2 (Thread 2 - Consumer)**
+
+  - Waits until `'ready=true'`, ensuring visibility 
+    of all previous writes.
+  - After acquiring ready, output all elements from 'data', which are now 
+    reliably published by the producer thread..
+
+Above inline assembly asm("__sync__") has the following problem:
+
+**No standard atomic operations → source code imcompatible.**
+
+   - Developers had to use compiler-specific intrinsics (like GCC’s __sync_*, 
+     MSVC’s Interlocked*) or inline assembly, making source code imcompatible.
+
+
+The following C++11 example solve the problem of source code imcompatible.
+
+.. rubric:: References/c++/mem-order-ex1.cpp (C++ code of memory order for 
+            producer-consumer)
+.. literalinclude:: ../References/c++/mem-order-ex1.cpp
+
+- memory_order::release
+
+  Same as asm("__sync__"), read and write operations appearing before the 
+  operation in the program must occur before it and are completed after 
+  "ready.store(true, std::memory_order_release)". 
+
+- memory_order::acquire
+
+  Same as load volatile varaible "ready", read and write operations appearing 
+  after the operation in the program must occur after it (i.e., they cannot be 
+  re-ordered before the operation, 
+  "while (!ready.load(std::memory_order_acquire))").
+
+**Summary:**
+
+C++ Memory Order makes **"source code compatible"** across different platforms.
+
+The Problem Before C++11
+~~~~~~~~~~~~~~~~~~~~~~~~
 
 Before **C++11**, multi-threaded programming relied on **mutexes, volatile
 variables, and platform-specific atomic operations (such as atomic_load(&a) and 
@@ -484,9 +571,6 @@ instructions.**
 To address this, **C++11 introduced memory orderings via `std::atomic`**, giving
 programmers **fine-grained control** over synchronization and memory consistency.
 
-The Problem Before C++11
-~~~~~~~~~~~~~~~~~~~~~~~~
-
 1. **No standard atomic operations → source code imcompatible.**
 
    - Developers had to use compiler-specific intrinsics (like GCC’s __sync_*, 
@@ -500,75 +584,16 @@ The Problem Before C++11
 3. **Reliance on Volatile and Platform-specific Primitives**
 
    - `volatile` **did not** prevent reordering by the compiler.
+
+     - Though some compilers may choose to avoid reordering around volatile 
+       accesses.
+
    - Programmers had to use **OS-specific APIs (e.g., `pthread_mutex`)**.
 
 4. **Inefficient Synchronization Mechanisms**
 
    - Mutexes ensured correctness but **caused performance overhead**.
    - **Spin-locks wasted CPU cycles** due to busy-waiting.
-
-The following C++ example demonstrates a producer–consumer pattern to explain
-the problems listed above.
-
-.. rubric:: References/c++/mem-order-ex1.cpp (C++ code of memory order for 
-            producer-consumer)
-.. literalinclude:: ../References/c++/mem-order-ex1.cpp
-
-The example above illustrates how C++ memory ordering guarantees that 'data' 
-becomes visible to other threads before 'ready' is set in the producer thread. 
-When the consumer thread detects that `'ready == true'`, it can safely access 
-the corresponding data value. See :numref:`mem_o_hw`.
-
-If the program instead uses 'volatile', as shown in the following example, 
-correctness depends on explicit synchronization. 
-Platform-specific mechanisms such as CPU memory barriers or operating 
-system–level functions are required to prevent instruction reordering—for 
-example, ensuring that the store data operations are not moved after 
-`'ready = true'`.
-
-However, barriers and synchronization primitives at the CPU level only prevent 
-hardware reordering. 
-They do not stop the compiler from reordering instructions during optimization. 
-To suppress compiler-level reordering, mutexes or atomic constructs are 
-necessary—but these may introduce **performance overhead**.
-
-.. code-block:: c++
-
-  volatile bool ready(false);
-
-  void producer() {
-    // Populate data
-    for (int i = 0; i < 10; ++i) {
-        data.push_back(i * 10);
-    }
-    asm("__sync__"); // rely on sync or barrier in CPU instruction. 
-    // Release store: Ensures all writes to 'data' are visible before 'ready' is set.
-    ready = true; // Release signal
-  }
-
-
-.. _mem_o_hw:
-.. graphviz:: ../Fig/gpu/mem-o-hw.gv
-  :caption: Diagram for mem-order-ex1.cpp
-
-Diagram Explanation:
-
-- **CPU Core 1 (Thread 1 - Producer)**
-
-  - Writes all elements to 'data' with memory_order_relaxed (not immediately visible).
-  - Writes true to ready with memory_order_release, ensuring prior stores are 
-    visible before this write.
-
-- **Main Memory**
-
-  - `'ready=true'` propagates to main memory, making it visible to all cores.
-
-- **CPU Core 2 (Thread 2 - Consumer)**
-
-  - Waits until `'ready=true'` with memory_order_acquire, ensuring visibility 
-    of all previous writes.
-  - After acquiring ready, output all elements from 'data', which are now 
-    reliably published by the producer thread..
 
 
 C++11 Memory Model Solution
