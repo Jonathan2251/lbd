@@ -1622,8 +1622,41 @@ GPU Architecture
 
   Terms in Nvidia's gpu (figure from book [#Quantitative-gpu-terms]_)
 
-SIMT
-~~~~
+
+
+
+GPU Hardware Units
+~~~~~~~~~~~~~~~~~~
+
+This section introduces the major hardware units inside a modern GPU and
+their relationship to graphics and compute workloads.
+
+1. Streaming Multiprocessors (SMs) / Compute Units (CUs)
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+- **Role:** The central execution units of the GPU.
+
+- **Components:**
+
+  - **Arithmetic Logic Units (ALUs):** Perform integer and floating-point
+    arithmetic. Often include separate pipelines for FP32, FP64, and INT32.
+  - **Special Function Units (SFUs):** Accelerate transcendental operations
+    such as sin, cos, exp, and log.
+  - **Load/Store Units (LD/ST):** Handle memory reads and writes between
+    registers, shared memory, and global memory.
+  - **Warp/Wavefront Scheduler:** Groups threads into *warps* (NVIDIA, 32 threads)
+    or *wavefronts* (AMD, 64 threads) and schedules instructions to hide latency.
+  - **Registers:** Fast, private storage allocated per-thread.
+  - **Shared Memory:** On-chip scratchpad memory shared among threads of a block.
+
+- **Usage:**
+
+  - Executes programmable shader stages (vertex, tessellation, geometry,
+    fragment/compute shaders).
+  - Handles both graphics rendering and general-purpose computation (CUDA, OpenCL).
+
+The details of SM (SIMT)
+^^^^^^^^^^^^^^^^^^^^^^^^
 
 Single instruction, multiple threads (SIMT) is an execution model used in 
 parallel computing where a single central "Control Unit" broadcasts an 
@@ -1794,22 +1827,8 @@ Summarize as table below.
       As :numref:`grid` for the later Fermi-generation GPUs.
 
 
-Vertex unit
-~~~~~~~~~~~
-
-VAR unit
-++++++++
-
-VAR Variable Rate Shading Unit [#var]_.
-
-
-Texture unit
-~~~~~~~~~~~~
-
-As depicted in `section OpenGL Shader Compiler`_.
-
-Speedup Features
-~~~~~~~~~~~~~~~~
+Some GPUs provide Gather-scatter and Address Coalescing to accelerate memory 
+access.
 
 - Gather-scatter data transfer: HW support sparse vector access is called 
   gather-scatter. The VMIPS instructions are LVI (load vector indexed or gather) 
@@ -1826,10 +1845,249 @@ Speedup Features
     [#Quantitative-gpu-ac]_..
 
 
-Buffers
-~~~~~~~
+2. Tensor Cores / Matrix Units
+++++++++++++++++++++++++++++++
 
-In addition to texture units and instructions, CPU and GPU provides different 
+- **Role:** Specialized hardware for accelerating matrix-multiply-and-accumulate
+  operations.
+- **Features:**
+  - Support mixed-precision arithmetic (e.g., FP16 input with FP32 accumulation).
+  - Perform small matrix multiplications (e.g., 4×4) in a single cycle.
+- **Usage:**
+  - Designed for deep learning training and inference.
+  - Orders of magnitude faster than executing matrix multiplications on general ALUs.
+
+3. Texture Mapping Units (TMUs)
++++++++++++++++++++++++++++++++
+
+- **Role:** Specialized for texture sampling and filtering in graphics.
+- **Functions:**
+
+  - **Texture Addressing:** Convert texture coordinates (UV) into texel addresses.
+  - **Filtering:** Apply bilinear, trilinear, or anisotropic filtering to
+    improve visual quality.
+  - **Compression Support:** Decode compressed texture formats such as BCn, ASTC.
+
+- **Usage:**
+
+  - Invoked during fragment shading when sampling textures.
+  - Optimized for locality and high-throughput memory access.
+
+- **Details:**
+
+  - As depicted in `section OpenGL Shader Compiler`_.
+
+4. Raster Operations Units (ROPs)
++++++++++++++++++++++++++++++++++
+
+- **Role:** Final stage of pixel processing in the graphics pipeline.
+- **Functions:**
+
+  - Perform depth and stencil testing.
+  - Apply blending operations for transparency and antialiasing.
+  - Handle multisample anti-aliasing (MSAA).
+  - Write final pixel data into the framebuffer in VRAM.
+
+- **Usage:**
+
+  - Essential for converting fragment outputs into visible image pixels.
+
+5. Geometry and Rasterization Units
++++++++++++++++++++++++++++++++++++
+
+- **Role:** Fixed-function units that bridge programmable shaders with
+  pixel-level rendering.
+- **Functions:**
+
+  - Assemble vertices into primitives (triangles, lines).
+  - Clip primitives against the view frustum.
+  - Perform perspective division and viewport transformation.
+  - Rasterize primitives into fragments (potential pixels).
+
+- **Usage:**
+
+  - Feed fragment shaders with interpolated per-fragment attributes
+    (color, depth, texture coordinates).
+
+6. Ray-Tracing Cores
+++++++++++++++++++++
+
+- **Role:** Hardware acceleration for real-time ray tracing.
+- **Components:**
+
+  - **BVH Traversal Units:** Walk bounding volume hierarchies to efficiently
+    locate candidate geometry for intersection.
+  - **Ray-Triangle Intersection Units:** Compute exact intersection points
+    between rays and primitives.
+
+- **Usage:**
+
+  - Enable realistic lighting effects such as reflections, shadows, and
+    global illumination.
+  - Not part of the traditional OpenGL pipeline, but exposed via extensions
+    or modern APIs (Vulkan, DirectX Raytracing).
+
+7. Memory Subsystem
++++++++++++++++++++
+
+- **Role:** Provide extremely high bandwidth to keep thousands of GPU threads active.
+- **Hierarchy:**
+
+  - **Registers:** Fastest, private storage per-thread.
+  - **Shared Memory / L1 Cache:** On-chip memory per-SM, low latency, shared
+    among threads in a block.
+  - **L2 Cache:** Larger, shared across all SMs; reduces global memory traffic.
+  - **VRAM (GDDR6, HBM):** High-bandwidth external memory; throughput in the
+    hundreds of GB/s to multiple TB/s.
+  - **Memory Controllers:** Handle request scheduling, coalescing, and error correction.
+
+- **Usage:**
+  - Critical for both compute and graphics; performance often limited by memory bandwidth.
+
+VRAM
+^^^^
+
+**Reason:**
+
+**1. Since CPU and GPU have different requirements, a shared memory design cannot 
+match the performance of dedicated GPU memory.**
+
+**2. In systems with shared memory (like integrated GPUs), both the CPU and GPU 
+access the same physical memory (DRAM). This leads to several forms of 
+contention:**
+
+  - a. Cache Coherency Overhead
+
+  - b. DMA Contention
+
+  - c. Bus & Memory Controller Bottleneck
+
+A discrete GPU has its own dedicated memory (VRAM) while an integrated GPU (iGPU)
+shares memory with the CPU.
+
+Dedicated GPU memory (VRAM) outperforms shared CPU-GPU memory due to
+higher bandwidth, lower latency, parallel access optimization, and no
+contention with CPU resources.
+
+**Key Differences:**
+
+.. _mem: 
+.. graphviz:: ../Fig/gpu/mem.gv
+  :caption: iGPU versus dGPU
+
++----------------------+-----------------------------+------------------------------+
+| Feature              | Shared Memory (CPU + iGPU)  | Dedicated GPU Memory (dGPU)  |
++======================+=============================+==============================+
+| Bandwidth            | Lower (DDR/LPDDR)           | Higher (GDDR/HBM)            |
++----------------------+-----------------------------+------------------------------+
+| Latency              | Higher                      | Lower                        |
++----------------------+-----------------------------+------------------------------+
+| Parallel Access      | Limited                     | Optimized for many threads   |
++----------------------+-----------------------------+------------------------------+
+| Cache Coherency      | Required (with CPU)         | Not required                 |
++----------------------+-----------------------------+------------------------------+
+| DMA Bandwidth        | Shared with CPU             | GPU has exclusive DMA access |
++----------------------+-----------------------------+------------------------------+
+| Memory Contention    | Yes                         | No                           |
++----------------------+-----------------------------+------------------------------+
+| Performance          | Lower:                      | Higher:                      |
+|                      | Bandwidth bottlenecks,      | Wide memory bandwidth,       |
+|                      | CPU-GPU interference and    | Parallel thread access and   |
+|                      | Cache/DMA conflicts         | Low latency memory access    |
++----------------------+-----------------------------+------------------------------+
+
+**Summary:**
+
+Dedicated memory allows the GPU to run high-throughput workloads without
+interference from the CPU. It provides wide bandwidth (1), optimized
+parallel access (2), and low-latency paths (3), avoiding cache and DMA
+conflicts for superior performance.
+
+(1). Wide bandwidth: Dedicated GPU memory (VRAM) is often based on GDDR6, 
+GDDR6X, or HBM2/3, which are much faster than standard system RAM (DDR4/DDR5).
+
+  Typical bandwidths:
+
+    - GDDR6: ~448–768 GB/s
+
+    - HBM2: up to 1 TB/s+
+
+    - DDR5 (shared memory): ~50–80 GB/s
+
+  Impact: Faster access to textures, vertex buffers, and framebuffers—critical for rendering and compute tasks.
+
+(2). Optimized parallel access: 
+
+  - VRAM is optimized for the massively parallel architecture of GPUs.
+
+  - It allows thousands of threads to access memory simultaneously without stalling.
+
+  Shared system memory is optimized for CPU access patterns, not thousands of GPU threads.
+
+(3). Low-latency paths: 
+
+  - Dedicated memory is physically closer to the GPU die.
+
+  - No need to traverse the PCIe bus like discrete GPUs accessing system RAM.
+
+  In shared memory systems (like integrated GPUs), memory access may have to go through a memory controller shared with the CPU, adding delay.
+
+8. Display and Video Processing Units
++++++++++++++++++++++++++++++++++++++
+
+- **Role:** Specialized fixed-function engines for display output and multimedia.
+- **Components:**
+
+  - **Display Controllers:** Drive monitors via HDMI, DisplayPort. Support scaling,
+    color correction, and adaptive sync (G-Sync, FreeSync).
+  - **Video Encode/Decode Engines:** Dedicated ASICs for codecs such as H.264,
+    H.265/HEVC, and AV1. Examples include NVIDIA NVENC, AMD VCN, and Intel QuickSync.
+
+- **Usage:**
+  - Offload video playback, streaming, and screen presentation from general-purpose SMs.
+
+All Together
+++++++++++++
+
+**GPU provides the following hardware to accelerate graphics rendering pipeline as follows:**
+
+🔹 Simplified Flow (OpenGL → Hardware)
+	1.	Vertex Fetch → VRAM & Memory Controllers.
+	2.	Vertex Shader → SM cores.
+	3.	Geometry/Tessellation → SM cores.
+	4.	Rasterization → Raster units.
+	5.	Fragment Shader → SM cores + TMUs (texture sampling).
+	6.	Depth/Stencil/Blending → ROPs.
+	7.	Framebuffer Write → L2 cache & VRAM → Display Controller.
+
+**Variable Rate Shading (VRS) Support**
+
+By utilizing certain GPU units as outlined below, Variable Rate Shading (VRS) can be 
+supported [#var]_.
+
+- Rasterizer:
+
+  - Decides how many fragments per pixel (or group of pixels) will actually be shaded.
+  - Instead of generating 1 fragment per pixel, it may shade 1 fragment for a 2×2 or 4×4 block and reuse that result.
+
+- Fragment Shader Cores (SMs/CUs):
+
+  - Still run the shading code, but at a reduced frequency (fewer fragment invocations).
+
+- ROPs (and pipeline integration):
+
+  - Apply results to the framebuffer, handling blending/depth as usual.
+
+
+
+Performance Features
+~~~~~~~~~~~~~~~~~~~~
+
+
+Buffers
++++++++
+
+CPU and GPU provides different 
 Buffers to speedup OpenGL pipeline rendering [#buffers-redbook]_.
 
 .. list-table:: Graphics Buffers
@@ -1996,95 +2254,6 @@ Buffers to speedup OpenGL pipeline rendering [#buffers-redbook]_.
      - Vulkan, CUDA
      - Temporary transfer
      - Temporary CPU-visible buffer for uploading/downloading GPU data.
-
-
-VRAM
-~~~~
-
-**Reason:**
-
-**1. Since CPU and GPU have different requirements, a shared memory design cannot 
-match the performance of dedicated GPU memory.**
-
-**2. In systems with shared memory (like integrated GPUs), both the CPU and GPU 
-access the same physical memory (DRAM). This leads to several forms of 
-contention:**
-
-  - a. Cache Coherency Overhead
-
-  - b. DMA Contention
-
-  - c. Bus & Memory Controller Bottleneck
-
-A discrete GPU has its own dedicated memory (VRAM) while an integrated GPU (iGPU)
-shares memory with the CPU.
-
-Dedicated GPU memory (VRAM) outperforms shared CPU-GPU memory due to
-higher bandwidth, lower latency, parallel access optimization, and no
-contention with CPU resources.
-
-**Key Differences:**
-
-.. _mem: 
-.. graphviz:: ../Fig/gpu/mem.gv
-  :caption: iGPU versus dGPU
-
-+----------------------+-----------------------------+------------------------------+
-| Feature              | Shared Memory (CPU + iGPU)  | Dedicated GPU Memory (dGPU)  |
-+======================+=============================+==============================+
-| Bandwidth            | Lower (DDR/LPDDR)           | Higher (GDDR/HBM)            |
-+----------------------+-----------------------------+------------------------------+
-| Latency              | Higher                      | Lower                        |
-+----------------------+-----------------------------+------------------------------+
-| Parallel Access      | Limited                     | Optimized for many threads   |
-+----------------------+-----------------------------+------------------------------+
-| Cache Coherency      | Required (with CPU)         | Not required                 |
-+----------------------+-----------------------------+------------------------------+
-| DMA Bandwidth        | Shared with CPU             | GPU has exclusive DMA access |
-+----------------------+-----------------------------+------------------------------+
-| Memory Contention    | Yes                         | No                           |
-+----------------------+-----------------------------+------------------------------+
-| Performance          | Lower:                      | Higher:                      |
-|                      | Bandwidth bottlenecks,      | Wide memory bandwidth,       |
-|                      | CPU-GPU interference and    | Parallel thread access and   |
-|                      | Cache/DMA conflicts         | Low latency memory access    |
-+----------------------+-----------------------------+------------------------------+
-
-**Summary:**
-
-Dedicated memory allows the GPU to run high-throughput workloads without
-interference from the CPU. It provides wide bandwidth (1), optimized
-parallel access (2), and low-latency paths (3), avoiding cache and DMA
-conflicts for superior performance.
-
-(1). Wide bandwidth: Dedicated GPU memory (VRAM) is often based on GDDR6, 
-GDDR6X, or HBM2/3, which are much faster than standard system RAM (DDR4/DDR5).
-
-  Typical bandwidths:
-
-    - GDDR6: ~448–768 GB/s
-
-    - HBM2: up to 1 TB/s+
-
-    - DDR5 (shared memory): ~50–80 GB/s
-
-  Impact: Faster access to textures, vertex buffers, and framebuffers—critical for rendering and compute tasks.
-
-(2). Optimized parallel access: 
-
-  - VRAM is optimized for the massively parallel architecture of GPUs.
-
-  - It allows thousands of threads to access memory simultaneously without stalling.
-
-  Shared system memory is optimized for CPU access patterns, not thousands of GPU threads.
-
-(3). Low-latency paths: 
-
-  - Dedicated memory is physically closer to the GPU die.
-
-  - No need to traverse the PCIe bus like discrete GPUs accessing system RAM.
-
-  In shared memory systems (like integrated GPUs), memory access may have to go through a memory controller shared with the CPU, adding delay.
 
 
 General purpose GPU
