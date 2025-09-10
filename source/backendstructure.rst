@@ -16,7 +16,8 @@ or binary object with the following data structure as
   :caption: LLVM data structure used in different stages
 
 Cpu0 backend supports the following backend compiler, assembler and disassembler 
-as :numref:`backendstructure-function` and :numref:`backendstructure-enc-struct`.
+as :numref:`backendstructure-function`, :numref:`enc` and 
+:numref:`backendstructure-enc-struct`.
 However only the green part for printing assembly is implemented in this chapter.
 Others are implemented in later chapters :numref:`genobj-f11`, :numref:`asm-flow` 
 and :numref:`disas`.
@@ -25,11 +26,24 @@ and :numref:`disas`.
 .. graphviz:: ../Fig/backendstructure/cpu0-function.gv
   :caption: Backend compiler, assembler and disassembler of Cpu0
 
+.. _enc:
+.. graphviz:: ../Fig/backendstructure/enc.gv
+  :caption: Encode, assembler and disassembler
+
 .. _backendstructure-enc-struct:
 .. graphviz:: ../Fig/backendstructure/cpu0-enc-struct.gv
   :caption: The structure for backend compiler, assembler and disassembler of Cpu0
 
 - Bytes: 4-byte (32-bits) for Cpu0.
+
+- Each MInst contains one single instruction.
+- The encoder extracts information from MachineInstr and places it into MCInst. 
+  It then calls printInst() to generate assembly instructions or 
+  emitInstruction() to output binary instruction.
+- The assembler calls MatchAndEmitInstruction() to convert assembly back into 
+  MCInst, then calls emitInstruction() to output binary instruction.
+- The disassembler calls getInstruction() to convert binary instructions back 
+  into MCInst, then calls printInst() to generate assembly instruction.
 
 - The emitInstruction() of Cpu0MCCodeEmitter.cpp: encode binary for an 
   instruction reused for both llc (compiler) and llc (assembler).
