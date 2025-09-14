@@ -63,6 +63,10 @@ Revision history
 
 Version 12.0.18, not released yet.
 
+Version 12.0.17.1, Released September 14, 2026.
+  gpu.rst: add 'SISD, SIMD, and SPMD Pipelines' in subsection SM (SIMT).
+  backendstructure.rst: enc.gv.
+
 Version 12.0.17, Released September 7, 2026.
   c++.rst: Rewrite section 'C++ Memory Order'.
   llvmstructure.rst: Refine the order of sections.
