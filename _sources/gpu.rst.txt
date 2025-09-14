@@ -2076,12 +2076,13 @@ Instructions from different threads are interleaved in the pipeline.
 
 **SPMD Programming Model vs SIMD/SIMT Execution**
 
-**In the muti-cores CPU running SPMD that each core can schedule and run any PC
-of instruction**. For example, core-1 run I(1..10), core-2 run I(31..35).
-For this situation, it is equal to SM (Warp) in the table 
-"More Descriptive Name for Cuda term in Fermi GPU" of previous section.
-**The SM-1 run I(1..10), SM-2 run I(31..35), but the SM cannot schedule it's 
-thread-1 run I(1..10), thread-2 run I(31..35)**.
+**In a multi-core CPU running SPMD, each core can schedule and execute 
+instructions at any program counter (PC)**. For example, core-1 may execute 
+I(1–10), while core-2 executes I(31–35). This situation is analogous to an SM 
+(warp) in the table “More Descriptive Name for CUDA Terms in Fermi GPU” from 
+the previous section. For instance, SM-1 may execute I(1–10) and SM-2 may execute
+I(31–35). **However, within an SM, it is not possible to schedule thread-1 to 
+execute I(1–10) while thread-2 executes I(31–35)**.
 
 As result,
 **there is no mainstream GPU that is truly hardware-SPMD** (where each thread 
