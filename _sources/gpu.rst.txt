@@ -815,7 +815,7 @@ The steps are shown in :numref:`short_rendering_pipeline`.
   :align: center
   :scale: 50 %
 
-  3D Graphics Rendering Pipeline
+  3D Graphics Rendering Pipeline [#cg_basictheory]_
 
 - A fragment can be treated as a pixel in 3D spaces, which is aligned with the 
   pixel grid, with attributes such as position, color, normal and texture.
@@ -1613,19 +1613,27 @@ Here is the software stack of the 3D graphics system for OpenGL on Linux
 GPU Architecture
 ----------------
 
-.. _gpu-terms: 
-.. figure:: ../Fig/gpu/gpu-terms.png
+.. _cg-hw: 
+.. figure:: ../Fig/gpu/cg-hw.png
   :align: center
   :scale: 50 %
 
-  Terms in Nvidia's gpu (figure from book [#Quantitative-gpu-terms]_)
+  Computer Graphics Hardware (figure from book [#cg_basictheory]_)
 
 
 GPU Hardware Units
 ******************
 
-As the block diagram of the Graphic Processing Unit (GPU) is shown in
-:numref:`gpu_block_diagram`.
+.. _gpu_block_diagram_2: 
+.. figure:: ../Fig/gpu/gpu-block-diagram.png
+  :align: center
+  :scale: 50 %
+
+  Components of a GPU: GPU has accelerated video decoding and encoding 
+  [#wiki-gpu]_
+
+Reprint the block diagram of the Graphic Processing Unit (GPU) in
+:numref:`gpu_block_diagram_2` from the `section Graphic HW and SW Stack`_.
 A GPU (graphics processing unit) is built as a massively parallel processor 
 with several specialized processing units inside. 
 A GPU is not just “many cores” — it’s a mix of general-purpose compute units 
@@ -1637,34 +1645,99 @@ At the hardware level, a modern GPU typically contains:
 This section introduces the major hardware units inside a modern GPU and
 their relationship to graphics and compute workloads.
 
-1. Streaming Multiprocessors (SMs) / Compute Units (CUs)
+**1. GCA (Graphic and Compute Array)**
 
-- **Role:** The central execution units of the GPU.
+  1.1 Streaming Multiprocessors (SMs) / Compute Units (CUs)
 
-- **Components:**
+  - **Role:** The central execution units of the GPU.
 
-  - **Arithmetic Logic Units (ALUs):** Perform integer and floating-point
-    arithmetic in scalar operation and includes vector operation in most GPU
-    for each thread. Often include separate pipelines for FP32, FP64, and INT32.
-  - **Special Function Units (SFUs):** Accelerate transcendental operations
-    such as sin, cos, exp, and log. These would be very slow if only computed 
-    by ALUs.
-  - **Load/Store Units (LD/ST):** Handle memory reads and writes between
-    registers, shared memory, and global memory.
-    It is important because memory latency is huge compared to ALU ops.
-  - **Warp/Wavefront Scheduler:** Groups threads into *warps* (NVIDIA, 32 threads)
-    or *wavefronts* (AMD, 64 threads) and schedules instructions to hide latency.
-  - **Registers:** Fast, private storage allocated per-thread.
-  - **Memory stack:** Private stack memory per-thread.
-  - **Shared Memory:** On-chip scratchpad memory shared among threads of a block.
+  - **Components:**
 
-- **Usage:**
+    - **Arithmetic Logic Units (ALUs):** Perform integer and floating-point
+      arithmetic in scalar operation and includes vector operation in most GPU
+      for each thread. Often include separate pipelines for FP32, FP64, and INT32.
+    - **Special Function Units (SFUs):** Accelerate transcendental operations
+      such as sin, cos, exp, and log. These would be very slow if only computed 
+      by ALUs.
+    - **Load/Store Units (LD/ST):** Handle memory reads and writes between
+      registers, shared memory, and global memory.
+      It is important because memory latency is huge compared to ALU ops.
+    - **Warp/Wavefront Scheduler:** Groups threads into *warps* (NVIDIA, 32 threads)
+      or *wavefronts* (AMD, 64 threads) and schedules instructions to hide latency.
 
-  - Executes programmable shader stages (vertex, tessellation, geometry,
-    fragment/compute shaders).
-  - Handles both graphics rendering and general-purpose computation (CUDA, OpenCL).
+  - **Usage:**
 
-2. Tensor Cores / Matrix Units
+    - Executes programmable shader stages (vertex, tessellation, geometry,
+        fragment/compute shaders).
+    - Handles both graphics rendering and general-purpose computation (CUDA, OpenCL).
+
+  1.2. Texture Mapping Units (TMUs)
+
+  - **Role:** Specialized for texture sampling and filtering in graphics.
+  - **Functions:**
+
+    - **Texture Addressing:** Convert texture coordinates (UV) into texel addresses.
+    - **Filtering:** Apply bilinear, trilinear, or anisotropic filtering to
+      improve visual quality.
+    - **Compression Support:** Decode compressed texture formats such as BCn, ASTC.
+
+  - **Usage:**
+
+    - Invoked during fragment shading when sampling textures.
+    - Optimized for locality and high-throughput memory access.
+
+  - **Details:**
+
+    - As depicted in `section OpenGL Shader Compiler`_.
+
+  1.3. Raster Operations Units (ROPs)
+
+  - **Role:** Final stage of pixel processing in the graphics pipeline.
+  - **Functions:**
+
+    - Perform depth and stencil testing.
+    - Apply blending operations for transparency and antialiasing.
+    - Handle multisample anti-aliasing (MSAA).
+    - Write final pixel data into the framebuffer in VRAM.
+
+  - **Usage:**
+
+    - Essential for converting fragment outputs into visible image pixels.
+
+  1.4. Geometry and Rasterization Units
+
+  - **Role:** Fixed-function units that bridge programmable shaders with
+    pixel-level rendering.
+  - **Functions:**
+
+    - Assemble vertices into primitives (triangles, lines).
+    - Clip primitives against the view frustum.
+    - Perform perspective division and viewport transformation.
+    - Rasterize primitives into fragments (potential pixels).
+
+  - **Usage:**
+
+    - Feed fragment shaders with interpolated per-fragment attributes
+      (color, depth, texture coordinates).
+
+  1.5. Ray-Tracing Cores [#wiki-ray-tracing]_
+
+  - **Role:** Hardware acceleration for real-time ray tracing.
+  - **Components:**
+
+    - **BVH Traversal Units:** Walk bounding volume hierarchies to efficiently
+      locate candidate geometry for intersection.
+    - **Ray-Triangle Intersection Units:** Compute exact intersection points
+      between rays and primitives.
+
+  - **Usage:**
+
+    - Enable realistic lighting effects such as reflections, shadows, and
+      global illumination.
+    - Not part of the traditional OpenGL pipeline, but exposed via extensions
+      or modern APIs (Vulkan, DirectX Raytracing).
+
+2 Tensor Cores / Matrix Units: For AI (Deep Learning) application
 
 - **Role:** Specialized hardware for accelerating matrix-multiply-and-accumulate
   operations.
@@ -1675,73 +1748,7 @@ their relationship to graphics and compute workloads.
   - Designed for deep learning training and inference.
   - Orders of magnitude faster than executing matrix multiplications on general ALUs.
 
-3. Texture Mapping Units (TMUs)
-
-- **Role:** Specialized for texture sampling and filtering in graphics.
-- **Functions:**
-
-  - **Texture Addressing:** Convert texture coordinates (UV) into texel addresses.
-  - **Filtering:** Apply bilinear, trilinear, or anisotropic filtering to
-    improve visual quality.
-  - **Compression Support:** Decode compressed texture formats such as BCn, ASTC.
-
-- **Usage:**
-
-  - Invoked during fragment shading when sampling textures.
-  - Optimized for locality and high-throughput memory access.
-
-- **Details:**
-
-  - As depicted in `section OpenGL Shader Compiler`_.
-
-4. Raster Operations Units (ROPs)
-
-- **Role:** Final stage of pixel processing in the graphics pipeline.
-- **Functions:**
-
-  - Perform depth and stencil testing.
-  - Apply blending operations for transparency and antialiasing.
-  - Handle multisample anti-aliasing (MSAA).
-  - Write final pixel data into the framebuffer in VRAM.
-
-- **Usage:**
-
-  - Essential for converting fragment outputs into visible image pixels.
-
-5. Geometry and Rasterization Units
-
-- **Role:** Fixed-function units that bridge programmable shaders with
-  pixel-level rendering.
-- **Functions:**
-
-  - Assemble vertices into primitives (triangles, lines).
-  - Clip primitives against the view frustum.
-  - Perform perspective division and viewport transformation.
-  - Rasterize primitives into fragments (potential pixels).
-
-- **Usage:**
-
-  - Feed fragment shaders with interpolated per-fragment attributes
-    (color, depth, texture coordinates).
-
-6. Ray-Tracing Cores [#wiki-ray-tracing]_
-
-- **Role:** Hardware acceleration for real-time ray tracing.
-- **Components:**
-
-  - **BVH Traversal Units:** Walk bounding volume hierarchies to efficiently
-    locate candidate geometry for intersection.
-  - **Ray-Triangle Intersection Units:** Compute exact intersection points
-    between rays and primitives.
-
-- **Usage:**
-
-  - Enable realistic lighting effects such as reflections, shadows, and
-    global illumination.
-  - Not part of the traditional OpenGL pipeline, but exposed via extensions
-    or modern APIs (Vulkan, DirectX Raytracing).
-
-7. Memory Subsystem
+3. GMC (Graphics Memory Controller) and Memory Subsystem
 
 - **Role:** Provide extremely high bandwidth to keep thousands of GPU threads active.
 - **Hierarchy:**
@@ -1753,22 +1760,35 @@ their relationship to graphics and compute workloads.
   - **VRAM (GDDR6, HBM):** High-bandwidth external memory; throughput in the
     hundreds of GB/s to multiple TB/s.
   - **Memory Controllers:** Handle request scheduling, coalescing, and error correction.
+  - **Memory stack:** Private stack memory per-thread.
+  - **Shared Memory:** On-chip scratchpad memory shared among threads of a block.
 
 - **Usage:**
   - Critical for both compute and graphics; performance often limited by memory bandwidth.
 
-8. Display and Video Processing Units
+4. VPU (Video Processing Unit)
+
+- **Role:** Specialized fixed-function engines for accelerating processing 
+  multimedia.
+- **Components:**
+
+  - **Video Encode/Decode Engines:** Dedicated ASICs for codecs such as H.264,
+    H.265/HEVC, and AV1. Examples include NVIDIA NVENC, AMD VCN, and Intel QuickSync.
+
+- **Usage:**
+  - Offload video compressed streaming processing from general-purpose SMs.
+
+5. DIF (Display Interface)
 
 - **Role:** Specialized fixed-function engines for display output and multimedia.
 - **Components:**
 
   - **Display Controllers:** Drive monitors via HDMI, DisplayPort. Support scaling,
     color correction, and adaptive sync (G-Sync, FreeSync).
-  - **Video Encode/Decode Engines:** Dedicated ASICs for codecs such as H.264,
-    H.265/HEVC, and AV1. Examples include NVIDIA NVENC, AMD VCN, and Intel QuickSync.
 
 - **Usage:**
-  - Offload video playback, streaming, and screen presentation from general-purpose SMs.
+  - Offload video playback, and screen presentation from general-purpose SMs.
+
 
 All Together
 
@@ -1823,15 +1843,17 @@ Summary:
 
 - The PU is a pipleline execution unit compared to CPU architecture.
 
+The leading NVIDIA GPU architecture is illustrated in :numref:`gpu-sched`, 
+**where the scoreboard is shown without the mask field**. 
+This represents a SIMT pipeline with a scoreboard.
 
-The leading GPU architecture of Nvidia GPUs is shown in the following figures.
-
-.. _threadslanes: 
-.. figure:: ../Fig/gpu/threads-lanes.png
+.. _gpu-sched: 
+.. figure:: ../Fig/gpu/gpu-sched.png
   :align: center
   :scale: 50 %
 
-  Threads and lanes in gpu (figure from book [#Quantitative-threads-lanes]_)
+  Simplified block diagram of a Multithreaded SIMD Processor. (figure from book 
+  [#Quantitative-threads-lanes]_)
 
 .. note:: A SIMD Thread executed by SIMD Processor, a.k.a. SM, has 16 Lanes.
   
@@ -1915,13 +1937,16 @@ The leading GPU architecture of Nvidia GPUs is shown in the following figures.
 
   GPU memory (figure from book [#Quantitative-gpu-mem]_)
 
-.. raw:: latex
+.. _gpu-terms: 
+.. figure:: ../Fig/gpu/gpu-terms.png
+  :align: center
+  :scale: 50 %
 
-   \clearpage
+  Terms in Nvidia's gpu (figure from book [#Quantitative-gpu-terms]_)
 
 Summarize as table below.
  
-.. list-table:: More Descriptive Name for Cuda term in Fermi G:PU.
+.. list-table:: More Descriptive Name for Cuda term in Fermi GPU.
   :widths: 15 15 10 40
   :header-rows: 1
 
@@ -1972,6 +1997,307 @@ Summarize as table below.
       Vector length is 32 (32 elements), SIMD Lanes = 16. Chime = 2. 
       Chimes refer to ALU cycles that run in "ping-pong" mode.
       As :numref:`grid` for the later Fermi-generation GPUs.
+
+
+SISD, SIMD, SIMT and SPMD Pipelines
+***********************************
+
+This section illustrates the difference between SISD, SIMD, SIMT and SPMD
+pipelines using the same pipeline stages: Fetch (F), Decode (D),
+Execute (E), Memory (M), and Writeback (W).
+
+The low end GPU provide SIMD in their pipeline, all instructions executed in 
+lock-step while the high end GPU provide SPMD in pipeline which means the
+instructions is interleaved in pipeline are shown below.
+
+**SISD (Single Instruction, Single Data)**
+
+Only one instruction stream, operating on one data element.
+
+.. code-block::
+
+   Cycle →
+   Pipeline Stages:   [F]        [D]        [E]        [M]        [W]
+
+   I1: LD R1, A[0]     ─────────────────────────────→
+   I2: LD R2, B[0]               ─────────────────────────────→
+   I3: ADD R3, R1, R2                          ─────→
+   I4: ST C[0], R3                                             ───────────────→
+
+- Instructions execute sequentially.
+- Only a single instruction stream fills the pipeline.
+
+**SIMD (Single Instruction, Multiple Data)**
+
+One instruction controls multiple data lanes (lockstep execution).
+
+.. code-block::
+
+   Cycle →
+   Pipeline Stages:   [F]        [D]        [E]        [M]        [W]
+
+   I1: LD V1, A[0..3]  ─────────────────────────────→
+   I2: LD V2, B[0..3]             ─────────────────────────────→
+   I3: ADD V3, V1, V2                            ─────→
+   I4: ST C[0..3], V3                                          ───────────────→
+
+Parallel execution per lane:
+
+   Lane0: A[0] + B[0] → C[0]
+   Lane1: A[1] + B[1] → C[1]
+   Lane2: A[2] + B[2] → C[2]
+   Lane3: A[3] + B[3] → C[3]
+
+- One instruction stream, multiple data processed simultaneously.
+- Vector units execute in parallel lanes.
+
+**SPMD (Single Program, Multiple Data)**
+
+Multiple threads execute the same program independently.
+Instructions from different threads are interleaved in the pipeline.
+
+.. code-block::
+
+   Cycle →
+   Pipeline Stages:   [F]        [D]        [E]        [M]        [W]
+
+   T0.I1: LD R1, A[0]  ─────────────────────────────→
+   T1.I1: LD R1, A[1]             ─────────────────────────────→
+   T0.I2: LD R2, B[0]                          ─────────────────────────────→
+   T1.I2: LD R2, B[1]                                        ─────────────────────────────→
+   T0.I3: ADD R3, R1, R2                 ─────→
+   T1.I3: ADD R3, R1, R2                               ─────→
+   T0.I4: ST C[0], R3                                              ───────────────→
+   T1.I4: ST C[1], R3                                                            ───────────────→
+
+- Each thread executes the same program with different data.
+- Instructions from different threads can be interleaved to hide latency.
+- Typical execution model of GPUs.
+
+**SPMD Programming Model vs SIMD/SIMT Execution**
+
+**In the muti-cores CPU running SPMD that each core can schedule and run any PC
+of instruction**. For example, core-1 run I(1..10), core-2 run I(31..35).
+For this situation, it is equal to SM (Warp) in the table 
+"More Descriptive Name for Cuda term in Fermi GPU" of previous section.
+**The SM-1 run I(1..10), SM-2 run I(31..35), but the SM cannot schedule it's 
+thread-1 run I(1..10), thread-2 run I(31..35)**.
+
+As result,
+**there is no mainstream GPU that is truly hardware-SPMD** (where each thread 
+has its own independent pipeline).
+All modern GPUs (NVIDIA, AMD, Intel) implement SPMD as a programming model, but 
+under the hood they execute in SIMD lock-step groups (warps or wavefronts).
+GPUs expose an **SPMD programming model** (each thread runs the same kernel on
+different data). However, the hardware actually executes instructions in
+**SIMD/SIMT lock-step groups**.
+
+.. code-block::
+
+  Divergent Kernel Example:
+  -------------------------
+  if (tid % 2 == 0) {         // even threads: long loop
+    for (...) { loop_body } // many iterations
+  } else {                    // odd threads: short path
+    C[tid] = A[tid] + B[tid];
+  }
+
+  Legend: F=Fetch, D=Decode, E=Execute, M=Memory, W=Writeback
+          S=Stall/masked-off, "..." = loop continues
+
+
+  ===================================================================
+  Pascal (lock-step SIMT with SIMT stack)
+  -------------------------------------------------------------------
+  Cycle →   0   1   2   3   4   5   6   7   8   9  10  11  12 ...
+  T0 even:  F   D   E   M   W   F   D   E   M   W   F   D  ...
+  T1 odd :  S   S   S   S   S   S   S   S   S   S   S   S  ...
+            (Odd threads wait until even path completes, then:)
+            ... F D E M W → done
+
+
+  ===================================================================
+  Volta (SIMT with independent thread scheduling)
+  -------------------------------------------------------------------
+  Cycle →   0   1   2   3   4   5   6   7   8   9  10  11 ...
+  T0 even:  F   D   E   M   W   F   D   E   M   W   F   D  ...
+  T1 odd :      F   D   E   M   W   done
+            (Odd thread issues its short path early,
+             interleaved with even loop instructions)
+
+
+  ===================================================================
+  True SPMD (CPU-like, fully independent threads)
+  -------------------------------------------------------------------
+  Cycle →   0   1   2   3   4   5   6   7   8   9 ...
+  T0 even:  F   D   E   M   W   F   D   E   M   W  ...
+  T1 odd :  F   D   E   M   W   done
+            (Threads fetch/execute independently —
+             odd thread finishes immediately)
+
+Subsection `section Mapping data in GPU`_ includes more details in lanes masked.
+
+**Scoreboard purpose:**
+
+- GPU scoreboard = in-order issue, out-of-order completion
+
+- CPU reorder buffer (ROB) = out-of-order issue + completion, but retire in-order
+  - CPUs use a ROB to support out-of-order issue and retirement.
+
+In a lock-step GPU without divergence support, the scoreboard entries include 
+only {Warp-ID, PC (Instruction Address), …}. With divergence support (as in 
+real-world GPUs), the scoreboard entries expand to {Warp-ID, PC, mask, …}. 
+
+
+**Volta (Cuda thread/SIMD lane with PC, Program Couner and Call Stack)**
+
+**GPU scoreboard = in-order issue, out-of-order completion**
+
+	•	SIMT GPU before Volta = scoreboard contains: { Warp ID + PC + Active Mask }
+	•	Volta = scoreboard contains: { Warp ID + PC per thread (+ readiness per thread) }
+
+.. code-block::c++
+
+  int x = A[tid];    // load
+  int y = x + 1;     // add
+  C[tid] = y;        // store
+
+**Pipeline Timeline (Simplified)**
+
+Notation:
+
+LD = Load, ADD = Arithmetic, ST = Store
+
+C = Cycle
+
+**SIMT (Pascal and before, lock-step with active mask)**
+
+**All threads share one PC, so the entire warp stalls on thread 0’s miss.**
+
+- **Alough the LD instruction of threads 1..31 may complete early in the 
+  scoreboard pipeline, the subsequent ADD instruction ADD of threads 1..31 
+  cannot be issued until the LD of thread 0 is completed.**
+
+.. code-block::
+
+   C0: LD (threads 0..31) issue
+   C1: LD (waiting for thread 0 memory)
+   C2: LD (waiting for thread 0 memory)
+   C3: LD (waiting for thread 0 memory)
+   ...
+   Cn: LD completes for all threads
+   Cn+1: ADD (threads 0..31)
+   Cn+2: ST  (threads 0..31)
+
+Result:
+   - Entire warp waits for the slowest lane (thread 0).
+   - No progress until all loads finish.
+
+
+**Volta and later (Independent Thread Scheduling)**
+
+**Each thread has its own PC; only thread 0 stalls, others advance.**
+
+- **The subsequent ADD instruction ADD of threads 1..31 
+  can be issued sinc thread has its own PC.**
+
+.. code-block::
+
+   Thread 0:
+      C0: LD (miss) --> stall
+      C1..Cn: waiting
+      Cn+1: ADD
+      Cn+2: ST
+
+   Thread 1:
+      C0: LD (hit)
+      C1: ADD
+      C2: ST
+      C3: done early
+
+   Thread 2:
+      C0: LD (hit)
+      C1: ADD
+      C2: ST
+      C3: done early
+
+   Thread 3:
+      C0: LD (hit)
+      C1: ADD
+      C2: ST
+      C3: done early
+
+Result:
+   - Thread 0 is stalled on memory.
+   - Other threads in the same warp continue executing and finish.
+   - Independent progress inside a warp is possible.
+
+Volta from Nvidia's website
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The following is from Nvdia's website:
+
+One way the compiler handles this is by keeping executing instructions in order 
+and if some threads don’t have to execute certain instructions it switches off 
+those threads and turns them on their relevant instructions and switches off 
+the other threads, this process is called masking.
+
+.. _pre-volta-1: 
+.. figure:: ../Fig/gpu/pre-volta-1.png
+  :align: center
+  :scale: 50 %
+
+  SIMT Warp Execution Model of Pascal and Earlier GPUs [#Volta]_
+
+.. _volta-1: 
+.. figure:: ../Fig/gpu/volta-1.png
+  :align: center
+  :scale: 50 %
+
+  Volta Warp with Per-Thread Program Counter and Call Stack [#Volta]_
+
+- After Nvidia's Volta GPU, each thread in a warp has its own program counter  
+  (PC), as shown in :numref:`volta-1`.
+
+.. code:: text
+
+  // 
+  __device__ void insert_after(Node *a, Node *b)
+  {
+    Node *c;
+    lock(a); lock(a->next);
+    ...
+    unlock(c); unlock(a);
+  }
+
+- Volta’s independent thread scheduling allows the GPU to yield execution of 
+  any thread, either to make better use of execution resources or to allow 
+  one thread to wait for data to be produced by another.
+  As the above example [#Volta]_, each thread can progress with its own PC. 
+  Therefore, different threads in the same warp can run  
+  ``insert_after()`` independently without waiting for ``lock()``.
+
+- Provide both thread in group efficency and independently thread progression.
+
+  Beside each thread in same Warp can progress independently as above,
+  To maximize parallel efficiency, Volta includes a schedule optimizer which 
+  determines how to group active threads from the same warp together into SIMT 
+  units. This retains the high throughput of SIMT execution as in prior NVIDIA 
+  GPUs, but with much more flexibility: threads can now diverge and reconverge 
+  at sub-warp granularity, while the convergence optimizer in Volta will still 
+  group together threads which are executing the same code and run them in 
+  parallel for maximum efficiency.
+  In Cuda Applications, this feature provides more parallel opportunities with 
+  __syncwarp() to user programmers as shown in :numref:`volta-2`.
+
+.. _volta-2: 
+.. figure:: ../Fig/gpu/volta-2.png
+  :align: center
+  :scale: 50 %
+
+  Programs use Explicit Synchronization to Reconverge Threads in a Warp [#Volta]_
+
+
 
 
 Address Coalescing and gather-scatter
@@ -2757,69 +3083,6 @@ compressing [#gpuspeedup]_ gives the more applications for GPU acceleration.
   As a result, GPUs often lack L2 and L3 caches, which are common in CPUs with  
   deeper cache hierarchies.
 
-Volta (Cuda thread/SIMD lane with PC, Program Couner and Call Stack)
-********************************************************************
-
-One way the compiler handles this is by keeping executing instructions in order 
-and if some threads don’t have to execute certain instructions it switches off 
-those threads and turns them on their relevant instructions and switches off 
-the other threads, this process is called masking.
-
-.. _pre-volta-1: 
-.. figure:: ../Fig/gpu/pre-volta-1.png
-  :align: center
-  :scale: 50 %
-
-  SIMT Warp Execution Model of Pascal and Earlier GPUs [#Volta]_
-
-.. _volta-1: 
-.. figure:: ../Fig/gpu/volta-1.png
-  :align: center
-  :scale: 50 %
-
-  Volta Warp with Per-Thread Program Counter and Call Stack [#Volta]_
-
-- After Nvidia's Volta GPU, each thread in a warp has its own program counter  
-  (PC), as shown in :numref:`volta-1`.
-
-.. code:: text
-
-  // 
-  __device__ void insert_after(Node *a, Node *b)
-  {
-    Node *c;
-    lock(a); lock(a->next);
-    ...
-    unlock(c); unlock(a);
-  }
-
-- Volta’s independent thread scheduling allows the GPU to yield execution of 
-  any thread, either to make better use of execution resources or to allow 
-  one thread to wait for data to be produced by another.
-  As the above example [#Volta]_, each thread can progress with its own PC. 
-  Therefore, different threads in the same warp can run  
-  ``insert_after()`` independently without waiting for ``lock()``.
-
-- Provide both thread in group efficency and independently thread progression.
-
-  Beside each thread in same Warp can progress independently as above,
-  To maximize parallel efficiency, Volta includes a schedule optimizer which 
-  determines how to group active threads from the same warp together into SIMT 
-  units. This retains the high throughput of SIMT execution as in prior NVIDIA 
-  GPUs, but with much more flexibility: threads can now diverge and reconverge 
-  at sub-warp granularity, while the convergence optimizer in Volta will still 
-  group together threads which are executing the same code and run them in 
-  parallel for maximum efficiency.
-  In Cuda Applications, this feature provides more parallel opportunities with 
-  __syncwarp() to user programmers as shown in :numref:`volta-2`.
-
-.. _volta-2: 
-.. figure:: ../Fig/gpu/volta-2.png
-  :align: center
-  :scale: 50 %
-
-  Programs use Explicit Synchronization to Reconverge Threads in a Warp [#Volta]_
-
 
 OpenCL, Vulkan and spir-v
 -------------------------
@@ -3158,11 +3421,17 @@ Open Sources
 - https://www.opengl.org/sdk/, https://www.opengl.org/sdk/libs/
 
 
+.. _section Graphic HW and SW Stack:
+  http://jonathan2251.github.io/lbd/gpu.html#graphic-hw-and-sw-stack
+
 .. _section OpenGL:
   http://jonathan2251.github.io/lbd/gpu.html#opengl
 
 .. _section OpenGL Shader Compiler:
   http://jonathan2251.github.io/lbd/gpu.html#opengl-shader-compiler
+
+.. _section Mapping data in GPU:
+  http://jonathan2251.github.io/lbd/gpu.html#mapping-data-in-gpu
 
 .. [#cg_basictheory] https://www3.ntu.edu.sg/home/ehchua/programming/opengl/CG_BasicsTheory.html
 
