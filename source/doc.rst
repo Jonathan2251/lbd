@@ -7,6 +7,83 @@ Appendix B: Cpu0 document and test
    :local:
    :depth: 4
 
+github
+------
+
+Create gh-pages
+***************
+
+1. Create a new orphan branch for GitHub Pages and clean the directory.
+
+..code-block:: console
+
+  % git branch
+  * gh-pages
+  master
+
+  % git checkout --orphan gh-pages
+  % git rm -rf .
+
+2. GitHub Pages build error
+
+  - Cause: GitHub tries to build Jekyll by default
+  - Fix: Add a .nojekyll file to the root of gh-pages:
+
+..code-block:: console
+
+  % git branch
+  * gh-pages
+  master
+
+  % touch .nojekyll
+  % git add .nojekyll
+  % git commit -m "Disable Jekyll"
+  % git push
+
+
+reST format
+-----------
+
+The reSTructure format (Sphinx).
+
+Six Levels of Chapter, section, subsections
+*******************************************
+
+.. rubric:: Six Levels of Chapter, section, subsections
+.. code-block:: text
+
+  1. Chapter -- Level 1
+  ===============
+  Level 1 Title
+  ===============
+
+  2. Section -- Level 2
+  ---------------
+  Level 2 Title
+  ---------------
+
+  3. Subsection -- Level3
+  ***************
+  Level 3 Title
+  ***************
+
+  4. Subsection -- Level4
+  ^^^^^^^^^^^^^^^
+  Level 4 Title
+  ^^^^^^^^^^^^^^^
+
+  5. Subsection -- Level5
+  """""""""""""""
+  Level 5 Title
+  """""""""""""""
+
+  6. Subsection -- Level6
+  ~~~~~~~~~~~~~~~
+  Level 6 Title
+  ~~~~~~~~~~~~~~~
+
+
+
 Cpu0 document
 -------------
 

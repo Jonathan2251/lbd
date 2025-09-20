@@ -1,0 +1,87 @@
+digraph OpenGL_GPU_Mapping {
+    rankdir=TB;
+
+    // Use HTML-like label for the whole graph
+    label=<
+        <TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" ALIGN="LEFT">
+            <TR><TD></TD></TR>
+            <TR><TD></TD></TR>
+            <TR><TD><FONT POINT-SIZE="16" COLOR="darkblue"><B>• OpenGL pipeline stages = Yellow</B></FONT></TD></TR>
+            <TR><TD><FONT POINT-SIZE="16" COLOR="darkblue"><B>• GPU hardware units = Blue</B></FONT></TD></TR>
+            <TR><TD><FONT POINT-SIZE="16" COLOR="darkblue"><B>• GPU-only internals = Gray</B></FONT></TD></TR>
+            <TR><TD><FONT POINT-SIZE="16" COLOR="darkblue"><B>• Dashed arrows indicate mapping from OpenGL stages to hardware</B></FONT></TD></TR>
+        </TABLE>
+    >;
+
+    node [shape=box style="rounded,filled" fontsize=16];
+
+    // === OpenGL Pipeline (multi-rows) ===
+    Application   [label="Application\n(CPU Side)", fillcolor=lightyellow];
+    VertexSpec    [label="Vertex Specification\n(glDraw, VBOs)", fillcolor=lightyellow];
+
+    OGL_Vertex    [label="Vertex Shader", fillcolor=lightyellow];
+    TessCtrl      [label="Tessellation \nControl Shader", fillcolor=lightyellow];
+    TessGen       [label="Tessellation \nPrimitive Generator", fillcolor=lightyellow];
+    TessEval      [label="Tessellation \nEvaluation Shader", fillcolor=lightyellow];
+    OGL_Geometry  [label="Geometry Shader / Clipping", fillcolor=lightyellow];
+
+    OGL_Raster    [label="Rasterization", fillcolor=lightyellow];
+    OGL_Fragment  [label="Fragment Shader", fillcolor=lightyellow];
+    OGL_PerFrag   [label="Per-Fragment Ops\n(Depth, Stencil, Blend)", fillcolor=lightyellow];
+    OGL_Framebuf  [label="Framebuffer", fillcolor=lightyellow];
+
+    // OpenGL flow
+    Application -> VertexSpec -> OGL_Vertex -> TessCtrl -> TessGen -> TessEval -> OGL_Geometry -> OGL_Raster -> OGL_Fragment -> OGL_PerFrag -> OGL_Framebuf;
+
+    // === GPU Hardware Units (multi-rows) ===
+    HW_Vertex    [label="SMs (Vertex Shader)\n(ALUs, SFUs, Load/Store)", fillcolor=lightblue];
+    HW_Fragment  [label="SMs (Fragment Shader)\n(ALUs, SFUs, TMUs)", fillcolor=lightblue];
+    HW_Geometry  [label="Geometry Units\n(Primitive Assembly, Clipping)", fillcolor=lightblue];
+    HW_Raster    [label="Rasterization Units\n(Triangle → Fragments)", fillcolor=lightblue];
+    ROP          [label="Render Output Units (ROPs)\n(Depth, Stencil, Blend)", fillcolor=lightblue];
+    HW_Framebuf  [label="Framebuffer in VRAM", fillcolor=lightblue];
+    TMU          [label="Texture Mapping Units (TMUs)\n(Texture Fetch/Filter)", fillcolor=lightgray];
+    Display      [label="Display Controller\n(Output to Screen)", fillcolor=lightgray];
+
+    // Memory hierarchy
+    L1           [label="L1 / Shared Memory", fillcolor=lightgray];
+    L2           [label="L2 Cache", fillcolor=lightgray];
+    VRAM         [label="VRAM (GDDR/HBM)", fillcolor=lightgray];
+    Coalescing   [label="Coalescing Unit", fillcolor=lightgray];
+    GatherScatter[label="Gather–Scatter Unit", fillcolor=lightgray];
+
+    // GPU flow
+    HW_Vertex -> HW_Geometry -> HW_Raster -> HW_Fragment;
+    HW_Fragment -> TMU;
+    HW_Fragment -> ROP -> HW_Framebuf -> Display;
+
+    // Memory path
+    HW_Vertex -> L1;
+    HW_Fragment -> L1;
+    L2 -> Coalescing;
+    L1 -> L2 -> VRAM;
+    L2 -> GatherScatter;
+    TMU -> L1 [label="Texture Fetch"];
+    VRAM -> Display;
+
+    // === Mapping edges (OpenGL → Hardware) ===
+    OGL_Vertex   -> HW_Vertex   [style=dashed color=blue];
+    TessCtrl     -> HW_Vertex   [style=dashed color=blue];
+    TessEval     -> HW_Vertex   [style=dashed color=blue];
+    OGL_Geometry -> HW_Geometry [style=dashed color=blue];
+    OGL_Raster   -> HW_Raster   [style=dashed color=blue];
+    OGL_Fragment -> HW_Fragment [style=dashed color=blue];
+    OGL_PerFrag  -> ROP         [style=dashed color=blue];
+    OGL_Framebuf -> HW_Framebuf [style=dashed color=blue];
+
+    // === Layering for better spacing ===
+    { rank = same; Application; VertexSpec }
+    { rank = same; OGL_Vertex; TessCtrl; TessGen }
+    { rank = same; TessEval; OGL_Geometry }
+    { rank = same; OGL_Raster; OGL_Fragment; OGL_PerFrag; OGL_Framebuf }
+
+    { rank = same; HW_Vertex; HW_Fragment }
+    { rank = same; HW_Geometry; HW_Raster; ROP; HW_Framebuf; TMU }
+    { rank = same; L1; L2; VRAM; Display }
+    { rank = same; Coalescing; GatherScatter }
+}

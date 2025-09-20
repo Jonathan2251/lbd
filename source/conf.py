@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# lbt documentation build configuration file, created by
+# lbd documentation build configuration file, created by
 # sphinx-quickstart on Wed Jun 29 15:05:09 2016.
 #
 # This file is execfile()d with the current directory set to its
@@ -242,7 +242,7 @@ html_static_path = ['_static']
 # html_search_scorer = 'scorer.js'
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = 'lbtdoc'
+htmlhelp_basename = 'lbddoc'
 
 # -- Options for LaTeX output ---------------------------------------------
 
@@ -263,6 +263,12 @@ latex_elements = {
      # Latex figure (float) alignment
      #
      # 'figure_align': 'htbp',
+
+    'preamble': r'''
+\usepackage{xeCJK}
+\setCJKmainfont{PingFang TC}
+'''
+
 }
 
 # Grouping the document tree into LaTeX files. List of tuples

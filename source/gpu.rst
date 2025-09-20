@@ -1644,161 +1644,163 @@ From compiler's view, GPU is shown as :numref:`gpu-hw`.
   :caption: Components of a GPU: SIMD/SIMT + several specialized processing units
 
  
-A GPU is not just “many cores” — it’s a mix of general-purpose compute units 
-(ALUs, SFUs, Tensor Cores), graphics-specific units (TMUs, ROPs, rasterizers, 
-ray-tracing cores), and memory/display processors, all interconnected with 
-high-bandwidth memory systems.
-At the hardware level, a modern GPU typically contains:
+A GPU is not just “many cores” — it’s a mix of general-purpose ompute clusters, 
+specialized units, and the memory subsystem. It corresponds to the block 
+diagram graph shown in :numref:`gpu-hw`. 
 
-This section introduces the major hardware units inside a modern GPU and
-their relationship to graphics and compute workloads.
+The stages of the OpenGL rendering pipeline and the GPU hardware units
+that accelerate them as shown in :numref:`ogl-pipeline-hw`:
 
-**1. GCA (Graphic and Compute Array)**
+.. _ogl-pipeline-hw: 
+.. graphviz:: ../Fig/gpu/ogl-pipeline-hw.gv
+  :caption: The stages of OpenGL pipeline and GPU's acceleration components
 
-  1.1 Streaming Multiprocessors (SMs) / Compute Units (CUs)
 
-  - **Role:** The central execution units of the GPU.
+**Compute Cluster**
 
-  - **Components:**
+- **Role:**  
+  Provide large-scale data-parallel execution. Each GPU contains many
+  Streaming Multiprocessors (SMs) or Compute Units (CUs), each capable
+  of executing thousands of threads in parallel.
 
-    - **Arithmetic Logic Units (ALUs):** Perform integer and floating-point
-      arithmetic in scalar operation and includes vector operation in most GPU
-      for each thread. Often include separate pipelines for FP32, FP64, and INT32.
-    - **Special Function Units (SFUs):** Accelerate transcendental operations
-      such as sin, cos, exp, and log. These would be very slow if only computed 
-      by ALUs.
-    - **Load/Store Units (LD/ST):** Handle memory reads and writes between
-      registers, shared memory, and global memory.
-      It is important because memory latency is huge compared to ALU ops.
-    - **Warp/Wavefront Scheduler:** Groups threads into *warps* (NVIDIA, 32 threads)
-      or *wavefronts* (AMD, 64 threads) and schedules instructions to hide latency.
-
-  - **Usage:**
-
-    - Executes programmable shader stages (vertex, tessellation, geometry,
-        fragment/compute shaders).
-    - Handles both graphics rendering and general-purpose computation (CUDA, OpenCL).
-
-  1.2. Texture Mapping Units (TMUs)
-
-  - **Role:** Specialized for texture sampling and filtering in graphics.
-  - **Functions:**
-
-    - **Texture Addressing:** Convert texture coordinates (UV) into texel addresses.
-    - **Filtering:** Apply bilinear, trilinear, or anisotropic filtering to
-      improve visual quality.
-    - **Compression Support:** Decode compressed texture formats such as BCn, ASTC.
-
-  - **Usage:**
-
-    - Invoked during fragment shading when sampling textures.
-    - Optimized for locality and high-throughput memory access.
-
-  - **Details:**
-
-    - As depicted in `section OpenGL Shader Compiler`_.
-
-  1.3. Raster Operations Units (ROPs)
-
-  - **Role:** Final stage of pixel processing in the graphics pipeline.
-  - **Functions:**
-
-    - Perform depth and stencil testing.
-    - Apply blending operations for transparency and antialiasing.
-    - Handle multisample anti-aliasing (MSAA).
-    - Write final pixel data into the framebuffer in VRAM.
-
-  - **Usage:**
-
-    - Essential for converting fragment outputs into visible image pixels.
-
-  1.4. Geometry and Rasterization Units
-
-  - **Role:** Fixed-function units that bridge programmable shaders with
-    pixel-level rendering.
-  - **Functions:**
-
-    - Assemble vertices into primitives (triangles, lines).
-    - Clip primitives against the view frustum.
-    - Perform perspective division and viewport transformation.
-    - Rasterize primitives into fragments (potential pixels).
-
-  - **Usage:**
-
-    - Feed fragment shaders with interpolated per-fragment attributes
-      (color, depth, texture coordinates).
-
-  1.5. Ray-Tracing Cores [#wiki-ray-tracing]_
-
-  - **Role:** Hardware acceleration for real-time ray tracing.
-  - **Components:**
-
-    - **BVH Traversal Units:** Walk bounding volume hierarchies to efficiently
-      locate candidate geometry for intersection.
-    - **Ray-Triangle Intersection Units:** Compute exact intersection points
-      between rays and primitives.
-
-  - **Usage:**
-
-    - Enable realistic lighting effects such as reflections, shadows, and
-      global illumination.
-    - Not part of the traditional OpenGL pipeline, but exposed via extensions
-      or modern APIs (Vulkan, DirectX Raytracing).
-
-2 Tensor Cores / Matrix Units: For AI (Deep Learning) application
-
-- **Role:** Specialized hardware for accelerating matrix-multiply-and-accumulate
-  operations.
-- **Features:**
-  - Support mixed-precision arithmetic (e.g., FP16 input with FP32 accumulation).
-  - Perform small matrix multiplications (e.g., 4×4) in a single cycle.
-- **Usage:**
-  - Designed for deep learning training and inference.
-  - Orders of magnitude faster than executing matrix multiplications on general ALUs.
-
-3. GMC (Graphics Memory Controller) and Memory Subsystem
-
-- **Role:** Provide extremely high bandwidth to keep thousands of GPU threads active.
-- **Hierarchy:**
-
-  - **Registers:** Fastest, private storage per-thread.
-  - **Shared Memory / L1 Cache:** On-chip memory per-SM, low latency, shared
-    among threads in a block.
-  - **L2 Cache:** Larger, shared across all SMs; reduces global memory traffic.
-  - **VRAM (GDDR6, HBM):** High-bandwidth external memory; throughput in the
-    hundreds of GB/s to multiple TB/s.
-  - **Memory Controllers:** Handle request scheduling, coalescing, and error correction.
-  - **Memory stack:** Private stack memory per-thread.
-  - **Shared Memory:** On-chip scratchpad memory shared among threads of a block.
-
-- **Usage:**
-  - Critical for both compute and graphics; performance often limited by memory bandwidth.
-
-4. VPU (Video Processing Unit)
-
-- **Role:** Specialized fixed-function engines for accelerating processing 
-  multimedia.
 - **Components:**
 
-  - **Video Encode/Decode Engines:** Dedicated ASICs for codecs such as H.264,
-    H.265/HEVC, and AV1. Examples include NVIDIA NVENC, AMD VCN, and Intel QuickSync.
+  * **Warp Scheduler** – Schedules groups of threads (warps/wavefronts),
+    issues instructions in SIMT (Single Instruction, Multiple Threads) fashion.
+  * **Registers** – Per-thread private storage, the fastest memory level.
+  * **Shared Memory / L1 Cache** – On-chip memory close to the SM.
+    Shared Memory is explicitly managed by the programmer for cooperation
+    across threads, while L1 acts as a transparent cache.
+  * **ALUs (FP/INT)** – Execute floating-point and integer arithmetic.
+    They form the bulk of compute resources inside an SM.
+  * **SFUs (Special Function Units)** – Execute transcendental functions
+    such as sin, cos, exp, and reciprocal approximations.
+  * **Load/Store Units** – Handle global, local, and shared memory access,
+    interact with coalescing and caching logic.
+  * **RegLess Staging Operands (RSO)** – Temporary operand buffers used
+    to hide instruction and memory latencies.
 
-- **Usage:**
-  - Offload video compressed streaming processing from general-purpose SMs.
+- **Usage:**  
+  * Run programmable shaders (vertex, fragment, geometry, compute).  
+  * Perform general-purpose compute workloads (GPGPU).  
+  * Issue texture fetch requests to TMUs.  
+  * Interact with memory hierarchy via load/store units.  
+  * Offload certain operations to Tensor or Ray-Tracing units.  
 
-5. DIF (Display Interface)
+**Specialized Units**
 
-- **Role:** Specialized fixed-function engines for display output and multimedia.
+- **Role:**  
+  Accelerate fixed-function or specialized stages of the graphics and
+  compute pipeline that are inefficient to run purely in SMs.
+
+- **Components and Usage:**
+
+  * **Geometry Units** –  
+    Assemble input vertices into primitives (points, lines, triangles).
+    Perform tessellation (subdivide patches into smaller primitives),
+    clipping (discard geometry outside view), and geometry shading.  
+    *Usage:* Corresponds to the geometry/tessellation stage in the graphics pipeline.
+
+  * **Rasterization Units** –  
+    Convert vector-based primitives into fragments (potential pixels).
+    Interpolate per-vertex attributes (texture coordinates, normals, colors)
+    across the surface of each primitive.  
+    *Usage:* Bridge between geometry and fragment stages; produces fragments
+    for SM fragment shading.
+
+  * **Texture Mapping Units (TMUs)** –  
+    Fetch texture data from memory, apply filtering (bilinear, trilinear,
+    anisotropic), and compute texel addresses (wrap, clamp).  
+    *Usage:* Invoked during fragment shading inside SMs to provide sampled
+    texture values.
+
+  * **Render Output Units (ROPs)** –  
+    Handle late-stage pixel processing. Perform blending operations
+    (alpha, additive), depth and stencil tests, and write final pixel values
+    to the framebuffer in VRAM.  
+    *Usage:* Final step of the graphics pipeline before display scanout.
+
+  * **Tensor / Matrix Cores** –  
+    Perform fused-multiply-add (FMA) on large matrix tiles.
+    Designed for machine learning, AI inference, and linear algebra.  
+    *Usage:* Accelerate deep learning workloads or matrix-heavy compute kernels.
+
+  * **Ray-Tracing Units (RT Cores)** –  
+    Traverse bounding volume hierarchies (BVH) and perform ray–primitive
+    intersection tests in hardware.  
+    *Usage:* Enable real-time ray tracing by offloading intersection work
+    from SMs.
+
+  * **Video Engines** –  
+    Dedicated ASICs for video codec operations such as H.264/H.265/AV1 encode
+    and decode.  
+    *Usage:* Media playback, streaming, and video encoding without occupying SMs.
+
+  * **Display Controller** –  
+    Reads final framebuffer images from VRAM and drives display interfaces
+    like HDMI and DisplayPort.  
+    *Usage:* Outputs rendered frames to monitors or VR headsets.
+
+**Memory Subsystem**
+
+- **Role:**  
+  Deliver high-bandwidth data access to thousands of threads while
+  minimizing latency through caching and access optimization.
+
 - **Components:**
 
-  - **Display Controllers:** Drive monitors via HDMI, DisplayPort. Support scaling,
-    color correction, and adaptive sync (G-Sync, FreeSync).
+  * **L1 / Shared Memory** –  
+    Closest to SMs. Shared Memory is explicitly used by programs for
+    intra-block communication, while L1 acts as an automatic cache.  
+    *Usage:* Boosts performance by keeping frequently accessed data
+    close to execution units.
 
-- **Usage:**
-  - Offload video playback, and screen presentation from general-purpose SMs.
+  * **L2 Cache** –  
+    Shared across all SMs. Reduces redundant traffic to VRAM and
+    improves latency for reused data.  
+    *Usage:* Provides intermediate caching layer for both compute and graphics.
+
+  * **VRAM (GDDR / HBM)** –  
+    External high-bandwidth DRAM. Stores textures, framebuffers,
+    vertex/index buffers, and large compute datasets.  
+    *Usage:* The main memory backing for all GPU workloads.
+
+  * **Interconnect / Memory Controller** –  
+    Orchestrates memory requests, manages access to VRAM,
+    and ensures fairness between SMs.  
+    *Usage:* Handles scheduling and distribution of memory transactions.
+
+  * **Memory Coalescing Unit** –  
+    Combines multiple per-thread memory requests from a warp into fewer,
+    wider transactions. Most effective for contiguous access patterns.  
+    *Usage:* Improves memory bandwidth efficiency and reduces wasted cycles.
+
+  * **Gather–Scatter Unit** –  
+    Handles irregular or sparse memory accesses where coalescing is not possible.
+    May break requests into multiple smaller transactions.  
+    *Usage:* Supports workloads such as sparse matrix operations, graph traversal,
+    or irregular data structures.
+
+**Data Flow Highlights**
+
+- **Graphics pipeline path:**  
+  Vertex data → Geometry Units → Rasterization Units → Fragment Shading (SMs)
+  → TMUs (texture fetch) → ROPs (blend/depth/stencil) → VRAM (framebuffer).
+
+- **Compute path:**  
+  SMs execute general-purpose kernels → optional offload to Tensor or RT cores
+  → interact with caches → VRAM.
+
+- **Memory behavior:**  
+  SMs issue memory requests → Coalescing Unit optimizes if possible → L2 cache →
+  VRAM. For irregular access (e.g., sparse data), Gather–Scatter generates
+  multiple VRAM transactions.
+
+- **Display path:**  
+  Final framebuffer stored in VRAM → Display Controller → HDMI / DP scanout.
 
 
-All Together
+**All Together**
 
 **GPU provides the following hardware to accelerate graphics rendering pipeline as follows:**
 
@@ -2692,17 +2694,11 @@ Operand Delivery in Traditional GPU
      node [shape=box, style=filled, fontname="Helvetica", fontsize=10];
 
      subgraph cluster_memory {
-       label="Global Memory";
+       label="Memory Hierarchy";
        style=filled;
        color=lightgray;
        GMEM [label="Global Memory"];
-     }
-
-     subgraph cluster_cache {
-       label="L1 Data Cache";
-       style=filled;
-       color=lightyellow;
-       L1 [label="L1 Cache"];
+       L1 [label="L1 Cache", fillcolor=lightyellow];
      }
 
      subgraph cluster_registers {
@@ -2859,6 +2855,200 @@ energy,
 and enables more efficient shader execution. Compiler-guided operand staging and
 region slicing allow hardware to dynamically optimize operand placement without
 burdening the instruction stream with excessive metadata.
+
+
+Specialized Units
+*****************
+
+Texture Mapping Units (TMUs)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Overview
+
+A Texture Mapping Unit (TMU) is a fixed-function hardware block inside a GPU 
+responsible for *fetching, filtering, and preparing texture data* that shaders 
+(sampled in fragment or compute stages) use during rendering.  
+
+TMUs sit between the shader cores (SMs/CUs) and the memory subsystem. 
+They provide high-performance, specialized texture access operations that 
+would be too slow or costly to emulate in general-purpose ALUs is shown as
+:numref:`texture-fetch`.
+
+.. _texture-fetch: 
+.. graphviz:: ../Fig/gpu/texture-fetch.gv
+  :caption: The flow of issuing texture instruction from SM to TMU.
+
+Pipeline Role
+
+- In the **OpenGL / Direct3D graphics pipeline**, TMUs are mainly used in the 
+  *fragment shading stage*, where textured surfaces are shaded with data 
+  from 2D/3D textures.
+- In **compute shaders**, TMUs are also used for image load/store operations 
+  and texture sampling.
+
+Key Responsibilities
+
+1. Texture Addressing
+
+   * Compute the correct texture coordinate for a given fragment or pixel.
+   * Handle the following wrapping modes are shown as :numref:`texture-wrap-2`
+     and as :numref:`texture-wrap`:
+
+     Texture coordinates usually range from (0,0) to (1,1) but what happens if 
+     we specify coordinates outside this range? OpenGL provides the following
+     wrapping modes for outside this range.
+
+     - Clamp-to-border (GL_CLAMP_TO_BORDER)
+
+       - When a texture coordinate falls outside the [0,1] range, the GPU 
+         does not sample the nearest texel.
+       - Instead, it returns a user-defined border color for that texture.
+       - This is useful for effects like shadow maps, where sampling outside 
+         the valid area should produce a consistent value.
+
+     - Repeat (GL_REPEAT): Wraps coordinates around (tiles the texture).
+     - Clamp-to-edge (GL_CLAMP_TO_EDGE): Uses the edge texel when coordinates 
+       are out of range. 
+     - Mirrored repeat (GL_MIRRORED_REPEAT): Mirrors the texture each repetition.
+
+       - For the middle row (t(V) in the range 0.0 to 1.0), the mirroring 
+         operation applies only a left-right swap. For the top and bottom rows, 
+         the mirroring includes both left-right and up-down swaps.
+
+     .. _texture-wrap-2: 
+     .. figure:: ../Fig/gpu/texture-wrap-2.png
+       :align: center
+       :scale: 40 %
+
+       Texture Warpping
+
+     .. _texture-wrap: 
+     .. figure:: ../Fig/gpu/texture-wrap.png
+       :align: center
+       :scale: 40 %
+
+       Texture Warpping [#texturewrapper]_
+
+   * Convert normalized texture coordinates into actual memory addresses.
+
+2. Texture Fetching
+
+   * Retrieve texels (texture elements) from texture memory (L1 texture cache, 
+     then L2/VRAM on miss).
+
+   * Handle different texture layouts:
+     - 1D, 2D, 3D textures
+     - Cubemaps
+     - Texture arrays
+
+   * Support compressed texture formats (e.g., DXT, ASTC, ETC2).
+
+3. Texture Filtering
+
+   Give a Texture coordinates, OpenGL has to figure out which **texture pixel 
+   (also known as a texel)** to map the texture coordinate to.
+
+   * Perform *interpolation* between texels to produce smooth visual results.
+   * Filtering requires multiple texel reads + weighted average calculations.
+   * Common filtering modes as the following are shown as 
+     :numref:`texture-filter`:
+
+     - Nearest-neighbor (point sampling) (GL_NEAREST)
+
+       - When set to GL_NEAREST, OpenGL selects the color of the texel that 
+         center is closest to the texture coordinate shown as the example in 
+         :numref:`nearest`. '+' is the coordinates of texel.
+         'Returns' is the color of result.
+
+         .. _nearest: 
+         .. figure:: ../Fig/gpu/nearest.png
+           :align: center
+           :scale: 40 %
+
+           GL_NEAREST [#texturewrapper]_
+
+
+     - Bilinear (GL_LINEAR)
+
+       - The return color is the mix of four neighboring pixels. The smaller 
+         the distance from the texture coordinate to a texel's center, the more 
+         that texel's color contributes to the sampled color shown as the 
+         example in :numref:`linear`.
+
+         .. _linear: 
+         .. figure:: ../Fig/gpu/linear.png
+           :align: center
+           :scale: 40 %
+
+           GL_LINEAR [#texturewrapper]_
+
+     - Trilinear (with mipmaps)
+     - Anisotropic filtering (for angled surfaces)
+
+     - Let's see how these methods work when using a texture with a low 
+       resolution on a large object (texture is therefore scaled upwards and 
+       individual texels are noticeable). The GL_NEAREST and GL_LINEAR as the 
+       following :numref:`texture-filter`. 
+       As result, GL_LINEAR produces a more blurred color and smooth edge's 
+       output.
+
+       .. _texture-filter: 
+       .. figure:: ../Fig/gpu/texture-filter.png
+         :align: center
+         :scale: 100 %
+
+         Texture Filter: GL_NEAREST has sharp color and jagged edge [#texturewrapper]_
+
+
+4. Mipmap Level of Detail (LOD) Selection
+
+   * Choose the correct mipmap level based on screen-space derivatives of texture coordinates.
+   * Prevent aliasing and improve cache efficiency.
+   * Optionally blend between mip levels for trilinear filtering.
+
+5. Texture Caching
+
+   * TMUs have a **dedicated texture cache** optimized for 2D/3D spatial locality.
+   * Neighboring threads in a warp often fetch adjacent texels, improving cache hits.
+   * Caches reduce memory latency and improve bandwidth utilization.
+
+6. Specialized Operations
+
+   * Texture gather: fetch 4 neighboring texels around a coordinate.
+   * Shadow mapping: compare fetched depth texel against reference value.
+   * Multisample textures: fetch per-sample data for MSAA.
+   * Border color application for out-of-bounds accesses.
+
+Microarchitecture Aspects
+
+- Each **Streaming Multiprocessor (SM)** or **Compute Unit (CU)** is paired 
+  with several TMUs.  
+- The number of TMUs is a key spec in GPU datasheets (e.g., "64 TMUs").
+- TMU throughput is often measured in **texels per clock cycle**.  
+- Modern GPUs balance **TMUs per ALU** to ensure shading and texture workloads 
+  are not bottlenecked.
+
+Performance Considerations
+
+- **Bandwidth-limited**: TMUs rely heavily on memory bandwidth. Mipmapping 
+  and caches reduce this pressure.
+- **Latency hiding**: texture fetches may take hundreds of cycles, so GPUs 
+  rely on massive multithreading to hide stalls.
+- **Workload dependent**: texture-heavy games or rendering pipelines are 
+  often limited by TMU throughput.
+
+Summary
+
+TMUs are highly specialized GPU units that:
+
+- Translate texture coordinates into addresses.
+- Fetch texels efficiently with dedicated caches.
+- Perform filtering and LOD computations in hardware.
+- Deliver high throughput for texture operations that are essential 
+  in realistic rendering.
+
+Without TMUs, all these operations would fall on general-purpose ALUs, 
+resulting in drastically lower performance and efficiency.
 
 
 System Features -- Buffers
@@ -3896,3 +4086,4 @@ Open Sources
 .. [#dpcpp-book] https://link.springer.com/book/10.1007/978-1-4842-5574-2
 
 .. [#dpcpp-features] Page 14 of DPC++ book.
+
