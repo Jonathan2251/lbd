@@ -2299,10 +2299,18 @@ the other threads, this process is called masking.
   Programs use Explicit Synchronization to Reconverge Threads in a Warp [#Volta]_
 
 
+Memory System
+*************
 
+Address Coalescing and Gather-scatter
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Address Coalescing and gather-scatter
-*************************************
+Brief description is shown in :numref:`coalescing-gather`.
+
+.. _coalescing-gather: 
+.. graphviz:: ../Fig/gpu/coalescing-gather.gv
+  :caption: Coalescing and Gather-scatter
+
 
 The Load/Store Units (LD/ST) is important because memory latency is huge 
 compared to ALU ops.
@@ -2312,6 +2320,9 @@ access.
 - Address Coalescing: **Memory coalescing is the process of merging memory 
   requests from threads in a warp (NVIDIA: 32 threads, AMD: 64 threads) into as 
   few memory transactions as possible.**
+
+  - Cache miss (global memory/DRAM): Coalescing = big performance improvement.
+  - Cache hit (L1/L2): Coalescing = smaller benefit, since cache line fetch already amortizes cost.
 
   - Note that unlike vector architectures, GPUs don’t have separate instructions 
     for sequential data transfers, strided data transfers, and gather-scatter 
@@ -2569,7 +2580,7 @@ CSR storage:
   data to improve coalescing often provides significant performance gains.
 
 VRAM
-****
+^^^^
 
 **Reason:**
 
@@ -2655,6 +2666,191 @@ GDDR6X, or HBM2/3, which are much faster than standard system RAM (DDR4/DDR5).
   - No need to traverse the PCIe bus like discrete GPUs accessing system RAM.
 
   In shared memory systems (like integrated GPUs), memory access may have to go through a memory controller shared with the CPU, adding delay.
+
+
+RegLess-style architectures [#reg-less]_
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+This subsection outlines the transition from traditional GPU operand coherence using
+a monolithic register file and L1 data cache, to a RegLess-style architecture that
+employs operand staging and register file-local coherence.
+
+Operand Delivery in Traditional GPU
+
+.. graphviz::
+
+   digraph TraditionalOperandDelivery {
+     rankdir=LR;
+     node [shape=box, style=filled, fontname="Helvetica", fontsize=10];
+
+     subgraph cluster_memory {
+       label="Global Memory";
+       style=filled;
+       color=lightgray;
+       GMEM [label="Global Memory"];
+     }
+
+     subgraph cluster_cache {
+       label="L1 Data Cache";
+       style=filled;
+       color=lightyellow;
+       L1 [label="L1 Cache"];
+     }
+
+     subgraph cluster_registers {
+       label="Register File";
+       style=filled;
+       color=lightblue;
+       RF [label="Register File"];
+     }
+
+     subgraph cluster_execution {
+       label="Execution Pipeline";
+       style=filled;
+       color=lightgreen;
+       EU [label="Execution Unit"];
+     }
+
+     GMEM -> L1 [label="Coherence (Hardware-managed)", color=blue];
+     L1 -> RF [label="LD/ST (Compiler-controlled)", style=dashed];
+     RF -> EU [label="Operands"];
+     L1 -> EU [label="Cached Data (optional)", style=dashed];
+   }
+
+
+Traditional Model: Register File + L1 Cache
+
+**Architecture**:
+   - Large monolithic register file per SM (e.g., 256KB)
+   - Coherent with L1 data cache via write-through or write-back policies
+
+**Challenges**:
+   - High energy cost due to cache coherence traffic
+   - Complex invalidation and synchronization logic
+   - Register pressure limits warp occupancy (limit the number of ative warps)
+   - Redundant operand tracking across register file and cache
+
+**Example**::
+
+   v1 = normalize(N)
+   v2 = normalize(L)
+   v3 = dot(v1, v2)
+   v4 = max(v3, 0.0)
+   v5 = mul(v4, color)
+
+   # All operands reside in register file and may be cached in L1
+
+
+Operand Delivery in RegLess GPU (with L1 Cache in LD Path)
+
+.. graphviz::
+
+   digraph RegLessOperandDeliveryWithL1 {
+     rankdir=LR;
+     node [shape=box, style=filled, fontname="Helvetica", fontsize=10];
+
+     subgraph cluster_memory {
+       label="Memory Hierarchy";
+       style=filled;
+       color=lightgray;
+       GMEM [label="Global Memory"];
+       L1 [label="L1 Cache", fillcolor=lightyellow];
+     }
+
+     subgraph cluster_registers {
+       label="Register File";
+       style=filled;
+       color=lightblue;
+       RF [label="Register File"];
+     }
+
+     subgraph cluster_execution {
+       label="Execution Pipeline";
+       style=filled;
+       color=lightgreen;
+       SB [label="Staging Buffer"];
+       EU [label="Execution Unit"];
+     }
+
+     GMEM -> L1 [label="Coherence (Hardware-managed)", color=blue];
+     L1 -> RF [label="Operand Fetch (via LD)", style=dashed];
+     RF -> SB [label="Staging (Just-in-Time)", style=dashed];
+     SB -> EU [label="Transient Operands"];
+     RF -> EU [label="Persistent Operands"];
+     RF -> RF [label="Internal Coherence", color=green];
+   }
+
+Description
+
+- **Global Memory**: Source of all operands and data.
+- **L1 Cache**: Participates in memory hierarchy; may serve LD requests.
+- **Register File**: Receives operands via LD; stages them into Staging Buffer 
+                     for Transient Operands.
+- **Staging Buffer**: Holds transient operands for immediate execution.
+- **Execution Unit**: Consumes operands from Staging Buffer for Transient 
+                      Operands and Register File for Persistent Operands.
+
+Notes
+
+- **L1 Cache is not part of staging**—it only serves LDs.
+- **Dashed arrows**: Compiler-controlled operand movement.
+- **Solid arrows**: Operand delivery to execution.
+- **Green self-loop**: Internal coherence within Register File.
+
+RegLess Model: Staging-Aware Register File
+
+**Architecture**:
+   - Smaller register file (e.g., 64–128KB per SM)
+   - For Transient Operands, no L1 cache coherence required
+   - Operands staged dynamically based on lifetime
+
+**Key Concepts**:
+   - Region slicing: compiler divides computation into operand regions
+   - Operand tagging: transient, intermediate, persistent
+   - Metadata compression: region-level hints, not per-instruction lifetimes
+
+**Benefits**:
+   - ~75% reduction in register file size
+   - ~11% energy savings
+   - Simplified coherence model
+   - Improved warp occupancy
+
+**Example with Operand Staging**::
+
+   v1 = normalize(N)         # transient
+   v2 = normalize(L)         # transient
+   v3 = dot(v1, v2)          # intermediate
+   v4 = max(v3, 0.0)         # intermediate
+   v5 = mul(v4, color)       # persistent
+
+   # v1 and v2 staged briefly, v3–v4 may be staged or registered, v5 fully 
+   registered
+
+Compiler-Hardware Interface
+
+**Compiler Responsibilities**:
+   - Emit structured IR with operand usage hints
+   - Slice computation graph into regions
+   - Avoid explicit staging register allocation
+
+**Hardware Responsibilities**:
+   - Interpret operand lifetime metadata
+   - Dynamically stage operands or allocate registers
+   - For Transient Operands, eliminate L1 cache coherence logic
+
+**Metadata Compression Techniques**:
+   - Region-level tagging
+   - Operand class encoding
+   - Profile-guided optimization
+   - Off-chip metadata tables (e.g., DEER)
+
+Conclusion
+
+The move to RegLess-style coherence simplifies GPU operand management, reduces 
+energy,
+and enables more efficient shader execution. Compiler-guided operand staging and
+region slicing allow hardware to dynamically optimize operand placement without
+burdening the instruction stream with excessive metadata.
 
 
 System Features -- Buffers
@@ -3515,6 +3711,8 @@ Open Sources
 .. [#ogl-vavb] https://registry.khronos.org/OpenGL-Refpages/gl4/html/glBindVertexBuffer.xhtml
 
 .. [#ogl-bluebook-p152] Page 152 of Blue book: OpenGL SuperBible 7th Edition.
+
+.. [#reg-less] https://cccp.eecs.umich.edu/papers/jklooste-micro17.pdf
 
 .. [#buffers-redbook] Page 155 - 185 of book "OpenGL Programming Guide 9th Edition" [#redbook]_.
 

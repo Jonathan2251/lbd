@@ -63,6 +63,9 @@ Revision history
 
 Version 12.0.18, not released yet.
 
+Version 12.0.17.2, Released September 20, 2026.
+  gpu.rst: add subsection 'RegLess-style architectures'.
+
 Version 12.0.17.1, Released September 14, 2026.
   gpu.rst: add 'SISD, SIMD, and SPMD Pipelines' in subsection SM (SIMT).
   backendstructure.rst: enc.gv.
