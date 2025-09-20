@@ -1,7 +1,7 @@
 digraph GPU {
   rankdir=LR;
   bgcolor="white";
-  node [shape=record, fontname="Helvetica", fontsize=10];
+  node [shape=box, fontname="Helvetica", fontsize=10];
 
   /* Top-level GPU container */
   subgraph cluster_gpu {
@@ -22,7 +22,7 @@ digraph GPU {
           <TR><TD><B>SM 0..N-1</B></TD></TR>
           <TR><TD>
             <TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0">
-              <TR><TD><FONT POINT-SIZE="10"><B>Scheduler / Warp/Wavefront</B></FONT></TD></TR>
+              <TR><TD><FONT POINT-SIZE="10"><B>Warp Scheduler</B></FONT></TD></TR>
               <TR><TD><FONT POINT-SIZE="10">Registers</FONT></TD></TR>
               <TR><TD><FONT POINT-SIZE="10">Shared Memory / L1</FONT></TD></TR>
               <TR><TD><FONT POINT-SIZE="10">ALUs (FP/INT)</FONT></TD></TR>
@@ -42,8 +42,10 @@ digraph GPU {
       fillcolor = "#fff7f3";
       color = "#fcbba1";
 
+      Geo [label="Geometry Units\n(primitive assembly,\ntessellation, clipping)"];
+      Raster [label="Rasterization Units\n(triangle -> fragments,\nattribute interpolation)"];
       TMU  [label="Texture Mapping Units (TMUs)\n(sampling & filtering)"];
-      ROP  [label="Render Output Units (ROPs)\n(blend/depth/stencil)"];
+      ROP  [label="Render Output Units (ROPs)\n(blend, depth, stencil,\nframebuffer write)"];
       Tensor [label="Tensor / Matrix Cores\n(AI accel)"];
       RT     [label="Ray-Tracing Cores\n(BVH traversal, intersections)"];
       Video  [label="Video Encode / Decode Engines\n(NVENC / VCN / VPU)"];
@@ -59,52 +61,41 @@ digraph GPU {
 
       L1  [label="L1 / Shared Memory (per SM)"];
       L2  [label="L2 Cache (shared)"];
-      VRAM [shape=plaintext, label="VRAM (GDDR / HBM)\n(high bandwidth)"];
+      VRAM[label="VRAM (GDDR / HBM)\n(high bandwidth)"];
       Interconnect [label="Memory Controller / Interconnect"];
 
       Coalescing [label="Memory Coalescing\n(merge warp memory requests)"];
       GatherScatter [label="Gather–Scatter\n(irregular memory access)"];
     }
 
-    /* Layout helper node */
-    Bus [label="Internal Interconnect / NoC", shape=note];
+    /* Connections between major blocks */
+    SMs -> Geo [label=" vertices"];
+    Geo -> Raster [label=" primitives"];
+    Raster -> SMs [label=" fragments (shaded in SMs)"];
 
-    /* Arrange invis edges for clusters */
-    SMs -> Bus [style=invis];
-    TMU -> Bus [style=invis];
-    Tensor -> Bus [style=invis];
-    RT -> Bus [style=invis];
-    ROP -> Bus [style=invis];
-    Video -> Bus [style=invis];
-    Display -> Bus [style=invis];
-    L1 -> Bus [style=invis];
-    L2 -> Bus [style=invis];
-    VRAM -> Bus [style=invis];
-    Interconnect -> Bus [style=invis];
-    Coalescing -> Bus [style=invis];
-    GatherScatter -> Bus [style=invis];
+    SMs -> TMU [label=" texture fetch"];
+    SMs -> Tensor [label=" matrix ops"];
+    SMs -> RT [label=" ray queries", style=dashed];
+
+    Raster -> ROP [label=" fragments -> tests + blend"];
+    SMs -> ROP [label=" shaded fragments"];
+    ROP  -> VRAM [label=" final framebuffer write"];
+
+    /* Memory subsystem connections */
+    SMs -> L1 [label=" fast access"];
+    TMU  -> L2 [label=" texture reads"];
+    SMs -> L2 [label=" global loads/stores"];
+    L2   -> VRAM [label=" miss -> VRAM"];
+    Interconnect -> VRAM [label=" memory transactions"];
+
+    /* Memory behavior connections */
+    SMs -> Coalescing [label=" warp memory requests"];
+    Coalescing -> L2 [label=" optimized transaction"];
+    SMs -> GatherScatter [label=" irregular access", style=dashed];
+    GatherScatter -> L2 [label=" multiple transactions", style=dashed];
+
+    /* Video/Display */
+    Video -> VRAM [label=" read/write video frames"];
+    Display -> VRAM [label=" scanout"];
   }
-
-  /* Connections between major blocks */
-  SMs -> L1 [label=" fast access", fontsize=9];
-  SMs -> TMU [label=" texture fetch", fontsize=9];
-  SMs -> Tensor [label=" dispatch heavy-math", fontsize=9];
-  SMs -> RT [label=" ray queries (when used)", fontsize=9, style=dashed];
-  TMU  -> L2 [label=" read textures", fontsize=9];
-  SMs -> L2 [label=" loads/stores", fontsize=9];
-  L2   -> VRAM [label=" miss -> VRAM", fontsize=9];
-  Interconnect -> VRAM [label=" memory transactions", fontsize=9];
-  SMs -> ROP [label=" shaded fragments -> ROP", fontsize=9];
-  ROP  -> VRAM [label=" write framebuffer", fontsize=9];
-  Video -> VRAM [label=" read/write video frames", fontsize=9];
-  Display -> VRAM [label=" scanout", fontsize=9];
-
-  /* Memory behavior connections */
-  SMs -> Coalescing [label=" warp memory requests", fontsize=9];
-  Coalescing -> L2 [label=" optimized memory transaction", fontsize=9];
-  SMs -> GatherScatter [label=" irregular access", fontsize=9, style=dashed];
-  GatherScatter -> L2 [label=" multiple transactions", fontsize=9, style=dashed];
-
-  /* Styling */
-  edge [color="#444444"];
 }
