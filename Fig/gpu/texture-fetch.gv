@@ -1,5 +1,5 @@
 digraph TextureFetch {
-  rankdir=LR;
+  rankdir=TB;
   node [shape=box, fontname="Helvetica", fontsize=10, style=rounded];
 
   Thread [label="Thread in SM\n(executes texture() instr)"];
@@ -9,12 +9,16 @@ digraph TextureFetch {
   VRAM [label="Texture Memory (VRAM)\n(GDDR/HBM)"];
   Result [label="Sampled Texel(s)\n(return to SM thread)"];
 
-  Thread -> Instr [label=" issue texture()"];
-  Instr -> TMU [label=" send coords + state"];
-  TMU -> TCache [label=" fetch texels"];
-  TCache -> VRAM [label=" on cache miss"];
-  VRAM -> TCache [label=" load texels"];
-  TCache -> TMU [label=" return texels"];
-  TMU -> Result [label=" filtered texel"];
-  Result -> Thread [label=" write back result"];
+  Thread -> Instr [label="1. issue texture()"];
+  Instr -> TMU [label="2. send coords + state"];
+  TMU -> TCache [label="3. fetch texels"];
+  TCache -> VRAM [label="4. on cache miss"];
+  VRAM -> TCache [label="5. load texels"];
+  TCache -> TMU [label="6. return texels"];
+  TMU -> Result [label="7. filtered texel"];
+  Result -> Thread [label="8. write back result"];
+
+  { rank = same; Thread; Instr; TMU }
+  { rank = same; TCache; VRAM }
+  { rank = same; Result }
 }

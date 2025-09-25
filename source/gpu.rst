@@ -2425,11 +2425,13 @@ matrix operations, where non-zero elements are stored in compressed formats.
 **1. CSR Format (Gather–Scatter, Poor Coalescing)**
 
 **Storage:**
+
 - ``values[]``: nonzero entries
 - ``colIndex[]``: column indices
 - ``rowPtr[]``: index offsets for each row
 
 **Access Pattern:**
+
 - Each thread processes one row.
 - Uses ``rowPtr`` to look up nonzeros.
 - Accesses ``x[col]`` with irregular indices.
@@ -2454,47 +2456,13 @@ CSR storage:
    rowPtr   = [0, 3, 5, 7, 9]
 
 **Problem:**
+
 - Threads in a warp read from *scattered addresses* in ``x[col]``.
 - Memory accesses cannot be merged → multiple transactions per warp.
 
-.. graphviz::
-
-   digraph G {
-     rankdir=LR;
-     node [shape=box, style=rounded];
-
-     subgraph cluster0 {
-       label="Warp Threads";
-       t0 [label="Thread 0"];
-       t1 [label="Thread 1"];
-       t2 [label="Thread 2"];
-       t3 [label="Thread 3"];
-     }
-
-     subgraph cluster1 {
-       label="Scattered x[] Access (CSR)";
-       a0 [label="x[0]"];
-       a1 [label="x[4]"];
-       a2 [label="x[7]"];
-       a3 [label="x[1]"];
-       a4 [label="x[2]"];
-       a5 [label="x[3]"];
-       a6 [label="x[6]"];
-     }
-
-     t0 -> a0;
-     t0 -> a1;
-     t0 -> a2;
-
-     t1 -> a3;
-     t1 -> a2;
-
-     t2 -> a0;
-     t2 -> a4;
-
-     t3 -> a5;
-     t3 -> a6;
-   }
+.. _scatter-bad-coalesing:
+.. graphviz:: ../Fig/gpu/scatter-bad-coalesing.gv
+  :caption: An example of scatter destroying coalesing.
 
 
 **2. ELLPACK Format (Coalesced Access)**
@@ -2520,44 +2488,21 @@ CSR storage:
    ]
 
 **Access Pattern:**
+
 - Each thread still handles one row.
 - Warp accesses the *same column across rows* simultaneously.
 - Memory is contiguous → coalesced transactions.
 
-.. graphviz::
-
-   digraph G {
-     rankdir=LR;
-     node [shape=box, style=rounded];
-
-     subgraph cluster0 {
-       label="Warp Threads";
-       t0 [label="Thread 0"];
-       t1 [label="Thread 1"];
-       t2 [label="Thread 2"];
-       t3 [label="Thread 3"];
-     }
-
-     subgraph cluster1 {
-       label="Coalesced val[] Access (ELL)";
-       b0 [label="val[0][0]"];
-       b1 [label="val[0][1]"];
-       b2 [label="val[0][2]"];
-       b3 [label="val[0][3]"];
-     }
-
-     t0 -> b0;
-     t1 -> b1;
-     t2 -> b2;
-     t3 -> b3;
-   }
+.. _coalesing:
+.. graphviz:: ../Fig/gpu/coalesing.gv
+  :caption: An example of coalesing.
 
 **Benefit:**
+
 - Threads in a warp read *contiguous addresses*.
 - Hardware merges requests into one memory transaction.
 - Bandwidth utilization is much higher.
 
----
 
 **3. Summary**
 
@@ -2685,44 +2630,12 @@ This subsection outlines the transition from traditional GPU operand coherence u
 a monolithic register file and L1 data cache, to a RegLess-style architecture that
 employs operand staging and register file-local coherence.
 
-Operand Delivery in Traditional GPU
+🧮 Operand Delivery in Traditional GPU: :numref:`no-regless`:
 
-.. graphviz::
-
-   digraph TraditionalOperandDelivery {
-     rankdir=LR;
-     node [shape=box, style=filled, fontname="Helvetica", fontsize=10];
-
-     subgraph cluster_memory {
-       label="Memory Hierarchy";
-       style=filled;
-       color=lightgray;
-       GMEM [label="Global Memory"];
-       L1 [label="L1 Cache", fillcolor=lightyellow];
-     }
-
-     subgraph cluster_registers {
-       label="Register File";
-       style=filled;
-       color=lightblue;
-       RF [label="Register File"];
-     }
-
-     subgraph cluster_execution {
-       label="Execution Pipeline";
-       style=filled;
-       color=lightgreen;
-       EU [label="Execution Unit"];
-     }
-
-     GMEM -> L1 [label="Coherence (Hardware-managed)", color=blue];
-     L1 -> RF [label="LD/ST (Compiler-controlled)", style=dashed];
-     RF -> EU [label="Operands"];
-     L1 -> EU [label="Cached Data (optional)", style=dashed];
-   }
-
-
-Traditional Model: Register File + L1 Cache
+.. _no-regless: 
+.. graphviz:: ../Fig/gpu/no-regless.gv
+  :caption: **Operand Delivery in Traditional GPU 
+            (Traditional Model: Register File + L1 Cache)**
 
 **Architecture**:
    - Large monolithic register file per SM (e.g., 256KB)
@@ -2745,44 +2658,11 @@ Traditional Model: Register File + L1 Cache
    # All operands reside in register file and may be cached in L1
 
 
-Operand Delivery in RegLess GPU (with L1 Cache in LD Path)
+🌀 Operand Delivery in RegLess GPU (with L1 Cache in LD Path): :numref:`regless`:
 
-.. graphviz::
-
-   digraph RegLessOperandDeliveryWithL1 {
-     rankdir=LR;
-     node [shape=box, style=filled, fontname="Helvetica", fontsize=10];
-
-     subgraph cluster_memory {
-       label="Memory Hierarchy";
-       style=filled;
-       color=lightgray;
-       GMEM [label="Global Memory"];
-       L1 [label="L1 Cache", fillcolor=lightyellow];
-     }
-
-     subgraph cluster_registers {
-       label="Register File";
-       style=filled;
-       color=lightblue;
-       RF [label="Register File"];
-     }
-
-     subgraph cluster_execution {
-       label="Execution Pipeline";
-       style=filled;
-       color=lightgreen;
-       SB [label="Staging Buffer"];
-       EU [label="Execution Unit"];
-     }
-
-     GMEM -> L1 [label="Coherence (Hardware-managed)", color=blue];
-     L1 -> RF [label="Operand Fetch (via LD)", style=dashed];
-     RF -> SB [label="Staging (Just-in-Time)", style=dashed];
-     SB -> EU [label="Transient Operands"];
-     RF -> EU [label="Persistent Operands"];
-     RF -> RF [label="Internal Coherence", color=green];
-   }
+.. _regless: 
+.. graphviz:: ../Fig/gpu/regless.gv
+  :caption: **Operand Delivery in RegLess GPU (with L1 Cache in LD Path)**
 
 Description
 
@@ -3739,6 +3619,202 @@ transformation and code generation [#llvm-uniformity]_.
 LLVM IR expansion from CPU to GPU is becoming increasingly influential. 
 In fact, LLVM IR has been expanding steadily from version 3.1 until now, 
 as I have observed.
+
+Unified IR Conversion Flows
+---------------------------
+
+.. rubric:: ✅ Each node in the graph is color-coded to indicate its category 
+            or role within the structure.
+.. graphviz::
+
+    digraph G {
+        node [shape=box, style=filled];
+        PUIR [label="Public standard of IRs", fillcolor=lightyellow];
+        PRIR [label="Private IRs", fillcolor=lightgray];
+        LR [label="Libraries / Runtimes", fillcolor=lightgreen];
+        Machine [label="Libraries / Runtimes", fillcolor=lightblue];
+    }
+
+Graphics and OpenCL Compilation
+*******************************
+
+This section outlines the intermediate representation (IR) flows for graphics 
+(Microsoft DirectX, OpenGL) and OpenCL compilation across major GPU vendors: 
+NVIDIA, AMD, ARM, Imagination Technologies, and Apple.
+
+Graphics Compilation Flow (Microsoft DirectX & OpenGL)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Graphics shaders are compiled from high-level languages (HLSL, GLSL) into 
+vendor-specific GPU binaries via intermediate representations like DXIL and 
+SPIR-V.
+
+.. _ogl-ocl-flow:
+.. graphviz:: ../Fig/gpu/ogl-ocl-flow.gv
+  :caption: Graphics and OpenCL Compiler IR Conversion Flow
+
+✅NVIDIA, AMD, ARM and Imagination all have exposed LLVM IR and convert SPIR-V IR to LLVM IR.
+  - SPIR:
+
+    - For OpenCL development, the IR started from SPIR (LLVM-based IR). 
+    - SPIRV's Limitation: tightly coupled to specific LLVM versions, making it 
+      brittle across.
+
+  - SPIR-V:
+    - A complete redesign: binary format, not tied to LLVM.
+    - Designed for Vulkan, but also supports OpenCL and OpenGL.
+    - Enables cross-vendor portability, shader reflection, and custom extensions.
+    - Used in graphics and compute pipelines, including ML workloads via Vulkan compute.
+    - A Vulkan shader written in GLSL is compiled to SPIR-V, then passed to the GPU driver.
+    - An OpenCL kernel written in C can be compiled to SPIR-V, then lowered to LLVM IR internally by vendors like AMD or NVIDIA.
+
+⚠️ Apple
+
+•  Uses LLVM IR Partially. Apple supports SPIR-V in Metal and OpenCL, but 
+   LLVM IR is not always exposed.
+•  Metal shaders are compiled via MetalIR, which is LLVM-inspired but not 
+   standard LLVM IR.
+•  Apple’s ML compiler stack may use LLVM IR internally, but it’s 
+   abstracted from developers.
+•  Apple is not a vendor of GPU IP, so it does not expose LLVM IR in its ML 
+   or graphics APIs for the reasons below:
+
+   •  Security: opaque compilation prevents tampering
+   •  Performance tuning: Apple controls the entire stack for optimal hardware use
+   •  Developer simplicity: high-level APIs reduce friction
+
+Notes:
+
+- **HLSL → DXIL → DirectX** is Microsoft’s graphics pipeline, used on Windows and Xbox.
+- **GLSL → SPIR-V → OpenGL/Vulkan** is cross-platform and supported by all vendors.
+- Final GPU ISA varies by vendor:
+
+  - NVIDIA: PTX → SASS
+  - AMD: LLVM IR → GCN/RDNA
+  - ARM: Mali ISA
+  - Imagination: USC ISA
+  - Apple: Metal GPU ISA
+
+Notes:
+
+- **OpenCL C → SPIR → Vendor Driver → GPU ISA** is the standard compilation path.
+- Some vendors (e.g., AMD, NVIDIA) may bypass SPIR and compile directly to LLVM IR or PTX.
+- Apple deprecated OpenCL in favor of Metal, but legacy support remains.
+
+Comparison Summary
+^^^^^^^^^^^^^^^^^^
+
++------------------+------------------+------------------+------------------+------------------+
+| Vendor           | Graphics IR      | Graphics API     | OpenCL Path      | GPU ISA          |
++==================+==================+==================+==================+==================+
+| NVIDIA           | DXIL, SPIR-V     | DirectX, OpenGL  | SPIR → PTX       | PTX → SASS       |
++------------------+------------------+------------------+------------------+------------------+
+| AMD              | DXIL, SPIR-V     | DirectX, OpenGL  | SPIR → LLVM IR   | GCN / RDNA       |
++------------------+------------------+------------------+------------------+------------------+
+| ARM              | SPIR-V           | OpenGL / Vulkan  | SPIR → Mali IR   | Mali ISA         |
++------------------+------------------+------------------+------------------+------------------+
+| Imagination      | SPIR-V           | OpenGL / Vulkan  | SPIR → USC IR    | USC ISA          |
++------------------+------------------+------------------+------------------+------------------+
+| Apple            | MetalIR, SPIR-V  | Metal, OpenGL    | SPIR → LLVM IR   | Apple GPU ISA    |
++------------------+------------------+------------------+------------------+------------------+
+
+References
+^^^^^^^^^^
+
+- OpenCL Specification: https://www.khronos.org/opencl/
+- SPIR-V Specification: https://www.khronos.org/spir
+- DirectX Shader Compiler: https://github.com/microsoft/DirectXShaderCompiler
+- Imagination E-Series GPU: https://www.imaginationtech.com/
+- Apple Metal API: https://developer.apple.com/metal/
+
+
+ML and GPU Compilation
+**********************
+
+This section outlines the intermediate representation (IR) flows used by 
+NVIDIA, AMD, and ARM in machine learning and GPU compilation pipelines. 
+It includes both inference engines and compiler toolchains.
+
+
+NVIDIA IR Conversion Flow
+^^^^^^^^^^^^^^^^^^^^^^^^^
+
+NVIDIA supports both TensorRT-based inference and MLIR-based compilation 
+targeting CUDA GPUs is shown as :numref:`nvidia-flow`.
+
+.. _nvidia-flow:
+.. graphviz:: ../Fig/gpu/nvidia-flow.gv
+  :caption: NVIDIA IR Conversion Flow
+
+AMD IR Conversion Flow
+^^^^^^^^^^^^^^^^^^^^^^
+
+AMD uses ROCm and MIOpen for ML workloads, with LLVM-based compilation targeting 
+GCN or RDNA architectures is shown as :numref:`amd-flow`.
+
+.. _amd-flow:
+.. graphviz:: ../Fig/gpu/amd-flow.gv
+  :caption: AMD IR Conversion Flow
+
+ARM IR Conversion Flow
+^^^^^^^^^^^^^^^^^^^^^^
+
+ARM supports both CPU/NPU deployment (e.g., Ethos-U/N) and GPU execution (e.g., 
+Mali via Vulkan). The IR flow diverges depending on the target is shown as 
+:numref:`arm-flow`.
+
+.. _arm-flow:
+.. graphviz:: ../Fig/gpu/arm-flow.gv
+  :caption: ARM IR Conversion Flow
+
+Imagination Technologies IR Conversion Flow
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. _imagination-flow:
+.. graphviz:: ../Fig/gpu/imagination-flow.gv
+  :caption: Imagination Technologies IR Conversion Flow
+
+Notes:
+
+- E-Series GPUs support up to **200 TOPS INT8/FP8** for edge AI workloads [B](https://www.techpowerup.com/336545/imagination-announces-e-series-gpu-ip-with-burst-processors-and-up-to-200-tops?copilot_analytics_metadata=eyJldmVudEluZm9fY29udmVyc2F0aW9uSWQiOiJMSlNQWjRaWjY5Y2ZuN0VnWnJEVzEiLCJldmVudEluZm9fbWVzc2FnZUlkIjoidVZhb2U4blgyYVVQb1pQdWlKZ0FzIiwiZXZlbnRJbmZvX2NsaWNrRGVzdGluYXRpb24iOiJodHRwczpcL1wvd3d3LnRlY2hwb3dlcnVwLmNvbVwvMzM2NTQ1XC9pbWFnaW5hdGlvbi1hbm5vdW5jZXMtZS1zZXJpZXMtZ3B1LWlwLXdpdGgtYnVyc3QtcHJvY2Vzc29ycy1hbmQtdXAtdG8tMjAwLXRvcHMiLCJldmVudEluZm9fY2xpY2tTb3VyY2UiOiJjaXRhdGlvbkxpbmsifQ%3D%3D&citationMarker=9F742443-6C92-4C44-BF58-8F5A7C53B6F1).
+- The architecture is **programmable**, supporting **graphics and AI** workloads simultaneously.
+- Developers can target the GPU using **OpenCL**, **Apache TVM**, or **oneAPI**.
+- The **Burst Processor IR** optimizes power efficiency and memory locality.
+- Final execution occurs on **Neural Cores**, deeply integrated into the GPU.
+
+
+Comparison Summary
+^^^^^^^^^^^^^^^^^^
+
++----------------------+----------------------+----------------------+------------------------+------------------------+
+| Vendor               | High-Level IR        | Mid-Level IR         | Low-Level IR           | Libraries / Runtimes   |
++======================+======================+======================+========================+========================+
+| NVIDIA               | ONNX, TensorRT IR    | MLIR GPU Dialects    | PTX → SASS             | TensorRT               |
++----------------------+----------------------+----------------------+------------------------+------------------------+
+| AMD                  | ONNX, MIOpen IR      | MLIR Dialects        | LLVM IR → GCN ISA      | MIOpen, ROCm           |
++----------------------+----------------------+----------------------+------------------------+------------------------+
+| ARM                  | ONNX, TFLite         | TOSA, MLIR Dialects  | LLVM IR / SPIR-V       | Ethos-N Driver, Vulkan |
++----------------------+----------------------+----------------------+------------------------+------------------------+
+| Imagination          | ONNX, TFLite         | E-Series Compiler IR | Burst IR → Neural Core | OpenCL, TVM, oneAPI    |
++----------------------+----------------------+----------------------+------------------------+------------------------+
+
+
+References
+^^^^^^^^^^
+
+- NVIDIA TensorRT: https://developer.nvidia.com/tensorrt
+- AMD ROCm: https://rocm.docs.amd.com/
+- ARM ML Toolchain: https://developer.arm.com/solutions/machine-learning
+- Imagination:
+
+  - Imagination E-Series GPU IP: https://www.imaginationtech.com/
+  - TechPowerUp E-Series Launch: https://www.techpowerup.com/336545/imagination-announces-e-series-gpu-ip-with-burst-processors-and-up-to-200 [A](https://www.imaginationtech.com/?copilot_analytics_metadata=eyJldmVudEluZm9fY29udmVyc2F0aW9uSWQiOiJMSlNQWjRaWjY5Y2ZuN0VnWnJEVzEiLCJldmVudEluZm9fY2xpY2tTb3VyY2UiOiJjaXRhdGlvbkxpbmsiLCJldmVudEluZm9fY2xpY2tEZXN0aW5hdGlvbiI6Imh0dHBzOlwvXC93d3cuaW1hZ2luYXRpb250ZWNoLmNvbVwvIiwiZXZlbnRJbmZvX21lc3NhZ2VJZCI6InVWYW9lOG5YMmFVUG9aUHVpSmdBcyJ9&citationMarker=9F742443-6C92-4C44-BF58-8F5A7C53B6F1)-tops [B](https://www.techpowerup.com/336545/imagination-announces-e-series-gpu-ip-with-burst-processors-and-up-to-200-tops?copilot_analytics_metadata=eyJldmVudEluZm9fY2xpY2tTb3VyY2UiOiJjaXRhdGlvbkxpbmsiLCJldmVudEluZm9fbWVzc2FnZUlkIjoidVZhb2U4blgyYVVQb1pQdWlKZ0FzIiwiZXZlbnRJbmZvX2NsaWNrRGVzdGluYXRpb24iOiJodHRwczpcL1wvd3d3LnRlY2hwb3dlcnVwLmNvbVwvMzM2NTQ1XC9pbWFnaW5hdGlvbi1hbm5vdW5jZXMtZS1zZXJpZXMtZ3B1LWlwLXdpdGgtYnVyc3QtcHJvY2Vzc29ycy1hbmQtdXAtdG8tMjAwLXRvcHMiLCJldmVudEluZm9fY29udmVyc2F0aW9uSWQiOiJMSlNQWjRaWjY5Y2ZuN0VnWnJEVzEifQ%3D%3D&citationMarker=9F742443-6C92-4C44-BF58-8F5A7C53B6F1)
+
+- MLIR Project: https://mlir.llvm.org/
+- Vulkan API: https://www.khronos.org/vulkan/
+- Apache TVM: https://tvm.apache.org/
+- oneAPI: https://www.oneapi.io/
+
 
 Accelerate ML/DL on OpenCL/SYCL
 -------------------------------

@@ -63,6 +63,11 @@ Revision history
 
 Version 12.0.18, not released yet.
 
+Version 12.0.17.3, Released September 26, 2025.
+  gpu.rst: gpu-hw.gv, ogl-pipeline-hw.gv, add subsection 
+  'Texture Mapping Units (TMUs)' and add section 
+  'Unified IR Conversion Flows'.
+
 Version 12.0.17.2, Released September 20, 2025.
   gpu.rst: add subsection 'RegLess-style architectures'.
 
