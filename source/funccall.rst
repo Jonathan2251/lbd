@@ -790,7 +790,7 @@ As with loading incoming arguments, we need to implement
 arguments.
 
 Pseudo Hook Instructions ADJCALLSTACKDOWN and ADJCALLSTACKUP
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+************************************************************
 
 `DAG.getCALLSEQ_START()` and `DAG.getCALLSEQ_END()` are invoked before and 
 after the **“for loop”**, respectively. These insert `CALLSEQ_START` and 
@@ -840,7 +840,7 @@ automatically adjust the stack offset as needed.
 
 
 Read LowerCall() with Graphviz's Help
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+**************************************
 
 The complete DAGs created for outgoing arguments are shown in 
 :numref:`funccall-f-outgoing-arg` for `ch9_outgoing.cpp` with `cpu032I`.
@@ -1062,7 +1062,7 @@ The resulting behavior is shown as follows:
 
 
 Long and Short String Initialization
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+************************************
 
 In the previous section, we mentioned the `JSUB texternalsym` pattern.
 
@@ -1206,7 +1206,7 @@ Structure Type Support
 -----------------------
 
 Ordinary Struct Type
-~~~~~~~~~~~~~~~~~~~~~
+********************
 
 The following code in `Chapter9_1/` and `Chapter3_4/` supports ordinary 
 structure types in function calls.
@@ -1396,7 +1396,7 @@ According to the MIPS ABI, the address for returning a struct variable must be
 placed in register `$2`.
 
 Byval Struct Type
-~~~~~~~~~~~~~~~~~~~
+*****************
 
 The following code in `Chapter9_1/` and `Chapter9_2/` supports the `byval` 
 structure type in function calls.
@@ -1481,7 +1481,7 @@ Function Call Optimization
 --------------------------
 
 Tail Call Optimization
-~~~~~~~~~~~~~~~~~~~~~~
+**********************
 
 Tail call optimization is applied in certain function call situations. In some 
 cases, the caller and callee can share the same memory stack.
@@ -1689,7 +1689,7 @@ located in `Cpu0GenMCPseudoLowering.inc`.
 
 
 Recursion optimization
-~~~~~~~~~~~~~~~~~~~~~~
+**********************
 
 As mentioned in the last section, cpu032I cannot perform tail call optimization 
 in `ch9_2_tailcall.cpp` due to the limitation that the argument size condition 
@@ -1898,7 +1898,7 @@ Run `Chapter9_2` with `ch9_3_alloc.cpp` to get the following error.
 
 
 The $gp Register Caller Saved Register in PIC Addressing Mode
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+*************************************************************
 
 According to the original Cpu0 website information, it only supports **“jsub”** 
 for 24-bit address range access. We added **“jalr”** to Cpu0 and expanded it to 
@@ -2268,7 +2268,7 @@ by creating the file ``Cpu0EmitGPRestore.cpp``, which runs as a function pass.
 
 
 Variable number of arguments
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+****************************
 
 Until now, we supported a fixed number of arguments in formal function
 definitions (Incoming Arguments). This subsection adds support for a variable
@@ -2523,7 +2523,7 @@ Verilog simulator" through the Cpu0 Verilog-language machine.
 
 
 Dynamic stack allocation support
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+********************************
 
 Even though the C language rarely uses dynamic stack allocation, some other
 languages rely on it frequently. The following C example demonstrates its use.
@@ -2946,7 +2946,7 @@ The file ``ch9_3_longlongshift.cpp`` demonstrates support for the type
 
 
 Variable sized array support
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+****************************
 
 LLVM supports variable sized arrays (VLA) as introduced in C99 [#stacksave]_ 
 [#wiki-vla]_.
@@ -3006,7 +3006,7 @@ expand, meaning LLVM replaces them with other DAG nodes during code generation.
   ...
 
 Function related Intrinsics support
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+***********************************
 
 I believe these LLVM intrinsic IRs are used for implementing exception handling
 [#excepthandle]_ [#returnaddr]_. With these IRs, a programmer can record the
@@ -3052,7 +3052,7 @@ backend.
     
 
 frameaddress and returnaddress intrinsics
-++++++++++++++++++++++++++++++++++++++++++
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Run the following input to get the corresponding result.
 
@@ -3199,7 +3199,7 @@ by loading from a stack slot rather than using the register directly.
 
 
 eh.return intrinsic
-++++++++++++++++++++
+^^^^^^^^^^^^^^^^^^^^
 
 Considering the following code,
 
@@ -3533,7 +3533,7 @@ the program will set the control flow to ``exception_handler()`` or skip it
 accordingly.
 
 eh.dwarf intrinsic
-++++++++++++++++++
+^^^^^^^^^^^^^^^^^^
 
 Besides ``lowerADD()`` in ``Cpu0ISelLowering``, the following code is only 
 for supporting ``eh.dwarf``. It can be run with the input ``eh-dwarf-cfa.ll`` 
@@ -3554,7 +3554,7 @@ as shown below.
 
 
 bswap intrinsic
-+++++++++++++++++
+^^^^^^^^^^^^^^^
 
 Cpu0 supports the LLVM intrinsic ``bswap`` [#bswapintrnsic]_.
 
@@ -3600,7 +3600,7 @@ Cpu0 supports the LLVM intrinsic ``bswap`` [#bswapintrnsic]_.
 
 
 Add specific backend intrinsic function
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+***************************************
 
 LLVM intrinsic functions are designed to extend LLVM IRs for hardware
 acceleration in compiler design [#extendintrnsic]_.

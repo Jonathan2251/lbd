@@ -582,7 +582,7 @@ value (e.g., ``int gI = 100;``), while the ``.bss`` and ``.sbss`` sections store
 global variables without an initial value (e.g., ``int gI;``).  
 
 data or bss
-~~~~~~~~~~~~
+***********
 
 The ``.data/.bss`` sections are 32-bit addressable areas since Cpu0 is a  
 32-bit architecture. When ``cpu0-use-small-section=false`` is set, the following  
@@ -746,7 +746,7 @@ instruction (ori Cpu0ISD::Hi, Cpu0ISD::Lo).
 
 
 sdata or sbss
-~~~~~~~~~~~~~~
+*************
 
 The sdata/sbss are 16 bits addressable areas which placed in ELF for fast access. 
 Option cpu0-use-small-section=true will generate the following instructions.
@@ -891,7 +891,7 @@ pic mode
 ---------
 
 sdata or sbss
-~~~~~~~~~~~~~~
+*************
 
 Option ``llc -relocation-model=pic -cpu0-use-small-section=true`` will 
 generate the following instructions.
@@ -1170,7 +1170,7 @@ be solved in link stage if we want to link this function by static link.
 
 
 data or bss
-~~~~~~~~~~~~~
+***********
 
 The code fragment of lowerGlobalAddress() as the following corresponding option 
 ``llc -relocation-model=pic`` will translate DAG (GlobalAddress<i32* @gI> 0) into  

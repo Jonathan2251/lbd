@@ -1479,7 +1479,7 @@ Add Prologue/Epilogue functions
 -------------------------------
 
 Concept
-+++++++
+*******
 
 Following come from tricore_llvm.pdf section “4.4.2 Non-static Register 
 Information ”.
@@ -1545,7 +1545,7 @@ takes care of all the details.
 
 
 Prologue and Epilogue functions
-++++++++++++++++++++++++++++++++
+********************************
 
 The Prologue and Epilogue functions as follows,
     
@@ -1669,7 +1669,7 @@ into the **ori** instruction.
 
 
 Handle stack slot for local variables
-+++++++++++++++++++++++++++++++++++++
+*************************************
 
 The following code handle the stack slot for local variables.
 
@@ -1970,7 +1970,7 @@ as follows,
 
 
 Large stack
-+++++++++++
+***********
 
 At this stage, we have successfully translated a simple ``main()`` 
 function containing only ``return 0;``. However, the stack size 

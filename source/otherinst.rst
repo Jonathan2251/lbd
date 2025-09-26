@@ -170,7 +170,7 @@ summarized as follows:
 
 
 **+, -, \*, <<,** and **>>**
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+****************************
 
 The **ADDu**, **ADD**, **SUBu**, **SUB**, and **MUL** instructions defined in  
 ``Chapter4_1/Cpu0InstrInfo.td`` correspond to the **+, -, \*** operators.  
@@ -387,7 +387,7 @@ mainly used for debugging purposes. Compiling with this option can help
 identify bugs early and fix them efficiently.  
 
 Display LLVM IR Nodes with Graphviz
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+************************************
 
 The previous section displayed the DAG translation process in text format  
 on the terminal using the ``llc -debug`` option.  
@@ -484,10 +484,10 @@ specific C operators. This visualization helps in accurately defining
 these patterns.  
 
 Operator ``%`` and ``/``
-~~~~~~~~~~~~~~~~~~~~~~~~~~
+*************************
 
 DAG Representation of ``%``
-+++++++++++++++++++++++++++++
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 The following example, ``ch4_1_mult.cpp``, contains the C operator ``%``  
 (modulus). The corresponding LLVM IR is shown below:
@@ -601,7 +601,7 @@ The computation follows these steps:
   which correctly matches **(11 + 1) % 12**.  
 
 ARM Solution
-++++++++++++
+^^^^^^^^^^^^^
 
 To run this with an ARM-based solution, modify the following files in  
 ``Chapter4_1/``:  
@@ -709,7 +709,7 @@ The following is the result of running the above changes with ``ch4_1_mult.bc``.
 
 
 MIPS Solution
-+++++++++++++
+^^^^^^^^^^^^^^
 
 MIPS uses the **MULT** instruction to perform multiplication, storing the high 
 and low parts of the result in the **HI** and **LO** registers, respectively. 
@@ -783,7 +783,7 @@ of ``ch4_1_mult.bc``.
     
 
 Full Support for `%` and `/`
-++++++++++++++++++++++++++++
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Attentive readers may notice that LLVM replaces **division (`/`)** with  
 **multiplication (`*`)** when computing the **remainder (`%`)** in our  
@@ -1069,7 +1069,7 @@ The `ch4_1_div.cpp` file tests the `/` (division) operator.
 
 
 Rotate Instructions
-+++++++++++++++++++
+^^^^^^^^^^^^^^^^^^^^
 
 `Chapter4_1` includes support for **rotate operations**.  
 The instructions **`rol`**, **`ror`**, **`rolv`**, and **`rorv`** are defined in `Cpu0InstrInfo.td` for translation.  

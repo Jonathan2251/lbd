@@ -88,7 +88,7 @@ For installing Homebrew in China, use the following install script instead
 
 
 Install Icarus Verilog Tool on iMac
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+***********************************
 
 Install Icarus Verilog using the command ``brew install icarus-verilog`` as
 shown below:
@@ -107,7 +107,7 @@ shown below:
 
 
 Install Other Tools on iMac
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
+***************************
 
 Install CMake and Ninja with the following command:
 
@@ -153,7 +153,7 @@ Setting Up Your Linux Machine
 -----------------------------
 
 Install Icarus Verilog tool on Linux
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+************************************
 
 Download Icarus Verilog as follows [#icarus]_.
 
@@ -187,7 +187,7 @@ Then install Icarus Verilog using the following commands,
 
 
 Install Other Tools on Linux
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+****************************
 
 Install CMake and Ninja as follows,
 

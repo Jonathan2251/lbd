@@ -43,13 +43,13 @@ Resources
 ----------
 
 Build steps
-~~~~~~~~~~~~
+***********
 
 https://github.com/Jonathan2251/lbd/blob/master/README.md
    
 
 Book example code
-~~~~~~~~~~~~~~~~~
+*****************
 
 The example code lbdex.tar.gz is available in: 
 
@@ -57,7 +57,7 @@ http://jonathan2251.github.io/lbd/lbdex.tar.gz
 
 
 Alternate formats
-~~~~~~~~~~~~~~~~~
+*****************
 
 The book is also available in the following formats: 
 
@@ -74,7 +74,7 @@ The book is also available in the following formats:
 
 
 Presentation files
-~~~~~~~~~~~~~~~~~~
+******************
 
 .. raw:: html
 
@@ -86,7 +86,7 @@ Presentation files
     </ul>
 
 Search this website
-~~~~~~~~~~~~~~~~~~~
+*******************
 
 * :ref:`search`
 

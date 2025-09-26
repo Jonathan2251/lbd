@@ -11,12 +11,12 @@ Deep Learning Theory
 --------------------
 
 Deep Learning
-~~~~~~~~~~~~~
+*************
 
 Hung-Yi Lee's video [#HungYiLee]_.
 
 CNN
-~~~
+***
 
 CNN: They have applications in image and video recognition, recommender systems,
 image classification, medical image analysis, natural language processing, and
@@ -30,7 +30,7 @@ Concept and data applying in Deap Learning for different models of CNN [#onnxmod
 
 
 Book
-~~~~
+****
 
 http://www.deeplearningbook.org/ NTU: Hung-yi Lee MLDS (Machine Learing Deep +
 Structure approaches), the trend for future implementation.
@@ -40,7 +40,7 @@ Deep learning compiler
 ----------------------
 
 Survey
-~~~~~~
+******
 
 The current open source compilers for deep learning [#dlcs]_ as follows,
 
@@ -55,7 +55,7 @@ cpu.
 
 
 GPU
-~~~
+***
 
 The NVIDIA CUDA Toolkit provides a development environment for creating
 high-performance GPU-accelerated applications.
@@ -73,7 +73,7 @@ Once "Cosh" is implemented with kernel fuction "Cosh" in OpenCL by calling
 GPU's instructions, it can be fixed.
 
 NNEF
-~~~~
+****
 
 Neural Network Exchange Format.
 
@@ -103,7 +103,7 @@ ONNX import/export to NNEF, should edge NPU use NNEF [#nnef]_?
 
 
 OpenVX
-~~~~~~
+******
 
 OpenVX enables the graph to be extended to include hardware architectures
 that don’t support programmable APIs [#openvx]_.
@@ -113,7 +113,7 @@ power-efficient processing of methods for vision algorithms [#openvx-wiki]_.
 Nothing about NPU I think.
 
 SYCL
-++++
+^^^^
 
 User use SYCL or DSL compile domain language into SYCL and run on OpenCL
 hardwares [#sycl]_. An example here [#sycl-wiki]_.
@@ -133,7 +133,7 @@ hardwares [#sycl]_. An example here [#sycl-wiki]_.
 https://github.com/Jonathan2251/nc/OpenCL_SYCL
 
 Tools
-~~~~~
+*****
 
 Create onnx test file [#onnx-editor]_.
 
@@ -142,7 +142,7 @@ NPU compiler
 ------------
 
 Abstract
-~~~~~~~~
+********
 
 Tensorflow support unknown shape [#tfunknownshape]_.
 Though our npu support kernel call where kernel call is a set of
@@ -152,7 +152,7 @@ but not always work.
 Luckily, we can customilze by redefining model to binding shape staticlly [20200412]
 
 MLIR and IREE
-~~~~~~~~~~~~~
+*************
 
 IREE (Intermediate Representation Execution Environment, pronounced as "eerie")
 is an MLIR-based end-to-end compiler that lowers ML models to a unified IR
@@ -175,7 +175,7 @@ The purpose of mlir is:
 - Connect cpu with mlir-to-llvm-ir.
 
 Tensorflow
-~~~~~~~~~~
+**********
 
 The mechansim of Mlir and iree applied on tensorflow as the figure above section
 is not fitted for off-line edge npu that stand alone without server-connection
@@ -216,7 +216,7 @@ for tunning weight of face detection's purpose, supprting mlir-iree compiler
 may not necessary.
 
 mlir to onnx
-~~~~~~~~~~~~
+************
 
 https://www.tensorflow.org/mlir
 
@@ -271,7 +271,7 @@ The result I run is based on git commit 455ccde1377b3ec32d321eb7c38808fecdf230a8
 
 
 Support tensorflow
-~~~~~~~~~~~~~~~~~~
+******************
 
 Question:
 
@@ -294,7 +294,7 @@ Thank you! I am going to pass this information to my boss. We don't study mlir y
 Jonathan
 
 ONNC
-~~~~
+****
 
 .. _onnc:
 .. figure:: ../Fig/npu/onnc.jpg
@@ -362,7 +362,7 @@ backend are in my books [#support-clang-builtin]_
 
 
 llvm IR for NPU compiler
-~~~~~~~~~~~~~~~~~~~~~~~~
+************************
 
 Though npu has no general purpose registers GPR, it is possible to apply llvm ir for
 npu to do codegen by llvm as follows,
@@ -396,7 +396,7 @@ reference:
   - section 5.2.2  Code Generation based on Low-Level IR.The low-level IR adopted by most DL compilers can be eventually lowered to LLVM IR, and benefits from LLVM’s mature optimizer and code generator [#dlcs]_.
 
 Open source project
-~~~~~~~~~~~~~~~~~~~
+*******************
 
 - onnx to mlir dialect: https://github.com/onnx/onnx-mlir
 
@@ -409,7 +409,7 @@ ONNX
 ----
 
 viewer
-~~~~~~
+******
 
 - Web for opening onnx https://lutzroeder.github.io/netron/
 
@@ -418,12 +418,12 @@ viewer
 Netron app in ubuntu.
 
 install
-~~~~~~~
+*******
 
 $ pip install onnx
 
 onnx api
-~~~~~~~~
+********
 
 - copy onnx file: ex. nc/code/copy_onnx.py referenece here [#copy1]_.
 

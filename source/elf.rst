@@ -73,7 +73,7 @@ while sections describe the link-time layout.
 
 
 ELF header and Section header table
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+***********************************
 
 Let's run Chapter9_3/ with ch6_1.cpp, and dump ELF header information using
 ``llvm-readelf -h`` to see what the ELF header contains.
@@ -187,7 +187,7 @@ information.
 
 
 Relocation Record
-~~~~~~~~~~~~~~~~~
+*****************
 
 Cpu0 backend translates global variables as follows:
 
@@ -354,7 +354,7 @@ or load time (for dynamic linking), depending on how the program is built.
 
 
 Cpu0 ELF related files
-~~~~~~~~~~~~~~~~~~~~~~
+**********************
 
 The files `Cpu0ELFObjectWriter.cpp` and `Cpu0MC*.cpp` are responsible for
 generating object files (`.o`) in ELF format for the Cpu0 backend.
@@ -369,7 +369,7 @@ llvm-objdump
 -------------
 
 llvm-objdump -t -r
-~~~~~~~~~~~~~~~~~~
+******************
 
 The `llvm-objdump -tr` command displays symbol table and relocation record
 information, similar to the output of `llvm-readelf -tr`.
@@ -506,7 +506,7 @@ used to display the Cpu0 ELF header information, thanks to the `EM_CPU0`
 definition added earlier.
 
 llvm-objdump -d
-~~~~~~~~~~~~~~~~
+***************
 
 Run the example code from the previous chapter using the command
 ``llvm-objdump -d`` to disassemble the ELF file and view its contents in
