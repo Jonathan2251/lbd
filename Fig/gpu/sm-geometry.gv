@@ -1,0 +1,94 @@
+digraph SM_Geometry_Assembly {
+  rankdir=LR;
+  bgcolor="white";
+  node [shape=box, style="rounded,filled", fontname="Arial", fontsize=11];
+
+  /* Graph-level title (left-aligned, bold) */
+  label=<
+    <TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" ALIGN="LEFT">
+      <TR><TD><FONT POINT-SIZE="14" COLOR="#003366"><B>SM → Geometry Unit: PTX-like Assembly Flow</B></FONT></TD></TR>
+      <TR><TD><FONT POINT-SIZE="10" COLOR="#003366">Example sequence showing loads/moves and {@code call emit}/{@code call cut} dispatching primitives</FONT></TD></TR>
+    </TABLE>
+  >;
+  labelloc=top;
+
+  /* SM thread node */
+  SMThread [fillcolor="#FFF2CC" label=<
+    <TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" ALIGN="LEFT">
+      <TR><TD><B>Thread running in SM</B></TD></TR>
+      <TR><TD>• Executes geometry shader program</TD></TR>
+      <TR><TD>• Issues compiled PTX-style microcode</TD></TR>
+    </TABLE>
+  >];
+
+  /* Instruction Fetch / Decoder */
+  InstFetch [fillcolor="#E6F2FF" label=<
+    <TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" ALIGN="LEFT">
+      <TR><TD><B>Instruction Fetch &amp; Decode</B></TD></TR>
+      <TR><TD>• Fetches micro-instructions from shader code</TD></TR>
+      <TR><TD>• Decodes into ALU / LD / CALL operations</TD></TR>
+    </TABLE>
+  >];
+
+  /* Assembly sequence node showing PTX-like lines */
+  AsmSeq [fillcolor="#FFFFFF" penwidth="1" label=<
+    <TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" ALIGN="LEFT">
+      <TR><TD><B>Compiled (PTX-like) Instruction Sequence</B></TD></TR>
+      <TR><TD><FONT FACE="monospace">ld.global.v4.f32 {r0, r1, r2, r3}, [in_attr0];</FONT></TD></TR>
+      <TR><TD><FONT FACE="monospace">mov.f32 o0, r0;</FONT></TD></TR>
+      <TR><TD><FONT FACE="monospace">mov.f32 o1, r1;</FONT></TD></TR>
+      <TR><TD><FONT FACE="monospace">mov.f32 o2, r2;</FONT></TD></TR>
+      <TR><TD><FONT FACE="monospace">mov.f32 o3, r3;</FONT></TD></TR>
+      <TR><TD><FONT FACE="monospace"><B>call emit;</B></FONT></TD></TR>
+      <TR><TD><FONT FACE="monospace">ld.global.v4.f32 {r4, r5, r6, r7}, [in_attr1];</FONT></TD></TR>
+      <TR><TD><FONT FACE="monospace">mov.f32 o0, r4;</FONT></TD></TR>
+      <TR><TD><FONT FACE="monospace">mov.f32 o1, r5;</FONT></TD></TR>
+      <TR><TD><FONT FACE="monospace">mov.f32 o2, r6;</FONT></TD></TR>
+      <TR><TD><FONT FACE="monospace">mov.f32 o3, r7;</FONT></TD></TR>
+      <TR><TD><FONT FACE="monospace"><B>call emit;</B></FONT></TD></TR>
+      <TR><TD><FONT FACE="monospace"><B>call cut;</B></FONT></TD></TR>
+    </TABLE>
+  >];
+
+  /* Output registers / buffers that hold emitted vertex data */
+  OutRegs [shape=note, fillcolor="#FFFFE0", label=<
+    <TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" ALIGN="LEFT">
+      <TR><TD><B>Output Registers / Emit Buffer</B></TD></TR>
+      <TR><TD>• o0..oN hold per-vertex outputs (position, attrs)</TD></TR>
+      <TR><TD>• Emit buffer queues vertices for Geometry Unit</TD></TR>
+    </TABLE>
+  >];
+
+  /* Geometry Unit with internal stages (simplified) */
+  GeoUnit [fillcolor="#D9E8FF" label=<
+    <TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" ALIGN="LEFT">
+      <TR><TD><B>Geometry Unit (hardware)</B></TD></TR>
+      <TR><TD>• Accepts emitted vertices from SM output regs</TD></TR>
+      <TR><TD>• Primitive Assembly / Tessellation / GS handling</TD></TR>
+      <TR><TD>• Culling, Clipping, Viewport transform</TD></TR>
+      <TR><TD>• Primitive Setup → send to Rasterizer</TD></TR>
+    </TABLE>
+  >];
+
+  Rasterizer [fillcolor="#F2F8FF" label=<
+    <TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" ALIGN="LEFT">
+      <TR><TD><B>Rasterizer</B></TD></TR>
+      <TR><TD>• Consumes prepared primitives</TD></TR>
+      <TR><TD>• Produces fragments for fragment shading</TD></TR>
+    </TABLE>
+  >];
+
+  /* Dataflow edges */
+  SMThread -> InstFetch [label=" compiled microcode / instruction pointer" fontsize=10];
+  InstFetch -> AsmSeq [label=" decode -> micro-ops" fontsize=10];
+  AsmSeq -> OutRegs [label=" write outputs (o0..oN)" fontsize=10];
+  OutRegs -> GeoUnit [label=" Emit vertex(s) (emit/cut triggers)" fontsize=10];
+  GeoUnit -> Rasterizer [label=" prepared primitives" fontsize=10];
+
+  /* Control arrows (illustrate call emit/cut semantics) */
+  AsmSeq -> GeoUnit [label=" call emit / call cut (control msgs)", style=dashed, color="#3333CC"];
+
+  /* layout hints */
+  { rank = same; SMThread; InstFetch; AsmSeq }
+  { rank = same; OutRegs; GeoUnit; Rasterizer }
+}

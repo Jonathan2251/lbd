@@ -1,0 +1,41 @@
+digraph GPU_Memory_Hierarchy {
+    rankdir=TB;
+    node [shape=box, style=rounded, fontname="Helvetica"];
+
+    // Processing hierarchy
+    GigaThread [label="GigaThread Engine\n(Chip-wide Scheduler)"];
+    GPC [label="GPC\n(Graphics Processing Cluster)"];
+    TPC [label="TPC\n(Texture Processing Cluster)"];
+    SM [label="SM\n(Streaming Multiprocessor)"];
+    Core [label="CUDA Cores"];
+
+    // Memory hierarchy
+    Global [label="Global Memory (HBM/GDDR)\nGPU-wide, slowest"];
+    L2 [label="L2 Cache\nGPU-wide"];
+    L1 [label="L1 Cache\nPer-SM, unified with Shared"];
+    Shared [label="Shared Memory\nPer-SM, Block-visible"];
+    Local [label="Local Memory\nPer-thread, in DRAM"];
+    Reg [label="Registers\nPer-thread, fastest"];
+
+    // Hierarchy connections
+    GigaThread -> GPC -> TPC -> SM -> Core;
+
+    // Memory hierarchy connections
+    Global -> L2 -> L1 -> Core;
+    Shared -> SM;
+    Reg -> Core;
+    Local -> Core;
+
+    // Styling groups
+    subgraph cluster_gpu {
+        label="GPU Processing Units";
+        style=dashed;
+        GigaThread; GPC; TPC; SM; Core;
+    }
+
+    subgraph cluster_mem {
+        label="Memory Hierarchy";
+        style=dashed;
+        Global; L2; L1; Shared; Local; Reg;
+    }
+}

@@ -1,0 +1,56 @@
+digraph EmitCut_Flow {
+    rankdir=LR;
+    fontsize=12;
+    labelloc="t";
+    label="GPU Geometry Shader Dataflow — EmitVertex() and EndPrimitive()";
+
+    node [shape=box, style=rounded, fontname="Helvetica"];
+
+    subgraph cluster_shader {
+        label="Streaming Multiprocessor (SM)";
+        color=lightblue;
+        style=filled;
+        fillcolor="#D8EFFF";
+
+        thread [label="Shader Thread\n(Geometry Shader Instructions)", shape=box];
+        emit [label="EmitVertex()\n• write varyings\n• commit vertex", shape=box];
+        cut [label="EndPrimitive()\n• mark primitive boundary", shape=box];
+        thread -> emit -> cut;
+    }
+
+    subgraph cluster_fifo {
+        label="On-Chip FIFO / URB / LDS Buffer";
+        color=gray;
+        style=filled;
+        fillcolor="#EEEEEE";
+        fifo [label="FIFO Buffer\n(Holds emitted vertices\nand primitive markers)", shape=box];
+    }
+
+    subgraph cluster_geom {
+        label="Geometry Unit / Primitive Assembler";
+        color=lightgreen;
+        style=filled;
+        fillcolor="#E0FFE0";
+        geom [label="Geometry Unit\n• reads FIFO entries\n• assembles primitives", shape=box];
+    }
+
+    subgraph cluster_rast {
+        label="Rasterization Pipeline";
+        color=lightgray;
+        style=dashed;
+        rast [label="Rasterizer\n• receives completed\ntriangles/lines", shape=box];
+    }
+
+    // Dataflow edges
+    emit -> fifo [label="write vertex data"];
+    cut -> fifo [label="write primitive end marker"];
+    fifo -> geom [label="fetch vertex packets"];
+    geom -> rast [label="assembled primitives"];
+
+    // Control flow notes
+    thread -> emit [style=dashed, color=gray, label="shader executes intrinsics"];
+    geom -> fifo [style=dotted, color=gray, label="read signals / ready flags"];
+
+    // Legend
+    legend [shape=note, label="LEGEND:\nEmitVertex() = vertex data write\nEndPrimitive() = mark primitive end\nSM → FIFO → Geometry Unit → Rasterizer", fontsize=10];
+}
