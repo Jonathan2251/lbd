@@ -1,0 +1,121 @@
+digraph Geometry_Unit {
+  rankdir=TB;
+  bgcolor="white";
+  node [shape=box, style="rounded,filled", fontname="Arial", fontsize=12];
+
+  /* Graph-level left-aligned title (bold, dark blue) */
+  label=<
+    <TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" ALIGN="LEFT">
+      <TR>
+        <TD>
+          <FONT POINT-SIZE="14" COLOR="#003366"><B>GPU Geometry Unit - internal stages &amp; dataflow</B></FONT>
+        </TD>
+      </TR>
+      <TR>
+        <TD>
+          <FONT POINT-SIZE="10" COLOR="#003366">Flow: Vertex output - Primitive Assembly - (Tessellation) - Geometry Shader - Clipping - Viewport Transform - Primitive Setup - Rasterizer</FONT>
+        </TD>
+      </TR>
+    </TABLE>
+  >;
+  labelloc=top;
+
+  /* External stages (vertex / rasterizer) */
+  VertexOut [fillcolor="#FFF2CC" label=<
+    <TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" ALIGN="LEFT">
+      <TR><TD><B>Vertex Shader Output</B></TD></TR>
+      <TR><TD>• Transformed vertices (clip/NDC)</TD></TR>
+      <TR><TD>• Per-vertex attributes (normals, UVs, colors)</TD></TR>
+    </TABLE>
+  >];
+
+  Rasterizer [fillcolor="#F2F8FF" label=<
+    <TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" ALIGN="LEFT">
+      <TR><TD><B>Rasterizer</B></TD></TR>
+      <TR><TD>• Consumes prepared primitives</TD></TR>
+      <TR><TD>• Produces fragments for fragment shading</TD></TR>
+    </TABLE>
+  >];
+
+  /* Geometry Unit core blocks */
+  Assembly [fillcolor="#D9E8FF" label=<
+    <TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" ALIGN="LEFT">
+      <TR><TD><B>Primitive Assembly / Input Assembler</B></TD></TR>
+      <TR><TD>• Group vertices into primitives (triangles, lines, patches)</TD></TR>
+      <TR><TD>• Fetch index buffers, vertex attributes</TD></TR>
+    </TABLE>
+  >];
+
+  Tessellation [fillcolor="#E8F7E8" label=<
+    <TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" ALIGN="LEFT">
+      <TR><TD><B>Tessellation (optional)</B></TD></TR>
+      <TR><TD>• Tessellation Control + Primitive Gen + Eval</TD></TR>
+      <TR><TD>• Patch subdivision, generate new vertices/primitives</TD></TR>
+    </TABLE>
+  >];
+
+  GeoShader [fillcolor="#D9E8FF" label=<
+    <TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" ALIGN="LEFT">
+      <TR><TD><B>Geometry Shader / Stream Output (optional)</B></TD></TR>
+      <TR><TD>• Programmable stage: modify or emit primitives</TD></TR>
+      <TR><TD>• Can amplify primitives (performance cost)</TD></TR>
+    </TABLE>
+  >];
+
+  Culling [fillcolor="#FFF4D9" label=<
+    <TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" ALIGN="LEFT">
+      <TR><TD><B>Primitive Culling &amp; Clipping</B></TD></TR>
+      <TR><TD>• Frustum clipping, user-space frustum tests</TD></TR>
+      <TR><TD>• Back-face culling, scissor tests</TD></TR>
+    </TABLE>
+  >];
+
+  Viewport [fillcolor="#FFF4D9" label=<
+    <TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" ALIGN="LEFT">
+      <TR><TD><B>Viewport / Screen Transform</B></TD></TR>
+      <TR><TD>• NDC → screen coordinates (viewport scale + offset)</TD></TR>
+      <TR><TD>• Apply depth range mapping</TD></TR>
+    </TABLE>
+  >];
+
+  Setup [fillcolor="#FFF4D9" label=<
+    <TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" ALIGN="LEFT">
+      <TR><TD><B>Primitive Setup / Scan-conversion Prep</B></TD></TR>
+      <TR><TD>• Compute edge equations, slopes, barycentrics</TD></TR>
+      <TR><TD>• Prepare interpolants (dx/dy) for attributes</TD></TR>
+    </TABLE>
+  >];
+
+  /* Resource boxes / notes */
+  Resources [shape=note, fillcolor="#FFFFE0", label=<
+    <TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" ALIGN="LEFT">
+      <TR><TD><B>Resources / HW considerations</B></TD></TR>
+      <TR><TD>• Shared scheduling with vertex units</TD></TR>
+      <TR><TD>• Dedicated small caches / FIFOs for index/vertex fetch</TD></TR>
+      <TR><TD>• Fixed-function blocks for edge setup (for performance)</TD></TR>
+    </TABLE>
+  >];
+
+  /* Edges: dataflow */
+  VertexOut -> Assembly [label=" vertices + attributes" fontsize=10];
+  Assembly -> Tessellation [label=" primitives / patches" fontsize=10];
+  Tessellation -> GeoShader [label=" subdivided primitives" fontsize=10];
+  Assembly -> GeoShader [label=" primitives (if tess disabled)" fontsize=10];
+  GeoShader -> Culling [label=" emitted primitives" fontsize=10];
+  Culling -> Viewport [label=" clipped primitives" fontsize=10];
+  Viewport -> Setup [label=" screen-space verts + interpolants" fontsize=10];
+  Setup -> Rasterizer [label=" prepared primitives (edge eqns)" fontsize=10];
+
+  /* Optional arrows for control / fallback */
+  Tessellation -> Setup [label=" bypass (if no geometry shader)", style=dashed];
+  GeoShader -> Setup [label=" direct -> setup (if no culling)", style=dashed];
+
+  /* Resources placement */
+  Resources -> Assembly [style=dotted];
+  Resources -> Tessellation [style=dotted];
+  Resources -> GeoShader [style=dotted];
+
+  /* Layout tweaks */
+  { rank = same; Assembly; Tessellation; GeoShader }
+  { rank = same; Culling; Viewport; Setup }
+}
