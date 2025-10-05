@@ -209,7 +209,7 @@ more computing power than the CPU.
   from each frame down to each pixel’s value.
 
 - These frame data are stored in the form of VAOs (Vertex Array Objects) in  
-  OpenGL. This will be explained in a later section: `OpenGL`_.
+  OpenGL. This will be explained in a later `section OpenGL`_.
 
 - Additionally, OpenGL provides VBOs (Vertex Buffer Objects), which allow  
   vertex array data to be stored in high-performance graphics memory on the  
@@ -796,6 +796,7 @@ Since we have 6 vertices in our buffer, this shader will be executed 6 times by
 the GPU (once per vertex)! We can also expect all 6 instances of the shader to 
 be executed in parallel, since a GPU have so many cores.
 
+.. _rendering3d:
 
 3D Rendering
 ************
@@ -1681,6 +1682,7 @@ that accelerate them as shown in :numref:`ogl-pipeline-hw`:
     to hide instruction and memory latencies.
 
 - **Usage:**  
+
   * Run programmable shaders (vertex, fragment, geometry, compute).  
   * Perform general-purpose compute workloads (GPGPU).  
   * Issue texture fetch requests to TMUs.  
@@ -1699,18 +1701,21 @@ that accelerate them as shown in :numref:`ogl-pipeline-hw`:
     Assemble input vertices into primitives (points, lines, triangles).
     Perform tessellation (subdivide patches into smaller primitives),
     clipping (discard geometry outside view), and geometry shading.  
+
     *Usage:* Corresponds to the geometry/tessellation stage in the graphics pipeline.
 
   * **Rasterization Units** –  
     Convert vector-based primitives into fragments (potential pixels).
     Interpolate per-vertex attributes (texture coordinates, normals, colors)
     across the surface of each primitive.  
+
     *Usage:* Bridge between geometry and fragment stages; produces fragments
     for SM fragment shading.
 
   * **Texture Mapping Units (TMUs)** –  
     Fetch texture data from memory, apply filtering (bilinear, trilinear,
     anisotropic), and compute texel addresses (wrap, clamp).  
+
     *Usage:* Invoked during fragment shading inside SMs to provide sampled
     texture values.
 
@@ -1718,27 +1723,32 @@ that accelerate them as shown in :numref:`ogl-pipeline-hw`:
     Handle late-stage pixel processing. Perform blending operations
     (alpha, additive), depth and stencil tests, and write final pixel values
     to the framebuffer in VRAM.  
+
     *Usage:* Final step of the graphics pipeline before display scanout.
 
   * **Tensor / Matrix Cores** –  
     Perform fused-multiply-add (FMA) on large matrix tiles.
     Designed for machine learning, AI inference, and linear algebra.  
+
     *Usage:* Accelerate deep learning workloads or matrix-heavy compute kernels.
 
   * **Ray-Tracing Units (RT Cores)** –  
     Traverse bounding volume hierarchies (BVH) and perform ray–primitive
     intersection tests in hardware.  
+
     *Usage:* Enable real-time ray tracing by offloading intersection work
     from SMs.
 
   * **Video Engines** –  
     Dedicated ASICs for video codec operations such as H.264/H.265/AV1 encode
     and decode.  
+
     *Usage:* Media playback, streaming, and video encoding without occupying SMs.
 
   * **Display Controller** –  
     Reads final framebuffer images from VRAM and drives display interfaces
     like HDMI and DisplayPort.  
+
     *Usage:* Outputs rendered frames to monitors or VR headsets.
 
 **Memory Subsystem**
@@ -1752,32 +1762,38 @@ that accelerate them as shown in :numref:`ogl-pipeline-hw`:
   * **L1 / Shared Memory** –  
     Closest to SMs. Shared Memory is explicitly used by programs for
     intra-block communication, while L1 acts as an automatic cache.  
+
     *Usage:* Boosts performance by keeping frequently accessed data
     close to execution units.
 
   * **L2 Cache** –  
     Shared across all SMs. Reduces redundant traffic to VRAM and
     improves latency for reused data.  
+
     *Usage:* Provides intermediate caching layer for both compute and graphics.
 
   * **VRAM (GDDR / HBM)** –  
     External high-bandwidth DRAM. Stores textures, framebuffers,
     vertex/index buffers, and large compute datasets.  
+
     *Usage:* The main memory backing for all GPU workloads.
 
   * **Interconnect / Memory Controller** –  
     Orchestrates memory requests, manages access to VRAM,
     and ensures fairness between SMs.  
+
     *Usage:* Handles scheduling and distribution of memory transactions.
 
   * **Memory Coalescing Unit** –  
     Combines multiple per-thread memory requests from a warp into fewer,
     wider transactions. Most effective for contiguous access patterns.  
+
     *Usage:* Improves memory bandwidth efficiency and reduces wasted cycles.
 
   * **Gather–Scatter Unit** –  
     Handles irregular or sparse memory accesses where coalescing is not possible.
     May break requests into multiple smaller transactions.  
+
     *Usage:* Supports workloads such as sparse matrix operations, graph traversal,
     or irregular data structures.
 
@@ -1806,9 +1822,9 @@ that accelerate them as shown in :numref:`ogl-pipeline-hw`:
 
 🔹 Simplified Flow (OpenGL → Hardware)
 	1.	Vertex Fetch → VRAM & Memory Controllers.
-	2.	Vertex Shader → SM cores.
-	3.	Geometry/Tessellation → SM cores.
-	4.	Rasterization → Raster units.
+	2.	Vertex Shader → SM cores + Geometry Units.
+	3.	Geometry/Tessellation → SM core + Geometry Units.
+	4.	Rasterization → Rasterization units.
 	5.	Fragment Shader → SM cores + TMUs (texture sampling).
 	6.	Depth/Stencil/Blending → ROPs.
 	7.	Framebuffer Write → L2 cache & VRAM → Display Controller.
@@ -1818,7 +1834,7 @@ that accelerate them as shown in :numref:`ogl-pipeline-hw`:
 By utilizing certain GPU units as outlined below, Variable Rate Shading (VRS) can be 
 supported [#vrs]_.
 
-- Rasterizer:
+- Rasterizer (Rasterization Units):
 
   - Decides how many fragments per pixel (or group of pixels) will actually be shaded.
   - Instead of generating 1 fragment per pixel, it may shade 1 fragment for a 2×2 or 4×4 block and reuse that result.
@@ -1867,29 +1883,26 @@ This represents a SIMT pipeline with a scoreboard.
 
 .. note:: A SIMD Thread executed by SIMD Processor, a.k.a. SM, has 16 Lanes.
   
-.. _sm: 
-.. figure:: ../Fig/gpu/sm.png
-  :align: center
-  :scale: 50 %
-
-  Streaming Multiprocessor SM has two -16-way SIMD units and four special 
-  function units [#cuda-sm]_. SM has L1 and Read Only Cache (Uniform Cache)
-  GTX480 has 48 SMs. **ALUs run at twice the clock rate of rest of chip. So each 
-  decoded instruction runs on 32 pieces of data on the 16 ALUs over two ALU 
-  clocks** [#chime]_.
-
 .. _sm2: 
 .. figure:: ../Fig/gpu/sm2.png
   :align: center
   :scale: 50 %
 
   Multithreaded SIMD Processor (Streaming Multiprocessor SM) figure from book 
-  [#Quantitative-gpu-sm]_
+  [#Quantitative-gpu-sm]_.
+  Streaming Multiprocessor SM has two -16-way SIMD units and four special 
+  function units.
+  SIMD Lane is called Cuda core [#cuda-sm]_. 
+  SM has L1 and Read Only Cache (Uniform Cache)
+  GTX480 has 48 SMs. **ALUs run at twice the clock rate of rest of chip. So each 
+  decoded instruction runs on 32 pieces of data on the 16 ALUs over two ALU 
+  clocks** [#chime]_.
+
 
 .. note::
 
-   A SIMD thread executed by a SIMD processor, also known as an SM, processes  
-   32 elements.  
+   A SIMD thread executed by a Multithreaded SIMD processor, also known as an SM,
+   processes 32 elements.  
 
    Number of registers in a thread block =  
    16 (SMs) * 32 (CUDA threads) * 64 (TLRs, Thread-Level Registers) = 32,768  
@@ -1903,7 +1916,7 @@ This represents a SIMT pipeline with a scoreboard.
   :align: center
   :scale: 50 %
 
-  SM select Thread Blocks to run
+  SM select Thread Blocks to run [#wiki-tbcp]_.
 
 - Two levels of scheduling:
 
@@ -1940,12 +1953,88 @@ This represents a SIMT pipeline with a scoreboard.
   (figure from [#Quantitative-grid]_).  
   SIMT: 16 SIMD threads in one thread block.
 
+
+Processor Units and Memory Hierarchy in NVIDIA GPU [#chatgpt-pumh]_
+*******************************************************************
+
 .. _gpu-mem: 
 .. figure:: ../Fig/gpu/memory.png
   :align: center
   :scale: 50 %
 
-  GPU memory (figure from book [#Quantitative-gpu-mem]_)
+  GPU memory (figure from book [#Quantitative-gpu-mem]_). 
+  Local Memory is shared by all threads and Cached in L1 and L2.
+  In addition, the **Shared Memory is provided to use per-SM, not cacheable**.
+
+
+.. _mem-hierarchy: 
+.. graphviz:: ../Fig/gpu/mem-hierarchy.gv
+  :caption: Processor Units and Memory Hierarchy in NVIDIA GPU
+
+
+**Memory Hierarchy in NVIDIA GPU**
+
+- **Registers**
+
+  - Per-thread, fastest memory, located in CUDA cores.
+  - Latency: ~1 cycle.
+
+- **Local Memory**
+
+  - Per-thread, stored in global DRAM.
+  - Cached in L1 and L2.
+  - Latency: high, depends on cache hit/miss.
+
+- **Shared Memory**
+
+  - **Per-SM, shared across threads in a thread block.**
+  - **On-chip, programmer-controlled.**
+  - Latency: ~20 cycles.
+
+- **L1 Cache**
+
+  - Per-SM, unified with shared memory.
+  - Hardware-managed.
+  - Latency: ~20 cycles.
+
+- **L2 Cache**
+
+  - Shared across the entire GPU chip.
+  - Coherent across all SMs and GPCs.
+
+- **Global Memory (DRAM: HBM/GDDR)**
+
+  - Visible to all SMs across all GPCs.
+  - Highest latency (~400–800 cycles).
+
+**GPU Hierarchy Context**
+
+- **GigaThread Engine (chip-wide scheduler)**
+
+  - Contains multiple GPCs.
+
+    - Fermi (2010): up to 4 GPCs per chip.
+    - Pascal GP100 (Tesla P100): 6 GPCs.
+    - Volta GV100 (Tesla V100): 6 GPCs.
+
+  - Distributes thread blocks to all GPCs.
+
+- **GPC (Graphics Processing Cluster)**
+
+  - Contains multiple TPCs.
+
+- **TPC (Texture Processing Cluster)**
+
+  - Groups 1–2 SMs.
+
+- **SM (Streaming Multiprocessor)**
+
+  - Contains CUDA cores, registers, shared memory, L1 cache.
+
+- **CUDA Cores**
+
+  - Execute threads with registers and access the memory hierarchy.
+
 
 .. _gpu-terms: 
 .. figure:: ../Fig/gpu/gpu-terms.png
@@ -1968,51 +2057,65 @@ Summarize as table below.
     - Grid
     - 
     - Grid is Vectorizable Loop as :numref:`gpu-terms`.
-  * - Thread Block
-    - Thread Block / GPU Core
-    - Each Grid has 16 Thread Block.
+  * - Thread Block (Scheduler)
+    - Giga Thread Engine
+    - Each Grid has 16 Giga Thread [#Quantitative-gpu-threadblock]_.
     - Each Thread Block is assigned 512 elements of the vectors to 
       work on.
-      SIMD Processors are full processors with separate PCs and are programmed using
-      threads [#Quantitative-gpu-threadblock]_. 
       As :numref:`grid`, it assigns 16 Thread Block to 16 SIMD Processors.
-      CPU Core is the processor which include multi-threads. A thread of CPU is 
-      execution unit with its own PC (Program Counter). 
-      Similarly, Once a thread block is launched on a multiprocessor (SM), all of its warps are resident until their execution finishes. Thus a new block is not launched on an SM until there is sufficient number of free registers for all warps of the new block, and until there is enough free shared memory for the new block.
-      As this concept, GPU
-      Core is the SIMD Processor includes several SIMD Thread (Warp). Each Warp
-      has its PC [#wiki-tbcp]_.
-  * - SIMD Thread (run by SIMD Processor)
-    - Warp (run by Streaming Multiprocessor, SM)
+      A thread of CPU is execution unit with its own PC (Program Counter). 
+      Similarly, Once a thread block is launched on a multiprocessor (SM), all 
+      of its warps are resident until their execution finishes. 
+      Thus a new block is not launched on an SM until there is sufficient 
+      number of free registers for all warps of the new block, and until there 
+      is enough free shared memory for the new block [#wiki-tbcp]_..
+  * - **Multithreaded SIMD Processor** (SIMD Thread)
+    - **Streaming Multiprocessor, SM, GPU Core (Warp)** [#gpu-core]_
     - Each SIMD Processor has 16 SIMD Threads. 
     - Each SIMD processor includes local memory, as in :numref:`gpu-mem`. Local
       memory is shared among SIMD lanes within a SIMD processor but not across
       different SIMD processors. A warp has its own PC and may correspond to a
       whole function or part of a function. Compiler and runtime may assign
-      functions to the same or different warps
-      [#Quantitative-gpu-warp]_.
+      functions to the same or different warps [#Quantitative-gpu-warp]_.
   * - SIMD Lane
-    - Cuda Thread
+    - Cuda core, Cuda Thread
     - Each SIMD Thread has 16 Lanes..
     - A vertical cut of a thread of SIMD instructions corresponding to 
       one element executed by one SIMD Lane. It is a vector instruction with 
       processing 16-elements. SIMD Lane registers: each Lane has its TLR 
       (Thread Level Registers) allocated from Register file (32768 x 
-      32-bit) by SM as :numref:`sm`.
+      32-bit) by SIMD Processor (SM) as :numref:`sm2`. 
+      A warp of 32 threads is mapped across 16 lanes. 
+      If each lane has 2 chimes, it may support dual-issue or time-sliced 
+      execution as :numref:`warp-sched-pipeline`.
   * - Chime
     - Chime
     - Each SIMD Lane has 2 chimes.
     - One clock rate of rest of chip executes 2 data elements on two Cuda-core 
-      as in :numref:`sm`.
+      as in :numref:`sm2`.
       Vector length is 32 (32 elements), SIMD Lanes = 16. Chime = 2. 
       Chimes refer to ALU cycles that run in "ping-pong" mode.
       As :numref:`grid` for the later Fermi-generation GPUs.
 
 
-SISD, SIMD, SIMT and SPMD Pipelines
-***********************************
+.. _warp-sched-pipeline: 
+.. graphviz:: ../Fig/gpu/warp-sched-pipeline.gv
+  :caption: In dual-issue mode, Chime A carries floating-point data while Chime 
+            B carries integer data—both issued by the same CUDA thread. 
+            In contrast, under time-sliced execution, Chime A and Chime B carry 
+            either floating-point or integer data independently, and are 
+            assigned to separate CUDA threads.
 
-This section illustrates the difference between SISD, SIMD, SIMT and SPMD
+References
+
+- `NVIDIA GPU Architecture Overview <https://developer.nvidia.com/blog/nvidia-ampere-architecture-in-depth/>`_
+- `Understanding Warps and Threads <https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#warps>`_
+
+
+SIMT and SPMD Pipelines
+***********************
+
+This section illustrates the difference between SIMT and SPMD
 pipelines using the same pipeline stages: Fetch (F), Decode (D),
 Execute (E), Memory (M), and Writeback (W).
 
@@ -2020,69 +2123,6 @@ The low end GPU provide SIMD in their pipeline, all instructions executed in
 lock-step while the high end GPU provide SPMD in pipeline which means the
 instructions is interleaved in pipeline are shown below.
 
-**SISD (Single Instruction, Single Data)**
-
-Only one instruction stream, operating on one data element.
-
-.. code-block::
-
-   Cycle →
-   Pipeline Stages:   [F]        [D]        [E]        [M]        [W]
-
-   I1: LD R1, A[0]     ─────────────────────────────→
-   I2: LD R2, B[0]               ─────────────────────────────→
-   I3: ADD R3, R1, R2                          ─────→
-   I4: ST C[0], R3                                             ───────────────→
-
-- Instructions execute sequentially.
-- Only a single instruction stream fills the pipeline.
-
-**SIMD (Single Instruction, Multiple Data)**
-
-One instruction controls multiple data lanes (lockstep execution).
-
-.. code-block::
-
-   Cycle →
-   Pipeline Stages:   [F]        [D]        [E]        [M]        [W]
-
-   I1: LD V1, A[0..3]  ─────────────────────────────→
-   I2: LD V2, B[0..3]             ─────────────────────────────→
-   I3: ADD V3, V1, V2                            ─────→
-   I4: ST C[0..3], V3                                          ───────────────→
-
-Parallel execution per lane:
-
-   Lane0: A[0] + B[0] → C[0]
-   Lane1: A[1] + B[1] → C[1]
-   Lane2: A[2] + B[2] → C[2]
-   Lane3: A[3] + B[3] → C[3]
-
-- One instruction stream, multiple data processed simultaneously.
-- Vector units execute in parallel lanes.
-
-**SPMD (Single Program, Multiple Data)**
-
-Multiple threads execute the same program independently.
-Instructions from different threads are interleaved in the pipeline.
-
-.. code-block::
-
-   Cycle →
-   Pipeline Stages:   [F]        [D]        [E]        [M]        [W]
-
-   T0.I1: LD R1, A[0]  ─────────────────────────────→
-   T1.I1: LD R1, A[1]             ─────────────────────────────→
-   T0.I2: LD R2, B[0]                          ─────────────────────────────→
-   T1.I2: LD R2, B[1]                                        ─────────────────────────────→
-   T0.I3: ADD R3, R1, R2                 ─────→
-   T1.I3: ADD R3, R1, R2                               ─────→
-   T0.I4: ST C[0], R3                                              ───────────────→
-   T1.I4: ST C[1], R3                                                            ───────────────→
-
-- Each thread executes the same program with different data.
-- Instructions from different threads can be interleaved to hide latency.
-- Typical execution model of GPUs.
 
 **SPMD Programming Model vs SIMD/SIMT Execution**
 
@@ -2146,7 +2186,7 @@ different data). However, the hardware actually executes instructions in
             (Threads fetch/execute independently —
              odd thread finishes immediately)
 
-Subsection `section Mapping data in GPU`_ includes more details in lanes masked.
+`Subsection Mapping data in GPU`_ includes more details in lanes masked.
 
 **Scoreboard purpose:**
 
@@ -2210,7 +2250,7 @@ Result:
 **Each thread has its own PC; only thread 0 stalls, others advance.**
 
 - **The subsequent ADD instruction ADD of threads 1..31 
-  can be issued sinc thread has its own PC.**
+  can be issued since thread has its own PC.**
 
 .. code-block::
 
@@ -2332,7 +2372,8 @@ access.
   few memory transactions as possible.**
 
   - Cache miss (global memory/DRAM): Coalescing = big performance improvement.
-  - Cache hit (L1/L2): Coalescing = smaller benefit, since cache line fetch already amortizes cost.
+  - Cache hit (L1/L2): Coalescing = smaller benefit, since cache line fetch 
+    already amortizes cost.
 
   - Note that unlike vector architectures, GPUs don’t have separate instructions 
     for sequential data transfers, strided data transfers, and gather-scatter 
@@ -2534,8 +2575,12 @@ CSR storage:
 - Address coalescing is critical for high GPU throughput; restructuring
   data to improve coalescing often provides significant performance gains.
 
-VRAM
-^^^^
+VRAM dGPU
+^^^^^^^^^
+
+.. _mem: 
+.. graphviz:: ../Fig/gpu/mem.gv
+  :caption: iGPU versus dGPU
 
 **Reason:**
 
@@ -2552,18 +2597,14 @@ contention:**
 
   - c. Bus & Memory Controller Bottleneck
 
+**Advantages:**
+
 A discrete GPU has its own dedicated memory (VRAM) while an integrated GPU (iGPU)
-shares memory with the CPU.
+shares memory with the CPU as shown in :numref:`mem`.
 
 Dedicated GPU memory (VRAM) outperforms shared CPU-GPU memory due to
 higher bandwidth, lower latency, parallel access optimization, and no
 contention with CPU resources.
-
-**Key Differences:**
-
-.. _mem: 
-.. graphviz:: ../Fig/gpu/mem.gv
-  :caption: iGPU versus dGPU
 
 +----------------------+-----------------------------+------------------------------+
 | Feature              | Shared Memory (CPU + iGPU)  | Dedicated GPU Memory (dGPU)  |
@@ -2586,14 +2627,12 @@ contention with CPU resources.
 |                      | Cache/DMA conflicts         | Low latency memory access    |
 +----------------------+-----------------------------+------------------------------+
 
-**Summary:**
-
 Dedicated memory allows the GPU to run high-throughput workloads without
-interference from the CPU. It provides wide bandwidth (1), optimized
-parallel access (2), and low-latency paths (3), avoiding cache and DMA
-conflicts for superior performance.
+interference from the CPU. It provides **(1). wide bandwidth, (2). optimized
+parallel access, and (3). low-latency paths**, avoiding cache and DMA
+conflicts for superior performance.**
 
-(1). Wide bandwidth: Dedicated GPU memory (VRAM) is often based on GDDR6, 
+**(1). Wide bandwidth:** Dedicated GPU memory (VRAM) is often based on GDDR6, 
 GDDR6X, or HBM2/3, which are much faster than standard system RAM (DDR4/DDR5).
 
   Typical bandwidths:
@@ -2606,7 +2645,7 @@ GDDR6X, or HBM2/3, which are much faster than standard system RAM (DDR4/DDR5).
 
   Impact: Faster access to textures, vertex buffers, and framebuffers—critical for rendering and compute tasks.
 
-(2). Optimized parallel access: 
+**(2). Optimized parallel access:**
 
   - VRAM is optimized for the massively parallel architecture of GPUs.
 
@@ -2614,7 +2653,7 @@ GDDR6X, or HBM2/3, which are much faster than standard system RAM (DDR4/DDR5).
 
   Shared system memory is optimized for CPU access patterns, not thousands of GPU threads.
 
-(3). Low-latency paths: 
+**(3). Low-latency paths:**
 
   - Dedicated memory is physically closer to the GPU die.
 
@@ -2669,10 +2708,10 @@ Description
 - **Global Memory**: Source of all operands and data.
 - **L1 Cache**: Participates in memory hierarchy; may serve LD requests.
 - **Register File**: Receives operands via LD; stages them into Staging Buffer 
-                     for Transient Operands.
+  for Transient Operands.
 - **Staging Buffer**: Holds transient operands for immediate execution.
 - **Execution Unit**: Consumes operands from Staging Buffer for Transient 
-                      Operands and Register File for Persistent Operands.
+  Operands and Register File for Persistent Operands.
 
 Notes
 
@@ -2708,7 +2747,7 @@ RegLess Model: Staging-Aware Register File
    v5 = mul(v4, color)       # persistent
 
    # v1 and v2 staged briefly, v3–v4 may be staged or registered, v5 fully 
-   registered
+   # registered
 
 Compiler-Hardware Interface
 
@@ -2740,14 +2779,242 @@ burdening the instruction stream with excessive metadata.
 Specialized Units
 *****************
 
-Texture Mapping Units (TMUs)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+As shown in `section GPU Hardware Units`,
+the stages of the OpenGL rendering pipeline and the GPU hardware units
+that accelerate them as shown in :numref:`ogl-pipeline-hw2`:
+
+.. _ogl-pipeline-hw2: 
+.. graphviz:: ../Fig/gpu/ogl-pipeline-hw.gv
+  :caption: The stages of OpenGL pipeline and GPU's acceleration components
+
+We now explain how these GPU hardware acceleration units—Geometry Units, 
+Rasterization Units, Texture Mapping Units (TMUs), and Render Output Units (ROPs) 
+—- work together with SMs to provide GPU-ISA instructions that accelerate the 
+graphics pipeline illustrated in :numref:`short_rendering_pipeline2` of
+section :ref:`rendering3d`. 
+
+.. rubric:: Figure illustrated in section 3D Rendering
+.. _short_rendering_pipeline2: 
+.. figure:: ../Fig/gpu/short-rendering-pipeline.png
+  :align: center
+  :scale: 50 %
+
+  3D Graphics Rendering Pipeline [#cg_basictheory]_
+
+Geometry Units
+^^^^^^^^^^^^^^
+
+**Function:**
+
+::
+
+  Raw Vertices & Primitives → Transformed Vertices & Primitives
+
+
+Suppose the GLSL geometry shader looks like this:
+
+.. rubric:: An example of GLSL geometry shader
+.. code-block:: c++
+
+  #version 450
+  layout(triangles) in;
+  layout(line_strip, max_vertices = 2) out;
+
+  void main() {
+    gl_Position = gl_in[0].gl_Position;
+    EmitVertex();
+
+    gl_Position = gl_in[1].gl_Position;
+    EmitVertex();
+
+    EndPrimitive();
+  }
+
+The corresponding PTX instructions and pipeline flow as :numref:`sm-geometry`.
+
+.. _sm-geometry:
+.. graphviz:: ../Fig/gpu/sm-geometry.gv
+  :caption: Fetch a sequence of Geometry instructions and pass to Geometry Unit
+
+The **Geometry Unit** in a GPU is a collection of fixed-function and programmable stages
+responsible for transforming assembled primitives (points, lines, triangles, patches)
+into screen-space primitives ready for rasterization.  
+The emit and cut are compiler intrinsics that map to control messages to the 
+Geometry Unit.
+When we say emit and cut in NVIDIA PTX (or HLSL/GLSL geometry shaders), they’re 
+not ALU instructions that run in the SM like add or mul. Instead, they act like 
+special control instructions that tell the GPU’s fixed-function Geometry Unit 
+what to do with the vertex data currently in the SM’s output registers 
+illustrated in :numref:`emit-cut-flow`.
+
+.. _emit-cut-flow:
+.. graphviz:: ../Fig/gpu/emit-cut-flow.gv
+  :caption: Micro-level flow: SM → Geometry Unit via Emit/Cut
+
+Unlike GLSL textures, which are converted into a specific hardware ISA, the 
+Geometry Shader in :numref:`ogl-pipeline-hw2` maps directly to the Geometry 
+Units instead of the SMs.
+
+Geometry Unit bridges the **vertex shading** stage and the **rasterization** 
+stage as shown in :numref:`geometry-unit`.
+
+.. _geometry-unit:
+.. graphviz:: ../Fig/gpu/geometry-unit.gv
+  :caption: Geometry Unit with its sub-functions (assembly, tessellation, 
+            clipping, viewport transform, etc.) 
+
+Role
+
+* Organize and process geometry data after vertex shading.
+* Perform primitive-level operations such as assembly, tessellation, clipping,
+  viewport transform, and primitive setup.
+* Provide hardware acceleration for geometry amplification or reduction
+  before rasterization.
+
+Components
+
+* **Primitive Assembly (Input Assembler)**
+  
+  - Groups vertices into primitives (triangles, lines, patches).
+  - Fetches indices and vertex attributes from memory.
+  - Prepares data structures for downstream geometry stages.
+
+* **Tessellation Engine (optional, OpenGL 4.0+ / DirectX 11+)**
+  
+  - Subdivides patches into finer primitives.
+  - Contains Tessellation Control Shader, Primitive Generator, and
+    Tessellation Evaluation Shader.
+  - Used in terrain rendering, displacement mapping, and adaptive LOD.
+
+* **Geometry Shader (optional, programmable stage)**
+  
+  - Can generate new primitives or discard existing ones.
+  - Enables shadow volume extrusion, point sprite expansion, or procedural geometry.
+  - High flexibility but often limited in performance due to amplification.
+
+* **Culling & Clipping**
+  
+  - Removes back-facing or out-of-view primitives.
+  - Clips primitives against the view frustum or user-defined clipping planes.
+  - Optimizes rendering by reducing fragment processing workload.
+
+* **Viewport Transform**
+  
+  - Maps Normalized Device Coordinates (NDC) to screen-space pixel coordinates.
+  - Applies viewport scaling, offset, and depth range mapping.
+
+* **Primitive Setup**
+  
+  - Converts screen-space primitives into edge equations and interpolation rules.
+  - Prepares slopes and barycentric coefficients for attribute interpolation in rasterization.
+  - Ensures that per-fragment attributes (e.g., texture coordinates, normals)
+    are interpolated correctly.
+
+Usage
+
+* Reduces workload on the fragment stage by culling invisible primitives.
+* Provides tessellation and geometry shaders for advanced rendering effects.
+* Ensures efficient and accurate rasterization setup.
+* Works closely with specialized GPU fixed-function blocks such as
+  **PolyMorph Engines** (NVIDIA) or **Geometry Processors** (AMD).
+
+References
+
+* Wikipedia – `Graphics pipeline <https://en.wikipedia.org/wiki/Graphics_pipeline>`_
+* NVIDIA – `DirectX 11 GPU Architecture (Geometry and PolyMorph Engine) <https://developer.nvidia.com/content/directx-11-gpu-architecture>`_
+* Intel – `3D Pipeline Overview (including Geometry Stage) <https://www.intel.com/content/www/us/en/developer/articles/technical/introduction-to-3d-pipeline.html>`_
+* LearnOpenGL – `Geometry Shader <https://learnopengl.com/Advanced-OpenGL/Geometry-Shader>`_
+* Microsoft Docs – `Tessellation and Geometry Pipeline <https://learn.microsoft.com/en-us/windows/win32/direct3d11/overviews-direct3d-11-graphics-pipeline>`_
+
+
+Rasterization Units [#raster-unit]_
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+**Function:**
+
+::
+
+  Transformed Vertices & Primitives → Fragments
+
+
+Overview
+
+The rasterization unit is a critical component of the graphics pipeline in 
+modern GPUs. It converts geometric primitives (typically triangles) into 
+fragments that correspond to pixels on the screen. This process is essential 
+for rendering 3D scenes into 2D images.
+
+The pipeline flow for Rasterization Units is shown as 
+:numref:`rasterization-pipeline`.
+
+.. _rasterization-pipeline:
+.. graphviz:: ../Fig/gpu/rasterization-pipeline.gv
+  :caption: Rasterization pipeline`
+
+Key Functions
+
+- **Triangle Setup**: Computes edge equations and bounding boxes for each 
+  triangle.
+- **Scan Conversion**: Determines which pixels are covered by the triangle.
+- **Attribute Interpolation**: Calculates interpolated values (e.g., texture 
+  coordinates, depth) for each fragment.
+- **Fragment Generation**: Produces fragment data for downstream shading and 
+  blending stages.
+
+Hardware Architecture
+
+Modern GPUs implement rasterization in highly parallel hardware blocks to 
+maximize throughput. A simplified block diagram includes:
+
+- **Primitive Assembly Unit**: Groups vertices into triangles.
+- **Triangle Setup Engine**: Prepares edge equations and bounding boxes.
+- **Rasterizer Core**: Performs scan conversion and fragment generation.
+- **Early-Z Unit**: Performs early depth testing to discard hidden fragments.
+- **Fragment Queue**: Buffers fragments for shading.
+
+Optimization Techniques
+
+- **Tile-Based Rasterization**: Divides the screen into tiles to reduce memory 
+  bandwidth.
+- **Early-Z Culling**: Discards fragments before shading if they fail depth 
+  tests.
+- **Compression**: Reduces data transfer costs between pipeline stages.
+
+Use Cases
+
+- Real-time rendering in games and simulations.
+- 3D Gaussian Splatting acceleration for AI-based rendering.
+- Mobile GPUs with power-efficient rasterization pipelines.
+
+References
+
+- `GauRast: Enhancing GPU Triangle Rasterizers 
+  <https://arxiv.org/html/2503.16681v1>`_
+- `NVIDIA Ada GPU Architecture PDF 
+  <https://images.nvidia.com/aem-dam/Solutions/geforce/ada/nvidia-ada-gpu-architecture.pdf>`_
+- `Stanford CS248A Lecture on Rasterization 
+  <https://gfxcourses.stanford.edu/cs248a/winter23content/media/gpuhardware/19_mobilegpu.pdf>`_
+
+
+Texture Mapping Units (TMUs) [#tpu]_
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+**Function:**
+
+::
+
+  Fragments → Processed Fragments
+
 
 Overview
 
 A Texture Mapping Unit (TMU) is a fixed-function hardware block inside a GPU 
 responsible for *fetching, filtering, and preparing texture data* that shaders 
 (sampled in fragment or compute stages) use during rendering.  
+
+As explained in previous `section OpenGL Shader Compiler`_, the texture 
+instruction using TMU to accelerate calculation as the following explanation 
+with :numref:`texture-fetch`.
 
 TMUs sit between the shader cores (SMs/CUs) and the memory subsystem. 
 They provide high-performance, specialized texture access operations that 
@@ -2877,19 +3144,23 @@ Key Responsibilities
          :align: center
          :scale: 100 %
 
-         Texture Filter: GL_NEAREST has sharp color and jagged edge [#texturewrapper]_
+         Texture Filter: GL_NEAREST has sharp color and jagged edge 
+         [#texturewrapper]_
 
 
 4. Mipmap Level of Detail (LOD) Selection
 
-   * Choose the correct mipmap level based on screen-space derivatives of texture coordinates.
+   * Choose the correct mipmap level based on screen-space derivatives of 
+     texture coordinates.
    * Prevent aliasing and improve cache efficiency.
    * Optionally blend between mip levels for trilinear filtering.
 
 5. Texture Caching
 
-   * TMUs have a **dedicated texture cache** optimized for 2D/3D spatial locality.
-   * Neighboring threads in a warp often fetch adjacent texels, improving cache hits.
+   * TMUs have a **dedicated texture cache** optimized for 2D/3D spatial 
+     locality.
+   * Neighboring threads in a warp often fetch adjacent texels, improving cache 
+     hits.
    * Caches reduce memory latency and improve bandwidth utilization.
 
 6. Specialized Operations
@@ -2930,6 +3201,68 @@ TMUs are highly specialized GPU units that:
 Without TMUs, all these operations would fall on general-purpose ALUs, 
 resulting in drastically lower performance and efficiency.
 
+
+Render Output Units (ROPs) [#rops]_
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+**Function:**
+
+::
+
+  Processed Fragments → Pixels
+
+
+Overview
+
+Render Output Units (ROPs), also known as Raster Operations Pipelines, are the 
+final stage in the GPU graphics pipeline before pixel data is written to the 
+framebuffer. ROPs handle pixel-level operations such as blending, depth and 
+stencil testing, multisample resolve, and writing to memory. They are crucial 
+for assembling the final image that appears on screen.
+
+Pipeline Responsibilities
+
+- **Fragment Reception**: Accepts shaded fragments from the pixel shader.
+- **Depth and Stencil Testing**: Compares fragment depth/stencil values against 
+  buffers.
+- **Blending**: Combines fragment color with existing framebuffer data.
+- **Multisample Resolve**: Merges multiple samples into a final pixel (for MSAA).
+- **Framebuffer Write**: Commits final pixel data to memory for display.
+
+The pipeline flow is shown as :numref:`render_output_pipeline`.
+
+.. _render_output_pipeline:
+.. graphviz:: ../Fig/gpu/render_output_pipeline.gv
+  :caption: The pipeline for Render Output Units (ROPs)
+
+Performance Considerations
+
+- **ROP Count**: More ROPs can increase pixel throughput, especially at high 
+  resolutions.
+- **Memory Bandwidth**: ROPs are tightly coupled with memory controllers; 
+  bandwidth limits can bottleneck performance.
+- **Antialiasing Support**: Hardware MSAA and resolve operations are often 
+  implemented in ROPs.
+- **Compression**: Some GPUs use framebuffer compression to reduce bandwidth 
+  usage.
+
+Vendor-Specific Notes
+
+- **NVIDIA**: Refers to these units as ROPs; tightly integrated with memory 
+  partitions.
+- **AMD**: Calls them Render Backends (RBs); RDNA architecture decouples ROPs 
+  from shader engines.
+- **Intel & ARM**: Implement simplified ROPs for power-efficient mobile 
+  rendering.
+
+References
+
+- `Render Output Unit - Wikipedia 
+  <https://en.wikipedia.org/wiki/Render_output_unit>`_
+- `What is a ROP on a GPU? - CORSAIR 
+  <https://www.corsair.com/us/en/explorer/gamer/gaming-pcs/what-is-a-rop-on-a-gpu/>`_
+- `TechPowerUp Forums: ROPs and TMUs 
+  <https://www.techpowerup.com/forums/threads/rops-and-tmus-what-is-it.227596/>`_
 
 System Features -- Buffers
 **************************
@@ -3224,8 +3557,8 @@ a Grid.
   chime is 2 clock cycles.
 
 - The mape of `y[0..31] = a * x[0..31] * y[0..31]` to `<Core, Warp, Cuda Thread>`
-  of GPU as the following table. `x[0..31]` map to 32 Cuda Threads; two Cuda
-  Threads map to one SIMD lane.
+  of GPU as the following table. `x[0..31]` map to 32 Cuda Threads; **two Cuda
+  Threads map to one SIMD lane** as :numref:`warp-sched-pipeline`..
 
 .. table:: Map `<Core, Warp>` to saxpy
 
@@ -3239,7 +3572,7 @@ a Grid.
 
 - Each Cuda Thread runs the GPU function code `saxpy`. Fermi has a register file  
   of size 32768 x 32-bit.  
-  As shown in :numref:`sm`, the number of registers in a Thread Block is:  
+  As shown in :numref:`sm2`, the number of registers in a Thread Block is:  
   16 (SM) * 32 (Cuda Threads) * 64 (TLR, Thread Level Register) =  
   32768 x 32-bit (Register file).
 
@@ -3901,7 +4234,7 @@ Open Sources
 .. _section OpenGL Shader Compiler:
   http://jonathan2251.github.io/lbd/gpu.html#opengl-shader-compiler
 
-.. _section Mapping data in GPU:
+.. _Subsection Mapping data in GPU:
   http://jonathan2251.github.io/lbd/gpu.html#mapping-data-in-gpu
 
 .. [#cg_basictheory] https://www3.ntu.edu.sg/home/ehchua/programming/opengl/CG_BasicsTheory.html
@@ -4059,6 +4392,10 @@ Open Sources
 .. [#Quantitative-gpu-sm] Book Figure 4.20 of Computer Architecture: A Quantitative Approach 5th edition (The
        Morgan Kaufmann Series in Computer Architecture and Design)
 
+.. [#chatgpt-pumh] chatgpt: Give me a memory hierarchy for L1, L2, local memory, 
+       shared memory for these processing units of hierarchy in reST and 
+       seperate dot graph.
+
 .. [#Quantitative-gpu-mem] Book Figure 4.17 of Computer Architecture: A Quantitative Approach 5th edition (The
        Morgan Kaufmann Series in Computer Architecture and Design)
 
@@ -4086,8 +4423,11 @@ Open Sources
 
 .. [#cudaex] https://devblogs.nvidia.com/easy-introduction-cuda-c-and-c/
 
-.. [#Quantitative-gpu-threadblock] search these words from section 4.4 of A Quantitative Approach 5th edition (The
-       Morgan Kaufmann Series in Computer Architecture and Design)
+.. [#Quantitative-gpu-threadblock] Figure 4.15 Floor plan of the Fermi GTX 480 
+       GPU of A Quantitative Approach 5th edition (The Morgan Kaufmann Series in
+       Computer Architecture and Design). **Giga Thread** is the name of the 
+       scheduler that distributes thread blocks to Multiprocessors, each of 
+       which has its own SIMD Thread Scheduler.
 
 .. [#wiki-ray-tracing] <https://en.wikipedia.org/wiki/Ray_tracing_(graphics)>
 
@@ -4100,6 +4440,8 @@ Open Sources
        Morgan Kaufmann Series in Computer Architecture and Design)
 
 .. [#wiki-tbcp] <https://en.wikipedia.org/wiki/Thread_block_(CUDA_programming)>
+
+.. [#gpu-core] Copilot: Is GPU core meaning SM in NVidia?
  
 .. [#Quantitative-gpu-warp] Book Figure 4.14 and 4.24 of Computer Architecture: A Quantitative Approach 5th edition (The
        Morgan Kaufmann Series in Computer Architecture and Design)
@@ -4122,6 +4464,10 @@ Open Sources
 .. [#mpeg4speedup] https://www.manchestervideo.com/2016/06/11/speed-h-264-encoding-budget-gpu/
 
 .. [#gpuspeedup] https://en.wikipedia.org/wiki/Graphics_processing_unit
+
+.. [#raster-unit] copilot: Please provide detailed information about the Rasterization Unit and its pipeline, including a separated dot graph and relevant website references in reStructuredText (reST) format.
+
+.. [#rops] copilot: Please provide detailed information about the Render Output Units (ROPs) and its pipeline, including a dot graph and relevant website references in reStructuredText (reST) format.
 
 .. [#diff-compute-shader-opencl] https://stackoverflow.com/questions/15868498/what-is-the-difference-between-opencl-and-opengls-compute-shader
 

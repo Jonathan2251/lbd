@@ -50,7 +50,7 @@ my intention for writing this book that I want to know what a simple and robotic
 CPU ISA and llvm backend can be.
 
 Brief introduction
-~~~~~~~~~~~~~~~~~~
+******************
 
 Cpu0 is a 32-bit architecture. It has 16 general purpose registers (R0, ..., 
 R15), co-processor registers (like Mips), and other special registers. Its 
@@ -103,7 +103,7 @@ The registers are used for the following purposes:
   ============  ===========
 
 The Cpu0 Instruction Set
-~~~~~~~~~~~~~~~~~~~~~~~~
+************************
 
 The Cpu0 instruction set is categorized into three types:  
 
@@ -644,7 +644,7 @@ The following table provides details on the newly added cpu032II instruction set
    If interpreted as positive, it is `+4G - 1`.  
 
 Why Not Use ADD Instead of SUB?
-`````````````````````````````````
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 From introductory computer science textbooks, we know that `SUB` can be  
 replaced by `ADD` as follows:  
@@ -666,7 +666,7 @@ This is why almost every CPU includes a `SUB` instruction rather than relying
 solely on `ADD`.  
 
 The Status Register
-~~~~~~~~~~~~~~~~~~~
+*******************
 
 The Cpu0 status word register (`SW`) contains the state of the following flags:  
 
@@ -700,7 +700,7 @@ The direction (i.e., taken or not taken) of conditional jump instructions
 `N` and `Z` flags in the `SW` register.
 
 Cpu0's Stages of Instruction Execution
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+**************************************
 
 The Cpu0 architecture has a five-stage pipeline. The stages are:  
 instruction fetch (IF), instruction decode (ID), execute (EX), memory access  
@@ -740,7 +740,7 @@ Below is a description of what happens in each stage of the processor:
   `MEM/WB` to the destination register.
 
 Cpu0's Interrupt Vector
-~~~~~~~~~~~~~~~~~~~~~~~
+***********************
 
 .. table:: Cpu0's Interrupt Vector
 
@@ -770,7 +770,7 @@ for the LLVM project.
 - All context-free grammars (CFGs) can be expressed in Backus-Naur Form (BNF).
 
 Why doesn't the Clang compiler use YACC/LEX tools to parse C++?
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+****************************************************************
 
 Clang does not use YACC/LEX because **C++ is too complex and context-sensitive**
 for traditional parser generators. YACC and LEX work with context-free grammars, 
@@ -845,7 +845,7 @@ The GNU `g++` compiler abandoned BNF tools starting from version 3.x.
 
 
 Compiler-Compiler Tools for Context-Sensitive C++ Parsing
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+*********************************************************
 
 While traditional tools like YACC/Lex are limited to context-free grammars, 
 modern compiler construction requires handling context-sensitive features — 
@@ -901,7 +901,7 @@ This section introduces the compiler's data structures, algorithms, and
 mechanisms used in LLVM.  
 
 SSA Form
-~~~~~~~~
+********
 
 Static Single Assignment (SSA) form ensures that each variable is assigned  
 exactly once. In SSA form, a single instruction has one variable (destination  
@@ -983,7 +983,7 @@ using the following alternative version [#dragonbooks-10.2.3]_.
 
 
 DSA Form
-~~~~~~~~
+*********
 
 .. code-block:: console
 
@@ -1108,7 +1108,7 @@ parallel processing opportunities for **multi-core (SMP) systems** and
 For example, `g(x)` can be executed on a **GPU**, while `f(x)` runs on a **CPU**.  
 
 Three-Phase Design
-~~~~~~~~~~~~~~~~~~
+******************
 
 This content and the following sub-section are adapted from the AOSA chapter  
 on LLVM written by Chris Lattner [#aosa-book]_.  
@@ -1274,7 +1274,7 @@ to generate while remaining expressive enough to enable important
 optimizations for real hardware targets.
 
 LLVM's Target Description Files: .td
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+************************************
 
 The "mix and match" approach allows target authors to select components that  
 best suit their architecture, enabling significant code reuse across different  
@@ -1333,7 +1333,7 @@ facilitate instruction selection and code generation, as shown in
   :caption: llvm TableGen Flow
 
 LLVM Code Generation Sequence
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+*****************************
 
 Following diagram is from `tricore_llvm.pdf`.
 
@@ -1585,7 +1585,7 @@ and its internal sequence may change over time.
 
 
 LLVM vs. GCC in Structure
-~~~~~~~~~~~~~~~~~~~~~~~~~
+*************************
 
 The official GCC documentation can be found here: [#gnu]_.
 
@@ -1628,7 +1628,7 @@ For example, it lacks critical information such as the program's **call graph**,
 [#llvm-ir-vs-gimple]_.  
 
 LLVM Blog
-~~~~~~~~~
+*********
 
 A user may rely on a **null pointer** as a guard to ensure code correctness.  
 However, **undef** values occur only during compiler optimizations  
@@ -1640,7 +1640,7 @@ as **undef**, leading to unexpected optimization behavior
 [#null_pointer]_.  
 
 CFG (Control Flow Graph)
-~~~~~~~~~~~~~~~~~~~~~~~~
+************************
 
 The SSA form can be represented using a **Control Flow Graph (CFG)** and  
 optimized by analyzing it.  
@@ -1666,7 +1666,7 @@ as shown in :numref:`cfg_ex`.
   :caption: CFG for cfg-ex.ll
 
 DAG (Directed Acyclic Graph)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+****************************
 
 The SSA form within each **Basic Block (BB)** from the **Control Flow Graph  
 (CFG)**, as discussed in the previous section, can be represented using a  
@@ -1721,7 +1721,7 @@ in Section 8.5.5 of the compiler book [#dragonbooks-8.5]_.
 This optimization method is also applied in LLVM.  
 
 Instruction Selection
-~~~~~~~~~~~~~~~~~~~~~
+*********************
 
 A major function of the backend is to **translate IR code into machine code**  
 during **Instruction Selection**, as illustrated in :numref:`llvmstructure-f11`.  
@@ -1911,7 +1911,7 @@ to generate the following **machine code**:
 
 
 Caller and Callee Saved Registers
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+*********************************
 
 .. rubric:: lbdex/input/ch9_caller_callee_save_registers.cpp  
 .. literalinclude:: ../lbdex/input/ch9_caller_callee_save_registers.cpp  
@@ -2012,7 +2012,7 @@ Thus, the function `setAliasRegs(MF, SavedRegs, Cpu0::LR)` is called in
 calls another function.
 
 Live-In and Live-Out Registers  
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~  
+*******************************
 
 As seen in the previous subsection, `$ra` is a **live-in** register because  
 the return address is determined by the caller.  
@@ -2058,7 +2058,7 @@ this website or downloaded from:
   `http://jonathan2251.github.io/lbd/lbdex.tar.gz`  
 
 Cpu0 Backend Machine ID and Relocation Records  
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~  
+***********************************************
 
 To create a **new backend**, several files in `<<llvm root dir>>` must be  
 modified.  
@@ -2303,7 +2303,7 @@ The following files are modified to **add the Cpu0 backend**:
 
 
 Creating the Initial Cpu0 .td Files  
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~  
+************************************
 
 As discussed in the previous section, **LLVM** uses **target description files**  
 (`.td` files) to define various components of a target's backend.  
@@ -2645,7 +2645,7 @@ of your build folder:
 For more details, refer to *"Building LLVM with CMake"* [#cmake]_.  
 
 Target Registration  
-~~~~~~~~~~~~~~~~~~~
+********************
 
 You must **register your target** with the **TargetRegistry**.  
 After registration, LLVM tools can **identify and use** your target at runtime.  
@@ -2692,7 +2692,7 @@ as no components are being registered at this stage.
 For reference, see *"Target Registration"* [#target-reg]_.  
 
 Build Libraries and `.td` Files  
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~  
+*********************************
 
 Build steps: https://github.com/Jonathan2251/lbd/blob/master/README.md  
 
@@ -2957,7 +2957,7 @@ Debug options
 -------------
 
 Options for `llc` Debugging  
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
+****************************
 
 Run the following command to see hidden `llc` options:  
 
@@ -3011,7 +3011,7 @@ class, to inspect transformations in `llvm/lib/Transformation`.
 
 
 `opt` Debugging Options  
-~~~~~~~~~~~~~~~~~~~~~~~ 
+***********************
 
 Check available options using:  
 

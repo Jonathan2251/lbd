@@ -50,7 +50,7 @@ Six Levels of Chapter, section, subsections
 *******************************************
 
 .. rubric:: Six Levels of Chapter, section, subsections
-.. code-block:: text
+.. code-block:: console
 
   1. Chapter -- Level 1
   ===============
@@ -90,7 +90,7 @@ Cpu0 document
 This section illustrates how to generate Cpu0 backend document.
 
 Install sphinx
-~~~~~~~~~~~~~~
+**************
 
 LLVM and this book use Sphinx to generate HTML documents. This book uses
 Sphinx to generate PDF and EPUB formats as well. See the installation guide
@@ -165,7 +165,7 @@ adding the following to your ``.profile``:
 
 
 Note of Sphinx
-~~~~~~~~~~~~~~
+**************
 
 - Do not use more than 90 characters per line in ``code-block:: console`` or any
   other code block, otherwise errors may occur during `make latexpdf`.
@@ -201,7 +201,7 @@ Note of Sphinx
   [#mathbase-latex]_ for more details.
 
 Note of graphviz
-~~~~~~~~~~~~~~~~
+****************
 
 - To draw nodes inside a parent node, use "compound=true;" and subgraph
   cluster_name [#graphviz-cluster]_. To create edges from/to parent nodes,
@@ -210,7 +210,7 @@ Note of graphviz
 - See graphviz documents here [#gv-doc-pdf]_.
 
 Generate Cpu0 document
-~~~~~~~~~~~~~~~~~~~~~~~
+**********************
 
 The Cpu0 example code is added chapter by chapter.
 It can be configured to a specific chapter by changing the CH definition in
@@ -260,7 +260,7 @@ following commands.
 
 
 About Cpu0 Document
-~~~~~~~~~~~~~~~~~~~
+*******************
 
 Since LLVM has a new release about every 6 months, and names of files, 
 functions, classes, variables, etc. may change, maintaining the Cpu0 document 

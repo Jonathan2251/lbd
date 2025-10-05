@@ -458,7 +458,7 @@ C++ Memory Order [#cpp-mem-order]_ [#mem-order-wiki]_ [#atomic-stackoverflow]_
 ------------------------------------------------------------------------------
 
 Source Code Compatibility
-~~~~~~~~~~~~~~~~~~~~~~~~~
+*************************
 
 **Memory Order:**
 
@@ -552,7 +552,7 @@ The following C++11 example solve the problem of source code imcompatible.
 C++ Memory Order makes **"source code compatible"** across different platforms.
 
 The Problem Before C++11
-~~~~~~~~~~~~~~~~~~~~~~~~
+************************
 
 Before **C++11**, multi-threaded programming relied on **mutexes, volatile
 variables, and platform-specific atomic operations (such as atomic_load(&a) and 
@@ -597,7 +597,7 @@ programmers **fine-grained control** over synchronization and memory consistency
 
 
 C++11 Memory Model Solution
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
+***************************
 
 .. note:: 
 
