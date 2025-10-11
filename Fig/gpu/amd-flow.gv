@@ -1,19 +1,41 @@
+digraph ROCm_Runtime_PyTorch_MIOpen_PreMLIR_Flow {
+    rankdir=LR;
+    node [shape=box];
 
-    digraph AMD_IR_Flow {
-        rankdir=LR;
+    // Entry points
+    PyTorch_Model [label="PyTorch Model", style=filled, fillcolor=lightyellow];
+    ONNX_Model [label="ONNX Model", style=filled, fillcolor=lightyellow];
+    MLIR_TOSA [label="MLIR (TOSA dialect)", style=filled, fillcolor=lightyellow];
 
-        node [shape=box];
+    // Pre-MLIR optimization
+    MIOpen_PreMLIR [label="MIOpen Graph IR (Pre-MLIR)", style=filled, fillcolor=gray];
 
-        "ONNX / PyTorch" [style=filled, fillcolor=lightyellow];
-        "MIOpen Graph IR" [style=filled, fillcolor=lightgray];
-        "MLIR Dialects" [style=filled, fillcolor=lightgray];
-        "LLVM IR" [style=filled, fillcolor=lightyellow];
-        "ROCm Device IR" [style=filled, fillcolor=lightgray];
-        "GCN ISA" [style=filled, fillcolor=lightblue];
-        MIOpen [style=filled, fillcolor=lightgreen];
+    // Compilation layers
+    ONNX_MLIR [label="ONNX-MLIR", style=filled, fillcolor=lightyellow];
+    MLIR_GPU [label="MLIR GPU dialect", style=filled, fillcolor=lightyellow];
+    LLVM_IR [style=filled, fillcolor=lightyellow];
+    ROCm_BC [label="ROCm device libraries (.bc)", shape=oval, style=filled, fillcolor=lightgreen];
+    GCN_IR [style=filled, fillcolor=gray];
 
-        "ONNX / PyTorch" -> "MIOpen Graph IR" -> "MLIR Dialects" -> "LLVM IR" -> 
-        "ROCm Device IR" -> "GCN ISA";
-        "MIOpen Graph IR" -> MIOpen;
-    }    
+    // Post-GCN optimization
+    MIOpen_IR [label="MIOpen Graph IR (Post-GCN)", style=filled, fillcolor=gray];
 
+    // Runtime layers
+    ROCr_Runtime [label="ROCr Runtime", shape=oval, style=filled, fillcolor=lightgreen];
+
+    // GPU Targets
+    GPU [label="AMD GPU ISA", style=filled, fillcolor=lightblue];
+ 
+   // Flow paths
+    PyTorch_Model -> ONNX_Model;
+    ONNX_Model -> MIOpen_PreMLIR -> ONNX_MLIR -> LLVM_IR;
+    MLIR_TOSA -> MLIR_GPU -> LLVM_IR;
+
+    LLVM_IR -> ROCm_BC;
+    LLVM_IR -> GCN_IR;
+    GCN_IR -> MIOpen_IR -> ROCr_Runtime -> GPU;
+
+    // === Layering for better spacing ===
+    { rank = same; MIOpen_PreMLIR; ONNX_MLIR }
+    { rank = same; GCN_IR; MIOpen_IR }
+}
