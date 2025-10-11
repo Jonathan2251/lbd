@@ -12,6 +12,7 @@ digraph OpenCL_OpenGL_Compilation {
     LLVM_IR [style=filled, fillcolor=lightyellow];
 
     // Vendor Drivers
+    node [shape=oval];
     "NVIDIA Driver" [style=filled, fillcolor=lightgreen];
     "AMD Driver" [style=filled, fillcolor=lightgreen];
     "ARM Driver" [style=filled, fillcolor=lightgreen];
@@ -19,10 +20,10 @@ digraph OpenCL_OpenGL_Compilation {
     "Apple Driver" [style=filled, fillcolor=lightgreen];
 
     // Private IRs
+    node [shape=box];
     "PTX IR" [style=filled, fillcolor=gray];
     "GCN IR" [style=filled, fillcolor=gray];
-    "Mali IR" [style=filled, fillcolor=gray];
-    "USC IR" [style=filled, fillcolor=gray];
+    "Burst IR" [style=filled, fillcolor=gray];
     "Metal IR" [style=filled, fillcolor=gray];
 
     // GPU Targets
@@ -33,16 +34,16 @@ digraph OpenCL_OpenGL_Compilation {
     "Apple GPU ISA" [style=filled, fillcolor=lightblue];
 
     // OpenCL Flow
-    OpenCL_C -> SPIR -> LLVM_IR -> "PTX IR" -> "NVIDIA Driver" -> "NVIDIA GPU ISA";
-    OpenCL_C -> SPIR -> LLVM_IR -> "GCN IR" -> "AMD Driver" -> "AMD GPU ISA";
-    OpenCL_C -> SPIR -> LLVM_IR -> "Mali IR" -> "ARM Driver" -> "ARM Mali ISA";
-    OpenCL_C -> SPIR -> LLVM_IR -> "USC IR" -> "Imagination Driver" -> "Imagination USC ISA";
-    OpenCL_C -> SPIR -> LLVM_IR -> "Metal IR" -> "Apple Driver" -> "Apple GPU ISA";
+    OpenCL_C -> SPIR -> LLVM_IR;
+    OpenCL_C -> SPIRV;
 
     // OpenGL Flow
-    GLSL -> SPIRV -> LLVM_IR -> "PTX IR" -> "NVIDIA Driver" -> "NVIDIA GPU ISA";
-    GLSL -> SPIRV -> LLVM_IR -> "GCN IR" -> "AMD Driver" -> "AMD GPU ISA";
-    GLSL -> SPIRV -> LLVM_IR -> "Mali IR" -> "ARM Driver" -> "ARM Mali ISA";
-    GLSL -> SPIRV -> LLVM_IR -> "USC IR" -> "Imagination Driver" -> "Imagination USC ISA";
-    GLSL -> SPIRV -> LLVM_IR -> "Metal IR" -> "Apple Driver" -> "Apple GPU ISA";
+    GLSL -> SPIRV -> LLVM_IR;
+
+    // LLVM based Compilation Flow
+    LLVM_IR -> "PTX IR" -> "NVIDIA Driver" -> "NVIDIA GPU ISA";
+    LLVM_IR -> "GCN IR" -> "AMD Driver" -> "AMD GPU ISA";
+    LLVM_IR -> "ARM Driver" -> "ARM Mali ISA";
+    LLVM_IR -> "Burst IR" -> "Imagination Driver" -> "Imagination USC ISA";
+    LLVM_IR -> "Metal IR" -> "Apple Driver" -> "Apple GPU ISA";
 }
