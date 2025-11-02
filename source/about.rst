@@ -61,7 +61,11 @@ https://github.com/Jonathan2251/lbd/blob/master/README.md
 Revision history
 ----------------
 
-Version 12.0.19, not released yet.
+Version 12.0.20, not released yet.
+
+Version 12.0.19, November 2, 2025.
+
+  gpu.rst: l1-l2.png, threadblocks-map.png
 
 Version 12.0.18, October 4, 2025.
 
