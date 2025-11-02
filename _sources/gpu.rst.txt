@@ -1883,8 +1883,8 @@ This represents a SIMT pipeline with a scoreboard.
 
 .. note:: A SIMD Thread executed by SIMD Processor, a.k.a. SM, has 16 Lanes.
   
-.. _sm2: 
-.. figure:: ../Fig/gpu/sm2.png
+.. _sm: 
+.. figure:: ../Fig/gpu/sm.png
   :align: center
   :scale: 50 %
 
@@ -1918,9 +1918,27 @@ This represents a SIMT pipeline with a scoreboard.
 
   SM select Thread Blocks to run [#wiki-tbcp]_.
 
+.. _threadblocks-map: 
+.. figure:: ../Fig/gpu/threadblocks-map.png
+  :align: center
+  :scale: 50 %
+
+  Mapping Thread Block to SMs [#mapping-blocks-to-sm]_
+
+- A GPU is built around an array of Streaming Multiprocessors (SMs). 
+  A multithreaded program is partitioned into blocks of threads that execute 
+  independently from each other, so that a GPU with more multiprocessors will 
+  automatically execute the program in less time than a GPU with fewer 
+  multiprocessors [#mapping-blocks-to-sm]_.
+
+
 - Two levels of scheduling:
 
-  - Level 1: Thread Block Scheduler  
+  - Level 1: Thread Block Scheduler
+
+    As shown in :numref:`threadblocks-map`, more than one block can be assigned
+    and run on a same SM.
+
     When an SM executes a thread block, all the threads within the block are  
     are executed at the same time. If any thread in a warp is not ready due to 
     operand data dependencies, the scheduler switches context between warps.  
@@ -1928,30 +1946,15 @@ This represents a SIMT pipeline with a scoreboard.
     register file so it can resume quickly once its operands are ready  
     [#wiki-tbcp]_.
 
-  - Level 2: Warp Scheduler  
+    Once a thread block is launched on a multiprocessor (SM), all
+    of its warps are resident until their execution finishes.
+    Thus a new block is not launched on an SM until there is sufficient
+    number of free registers for all warps of the new block, and until there
+    is enough free shared memory for the new block [#wiki-tbcp]_.
+
+  - Level 2: Warp Scheduler
+
     Manages CUDA threads within the same warp.
-
-.. code:: c++
-
-  // Invoke MATMUL with 256 threads per Thread Block
-  __host__
-  int nblocks = (n + 255) / 512;
-  matmul<<<nblocks, 255>>>(n, A, B, C);
-  // MATMUL in CUDA
-  __device__
-  void matmul(int n, double A, double *B, double *C) {
-    int i = blockIdx.x*blockDim.x + threadIdx.x;
-    if (i < n) A[i] = B[i] + C[i];
-  }
-
-.. _grid: 
-.. figure:: ../Fig/gpu/grid.png
-  :align: center
-  :scale: 50 %
-
-  Mapping 8192 elements of matrix multiplication for Nvidia's GPU  
-  (figure from [#Quantitative-grid]_).  
-  SIMT: 16 SIMD threads in one thread block.
 
 
 Processor Units and Memory Hierarchy in NVIDIA GPU [#chatgpt-pumh]_
@@ -1963,13 +1966,13 @@ Processor Units and Memory Hierarchy in NVIDIA GPU [#chatgpt-pumh]_
   :scale: 50 %
 
   GPU memory (figure from book [#Quantitative-gpu-mem]_). 
-  Local Memory is shared by all threads and Cached in L1 and L2.
-  In addition, the **Shared Memory is provided to use per-SM, not cacheable**.
-
 
 .. _mem-hierarchy: 
 .. graphviz:: ../Fig/gpu/mem-hierarchy.gv
   :caption: Processor Units and Memory Hierarchy in NVIDIA GPU
+            **Local Memory is shared by all threads and Cached in L1 and L2.**
+            In addition, the **Shared Memory is provided to use per-SM, not 
+            cacheable**.
 
 
 **Memory Hierarchy in NVIDIA GPU**
@@ -2000,7 +2003,7 @@ Processor Units and Memory Hierarchy in NVIDIA GPU [#chatgpt-pumh]_
 - **L2 Cache**
 
   - Shared across the entire GPU chip.
-  - Coherent across all SMs and GPCs.
+  - **Coherent across all SMs and GPCs.**
 
 - **Global Memory (DRAM: HBM/GDDR)**
 
@@ -2035,6 +2038,21 @@ Processor Units and Memory Hierarchy in NVIDIA GPU [#chatgpt-pumh]_
 
   - Execute threads with registers and access the memory hierarchy.
 
+Illustrate L1, L2 and Global Memory used by SM and whole chip of GPU as 
+:numref:`l1-l2`.
+
+.. _l1-l2: 
+.. figure:: ../Fig/gpu/l1-l2.png
+  :align: center
+  :scale: 50 %
+  
+  **L1 Cache: Per-SM, Coherent across all 16 lanes in the same SM.**
+  L2 Cache: Coherent across all SMs and GPCs.
+  Global Memory (DRAM: HBM/GDDR). Both HBM and GDDR are DRAM.
+  GDDR (Graphics DDR) – optimized for GPUs (GDDR5, GDDR6, GDDR6X).
+  HBM (High Bandwidth Memory) – 3D-stacked DRAM connected via TSVs 
+  (Through-Silicon Vias) for extremely high bandwidth and wide buses 
+  [#mapping-blocks-to-sm]_.
 
 .. _gpu-terms: 
 .. figure:: ../Fig/gpu/gpu-terms.png
@@ -2042,6 +2060,58 @@ Processor Units and Memory Hierarchy in NVIDIA GPU [#chatgpt-pumh]_
   :scale: 50 %
 
   Terms in Nvidia's gpu (figure from book [#Quantitative-gpu-terms]_)
+
+Summary the terms used in this chapter based on the :numref:`gpu-terms`, as
+shown in the following table.
+
+.. table:: More descriptive name (used in  Quantitative Approach book and 
+           Cuda term)
+
+  ==========================================  ================================
+  More Desciptive Name                        Cuda term
+  ==========================================  ================================
+  Multithreaded SIMD Processor (SIMD Thread)  Streaming Multiprocessor, SM, GPU Core (Warp) 
+  SIMD Lane + Chime                           Cuda Thread 
+  ==========================================  ================================
+
+.. _warp-sched-pipeline: 
+.. graphviz:: ../Fig/gpu/warp-sched-pipeline.gv
+  :caption: In **dual-issue mode**, Chime A carries floating-point data while Chime 
+            B carries integer data—both issued by the same CUDA thread. 
+            In contrast, under **time-sliced execution**, Chime A and Chime B carry 
+            either floating-point or integer data independently, and are 
+            assigned to separate CUDA threads.
+
+- A warp of 32 threads is mapped across 16 lanes. If each lane has 2 chimes, 
+  it may support dual-issue or time-sliced execution as 
+  :numref:`warp-sched-pipeline`.
+
+In the following matrix multiplication code, the 8096 elements of matrix 
+A = B × C are mapped to Thread Blocks, SIMD Threads, Lanes, and Chimes as 
+illustrated in the :numref:`grid`. In this example, it run on 
+**time-sliced execution**.
+
+.. code:: c++
+
+  // Invoke MATMUL with 256 threads per Thread Block
+  __host__
+  int nblocks = (n + 255) / 512;
+  matmul<<<nblocks, 255>>>(n, A, B, C);
+  // MATMUL in CUDA
+  __device__
+  void matmul(int n, double A, double *B, double *C) {
+    int i = blockIdx.x*blockDim.x + threadIdx.x;
+    if (i < n) A[i] = B[i] + C[i];
+  }
+
+.. _grid: 
+.. figure:: ../Fig/gpu/grid.png
+  :align: center
+  :scale: 50 %
+
+  Mapping 8192 elements of matrix multiplication for Nvidia's GPU  
+  (figure from [#Quantitative-grid]_).  
+  SIMT: 16 SIMD threads in one thread block.
 
 Summarize as table below.
  
@@ -2054,21 +2124,20 @@ Summarize as table below.
     - Structure
     - Description
   * - Grid
-    - Grid
+    - Grid, Giga Thread Engine
     - 
     - Grid is Vectorizable Loop as :numref:`gpu-terms`.
-  * - Thread Block (Scheduler)
-    - Giga Thread Engine
+  * - Thread Block, Thread Block Scheduler
+    - Thread Block, Guda Thread Engine
     - Each Grid has 16 Giga Thread [#Quantitative-gpu-threadblock]_.
     - Each Thread Block is assigned 512 elements of the vectors to 
       work on.
       As :numref:`grid`, it assigns 16 Thread Block to 16 SIMD Processors.
-      A thread of CPU is execution unit with its own PC (Program Counter). 
-      Similarly, Once a thread block is launched on a multiprocessor (SM), all 
-      of its warps are resident until their execution finishes. 
-      Thus a new block is not launched on an SM until there is sufficient 
-      number of free registers for all warps of the new block, and until there 
-      is enough free shared memory for the new block [#wiki-tbcp]_..
+      Giga Thread is the name of the scheduler that distributes thread blocks 
+      to Multiprocessors, each of which has its own SIMD Thread Scheduler
+      [#Quantitative-gpu-threadblock]_.
+      More than one Block can be mapped to a same SM as the explanation in 
+      "Level 1: Thread Block Scheduler" for :numref:`threadblocks-map`.
   * - **Multithreaded SIMD Processor** (SIMD Thread)
     - **Streaming Multiprocessor, SM, GPU Core (Warp)** [#gpu-core]_
     - Each SIMD Processor has 16 SIMD Threads. 
@@ -2084,7 +2153,7 @@ Summarize as table below.
       one element executed by one SIMD Lane. It is a vector instruction with 
       processing 16-elements. SIMD Lane registers: each Lane has its TLR 
       (Thread Level Registers) allocated from Register file (32768 x 
-      32-bit) by SIMD Processor (SM) as :numref:`sm2`. 
+      32-bit) by SIMD Processor (SM) as :numref:`sm`. 
       A warp of 32 threads is mapped across 16 lanes. 
       If each lane has 2 chimes, it may support dual-issue or time-sliced 
       execution as :numref:`warp-sched-pipeline`.
@@ -2092,19 +2161,11 @@ Summarize as table below.
     - Chime
     - Each SIMD Lane has 2 chimes.
     - One clock rate of rest of chip executes 2 data elements on two Cuda-core 
-      as in :numref:`sm2`.
+      as in :numref:`sm`.
       Vector length is 32 (32 elements), SIMD Lanes = 16. Chime = 2. 
       Chimes refer to ALU cycles that run in "ping-pong" mode.
       As :numref:`grid` for the later Fermi-generation GPUs.
 
-
-.. _warp-sched-pipeline: 
-.. graphviz:: ../Fig/gpu/warp-sched-pipeline.gv
-  :caption: In dual-issue mode, Chime A carries floating-point data while Chime 
-            B carries integer data—both issued by the same CUDA thread. 
-            In contrast, under time-sliced execution, Chime A and Chime B carry 
-            either floating-point or integer data independently, and are 
-            assigned to separate CUDA threads.
 
 References
 
@@ -2120,18 +2181,19 @@ pipelines using the same pipeline stages: Fetch (F), Decode (D),
 Execute (E), Memory (M), and Writeback (W).
 
 The low end GPU provide SIMD in their pipeline, all instructions executed in 
-lock-step while the high end GPU provide SPMD in pipeline which means the
-instructions is interleaved in pipeline are shown below.
+lock-step while the high end GPU provide approximated SPMD in pipeline which 
+means the instructions is interleaved in pipeline are shown below.
 
 
 **SPMD Programming Model vs SIMD/SIMT Execution**
 
+In the SISD of CPU, a thread is a single pipeline execution unit which can be 
+issued at any specific address.
+ 
 **In a multi-core CPU running SPMD, each core can schedule and execute 
 instructions at any program counter (PC)**. For example, core-1 may execute 
-I(1–10), while core-2 executes I(31–35). This situation is analogous to an SM 
-(warp) in the table “More Descriptive Name for CUDA Terms in Fermi GPU” from 
-the previous section. For instance, SM-1 may execute I(1–10) and SM-2 may execute
-I(31–35). **However, within an SM, it is not possible to schedule thread-1 to 
+I(1–10), while core-2 executes I(31–35).
+**For GPU, however, within an SM, it is not possible to schedule thread-1 to 
 execute I(1–10) while thread-2 executes I(31–35)**.
 
 As result,
@@ -2143,7 +2205,9 @@ GPUs expose an **SPMD programming model** (each thread runs the same kernel on
 different data). However, the hardware actually executes instructions in
 **SIMD/SIMT lock-step groups**.
 
-.. code-block::
+.. rubric:: An example to illustrate the difference between Pascal SIMT, Volta 
+            SIMT and SPMD.
+.. code-block:: 
 
   Divergent Kernel Example:
   -------------------------
@@ -2195,6 +2259,9 @@ different data). However, the hardware actually executes instructions in
 - CPU reorder buffer (ROB) = out-of-order issue + completion, but retire in-order
   - CPUs use a ROB to support out-of-order issue and retirement.
 
+
+**Comparsion of Volta and Pascal**
+
 In a lock-step GPU without divergence support, the scoreboard entries include 
 only {Warp-ID, PC (Instruction Address), …}. With divergence support (as in 
 real-world GPUs), the scoreboard entries expand to {Warp-ID, PC, mask, …}. 
@@ -2207,110 +2274,10 @@ real-world GPUs), the scoreboard entries expand to {Warp-ID, PC, mask, …}.
 	•	SIMT GPU before Volta = scoreboard contains: { Warp ID + PC + Active Mask }
 	•	Volta = scoreboard contains: { Warp ID + PC per thread (+ readiness per thread) }
 
-.. code-block::c++
 
-  int x = A[tid];    // load
-  int y = x + 1;     // add
-  C[tid] = y;        // store
+**Example for mutex** [#Volta]_
 
-**Pipeline Timeline (Simplified)**
-
-Notation:
-
-LD = Load, ADD = Arithmetic, ST = Store
-
-C = Cycle
-
-**SIMT (Pascal and before, lock-step with active mask)**
-
-**All threads share one PC, so the entire warp stalls on thread 0’s miss.**
-
-- **Alough the LD instruction of threads 1..31 may complete early in the 
-  scoreboard pipeline, the subsequent ADD instruction ADD of threads 1..31 
-  cannot be issued until the LD of thread 0 is completed.**
-
-.. code-block::
-
-   C0: LD (threads 0..31) issue
-   C1: LD (waiting for thread 0 memory)
-   C2: LD (waiting for thread 0 memory)
-   C3: LD (waiting for thread 0 memory)
-   ...
-   Cn: LD completes for all threads
-   Cn+1: ADD (threads 0..31)
-   Cn+2: ST  (threads 0..31)
-
-Result:
-   - Entire warp waits for the slowest lane (thread 0).
-   - No progress until all loads finish.
-
-
-**Volta and later (Independent Thread Scheduling)**
-
-**Each thread has its own PC; only thread 0 stalls, others advance.**
-
-- **The subsequent ADD instruction ADD of threads 1..31 
-  can be issued since thread has its own PC.**
-
-.. code-block::
-
-   Thread 0:
-      C0: LD (miss) --> stall
-      C1..Cn: waiting
-      Cn+1: ADD
-      Cn+2: ST
-
-   Thread 1:
-      C0: LD (hit)
-      C1: ADD
-      C2: ST
-      C3: done early
-
-   Thread 2:
-      C0: LD (hit)
-      C1: ADD
-      C2: ST
-      C3: done early
-
-   Thread 3:
-      C0: LD (hit)
-      C1: ADD
-      C2: ST
-      C3: done early
-
-Result:
-   - Thread 0 is stalled on memory.
-   - Other threads in the same warp continue executing and finish.
-   - Independent progress inside a warp is possible.
-
-Volta from Nvidia's website
-^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-The following is from Nvdia's website:
-
-One way the compiler handles this is by keeping executing instructions in order 
-and if some threads don’t have to execute certain instructions it switches off 
-those threads and turns them on their relevant instructions and switches off 
-the other threads, this process is called masking.
-
-.. _pre-volta-1: 
-.. figure:: ../Fig/gpu/pre-volta-1.png
-  :align: center
-  :scale: 50 %
-
-  SIMT Warp Execution Model of Pascal and Earlier GPUs [#Volta]_
-
-.. _volta-1: 
-.. figure:: ../Fig/gpu/volta-1.png
-  :align: center
-  :scale: 50 %
-
-  Volta Warp with Per-Thread Program Counter and Call Stack [#Volta]_
-
-- After Nvidia's Volta GPU, each thread in a warp has its own program counter  
-  (PC), as shown in :numref:`volta-1`.
-
-.. code:: text
+.. code:: c++ 
 
   // 
   __device__ void insert_after(Node *a, Node *b)
@@ -2321,36 +2288,15 @@ the other threads, this process is called masking.
     unlock(c); unlock(a);
   }
 
-- Volta’s independent thread scheduling allows the GPU to yield execution of 
-  any thread, either to make better use of execution resources or to allow 
-  one thread to wait for data to be produced by another.
-  As the above example [#Volta]_, each thread can progress with its own PC. 
-  Therefore, different threads in the same warp can run  
-  ``insert_after()`` independently without waiting for ``lock()``.
+Assume that the mutex is contended across SMs but not within the same SM. On 
+average, each thread spends 10 cycles executing the insert_after operation 
+without resource contention, and 20 cycles when accounting for contention.  
+Therefore, the average total execution time for 32 threads in an SM is:
 
-- Provide both thread in group efficency and independently thread progression.
+•  Volta: 20 cycles
+•  Pascal: 640 cycles (20 cycles × 32 threads, due to lack of independent 
+   progress inside a warp)
 
-  Beside each thread in same Warp can progress independently as above,
-  To maximize parallel efficiency, Volta includes a schedule optimizer which 
-  determines how to group active threads from the same warp together into SIMT 
-  units. This retains the high throughput of SIMT execution as in prior NVIDIA 
-  GPUs, but with much more flexibility: threads can now diverge and reconverge 
-  at sub-warp granularity, while the convergence optimizer in Volta will still 
-  group together threads which are executing the same code and run them in 
-  parallel for maximum efficiency.
-  In Cuda Applications, this feature provides more parallel opportunities with 
-  __syncwarp() to user programmers as shown in :numref:`volta-2`.
-
-.. _volta-2: 
-.. figure:: ../Fig/gpu/volta-2.png
-  :align: center
-  :scale: 50 %
-
-  Programs use Explicit Synchronization to Reconverge Threads in a Warp [#Volta]_
-
-
-Memory System
-*************
 
 Address Coalescing and Gather-scatter
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -2436,6 +2382,7 @@ matrix operations, where non-zero elements are stored in compressed formats.
 **Sparse Matrix Example (CSR format):**
 
 - *CSR (Compressed Sparse Row)* stores three arrays:
+
   - ``values[]``: non-zero entries of the matrix
   - ``colIndex[]``: column indices for each non-zero
   - ``rowPtr[]``: index into ``values[]`` for each row
@@ -2458,115 +2405,6 @@ matrix operations, where non-zero elements are stored in compressed formats.
   (``y[row]``).
 - **Challenge: These accesses often break memory coalescing, leading to
   multiple memory transactions. An example is shown as follows:**
-
-**An example in a sparse matrix where coalescing outperforms gather-scatter:**
-
-**Sparse Matrix Access: CSR vs ELLPACK**
-
-**1. CSR Format (Gather–Scatter, Poor Coalescing)**
-
-**Storage:**
-
-- ``values[]``: nonzero entries
-- ``colIndex[]``: column indices
-- ``rowPtr[]``: index offsets for each row
-
-**Access Pattern:**
-
-- Each thread processes one row.
-- Uses ``rowPtr`` to look up nonzeros.
-- Accesses ``x[col]`` with irregular indices.
-
-**Example:**
-
-Matrix A (4×8):
-
-::
-
-   Row 0: [ 5, 0, 0, 0, 9, 0, 0, 2 ]
-   Row 1: [ 0, 3, 0, 0, 0, 0, 0, 4 ]
-   Row 2: [ 7, 0, 8, 0, 0, 0, 0, 0 ]
-   Row 3: [ 0, 0, 0, 6, 0, 0, 1, 0 ]
-
-CSR storage:
-
-::
-
-   values   = [5, 9, 2, 3, 4, 7, 8, 6, 1]
-   colIndex = [0, 4, 7, 1, 7, 0, 2, 3, 6]
-   rowPtr   = [0, 3, 5, 7, 9]
-
-**Problem:**
-
-- Threads in a warp read from *scattered addresses* in ``x[col]``.
-- Memory accesses cannot be merged → multiple transactions per warp.
-
-.. _scatter-bad-coalesing:
-.. graphviz:: ../Fig/gpu/scatter-bad-coalesing.gv
-  :caption: An example of scatter destroying coalesing.
-
-
-**2. ELLPACK Format (Coalesced Access)**
-
-**Storage:**
-- Pad all rows to the same number of nonzeros.
-- Store in **column-major order**.
-
-**Example:**
-
-::
-
-   val = [
-     [5, 3, 7, 6],   // first nonzero of each row
-     [9, 4, 8, 1],   // second nonzero
-     [2, 0, 0, 0]    // third nonzero (padded)
-   ]
-
-   colIdx = [
-     [0, 1, 0, 3],
-     [4, 7, 2, 6],
-     [7, -, -, -]
-   ]
-
-**Access Pattern:**
-
-- Each thread still handles one row.
-- Warp accesses the *same column across rows* simultaneously.
-- Memory is contiguous → coalesced transactions.
-
-.. _coalesing:
-.. graphviz:: ../Fig/gpu/coalesing.gv
-  :caption: An example of coalesing.
-
-**Benefit:**
-
-- Threads in a warp read *contiguous addresses*.
-- Hardware merges requests into one memory transaction.
-- Bandwidth utilization is much higher.
-
-
-**3. Summary**
-
-- **CSR:** Flexible, no padding, but poor coalescing due to irregular
-  gathers and scatters.
-- **ELL:** Requires padding, but greatly improves coalescing by aligning
-  warp memory accesses.
-- **Real GPU libraries** (e.g., cuSPARSE) often use **HYB (Hybrid = CSR + ELL)**
-  to balance memory efficiency and performance.
-
-
-**Optimization Approaches:**
-
-- Reordering data (ELLPACK, block-sparse formats).
-- Using shared memory to reorganize irregular accesses.
-- Assigning warps to rows or segments for better alignment.
-
-**Hardware Considerations:**
-
-- Transactions occur in aligned chunks (e.g., 32, 64, 128 bytes).
-- Misaligned or scattered addresses increase the number of transactions.
-- Caches and shared memory can partially hide penalties, but bandwidth
-  efficiency still depends on coalesced access.
 
 **Summary:**
 
@@ -2664,6 +2502,8 @@ GDDR6X, or HBM2/3, which are much faster than standard system RAM (DDR4/DDR5).
 
 RegLess-style architectures [#reg-less]_
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+**Difference:** Add **Staging Buffer** between Register Files and Execution Unit.
 
 This subsection outlines the transition from traditional GPU operand coherence using
 a monolithic register file and L1 data cache, to a RegLess-style architecture that
@@ -2949,7 +2789,7 @@ The pipeline flow for Rasterization Units is shown as
 
 .. _rasterization-pipeline:
 .. graphviz:: ../Fig/gpu/rasterization-pipeline.gv
-  :caption: Rasterization pipeline`
+  :caption: Rasterization pipeline
 
 Key Functions
 
@@ -3436,8 +3276,17 @@ Buffers to speedup OpenGL pipeline rendering [#buffers-redbook]_.
      - Temporary CPU-visible buffer for uploading/downloading GPU data.
 
 
+Software Structure
+------------------
+
+As the previous section illustrated, GPU is a SIMT (SIMD) for data parallel
+application.
+This section introduces the GPU evolved from Graphics GPU to the General 
+purpose GPU (GPGPU) and the software architecture of GPUs and explores AI 
+software frameworks designed for GPUs, NPUs, and CPUs.
+
 General purpose GPU
---------------------
+*******************
 
 Since GLSL shaders provide a general way for writing C code in them, if applying
 a software frame work instead of OpenGL API, then the system can run some data
@@ -3447,7 +3296,7 @@ a GPU shader for return values, can create a GPGPU framework [#gpgpuwiki]_.
 
 
 Mapping data in GPU
-*******************
+^^^^^^^^^^^^^^^^^^^
 
 As described in the previous section on GPUs, the subset of the array
 calculation `y[] = a * x[] + y[]` is shown as follows:
@@ -3572,7 +3421,7 @@ a Grid.
 
 - Each Cuda Thread runs the GPU function code `saxpy`. Fermi has a register file  
   of size 32768 x 32-bit.  
-  As shown in :numref:`sm2`, the number of registers in a Thread Block is:  
+  As shown in :numref:`sm`, the number of registers in a Thread Block is:  
   16 (SM) * 32 (Cuda Threads) * 64 (TLR, Thread Level Register) =  
   32768 x 32-bit (Register file).
 
@@ -3582,7 +3431,7 @@ a Grid.
 
 
 Work between CPU and GPU in Cuda
-********************************
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 The previous `daxpy()` GPU code did not include the host (CPU) side code that  
 triggers the GPU function.
@@ -3691,9 +3540,8 @@ compressing [#gpuspeedup]_ gives the more applications for GPU acceleration.
   As a result, GPUs often lack L2 and L3 caches, which are common in CPUs with  
   deeper cache hierarchies.
 
-
 OpenCL, Vulkan and spir-v
--------------------------
+*************************
 
 .. _spirv: 
 .. graphviz:: ../Fig/gpu/spirv-lang-layers.gv
@@ -3708,10 +3556,6 @@ OpenCL, Vulkan and spir-v
   OpenGL       GLSL          C-like (no C pointer, ...)
   Vulkan       SPIR-V        IR
   ==========   ============  =====================
-
-.. _glsl_spirv: 
-.. graphviz:: ../Fig/gpu/glsl-spirv.gv
-  :caption: Convertion between glsl and spirv
 
 .. _opencl_to_spirv: 
 .. figure:: ../Fig/gpu/opencl-to-spirv-offine-compilation.png
@@ -3730,7 +3574,7 @@ OpenCL, Vulkan and spir-v
   :caption: GPU Compiler Components and Flow
 
 The flow and relationships among GLSL, OpenCL, SPIR-V (Vulkan/OpenCL), LLVM IR, 
-and the GPU compiler are shown in the :numref:`spirv`, :numref:`glsl_spirv`, 
+and the GPU compiler are shown in the :numref:`spirv`, 
 :numref:`opencl_to_spirv` and :numref:`gpu_compiler_toolchain`.
 As shown in :numref:`gpu_compiler_toolchain`, OpenCL-C to SPIR-V (OpenCL) can
 be compiled using **clang + llvm-spirv** tools or a proprietary converter. 
@@ -3745,6 +3589,46 @@ SPIR-V and online execution using the generated SPIR-V files.
 .. _spirv_deploy: 
 .. graphviz:: ../Fig/gpu/spirv-deploy.gv
   :caption: Compiling and Deploying GPU Code from GLSL, Vulkan, and OpenCL
+
+Based on the flows above, the public standards OpenGL and OpenCL provide 
+tools for transferring these data format, as illustrated in 
+:numref:`glsl_spirv`. 
+The corresponding LLVM IR and SPIR-V formats are listed below.
+
+.. _glsl_spirv: 
+.. graphviz:: ../Fig/gpu/glsl-spirv.gv
+  :caption: Convertion between GLSL, OpenCL C, SPIRV-V and LLVM-IR
+
+.. rubric:: References/add-matrix.ll
+.. literalinclude:: ../References/add-matrix.ll
+
+.. rubric:: References/add-matrix.spvasm
+.. literalinclude:: ../References/add-matrix.spvasm
+
+.. rubric:: Convert between spirv and llvm-ir
+.. code-block:: console
+
+   % pwd
+   $HOME/git/lbd/References
+   % llvm-as -o add-matrix.bc add-matrix.ll
+   % llvm-spirv -o add-matrix.spv add-matrix.bc
+   % spirv-dis -o add-matrix.spvasm add-matrix.spv
+   // Convert spirv to llvm-ir again and check the converted llvm-ir is same 
+   // with origin.
+   % llvm-spirv -r add-matrix.spv -o add-matrix.spv.bc
+   % llvm-dis add-matrix.spv.bc -o add-matrix.spv.bc.ll
+   % diff add-matrix.ll add-matrix.spv.bc.ll
+   1c1
+   < ; ModuleID = 'add-matrix.ll'
+   ---
+   > ; ModuleID = 'add-matrix.spv.bc'
+
+.. rubric:: Install llvm-spriv and llvm with Brew-install
+.. code-block:: console
+
+   % brew install spirv-llvm-translator
+   % brew install llvm
+
 
 **The following explains how the driver identifies whether the SPIR-V source is 
 from GLSL or OpenCL.**
@@ -3836,7 +3720,7 @@ were generated from OpenCL, GLSL, or another language.
      OpEntryPoint Kernel %foo "foo"
 
 Summary
-*******
+^^^^^^^
 
 +--------------------------+------------------+
 | Feature                  | Indicates        |
@@ -3954,22 +3838,10 @@ In fact, LLVM IR has been expanding steadily from version 3.1 until now,
 as I have observed.
 
 Unified IR Conversion Flows
----------------------------
-
-.. rubric:: ✅ Each node in the graph is color-coded to indicate its category 
-            or role within the structure.
-.. graphviz::
-
-    digraph G {
-        node [shape=box, style=filled];
-        PUIR [label="Public standard of IRs", fillcolor=lightyellow];
-        PRIR [label="Private IRs", fillcolor=lightgray];
-        LR [label="Libraries / Runtimes", fillcolor=lightgreen];
-        Machine [label="Libraries / Runtimes", fillcolor=lightblue];
-    }
+***************************
 
 Graphics and OpenCL Compilation
-*******************************
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 This section outlines the intermediate representation (IR) flows for graphics 
 (Microsoft DirectX, OpenGL) and OpenCL compilation across major GPU vendors: 
@@ -3982,9 +3854,59 @@ Graphics shaders are compiled from high-level languages (HLSL, GLSL) into
 vendor-specific GPU binaries via intermediate representations like DXIL and 
 SPIR-V.
 
+.. rubric:: ✅ Each node in the graph is color-coded to indicate its category 
+            or role within the structure.
+.. graphviz::
+
+    digraph G {
+        node [shape=box, style=filled];
+        PUIR [label="Public standard of IRs", fillcolor=lightyellow];
+        PRIR [label="Private IRs", fillcolor=lightgray];
+        VD [label="Vendor Driver", shape=oval, fillcolor=lightgreen];
+        GPU [label="GPU", fillcolor=lightblue];
+    }
+
+- **Vendor Driver will call Vendor Compiler** for on-line compilation.
+
 .. _ogl-ocl-flow:
 .. graphviz:: ../Fig/gpu/ogl-ocl-flow.gv
   :caption: Graphics and OpenCL Compiler IR Conversion Flow
+
+- OpenCL C is the device side code in C language while Host side code is C/C++.
+
+- OpenCL C is compiled to SPIR-V in later versions of OpenCL, while earlier 
+  versions used SPIR. 
+  SPIR-V has now largely replaced SPIR as the standard intermediate 
+  representation.
+
+.. list-table:: Comparison of PTX, GCN IR, Burst IR, and Metal IR
+   :header-rows: 1
+   :widths: 20 40 40
+
+   * - IR Layer
+     - Abstraction Level
+     - Register Model
+   * - PTX (NVIDIA)
+     - Virtual ISA; portable across GPU generations; hides hardware scheduling
+     - **Virtual registers (%r, %f); mapped to physical registers during SASS 
+       lowering**
+   * - GCN IR (AMD)
+     - Machine IR; tightly coupled to GCN/RDNA architecture; exposes wavefront 
+       semantics
+     - Explicit vector (vN) and scalar (sN) registers; register pressure affects 
+       occupancy.
+       **AMD’s compiler backend can lower vector operations to scalar 
+       instructions on low-end GPUs, while preserving vector operations on 
+       high-end architectures**.
+   * - Burst IR (Imagination)
+     - Power-aware IR; optimized for burst-core scheduling and latency hiding
+     - **Operand staging model; abstracted register usage; mapped late to USC 
+       ISA**
+   * - Metal IR (Apple)
+     - LLVM-inspired IR; abstracted from developers; tuned for tile shading and 
+       threadgroup fusion
+     - **Region-based register allocation; dynamic renaming; not exposed as 
+       physical register model**
 
 ✅NVIDIA, AMD, ARM and Imagination all have exposed LLVM IR and convert SPIR-V IR to LLVM IR.
   - SPIR:
@@ -3994,6 +3916,7 @@ SPIR-V.
       brittle across.
 
   - SPIR-V:
+
     - A complete redesign: binary format, not tied to LLVM.
     - Designed for Vulkan, but also supports OpenCL and OpenGL.
     - Enables cross-vendor portability, shader reflection, and custom extensions.
@@ -4006,7 +3929,8 @@ SPIR-V.
 •  Uses LLVM IR Partially. Apple supports SPIR-V in Metal and OpenCL, but 
    LLVM IR is not always exposed.
 •  Metal shaders are compiled via MetalIR, which is LLVM-inspired but not 
-   standard LLVM IR.
+   standard LLVM IR. Metal 
+   IR is not standard LLVM IR and is not exposed to developers.
 •  Apple’s ML compiler stack may use LLVM IR internally, but it’s 
    abstracted from developers.
 •  Apple is not a vendor of GPU IP, so it does not expose LLVM IR in its ML 
@@ -4034,25 +3958,9 @@ Notes:
 - Some vendors (e.g., AMD, NVIDIA) may bypass SPIR and compile directly to LLVM IR or PTX.
 - Apple deprecated OpenCL in favor of Metal, but legacy support remains.
 
-Comparison Summary
-^^^^^^^^^^^^^^^^^^
-
-+------------------+------------------+------------------+------------------+------------------+
-| Vendor           | Graphics IR      | Graphics API     | OpenCL Path      | GPU ISA          |
-+==================+==================+==================+==================+==================+
-| NVIDIA           | DXIL, SPIR-V     | DirectX, OpenGL  | SPIR → PTX       | PTX → SASS       |
-+------------------+------------------+------------------+------------------+------------------+
-| AMD              | DXIL, SPIR-V     | DirectX, OpenGL  | SPIR → LLVM IR   | GCN / RDNA       |
-+------------------+------------------+------------------+------------------+------------------+
-| ARM              | SPIR-V           | OpenGL / Vulkan  | SPIR → Mali IR   | Mali ISA         |
-+------------------+------------------+------------------+------------------+------------------+
-| Imagination      | SPIR-V           | OpenGL / Vulkan  | SPIR → USC IR    | USC ISA          |
-+------------------+------------------+------------------+------------------+------------------+
-| Apple            | MetalIR, SPIR-V  | Metal, OpenGL    | SPIR → LLVM IR   | Apple GPU ISA    |
-+------------------+------------------+------------------+------------------+------------------+
 
 References
-^^^^^^^^^^
+""""""""""
 
 - OpenCL Specification: https://www.khronos.org/opencl/
 - SPIR-V Specification: https://www.khronos.org/spir
@@ -4062,15 +3970,27 @@ References
 
 
 ML and GPU Compilation
-**********************
+^^^^^^^^^^^^^^^^^^^^^^
 
 This section outlines the intermediate representation (IR) flows used by 
 NVIDIA, AMD, and ARM in machine learning and GPU compilation pipelines. 
 It includes both inference engines and compiler toolchains.
 
+.. rubric:: ✅ Each node in the graph is color-coded to indicate its category 
+            or role within the structure. In AI, usually use runtime 
+            instead of driver for graphics.
+.. graphviz::
+
+    digraph G {
+        node [shape=box, style=filled];
+        PUIR [label="Public standard of IRs", fillcolor=lightyellow];
+        PRIR [label="Private IRs", fillcolor=lightgray];
+        VDLR [label="Vendor Driver,\nLibrary or Runtime", shape=oval, fillcolor=lightgreen];
+        MA [label="Machine", fillcolor=lightblue];
+    }
 
 NVIDIA IR Conversion Flow
-^^^^^^^^^^^^^^^^^^^^^^^^^
+"""""""""""""""""""""""""
 
 NVIDIA supports both TensorRT-based inference and MLIR-based compilation 
 targeting CUDA GPUs is shown as :numref:`nvidia-flow`.
@@ -4079,8 +3999,27 @@ targeting CUDA GPUs is shown as :numref:`nvidia-flow`.
 .. graphviz:: ../Fig/gpu/nvidia-flow.gv
   :caption: NVIDIA IR Conversion Flow
 
+- SASS stands for Streaming ASSembler, and it represents the native instruction 
+  set architecture (ISA) for NVIDIA GPUs.
+- TensorRT is a C++ library and runtime developed by NVIDIA for deep learning 
+  inference—the phase where trained models make predictions.
+
+  - It works with models trained in frameworks like TensorFlow, PyTorch, and 
+    ONNX, converting them into highly optimized engines for execution on NVIDIA 
+    hardware [#tensor-rt-nvidia]_ [#tensor-rt-geeks]_.
+
+- **CUDA Kernel IR** is a bridge between LLVM IR and PTX/SASS, or a direct 
+  output from TensorRT.
+- **LLVM IR** is foundational in many flows, but **TensorRT may skip it** and 
+  directly emit CUDA kernels.
+- Although MLIR dialects may be publicly available, they are typically 
+  hardware-dependent and tailored to specific vendors' GPU architectures. 
+  As a result, their applicability is limited to the corresponding hardware 
+  platforms.
+- MLIR GPU Dialects is public but it is for Nvidia's GPU.
+
 AMD IR Conversion Flow
-^^^^^^^^^^^^^^^^^^^^^^
+""""""""""""""""""""""
 
 AMD uses ROCm and MIOpen for ML workloads, with LLVM-based compilation targeting 
 GCN or RDNA architectures is shown as :numref:`amd-flow`.
@@ -4089,8 +4028,21 @@ GCN or RDNA architectures is shown as :numref:`amd-flow`.
 .. graphviz:: ../Fig/gpu/amd-flow.gv
   :caption: AMD IR Conversion Flow
 
+- **ROCm** is not just a compiler or driver — it includes a full runtime stack that 
+  enables AMD GPUs to execute compute workloads across HIP 
+  (Heterogeneous-compute Interface for Portability), OpenCL, and ML frameworks. 
+  It’s **analogous to NVIDIA’s CUDA runtime** but built around open standards like 
+  HSA (Heterogeneous System Architecture) [#hsa]_  and LLVM.
+- **MIOpen Graph IR** includes different form and structure. **(Pre-MLIR) and 
+  (Post-GCN)** are different.
+
+  - Developers interact with MIOpen via high-level APIs 
+    (e.g., miopenConvolutionForward) — not via direct IR manipulation.
+  - While MIOpen itself is open source (GitHub repo), its graph IR format and 
+    transformation passes are internal.
+
 ARM IR Conversion Flow
-^^^^^^^^^^^^^^^^^^^^^^
+""""""""""""""""""""""
 
 ARM supports both CPU/NPU deployment (e.g., Ethos-U/N) and GPU execution (e.g., 
 Mali via Vulkan). The IR flow diverges depending on the target is shown as 
@@ -4100,8 +4052,38 @@ Mali via Vulkan). The IR flow diverges depending on the target is shown as
 .. graphviz:: ../Fig/gpu/arm-flow.gv
   :caption: ARM IR Conversion Flow
 
+- Node **"Mali GPU (Vulkan)"** is the SPIR-V compilation flow that illustrated in
+  the previous section.
+
+- **Ethos-N** is ARM's NPU. **Cortex-M** is ARM's CPU.
+
+**ARM Codegen** generally emits instructions for CPU/NPU execution, but for 
+certain NN operations (especially those requiring vendor-specific acceleration),
+it may generate function calls into the Ethos-N driver, which then orchestrates 
+execution on the NPU.
+
+✅ Common Case: Direct NPU/CPU Instruction Generation
+
+•  For operations that are well-supported by the NPU or CPU, the codegen backend 
+   emits hardware-specific instructions or IR directly.
+•  These are scheduled for execution on the CPU or passed to the Ethos-N via its 
+   driver stack.
+
+⚙️ Special Case: Function Calls to Ethos-N Driver
+
+•  For complex or fused neural network operations (e.g., custom activation 
+   functions, quantized convolutions, or optimized memory layouts), the codegen 
+   may emit calls **(LLVM-IR `call`)** to precompiled driver functions.
+•  These function calls act as entry points into the Ethos-N runtime, which 
+   handles:
+
+   -  Memory management
+   -  Scheduling
+   -  Firmware-level execution
+   -  Hardware-specific optimizations
+
 Imagination Technologies IR Conversion Flow
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+"""""""""""""""""""""""""""""""""""""""""""
 
 .. _imagination-flow:
 .. graphviz:: ../Fig/gpu/imagination-flow.gv
@@ -4117,7 +4099,7 @@ Notes:
 
 
 Comparison Summary
-^^^^^^^^^^^^^^^^^^
+""""""""""""""""""
 
 +----------------------+----------------------+----------------------+------------------------+------------------------+
 | Vendor               | High-Level IR        | Mid-Level IR         | Low-Level IR           | Libraries / Runtimes   |
@@ -4133,7 +4115,7 @@ Comparison Summary
 
 
 References
-^^^^^^^^^^
+""""""""""
 
 - NVIDIA TensorRT: https://developer.nvidia.com/tensorrt
 - AMD ROCm: https://rocm.docs.amd.com/
@@ -4150,7 +4132,7 @@ References
 
 
 Accelerate ML/DL on OpenCL/SYCL
--------------------------------
+*******************************
 
 .. _opengl_ml_graph: 
 .. figure:: ../Fig/gpu/opencl_ml_graph.png
@@ -4378,6 +4360,8 @@ Open Sources
 .. [#Quantitative-grid] Book Figure 4.13 of Computer Architecture: A Quantitative Approach 5th edition (The
        Morgan Kaufmann Series in Computer Architecture and Design)
 
+.. [#mapping-blocks-to-sm] <https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#warps>
+
 .. [#cuda-sm] https://www.tomshardware.com/reviews/geforce-gtx-480,2585-18.html
 
 .. [#chime] https://www.cs.cmu.edu/afs/cs/academic/class/15418-s12/www/lectures/02_multicore.pdf
@@ -4492,6 +4476,19 @@ Open Sources
 .. [#vulkan-subgroup] https://www.khronos.org/blog/vulkan-subgroup-tutorial
 
 .. [#llvm-uniformity] https://llvm.org/docs/ConvergenceAndUniformity.html
+
+.. [#tensor-rt-nvidia] https://resources.nvidia.com/en-us-inference-resources/nvidia-tensorrt 
+
+.. [#tensor-rt-geeks] https://www.geeksforgeeks.org/deep-learning/what-is-tensorrt/
+
+.. [#hsa] HSA is an open standard developed to simplify programming across 
+          heterogeneous systems — especially those combining CPUs and GPUs. 
+          It defines:
+
+          •  Agents: CPUs, GPUs, and other compute units treated uniformly
+          •  Queues: Asynchronous command queues for dispatching kernels
+          •  Memory model: Shared virtual memory across agents
+          •  Signals: Lightweight synchronization primitives
 
 .. [#paper-graph-on-opencl] https://easychair.org/publications/preprint/GjhX
 
