@@ -12,11 +12,14 @@ as **“if-else”**, **“while”**, and **“for”** loop statements in C. I
 explains how to translate these LLVM IR control flow statements into Cpu0
 instructions in *Section I*.
 
-In `section Remove useless JMP`_, a control flow optimization pass for the
+In 
+:ref:`section Cpu0 Backend Optimization: Remove Useless JMP <remove-useless-jmp>`, 
+a control flow optimization pass for the
 backend is introduced. It serves as a simple tutorial program to help readers
 understand how to add and implement a backend optimization pass.
 
-`section Conditional instruction`_ includes handling for conditional
+:ref:`Section Conditional Instruction <conditional-instruction>` includes 
+handling for conditional
 instructions, since Clang generates specific IR instructions, `select` and
 `select_cc`, to support control flow optimizations in the backend.
 
@@ -574,6 +577,8 @@ The code of Chapter8_2 will compile the following example as follows:
 	  .size	_Z15test_longbranchv, ($func_end0)-_Z15test_longbranchv
 
 
+.. _remove-useless-jmp:
+
 Cpu0 Backend Optimization: Remove Useless JMP
 ---------------------------------------------
 
@@ -757,7 +762,9 @@ and now you need to perform the "bundle" to keep the block label unchanged in
 later LLVM phases.
 
 
-Conditional instruction
+.. _conditional-instruction:
+
+Conditional Instruction
 ------------------------
 
 .. rubric:: lbdex/input/ch8_2_select.cpp
@@ -1237,12 +1244,6 @@ Both books use the MIPS CPU as a reference example, since MIPS is more
 RISC-like than many other commercial CPUs.
 
 
-.. _section Remove useless JMP:
-  http://jonathan2251.github.io/lbd/ctrlflow.html#cpu0-backend-optimization-remove-useless-jmp
-
-
-.. _section Conditional instruction:
-  http://jonathan2251.github.io/lbd/ctrlflow.html#conditional-instruction
 
 
 .. [#cache-speed] On a platform with cache and DRAM, the cache miss costs 

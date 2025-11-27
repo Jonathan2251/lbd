@@ -8,8 +8,8 @@ Arithmetic and Logic Instructions
    :depth: 4
 
 This chapter first adds support for more Cpu0 arithmetic instructions.  
-The `section Display llvm IR nodes with Graphviz`_ will show you the steps of  
-DAG optimization and their corresponding ``llc`` display options.  
+The :ref:`section Display LLVM DAG Nodes With Graphviz <dwg>` will show you the 
+steps of DAG optimization and their corresponding ``llc`` display options.  
 These DAG translations exist at various optimization steps and can be displayed  
 using the Graphviz tool, which provides useful graphical information.  
 
@@ -386,15 +386,18 @@ can compile programs with overflow exception handling. This option is
 mainly used for debugging purposes. Compiling with this option can help  
 identify bugs early and fix them efficiently.  
 
-Display LLVM IR Nodes with Graphviz
+
+.. _dwg:
+
+Display LLVM DAG Nodes With Graphviz
 ************************************
 
 The previous section displayed the DAG translation process in text format  
 on the terminal using the ``llc -debug`` option.  
 
 The ``llc`` tool also supports graphical visualization. The  
-`section Install other tools on iMac`_ explains how to download and  
-install Graphviz, a tool for rendering DAGs.  
+:ref:`section Install other tools on iMac <install-other-tools-on-imac>` 
+explains how to download and install Graphviz, a tool for rendering DAGs.  
 
 This section introduces how to use ``llc`` with Graphviz for graphical  
 display. Viewing DAGs graphically is often easier to interpret than  
@@ -1463,7 +1466,7 @@ and **Cpu0 instructions** implemented in this chapter.
 This chapter covers over **20 mathematical and logical operators**,  
 spanning **approximately 400 lines** of source code.
 
-.. table:: Chapter 4 mathmetic operators
+.. table:: Chapter 4 mathmatic operators
 
   ================  =================================  ====================================  ==========
   C                 .bc                                Optimized legalized selection DAG     Cpu0
@@ -1485,14 +1488,6 @@ spanning **approximately 400 lines** of source code.
   (x<<n)|(x>>32-n)  shl + lshr                         rotl, rotr                            rol, rolv, ror, rorv 
   ================  =================================  ====================================  ==========
 
-
-
-.. _section Display llvm IR nodes with Graphviz:
-  http://jonathan2251.github.io/lbd/otherinst.html#display-llvm-ir-nodes-
-  with-graphviz
-
-.. _section Install other tools on iMac:
-  http://jonathan2251.github.io/lbd/install.html#install-other-tools-on-imac
 
 
 .. [#instrstage] http://llvm.org/docs/doxygen/html/structllvm_1_1InstrStage.html

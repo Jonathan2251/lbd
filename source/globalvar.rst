@@ -887,8 +887,10 @@ variables. The following code tells llvm never allocate $gp for variables.
   }
 
 
-pic mode
----------
+.. _pic-mode-global:
+
+PIC Mode
+--------
 
 sdata or sbss
 *************
@@ -1362,12 +1364,6 @@ The rule for global variables allocation is "set the small and frequent
 variables in small 16 addressable area".
 
 
-
-.. _section Global variable:
-    http://jonathan2251.github.io/lbd/globalvar.html#global-variable
-
-.. _section Array and struct support:
-    http://jonathan2251.github.io/lbd/globalvar.html#array-and-struct-support
 
 .. [#] http://llvm.org/docs/CommandLine.html
 
