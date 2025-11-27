@@ -118,9 +118,10 @@ times. It was once used heavily as an interchange format for Autodesk Max/Maya
 in film production, but the industry has now shifted more towards OBJ, FBX, 
 and Alembic [#3dfmt]_.
 
+.. _ghast:
 
-Graphic HW and SW Stack
-***********************
+Graphics HW and SW Stack
+************************
 
 - https://en.wikipedia.org/wiki/Free_and_open-source_graphics_device_driver
 
@@ -141,7 +142,7 @@ The roles of the CPU and GPU in graphic animation are illustrated in
 .. _graphic_cpu_gpu: 
 .. figure:: ../Fig/gpu/graphic-cpu-gpu.png
   :align: center
-  :scale: 50 %
+  :scale: 70 %
 
   OpenGL and Vulkan are both rendering APIs. In both cases, the GPU executes 
   shaders, while the CPU executes everything else [#ogl-cpu-gpu]_.
@@ -159,7 +160,7 @@ The roles of the CPU and GPU in graphic animation are illustrated in
 .. _graphic_gpu_csf: 
 .. figure:: ../Fig/gpu/graphic-gpu-csf.png
   :align: center
-  :scale: 50 %
+  :scale: 70 %
 
   MCU and specific HW circuits to speedup the processing of CSF 
   (Command Stream Fronted) [#csf]_.
@@ -209,7 +210,7 @@ more computing power than the CPU.
   from each frame down to each pixel’s value.
 
 - These frame data are stored in the form of VAOs (Vertex Array Objects) in  
-  OpenGL. This will be explained in a later `section OpenGL`_.
+  OpenGL. This will be explained in a later :ref:`section OpenGL <opengl>`.
 
 - Additionally, OpenGL provides VBOs (Vertex Buffer Objects), which allow  
   vertex array data to be stored in high-performance graphics memory on the  
@@ -653,6 +654,8 @@ For a group of objects, a scene graph provides better animation support and
 saves memory [#scene-graph-wiki]_.
 
 
+.. _opengl:
+
 OpenGL
 ------
 
@@ -827,7 +830,7 @@ website [#rendering]_. The website also provides a description for each stage.
 .. _rendering_pipeline1: 
 .. figure:: ../Fig/gpu/rendering_pipeline.png
   :align: center
-  :scale: 80 %
+  :scale: 50 %
 
   Diagram of the Rendering Pipeline. The blue boxes are programmable shader stages.
 
@@ -1105,11 +1108,13 @@ GLSL expands upon C for GPU-based graphics programming.
 - bvec, ivec, uvec, dvec: boolean and integer vectors
 - sampler2D, samplerCube: texture samplers
 
+.. _pipeline-qualifier:
+
 2. Pipeline Qualifiers
 
 - attribute, varying (legacy)
 - in, out, inout: stage and parameter I/O
-- uniform: uniform variables are set externally by the host application 
+- **uniform:** uniform variables are set externally by the host application 
   (e.g., OpenGL) and remain constant across all shader invocations for 
   a draw call.
 - layout(location = x): set GPU variable locations
@@ -1305,6 +1310,8 @@ GLSL Qualifiers by Shader Stage
     imageStore(uImage, ivec2(idx, 0), vec4(values[idx])); // image write
   }
 
+
+.. _opengl-shader-compiler:
 
 OpenGL Shader Compiler
 **********************
@@ -1628,7 +1635,7 @@ GPU Hardware Units
 A GPU (graphics processing unit) is built as a massively generic parallel 
 processor of SIMD/SIMT architecture with several specialized processing units 
 inside shown as :numref:`gpu_block_diagram_2` from the 
-`section Graphic HW and SW Stack`_.
+:ref:`section Graphics HW and SW Stack <ghast>`.
 
 .. _gpu_block_diagram_2: 
 .. figure:: ../Fig/gpu/gpu-block-diagram.png
@@ -1666,7 +1673,7 @@ that accelerate them as shown in :numref:`ogl-pipeline-hw`:
 
 - **Components:**
 
-  * **Warp Scheduler** – Schedules groups of threads (warps/wavefronts),
+  * **Warp Scheduler** – Schedules groups of threads (Warps/Wavefronts),
     issues instructions in SIMT (Single Instruction, Multiple Threads) fashion.
   * **Registers** – Per-thread private storage, the fastest memory level.
   * **Shared Memory / L1 Cache** – On-chip memory close to the SM.
@@ -1785,7 +1792,7 @@ that accelerate them as shown in :numref:`ogl-pipeline-hw`:
     *Usage:* Handles scheduling and distribution of memory transactions.
 
   * **Memory Coalescing Unit** –  
-    Combines multiple per-thread memory requests from a warp into fewer,
+    Combines multiple per-thread memory requests from a Warp into fewer,
     wider transactions. Most effective for contiguous access patterns.  
 
     *Usage:* Improves memory bandwidth efficiency and reduces wasted cycles.
@@ -1869,6 +1876,10 @@ Summary:
 
 - The PU is a pipleline execution unit compared to CPU architecture.
 
+
+SM Hardware
+^^^^^^^^^^^
+
 The leading NVIDIA GPU architecture is illustrated in :numref:`gpu-sched`, 
 **where the scoreboard is shown without the mask field**. 
 This represents a SIMT pipeline with a scoreboard.
@@ -1882,48 +1893,119 @@ This represents a SIMT pipeline with a scoreboard.
   [#Quantitative-threads-lanes]_)
 
 .. note:: A SIMD Thread executed by SIMD Processor, a.k.a. SM, has 16 Lanes.
-  
-.. _sm: 
-.. figure:: ../Fig/gpu/sm.png
-  :align: center
-  :scale: 50 %
 
-  Multithreaded SIMD Processor (Streaming Multiprocessor SM) figure from book 
-  [#Quantitative-gpu-sm]_.
-  Streaming Multiprocessor SM has two -16-way SIMD units and four special 
+.. raw:: latex
+
+   \clearpage
+
+.. list-table::
+   :widths: 60 40
+   :align: center
+
+   * - .. _sm:left:
+       .. figure:: ../Fig/gpu/sm.png
+          :scale: 50 %
+
+          Streaming Multiprocessor SM figure from book [#Quantitative-gpu-sm]_.
+
+     - .. _sm:right:
+       .. figure:: ../Fig/gpu/sm2.png
+          :scale: 15 %
+
+          SM figure from websites [#cuda-sm]_ [#fermi]_.
+ 
+- Streaming Multiprocessor SM has two 16-way SIMD units and four special 
   function units.
-  SIMD Lane is called Cuda core [#cuda-sm]_. 
+  Fermi has 32 SIMD Lanes and Cuda cores. 
   SM has L1 and Read Only Cache (Uniform Cache)
-  GTX480 has 48 SMs. **ALUs run at twice the clock rate of rest of chip. So each 
-  decoded instruction runs on 32 pieces of data on the 16 ALUs over two ALU 
-  clocks** [#chime]_.
+  GTX480 has 48 SMs. 
 
+- In Fermi,
+  ALUs run at twice the clock rate of rest of chip. So each 
+  decoded instruction runs on 32 pieces of data on the 16 ALUs over two ALU 
+  clocks [#chime]_. However after Fermi, the ALUs run at the same clock rate
+  of rest of chip.
+
+- As :numref:`sm:left` in Fermi and Volta, it can dual-issue "float + integer" or 
+  "integer + load/store" but cannot dual-issue "float + float" or "int + int".
+
+- Uniform cache: used for storing constant variables in OpenGL (see 
+  :ref:`uniform of Pipeline Qualifiers <pipeline-qualifier>`) and in OpenCL/CUDA.
+
+.. _cfg-warps:
+
+**Configurable maximum resident warps and allocated registers per thread** as 
+follows:
+
+- Example: Fermi SM (SM 2.x)
+
+  - Hawdware limit:
+
+    - Total registers per SM = 32,768 × 32-bit
+    - Max Warps per SM = 48
+    - Max threads per SM = 1536
+    - Max registers/thread = 63
+
+  - Configuration: If each thread uses R registers:
+
+    - Max resident threads = floor(32768 / R)
+    - Max resident Warps   = floor(Max resident threads / 32)
+    - E.g. **R=32: Max resident threads = 32768/32 = 1024, Max resident Warps = 
+      1024/32 = 32.**
+
+- After Fermi, the hardware limit for Maxwell, Pascal, Volta and Ampere are:
+
+  - Hawdware limit:
+
+    - Each SM includes 32 Cuda cores and Lanes → 32 active threads. 
+    - Total registers per SM = 64K x 32-bit
+    - Max Warps per SM = 64
+    - Max threads per SM = 2048 (64 Warps x 32 threads)
+    - Max registers/thread = 255
+
+  - Notes:
+
+    - Registers per thread: max number of registers **compiler can allocate to 
+      a thread**.
+    - The “registers per thread” limit (255) is a hardware/compiler limit, but 
+      the actual number used depends on the kernel. 
+      If a kernel uses too many registers per thread, occupancy drops (fewer 
+      threads can be resident).
+    - The “max threads per SM = 2048” is a theoretical upper limit; actual 
+      resident threads will also depend on shared memory usage, number of 
+      thread-blocks per SM, and register usage.
 
 .. note::
 
    A SIMD thread executed by a Multithreaded SIMD processor, also known as an SM,
    processes 32 elements.  
 
-   Number of registers in a thread block =  
-   16 (SMs) * 32 (CUDA threads) * 64 (TLRs, Thread-Level Registers) = 32,768  
-   registers in the register file.
+   As configuation above, the 32,768 registers per SM can be configured to  each 
+   thread alllocated 32 registers, Max resident Warps = 32.
+
    Fermi has a mode bit that offers the choice of using 64 KB of SRAM as 
    a 16 KB L1 cache with 48 KB of Local Memory or as a 48 KB L1 cache 
    with 16 KB of Local Memory [#Quantitative-gpu-l1]_.
 
-.. _threadblock: 
-.. figure:: ../Fig/gpu/threadblock.jpg
-  :align: center
-  :scale: 50 %
+.. list-table::
+   :widths: 60 40
+   :align: center
 
-  SM select Thread Blocks to run [#wiki-tbcp]_.
+   * - .. _threadblock:
+       .. figure:: ../Fig/gpu/threadblock.jpg 
+          :scale: 50 %
 
-.. _threadblocks-map: 
-.. figure:: ../Fig/gpu/threadblocks-map.png
-  :align: center
-  :scale: 50 %
+          SM select Thread Blocks to run [#wiki-tbcp]_.
 
-  Mapping Thread Block to SMs [#mapping-blocks-to-sm]_
+     - .. _threadblocks-map:
+       .. figure:: ../Fig/gpu/threadblocks-map.png
+          :scale: 50 %
+
+          Mapping Thread Block to SMs [#mapping-blocks-to-sm]_.
+
+ 
+SM Scheduling
+^^^^^^^^^^^^^
 
 - A GPU is built around an array of Streaming Multiprocessors (SMs). 
   A multithreaded program is partitioned into blocks of threads that execute 
@@ -1931,259 +2013,119 @@ This represents a SIMT pipeline with a scoreboard.
   automatically execute the program in less time than a GPU with fewer 
   multiprocessors [#mapping-blocks-to-sm]_.
 
+- Nvidia's GPUs:
+ 
+  Fermi (2010), Kepler (2012), Maxwell (2014), Pascal (2016), Volta (2017), 
+  Turing (2018), Ampere (2020), Ada Lovelace (2022), and Hopper (2022, for data 
+  centers). 
 
 - Two levels of scheduling:
 
   - Level 1: Thread Block Scheduler
 
-    As shown in :numref:`threadblocks-map`, more than one block can be assigned
+    A Warp includes 32 threads in Fermi GPU.
+    Each Streaming Multiprocessor SM includes 32 Lanes in Fermi GPU, as shown 
+    in :numref:`threadblock`, the Thread Block includes a Warp (32 threads).
+    According :numref:`threadblocks-map`, more than one block can be assigned
     and run on a same SM.
 
-    When an SM executes a thread block, all the threads within the block are  
-    are executed at the same time. If any thread in a warp is not ready due to 
-    operand data dependencies, the scheduler switches context between warps.  
-    During a context switch, all the data of the current warp remains in the  
+    When an SM executes a Thread Block, all the threads within the block are  
+    are executed at the same time. If any thread in a Warp is not ready due to 
+    operand data dependencies, the scheduler switches context between Warps.  
+    During a context switch, all the data of the current Warp remains in the  
     register file so it can resume quickly once its operands are ready  
     [#wiki-tbcp]_.
 
-    Once a thread block is launched on a multiprocessor (SM), all
-    of its warps are resident until their execution finishes.
+    Once a Thread Block is launched on a multiprocessor (SM), all
+    of its Warps are **resident** until their execution finishes.
     Thus a new block is not launched on an SM until there is sufficient
-    number of free registers for all warps of the new block, and until there
+    number of free registers for all Warps of the new block, and until there
     is enough free shared memory for the new block [#wiki-tbcp]_.
 
   - Level 2: Warp Scheduler
 
-    Manages CUDA threads within the same warp.
+    Manages CUDA threads (resident threads) within the same Warp.
 
+    A **resident thread** is a thread whose execution context has been
+    allocated on an SM (registers, Warp slot, shared memory).  Once resident,
+    the thread is always in exactly one of the following execution states.
 
-Processor Units and Memory Hierarchy in NVIDIA GPU [#chatgpt-pumh]_
-*******************************************************************
+    .. code-block:: text
 
-.. _gpu-mem: 
-.. figure:: ../Fig/gpu/memory.png
-  :align: center
-  :scale: 50 %
+        Resident Thread
+        ├── Ready
+        │     Thread is eligible to execute; no pending dependencies.
+        │
+        ├── Running
+        │     Warp containing the thread is currently issued by the scheduler.
+        │
+        │     ├── Active (mask = 1)
+        │     │     Thread participates in the current instruction.
+        │     │
+        │     └── Inactive (mask = 0)
+        │           Thread is masked off due to branch divergence and
+        │           will re-activate at a reconvergence point.
+        │
+        ├── Stalled
+        │     Warp cannot issue due to memory latency, synchronization,
+        │     or scoreboard dependency.
+        │
+        └── Exited
+              Thread has completed execution but its Warp has not yet been
+              released from the SM.
 
-  GPU memory (figure from book [#Quantitative-gpu-mem]_). 
+    Threads retain their registers and per-thread local memory during the 
+    stalled state. 
+    Therefore, **the context switch incurs almost no overhead compared to CPU 
+    threads**.
 
-.. _mem-hierarchy: 
-.. graphviz:: ../Fig/gpu/mem-hierarchy.gv
-  :caption: Processor Units and Memory Hierarchy in NVIDIA GPU
-            **Local Memory is shared by all threads and Cached in L1 and L2.**
-            In addition, the **Shared Memory is provided to use per-SM, not 
-            cacheable**.
+    - No pipeline flush: illustrate below.
+    - No register save/restore
+    - No stack frame swapping
+    - **No OS involvement**
+    - Takes roughly **1 cycle**
+    
+    No pipeline flush because:
 
+    For Fermi/Kepler/Maxwell/Pascal (pre-Volta): Warp-synchronous SIMT 
+    (lock-step in Warp):
 
-**Memory Hierarchy in NVIDIA GPU**
+    - No data is saved/restored when switching to another Warp
+    - Switching Warps = selecting a different Warp in the Warp scheduler
+    - No pipeline flush
 
-- **Registers**
+      On an NVIDIA GPU, no pipeline flush occurs when a Warp stalls because
+      the Warp’s next instruction is **never issued until its operands are 
+      ready**. The stalled Warp simply stops issuing instructions, and its 
+      pipeline slot is taken by another ready Warp. 
+      When the stall condition clears, the Warp re-enters the pipeline by 
+      issuing the stalled instruction anew. No state is saved or restored.
 
-  - Per-thread, fastest memory, located in CUDA cores.
-  - Latency: ~1 cycle.
+    For Volta, Turing, Ampere, Hopper: Independent Thread Scheduling:
 
-- **Local Memory**
+    - No pipeline flush
 
-  - Per-thread, stored in global DRAM.
-  - Cached in L1 and L2.
-  - Latency: high, depends on cache hit/miss.
-
-- **Shared Memory**
-
-  - **Per-SM, shared across threads in a thread block.**
-  - **On-chip, programmer-controlled.**
-  - Latency: ~20 cycles.
-
-- **L1 Cache**
-
-  - Per-SM, unified with shared memory.
-  - Hardware-managed.
-  - Latency: ~20 cycles.
-
-- **L2 Cache**
-
-  - Shared across the entire GPU chip.
-  - **Coherent across all SMs and GPCs.**
-
-- **Global Memory (DRAM: HBM/GDDR)**
-
-  - Visible to all SMs across all GPCs.
-  - Highest latency (~400–800 cycles).
-
-**GPU Hierarchy Context**
-
-- **GigaThread Engine (chip-wide scheduler)**
-
-  - Contains multiple GPCs.
-
-    - Fermi (2010): up to 4 GPCs per chip.
-    - Pascal GP100 (Tesla P100): 6 GPCs.
-    - Volta GV100 (Tesla V100): 6 GPCs.
-
-  - Distributes thread blocks to all GPCs.
-
-- **GPC (Graphics Processing Cluster)**
-
-  - Contains multiple TPCs.
-
-- **TPC (Texture Processing Cluster)**
-
-  - Groups 1–2 SMs.
-
-- **SM (Streaming Multiprocessor)**
-
-  - Contains CUDA cores, registers, shared memory, L1 cache.
-
-- **CUDA Cores**
-
-  - Execute threads with registers and access the memory hierarchy.
-
-Illustrate L1, L2 and Global Memory used by SM and whole chip of GPU as 
-:numref:`l1-l2`.
-
-.. _l1-l2: 
-.. figure:: ../Fig/gpu/l1-l2.png
-  :align: center
-  :scale: 50 %
-  
-  **L1 Cache: Per-SM, Coherent across all 16 lanes in the same SM.**
-  L2 Cache: Coherent across all SMs and GPCs.
-  Global Memory (DRAM: HBM/GDDR). Both HBM and GDDR are DRAM.
-  GDDR (Graphics DDR) – optimized for GPUs (GDDR5, GDDR6, GDDR6X).
-  HBM (High Bandwidth Memory) – 3D-stacked DRAM connected via TSVs 
-  (Through-Silicon Vias) for extremely high bandwidth and wide buses 
-  [#mapping-blocks-to-sm]_.
-
-.. _gpu-terms: 
-.. figure:: ../Fig/gpu/gpu-terms.png
-  :align: center
-  :scale: 50 %
-
-  Terms in Nvidia's gpu (figure from book [#Quantitative-gpu-terms]_)
-
-Summary the terms used in this chapter based on the :numref:`gpu-terms`, as
-shown in the following table.
-
-.. table:: More descriptive name (used in  Quantitative Approach book and 
-           Cuda term)
-
-  ==========================================  ================================
-  More Desciptive Name                        Cuda term
-  ==========================================  ================================
-  Multithreaded SIMD Processor (SIMD Thread)  Streaming Multiprocessor, SM, GPU Core (Warp) 
-  SIMD Lane + Chime                           Cuda Thread 
-  ==========================================  ================================
-
-.. _warp-sched-pipeline: 
-.. graphviz:: ../Fig/gpu/warp-sched-pipeline.gv
-  :caption: In **dual-issue mode**, Chime A carries floating-point data while Chime 
-            B carries integer data—both issued by the same CUDA thread. 
-            In contrast, under **time-sliced execution**, Chime A and Chime B carry 
-            either floating-point or integer data independently, and are 
-            assigned to separate CUDA threads.
-
-- A warp of 32 threads is mapped across 16 lanes. If each lane has 2 chimes, 
-  it may support dual-issue or time-sliced execution as 
-  :numref:`warp-sched-pipeline`.
-
-In the following matrix multiplication code, the 8096 elements of matrix 
-A = B × C are mapped to Thread Blocks, SIMD Threads, Lanes, and Chimes as 
-illustrated in the :numref:`grid`. In this example, it run on 
-**time-sliced execution**.
-
-.. code:: c++
-
-  // Invoke MATMUL with 256 threads per Thread Block
-  __host__
-  int nblocks = (n + 255) / 512;
-  matmul<<<nblocks, 255>>>(n, A, B, C);
-  // MATMUL in CUDA
-  __device__
-  void matmul(int n, double A, double *B, double *C) {
-    int i = blockIdx.x*blockDim.x + threadIdx.x;
-    if (i < n) A[i] = B[i] + C[i];
-  }
-
-.. _grid: 
-.. figure:: ../Fig/gpu/grid.png
-  :align: center
-  :scale: 50 %
-
-  Mapping 8192 elements of matrix multiplication for Nvidia's GPU  
-  (figure from [#Quantitative-grid]_).  
-  SIMT: 16 SIMD threads in one thread block.
-
-Summarize as table below.
- 
-.. list-table:: More Descriptive Name for Cuda term in Fermi GPU.
-  :widths: 15 15 10 40
-  :header-rows: 1
-
-  * - More Desciptive Name
-    - Cuda term
-    - Structure
-    - Description
-  * - Grid
-    - Grid, Giga Thread Engine
-    - 
-    - Grid is Vectorizable Loop as :numref:`gpu-terms`.
-  * - Thread Block, Thread Block Scheduler
-    - Thread Block, Guda Thread Engine
-    - Each Grid has 16 Giga Thread [#Quantitative-gpu-threadblock]_.
-    - Each Thread Block is assigned 512 elements of the vectors to 
-      work on.
-      As :numref:`grid`, it assigns 16 Thread Block to 16 SIMD Processors.
-      Giga Thread is the name of the scheduler that distributes thread blocks 
-      to Multiprocessors, each of which has its own SIMD Thread Scheduler
-      [#Quantitative-gpu-threadblock]_.
-      More than one Block can be mapped to a same SM as the explanation in 
-      "Level 1: Thread Block Scheduler" for :numref:`threadblocks-map`.
-  * - **Multithreaded SIMD Processor** (SIMD Thread)
-    - **Streaming Multiprocessor, SM, GPU Core (Warp)** [#gpu-core]_
-    - Each SIMD Processor has 16 SIMD Threads. 
-    - Each SIMD processor includes local memory, as in :numref:`gpu-mem`. Local
-      memory is shared among SIMD lanes within a SIMD processor but not across
-      different SIMD processors. A warp has its own PC and may correspond to a
-      whole function or part of a function. Compiler and runtime may assign
-      functions to the same or different warps [#Quantitative-gpu-warp]_.
-  * - SIMD Lane
-    - Cuda core, Cuda Thread
-    - Each SIMD Thread has 16 Lanes..
-    - A vertical cut of a thread of SIMD instructions corresponding to 
-      one element executed by one SIMD Lane. It is a vector instruction with 
-      processing 16-elements. SIMD Lane registers: each Lane has its TLR 
-      (Thread Level Registers) allocated from Register file (32768 x 
-      32-bit) by SIMD Processor (SM) as :numref:`sm`. 
-      A warp of 32 threads is mapped across 16 lanes. 
-      If each lane has 2 chimes, it may support dual-issue or time-sliced 
-      execution as :numref:`warp-sched-pipeline`.
-  * - Chime
-    - Chime
-    - Each SIMD Lane has 2 chimes.
-    - One clock rate of rest of chip executes 2 data elements on two Cuda-core 
-      as in :numref:`sm`.
-      Vector length is 32 (32 elements), SIMD Lanes = 16. Chime = 2. 
-      Chimes refer to ALU cycles that run in "ping-pong" mode.
-      As :numref:`grid` for the later Fermi-generation GPUs.
-
-
-References
-
-- `NVIDIA GPU Architecture Overview <https://developer.nvidia.com/blog/nvidia-ampere-architecture-in-depth/>`_
-- `Understanding Warps and Threads <https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#warps>`_
-
+      - Stalled threads simply do not issue instructions. 
+      - Other threads in the same warp continue issuing independently.
+      - No pipeline flush needed and No data is saved/restored because 
+        instructions are tracked per thread, not per warp.
 
 SIMT and SPMD Pipelines
-***********************
+^^^^^^^^^^^^^^^^^^^^^^^
 
 This section illustrates the difference between SIMT and SPMD
 pipelines using the same pipeline stages: Fetch (F), Decode (D),
 Execute (E), Memory (M), and Writeback (W).
 
-The low end GPU provide SIMD in their pipeline, all instructions executed in 
-lock-step while the high end GPU provide approximated SPMD in pipeline which 
-means the instructions is interleaved in pipeline are shown below.
+A GPU contains many SMs. 
+The execution model between SMs is MIMD (Multiple Instructions, Multiple Data) 
+when running different programs, or SPMD (Single Program, Multiple Data). 
+However, within a single SM, the execution model is SIMD/SIMT.”
 
+Low-end GPUs implement SIMD in their pipelines, where all instructions are 
+executed in lockstep. High-end GPUs, however, approximate SPMD in their 
+pipelines, meaning that instructions are interleaved within the pipeline, as 
+shown below.
 
 **SPMD Programming Model vs SIMD/SIMT Execution**
 
@@ -2200,7 +2142,7 @@ As result,
 **there is no mainstream GPU that is truly hardware-SPMD** (where each thread 
 has its own independent pipeline).
 All modern GPUs (NVIDIA, AMD, Intel) implement SPMD as a programming model, but 
-under the hood they execute in SIMD lock-step groups (warps or wavefronts).
+under the hood they execute in SIMD lock-step groups (Warps or Wavefronts).
 GPUs expose an **SPMD programming model** (each thread runs the same kernel on
 different data). However, the hardware actually executes instructions in
 **SIMD/SIMT lock-step groups**.
@@ -2250,7 +2192,13 @@ different data). However, the hardware actually executes instructions in
             (Threads fetch/execute independently —
              odd thread finishes immediately)
 
-`Subsection Mapping data in GPU`_ includes more details in lanes masked.
+.. note:: **SPMD and MIMD**
+ 
+   When run a single program across all cores, SPMD and MIMD pipelines look the 
+   same. 
+
+:ref:`The subection Mapping data in GPU <mapping-data-in-gpu>` includes more 
+details in Lanes masked.
 
 **Scoreboard purpose:**
 
@@ -2267,7 +2215,7 @@ only {Warp-ID, PC (Instruction Address), …}. With divergence support (as in
 real-world GPUs), the scoreboard entries expand to {Warp-ID, PC, mask, …}. 
 
 
-**Volta (Cuda thread/SIMD lane with PC, Program Couner and Call Stack)**
+**Volta (Cuda thread/SIMD Lane with PC, Program Couner and Call Stack)**
 
 **GPU scoreboard = in-order issue, out-of-order completion**
 
@@ -2295,8 +2243,242 @@ Therefore, the average total execution time for 32 threads in an SM is:
 
 •  Volta: 20 cycles
 •  Pascal: 640 cycles (20 cycles × 32 threads, due to lack of independent 
-   progress inside a warp)
+   progress inside a Warp)
 
+
+Processor Units and Memory Hierarchy in NVIDIA GPU [#chatgpt-pumh]_
+*******************************************************************
+
+.. _gpu-mem: 
+.. figure:: ../Fig/gpu/memory.png
+  :align: center
+  :scale: 60 %
+
+  GPU memory (figure from book [#Quantitative-gpu-mem]_). 
+
+.. _mem-hierarchy: 
+.. graphviz:: ../Fig/gpu/mem-hierarchy.gv
+  :caption: Processor Units and Memory Hierarchy in NVIDIA GPU
+            **Local Memory is shared by all threads and Cached in L1 and L2.**
+            In addition, the **Shared Memory is provided to use per-SM, not 
+            cacheable**.
+
+Illustrate L1, L2 and Global Memory used by SM and whole chip of GPU as 
+:numref:`l1-l2`.
+
+.. _l1-l2: 
+.. figure:: ../Fig/gpu/l1-l2.png
+  :align: center
+  :scale: 50 %
+  
+  **L1 Cache: Per-SM, Coherent across all 16 Lanes in the same SM.**
+  L2 Cache: Coherent across all SMs and GPCs.
+  Global Memory (DRAM: HBM/GDDR). Both HBM and GDDR are DRAM.
+  GDDR (Graphics DDR) – optimized for GPUs (GDDR5, GDDR6, GDDR6X).
+  HBM (High Bandwidth Memory) – 3D-stacked DRAM connected via TSVs 
+  (Through-Silicon Vias) for extremely high bandwidth and wide buses 
+  [#mapping-blocks-to-sm]_.
+
+
+:numref:`mem-hierarchy` **illustrates the memory hierarchy in NVIDIA GPU and 
+explains it as follows:**
+
+- **Registers**
+
+  - Per-thread, fastest memory, located in CUDA cores, as illustrated also in 
+    :numref:`sm:left`.
+  - :ref:`Configurable maximum resident warps and 
+    allocated registers per thread <cfg-warps>` following 
+    :numref:`sm:left`.
+  - Latency: ~1 cycle.
+
+- **Uniform cache**
+
+  - Stored constant variables in OpenGL and OpenCL/CUDA, as illustrated in 
+    :numref:`sm:left`.
+
+- **Local Memory**
+
+  - Per-thread, stored in global DRAM.
+  - Cached in L1 and L2.
+  - Latency: high, depends on cache hit/miss.
+
+- **Shared Memory**
+
+  - **Per-SM, shared across threads in a Thread Block as shown in** 
+    :numref:`sm:left`.
+  - **On-chip, programmer-controlled.**
+  - Latency: ~20 cycles.
+
+- **L1 Cache**
+
+  - Per-SM, unified with shared memory.
+  - Hardware-managed.
+  - Latency: ~20 cycles.
+
+- **L2 Cache**
+
+  - Shared across the entire GPU chip.
+  - **Coherent across all SMs and GPCs as shown in** :numref:`l1-l2`.
+
+- **Global Memory (DRAM: HBM/GDDR)**
+
+  - Visible to all SMs across all GPCs.
+  - Highest latency (~400–800 cycles).
+
+**GPU Hierarchy Context**
+
+- **GigaThread Engine (chip-wide scheduler)**
+
+  - Contains multiple GPCs.
+
+    - Fermi (2010): up to 4 GPCs per chip.
+    - Pascal GP100 (Tesla P100): 6 GPCs.
+    - Volta GV100 (Tesla V100): 6 GPCs.
+
+  - Distributes Thread Blocks to all GPCs.
+
+- **GPC (Graphics Processing Cluster)**
+
+  - Contains multiple TPCs.
+
+- **TPC (Texture Processing Cluster)**
+
+  - Groups 1–2 SMs.
+
+- **SM (Streaming Multiprocessor)**
+
+  - Contains CUDA cores, registers, shared memory, L1 cache.
+
+- **CUDA Cores**
+
+  - Execute threads with registers and access the memory hierarchy.
+
+.. _gpu-terms: 
+.. figure:: ../Fig/gpu/gpu-terms.png
+  :align: center
+  :scale: 50 %
+
+  Terms in Nvidia's gpu (figure from book [#Quantitative-gpu-terms]_)
+
+.. _Warp-sched-pipeline: 
+.. graphviz:: ../Fig/gpu/Warp-sched-pipeline.gv
+  :caption: In **dual-issue mode**, Chime A carries floating-point data while Chime 
+            B carries integer data—both issued by the same CUDA thread. 
+            In contrast, under **time-sliced execution**, Chime A and Chime B carry 
+            either floating-point or integer data independently, and are 
+            assigned to separate CUDA threads.
+
+- A Warp of 32 threads is mapped across 16 Lanes. If each Lane has 2 Chimes, 
+  it may support dual-issue or time-sliced execution as 
+  :numref:`Warp-sched-pipeline`.
+
+In the following matrix multiplication code, the 8096 elements of matrix 
+A = B × C are mapped to Thread Blocks, SIMD Threads, Lanes, and Chimes as 
+illustrated in the :numref:`grid`. In this example, it run on 
+**time-sliced execution**.
+
+.. _matmul-cuda:
+
+.. code-block:: c++
+   :caption: MATMUL CUDA Example
+
+   // Invoke MATMUL with 256 threads per Thread Block
+   __host__
+   int nblocks = (n + 255) / 512;
+   matmul<<<nblocks, 255>>>(n, A, B, C);
+   // MATMUL in CUDA
+   __device__
+   void matmul(int n, double A, double *B, double *C) {
+     int i = blockIdx.x*blockDim.x + threadIdx.x;
+     if (i < n) A[i] = B[i] + C[i];
+   }
+
+.. _grid: 
+.. figure:: ../Fig/gpu/grid.png
+  :align: center
+  :scale: 50 %
+
+  Mapping 8192 elements of matrix multiplication for Nvidia's GPU  
+  (figure from [#Quantitative-grid]_).  
+  SIMT: 16 SIMD threads in one Thread Block.
+
+Explain the mapping and execution in :numref:`grid` for :ref:`matmul-cuda` using the terminology from 
+:numref:`gpu-terms` and the previous sections of this book, presented in the 
+table below.
+ 
+.. list-table:: Summary terms for GPU.
+  :widths: 10 15 50
+  :header-rows: 1
+
+  * - Terms
+    - Structure
+    - Description
+  * - Grid, Giga Thread Engine
+    - Each loop (Grid) consists of multiple Thread Blocks.  
+    - Grid is Vectorizable Loop as :numref:`gpu-terms`.
+      The hardware scheduler Guda Thread Engine schedules the Thread Blocks to
+      SMs.
+  * - Thread Block
+    - In this example, each Grid has 16 Giga Thread [#Quantitative-gpu-threadblock]_.
+    - Each Thread Block is assigned 512 elements of the vectors to 
+      work on.
+      As :numref:`grid`, it assigns 16 Thread Block to 16 SMs.
+      Giga Thread is the name of the scheduler that distributes Thread Blocks 
+      to Multiprocessors, each of which has its own SIMD Thread Scheduler
+      [#Quantitative-gpu-threadblock]_.
+      More than one Block can be mapped to a same SM as the explanation in 
+      "Level 1: Thread Block Scheduler" for :numref:`threadblocks-map`.
+  * - Streaming Multiprocessor, **SM**, GPU Core (Warp) [#gpu-core]_
+    - Each SIMD Processor has 16 SIMD Threads. 
+    - Each SIMD processor includes local memory, as in :numref:`gpu-mem`. Local
+      memory is shared among SIMD Lanes within a SIMD processor but not across
+      different SIMD processors. A Warp has its own PC and may correspond to a
+      whole function or part of a function. Compiler and runtime may assign
+      functions to the same or different Warps [#Quantitative-gpu-warp]_.
+  * - Cuda core
+    - Fermi has 32 Cuda cores in a SM as :numref:`sm:right`.
+    - A CUDA core is the scalar execution unit inside an SM. 
+      It is capable of executing one integer or floating-point instruction from 
+      one Lane of a Warp. 
+      The CUDA core is analogous to an ALU pipeline stage in a CPU.
+  * - Cuda Thread
+    - Each SM can configure to have different number of resident threads.
+    - Fermi can configure Max resident threads = 32768/32 = 1024 for 32 
+      registers/per thread in a SM as memtioned eariler.
+      A CUDA thread is the basic unit of execution defined in CUDA’s programming 
+      model. 
+      Each thread executes the kernel code independently with its own registers, 
+      program counter (PC), and per-thread local memory.
+      Each Thread has its TLR
+      (Thread Level Registers) allocated from Register file (32768 x
+      32-bit) by SIMD Processor (SM) as :numref:`sm:left`.
+  * - SIMD Lane
+    - Each SIMD Thread has 32 Lanes.
+    - A vertical cut of a thread of SIMD instructions corresponding to 
+      one element executed by one SIMD Lane. It is a vector instruction with 
+      processing 32-elements.
+      A Warp of 32 threads is mapped across 32 Lanes. 
+      Lane = per-thread execution slot inside a Warp.
+      If each Lane has 2 Chimes, it may support dual-issue or time-sliced 
+      execution as :numref:`Warp-sched-pipeline`.
+  * - Chime
+    - Each Lane has 2 Chimes.
+    - A Chime represents one “attempt” or opportunity for issuing instructions 
+      from Warps.
+      In Fermi (SM2.x): Each SM has 2 Warp schedulers. Each Warp scheduler has 2 
+      dispatch units (dual-issue, but with constraints, it can issue "float + 
+      load/store" for "fadd and load C[i]" in this example).
+
+
+References
+
+- `NVIDIA GPU Architecture Overview <https://developer.nvidia.com/blog/nvidia-ampere-architecture-in-depth/>`_
+- `Understanding Warps and Threads <https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#Warps>`_
+
+
+Memory Subsystem
+****************
 
 Address Coalescing and Gather-scatter
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -2314,7 +2496,7 @@ Some GPUs provide Address Coalescing and gather-scatter to accelerate memory
 access.
 
 - Address Coalescing: **Memory coalescing is the process of merging memory 
-  requests from threads in a warp (NVIDIA: 32 threads, AMD: 64 threads) into as 
+  requests from threads in a Warp (NVIDIA: 32 threads, AMD: 64 threads) into as 
   few memory transactions as possible.**
 
   - Cache miss (global memory/DRAM): Coalescing = big performance improvement.
@@ -2341,7 +2523,7 @@ access.
 
 **Definition:**
 Memory coalescing is the process of merging memory requests from threads
-in a warp (NVIDIA: 32 threads, AMD: 64 threads) into as few memory
+in a Warp (NVIDIA: 32 threads, AMD: 64 threads) into as few memory
 transactions as possible.
 
 **How It Works:**
@@ -2375,7 +2557,7 @@ transactions as possible.
 **2. Gather–Scatter in Sparse Matrix Access**
 
 **Definition:**
-Gather–scatter refers to memory operations where each GPU thread in a warp
+Gather–scatter refers to memory operations where each GPU thread in a Warp
 loads from or stores to irregular memory addresses. This is common in sparse
 matrix operations, where non-zero elements are stored in compressed formats.
 
@@ -2503,11 +2685,16 @@ GDDR6X, or HBM2/3, which are much faster than standard system RAM (DDR4/DDR5).
 RegLess-style architectures [#reg-less]_
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+.. note::
+
+  **RegLess remains a research concept, not (as far as public evidence shows) a 
+  commercial design in shipping GPUs.**
+
 **Difference:** Add **Staging Buffer** between Register Files and Execution Unit.
 
-This subsection outlines the transition from traditional GPU operand coherence using
-a monolithic register file and L1 data cache, to a RegLess-style architecture that
-employs operand staging and register file-local coherence.
+This subsection outlines the transition from traditional GPU operand coherence 
+using a monolithic register file and L1 data cache, to a RegLess-style 
+architecture that employs operand staging and register file-local coherence.
 
 🧮 Operand Delivery in Traditional GPU: :numref:`no-regless`:
 
@@ -2517,13 +2704,16 @@ employs operand staging and register file-local coherence.
             (Traditional Model: Register File + L1 Cache)**
 
 **Architecture**:
-   - Large monolithic register file per SM (e.g., 256KB)
+   - Large monolithic register file per SM (e.g., 256KB, Maxwell, Pascal, Volta 
+     and Ampere have 64K x 32-bit register file per SM, see 
+     :ref:`Configurable maximum resident warps and allocated registers per 
+     thread <cfg-warps>`)
    - Coherent with L1 data cache via write-through or write-back policies
 
 **Challenges**:
    - High energy cost due to cache coherence traffic
    - Complex invalidation and synchronization logic
-   - Register pressure limits warp occupancy (limit the number of ative warps)
+   - Register pressure limits Warp occupancy (limit the number of ative Warps)
    - Redundant operand tracking across register file and cache
 
 **Example**::
@@ -2576,7 +2766,7 @@ RegLess Model: Staging-Aware Register File
    - ~75% reduction in register file size
    - ~11% energy savings
    - Simplified coherence model
-   - Improved warp occupancy
+   - Improved Warp occupancy
 
 **Example with Operand Staging**::
 
@@ -2852,7 +3042,8 @@ A Texture Mapping Unit (TMU) is a fixed-function hardware block inside a GPU
 responsible for *fetching, filtering, and preparing texture data* that shaders 
 (sampled in fragment or compute stages) use during rendering.  
 
-As explained in previous `section OpenGL Shader Compiler`_, the texture 
+As explained in previous 
+:ref:`section OpenGL Shader Compiler <opengl-shader-compiler>`, the texture 
 instruction using TMU to accelerate calculation as the following explanation 
 with :numref:`texture-fetch`.
 
@@ -2999,7 +3190,7 @@ Key Responsibilities
 
    * TMUs have a **dedicated texture cache** optimized for 2D/3D spatial 
      locality.
-   * Neighboring threads in a warp often fetch adjacent texels, improving cache 
+   * Neighboring threads in a Warp often fetch adjacent texels, improving cache 
      hits.
    * Caches reduce memory latency and improve bandwidth utilization.
 
@@ -3295,6 +3486,8 @@ simultaneously. Furthmore, any language that allows the code running on the CPU 
 a GPU shader for return values, can create a GPGPU framework [#gpgpuwiki]_.
 
 
+.. _mapping-data-in-gpu:
+
 Mapping data in GPU
 ^^^^^^^^^^^^^^^^^^^
 
@@ -3378,7 +3571,7 @@ calculation `y[] = a * x[] + y[]` is shown as follows:
 - For Lane Mask, refer to [#VMR]_ [#Quantitative-gpu-asm-daxpy]_.
 
 The following table explains how the elements of `saxpy()` are mapped to the
-lanes of a SIMD Thread (Warp), which belongs to a Thread Block (Core) within
+Lanes of a SIMD Thread (Warp), which belongs to a Thread Block (Core) within
 a Grid.
 
 .. list-table:: Mapping saxpy code to :numref:`grid`.
@@ -3402,12 +3595,12 @@ a Grid.
   SIMD Lanes, so each SIMD instruction in a thread of SIMD instructions takes 
   two clock cycles to complete.
 
-- You could say that it has 16 lanes, the vector length would be 32, and the 
-  chime is 2 clock cycles.
+- You could say that it has 16 Lanes, the vector length would be 32, and the 
+  Chime is 2 clock cycles.
 
 - The mape of `y[0..31] = a * x[0..31] * y[0..31]` to `<Core, Warp, Cuda Thread>`
   of GPU as the following table. `x[0..31]` map to 32 Cuda Threads; **two Cuda
-  Threads map to one SIMD lane** as :numref:`warp-sched-pipeline`..
+  Threads map to one SIMD Lane** as :numref:`Warp-sched-pipeline`..
 
 .. table:: Map `<Core, Warp>` to saxpy
 
@@ -3421,7 +3614,7 @@ a Grid.
 
 - Each Cuda Thread runs the GPU function code `saxpy`. Fermi has a register file  
   of size 32768 x 32-bit.  
-  As shown in :numref:`sm`, the number of registers in a Thread Block is:  
+  As shown in :numref:`sm:left`, the number of registers in a Thread Block is:  
   16 (SM) * 32 (Cuda Threads) * 64 (TLR, Thread Level Register) =  
   32768 x 32-bit (Register file).
 
@@ -3472,8 +3665,8 @@ The `saxpy` kernel is launched with the following statement:
 
    saxpy<<<(N+255)/256, 256>>>(N, 2.0, d_x, d_y);
 
-This launches the kernel with thread blocks containing 256 threads, and uses  
-integer arithmetic to determine the number of thread blocks needed to process  
+This launches the kernel with Thread Blocks containing 256 threads, and uses  
+integer arithmetic to determine the number of Thread Blocks needed to process  
 all `N` elements in the arrays. The expression `(N+255)/256` ensures full  
 coverage of the input data.
 
@@ -3778,15 +3971,15 @@ Once OpenCL grows into a popular standard when more computer languages or
 framework supporting OpenCL language, GPU will take more jobs from CPU 
 [#opencl-wiki-supported-lang]_.
 
-Most GPUs have 16 or 32 lanes in a SIMD processor (Warp), vulkan provides 
-Subgroup operations to data parallel programming on lanes of SIMD processor 
+Most GPUs have 16 or 32 Lanes in a SIMD processor (Warp), vulkan provides 
+Subgroup operations to data parallel programming on Lanes of SIMD processor 
 [#vulkan-subgroup]_.
 
-Subgroup operations provide a fast way for moving data between lanes intra Warp.
-Assuming each Warp has eight lanes.
+Subgroup operations provide a fast way for moving data between Lanes intra Warp.
+Assuming each Warp has eight Lanes.
 The following table lists result of reduce, inclusive and exclusive operations.
 
-.. table:: Lists each lane's value after **Reduce**, **Inclusive** and 
+.. table:: Lists each Lane's value after **Reduce**, **Inclusive** and 
   **Exclusive** operations repectively
 
   ================  ============  ============  ============  ============
@@ -3807,9 +4000,9 @@ The following table lists result of reduce, inclusive and exclusive operations.
 
   - MAX operation: OP(abc) = MAX(a,b,c).
 
-- When lane i is inactive, it is value is none.
+- When Lane i is inactive, it is value is none.
 
-  - For instance of lane 0 is inactive, then MUL operation: OP(abcd) = b*c*d.
+  - For instance of Lane 0 is inactive, then MUL operation: OP(abcd) = b*c*d.
 
 
 The following is a code example.
@@ -3826,10 +4019,10 @@ The following is a code example.
   }
   subgroupMemoryBarrier();
 
-- Nvidia's GPU provides __syncwarp() for subgroupMemoryBarrier() or compiler to
-  sync for the lanes in the same Warp.
+- Nvidia's GPU provides __syncWarp() for subgroupMemoryBarrier() or compiler to
+  sync for the Lanes in the same Warp.
 
-In order to let lanes in the same SIMD processor work efficently, data unifomity
+In order to let Lanes in the same SIMD processor work efficently, data unifomity
 analysis will provide many optimization opporturnities in register allocation,
 transformation and code generation [#llvm-uniformity]_.
 
@@ -3891,7 +4084,7 @@ SPIR-V.
      - **Virtual registers (%r, %f); mapped to physical registers during SASS 
        lowering**
    * - GCN IR (AMD)
-     - Machine IR; tightly coupled to GCN/RDNA architecture; exposes wavefront 
+     - Machine IR; tightly coupled to GCN/RDNA architecture; exposes Wavefront 
        semantics
      - Explicit vector (vN) and scalar (sN) registers; register pressure affects 
        occupancy.
@@ -4207,18 +4400,6 @@ Open Sources
 - https://www.opengl.org/sdk/, https://www.opengl.org/sdk/libs/
 
 
-.. _section Graphic HW and SW Stack:
-  http://jonathan2251.github.io/lbd/gpu.html#graphic-hw-and-sw-stack
-
-.. _section OpenGL:
-  http://jonathan2251.github.io/lbd/gpu.html#opengl
-
-.. _section OpenGL Shader Compiler:
-  http://jonathan2251.github.io/lbd/gpu.html#opengl-shader-compiler
-
-.. _Subsection Mapping data in GPU:
-  http://jonathan2251.github.io/lbd/gpu.html#mapping-data-in-gpu
-
 .. [#cg_basictheory] https://www3.ntu.edu.sg/home/ehchua/programming/opengl/CG_BasicsTheory.html
 
 .. [#polygon] https://www.quora.com/Which-one-is-better-for-3D-modeling-Quads-or-Tris
@@ -4303,6 +4484,11 @@ Open Sources
 
 .. [#reg-less] https://cccp.eecs.umich.edu/papers/jklooste-micro17.pdf
 
+.. chatgpt: "Do NVIDIA GPUs implement a 'RegLess-style architecture' to reduce 
+   energy consumption and the size of register files?", 
+   "Do any GPU vendors use RegLess? Is it primarily beneficial in mobile GPUs 
+   for reducing power consumption?".
+
 .. [#buffers-redbook] Page 155 - 185 of book "OpenGL Programming Guide 9th Edition" [#redbook]_.
 
 .. [#monstar-lab-opengl] https://engineering.monstar-lab.com/en/post/2022/03/01/Introduction-To-GPUs-With-OpenGL/
@@ -4364,12 +4550,14 @@ Open Sources
 
 .. [#cuda-sm] https://www.tomshardware.com/reviews/geforce-gtx-480,2585-18.html
 
+.. [#fermi] https://www.nvidia.com/content/PDF/fermi_white_papers/NVIDIA_Fermi_Compute_architecture_Whitepaper.pdf?utm_source=chatgpt.com
+
 .. [#chime] https://www.cs.cmu.edu/afs/cs/academic/class/15418-s12/www/lectures/02_multicore.pdf
 
 .. [#Quantitative-simd-processors] Book Figure 4.15 of Computer Architecture: A Quantitative Approach 5th edition (The
        Morgan Kaufmann Series in Computer Architecture and Design)
 
-.. [#Quantitative-threads-lanes] The SIMD Thread Scheduler includes a scoreboard that lets it know which threads of SIMD instructions are ready to run, and then it sends them off to a dispatch unit to be run on the multithreaded SIMD Processor. It is identical to a hardware thread scheduler in a traditional multithreaded processor (see Chapter 3), just that it is scheduling threads of SIMD instructions. Thus, GPU hardware has two levels of hardware schedulers: (1) the Thread Block Scheduler that assigns Thread Blocks (bodies of vectorized loops) to multi- threaded SIMD Processors, which ensures that thread blocks are assigned to the processors whose local memories have the corresponding data, and (2) the SIMD Thread Scheduler within a SIMD Processor, which schedules when threads of SIMD instructions should run. 
+.. [#Quantitative-threads-lanes] The SIMD Thread Scheduler includes a scoreboard that lets it know which threads of SIMD instructions are ready to run, and then it sends them off to a dispatch unit to be run on the multithreaded SIMD Processor. It is identical to a hardware thread scheduler in a traditional multithreaded processor (see Chapter 3), just that it is scheduling threads of SIMD instructions. Thus, GPU hardware has two levels of hardware schedulers: (1) the Thread Block Scheduler that assigns Thread Blocks (bodies of vectorized loops) to multi- threaded SIMD Processors, which ensures that Thread Blocks are assigned to the processors whose local memories have the corresponding data, and (2) the SIMD Thread Scheduler within a SIMD Processor, which schedules when threads of SIMD instructions should run. 
        Book Figure 4.14 of Computer Architecture: A Quantitative Approach 5th edition (The
        Morgan Kaufmann Series in Computer Architecture and Design) 
 
@@ -4410,7 +4598,7 @@ Open Sources
 .. [#Quantitative-gpu-threadblock] Figure 4.15 Floor plan of the Fermi GTX 480 
        GPU of A Quantitative Approach 5th edition (The Morgan Kaufmann Series in
        Computer Architecture and Design). **Giga Thread** is the name of the 
-       scheduler that distributes thread blocks to Multiprocessors, each of 
+       scheduler that distributes Thread Blocks to Multiprocessors, each of 
        which has its own SIMD Thread Scheduler.
 
 .. [#wiki-ray-tracing] <https://en.wikipedia.org/wiki/Ray_tracing_(graphics)>

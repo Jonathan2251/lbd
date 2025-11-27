@@ -173,6 +173,11 @@ Note of Sphinx
 - Use ``\clearpage`` (see gpu.rst) to force page breaks in pdf and avoid content
   splitting across two pages.
 
+- Figures side by side: refer to ``sm:left`` in gpu.rst.
+
+- For instructions on inserting a reference before any paragraph that is not a 
+  section heading, see the word ``cfg-warps`` in gpu.rst.
+
 .. code-block:: console
 
   $HOME/git/lbd$ make latexpdf

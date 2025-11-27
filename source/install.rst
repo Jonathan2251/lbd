@@ -106,6 +106,8 @@ shown below:
   /usr/local/Cellar/icarus-verilog/0.9.5: 39 files, 12M, built in 55 seconds
 
 
+.. _install-other-tools-on-imac:
+
 Install Other Tools on iMac
 ***************************
 
