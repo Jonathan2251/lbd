@@ -43,34 +43,37 @@
 <span id="sec-controlflow"></span><h1>Control flow statements<a class="headerlink" href="#control-flow-statements" title="Permalink to this heading">¶</a></h1>
 <nav class="contents local" id="contents">
 <ul class="simple">
-<li><p><a class="reference internal" href="#pipeline-architecture" id="id16">Pipeline architecture</a></p></li>
-<li><p><a class="reference internal" href="#control-flow-statement" id="id17">Control flow statement</a></p></li>
-<li><p><a class="reference internal" href="#long-branch-support" id="id18">Long branch support</a></p></li>
-<li><p><a class="reference internal" href="#cpu0-backend-optimization-remove-useless-jmp" id="id19">Cpu0 Backend Optimization: Remove Useless JMP</a></p></li>
-<li><p><a class="reference internal" href="#fill-branch-delay-slot" id="id20">Fill Branch Delay Slot</a></p></li>
-<li><p><a class="reference internal" href="#conditional-instruction" id="id21">Conditional instruction</a></p></li>
-<li><p><a class="reference internal" href="#phi-node" id="id22">Phi node</a></p></li>
-<li><p><a class="reference internal" href="#risc-cpu-knowledge" id="id23">RISC CPU knowledge</a></p></li>
+<li><p><a class="reference internal" href="#pipeline-architecture" id="id17">Pipeline architecture</a></p></li>
+<li><p><a class="reference internal" href="#control-flow-statement" id="id18">Control flow statement</a></p></li>
+<li><p><a class="reference internal" href="#long-branch-support" id="id19">Long branch support</a></p></li>
+<li><p><a class="reference internal" href="#cpu0-backend-optimization-remove-useless-jmp" id="id20">Cpu0 Backend Optimization: Remove Useless JMP</a></p></li>
+<li><p><a class="reference internal" href="#fill-branch-delay-slot" id="id21">Fill Branch Delay Slot</a></p></li>
+<li><p><a class="reference internal" href="#conditional-instruction" id="id22">Conditional Instruction</a></p></li>
+<li><p><a class="reference internal" href="#phi-node" id="id23">Phi node</a></p></li>
+<li><p><a class="reference internal" href="#risc-cpu-knowledge" id="id24">RISC CPU knowledge</a></p></li>
 </ul>
 </nav>
 <p>This chapter illustrates the corresponding IR for control flow statements, such
 as <strong>“if-else”</strong>, <strong>“while”</strong>, and <strong>“for”</strong> loop statements in C. It also
 explains how to translate these LLVM IR control flow statements into Cpu0
 instructions in <em>Section I</em>.</p>
-<p>In <a class="reference external" href="http://jonathan2251.github.io/lbd/ctrlflow.html#cpu0-backend-optimization-remove-useless-jmp">section Remove useless JMP</a>, a control flow optimization pass for the
+<p>In
+<a class="reference internal" href="#remove-useless-jmp"><span class="std std-ref">section Cpu0 Backend Optimization: Remove Useless JMP</span></a>,
+a control flow optimization pass for the
 backend is introduced. It serves as a simple tutorial program to help readers
 understand how to add and implement a backend optimization pass.</p>
-<p><a class="reference external" href="http://jonathan2251.github.io/lbd/ctrlflow.html#conditional-instruction">section Conditional instruction</a> includes handling for conditional
+<p><a class="reference internal" href="#conditional-instruction"><span class="std std-ref">Section Conditional Instruction</span></a> includes
+handling for conditional
 instructions, since Clang generates specific IR instructions, <cite>select</cite> and
 <cite>select_cc</cite>, to support control flow optimizations in the backend.</p>
 <section id="pipeline-architecture">
-<h2><a class="toc-backref" href="#id16" role="doc-backlink">Pipeline architecture</a><a class="headerlink" href="#pipeline-architecture" title="Permalink to this heading">¶</a></h2>
+<h2><a class="toc-backref" href="#id17" role="doc-backlink">Pipeline architecture</a><a class="headerlink" href="#pipeline-architecture" title="Permalink to this heading">¶</a></h2>
 <p>The following figures are from the book <em>Computer Architecture: A Quantitative
 Approach, Fourth Edition</em>.</p>
-<figure class="align-center" id="id10">
+<figure class="align-center" id="id11">
 <span id="ctrl-pipeline"></span><a class="reference internal image-reference" href="_images/5_stage_pipeline.png"><img alt="_images/5_stage_pipeline.png" src="_images/5_stage_pipeline.png" style="width: 966.0px; height: 396.0px;" /></a>
 <figcaption>
-<p><span class="caption-number">Fig. 37 </span><span class="caption-text">5 stages of pipeline</span><a class="headerlink" href="#id10" title="Permalink to this image">¶</a></p>
+<p><span class="caption-number">Fig. 37 </span><span class="caption-text">5 stages of pipeline</span><a class="headerlink" href="#id11" title="Permalink to this image">¶</a></p>
 </figcaption>
 </figure>
 <ul class="simple">
@@ -80,18 +83,18 @@ Approach, Fourth Edition</em>.</p>
 <li><p><strong>MEM</strong>: Memory Access cycle</p></li>
 <li><p><strong>WB</strong>: Write-Back cycle</p></li>
 </ul>
-<figure class="align-center" id="id11">
+<figure class="align-center" id="id12">
 <span id="ctrl-super-pipeline"></span><a class="reference internal image-reference" href="_images/super_pipeline.png"><img alt="_images/super_pipeline.png" src="_images/super_pipeline.png" style="width: 947.0px; height: 492.0px;" /></a>
 <figcaption>
-<p><span class="caption-number">Fig. 38 </span><span class="caption-text">Super pipeline</span><a class="headerlink" href="#id11" title="Permalink to this image">¶</a></p>
+<p><span class="caption-number">Fig. 38 </span><span class="caption-text">Super pipeline</span><a class="headerlink" href="#id12" title="Permalink to this image">¶</a></p>
 </figcaption>
 </figure>
 <p>Multibanked caches (see <a class="reference internal" href="#ctrlflow-cache-banks"><span class="std std-numref">Fig. 39</span></a>) are used to increase
 cache bandwidth.</p>
-<figure class="align-center" id="id12">
+<figure class="align-center" id="id13">
 <span id="ctrlflow-cache-banks"></span><a class="reference internal image-reference" href="_images/cache_banks.png"><img alt="_images/cache_banks.png" src="_images/cache_banks.png" style="width: 770.0px; height: 253.0px;" /></a>
 <figcaption>
-<p><span class="caption-number">Fig. 39 </span><span class="caption-text">Interleaved cache banks</span><a class="headerlink" href="#id12" title="Permalink to this image">¶</a></p>
+<p><span class="caption-number">Fig. 39 </span><span class="caption-text">Interleaved cache banks</span><a class="headerlink" href="#id13" title="Permalink to this image">¶</a></p>
 </figcaption>
 </figure>
 <p>The block size in L1 cache is usually between 16 and 256 bytes. Equipped with
@@ -101,7 +104,7 @@ architectures, allowing the fetch of
 <cite>(4 * block_size / instruction_size)</cite> instructions per cycle.</p>
 </section>
 <section id="control-flow-statement">
-<h2><a class="toc-backref" href="#id17" role="doc-backlink">Control flow statement</a><a class="headerlink" href="#control-flow-statement" title="Permalink to this heading">¶</a></h2>
+<h2><a class="toc-backref" href="#id18" role="doc-backlink">Control flow statement</a><a class="headerlink" href="#control-flow-statement" title="Permalink to this heading">¶</a></h2>
 <p>Running <cite>ch8_1_1.cpp</cite> with Clang will produce the following result:</p>
 <p class="rubric">lbdex/input/ch8_1_1.cpp</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="nb">int</span> <span class="n">test_ifctrl</span><span class="p">()</span>
@@ -231,10 +234,10 @@ translation to:</p>
 the condition based on the <cite>SW</cite> status as shown in <a class="reference internal" href="#ctrlflow-f1"><span class="std std-numref">Fig. 40</span></a>.</p>
 <p>Since <cite>SW</cite> belongs to a different register class, the translation remains
 correct even if an instruction is inserted between <cite>CMP</cite> and <cite>JNE</cite>, as follows:</p>
-<figure class="align-center" id="id13">
+<figure class="align-center" id="id14">
 <span id="ctrlflow-f1"></span><a class="reference internal image-reference" href="_images/11.png"><img alt="_images/11.png" src="_images/11.png" style="width: 223.0px; height: 232.5px;" /></a>
 <figcaption>
-<p><span class="caption-number">Fig. 40 </span><span class="caption-text">JNE (CMP $r2, $r3),</span><a class="headerlink" href="#id13" title="Permalink to this image">¶</a></p>
+<p><span class="caption-number">Fig. 40 </span><span class="caption-text">JNE (CMP $r2, $r3),</span><a class="headerlink" href="#id14" title="Permalink to this image">¶</a></p>
 </figcaption>
 </figure>
 <div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">cmp %2, %3</span>
@@ -398,8 +401,8 @@ translation for certain types of programs.</p>
 <p>You can run these examples if you want to explore more control flow features.</p>
 <p>List the control flow statements of C, corresponding LLVM IR, DAG nodes, and
 Cpu0 instructions in the following table.</p>
-<table class="docutils align-default" id="id14">
-<caption><span class="caption-number">Table 33 </span><span class="caption-text">Control flow statements of C, IR, DAG and Cpu0 instructions</span><a class="headerlink" href="#id14" title="Permalink to this table">¶</a></caption>
+<table class="docutils align-default" id="id15">
+<caption><span class="caption-number">Table 33 </span><span class="caption-text">Control flow statements of C, IR, DAG and Cpu0 instructions</span><a class="headerlink" href="#id15" title="Permalink to this table">¶</a></caption>
 <tbody>
 <tr class="row-odd"><td><p>C</p></td>
 <td><p>if, else, for, while, goto, switch, break</p></td>
@@ -426,7 +429,7 @@ Cpu0 instructions in the following table.</p>
 </table>
 </section>
 <section id="long-branch-support">
-<h2><a class="toc-backref" href="#id18" role="doc-backlink">Long branch support</a><a class="headerlink" href="#long-branch-support" title="Permalink to this heading">¶</a></h2>
+<h2><a class="toc-backref" href="#id19" role="doc-backlink">Long branch support</a><a class="headerlink" href="#long-branch-support" title="Permalink to this heading">¶</a></h2>
 <p>As explained in the last section, <cite>cpu032II</cite> uses <cite>beq</cite> and <cite>bne</cite> instructions
 to improve performance. However, this change reduces the jump offset
 from 24 bits to 16 bits. If a program contains a branch that exceeds the 16-bit
@@ -1125,7 +1128,7 @@ bool Cpu0MCInstLower::lowerLongBranch(const MachineInstr *MI,
 </div>
 </section>
 <section id="cpu0-backend-optimization-remove-useless-jmp">
-<h2><a class="toc-backref" href="#id19" role="doc-backlink">Cpu0 Backend Optimization: Remove Useless JMP</a><a class="headerlink" href="#cpu0-backend-optimization-remove-useless-jmp" title="Permalink to this heading">¶</a></h2>
+<span id="remove-useless-jmp"></span><h2><a class="toc-backref" href="#id20" role="doc-backlink">Cpu0 Backend Optimization: Remove Useless JMP</a><a class="headerlink" href="#cpu0-backend-optimization-remove-useless-jmp" title="Permalink to this heading">¶</a></h2>
 <p>LLVM uses functional passes in both code generation and optimization. Following
 the three-tier architecture of a compiler, LLVM performs most optimizations in
 the middle tier, working on the LLVM IR in SSA form.</p>
@@ -1334,7 +1337,7 @@ option to compare with the non-optimized version.</p>
 code size <a class="footnote-reference brackets" href="#cache-speed" id="id1" role="doc-noteref"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></a>.</p>
 </section>
 <section id="fill-branch-delay-slot">
-<h2><a class="toc-backref" href="#id20" role="doc-backlink">Fill Branch Delay Slot</a><a class="headerlink" href="#fill-branch-delay-slot" title="Permalink to this heading">¶</a></h2>
+<h2><a class="toc-backref" href="#id21" role="doc-backlink">Fill Branch Delay Slot</a><a class="headerlink" href="#fill-branch-delay-slot" title="Permalink to this heading">¶</a></h2>
 <p>Cpu0 instruction set is designed to be a classical RISC pipeline machine.
 Classical RISC machines have many ideal features <a class="footnote-reference brackets" href="#quantitative" id="id2" role="doc-noteref"><span class="fn-bracket">[</span>3<span class="fn-bracket">]</span></a>
 <a class="footnote-reference brackets" href="#wiki-pipeline" id="id3" role="doc-noteref"><span class="fn-bracket">[</span>4<span class="fn-bracket">]</span></a>.</p>
@@ -1514,7 +1517,7 @@ and now you need to perform the “bundle” to keep the block label unchanged i
 later LLVM phases.</p>
 </section>
 <section id="conditional-instruction">
-<h2><a class="toc-backref" href="#id21" role="doc-backlink">Conditional instruction</a><a class="headerlink" href="#conditional-instruction" title="Permalink to this heading">¶</a></h2>
+<span id="id4"></span><h2><a class="toc-backref" href="#id22" role="doc-backlink">Conditional Instruction</a><a class="headerlink" href="#conditional-instruction" title="Permalink to this heading">¶</a></h2>
 <p class="rubric">lbdex/input/ch8_2_select.cpp</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>
 // The following files will generate IR select even compile with clang -O0.
@@ -1719,7 +1722,7 @@ defm : MovnPats&lt;CPURegs, CPURegs, MOVN_I_I, XOR&gt;;
 </pre></div>
 </div>
 <p>Setting <cite>ISD::SELECT_CC</cite> to “Expand” prevents LLVM from optimizing by merging
-<cite>setcc</cite> and <cite>select</cite> into a single IR instruction <cite>select_cc</cite> <a class="footnote-reference brackets" href="#wb" id="id4" role="doc-noteref"><span class="fn-bracket">[</span>2<span class="fn-bracket">]</span></a>.</p>
+<cite>setcc</cite> and <cite>select</cite> into a single IR instruction <cite>select_cc</cite> <a class="footnote-reference brackets" href="#wb" id="id5" role="doc-noteref"><span class="fn-bracket">[</span>2<span class="fn-bracket">]</span></a>.</p>
 <p>Next, the <cite>LowerOperation()</cite> function directly returns the opcode for
 <cite>ISD::SELECT</cite>. Finally, the pattern defined in <cite>Cpu0CondMov.td</cite> translates the
 <strong>select</strong> IR into conditional instructions, <strong>movz</strong> or <strong>movn</strong>.</p>
@@ -1743,7 +1746,7 @@ reduction in instruction count.</p>
 </div>
 <p>Clang uses the <strong>select</strong> IR in small basic blocks to reduce branch costs in
 pipeline machines, as branches can cause pipeline stalls. However, this
-optimization requires support for conditional instructions <a class="footnote-reference brackets" href="#quantitative" id="id5" role="doc-noteref"><span class="fn-bracket">[</span>3<span class="fn-bracket">]</span></a>.</p>
+optimization requires support for conditional instructions <a class="footnote-reference brackets" href="#quantitative" id="id6" role="doc-noteref"><span class="fn-bracket">[</span>3<span class="fn-bracket">]</span></a>.</p>
 <p>If your backend lacks conditional instruction support but still needs to compile
 with Clang optimization level <strong>-O1</strong> or higher, you can modify Clang to force it
 to generate traditional branching blocks instead of the <strong>select</strong> IR.</p>
@@ -1763,7 +1766,7 @@ and professional assembly programmers can easily adapt to <strong>slt</strong>.<
 <p class="rubric">lbdex/input/ch8_2_select2.cpp</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>
 <span class="o">//</span> <span class="n">The</span> <span class="n">following</span> <span class="n">files</span> <span class="n">will</span> <span class="n">generate</span> <span class="n">IR</span> <span class="n">select</span> <span class="n">when</span> <span class="nb">compile</span> <span class="k">with</span> <span class="n">clang</span> <span class="o">-</span><span class="n">O1</span> <span class="n">but</span> 
-<span class="o">//</span> <span class="n">clang</span> <span class="o">-</span><span class="n">O0</span> <span class="n">won</span><span class="s1">&#39;t generate IR select.</span>
+<span class="o">//</span> <span class="o">~/</span><span class="n">llvm</span><span class="o">/</span><span class="n">debug</span><span class="o">/</span><span class="n">build</span><span class="o">/</span><span class="nb">bin</span><span class="o">/</span><span class="n">clang</span> <span class="o">-</span><span class="n">O0</span> <span class="n">won</span><span class="s1">&#39;t generate IR select.</span>
 <span class="n">volatile</span> <span class="nb">int</span> <span class="n">a</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
 <span class="n">volatile</span> <span class="nb">int</span> <span class="n">b</span> <span class="o">=</span> <span class="mi">2</span><span class="p">;</span>
 
@@ -1793,8 +1796,8 @@ and professional assembly programmers can easily adapt to <strong>slt</strong>.<
 </div>
 <p>List the conditional statements of C, IR, DAG and Cpu0 instructions as the
 following table.</p>
-<table class="docutils align-default" id="id15">
-<caption><span class="caption-number">Table 34 </span><span class="caption-text">Conditional statements of C, IR, DAG and Cpu0 instructions</span><a class="headerlink" href="#id15" title="Permalink to this table">¶</a></caption>
+<table class="docutils align-default" id="id16">
+<caption><span class="caption-number">Table 34 </span><span class="caption-text">Conditional statements of C, IR, DAG and Cpu0 instructions</span><a class="headerlink" href="#id16" title="Permalink to this table">¶</a></caption>
 <tbody>
 <tr class="row-odd"><td><p>C</p></td>
 <td><p>if (a &lt; b) c = 1; else c = 3;</p></td>
@@ -1930,10 +1933,10 @@ Variables”, can now be tested as follows:</p>
 </div>
 </section>
 <section id="phi-node">
-<h2><a class="toc-backref" href="#id22" role="doc-backlink">Phi node</a><a class="headerlink" href="#phi-node" title="Permalink to this heading">¶</a></h2>
-<p>Since the phi node is widely used in SSA form <a class="footnote-reference brackets" href="#ssa-wiki" id="id6" role="doc-noteref"><span class="fn-bracket">[</span>5<span class="fn-bracket">]</span></a>, LLVM applies phi
+<h2><a class="toc-backref" href="#id23" role="doc-backlink">Phi node</a><a class="headerlink" href="#phi-node" title="Permalink to this heading">¶</a></h2>
+<p>Since the phi node is widely used in SSA form <a class="footnote-reference brackets" href="#ssa-wiki" id="id7" role="doc-noteref"><span class="fn-bracket">[</span>5<span class="fn-bracket">]</span></a>, LLVM applies phi
 nodes in its IR for optimization purposes as well. Phi nodes are used for
-<strong>live variable analysis</strong>. An example in C can be found here <a class="footnote-reference brackets" href="#phi-ex" id="id7" role="doc-noteref"><span class="fn-bracket">[</span>6<span class="fn-bracket">]</span></a>.</p>
+<strong>live variable analysis</strong>. An example in C can be found here <a class="footnote-reference brackets" href="#phi-ex" id="id8" role="doc-noteref"><span class="fn-bracket">[</span>6<span class="fn-bracket">]</span></a>.</p>
 <p>As mentioned on the referenced wiki page, the compiler determines where to
 insert phi functions by computing <strong>dominance frontiers</strong>.</p>
 <p>The following input demonstrates the benefits of using phi nodes:</p>
@@ -2092,11 +2095,11 @@ After inserting <cite>phi</cite> nodes, the compiler performs global optimizatio
 CFG and eventually removes the <cite>phi</cite> nodes by replacing them with <cite>load</cite> and
 <cite>store</cite> instructions.</p>
 <p>If you are interested in more technical details beyond what’s provided in the
-wiki reference, see <a class="footnote-reference brackets" href="#phi-book" id="id8" role="doc-noteref"><span class="fn-bracket">[</span>7<span class="fn-bracket">]</span></a> for <cite>phi</cite> node coverage, or refer to
-<a class="footnote-reference brackets" href="#dominator-dragonbooks" id="id9" role="doc-noteref"><span class="fn-bracket">[</span>8<span class="fn-bracket">]</span></a> for dominator tree analysis if you have the book.</p>
+wiki reference, see <a class="footnote-reference brackets" href="#phi-book" id="id9" role="doc-noteref"><span class="fn-bracket">[</span>7<span class="fn-bracket">]</span></a> for <cite>phi</cite> node coverage, or refer to
+<a class="footnote-reference brackets" href="#dominator-dragonbooks" id="id10" role="doc-noteref"><span class="fn-bracket">[</span>8<span class="fn-bracket">]</span></a> for dominator tree analysis if you have the book.</p>
 </section>
 <section id="risc-cpu-knowledge">
-<h2><a class="toc-backref" href="#id23" role="doc-backlink">RISC CPU knowledge</a><a class="headerlink" href="#risc-cpu-knowledge" title="Permalink to this heading">¶</a></h2>
+<h2><a class="toc-backref" href="#id24" role="doc-backlink">RISC CPU knowledge</a><a class="headerlink" href="#risc-cpu-knowledge" title="Permalink to this heading">¶</a></h2>
 <p>As mentioned in the previous section, Cpu0 is a RISC (Reduced Instruction Set
 Computer) CPU with a 5-stage pipeline. RISC CPUs dominate the world today.
 Even the x86 architecture, traditionally classified as CISC (Complex Instruction
@@ -2128,12 +2131,12 @@ solution are spending much effort of trying to reduce the cache miss for
 speed. Reduce code size will decrease the cache miss frequency too.</p>
 </aside>
 <aside class="footnote brackets" id="wb" role="note">
-<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id4">2</a><span class="fn-bracket">]</span></span>
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id5">2</a><span class="fn-bracket">]</span></span>
 <p><a class="reference external" href="http://llvm.org/docs/WritingAnLLVMBackend.html#expand">http://llvm.org/docs/WritingAnLLVMBackend.html#expand</a></p>
 </aside>
 <aside class="footnote brackets" id="quantitative" role="note">
 <span class="label"><span class="fn-bracket">[</span>3<span class="fn-bracket">]</span></span>
-<span class="backrefs">(<a role="doc-backlink" href="#id2">1</a>,<a role="doc-backlink" href="#id5">2</a>)</span>
+<span class="backrefs">(<a role="doc-backlink" href="#id2">1</a>,<a role="doc-backlink" href="#id6">2</a>)</span>
 <p>See book Computer Architecture: A Quantitative Approach (The
 Morgan Kaufmann Series in Computer Architecture and Design)</p>
 </aside>
@@ -2142,19 +2145,19 @@ Morgan Kaufmann Series in Computer Architecture and Design)</p>
 <p><a class="reference external" href="http://en.wikipedia.org/wiki/Classic_RISC_pipeline">http://en.wikipedia.org/wiki/Classic_RISC_pipeline</a></p>
 </aside>
 <aside class="footnote brackets" id="ssa-wiki" role="note">
-<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id6">5</a><span class="fn-bracket">]</span></span>
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id7">5</a><span class="fn-bracket">]</span></span>
 <p><a class="reference external" href="https://en.wikipedia.org/wiki/Static_single_assignment_form">https://en.wikipedia.org/wiki/Static_single_assignment_form</a></p>
 </aside>
 <aside class="footnote brackets" id="phi-ex" role="note">
-<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id7">6</a><span class="fn-bracket">]</span></span>
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id8">6</a><span class="fn-bracket">]</span></span>
 <p><a class="reference external" href="http://stackoverflow.com/questions/11485531/what-exactly-phi-instruction-does-and-how-to-use-it-in-llvm">http://stackoverflow.com/questions/11485531/what-exactly-phi-instruction-does-and-how-to-use-it-in-llvm</a></p>
 </aside>
 <aside class="footnote brackets" id="phi-book" role="note">
-<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id8">7</a><span class="fn-bracket">]</span></span>
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id9">7</a><span class="fn-bracket">]</span></span>
 <p>Section 8.11 of Muchnick, Steven S. (1997). Advanced Compiler Design and Implementation. Morgan Kaufmann. ISBN 1-55860-320-4.</p>
 </aside>
 <aside class="footnote brackets" id="dominator-dragonbooks" role="note">
-<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id9">8</a><span class="fn-bracket">]</span></span>
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id10">8</a><span class="fn-bracket">]</span></span>
 <p>Refer chapter 9 of book Compilers: Principles,
 Techniques, and Tools (2nd Edition)</p>
 </aside>

@@ -317,8 +317,9 @@ Cpu0 backend translates global variables as follows:
   00000004  00000906 R_MIPS_LO16       00000000   _gp_disp
   0000001c  00000709 R_MIPS_GOT16      00000004   gI
 
-As depicted in `section Handle $gp register in PIC addressing mode`_, it
-translates **“.cpload %reg”** into the following.
+As depicted in 
+:ref:`subsection Gloabal Variables Accessing In PIC Addressing Mode <global-var-pic-func>`, 
+it translates **“.cpload %reg”** into the following.
 
 .. code-block:: c++
 
@@ -685,9 +686,6 @@ table and explanation below:
   to MCInst.operand and set the type of MCInst.operand to immediate type, 
   with value being either positive or negative. Operand of MCInst can be 
   either immediate or register type.
-
-.. _section Handle $gp register in PIC addressing mode:
-	http://jonathan2251.github.io/lbd/funccall.html#handle-gp-register-in-pic-addressing-mode
 
 
 .. [#wiki-elf] http://en.wikipedia.org/wiki/Executable_and_Linkable_Format

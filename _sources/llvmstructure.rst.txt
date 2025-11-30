@@ -2694,7 +2694,8 @@ For reference, see *"Target Registration"* [#target-reg]_.
 Build Libraries and `.td` Files  
 *********************************
 
-Build steps: https://github.com/Jonathan2251/lbd/blob/master/README.md  
+Build steps: https://github.com/Jonathan2251/lbd/blob/master/README.md.
+Illustrated in :ref:`Appendix A <sec-appendix-installing>`.  
 
 We set the LLVM source code in:  
 
@@ -2703,6 +2704,13 @@ We set the LLVM source code in:
 and perform a debug build in:  
 
   `/Users/Jonathan/llvm/debug/build`  
+
+.. note::
+   
+   Remember to build both clang and llvm(llc) in debug mode to generate the 
+   destination registers in LLVM IR and to print DAGs with identifiers such as 
+   t0, t1, ... (e.g. "t25: i32 = add t22, t28", 
+   "t26: i32 = mul t25, Constant:i32<12>").
 
 For details on how to build LLVM, refer to [#clang]_.  
 

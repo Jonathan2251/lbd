@@ -1897,8 +1897,13 @@ Run `Chapter9_2` with `ch9_3_alloc.cpp` to get the following error.
   In function: _Z5sum_iiiiiii
 
 
-The $gp Register Caller Saved Register in PIC Addressing Mode
-*************************************************************
+.. _global-var-pic-func:
+
+Gloabal Variables Accessing In PIC Addressing Mode
+**************************************************
+
+In order to support Global Variables accessing in PIC mode, 
+The $gp Register Caller Saved Register in PIC Addressing Mode have to be solved.
 
 According to the original Cpu0 website information, it only supports **“jsub”** 
 for 24-bit address range access. We added **“jalr”** to Cpu0 and expanded it to 
@@ -1914,8 +1919,9 @@ to demonstrate:
 2. How code in the shared library function uses `$gp` to access the global 
    variable address.
 3. Why using **jalr** for dynamic linking functions is easier to implement and 
-   faster. As we discussed in the "PIC mode" section of the chapter on "Global 
-   variables, structs, arrays, and other types," this solution is popular in real 
+   faster. As we discussed in the 
+   :ref:`section PIC Mode in Chapter Global Variables <pic-mode-global>` this 
+   solution is popular in real 
    applications and deserves to be incorporated into the official Cpu0 design in 
    compiler books.
 

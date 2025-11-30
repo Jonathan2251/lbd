@@ -46,7 +46,7 @@
 <li><p><a class="reference internal" href="#arithmetic" id="id21">Arithmetic</a></p>
 <ul>
 <li><p><a class="reference internal" href="#and" id="id22"><strong>+, -, *, &lt;&lt;,</strong> and <strong>&gt;&gt;</strong></a></p></li>
-<li><p><a class="reference internal" href="#display-llvm-ir-nodes-with-graphviz" id="id23">Display LLVM IR Nodes with Graphviz</a></p></li>
+<li><p><a class="reference internal" href="#display-llvm-dag-nodes-with-graphviz" id="id23">Display LLVM DAG Nodes With Graphviz</a></p></li>
 <li><p><a class="reference internal" href="#operator-and" id="id24">Operator <code class="docutils literal notranslate"><span class="pre">%</span></code> and <code class="docutils literal notranslate"><span class="pre">/</span></code></a></p>
 <ul>
 <li><p><a class="reference internal" href="#dag-representation-of" id="id25">DAG Representation of <code class="docutils literal notranslate"><span class="pre">%</span></code></a></p></li>
@@ -63,8 +63,8 @@
 </ul>
 </nav>
 <p>This chapter first adds support for more Cpu0 arithmetic instructions.
-The <a class="reference external" href="http://jonathan2251.github.io/lbd/otherinst.html#display-llvm-ir-nodes-with-graphviz">section Display llvm IR nodes with Graphviz</a> will show you the steps of
-DAG optimization and their corresponding <code class="docutils literal notranslate"><span class="pre">llc</span></code> display options.
+The <a class="reference internal" href="#dwg"><span class="std std-ref">section Display LLVM DAG Nodes With Graphviz</span></a> will show you the
+steps of DAG optimization and their corresponding <code class="docutils literal notranslate"><span class="pre">llc</span></code> display options.
 These DAG translations exist at various optimization steps and can be displayed
 using the Graphviz tool, which provides useful graphical information.</p>
 <p>Support for logic instructions will follow the arithmetic section.
@@ -803,13 +803,13 @@ can compile programs with overflow exception handling. This option is
 mainly used for debugging purposes. Compiling with this option can help
 identify bugs early and fix them efficiently.</p>
 </section>
-<section id="display-llvm-ir-nodes-with-graphviz">
-<h3><a class="toc-backref" href="#id23" role="doc-backlink">Display LLVM IR Nodes with Graphviz</a><a class="headerlink" href="#display-llvm-ir-nodes-with-graphviz" title="Permalink to this heading">¶</a></h3>
+<section id="display-llvm-dag-nodes-with-graphviz">
+<span id="dwg"></span><h3><a class="toc-backref" href="#id23" role="doc-backlink">Display LLVM DAG Nodes With Graphviz</a><a class="headerlink" href="#display-llvm-dag-nodes-with-graphviz" title="Permalink to this heading">¶</a></h3>
 <p>The previous section displayed the DAG translation process in text format
 on the terminal using the <code class="docutils literal notranslate"><span class="pre">llc</span> <span class="pre">-debug</span></code> option.</p>
 <p>The <code class="docutils literal notranslate"><span class="pre">llc</span></code> tool also supports graphical visualization. The
-<a class="reference external" href="http://jonathan2251.github.io/lbd/install.html#install-other-tools-on-imac">section Install other tools on iMac</a> explains how to download and
-install Graphviz, a tool for rendering DAGs.</p>
+<a class="reference internal" href="install.html#install-other-tools-on-imac"><span class="std std-ref">section Install other tools on iMac</span></a>
+explains how to download and install Graphviz, a tool for rendering DAGs.</p>
 <p>This section introduces how to use <code class="docutils literal notranslate"><span class="pre">llc</span></code> with Graphviz for graphical
 display. Viewing DAGs graphically is often easier to interpret than
 reading raw text in the terminal. While not mandatory, this visualization
@@ -851,8 +851,8 @@ result with Graphviz as follows,</p>
 </pre></div>
 </div>
 <p>It will show the /tmp/llvm_84ibpm/dag.main.dot as <a class="reference internal" href="#otherinst-f1"><span class="std std-numref">Fig. 28</span></a>.</p>
-<figure class="align-center" id="id12">
-<span id="otherinst-f1"></span><a class="reference internal image-reference" href="_images/15.png"><img alt="_images/15.png" src="_images/15.png" style="width: 687.0px; height: 851.0px;" /></a>
+<figure class="align-default" id="id12">
+<span id="otherinst-f1"></span><a class="reference internal image-reference" href="_images/ch4_1_mult_view-dag-combine1-dags.png"><img alt="_images/ch4_1_mult_view-dag-combine1-dags.png" src="_images/ch4_1_mult_view-dag-combine1-dags.png" style="width: 391.5px; height: 826.0px;" /></a>
 <figcaption>
 <p><span class="caption-number">Fig. 28 </span><span class="caption-text">llc option -view-dag-combine1-dags graphic view</span><a class="headerlink" href="#id12" title="Permalink to this image">¶</a></p>
 </figcaption>
@@ -941,22 +941,41 @@ and the remainder.</p>
 <p><strong>Example:</strong>
 <code class="docutils literal notranslate"><span class="pre">&lt;result&gt;</span> <span class="pre">=</span> <span class="pre">srem</span> <span class="pre">i32</span> <span class="pre">4,</span> <span class="pre">%var</span></code>  ; yields <code class="docutils literal notranslate"><span class="pre">{i32}:</span> <span class="pre">result</span> <span class="pre">=</span> <span class="pre">4</span> <span class="pre">%</span> <span class="pre">%var</span></code></p>
 </div>
-<p>To observe LLVM’s DAG representation of <strong>srem</strong>, run <code class="docutils literal notranslate"><span class="pre">llc</span> <span class="pre">–view-isel-dags</span></code>
-on the input file <code class="docutils literal notranslate"><span class="pre">ch4_1_mult.bc</span></code> in <code class="docutils literal notranslate"><span class="pre">Chapter3_5/</span></code>.
+<p>To observe LLVM’s DAG representation of <strong>srem</strong>, run
+<code class="docutils literal notranslate"><span class="pre">llc</span> <span class="pre">–view-isel-dags</span> <span class="pre">--debug</span></code> on the input file <code class="docutils literal notranslate"><span class="pre">ch4_1_mult.bc</span></code> in
+<code class="docutils literal notranslate"><span class="pre">Chapter3_5/</span></code>.
+The <strong>Optimized lowered selection DAG</strong> statge is corresponding to DAG of
+<code class="docutils literal notranslate"><span class="pre">–view-isel-dags</span></code>.
 LLVM will display an error message along with the DAG output,
-as illustrated in <a class="reference internal" href="#otherinst-f2"><span class="std std-numref">Fig. 29</span></a> below.</p>
+as illustrated in the following <strong>Optimized lowered selection DAG</strong> and
+<a class="reference internal" href="#otherinst-f2"><span class="std std-numref">Fig. 29</span></a> below.</p>
 <div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">118-165-79-37:input Jonathan$ </span>/Users/Jonathan/llvm/test/
 <span class="go">build/bin/llc -march=cpu0 -view-isel-dags -relocation-model=</span>
-<span class="go">pic -filetype=asm ch4_1_mult.bc -o -</span>
+<span class="go">pic -filetype=asm --debug ch4_1_mult.bc -o -</span>
 <span class="go">...</span>
-<span class="go">LLVM ERROR: Cannot select: 0x7fa73a02ea10: i32 = mulhs 0x7fa73a02c610,</span>
-<span class="go">0x7fa73a02e910 [ID=12]</span>
-<span class="go">0x7fa73a02c610: i32 = Constant&lt;12&gt; [ORD=5] [ID=7]</span>
-<span class="go">0x7fa73a02e910: i32 = Constant&lt;715827883&gt; [ID=9]</span>
+<span class="go">LLVM ERROR: Cannot select: t19: i32 = mulhs t8, Constant:i32&lt;715827883&gt;</span>
+</pre></div>
+</div>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>Optimized lowered selection DAG: %bb.0 &#39;_Z9test_multv:entry&#39;
+SelectionDAG has 22 nodes:
+      t0: ch = EntryToken
+    t5: ch = store&lt;(store 4 into %ir.b)&gt; t0, Constant:i32&lt;11&gt;, FrameIndex:i32&lt;0&gt;, undef:i32     // t5 = store 11 to FrameIndex(0)
+  t6: i32,ch = load&lt;(dereferenceable load 4 from %ir.b)&gt; t5, FrameIndex:i32&lt;0&gt;, undef:i32       // t6 = load FrameIndex(0)
+  t8: i32 = add nsw t6, Constant:i32&lt;1&gt;                                                         // t8 = add t6, 1  --&gt;  t8 = 12
+          t22: i32 = sra t19, Constant:i32&lt;1&gt;                                                   // t22 = sra
+          t28: i32 = srl t19, Constant:i32&lt;31&gt;
+        t25: i32 = add t22, t28
+      t26: i32 = mul t25, Constant:i32&lt;12&gt;
+    t27: i32 = sub t8, t26
+  t11: ch = store&lt;(store 4 into %ir.b)&gt; t6:1, t27, FrameIndex:i32&lt;0&gt;, undef:i32
+    t12: i32,ch = load&lt;(dereferenceable load 4 from %ir.b)&gt; t11, FrameIndex:i32&lt;0&gt;, undef:i32
+  t14: ch,glue = CopyToReg t11, Register:i32 $v0, t12
+  t19: i32 = mulhs t8, Constant:i32&lt;715827883&gt;
+  t15: ch = Cpu0ISD::Ret t14, Register:i32 $v0, t14:1
 </pre></div>
 </div>
 <figure class="align-center" id="id13">
-<span id="otherinst-f2"></span><a class="reference internal image-reference" href="_images/23.png"><img alt="_images/23.png" src="_images/23.png" style="width: 580.0px; height: 629.0px;" /></a>
+<span id="otherinst-f2"></span><a class="reference internal image-reference" href="_images/ch4_1_mult_view-isel-dags.png"><img alt="_images/ch4_1_mult_view-isel-dags.png" src="_images/ch4_1_mult_view-isel-dags.png" style="width: 374.0px; height: 918.0px;" /></a>
 <figcaption>
 <p><span class="caption-number">Fig. 29 </span><span class="caption-text">ch4_1_mult.bc DAG</span><a class="headerlink" href="#id13" title="Permalink to this image">¶</a></p>
 </figcaption>
@@ -974,6 +993,10 @@ The DAG representation is verified and explained by calculating the values
 at each node.</p>
 <p>The computation follows these steps:</p>
 <ul class="simple">
+<li><p>t5 = store 11 to FrameIndex(0)</p></li>
+<li><p>t6 = load FrameIndex(0)</p></li>
+<li><p>t8 = add t6, 1  –&gt;  t8 = 12</p></li>
+<li><p>715827883 = 0x2AAAAAAB</p></li>
 <li><p><strong>0xC * 0x2AAAAAAB = 0x2,00000004</strong></p></li>
 <li><p><strong>mulhs(0xC, 0x2AAAAAAAB)</strong> retrieves the signed multiplication’s high
 word (upper 32 bits).</p></li>
@@ -2321,7 +2344,7 @@ and <strong>Cpu0 instructions</strong> implemented in this chapter.</p>
 <p>This chapter covers over <strong>20 mathematical and logical operators</strong>,
 spanning <strong>approximately 400 lines</strong> of source code.</p>
 <table class="docutils align-default" id="id20">
-<caption><span class="caption-number">Table 27 </span><span class="caption-text">Chapter 4 mathmetic operators</span><a class="headerlink" href="#id20" title="Permalink to this table">¶</a></caption>
+<caption><span class="caption-number">Table 27 </span><span class="caption-text">Chapter 4 mathmatic operators</span><a class="headerlink" href="#id20" title="Permalink to this table">¶</a></caption>
 <thead>
 <tr class="row-odd"><th class="head"><p>C</p></th>
 <th class="head"><p>.bc</p></th>
