@@ -63,6 +63,12 @@ Revision history
 
 Version 12.0.20, not released yet.
 
+Version 12.0.19.1, November 30, 2025.
+
+  gpu.rst: thread state, configuration for SM.
+  Correct section reference.
+  Remove useless figures.
+
 Version 12.0.19, November 2, 2025.
 
   gpu.rst: l1-l2.png, threadblocks-map.png
