@@ -1,4 +1,4 @@
-// clang -target mips-unknown-linux-gnu -c ch11_2.cpp -emit-llvm -o ch11_2.bc
+// ~/llvm/debug/build/bin/clang -target mips-unknown-linux-gnu -c ch11_2.cpp -emit-llvm -o ch11_2.bc
 // ~/llvm/test/build/bin/llc -march=cpu0 -relocation-model=static -filetype=asm ch11_2.bc -o -
 
 /// start

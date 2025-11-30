@@ -1,4 +1,4 @@
-// clang -O1 -target mips-unknown-linux-gnu -c ch_arm-tailcall.cpp -emit-llvm -o ch_arm-tailcall.bc
+// ~/llvm/debug/build/bin/clang -O1 -target mips-unknown-linux-gnu -c ch_arm-tailcall.cpp -emit-llvm -o ch_arm-tailcall.bc
 // ~/llvm/test/build/bin/llc -march=arm -relocation-model=static -filetype=asm ch_arm-tailcall.bc -o -
 // ~/llvm/test/build/bin/llc -march=mips -relocation-model=static -filetype=asm -enable-mips-tail-calls ch_arm-tailcall.bc -o -
 

@@ -1,4 +1,4 @@
-// clang -target mips-unknown-linux-gnu -c ch9_3_bswap.cpp -emit-llvm -o ch9_3_bswap.bc
+// ~/llvm/debug/build/bin/clang -target mips-unknown-linux-gnu -c ch9_3_bswap.cpp -emit-llvm -o ch9_3_bswap.bc
 // ~/llvm/test/build/bin/llc -march=cpu0 -mcpu=cpu032I -relocation-model=pic -filetype=asm ch9_3_bswap.bc -o -
 // ~/llvm/test/build/bin/llc -march=cpu0 -mcpu=cpu032II -relocation-model=pic -filetype=asm ch9_3_bswap.bc -o -
 

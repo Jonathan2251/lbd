@@ -1,4 +1,4 @@
-// clang -O3 -target mips-unknown-linux-gnu -c ch9_outgoing.cpp -emit-llvm -o ch9_outgoing.bc
+// ~/llvm/debug/build/bin/clang -O3 -target mips-unknown-linux-gnu -c ch9_outgoing.cpp -emit-llvm -o ch9_outgoing.bc
 // ~/llvm/test/build/bin/llvm-dis ch9_outgoing.bc -o -
 // ~/llvm/test/build/bin/llc -march=cpu0 -mcpu=cpu032I -view-dag-combine1-dags -relocation-model=static -filetype=asm ch9_outgoing.bc -o -
 

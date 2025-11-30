@@ -1,4 +1,4 @@
-// clang -target mips-unknown-linux-gnu -c ch4_1_sub.cpp -emit-llvm -o ch4_1_sub.bc
+// ~/llvm/debug/build/bin/clang -target mips-unknown-linux-gnu -c ch4_1_sub.cpp -emit-llvm -o ch4_1_sub.bc
 // ~/llvm/test/build/bin/llc -march=cpu0 -relocation-model=pic -filetype=asm ch4_1_sub.bc -o -
 
 #include <stdio.h>

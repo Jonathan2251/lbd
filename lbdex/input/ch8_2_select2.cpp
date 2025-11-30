@@ -1,10 +1,10 @@
-// clang -O1 -c ch8_3_2.cpp -emit-llvm -o ch8_3_2.bc
+// ~/llvm/debug/build/bin/clang -O1 -c ch8_3_2.cpp -emit-llvm -o ch8_3_2.bc
 // ~/llvm/test/build/bin/llc -march=cpu0 -mcpu=cpu032I -relocation-model=static -filetype=asm ch8_3_2.bc -o -
 
 /// start
 
 // The following files will generate IR select when compile with clang -O1 but 
-// clang -O0 won't generate IR select.
+// ~/llvm/debug/build/bin/clang -O0 won't generate IR select.
 volatile int a = 1;
 volatile int b = 2;
 

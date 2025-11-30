@@ -1,4 +1,4 @@
-// clang -target mips-unknown-linux-gnu -c ch9_3_frame_return_addr.cpp -emit-llvm -o ch9_3_frame_return_addr.bc
+// ~/llvm/debug/build/bin/clang -target mips-unknown-linux-gnu -c ch9_3_frame_return_addr.cpp -emit-llvm -o ch9_3_frame_return_addr.bc
 // ~/llvm/test/build/bin/llc -march=cpu0 -relocation-model=static -filetype=asm ch9_3_frame_return_addr.bc -o -
 
 /// start

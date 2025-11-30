@@ -1,6 +1,6 @@
 // Set break point at MipsEmitGPRestore.cpp:70, it will stop at mips of llc.
 
-// clang -c ch7_3.cpp -o ch7_3.bc -o ch7_3.bc
+// ~/llvm/debug/build/bin/clang -c ch7_3.cpp -o ch7_3.bc -o ch7_3.bc
 // ~/llvm/test/build/bin/llc -march=cpu0 -relocation-model=pic -filetype=asm ch7_3.bc -o ch7_3.cpu0.s
 // ~/llvm/test/build/bin/llc -march=mips -relocation-model=pic -filetype=asm ch7_3.bc -o ch7_3.mips.s
 

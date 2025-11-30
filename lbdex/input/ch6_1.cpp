@@ -1,4 +1,4 @@
-// clang -target mips-unknown-linux-gnu -c ch6_1.cpp -emit-llvm -o ch6_1.bc
+// ~/llvm/debug/build/bin/clang -target mips-unknown-linux-gnu -c ch6_1.cpp -emit-llvm -o ch6_1.bc
 // ~/llvm/test/build/bin/llc -march=cpu0 -relocation-model=pic -cpu0-use-small-section=true -filetype=asm ch6_1.bc -o -
 // ~/llvm/test/build/bin/llc -march=cpu0 -relocation-model=pic -cpu0-use-small-section=false -filetype=asm ch6_1.bc -o -
 // ~/llvm/test/build/bin/llc -march=cpu0 -relocation-model=static -cpu0-use-small-section=true -filetype=asm ch6_1.bc -o -

@@ -1,4 +1,4 @@
-// clang++ -pthread -std=c++11 -S ch12_atomics-fences.cpp -emit-llvm -o ch12_atomics-fences.ll
+// ~/llvm/debug/build/bin/clang++ -pthread -std=c++11 -S ch12_atomics-fences.cpp -emit-llvm -o ch12_atomics-fences.ll
 // ~/llvm/test/build/bin/llc -march=cpu0 -relocation-model=pic -filetype=asm ch12_atomics-fences.ll -o -
 
 // Generate IRs "fence"

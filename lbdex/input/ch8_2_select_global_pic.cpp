@@ -1,4 +1,4 @@
-// clang -O1 -target mips-unknown-linux-gnu -c ch8_2_select_global_pic.cpp -emit-llvm -o ch8_2_select_global_pic.bc
+// ~/llvm/debug/build/bin/clang -O1 -target mips-unknown-linux-gnu -c ch8_2_select_global_pic.cpp -emit-llvm -o ch8_2_select_global_pic.bc
 // ~/llvm/test/build/bin/llc -march=cpu0 -mcpu=cpu032I -relocation-model=pic -filetype=asm ch8_2_select_global_pic.bc -o -
 
 // No need to verify. Build test only.

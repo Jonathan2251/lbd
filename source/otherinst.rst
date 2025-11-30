@@ -452,14 +452,11 @@ result with Graphviz as follows,
 It will show the /tmp/llvm_84ibpm/dag.main.dot as :numref:`otherinst-f1`.
 
 .. _otherinst-f1:
-.. figure:: ../Fig/otherinst/1.png
-  :height: 851 px
-  :width: 687 px
-  :scale: 100 %
-  :align: center
+.. figure:: ../Fig/otherinst/ch4_1_mult_view-dag-combine1-dags.png
+  :scale: 50%
 
   llc option -view-dag-combine1-dags graphic view
-  
+
 :numref:`otherinst-f1` is the stage of "Initial selection DAG". 
 List the other view options and their corresponding stages of DAG translation as 
 follows,
@@ -551,31 +548,49 @@ The following note provides details on its syntax and behavior:
   **Example:**  
   ``<result> = srem i32 4, %var``  ; yields ``{i32}: result = 4 % %var``  
 
-To observe LLVM’s DAG representation of **srem**, run ``llc –view-isel-dags``  
-on the input file ``ch4_1_mult.bc`` in ``Chapter3_5/``.  
+To observe LLVM’s DAG representation of **srem**, run 
+``llc –view-isel-dags --debug`` on the input file ``ch4_1_mult.bc`` in 
+``Chapter3_5/``.
+The **Optimized lowered selection DAG** statge is corresponding to DAG of
+``–view-isel-dags``.
 LLVM will display an error message along with the DAG output,  
-as illustrated in :numref:`otherinst-f2` below.
+as illustrated in the following **Optimized lowered selection DAG** and 
+:numref:`otherinst-f2` below.
 
 .. code-block:: console
 
   118-165-79-37:input Jonathan$ /Users/Jonathan/llvm/test/
   build/bin/llc -march=cpu0 -view-isel-dags -relocation-model=
-  pic -filetype=asm ch4_1_mult.bc -o -
+  pic -filetype=asm --debug ch4_1_mult.bc -o -
   ...
-  LLVM ERROR: Cannot select: 0x7fa73a02ea10: i32 = mulhs 0x7fa73a02c610, 
-  0x7fa73a02e910 [ID=12]
-  0x7fa73a02c610: i32 = Constant<12> [ORD=5] [ID=7]
-  0x7fa73a02e910: i32 = Constant<715827883> [ID=9]
+  LLVM ERROR: Cannot select: t19: i32 = mulhs t8, Constant:i32<715827883>
 
+.. code-block:: text
+
+  Optimized lowered selection DAG: %bb.0 '_Z9test_multv:entry'
+  SelectionDAG has 22 nodes:
+        t0: ch = EntryToken
+      t5: ch = store<(store 4 into %ir.b)> t0, Constant:i32<11>, FrameIndex:i32<0>, undef:i32     // t5 = store 11 to FrameIndex(0)
+    t6: i32,ch = load<(dereferenceable load 4 from %ir.b)> t5, FrameIndex:i32<0>, undef:i32       // t6 = load FrameIndex(0)
+    t8: i32 = add nsw t6, Constant:i32<1>                                                         // t8 = add t6, 1  -->  t8 = 12
+            t22: i32 = sra t19, Constant:i32<1>                                                   // t22 = sra 
+            t28: i32 = srl t19, Constant:i32<31>
+          t25: i32 = add t22, t28
+        t26: i32 = mul t25, Constant:i32<12>
+      t27: i32 = sub t8, t26
+    t11: ch = store<(store 4 into %ir.b)> t6:1, t27, FrameIndex:i32<0>, undef:i32
+      t12: i32,ch = load<(dereferenceable load 4 from %ir.b)> t11, FrameIndex:i32<0>, undef:i32
+    t14: ch,glue = CopyToReg t11, Register:i32 $v0, t12
+    t19: i32 = mulhs t8, Constant:i32<715827883>
+    t15: ch = Cpu0ISD::Ret t14, Register:i32 $v0, t14:1
 
 .. _otherinst-f2:
-.. figure:: ../Fig/otherinst/2.png
-  :height: 629 px
-  :width: 580 px
-  :scale: 100 %
+.. figure:: ../Fig/otherinst/ch4_1_mult_view-isel-dags.png
+  :scale: 40 %
   :align: center
 
   ch4_1_mult.bc DAG
+
 
 LLVM optimizes the **srem** operation by replacing division with multiplication  
 in DAG optimization. This is because the **DIV** operation is more expensive  
@@ -594,6 +609,10 @@ at each node.
 
 The computation follows these steps:  
 
+- t5 = store 11 to FrameIndex(0)
+- t6 = load FrameIndex(0)
+- t8 = add t6, 1  -->  t8 = 12
+- 715827883 = 0x2AAAAAAB
 - **0xC * 0x2AAAAAAB = 0x2,00000004**  
 - **mulhs(0xC, 0x2AAAAAAAB)** retrieves the signed multiplication's high  
   word (upper 32 bits).  

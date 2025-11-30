@@ -1,4 +1,4 @@
-// clang -target mips-unknown-linux-gnu -c ch8_2_longbranch.cpp -emit-llvm -o ch8_2_longbranch.bc
+// ~/llvm/debug/build/bin/clang -target mips-unknown-linux-gnu -c ch8_2_longbranch.cpp -emit-llvm -o ch8_2_longbranch.bc
 // ~/llvm/test/build/bin/llc -march=cpu0 -mcpu=cpu032II -relocation-model=pic -filetype=asm -force-cpu0-long-branch ch8_2_longbranch.bc -o -
 
 /// start

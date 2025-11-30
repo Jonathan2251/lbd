@@ -1,4 +1,4 @@
-// clang -target mips-unknown-linux-gnu -c ch9_1_struct.cpp -emit-llvm -o ch9_1_struct.bc
+// ~/llvm/debug/build/bin/clang -target mips-unknown-linux-gnu -c ch9_1_struct.cpp -emit-llvm -o ch9_1_struct.bc
 // ~/llvm/test/build/bin/llc -march=cpu0 -relocation-model=pic -filetype=asm ch9_1_struct.bc -o -
 
 /// start

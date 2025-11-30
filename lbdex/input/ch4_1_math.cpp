@@ -1,4 +1,4 @@
-// clang -target mips-unknown-linux-gnu -c ch4_1_math.cpp -emit-llvm -o ch4_1_math.bc
+// ~/llvm/debug/build/bin/clang -target mips-unknown-linux-gnu -c ch4_1_math.cpp -emit-llvm -o ch4_1_math.bc
 // ~/llvm/test/build/bin/llc -march=cpu0 -relocation-model=pic -filetype=asm ch4_1_math.bc -o -
 // ~/llvm/test/build/bin/llc -march=cpu0 -relocation-model=pic -filetype=obj ch4_1_math.bc -o ch4_1_math.cpu0.o
 

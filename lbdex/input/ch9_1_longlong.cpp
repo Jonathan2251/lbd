@@ -1,4 +1,4 @@
-// clang -target mips-unknown-linux-gnu -c ch9_1_longlong.cpp -emit-llvm -o ch9_1_longlong.bc
+// ~/llvm/debug/build/bin/clang -target mips-unknown-linux-gnu -c ch9_1_longlong.cpp -emit-llvm -o ch9_1_longlong.bc
 // ~/llvm/test/build/bin/llc -march=cpu0 -relocation-model=static -filetype=asm ch9_1_longlong.bc -o -
 // ~/llvm/test/build/bin/llc -march=mips -relocation-model=static -filetype=asm ch9_1_longlong.bc -o -
 

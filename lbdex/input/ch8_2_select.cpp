@@ -1,4 +1,4 @@
-// clang -O0 -c ch8_3.cpp -emit-llvm -o ch8_3.bc
+// ~/llvm/debug/build/bin/clang -O0 -c ch8_3.cpp -emit-llvm -o ch8_3.bc
 // ~/llvm/test/build/bin/llc -march=cpu0 -mcpu=cpu032I -relocation-model=static -filetype=asm ch8_3.bc -o -
 
 /// start

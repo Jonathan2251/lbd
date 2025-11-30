@@ -1,4 +1,4 @@
-// clang -target mips-unknown-linux-gnu -c ch9_3_stacksave.cpp -emit-llvm -o ch9_3_stacksave.bc
+// ~/llvm/debug/build/bin/clang -target mips-unknown-linux-gnu -c ch9_3_stacksave.cpp -emit-llvm -o ch9_3_stacksave.bc
 // ~/llvm/test/build/bin/llc -march=cpu0 -relocation-model=pic -filetype=asm ch9_3_stacksave.bc -o -
 
 /// start

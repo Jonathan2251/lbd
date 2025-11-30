@@ -1,4 +1,4 @@
-// clang -target mips-unknown-linux-gnu -c ch7_1_char_in_struct.cpp -emit-llvm -o ch7_1_char_in_struct.bc
+// ~/llvm/debug/build/bin/clang -target mips-unknown-linux-gnu -c ch7_1_char_in_struct.cpp -emit-llvm -o ch7_1_char_in_struct.bc
 // ~/llvm/test/build/bin/llc -march=cpu0 -relocation-model=pic -filetype=asm ch7_1_char_in_struct.bc -o -
 // ~/llvm/test/build/bin/llc -march=cpu0 -relocation-model=static -filetype=asm ch7_1_char_in_struct.bc -o -
 

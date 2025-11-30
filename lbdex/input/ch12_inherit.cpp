@@ -1,5 +1,5 @@
-// clang -c ch12_inherit.cpp -emit-llvm -o ch12_inherit.bc
-// clang -c ch12_inherit.cpp -emit-llvm -DCOUT_TEST -o ch12_inherit.bc
+// ~/llvm/debug/build/bin/clang -c ch12_inherit.cpp -emit-llvm -o ch12_inherit.bc
+// ~/llvm/debug/build/bin/clang -c ch12_inherit.cpp -emit-llvm -DCOUT_TEST -o ch12_inherit.bc
 // ~/llvm/test/build/bin/llvm-dis ch12_inherit.bc -o -
 // ~/llvm/test/build/bin/llc -march=cpu0 -relocation-model=static -filetype=asm ch12_inherit.bc -o -
 

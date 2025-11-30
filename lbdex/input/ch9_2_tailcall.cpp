@@ -1,4 +1,4 @@
-// clang -O1 -target mips-unknown-linux-gnu -c ch9_2_tailcall.cpp -emit-llvm -o ch9_2_tailcall.bc
+// ~/llvm/debug/build/bin/clang -O1 -target mips-unknown-linux-gnu -c ch9_2_tailcall.cpp -emit-llvm -o ch9_2_tailcall.bc
 // ~llvm/test/build/bin/llc -march=cpu0 -mcpu=cpu032II -relocation-model=static -filetype=asm -enable-cpu0-tail-calls -view-isel-dags ch9_2_tailcall.bc -stats -o -
 // ~/llvm/test/build/bin/llc -march=cpu0 -mcpu=cpu032II -relocation-model=static -filetype=asm -enable-cpu0-tail-calls -view-sched-dags ch9_2_tailcall.bc -stats -o -
 

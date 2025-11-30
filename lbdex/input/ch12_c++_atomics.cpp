@@ -1,4 +1,4 @@
-// clang -S ch12_c++_atomics.cpp -emit-llvm -o -
+// ~/llvm/debug/build/bin/clang -S ch12_c++_atomics.cpp -emit-llvm -o -
 // Uses /opt/homebrew/opt/llvm/bin/clang in macOS.
 
 #include <atomic>

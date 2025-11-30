@@ -1,4 +1,4 @@
-// clang -target mips-unknown-linux-gnu -c ch7_1_globalstructoffset.cpp -emit-llvm -o ch7_1_globalstructoffset.bc
+// ~/llvm/debug/build/bin/clang -target mips-unknown-linux-gnu -c ch7_1_globalstructoffset.cpp -emit-llvm -o ch7_1_globalstructoffset.bc
 // ~/llvm/test/build/bin/llc -march=cpu0 -relocation-model=static -filetype=asm ch7_1_globalstructoffset.bc -o -
 
 // No need to verify in ch_nolld.cpp since test_func_arg_struct() of ch9_2_1.cpp include the test already

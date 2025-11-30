@@ -1,4 +1,4 @@
-// clang -target mips-unknown-linux-gnu -c ch9_3_longlongshift.cpp -emit-llvm -o ch9_3_longlongshift.bc
+// ~/llvm/debug/build/bin/clang -target mips-unknown-linux-gnu -c ch9_3_longlongshift.cpp -emit-llvm -o ch9_3_longlongshift.bc
 // ~/llvm/test/build/bin/llc -march=cpu0 -mcpu=cpu032I -relocation-model=pic -filetype=asm ch9_3_longlongshift.bc -o -
 
 // Need soft float point library support

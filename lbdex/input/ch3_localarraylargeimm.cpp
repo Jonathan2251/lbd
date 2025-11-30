@@ -1,4 +1,4 @@
-// clang -target mips-unknown-linux-gnu -c ch3_localarraylargeimm.cpp -emit-llvm -o ch3_localarraylargeimm.bc
+// ~/llvm/debug/build/bin/clang -target mips-unknown-linux-gnu -c ch3_localarraylargeimm.cpp -emit-llvm -o ch3_localarraylargeimm.bc
 // ~/llvm/test/build/bin/llc -march=cpu0 -relocation-model=pic -filetype=asm ch3_localarraylargeimm.bc -o -
 
 /// start

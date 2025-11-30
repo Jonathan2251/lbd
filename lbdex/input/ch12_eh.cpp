@@ -1,4 +1,4 @@
-// clang -c ch12_eh.cpp -emit-llvm -o ch12_eh.bc
+// ~/llvm/debug/build/bin/clang -c ch12_eh.cpp -emit-llvm -o ch12_eh.bc
 // ~/llvm/test/build/bin/llvm-dis ch12_eh.bc -o -
 // ~/llvm/test/build/bin/llc -march=cpu0 -relocation-model=static -filetype=asm ch12_eh.bc -o -
 

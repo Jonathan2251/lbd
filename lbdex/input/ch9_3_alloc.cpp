@@ -1,5 +1,5 @@
-// clang -c ch9_3_alloc.cpp -emit-llvm -o ch9_3_alloc.bc // for #include <stdlib.h>
-// clang -target mips-unknown-linux-gnu -c ch9_3_alloc.cpp -emit-llvm -o ch9_3_alloc.bc
+// ~/llvm/debug/build/bin/clang -c ch9_3_alloc.cpp -emit-llvm -o ch9_3_alloc.bc // for #include <stdlib.h>
+// ~/llvm/debug/build/bin/clang -target mips-unknown-linux-gnu -c ch9_3_alloc.cpp -emit-llvm -o ch9_3_alloc.bc
 
 // ~/llvm/test/build/bin/llc -march=cpu0 -mcpu=cpu032I -cpu0-s32-calls=false -relocation-model=pic -filetype=asm ch9_3_alloc.bc -o -
 
