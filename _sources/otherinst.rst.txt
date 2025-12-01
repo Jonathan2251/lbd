@@ -585,11 +585,8 @@ as illustrated in the following **Optimized lowered selection DAG** and
     t15: ch = Cpu0ISD::Ret t14, Register:i32 $v0, t14:1
 
 .. _otherinst-f2:
-.. figure:: ../Fig/otherinst/ch4_1_mult_view-isel-dags.png
-  :scale: 40 %
-  :align: center
-
-  ch4_1_mult.bc DAG
+.. graphviz:: ../Fig/otherinst/ch4_1_mult_view-isel-dags.gv
+   :caption: ch4_1_mult.bc DAG
 
 
 LLVM optimizes the **srem** operation by replacing division with multiplication  
