@@ -2023,11 +2023,16 @@ SM Scheduling
 
   - Level 1: Thread Block Scheduler
 
+    For Fermi/Kepler/Maxwell/Pascal (pre-Volta): Warp-synchronous SIMT
+    (lock-step in Warp):
+
     A Warp includes 32 threads in Fermi GPU.
     Each Streaming Multiprocessor SM includes 32 Lanes in Fermi GPU, as shown 
     in :numref:`threadblock`, the Thread Block includes a Warp (32 threads).
     According :numref:`threadblocks-map`, more than one block can be assigned
     and run on a same SM.
+
+    .. _l1-warp-sched:
 
     When an SM executes a Thread Block, all the threads within the block are  
     are executed at the same time. If any thread in a Warp is not ready due to 
@@ -2096,7 +2101,9 @@ SM Scheduling
 
       On an NVIDIA GPU, no pipeline flush occurs when a Warp stalls because
       the Warp’s next instruction is **never issued until its operands are 
-      ready**. The stalled Warp simply stops issuing instructions, and its 
+      ready** as illustrated in 
+      :ref:`Warp scheduling in Level 1 <l1-warp-sched>`. 
+      The stalled Warp simply stops issuing instructions, and its 
       pipeline slot is taken by another ready Warp. 
       When the stall condition clears, the Warp re-enters the pipeline by 
       issuing the stalled instruction anew. No state is saved or restored.
