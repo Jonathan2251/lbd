@@ -49,6 +49,9 @@ black outlines). As a result, the model appears much smoother [#shading]_.
 Furthermore, after texturing (texture mapping), the model looks even more
 realistic [#texturemapping]_.
 
+Animation
+^^^^^^^^^
+
 To understand how animation works for a 3D model, please refer to the video here
 [#animation1]_. According to the video on skeleton animation, joints are positioned
 at different poses and assigned timing (keyframes), as illustrated in
@@ -64,6 +67,537 @@ at different poses and assigned timing (keyframes), as illustrated in
 In this series of videos, you will see 3D modeling tools generating Java code
 instead of C/C++ code calling OpenGL API and shaders. This is because Java can
 call OpenGL API through a wrapper library [#joglwiki]_.
+
+**Animation flow**
+
+Every modern 3D animation tool comes with its own **built‑in render engine**, 
+and often more than one. In 3D game design, **game engines (Unity, Unreal, 
+Godot) use real‑time engines** for real-time animation.
+
+**Pipeline: Blender → Engine → OpenGL**
+
+.. code-block:: text
+
+    +------------------+
+    |     Blender      |
+    |  (Modeling Tool) |
+    +------------------+
+              |
+              |  Exports assets:
+              |  - Meshes (.obj, .fbx, .gltf)
+              |  - Armatures / bones
+              |  - Animations (keyframes)
+              |  - Textures (PNG, EXR, TGA)
+              v
+    +---------------------------+
+    |       Game Engine         |
+    | (Unity, Unreal, Godot,    |
+    |  LWJGL, JOGL, Custom)     |
+    +---------------------------+
+              |
+              |  Engine loads assets:
+              |  - Parses mesh data
+              |  - Loads skeletons
+              |  - Loads animation curves
+              |  - Loads materials/shaders
+              |
+              |  Engine code you write:
+              |  - Java (JOGL/LWJGL)
+              |  - C++ (custom engine)
+              |  - C# (Unity)
+              |  - GDScript/C++ (Godot)
+              |
+              |  Engine compiles shaders:
+              |  - GLSL (OpenGL)
+              |  - HLSL (DirectX)
+              |  - SPIR-V (Vulkan)
+              v
+    +---------------------------+
+    |         Renderer          |
+    |    (OpenGL / Vulkan /     |
+    |     DirectX / Metal)      |
+    +---------------------------+
+              |
+              |  GPU receives:
+              |  - Vertex buffers
+              |  - Index buffers
+              |  - Textures
+              |  - Uniforms (matrices, bones)
+              |  - Compiled shaders
+              v
+    +---------------------------+
+    |            GPU            |
+    | (Vertex Shader → Raster → |
+    |  Fragment Shader → Frame) |
+    +---------------------------+
+              |
+              v
+    +---------------------------+
+    |        Final Image        |
+    |     (On your screen)      |
+    +---------------------------+
+
+.. note::
+
+   3D modeling tools do store animation and movement data — but they do NOT 
+   store any rendering or API‑specific code.  
+   Game engines do store animation data — but programmers still write the logic 
+   that plays, blends, and controls those animations.
+
+**Animation Data vs. Movement Speed in Games**
+
+The following explains what animation data 3D modeling tools store, what
+game engines store, and what programmers must implement manually. It also
+clarifies the relationship between animation curves, movement speed, and
+gameplay logic.
+
+1. What 3D Modeling Tools Actually Store
+
+3D modeling and animation tools such as Blender, Maya, and 3ds Max store
+**animation data**, not gameplay logic.
+
+They **do store**:
+
+- Keyframes (frame 0, frame 10, frame 24, etc.)
+- Bone transforms at each keyframe
+- Interpolation curves (Bezier, linear, quaternion)
+- Animation duration (e.g., 1.2 seconds)
+- Frame rate (e.g., 24 fps)
+- Skeleton hierarchy
+- Skin weights (vertex-to-bone influences)
+- Optional root bone motion (displacement over time)
+
+Modeling tools produce **data**, not rendering code and not gameplay rules in 
+OpenGL/DirectX code.
+
+Example:
+
+.. code-block:: text
+
+  Bone "Arm" rotation at frame 0 = (0°, 0°, 0°)
+  Bone "Arm" rotation at frame 10 = (45°, 0°, 0°)
+
+2. What Game Engines Actually Store
+
+Game engines such as Unity, Unreal Engine, Godot, or custom engines store
+and manage animation data, but still do not define gameplay movement speed.
+
+They **do store**:
+
+- Animation clips
+- State machines (Idle → Walk → Run)
+- Blend trees
+- Transition rules
+- Animation events
+- Curves for rotation, scaling, and root motion
+
+Again: data, not OpenGL/DirectX code.
+
+Example:
+
+.. code-block:: text
+
+  If speed < 0.1 → Idle
+  If speed > 0.1 → Walk
+  If speed > 4.0 → Run
+
+This is engine logic, not GPU code.
+
+Game engines interpret animation data but rely on programmer logic to
+control how characters move in the world.
+
+3. What Programmers Must Implement
+
+Programmers write the **logic** that uses animation data to move objects.
+
+Examples:
+
+In Unity (C#)
+
+.. code-block:: csharp
+
+  animator.SetFloat("speed", playerVelocity);
+  ...
+  float speed = 3.5f;
+  transform.position += direction * speed * Time.deltaTime;
+
+In a custom engine (C++/OpenGL)
+
+.. code-block:: c++
+
+  shader.setMatrix("boneMatrices[0]", boneMatrix);
+  ...
+  float velocity = 3.5f;
+  position += velocity * deltaTime;
+
+In JOGL/LWJGL (Java)
+
+.. code-block:: java
+
+  glUniformMatrix4fv(boneLocation, false, boneMatrixBuffer);
+  ...
+  float velocity = 3.5f;
+  position += velocity * deltaTime;
+
+Programmers write:
+
+Programmers implement:
+
+- Movement speed
+
+  - E.g. **Set the value for speed or velocity as the code above.**
+
+- Acceleration and deceleration
+- Physics integration
+- AI movement
+- Player input
+- Animation blending logic
+- Uploading bone matrices to the GPU
+- GLSL shader code for skinning
+
+Animation data is *used* by code, not replaced by it.
+
+4. Root Motion vs. Movement Speed
+
+Some animations include **root motion**, where the root bone moves forward
+during a walk cycle. Modeling tools export this as bone displacement over
+time, but they still do **not** define speed.
+
+Example:
+
+If the root bone moves 1 meter in 0.5 seconds, the engine can compute:
+
+::
+
+    speed = 1m / 0.5s = 2 m/s
+
+However:
+
+- Blender does not store "2 m/s"
+- The engine derives speed from displacement
+- Programmers decide whether to use root motion or in-place animation
+
+5. Summary Table
+
++------------------------+----------------------+----------------------+---------------------------+
+| Concept                | Stored in Blender?   | Stored in Engine?    | Controlled by Programmer? |
++========================+======================+======================+===========================+
+| Keyframes              | Yes                  | Yes                  | No                        |
++------------------------+----------------------+----------------------+---------------------------+
+| Bone transforms        | Yes                  | Yes                  | No                        |
++------------------------+----------------------+----------------------+---------------------------+
+| Animation length       | Yes                  | Yes                  | No                        |
++------------------------+----------------------+----------------------+---------------------------+
+| Movement speed         | No                   | Yes (derived)        | Yes                       |
++------------------------+----------------------+----------------------+---------------------------+
+| Physics movement       | No                   | Yes                  | Yes                       |
++------------------------+----------------------+----------------------+---------------------------+
+| AI movement            | No                   | Yes                  | Yes                       |
++------------------------+----------------------+----------------------+---------------------------+
+
+6. Final Clarification
+
+- **3D modeling tools store animation timing, not gameplay speed.**
+- **Game engines store animation clips, not movement speed.**
+- **Programmers control movement speed, physics, and gameplay behavior.**
+- **No tool generates JOGL/OpenGL/Vulkan/DirectX code.**
+- **All rendering API calls are written by engine developers or by you in a custom engine.**
+
+
+**Example for accelerating playing**
+
+Animation Speed vs Engine Rendering (5× Speed)
+
+The following table shows how animation playback, movement speed, and GPU
+rendering interact when the gameplay speed is multiplied by five. The
+animation remains 24 fps internally, but its playback time advances five
+times faster. The GPU continues to render at 60 fps and samples the
+animation at the current time.
+
++--------------------------+----------------------+---------------------------+
+| Property                 | Original Value       | After 5× Speed            |
++==========================+======================+===========================+
+| Animation FPS (baked)    | 24 fps               | 24 fps (unchanged)        |
++--------------------------+----------------------+---------------------------+
+| Animation Playback Speed | 1×                   | 5×                        |
++--------------------------+----------------------+---------------------------+
+| Steps per Second         | 6 steps/sec          | 30 steps/sec              |
++--------------------------+----------------------+---------------------------+
+| Movement Speed           | 6 m/sec              | 30 m/sec                  |
++--------------------------+----------------------+---------------------------+
+| GPU Rendering FPS        | 60 fps               | 60 fps                    |
++--------------------------+----------------------+---------------------------+
+| Engine Playing Frames    | Samples animation    | Samples animation at      |
+| (What GPU Displays)      | at 60 fps            | 60 fps (skips/interpolates|
+|                          |                      | intermediate animation    |
+|                          |                      | frames)                   |
++--------------------------+----------------------+---------------------------+
+
+Summary:
+
+- The animation does **not** become 120 fps; it is simply played 5× faster.
+- The runner appears to take **30 steps per second** and move **30 meters per
+  second**.
+- The GPU still renders **60 frames per second**.
+- The engine **samples** the animation at each rendered frame, so it
+  effectively displays every fifth animation sample, using interpolation
+  for smoothness. For this case, it may display **1 out of 2 animation frames**
+  from 3D modeling.
+
+
+.. _node-editor:
+
+Node-Editor (shaders generator)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+-  3D animation tools (Blender, Maya, Houdini) use render engines and node 
+   editors for materials, lighting, and effects.
+-  Game engines (Unity, Unreal, Godot) use real‑time engines and node editors 
+   for shaders, VFX, and sometimes logic.
+
+
+A node editor defines the **entire material** that is applied to the
+surface of a 3D object. The shader generated from the node graph runs on
+**every pixel** (fragment) of the object's surface. In this sense, the
+node editor controls the **whole surface**, not only a specific region.
+
+However, the node graph can include **masks**, **textures**, **vertex
+colors**, or **procedural patterns** that allow the artist to specify
+which *parts* of the surface receive a particular effect. These masks do
+not limit the shader to only part of the surface; instead, they instruct
+the shader how to behave differently across different regions.
+
+Node-Editor
+"""""""""""
+
+**Example**
+
+Let’s say you want:
+
+•  rust only on the edges
+•  metal everywhere else
+
+In the node editor:
+
+1.  Load a rust texture
+2.  Load a metal texture
+3.  Use a mask (curvature or hand-painted)
+4.  Mix them using a Mix node
+
+The shader still runs on the whole surface, but the mask tells it:
+
+•  “Use rust here”
+•  “Use metal here”
+
+In summary:
+
+- The node editor defines the **full material** for the **entire
+  surface**.
+- Artists can use masks or textures to **target specific areas** within
+  that surface.
+- The shader still executes globally, but its **output varies** based on
+  the mask inputs.
+
+Thus, a node editor controls the whole surface, while masks determine how
+different parts of that surface are shaded.
+
+For 3D video game engines,
+the only case where mask data is inside the model file is vertex colors.
+Everything else lives in textures or material/shader assets.
+
+**Procedural Rust on Edges Using Shader Nodes**
+
+To demonstrate how to create a **rust-on-edges** material using Blender's shader 
+node editor as shown in :numref:`node_editor_ex1`. 
+The goal is to reproduce the effect commonly used on metal containers: clean 
+metal on flat surfaces and rust accumulation along exposed edges.
+
+.. _node_editor_ex1: 
+.. figure:: ../Fig/gpu/node-editor-ex1.png
+   :align: center
+   :scale: 50%
+   :alt: Full-width image
+
+   An example to Rust on Edges Using Shader Nodes [#node-editor-web1]_.
+
+The technique relies on three core ideas:
+
+1. Detecting edges using the *Bevel* or *Pointiness* attribute.
+2. Creating a mask that isolates only the worn edges.
+3. Blending a rust material with a metal material using that mask.
+
+This workflow is fully procedural and does not require painting or
+external textures.
+
+Procedural Edge Wear Node Graph (ASCII Diagram) to create 
+:numref:`node_editor_ex1` in video [#node-editor-web1]_ includes 
+1. edge detection, 2. mask breakup, 3. material creation, and 4. final blending 
+as follows:
+
+::
+
+    +================================================================+
+    |                    1.  EDGE DETECTION BLOCK                    |
+    |                     (Generating an Edge-Wear Mask)             |
+    +================================================================+
+
+       Geometry Node
+            |
+            |----> Pointiness (Cycles only)
+            |
+       Bevel Node (Eevee/Cycles)
+            Radius = 0.01–0.03
+            |
+            v
+       ColorRamp (Sharpen edge highlight)
+            |
+            v
+       Edge Mask (base convex-edge detection)
+
+
+    +================================================================+
+    |              2. MASK BREAKUP / RANDOMIZATION BLOCK             |
+    |               (Refining the Mask With Noise Textures)          |
+    +================================================================+
+
+       Noise Texture (Scale 5–15)
+            |
+            v
+       ColorRamp (optional shaping)
+            |
+            v
+       Multiply Node  <---------------- Edge Mask
+            |
+            v
+       ColorRamp (final threshold control)
+            |
+            v
+       Final Edge Wear Mask
+
+    material creation
+    +================================================================+
+    |                      3. MATERIAL BLOCK                         |
+    |                       (Base Material Structure)                |
+    +================================================================+
+
+       METAL MATERIAL:
+            Principled BSDF
+            Metallic = 1.0
+            Roughness = 0.2–0.4
+
+       RUST MATERIAL:
+            Principled BSDF
+            Base Color = orange/brown
+            Roughness = 0.7–1.0
+            Optional Noise → color variation
+            Optional Bump → rust height
+
+
+    +================================================================+
+    |                      4. BLENDING BLOCK                         |
+    |                       (Blending Metal and Rust Materials)      |
+    +================================================================+
+
+       Metal BSDF ----------------------+
+                                        |
+                                        v
+                                   Mix Shader ----> Material Output
+                                        ^
+                                        |
+       Rust BSDF -----------------------+
+                                        |
+                                        |
+                             Final Edge Wear Mask (Fac)
+
+
+
+Code Generation from Node-Editor
+"""""""""""""""""""""""""""""""""
+
+Node-based shader editors are visual tools used in modern game engines
+and DCC (Digital Content Creation) software. They allow users to build
+shaders by connecting nodes instead of writing GLSL, HLSL, or Metal code
+manually. These editors **do generate shader code automatically**.
+
+1. Node-Based Editors Do Generate Shader Code
+
+Node-based shader editors such as:
+
+- Unity Shader Graph
+- Unreal Engine Material Editor
+- Godot Visual Shader Editor
+- Blender Shader Nodes (for Eevee/Cycles)
+
+all **compile the visual node graph into real shader code**.
+
+Depending on the engine, the generated code may be:
+
+- GLSL (OpenGL / Vulkan)
+- HLSL (DirectX)
+- MSL (Metal)
+- SPIR-V (Vulkan intermediate format)
+
+The generated code is usually not shown to the user, but it is compiled
+and sent to the GPU at runtime.
+
+2. How Users Generate Shader Code with Nodes
+
+The workflow for generating shader code through a node editor typically
+looks like this:
+
+1. The user opens the shader editor.
+2. The user creates nodes representing:
+   - math operations (add, multiply, dot product)
+   - texture sampling
+   - lighting functions
+   - color adjustments
+   - UV transformations
+3. The user connects nodes visually to define the shader logic.
+4. The engine converts the node graph into an internal shader
+   representation.
+5. The engine compiles this representation into platform-specific shader
+   code (GLSL, HLSL, MSL, or SPIR-V).
+6. The compiled shader is sent to the GPU and used for rendering.
+
+The user never writes the shader code directly; the editor generates it
+automatically.
+
+3. Who Is the "User" of Node-Based Editors?
+
+The typical users of node-based shader editors are:
+
+**Graphics Designers / Technical Artists**
+    - Primary users.
+    - They create visual effects, materials, and surface shaders.
+    - They usually do not write GLSL or HLSL manually.
+    - Node editors allow them to work visually without programming.
+
+**Software Programmers / Graphics Programmers**
+    - Secondary users.
+    - They may create custom nodes or extend the shader system.
+    - They write low-level shader code when needed.
+    - They integrate the generated shaders into the rendering pipeline.
+
+In most workflows:
+
+- **Graphics designers** build the shader visually.
+- **The engine** generates the shader code.
+- **Programmers** handle advanced logic, optimization, or custom nodes.
+
+4. Summary
+
+- Node-based shader editors **do generate shader code** automatically.
+- Users generate shaders by connecting visual nodes rather than writing
+  GLSL/HLSL manually.
+- The primary "user" is the **graphics designer or technical artist**.
+- Programmers support the system by writing custom nodes or low-level
+  shaders when needed.
+
+
+The shaders introduction is illustrated in the next section :ref:`opengl`.
+
+3D Modeling Tools
+^^^^^^^^^^^^^^^^^
 
 Every CAD software manufacturer, such as AutoDesk and Blender, has their own
 proprietary format. To solve interoperability problems, neutral or open source
@@ -216,8 +750,9 @@ more computing power than the CPU.
   vertex array data to be stored in high-performance graphics memory on the  
   server side and enable efficient data transfer [#vbo]_ [#classorvbo]_.
 
-- 3D animation software provides many built-in shaders. Programmers can also  
-  write their own shaders for use in game engines.
+- As section :ref:`node-editor`, shaders are primarily created by 
+  Graphics Designers / Technical Artists and secondly created by Software 
+  Programmers / Graphics Programmers.
 
 The flow for 3D/2D graphic processing is shown in :numref:`opengl_flow`.
 
@@ -601,14 +1136,21 @@ inner surface [#ogl-point-outwards]_.
 
   3D polygon with directions on each plane
 
+When we build every triangle with CCW, then we can defined a consistent outer surface (front face).
 The :numref:`in-3d-polygon` shows an example of a 3D polygon created from 2D  
 triangles. The direction of the plane (triangle) is given by the line  
 perpendicular to the plane.
 
+This means:
+
+✔️ The mesh has a fixed “outer” and “inner”
+
+(based on CCW in object space)
+
 Cast a ray from the 3D point along the X-axis and count how many intersections  
 with the outer object occur. Depending on the number of intersections along  
-each axis (even or odd), you can understan if the point is inside or outside  
-[#point-in-3d-object]_.
+each axis (even or odd), you can understan if **the point (or the camara) is i
+nside or outside** [#point-in-3d-object]_.
 
 An odd number means inside, and an even number means outside. As shown in  
 :numref:`in-3d-object`, points on the line passing through the object satisfy  
@@ -620,6 +1162,18 @@ this rule.
   :scale: 50 %
 
   Point is inside or outside of 3D object
+
+How does OpenGL render (draw) the inner face of a triangle?
+
+OpenGL does NOT determine front/back in world space.
+
+When the camera moves to the inner space of a object:
+
+-  The projection changes
+-  The triangle’s screen‑space orientation changes
+-  CCW ↔ CW flips
+-  So the GPU flips front/back classification
+
 
 .. rubric:: OpenGL uses counter clockwise and pointing outwards as default [#vbo]_.
 .. code-block:: c++
@@ -846,7 +1400,7 @@ from the book *OpenGL Programming Guide, 9th Edition* [#redbook]_ as follows:
 
    \clearpage
 
-.. list-table:: OpenGL rendering pipeline from page 10 of book
+.. list-table:: OpenGL rendering pipeline from page 10 and page 36 of book
    "OpenGL Programming Guide 9th Edition" [#redbook]_ and [#rendering]_.
    :widths: 20 60
    :header-rows: 1
@@ -860,14 +1414,31 @@ from the book *OpenGL Programming Guide, 9th Edition* [#redbook]_ as follows:
      - **Vertex → Vertex and other data such as color for later passes.**
        For each vertex issued by a drawing command, a vertex shader processes
        the data associated with that vertex.
+       **Vertex Shader:** provides the Vertex → Vertex transformation effects
+       controlled by the users.
    * - Tessellation Shading
      - **Create more detail on demand when zoomed in.**
        After the vertex shader processes each vertex, the tessellation shader
-       stage (if active) continues processing. See reference below.
+       stage (if active) continues processing.
+       The tessellation stage is actually divided into two shaders known as the 
+       **tessellation control shader** and the **tessellation evaluation 
+       shader**. See reference below.
    * - Geometry Shading
-     - **Allows additional processing of geometric primitives.**
-       This stage may create new primitives before rasterization. See Chapter 10
-       of the Red Book [#redbook]_.
+     - **Vertex → Primitives**. Allows additional processing of geometric 
+       primitives.
+       This stage may create new primitives before rasterization. 
+       The Geometry shading stage is another optional stage that can modify 
+       entire geometric primitives within the OpenGL pipeline. This stage 
+       operates on individual geometric primitives allowing each to be modified. 
+       In this stage, you might generate more geometry from the input primitive, 
+       change the type of geometric primitive (e.g., converting triangles to 
+       lines), or discard the geometry altogether. If activated, a geometry 
+       shader receives its input either after vertex shading has completed 
+       processing the vertices of a geometric primitive or from the primitives 
+       generated from the tessellation shading stage, if it’s been enabled. 
+       **Geometry Shader:** provides the Vertex → Geometric Primitives 
+       transformation effects controlled by the users.
+       See Chapter 10 of the Red Book [#redbook-p36]_.
    * - Primitive Assembly
      - The previous shading stages all operate on vertices, with the information 
        about how those vertices are organized into geometric primitives being 
@@ -882,7 +1453,8 @@ from the book *OpenGL Programming Guide, 9th Edition* [#redbook]_ as follows:
        of its pixels are outside of the viewport. 
        This operation is called clipping and is handled automatically by OpenGL.
    * - Rasterization
-     - **Vertex -> Fragment.** The job of the rasterizer is to determine which 
+     - **Vertex → Fragment.** or **Geometric Primitives → Fragment**.
+       The job of the rasterizer is to determine which 
        screen locations are covered by a particular piece of geometry (point, 
        line, or triangle). Knowing those locations, along with the input vertex 
        data, the rasterizer linearly interpolates the data values for each 
@@ -891,7 +1463,10 @@ from the book *OpenGL Programming Guide, 9th Edition* [#redbook]_ as follows:
        spaces, which is aligned with the pixel grid, with attributes such as 
        position, color, normal and texture.
    * - Fragment Shading
-     - **Determine color for each pixel.** 
+     - **Fragment → Fragment**. **Determine color for each pixel.** 
+       In this stage, a fragment’s **color and depth** values are computed and 
+       then sent for further processing in the **fragment-testing** and 
+       **blending** parts of the pipeline.
        The final stage where you have programmable control over the color of 
        a screen location is fragment shading. In this shader stage, you use a 
        shader to determine the fragment’s final color (although the next stage, 
@@ -906,8 +1481,16 @@ from the book *OpenGL Programming Guide, 9th Edition* [#redbook]_ as follows:
        shading) determines where on the screen a primitive is, while fragment 
        shading uses that information to determine what color that fragment will 
        be.
+
+.. list-table:: Continue OpenGL rendering pipeline from page 10 and page 36 of 
+   book "OpenGL Programming Guide 9th Edition" [#redbook]_ and [#rendering]_.
+   :widths: 20 60
+   :header-rows: 1
+
+   * - Stage.
+     - Description
    * - Per-Fragment Operations
-     - During this stage, a fragment’s visibility is determined using depth 
+     - During this stage, a **fragment’s visibility** is determined using depth 
        testing (also commonly known as z-buffering) and stencil testing. 
        If a fragment successfully makes it through all of the enabled tests, 
        it may be written directly to the framebuffer, updating the color 
@@ -915,6 +1498,18 @@ from the book *OpenGL Programming Guide, 9th Edition* [#redbook]_ as follows:
        **if blending is enabled, the fragment’s color will be combined with 
        the pixel’s current color to generate a new color that is written into 
        the framebuffer.**
+   * - Compute shading stage
+     - **Compute shader:** may be applied in any stage.
+       This is not part of the graphical pipeline like the stages above, but 
+       stands on its own as the only stage in a program. A compute shader 
+       processes generic work items, driven by an application-chosen range, 
+       rather than by graphical inputs like vertices and fragments. 
+       Compute shaders can process buffers created and consumed by other shader 
+       programs in your application. 
+       This includes framebuffer post-processing effects or really anything you 
+       want. Compute shaders are described in Chapter 12 of Red Book, 
+       “Compute Shaders” [#redbook-p36]_.
+
 
 - Tessellation Shading: 
   The core problem that Tessellation deals with is the static nature of 3D models
@@ -942,6 +1537,135 @@ from the book *OpenGL Programming Guide, 9th Edition* [#redbook]_ as follows:
   that moving a CP has an effect on the entire surface. ...
   The group of CPs is usually called a Patch [#ts-tu30]_.
   Chapter 9 of Red Book [#redbook]_ has details.
+
+.. list-table:: Data Flow Through the OpenGL Shader Pipeline
+   :widths: 20 35 35 45
+   :header-rows: 1
+
+   * - Shader Stage
+     - Input Data (from CPU or previous stage)
+     - Output Data (to next stage)
+     - How GPU Hardware Uses These Data (with Stage Name)
+
+   * - Vertex Shader
+     - - Per-vertex attributes:
+         - Positions (vec3/vec4)
+         - Normals, tangents
+         - Texture coordinates
+         - Vertex colors
+         - Skinning weights/indices
+       - Uniforms and UBOs
+       - Textures / samplers
+     - - gl_Position (clip-space)
+       - Varyings
+       - Optional point size
+     - - **Vertex Processing Stage**:
+         - ALUs transform vertices
+         - Writes positions into Primitive Assembly
+         - Stores varyings in interpolation registers
+
+   * - Tessellation Control Shader (TCS)
+     - - Patch control points
+       - Uniforms
+       - Per-patch attributes
+     - - Modified control points
+       - Tessellation levels
+     - - **Tessellation Control Stage**:
+         - Writes tessellation levels to fixed-function tessellator
+         - Stores control points in patch memory
+
+   * - Tessellation Evaluation Shader (TES)
+     - - Tessellated coordinates (u,v,w)
+       - Patch control points
+       - Uniforms
+     - - gl_Position
+       - Varyings
+     - - **Tessellation Evaluation Stage**:
+         - ALUs compute final vertex positions
+         - Outputs to Primitive Assembly
+         - Sends varyings to interpolation hardware
+
+   * - Geometry Shader
+     - - Assembled primitives
+       - All varyings
+     - - Zero or more primitives
+       - New varyings
+       - New gl_Position
+     - - **Geometry Processing Stage**:
+         - Allocates per-primitive scratch memory
+         - Emits new primitives
+         - Expands or reduces geometry
+
+   * - Rasterizer (Fixed Function)
+     - - Primitives (triangles/lines/points)
+       - Per-vertex varyings
+     - - Fragments
+       - Interpolated varyings
+       - gl_FragCoord
+     - - **Rasterization Stage**:
+         - Barycentric units interpolate varyings
+         - Generates fragments
+         - Sends fragments to fragment shader cores
+
+   * - Fragment Shader
+     - - Interpolated varyings
+       - Textures / samplers
+       - Uniforms
+       - gl_FragCoord
+     - - gl_FragColor or user-defined outputs
+       - Depth override (optional)
+     - - **Fragment Processing Stage**:
+         - ALUs compute pixel color
+         - Texture units fetch texels
+         - Outputs color/depth to ROP
+
+   * - Output Merger / ROP (Fixed Function)
+     - - Fragment shader outputs
+       - Depth/stencil values
+       - Blending state
+     - - Final framebuffer color
+       - Updated depth/stencil buffers
+     - - **Output Merger Stage**:
+         - Performs depth/stencil tests
+         - Applies blending
+         - Writes final pixels to framebuffer memory
+         - Handles MSAA resolve
+
+A varying is a piece of data that:
+
+-  Comes out of the vertex shader
+-  Gets interpolated by the rasterizer
+-  Arrives as input to the fragment shader
+
+It is called **varying** because its value **varies across the surface of a 
+triangle**.
+
+.. list-table:: Examples of Common Varyings
+   :widths: 20 30 40
+   :header-rows: 1
+
+   * - Varying Name
+     - Meaning
+     - Why It Varies Across the Primitive
+
+   * - vNormal
+     - Surface normal at each vertex
+     - Lighting requires a smoothly changing normal across the triangle
+       so per-pixel shading can compute correct diffuse and specular terms
+
+   * - vUV
+     - Texture coordinates
+     - Each pixel needs its own UV to sample the correct texel from the texture
+
+   * - vColor
+     - Vertex color (per-vertex material tint)
+     - Enables smooth color gradients or per-vertex painting effects
+
+   * - vWorldPos
+     - World-space position of the vertex
+     - Used for per-pixel lighting, reflections, shadows, and screen-space effects;
+       must be interpolated so each fragment knows its own world position
+
 
 For 2D animation, the model is created by 2D only (1 face only), so it only can be 
 viewed from the same face of model. If you want to display different faces of model,
@@ -4419,6 +5143,10 @@ Open Sources
 
 .. [#joglwiki] https://en.wikipedia.org/wiki/Java_OpenGL
 
+.. [#node-editor-web1] https://odysee.com/@jsabbott:d/how-to-make-procedural-edge-wear-in:2
+
+.. [#node-editor-web2] https://blenderartists.org/t/procedural-edge-wear-rust/1355530/2?copilot_analytics_metadata=eyJldmVudEluZm9fbWVzc2FnZUlkIjoiYmFNcHFoOWt2MjhGcm5aUk01YnM0IiwiZXZlbnRJbmZvX2NvbnZlcnNhdGlvbklkIjoiTnQ5OXlWTm9IaW9IZzhFNTU2RFBlIiwiZXZlbnRJbmZvX2NsaWNrU291cmNlIjoiY2l0YXRpb25MaW5rIiwiZXZlbnRJbmZvX2NsaWNrRGVzdGluYXRpb24iOiJodHRwczpcL1wvYmxlbmRlcmFydGlzdHMub3JnXC90XC9wcm9jZWR1cmFsLWVkZ2Utd2Vhci1ydXN0XC8xMzU1NTMwIn0%3D
+
 .. [#3dfmt] https://all3dp.com/3d-file-format-3d-files-3d-printer-3d-cad-vrml-stl-obj/
 
 .. [#wiki-gpu] https://en.wikipedia.org/wiki/Graphics_processing_unit
@@ -4475,11 +5203,13 @@ Open Sources
 
 .. [#rendering] https://www.khronos.org/opengl/wiki/Rendering_Pipeline_Overview
 
+.. [#redbook] http://www.opengl-redbook.com
+
 .. [#ts-tu30] https://ogldev.org/www/tutorial30/tutorial30.html
 
 .. [#2danimation] https://tw.video.search.yahoo.com/search/video?fr=yfp-search-sb&p=2d+animation#id=12&vid=46be09edf57b960ae79e9cd077eea1ea&action=view
 
-.. [#redbook] http://www.opengl-redbook.com
+.. [#redbook-p36] Page 36 of book "OpenGL Programming Guide 9th Edition" [#redbook]_.
 
 .. [#redbook-examples] https://github.com/openglredbook/examples
 

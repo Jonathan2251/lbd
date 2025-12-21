@@ -1212,6 +1212,721 @@ If you are interested in more technical details beyond what's provided in the
 wiki reference, see [#phi-book]_ for `phi` node coverage, or refer to
 [#dominator-dragonbooks]_ for dominator tree analysis if you have the book.
 
+Phi In Optimization
+-------------------
+
+Optimization in SSA φ-Nodes and LLVM Passes
+
+This section introduces the theoretical foundations of φ-nodes in SSA
+form, explains how φ-nodes enable compiler optimizations, and surveys
+LLVM passes that manipulate, simplify, or rely on φ-nodes. The material
+is suitable for compiler courses, backend engineering documentation, or
+LLVM-based curriculum modules.
+
+1. Introduction
+
+Static Single Assignment (SSA) form is one of the most influential
+intermediate representations in modern compilers. By enforcing that each
+variable is assigned exactly once, SSA enables precise data-flow
+reasoning and exposes opportunities for aggressive optimization.
+
+At the center of SSA lies the **φ-node**, a pseudo-instruction that
+merges values coming from different control-flow paths. Although simple
+in concept, φ-nodes are essential for:
+
+- constant propagation
+- redundancy elimination
+- control-flow simplification
+- loop optimization
+- value numbering and equivalence reasoning
+
+This chapter covers:
+
+- the theory behind φ-nodes and SSA construction
+- optimizations enabled by φ-nodes
+- LLVM passes that manipulate or depend on φ-nodes
+- practical considerations for implementing φ-aware transformations
+
+2. Theoretical Foundations of φ-Nodes
+
+2.1 SSA Form and the Need for φ-Nodes
+
+SSA requires that each variable have a single static assignment. When
+control flow merges, multiple reaching definitions may exist. A φ-node
+resolves this ambiguity:
+
+.. code-block:: llvm
+
+   %x3 = phi i32 [ %x1, %P1 ], [ %x2, %P2 ]
+
+This means:
+
+- if control arrives from predecessor ``P1`` → use ``x1``
+- if control arrives from predecessor ``P2`` → use ``x2``
+
+The φ-node is a compile-time abstraction, not a runtime instruction.
+
+2.2 Dominance and Placement of φ-Nodes
+
+The classical Cytron et al. algorithm inserts φ-nodes at dominance
+frontiers. A φ-node for variable ``v`` is placed in block ``B`` if:
+
+- ``B`` is in the dominance frontier of a block that assigns ``v``
+- ``B`` is reachable from multiple definitions of ``v``
+
+This produces *minimal SSA form*.
+
+2.3 Properties of φ-Nodes Relevant to Optimization
+
+Key properties include:
+
+- **Value identity**: each φ defines a new SSA name.
+- **Equivalence exposure**: identical incoming values imply redundancy.
+- **Unreachable path detection**: dead predecessors simplify φ-nodes.
+- **Loop structure representation**: induction variables naturally use φ-nodes.
+
+3. Optimizations Enabled by φ-Nodes
+
+3.1 Constant Propagation and Folding
+
+If all incoming values are constants, the φ-node collapses:
+
+.. code-block:: llvm
+
+   %x = phi i32 [ 3, %A ], [ 3, %B ];   →   x = 3
+
+This enables:
+
+- dead code elimination
+- branch simplification
+- further constant folding
+
+3.2 Copy and Redundancy Elimination
+
+If all incoming SSA names are identical:
+
+.. code-block:: llvm
+
+   %x = phi i32 [ %a, %A ], [ %a, %B ];   →   x = a
+
+This reduces renaming noise and simplifies data flow.
+
+3.3 Dead φ-Node Elimination
+
+A φ-node is dead if:
+
+- its result is unused, or
+- all incoming edges are dead
+
+Dead φ-nodes often cascade, enabling further cleanup.
+
+3.4 Control-Flow Simplification
+
+When branches become constant, φ-nodes collapse:
+
+.. code-block:: llvm
+
+   %x = phi i32 [ %a, %A ], [ %b, %B ];   →   x = a
+
+This supports:
+
+- jump threading
+- block merging
+- CFG simplification
+
+3.5 Loop Optimizations
+
+φ-nodes identify:
+
+- induction variables
+- loop-carried dependencies
+- reduction patterns
+
+This enables:
+
+- Loop-Invariant Code Motion (LICM)
+- strength reduction
+- induction variable simplification
+- loop unrolling and vectorization
+
+4. LLVM Passes Related to φ-Nodes
+
+LLVM contains many passes that either manipulate φ-nodes directly or
+depend on them for analysis.
+
+4.1 Passes That Directly Modify or Simplify φ-Nodes
+
+**mem2reg (PromoteMemoryToRegisterPass)**
+
+- Converts stack variables to SSA registers.
+- Inserts φ-nodes using dominance frontiers.
+
+**SROA (Scalar Replacement of Aggregates)**
+
+- Breaks aggregates into scalars.
+- Introduces new φ-nodes for scalarized fields.
+
+**InstCombine**
+
+- Simplifies φ-nodes.
+- Removes redundant φ-nodes.
+- Folds constant φ-nodes.
+
+**SimplifyCFG**
+
+- Removes unreachable predecessors.
+- Updates φ-nodes accordingly.
+- Merges blocks and merges φ-nodes.
+
+**CorrelatedValuePropagation**
+
+- Uses branch correlation to simplify φ-nodes.
+
+4.2 Passes That Use φ-Nodes for Analysis
+
+**GVN (Global Value Numbering)**
+
+- Uses φ-translation to compare values across blocks.
+- Detects equivalent expressions.
+
+**SCCP (Sparse Conditional Constant Propagation)**
+
+- Tracks constant values through φ-nodes.
+- Eliminates dead branches and simplifies φ-nodes.
+
+**LICM (Loop-Invariant Code Motion)**
+
+- Identifies loop invariants via φ-nodes.
+- Moves invariant code out of loops.
+
+**LoopSimplify**
+
+- Normalizes loop structure.
+- Ensures canonical induction φ-nodes exist.
+
+**IndVarSimplify**
+
+- Rewrites induction φ-nodes into canonical form.
+- Enables strength reduction and vectorization.
+
+4.3 Passes That Remove or Rewrite φ-Nodes
+
+**DemotePHIToStack**
+
+- Converts φ-nodes back to memory operations.
+- Used in lowering or debugging.
+
+**SSAUpdater (utility)**
+
+- Rewrites SSA form during transformations.
+- Inserts or removes φ-nodes as needed.
+
+5. Practical Considerations for φ-Aware Optimizations
+
+5.1 Maintaining SSA Consistency
+
+Transformations must ensure:
+
+- each φ-node has one incoming value per predecessor
+- predecessor order matches CFG edge order
+- removing edges updates φ-nodes
+
+5.2 Avoiding Critical Edges
+
+Some optimizations require splitting critical edges to maintain valid
+φ-node semantics.
+
+5.3 Handling Cyclic φ-Nodes
+
+Loops often produce mutually recursive φ-nodes. Optimizations must detect:
+
+- induction variables
+- loop-carried dependencies
+- reduction patterns
+
+5.4 φ-Translation
+
+Analyses such as GVN and PRE require translating values across control
+flow by following φ-node edges. This is essential for correctness.
+
+6. Summary
+
+φ-nodes are a structural backbone of SSA form. They:
+
+- represent merged values across control flow
+- enable precise data-flow reasoning
+- support loop analysis and transformation
+- are manipulated by many LLVM optimization passes
+
+Understanding φ-nodes is essential for designing compiler optimizations,
+implementing SSA-based transformations, and working effectively with
+LLVM IR.
+
+
+LLVM IR φ-Node Optimization Examples
+------------------------------------
+
+This section presents LLVM IR examples *before* and *after* key φ-node
+optimizations. Each transformation illustrates how SSA form enables
+simplification, redundancy elimination, and loop optimization.
+
+All code blocks use LLVM IR syntax.
+
+1. Constant Propagation and Folding
+
+1.1 Constant Folding of a φ with Identical Constants
+
+**Before:**
+
+.. code-block:: llvm
+
+   define i32 @example_const_phi(i1 %cond) {
+   entry:
+     br i1 %cond, label %then, label %else
+
+   then:
+     br label %merge
+
+   else:
+     br label %merge
+
+   merge:
+     %x = phi i32 [ 3, %then ], [ 3, %else ]
+     ret i32 %x
+   }
+
+**After:**
+
+.. code-block:: llvm
+
+   define i32 @example_const_phi(i1 %cond) {
+   entry:
+     br i1 %cond, label %then, label %else
+
+   then:
+     br label %merge
+
+   else:
+     br label %merge
+
+   merge:
+     ret i32 3
+   }
+
+1.2 Constant Propagation into a φ
+
+**Before:**
+
+.. code-block:: llvm
+
+   define i32 @example_sccp(i1 %cond) {
+   entry:
+     br i1 %cond, label %then, label %else
+
+   then:
+     br label %merge
+
+   else:
+     br label %merge
+
+   merge:
+     %x = phi i32 [ 42, %then ], [ 13, %else ]
+     %y = add i32 %x, 1
+     ret i32 %y
+   }
+
+**After SCCP (assuming %cond is always true):**
+
+.. code-block:: llvm
+
+   define i32 @example_sccp(i1 %cond) {
+   entry:
+     br label %merge
+
+   merge:
+     ret i32 43
+   }
+
+2. Redundant φ Elimination
+
+2.1 φ with Identical SSA Names
+
+**Before:**
+
+.. code-block:: llvm
+
+   define i32 @example_redundant_phi(i32 %a, i1 %cond) {
+   entry:
+     br i1 %cond, label %then, label %else
+
+   then:
+     %v_then = add i32 %a, 0
+     br label %merge
+
+   else:
+     %v_else = add i32 %a, 0
+     br label %merge
+
+   merge:
+     %v = phi i32 [ %v_then, %then ], [ %v_else, %else ]
+     ret i32 %v
+   }
+
+**After InstCombine:**
+
+.. code-block:: llvm
+
+   define i32 @example_redundant_phi(i32 %a, i1 %cond) {
+   entry:
+     br label %merge
+
+   merge:
+     ret i32 %a
+   }
+
+2.2 Collapsing Copy φ-Chains
+
+**Before:**
+
+.. code-block:: llvm
+
+   define i32 @example_copy_phi(i32 %a, i32 %b, i1 %cond) {
+   entry:
+     br i1 %cond, label %then, label %else
+
+   then:
+     %x = phi i32 [ %a, %entry ]
+     br label %merge
+
+   else:
+     %x2 = phi i32 [ %b, %entry ]
+     br label %merge
+
+   merge:
+     %y = phi i32 [ %x, %then ], [ %x2, %else ]
+     ret i32 %y
+   }
+
+**After Simplification:**
+
+.. code-block:: llvm
+
+   define i32 @example_copy_phi(i32 %a, i32 %b, i1 %cond) {
+   entry:
+     br i1 %cond, label %then, label %else
+
+   then:
+     br label %merge
+
+   else:
+     br label %merge
+
+   merge:
+     %y = phi i32 [ %a, %then ], [ %b, %else ]
+     ret i32 %y
+   }
+
+3. Dead φ-Node Elimination
+
+3.1 Unused φ
+
+**Before:**
+
+.. code-block:: llvm
+
+   define i32 @example_dead_phi(i32 %a, i32 %b, i1 %cond) {
+   entry:
+     br i1 %cond, label %then, label %else
+
+   then:
+     br label %merge
+
+   else:
+     br label %merge
+
+   merge:
+     %x = phi i32 [ %a, %then ], [ %b, %else ]
+     ret i32 0
+   }
+
+**After DCE:**
+
+.. code-block:: llvm
+
+   define i32 @example_dead_phi(i32 %a, i32 %b, i1 %cond) {
+   entry:
+     br i1 %cond, label %then, label %else
+
+   then:
+     br label %merge
+
+   else:
+     br label %merge
+
+   merge:
+     ret i32 0
+   }
+
+3.2 Cascading Dead φs
+
+**Before:**
+
+.. code-block:: llvm
+
+   define i32 @example_cascade_dead_phi(i32 %a, i32 %b, i1 %cond) {
+   entry:
+     br i1 %cond, label %then, label %else
+
+   then:
+     br label %merge
+
+   else:
+     br label %merge
+
+   merge:
+     %x = phi i32 [ %a, %then ], [ %b, %else ]
+     %y = add i32 %x, 0
+     ret i32 1
+   }
+
+**After DCE + InstCombine:**
+
+.. code-block:: llvm
+
+   define i32 @example_cascade_dead_phi(i32 %a, i32 %b, i1 %cond) {
+   entry:
+     br i1 %cond, label %then, label %else
+
+   then:
+     br label %merge
+
+   else:
+     br label %merge
+
+   merge:
+     ret i32 1
+   }
+
+4. Control-Flow Simplification and φ
+
+4.1 Branch Known Constant → φ Collapse
+
+**Before:**
+
+.. code-block:: llvm
+
+   define i32 @example_simplifycfg(i32 %a) {
+   entry:
+     %cmp = icmp eq i32 %a, 0
+     br i1 %cmp, label %zero, label %nonzero
+
+   zero:
+     br label %merge
+
+   nonzero:
+     br label %merge
+
+   merge:
+     %x = phi i32 [ 0, %zero ], [ 1, %nonzero ]
+     ret i32 %x
+   }
+
+**After SimplifyCFG:**
+
+.. code-block:: llvm
+
+   define i32 @example_simplifycfg(i32 %a) {
+   entry:
+     br label %merge
+
+   merge:
+     ret i32 0
+   }
+
+4.2 Block Merging
+
+**Before:**
+
+.. code-block:: llvm
+
+   define i32 @example_block_merge(i32 %a, i1 %cond) {
+   entry:
+     br i1 %cond, label %then, label %else
+
+   then:
+     %x1 = add i32 %a, 1
+     br label %merge
+
+   else:
+     %x2 = add i32 %a, 1
+     br label %merge
+
+   merge:
+     %x = phi i32 [ %x1, %then ], [ %x2, %else ]
+     ret i32 %x
+   }
+
+**After SimplifyCFG + InstCombine:**
+
+.. code-block:: llvm
+
+   define i32 @example_block_merge(i32 %a, i1 %cond) {
+   entry:
+     %x = add i32 %a, 1
+     ret i32 %x
+   }
+
+5. Loop Optimizations Using φ-Nodes
+
+5.1 Canonical Induction Variable
+
+**Before:**
+
+.. code-block:: llvm
+
+   define i32 @sum(i32* %arr, i32 %n) {
+   entry:
+     br label %loop
+
+   loop:
+     %i = phi i32 [ 0, %entry ], [ %i.next, %loop ]
+     %sum = phi i32 [ 0, %entry ], [ %sum.next, %loop ]
+
+     %inbounds = icmp slt i32 %i, %n
+     br i1 %inbounds, label %body, label %exit
+
+   body:
+     %ptr = getelementptr inbounds i32, i32* %arr, i32 %i
+     %val = load i32, i32* %ptr
+     %sum.next = add i32 %sum, %val
+     %i.next = add i32 %i, 1
+     br label %loop
+
+   exit:
+     ret i32 %sum
+   }
+
+**After IndVarSimplify (conceptual):**
+
+.. code-block:: llvm
+
+   define i32 @sum(i32* %arr, i32 %n) {
+   entry:
+     br label %loop
+
+   loop:
+     %iv = phi i64 [ 0, %entry ], [ %iv.next, %loop ]
+     %sum = phi i32 [ 0, %entry ], [ %sum.next, %loop ]
+
+     %iv.trunc = trunc i64 %iv to i32
+     %inbounds = icmp slt i32 %iv.trunc, %n
+     br i1 %inbounds, label %body, label %exit
+
+   body:
+     %ptr = getelementptr inbounds i32, i32* %arr, i64 %iv
+     %val = load i32, i32* %ptr
+     %sum.next = add i32 %sum, %val
+     %iv.next = add i64 %iv, 1
+     br label %loop
+
+   exit:
+     ret i32 %sum
+   }
+
+5.2 Loop-Invariant Code Motion (LICM)
+
+**Before:**
+
+.. code-block:: llvm
+
+   define void @example_licm(i32* %p, i32* %q, i32 %n) {
+   entry:
+     br label %loop
+
+   loop:
+     %i = phi i32 [ 0, %entry ], [ %i.next, %loop ]
+     %inb = icmp slt i32 %i, %n
+     br i1 %inb, label %body, label %exit
+
+   body:
+     %c = load i32, i32* %q
+     %ptr = getelementptr inbounds i32, i32* %p, i32 %i
+     store i32 %c, i32* %ptr
+     %i.next = add i32 %i, 1
+     br label %loop
+
+   exit:
+     ret void
+   }
+
+**After LICM:**
+
+.. code-block:: llvm
+
+   define void @example_licm(i32* %p, i32* %q, i32 %n) {
+   entry:
+     %c = load i32, i32* %q
+     br label %loop
+
+   loop:
+     %i = phi i32 [ 0, %entry ], [ %i.next, %loop ]
+     %inb = icmp slt i32 %i, %n
+     br i1 %inb, label %body, label %exit
+
+   body:
+     %ptr = getelementptr inbounds i32, i32* %p, i32 %i
+     store i32 %c, i32* %ptr
+     %i.next = add i32 %i, 1
+     br label %loop
+
+   exit:
+     ret void
+   }
+
+6. mem2reg: Introducing φ-Nodes
+
+6.1 Before mem2reg
+
+.. code-block:: llvm
+
+   define i32 @example_mem2reg(i1 %cond) {
+   entry:
+     %x = alloca i32, align 4
+     store i32 0, i32* %x
+     br i1 %cond, label %then, label %else
+
+   then:
+     store i32 1, i32* %x
+     br label %merge
+
+   else:
+     store i32 2, i32* %x
+     br label %merge
+
+   merge:
+     %x.load = load i32, i32* %x
+     ret i32 %x.load
+   }
+
+6.2 After mem2reg
+
+.. code-block:: llvm
+
+   define i32 @example_mem2reg(i1 %cond) {
+   entry:
+     br i1 %cond, label %then, label %else
+
+   then:
+     br label %merge
+
+   else:
+     br label %merge
+
+   merge:
+     %x.promoted = phi i32 [ 1, %then ], [ 2, %else ]
+     ret i32 %x.promoted
+   }
+
 
 RISC CPU knowledge
 ------------------
