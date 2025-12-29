@@ -63,6 +63,16 @@ Revision history
 
 Version 12.0.20, not released yet.
 
+Version 12.0.19.2, December 28, 2025.
+
+  gpu.rst: Add subsections 'Animation' and 'Node-Editor (shaders generator)'.
+  Modify table: 'OpenGL rendering pipeline from page 10 and page 36 of book 
+  “OpenGL Programming Guide 9th Edition”'.
+  Add tables 'Data Flow Through the OpenGL Shader Pipeline' and 
+  'Examples of Common Varyings'.
+  ctrlflow.rst: Add sections 'Phi In Optimization' and 
+  'LLVM IR φ-Node Optimization Examples'.
+
 Version 12.0.19.1, November 30, 2025.
 
   gpu.rst: thread state, configuration for SM.

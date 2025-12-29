@@ -50,7 +50,9 @@
 <li><p><a class="reference internal" href="#fill-branch-delay-slot" id="id21">Fill Branch Delay Slot</a></p></li>
 <li><p><a class="reference internal" href="#conditional-instruction" id="id22">Conditional Instruction</a></p></li>
 <li><p><a class="reference internal" href="#phi-node" id="id23">Phi node</a></p></li>
-<li><p><a class="reference internal" href="#risc-cpu-knowledge" id="id24">RISC CPU knowledge</a></p></li>
+<li><p><a class="reference internal" href="#phi-in-optimization" id="id24">Phi In Optimization</a></p></li>
+<li><p><a class="reference internal" href="#llvm-ir-node-optimization-examples" id="id25">LLVM IR φ-Node Optimization Examples</a></p></li>
+<li><p><a class="reference internal" href="#risc-cpu-knowledge" id="id26">RISC CPU knowledge</a></p></li>
 </ul>
 </nav>
 <p>This chapter illustrates the corresponding IR for control flow statements, such
@@ -2098,8 +2100,644 @@ CFG and eventually removes the <cite>phi</cite> nodes by replacing them with <ci
 wiki reference, see <a class="footnote-reference brackets" href="#phi-book" id="id9" role="doc-noteref"><span class="fn-bracket">[</span>7<span class="fn-bracket">]</span></a> for <cite>phi</cite> node coverage, or refer to
 <a class="footnote-reference brackets" href="#dominator-dragonbooks" id="id10" role="doc-noteref"><span class="fn-bracket">[</span>8<span class="fn-bracket">]</span></a> for dominator tree analysis if you have the book.</p>
 </section>
+<section id="phi-in-optimization">
+<h2><a class="toc-backref" href="#id24" role="doc-backlink">Phi In Optimization</a><a class="headerlink" href="#phi-in-optimization" title="Permalink to this heading">¶</a></h2>
+<p>Optimization in SSA φ-Nodes and LLVM Passes</p>
+<p>This section introduces the theoretical foundations of φ-nodes in SSA
+form, explains how φ-nodes enable compiler optimizations, and surveys
+LLVM passes that manipulate, simplify, or rely on φ-nodes. The material
+is suitable for compiler courses, backend engineering documentation, or
+LLVM-based curriculum modules.</p>
+<ol class="arabic simple">
+<li><p>Introduction</p></li>
+</ol>
+<p>Static Single Assignment (SSA) form is one of the most influential
+intermediate representations in modern compilers. By enforcing that each
+variable is assigned exactly once, SSA enables precise data-flow
+reasoning and exposes opportunities for aggressive optimization.</p>
+<p>At the center of SSA lies the <strong>φ-node</strong>, a pseudo-instruction that
+merges values coming from different control-flow paths. Although simple
+in concept, φ-nodes are essential for:</p>
+<ul class="simple">
+<li><p>constant propagation</p></li>
+<li><p>redundancy elimination</p></li>
+<li><p>control-flow simplification</p></li>
+<li><p>loop optimization</p></li>
+<li><p>value numbering and equivalence reasoning</p></li>
+</ul>
+<p>This chapter covers:</p>
+<ul class="simple">
+<li><p>the theory behind φ-nodes and SSA construction</p></li>
+<li><p>optimizations enabled by φ-nodes</p></li>
+<li><p>LLVM passes that manipulate or depend on φ-nodes</p></li>
+<li><p>practical considerations for implementing φ-aware transformations</p></li>
+</ul>
+<ol class="arabic simple" start="2">
+<li><p>Theoretical Foundations of φ-Nodes</p></li>
+</ol>
+<p>2.1 SSA Form and the Need for φ-Nodes</p>
+<p>SSA requires that each variable have a single static assignment. When
+control flow merges, multiple reaching definitions may exist. A φ-node
+resolves this ambiguity:</p>
+<div class="highlight-llvm notranslate"><div class="highlight"><pre><span></span><span class="nv">%x3</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="k">phi</span><span class="w"> </span><span class="kt">i32</span><span class="w"> </span><span class="p">[</span><span class="w"> </span><span class="nv">%x1</span><span class="p">,</span><span class="w"> </span><span class="nv">%P1</span><span class="w"> </span><span class="p">],</span><span class="w"> </span><span class="p">[</span><span class="w"> </span><span class="nv">%x2</span><span class="p">,</span><span class="w"> </span><span class="nv">%P2</span><span class="w"> </span><span class="p">]</span><span class="w"></span>
+</pre></div>
+</div>
+<p>This means:</p>
+<ul class="simple">
+<li><p>if control arrives from predecessor <code class="docutils literal notranslate"><span class="pre">P1</span></code> → use <code class="docutils literal notranslate"><span class="pre">x1</span></code></p></li>
+<li><p>if control arrives from predecessor <code class="docutils literal notranslate"><span class="pre">P2</span></code> → use <code class="docutils literal notranslate"><span class="pre">x2</span></code></p></li>
+</ul>
+<p>The φ-node is a compile-time abstraction, not a runtime instruction.</p>
+<p>2.2 Dominance and Placement of φ-Nodes</p>
+<p>The classical Cytron et al. algorithm inserts φ-nodes at dominance
+frontiers. A φ-node for variable <code class="docutils literal notranslate"><span class="pre">v</span></code> is placed in block <code class="docutils literal notranslate"><span class="pre">B</span></code> if:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">B</span></code> is in the dominance frontier of a block that assigns <code class="docutils literal notranslate"><span class="pre">v</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">B</span></code> is reachable from multiple definitions of <code class="docutils literal notranslate"><span class="pre">v</span></code></p></li>
+</ul>
+<p>This produces <em>minimal SSA form</em>.</p>
+<p>2.3 Properties of φ-Nodes Relevant to Optimization</p>
+<p>Key properties include:</p>
+<ul class="simple">
+<li><p><strong>Value identity</strong>: each φ defines a new SSA name.</p></li>
+<li><p><strong>Equivalence exposure</strong>: identical incoming values imply redundancy.</p></li>
+<li><p><strong>Unreachable path detection</strong>: dead predecessors simplify φ-nodes.</p></li>
+<li><p><strong>Loop structure representation</strong>: induction variables naturally use φ-nodes.</p></li>
+</ul>
+<ol class="arabic simple" start="3">
+<li><p>Optimizations Enabled by φ-Nodes</p></li>
+</ol>
+<p>3.1 Constant Propagation and Folding</p>
+<p>If all incoming values are constants, the φ-node collapses:</p>
+<div class="highlight-llvm notranslate"><div class="highlight"><pre><span></span><span class="nv">%x</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="k">phi</span><span class="w"> </span><span class="kt">i32</span><span class="w"> </span><span class="p">[</span><span class="w"> </span><span class="m">3</span><span class="p">,</span><span class="w"> </span><span class="nv">%A</span><span class="w"> </span><span class="p">],</span><span class="w"> </span><span class="p">[</span><span class="w"> </span><span class="m">3</span><span class="p">,</span><span class="w"> </span><span class="nv">%B</span><span class="w"> </span><span class="p">]</span><span class="c">;   →   x = 3</span>
+</pre></div>
+</div>
+<p>This enables:</p>
+<ul class="simple">
+<li><p>dead code elimination</p></li>
+<li><p>branch simplification</p></li>
+<li><p>further constant folding</p></li>
+</ul>
+<p>3.2 Copy and Redundancy Elimination</p>
+<p>If all incoming SSA names are identical:</p>
+<div class="highlight-llvm notranslate"><div class="highlight"><pre><span></span><span class="nv">%x</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="k">phi</span><span class="w"> </span><span class="kt">i32</span><span class="w"> </span><span class="p">[</span><span class="w"> </span><span class="nv">%a</span><span class="p">,</span><span class="w"> </span><span class="nv">%A</span><span class="w"> </span><span class="p">],</span><span class="w"> </span><span class="p">[</span><span class="w"> </span><span class="nv">%a</span><span class="p">,</span><span class="w"> </span><span class="nv">%B</span><span class="w"> </span><span class="p">]</span><span class="c">;   →   x = a</span>
+</pre></div>
+</div>
+<p>This reduces renaming noise and simplifies data flow.</p>
+<p>3.3 Dead φ-Node Elimination</p>
+<p>A φ-node is dead if:</p>
+<ul class="simple">
+<li><p>its result is unused, or</p></li>
+<li><p>all incoming edges are dead</p></li>
+</ul>
+<p>Dead φ-nodes often cascade, enabling further cleanup.</p>
+<p>3.4 Control-Flow Simplification</p>
+<p>When branches become constant, φ-nodes collapse:</p>
+<div class="highlight-llvm notranslate"><div class="highlight"><pre><span></span><span class="nv">%x</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="k">phi</span><span class="w"> </span><span class="kt">i32</span><span class="w"> </span><span class="p">[</span><span class="w"> </span><span class="nv">%a</span><span class="p">,</span><span class="w"> </span><span class="nv">%A</span><span class="w"> </span><span class="p">],</span><span class="w"> </span><span class="p">[</span><span class="w"> </span><span class="nv">%b</span><span class="p">,</span><span class="w"> </span><span class="nv">%B</span><span class="w"> </span><span class="p">]</span><span class="c">;   →   x = a</span>
+</pre></div>
+</div>
+<p>This supports:</p>
+<ul class="simple">
+<li><p>jump threading</p></li>
+<li><p>block merging</p></li>
+<li><p>CFG simplification</p></li>
+</ul>
+<p>3.5 Loop Optimizations</p>
+<p>φ-nodes identify:</p>
+<ul class="simple">
+<li><p>induction variables</p></li>
+<li><p>loop-carried dependencies</p></li>
+<li><p>reduction patterns</p></li>
+</ul>
+<p>This enables:</p>
+<ul class="simple">
+<li><p>Loop-Invariant Code Motion (LICM)</p></li>
+<li><p>strength reduction</p></li>
+<li><p>induction variable simplification</p></li>
+<li><p>loop unrolling and vectorization</p></li>
+</ul>
+<ol class="arabic simple" start="4">
+<li><p>LLVM Passes Related to φ-Nodes</p></li>
+</ol>
+<p>LLVM contains many passes that either manipulate φ-nodes directly or
+depend on them for analysis.</p>
+<p>4.1 Passes That Directly Modify or Simplify φ-Nodes</p>
+<p><strong>mem2reg (PromoteMemoryToRegisterPass)</strong></p>
+<ul class="simple">
+<li><p>Converts stack variables to SSA registers.</p></li>
+<li><p>Inserts φ-nodes using dominance frontiers.</p></li>
+</ul>
+<p><strong>SROA (Scalar Replacement of Aggregates)</strong></p>
+<ul class="simple">
+<li><p>Breaks aggregates into scalars.</p></li>
+<li><p>Introduces new φ-nodes for scalarized fields.</p></li>
+</ul>
+<p><strong>InstCombine</strong></p>
+<ul class="simple">
+<li><p>Simplifies φ-nodes.</p></li>
+<li><p>Removes redundant φ-nodes.</p></li>
+<li><p>Folds constant φ-nodes.</p></li>
+</ul>
+<p><strong>SimplifyCFG</strong></p>
+<ul class="simple">
+<li><p>Removes unreachable predecessors.</p></li>
+<li><p>Updates φ-nodes accordingly.</p></li>
+<li><p>Merges blocks and merges φ-nodes.</p></li>
+</ul>
+<p><strong>CorrelatedValuePropagation</strong></p>
+<ul class="simple">
+<li><p>Uses branch correlation to simplify φ-nodes.</p></li>
+</ul>
+<p>4.2 Passes That Use φ-Nodes for Analysis</p>
+<p><strong>GVN (Global Value Numbering)</strong></p>
+<ul class="simple">
+<li><p>Uses φ-translation to compare values across blocks.</p></li>
+<li><p>Detects equivalent expressions.</p></li>
+</ul>
+<p><strong>SCCP (Sparse Conditional Constant Propagation)</strong></p>
+<ul class="simple">
+<li><p>Tracks constant values through φ-nodes.</p></li>
+<li><p>Eliminates dead branches and simplifies φ-nodes.</p></li>
+</ul>
+<p><strong>LICM (Loop-Invariant Code Motion)</strong></p>
+<ul class="simple">
+<li><p>Identifies loop invariants via φ-nodes.</p></li>
+<li><p>Moves invariant code out of loops.</p></li>
+</ul>
+<p><strong>LoopSimplify</strong></p>
+<ul class="simple">
+<li><p>Normalizes loop structure.</p></li>
+<li><p>Ensures canonical induction φ-nodes exist.</p></li>
+</ul>
+<p><strong>IndVarSimplify</strong></p>
+<ul class="simple">
+<li><p>Rewrites induction φ-nodes into canonical form.</p></li>
+<li><p>Enables strength reduction and vectorization.</p></li>
+</ul>
+<p>4.3 Passes That Remove or Rewrite φ-Nodes</p>
+<p><strong>DemotePHIToStack</strong></p>
+<ul class="simple">
+<li><p>Converts φ-nodes back to memory operations.</p></li>
+<li><p>Used in lowering or debugging.</p></li>
+</ul>
+<p><strong>SSAUpdater (utility)</strong></p>
+<ul class="simple">
+<li><p>Rewrites SSA form during transformations.</p></li>
+<li><p>Inserts or removes φ-nodes as needed.</p></li>
+</ul>
+<ol class="arabic simple" start="5">
+<li><p>Practical Considerations for φ-Aware Optimizations</p></li>
+</ol>
+<p>5.1 Maintaining SSA Consistency</p>
+<p>Transformations must ensure:</p>
+<ul class="simple">
+<li><p>each φ-node has one incoming value per predecessor</p></li>
+<li><p>predecessor order matches CFG edge order</p></li>
+<li><p>removing edges updates φ-nodes</p></li>
+</ul>
+<p>5.2 Avoiding Critical Edges</p>
+<p>Some optimizations require splitting critical edges to maintain valid
+φ-node semantics.</p>
+<p>5.3 Handling Cyclic φ-Nodes</p>
+<p>Loops often produce mutually recursive φ-nodes. Optimizations must detect:</p>
+<ul class="simple">
+<li><p>induction variables</p></li>
+<li><p>loop-carried dependencies</p></li>
+<li><p>reduction patterns</p></li>
+</ul>
+<p>5.4 φ-Translation</p>
+<p>Analyses such as GVN and PRE require translating values across control
+flow by following φ-node edges. This is essential for correctness.</p>
+<ol class="arabic simple" start="6">
+<li><p>Summary</p></li>
+</ol>
+<p>φ-nodes are a structural backbone of SSA form. They:</p>
+<ul class="simple">
+<li><p>represent merged values across control flow</p></li>
+<li><p>enable precise data-flow reasoning</p></li>
+<li><p>support loop analysis and transformation</p></li>
+<li><p>are manipulated by many LLVM optimization passes</p></li>
+</ul>
+<p>Understanding φ-nodes is essential for designing compiler optimizations,
+implementing SSA-based transformations, and working effectively with
+LLVM IR.</p>
+</section>
+<section id="llvm-ir-node-optimization-examples">
+<h2><a class="toc-backref" href="#id25" role="doc-backlink">LLVM IR φ-Node Optimization Examples</a><a class="headerlink" href="#llvm-ir-node-optimization-examples" title="Permalink to this heading">¶</a></h2>
+<p>This section presents LLVM IR examples <em>before</em> and <em>after</em> key φ-node
+optimizations. Each transformation illustrates how SSA form enables
+simplification, redundancy elimination, and loop optimization.</p>
+<p>All code blocks use LLVM IR syntax.</p>
+<ol class="arabic simple">
+<li><p>Constant Propagation and Folding</p></li>
+</ol>
+<p>1.1 Constant Folding of a φ with Identical Constants</p>
+<p><strong>Before:</strong></p>
+<div class="highlight-llvm notranslate"><div class="highlight"><pre><span></span><span class="k">define</span><span class="w"> </span><span class="kt">i32</span><span class="w"> </span><span class="vg">@example_const_phi</span><span class="p">(</span><span class="kt">i1</span><span class="w"> </span><span class="nv">%cond</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="nl">entry:</span><span class="w"></span>
+<span class="w">  </span><span class="k">br</span><span class="w"> </span><span class="kt">i1</span><span class="w"> </span><span class="nv">%cond</span><span class="p">,</span><span class="w"> </span><span class="kt">label</span><span class="w"> </span><span class="nv">%then</span><span class="p">,</span><span class="w"> </span><span class="kt">label</span><span class="w"> </span><span class="nv">%else</span><span class="w"></span>
+
+<span class="nl">then:</span><span class="w"></span>
+<span class="w">  </span><span class="k">br</span><span class="w"> </span><span class="kt">label</span><span class="w"> </span><span class="nv">%merge</span><span class="w"></span>
+
+<span class="nl">else:</span><span class="w"></span>
+<span class="w">  </span><span class="k">br</span><span class="w"> </span><span class="kt">label</span><span class="w"> </span><span class="nv">%merge</span><span class="w"></span>
+
+<span class="nl">merge:</span><span class="w"></span>
+<span class="w">  </span><span class="nv">%x</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="k">phi</span><span class="w"> </span><span class="kt">i32</span><span class="w"> </span><span class="p">[</span><span class="w"> </span><span class="m">3</span><span class="p">,</span><span class="w"> </span><span class="nv">%then</span><span class="w"> </span><span class="p">],</span><span class="w"> </span><span class="p">[</span><span class="w"> </span><span class="m">3</span><span class="p">,</span><span class="w"> </span><span class="nv">%else</span><span class="w"> </span><span class="p">]</span><span class="w"></span>
+<span class="w">  </span><span class="k">ret</span><span class="w"> </span><span class="kt">i32</span><span class="w"> </span><span class="nv">%x</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
+</pre></div>
+</div>
+<p><strong>After:</strong></p>
+<div class="highlight-llvm notranslate"><div class="highlight"><pre><span></span><span class="k">define</span><span class="w"> </span><span class="kt">i32</span><span class="w"> </span><span class="vg">@example_const_phi</span><span class="p">(</span><span class="kt">i1</span><span class="w"> </span><span class="nv">%cond</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="nl">entry:</span><span class="w"></span>
+<span class="w">  </span><span class="k">br</span><span class="w"> </span><span class="kt">i1</span><span class="w"> </span><span class="nv">%cond</span><span class="p">,</span><span class="w"> </span><span class="kt">label</span><span class="w"> </span><span class="nv">%then</span><span class="p">,</span><span class="w"> </span><span class="kt">label</span><span class="w"> </span><span class="nv">%else</span><span class="w"></span>
+
+<span class="nl">then:</span><span class="w"></span>
+<span class="w">  </span><span class="k">br</span><span class="w"> </span><span class="kt">label</span><span class="w"> </span><span class="nv">%merge</span><span class="w"></span>
+
+<span class="nl">else:</span><span class="w"></span>
+<span class="w">  </span><span class="k">br</span><span class="w"> </span><span class="kt">label</span><span class="w"> </span><span class="nv">%merge</span><span class="w"></span>
+
+<span class="nl">merge:</span><span class="w"></span>
+<span class="w">  </span><span class="k">ret</span><span class="w"> </span><span class="kt">i32</span><span class="w"> </span><span class="m">3</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
+</pre></div>
+</div>
+<p>1.2 Constant Propagation into a φ</p>
+<p><strong>Before:</strong></p>
+<div class="highlight-llvm notranslate"><div class="highlight"><pre><span></span><span class="k">define</span><span class="w"> </span><span class="kt">i32</span><span class="w"> </span><span class="vg">@example_sccp</span><span class="p">(</span><span class="kt">i1</span><span class="w"> </span><span class="nv">%cond</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="nl">entry:</span><span class="w"></span>
+<span class="w">  </span><span class="k">br</span><span class="w"> </span><span class="kt">i1</span><span class="w"> </span><span class="nv">%cond</span><span class="p">,</span><span class="w"> </span><span class="kt">label</span><span class="w"> </span><span class="nv">%then</span><span class="p">,</span><span class="w"> </span><span class="kt">label</span><span class="w"> </span><span class="nv">%else</span><span class="w"></span>
+
+<span class="nl">then:</span><span class="w"></span>
+<span class="w">  </span><span class="k">br</span><span class="w"> </span><span class="kt">label</span><span class="w"> </span><span class="nv">%merge</span><span class="w"></span>
+
+<span class="nl">else:</span><span class="w"></span>
+<span class="w">  </span><span class="k">br</span><span class="w"> </span><span class="kt">label</span><span class="w"> </span><span class="nv">%merge</span><span class="w"></span>
+
+<span class="nl">merge:</span><span class="w"></span>
+<span class="w">  </span><span class="nv">%x</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="k">phi</span><span class="w"> </span><span class="kt">i32</span><span class="w"> </span><span class="p">[</span><span class="w"> </span><span class="m">42</span><span class="p">,</span><span class="w"> </span><span class="nv">%then</span><span class="w"> </span><span class="p">],</span><span class="w"> </span><span class="p">[</span><span class="w"> </span><span class="m">13</span><span class="p">,</span><span class="w"> </span><span class="nv">%else</span><span class="w"> </span><span class="p">]</span><span class="w"></span>
+<span class="w">  </span><span class="nv">%y</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="k">add</span><span class="w"> </span><span class="kt">i32</span><span class="w"> </span><span class="nv">%x</span><span class="p">,</span><span class="w"> </span><span class="m">1</span><span class="w"></span>
+<span class="w">  </span><span class="k">ret</span><span class="w"> </span><span class="kt">i32</span><span class="w"> </span><span class="nv">%y</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
+</pre></div>
+</div>
+<p><strong>After SCCP (assuming %cond is always true):</strong></p>
+<div class="highlight-llvm notranslate"><div class="highlight"><pre><span></span><span class="k">define</span><span class="w"> </span><span class="kt">i32</span><span class="w"> </span><span class="vg">@example_sccp</span><span class="p">(</span><span class="kt">i1</span><span class="w"> </span><span class="nv">%cond</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="nl">entry:</span><span class="w"></span>
+<span class="w">  </span><span class="k">br</span><span class="w"> </span><span class="kt">label</span><span class="w"> </span><span class="nv">%merge</span><span class="w"></span>
+
+<span class="nl">merge:</span><span class="w"></span>
+<span class="w">  </span><span class="k">ret</span><span class="w"> </span><span class="kt">i32</span><span class="w"> </span><span class="m">43</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
+</pre></div>
+</div>
+<ol class="arabic simple" start="2">
+<li><p>Redundant φ Elimination</p></li>
+</ol>
+<p>2.1 φ with Identical SSA Names</p>
+<p><strong>Before:</strong></p>
+<div class="highlight-llvm notranslate"><div class="highlight"><pre><span></span><span class="k">define</span><span class="w"> </span><span class="kt">i32</span><span class="w"> </span><span class="vg">@example_redundant_phi</span><span class="p">(</span><span class="kt">i32</span><span class="w"> </span><span class="nv">%a</span><span class="p">,</span><span class="w"> </span><span class="kt">i1</span><span class="w"> </span><span class="nv">%cond</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="nl">entry:</span><span class="w"></span>
+<span class="w">  </span><span class="k">br</span><span class="w"> </span><span class="kt">i1</span><span class="w"> </span><span class="nv">%cond</span><span class="p">,</span><span class="w"> </span><span class="kt">label</span><span class="w"> </span><span class="nv">%then</span><span class="p">,</span><span class="w"> </span><span class="kt">label</span><span class="w"> </span><span class="nv">%else</span><span class="w"></span>
+
+<span class="nl">then:</span><span class="w"></span>
+<span class="w">  </span><span class="nv">%v_then</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="k">add</span><span class="w"> </span><span class="kt">i32</span><span class="w"> </span><span class="nv">%a</span><span class="p">,</span><span class="w"> </span><span class="m">0</span><span class="w"></span>
+<span class="w">  </span><span class="k">br</span><span class="w"> </span><span class="kt">label</span><span class="w"> </span><span class="nv">%merge</span><span class="w"></span>
+
+<span class="nl">else:</span><span class="w"></span>
+<span class="w">  </span><span class="nv">%v_else</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="k">add</span><span class="w"> </span><span class="kt">i32</span><span class="w"> </span><span class="nv">%a</span><span class="p">,</span><span class="w"> </span><span class="m">0</span><span class="w"></span>
+<span class="w">  </span><span class="k">br</span><span class="w"> </span><span class="kt">label</span><span class="w"> </span><span class="nv">%merge</span><span class="w"></span>
+
+<span class="nl">merge:</span><span class="w"></span>
+<span class="w">  </span><span class="nv">%v</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="k">phi</span><span class="w"> </span><span class="kt">i32</span><span class="w"> </span><span class="p">[</span><span class="w"> </span><span class="nv">%v_then</span><span class="p">,</span><span class="w"> </span><span class="nv">%then</span><span class="w"> </span><span class="p">],</span><span class="w"> </span><span class="p">[</span><span class="w"> </span><span class="nv">%v_else</span><span class="p">,</span><span class="w"> </span><span class="nv">%else</span><span class="w"> </span><span class="p">]</span><span class="w"></span>
+<span class="w">  </span><span class="k">ret</span><span class="w"> </span><span class="kt">i32</span><span class="w"> </span><span class="nv">%v</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
+</pre></div>
+</div>
+<p><strong>After InstCombine:</strong></p>
+<div class="highlight-llvm notranslate"><div class="highlight"><pre><span></span><span class="k">define</span><span class="w"> </span><span class="kt">i32</span><span class="w"> </span><span class="vg">@example_redundant_phi</span><span class="p">(</span><span class="kt">i32</span><span class="w"> </span><span class="nv">%a</span><span class="p">,</span><span class="w"> </span><span class="kt">i1</span><span class="w"> </span><span class="nv">%cond</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="nl">entry:</span><span class="w"></span>
+<span class="w">  </span><span class="k">br</span><span class="w"> </span><span class="kt">label</span><span class="w"> </span><span class="nv">%merge</span><span class="w"></span>
+
+<span class="nl">merge:</span><span class="w"></span>
+<span class="w">  </span><span class="k">ret</span><span class="w"> </span><span class="kt">i32</span><span class="w"> </span><span class="nv">%a</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
+</pre></div>
+</div>
+<p>2.2 Collapsing Copy φ-Chains</p>
+<p><strong>Before:</strong></p>
+<div class="highlight-llvm notranslate"><div class="highlight"><pre><span></span><span class="k">define</span><span class="w"> </span><span class="kt">i32</span><span class="w"> </span><span class="vg">@example_copy_phi</span><span class="p">(</span><span class="kt">i32</span><span class="w"> </span><span class="nv">%a</span><span class="p">,</span><span class="w"> </span><span class="kt">i32</span><span class="w"> </span><span class="nv">%b</span><span class="p">,</span><span class="w"> </span><span class="kt">i1</span><span class="w"> </span><span class="nv">%cond</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="nl">entry:</span><span class="w"></span>
+<span class="w">  </span><span class="k">br</span><span class="w"> </span><span class="kt">i1</span><span class="w"> </span><span class="nv">%cond</span><span class="p">,</span><span class="w"> </span><span class="kt">label</span><span class="w"> </span><span class="nv">%then</span><span class="p">,</span><span class="w"> </span><span class="kt">label</span><span class="w"> </span><span class="nv">%else</span><span class="w"></span>
+
+<span class="nl">then:</span><span class="w"></span>
+<span class="w">  </span><span class="nv">%x</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="k">phi</span><span class="w"> </span><span class="kt">i32</span><span class="w"> </span><span class="p">[</span><span class="w"> </span><span class="nv">%a</span><span class="p">,</span><span class="w"> </span><span class="nv">%entry</span><span class="w"> </span><span class="p">]</span><span class="w"></span>
+<span class="w">  </span><span class="k">br</span><span class="w"> </span><span class="kt">label</span><span class="w"> </span><span class="nv">%merge</span><span class="w"></span>
+
+<span class="nl">else:</span><span class="w"></span>
+<span class="w">  </span><span class="nv">%x2</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="k">phi</span><span class="w"> </span><span class="kt">i32</span><span class="w"> </span><span class="p">[</span><span class="w"> </span><span class="nv">%b</span><span class="p">,</span><span class="w"> </span><span class="nv">%entry</span><span class="w"> </span><span class="p">]</span><span class="w"></span>
+<span class="w">  </span><span class="k">br</span><span class="w"> </span><span class="kt">label</span><span class="w"> </span><span class="nv">%merge</span><span class="w"></span>
+
+<span class="nl">merge:</span><span class="w"></span>
+<span class="w">  </span><span class="nv">%y</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="k">phi</span><span class="w"> </span><span class="kt">i32</span><span class="w"> </span><span class="p">[</span><span class="w"> </span><span class="nv">%x</span><span class="p">,</span><span class="w"> </span><span class="nv">%then</span><span class="w"> </span><span class="p">],</span><span class="w"> </span><span class="p">[</span><span class="w"> </span><span class="nv">%x2</span><span class="p">,</span><span class="w"> </span><span class="nv">%else</span><span class="w"> </span><span class="p">]</span><span class="w"></span>
+<span class="w">  </span><span class="k">ret</span><span class="w"> </span><span class="kt">i32</span><span class="w"> </span><span class="nv">%y</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
+</pre></div>
+</div>
+<p><strong>After Simplification:</strong></p>
+<div class="highlight-llvm notranslate"><div class="highlight"><pre><span></span><span class="k">define</span><span class="w"> </span><span class="kt">i32</span><span class="w"> </span><span class="vg">@example_copy_phi</span><span class="p">(</span><span class="kt">i32</span><span class="w"> </span><span class="nv">%a</span><span class="p">,</span><span class="w"> </span><span class="kt">i32</span><span class="w"> </span><span class="nv">%b</span><span class="p">,</span><span class="w"> </span><span class="kt">i1</span><span class="w"> </span><span class="nv">%cond</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="nl">entry:</span><span class="w"></span>
+<span class="w">  </span><span class="k">br</span><span class="w"> </span><span class="kt">i1</span><span class="w"> </span><span class="nv">%cond</span><span class="p">,</span><span class="w"> </span><span class="kt">label</span><span class="w"> </span><span class="nv">%then</span><span class="p">,</span><span class="w"> </span><span class="kt">label</span><span class="w"> </span><span class="nv">%else</span><span class="w"></span>
+
+<span class="nl">then:</span><span class="w"></span>
+<span class="w">  </span><span class="k">br</span><span class="w"> </span><span class="kt">label</span><span class="w"> </span><span class="nv">%merge</span><span class="w"></span>
+
+<span class="nl">else:</span><span class="w"></span>
+<span class="w">  </span><span class="k">br</span><span class="w"> </span><span class="kt">label</span><span class="w"> </span><span class="nv">%merge</span><span class="w"></span>
+
+<span class="nl">merge:</span><span class="w"></span>
+<span class="w">  </span><span class="nv">%y</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="k">phi</span><span class="w"> </span><span class="kt">i32</span><span class="w"> </span><span class="p">[</span><span class="w"> </span><span class="nv">%a</span><span class="p">,</span><span class="w"> </span><span class="nv">%then</span><span class="w"> </span><span class="p">],</span><span class="w"> </span><span class="p">[</span><span class="w"> </span><span class="nv">%b</span><span class="p">,</span><span class="w"> </span><span class="nv">%else</span><span class="w"> </span><span class="p">]</span><span class="w"></span>
+<span class="w">  </span><span class="k">ret</span><span class="w"> </span><span class="kt">i32</span><span class="w"> </span><span class="nv">%y</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
+</pre></div>
+</div>
+<ol class="arabic simple" start="3">
+<li><p>Dead φ-Node Elimination</p></li>
+</ol>
+<p>3.1 Unused φ</p>
+<p><strong>Before:</strong></p>
+<div class="highlight-llvm notranslate"><div class="highlight"><pre><span></span><span class="k">define</span><span class="w"> </span><span class="kt">i32</span><span class="w"> </span><span class="vg">@example_dead_phi</span><span class="p">(</span><span class="kt">i32</span><span class="w"> </span><span class="nv">%a</span><span class="p">,</span><span class="w"> </span><span class="kt">i32</span><span class="w"> </span><span class="nv">%b</span><span class="p">,</span><span class="w"> </span><span class="kt">i1</span><span class="w"> </span><span class="nv">%cond</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="nl">entry:</span><span class="w"></span>
+<span class="w">  </span><span class="k">br</span><span class="w"> </span><span class="kt">i1</span><span class="w"> </span><span class="nv">%cond</span><span class="p">,</span><span class="w"> </span><span class="kt">label</span><span class="w"> </span><span class="nv">%then</span><span class="p">,</span><span class="w"> </span><span class="kt">label</span><span class="w"> </span><span class="nv">%else</span><span class="w"></span>
+
+<span class="nl">then:</span><span class="w"></span>
+<span class="w">  </span><span class="k">br</span><span class="w"> </span><span class="kt">label</span><span class="w"> </span><span class="nv">%merge</span><span class="w"></span>
+
+<span class="nl">else:</span><span class="w"></span>
+<span class="w">  </span><span class="k">br</span><span class="w"> </span><span class="kt">label</span><span class="w"> </span><span class="nv">%merge</span><span class="w"></span>
+
+<span class="nl">merge:</span><span class="w"></span>
+<span class="w">  </span><span class="nv">%x</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="k">phi</span><span class="w"> </span><span class="kt">i32</span><span class="w"> </span><span class="p">[</span><span class="w"> </span><span class="nv">%a</span><span class="p">,</span><span class="w"> </span><span class="nv">%then</span><span class="w"> </span><span class="p">],</span><span class="w"> </span><span class="p">[</span><span class="w"> </span><span class="nv">%b</span><span class="p">,</span><span class="w"> </span><span class="nv">%else</span><span class="w"> </span><span class="p">]</span><span class="w"></span>
+<span class="w">  </span><span class="k">ret</span><span class="w"> </span><span class="kt">i32</span><span class="w"> </span><span class="m">0</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
+</pre></div>
+</div>
+<p><strong>After DCE:</strong></p>
+<div class="highlight-llvm notranslate"><div class="highlight"><pre><span></span><span class="k">define</span><span class="w"> </span><span class="kt">i32</span><span class="w"> </span><span class="vg">@example_dead_phi</span><span class="p">(</span><span class="kt">i32</span><span class="w"> </span><span class="nv">%a</span><span class="p">,</span><span class="w"> </span><span class="kt">i32</span><span class="w"> </span><span class="nv">%b</span><span class="p">,</span><span class="w"> </span><span class="kt">i1</span><span class="w"> </span><span class="nv">%cond</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="nl">entry:</span><span class="w"></span>
+<span class="w">  </span><span class="k">br</span><span class="w"> </span><span class="kt">i1</span><span class="w"> </span><span class="nv">%cond</span><span class="p">,</span><span class="w"> </span><span class="kt">label</span><span class="w"> </span><span class="nv">%then</span><span class="p">,</span><span class="w"> </span><span class="kt">label</span><span class="w"> </span><span class="nv">%else</span><span class="w"></span>
+
+<span class="nl">then:</span><span class="w"></span>
+<span class="w">  </span><span class="k">br</span><span class="w"> </span><span class="kt">label</span><span class="w"> </span><span class="nv">%merge</span><span class="w"></span>
+
+<span class="nl">else:</span><span class="w"></span>
+<span class="w">  </span><span class="k">br</span><span class="w"> </span><span class="kt">label</span><span class="w"> </span><span class="nv">%merge</span><span class="w"></span>
+
+<span class="nl">merge:</span><span class="w"></span>
+<span class="w">  </span><span class="k">ret</span><span class="w"> </span><span class="kt">i32</span><span class="w"> </span><span class="m">0</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
+</pre></div>
+</div>
+<p>3.2 Cascading Dead φs</p>
+<p><strong>Before:</strong></p>
+<div class="highlight-llvm notranslate"><div class="highlight"><pre><span></span><span class="k">define</span><span class="w"> </span><span class="kt">i32</span><span class="w"> </span><span class="vg">@example_cascade_dead_phi</span><span class="p">(</span><span class="kt">i32</span><span class="w"> </span><span class="nv">%a</span><span class="p">,</span><span class="w"> </span><span class="kt">i32</span><span class="w"> </span><span class="nv">%b</span><span class="p">,</span><span class="w"> </span><span class="kt">i1</span><span class="w"> </span><span class="nv">%cond</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="nl">entry:</span><span class="w"></span>
+<span class="w">  </span><span class="k">br</span><span class="w"> </span><span class="kt">i1</span><span class="w"> </span><span class="nv">%cond</span><span class="p">,</span><span class="w"> </span><span class="kt">label</span><span class="w"> </span><span class="nv">%then</span><span class="p">,</span><span class="w"> </span><span class="kt">label</span><span class="w"> </span><span class="nv">%else</span><span class="w"></span>
+
+<span class="nl">then:</span><span class="w"></span>
+<span class="w">  </span><span class="k">br</span><span class="w"> </span><span class="kt">label</span><span class="w"> </span><span class="nv">%merge</span><span class="w"></span>
+
+<span class="nl">else:</span><span class="w"></span>
+<span class="w">  </span><span class="k">br</span><span class="w"> </span><span class="kt">label</span><span class="w"> </span><span class="nv">%merge</span><span class="w"></span>
+
+<span class="nl">merge:</span><span class="w"></span>
+<span class="w">  </span><span class="nv">%x</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="k">phi</span><span class="w"> </span><span class="kt">i32</span><span class="w"> </span><span class="p">[</span><span class="w"> </span><span class="nv">%a</span><span class="p">,</span><span class="w"> </span><span class="nv">%then</span><span class="w"> </span><span class="p">],</span><span class="w"> </span><span class="p">[</span><span class="w"> </span><span class="nv">%b</span><span class="p">,</span><span class="w"> </span><span class="nv">%else</span><span class="w"> </span><span class="p">]</span><span class="w"></span>
+<span class="w">  </span><span class="nv">%y</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="k">add</span><span class="w"> </span><span class="kt">i32</span><span class="w"> </span><span class="nv">%x</span><span class="p">,</span><span class="w"> </span><span class="m">0</span><span class="w"></span>
+<span class="w">  </span><span class="k">ret</span><span class="w"> </span><span class="kt">i32</span><span class="w"> </span><span class="m">1</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
+</pre></div>
+</div>
+<p><strong>After DCE + InstCombine:</strong></p>
+<div class="highlight-llvm notranslate"><div class="highlight"><pre><span></span><span class="k">define</span><span class="w"> </span><span class="kt">i32</span><span class="w"> </span><span class="vg">@example_cascade_dead_phi</span><span class="p">(</span><span class="kt">i32</span><span class="w"> </span><span class="nv">%a</span><span class="p">,</span><span class="w"> </span><span class="kt">i32</span><span class="w"> </span><span class="nv">%b</span><span class="p">,</span><span class="w"> </span><span class="kt">i1</span><span class="w"> </span><span class="nv">%cond</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="nl">entry:</span><span class="w"></span>
+<span class="w">  </span><span class="k">br</span><span class="w"> </span><span class="kt">i1</span><span class="w"> </span><span class="nv">%cond</span><span class="p">,</span><span class="w"> </span><span class="kt">label</span><span class="w"> </span><span class="nv">%then</span><span class="p">,</span><span class="w"> </span><span class="kt">label</span><span class="w"> </span><span class="nv">%else</span><span class="w"></span>
+
+<span class="nl">then:</span><span class="w"></span>
+<span class="w">  </span><span class="k">br</span><span class="w"> </span><span class="kt">label</span><span class="w"> </span><span class="nv">%merge</span><span class="w"></span>
+
+<span class="nl">else:</span><span class="w"></span>
+<span class="w">  </span><span class="k">br</span><span class="w"> </span><span class="kt">label</span><span class="w"> </span><span class="nv">%merge</span><span class="w"></span>
+
+<span class="nl">merge:</span><span class="w"></span>
+<span class="w">  </span><span class="k">ret</span><span class="w"> </span><span class="kt">i32</span><span class="w"> </span><span class="m">1</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
+</pre></div>
+</div>
+<ol class="arabic simple" start="4">
+<li><p>Control-Flow Simplification and φ</p></li>
+</ol>
+<p>4.1 Branch Known Constant → φ Collapse</p>
+<p><strong>Before:</strong></p>
+<div class="highlight-llvm notranslate"><div class="highlight"><pre><span></span><span class="k">define</span><span class="w"> </span><span class="kt">i32</span><span class="w"> </span><span class="vg">@example_simplifycfg</span><span class="p">(</span><span class="kt">i32</span><span class="w"> </span><span class="nv">%a</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="nl">entry:</span><span class="w"></span>
+<span class="w">  </span><span class="nv">%cmp</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="k">icmp</span><span class="w"> </span><span class="k">eq</span><span class="w"> </span><span class="kt">i32</span><span class="w"> </span><span class="nv">%a</span><span class="p">,</span><span class="w"> </span><span class="m">0</span><span class="w"></span>
+<span class="w">  </span><span class="k">br</span><span class="w"> </span><span class="kt">i1</span><span class="w"> </span><span class="nv">%cmp</span><span class="p">,</span><span class="w"> </span><span class="kt">label</span><span class="w"> </span><span class="nv">%zero</span><span class="p">,</span><span class="w"> </span><span class="kt">label</span><span class="w"> </span><span class="nv">%nonzero</span><span class="w"></span>
+
+<span class="nl">zero:</span><span class="w"></span>
+<span class="w">  </span><span class="k">br</span><span class="w"> </span><span class="kt">label</span><span class="w"> </span><span class="nv">%merge</span><span class="w"></span>
+
+<span class="nl">nonzero:</span><span class="w"></span>
+<span class="w">  </span><span class="k">br</span><span class="w"> </span><span class="kt">label</span><span class="w"> </span><span class="nv">%merge</span><span class="w"></span>
+
+<span class="nl">merge:</span><span class="w"></span>
+<span class="w">  </span><span class="nv">%x</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="k">phi</span><span class="w"> </span><span class="kt">i32</span><span class="w"> </span><span class="p">[</span><span class="w"> </span><span class="m">0</span><span class="p">,</span><span class="w"> </span><span class="nv">%zero</span><span class="w"> </span><span class="p">],</span><span class="w"> </span><span class="p">[</span><span class="w"> </span><span class="m">1</span><span class="p">,</span><span class="w"> </span><span class="nv">%nonzero</span><span class="w"> </span><span class="p">]</span><span class="w"></span>
+<span class="w">  </span><span class="k">ret</span><span class="w"> </span><span class="kt">i32</span><span class="w"> </span><span class="nv">%x</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
+</pre></div>
+</div>
+<p><strong>After SimplifyCFG:</strong></p>
+<div class="highlight-llvm notranslate"><div class="highlight"><pre><span></span><span class="k">define</span><span class="w"> </span><span class="kt">i32</span><span class="w"> </span><span class="vg">@example_simplifycfg</span><span class="p">(</span><span class="kt">i32</span><span class="w"> </span><span class="nv">%a</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="nl">entry:</span><span class="w"></span>
+<span class="w">  </span><span class="k">br</span><span class="w"> </span><span class="kt">label</span><span class="w"> </span><span class="nv">%merge</span><span class="w"></span>
+
+<span class="nl">merge:</span><span class="w"></span>
+<span class="w">  </span><span class="k">ret</span><span class="w"> </span><span class="kt">i32</span><span class="w"> </span><span class="m">0</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
+</pre></div>
+</div>
+<p>4.2 Block Merging</p>
+<p><strong>Before:</strong></p>
+<div class="highlight-llvm notranslate"><div class="highlight"><pre><span></span><span class="k">define</span><span class="w"> </span><span class="kt">i32</span><span class="w"> </span><span class="vg">@example_block_merge</span><span class="p">(</span><span class="kt">i32</span><span class="w"> </span><span class="nv">%a</span><span class="p">,</span><span class="w"> </span><span class="kt">i1</span><span class="w"> </span><span class="nv">%cond</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="nl">entry:</span><span class="w"></span>
+<span class="w">  </span><span class="k">br</span><span class="w"> </span><span class="kt">i1</span><span class="w"> </span><span class="nv">%cond</span><span class="p">,</span><span class="w"> </span><span class="kt">label</span><span class="w"> </span><span class="nv">%then</span><span class="p">,</span><span class="w"> </span><span class="kt">label</span><span class="w"> </span><span class="nv">%else</span><span class="w"></span>
+
+<span class="nl">then:</span><span class="w"></span>
+<span class="w">  </span><span class="nv">%x1</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="k">add</span><span class="w"> </span><span class="kt">i32</span><span class="w"> </span><span class="nv">%a</span><span class="p">,</span><span class="w"> </span><span class="m">1</span><span class="w"></span>
+<span class="w">  </span><span class="k">br</span><span class="w"> </span><span class="kt">label</span><span class="w"> </span><span class="nv">%merge</span><span class="w"></span>
+
+<span class="nl">else:</span><span class="w"></span>
+<span class="w">  </span><span class="nv">%x2</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="k">add</span><span class="w"> </span><span class="kt">i32</span><span class="w"> </span><span class="nv">%a</span><span class="p">,</span><span class="w"> </span><span class="m">1</span><span class="w"></span>
+<span class="w">  </span><span class="k">br</span><span class="w"> </span><span class="kt">label</span><span class="w"> </span><span class="nv">%merge</span><span class="w"></span>
+
+<span class="nl">merge:</span><span class="w"></span>
+<span class="w">  </span><span class="nv">%x</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="k">phi</span><span class="w"> </span><span class="kt">i32</span><span class="w"> </span><span class="p">[</span><span class="w"> </span><span class="nv">%x1</span><span class="p">,</span><span class="w"> </span><span class="nv">%then</span><span class="w"> </span><span class="p">],</span><span class="w"> </span><span class="p">[</span><span class="w"> </span><span class="nv">%x2</span><span class="p">,</span><span class="w"> </span><span class="nv">%else</span><span class="w"> </span><span class="p">]</span><span class="w"></span>
+<span class="w">  </span><span class="k">ret</span><span class="w"> </span><span class="kt">i32</span><span class="w"> </span><span class="nv">%x</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
+</pre></div>
+</div>
+<p><strong>After SimplifyCFG + InstCombine:</strong></p>
+<div class="highlight-llvm notranslate"><div class="highlight"><pre><span></span><span class="k">define</span><span class="w"> </span><span class="kt">i32</span><span class="w"> </span><span class="vg">@example_block_merge</span><span class="p">(</span><span class="kt">i32</span><span class="w"> </span><span class="nv">%a</span><span class="p">,</span><span class="w"> </span><span class="kt">i1</span><span class="w"> </span><span class="nv">%cond</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="nl">entry:</span><span class="w"></span>
+<span class="w">  </span><span class="nv">%x</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="k">add</span><span class="w"> </span><span class="kt">i32</span><span class="w"> </span><span class="nv">%a</span><span class="p">,</span><span class="w"> </span><span class="m">1</span><span class="w"></span>
+<span class="w">  </span><span class="k">ret</span><span class="w"> </span><span class="kt">i32</span><span class="w"> </span><span class="nv">%x</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
+</pre></div>
+</div>
+<ol class="arabic simple" start="5">
+<li><p>Loop Optimizations Using φ-Nodes</p></li>
+</ol>
+<p>5.1 Canonical Induction Variable</p>
+<p><strong>Before:</strong></p>
+<div class="highlight-llvm notranslate"><div class="highlight"><pre><span></span><span class="k">define</span><span class="w"> </span><span class="kt">i32</span><span class="w"> </span><span class="vg">@sum</span><span class="p">(</span><span class="kt">i32</span><span class="p">*</span><span class="w"> </span><span class="nv">%arr</span><span class="p">,</span><span class="w"> </span><span class="kt">i32</span><span class="w"> </span><span class="nv">%n</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="nl">entry:</span><span class="w"></span>
+<span class="w">  </span><span class="k">br</span><span class="w"> </span><span class="kt">label</span><span class="w"> </span><span class="nv">%loop</span><span class="w"></span>
+
+<span class="nl">loop:</span><span class="w"></span>
+<span class="w">  </span><span class="nv">%i</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="k">phi</span><span class="w"> </span><span class="kt">i32</span><span class="w"> </span><span class="p">[</span><span class="w"> </span><span class="m">0</span><span class="p">,</span><span class="w"> </span><span class="nv">%entry</span><span class="w"> </span><span class="p">],</span><span class="w"> </span><span class="p">[</span><span class="w"> </span><span class="nv">%i.next</span><span class="p">,</span><span class="w"> </span><span class="nv">%loop</span><span class="w"> </span><span class="p">]</span><span class="w"></span>
+<span class="w">  </span><span class="nv">%sum</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="k">phi</span><span class="w"> </span><span class="kt">i32</span><span class="w"> </span><span class="p">[</span><span class="w"> </span><span class="m">0</span><span class="p">,</span><span class="w"> </span><span class="nv">%entry</span><span class="w"> </span><span class="p">],</span><span class="w"> </span><span class="p">[</span><span class="w"> </span><span class="nv">%sum.next</span><span class="p">,</span><span class="w"> </span><span class="nv">%loop</span><span class="w"> </span><span class="p">]</span><span class="w"></span>
+
+<span class="w">  </span><span class="nv">%inbounds</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="k">icmp</span><span class="w"> </span><span class="k">slt</span><span class="w"> </span><span class="kt">i32</span><span class="w"> </span><span class="nv">%i</span><span class="p">,</span><span class="w"> </span><span class="nv">%n</span><span class="w"></span>
+<span class="w">  </span><span class="k">br</span><span class="w"> </span><span class="kt">i1</span><span class="w"> </span><span class="nv">%inbounds</span><span class="p">,</span><span class="w"> </span><span class="kt">label</span><span class="w"> </span><span class="nv">%body</span><span class="p">,</span><span class="w"> </span><span class="kt">label</span><span class="w"> </span><span class="nv">%exit</span><span class="w"></span>
+
+<span class="nl">body:</span><span class="w"></span>
+<span class="w">  </span><span class="nv">%ptr</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="k">getelementptr</span><span class="w"> </span><span class="k">inbounds</span><span class="w"> </span><span class="kt">i32</span><span class="p">,</span><span class="w"> </span><span class="kt">i32</span><span class="p">*</span><span class="w"> </span><span class="nv">%arr</span><span class="p">,</span><span class="w"> </span><span class="kt">i32</span><span class="w"> </span><span class="nv">%i</span><span class="w"></span>
+<span class="w">  </span><span class="nv">%val</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="k">load</span><span class="w"> </span><span class="kt">i32</span><span class="p">,</span><span class="w"> </span><span class="kt">i32</span><span class="p">*</span><span class="w"> </span><span class="nv">%ptr</span><span class="w"></span>
+<span class="w">  </span><span class="nv">%sum.next</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="k">add</span><span class="w"> </span><span class="kt">i32</span><span class="w"> </span><span class="nv">%sum</span><span class="p">,</span><span class="w"> </span><span class="nv">%val</span><span class="w"></span>
+<span class="w">  </span><span class="nv">%i.next</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="k">add</span><span class="w"> </span><span class="kt">i32</span><span class="w"> </span><span class="nv">%i</span><span class="p">,</span><span class="w"> </span><span class="m">1</span><span class="w"></span>
+<span class="w">  </span><span class="k">br</span><span class="w"> </span><span class="kt">label</span><span class="w"> </span><span class="nv">%loop</span><span class="w"></span>
+
+<span class="nl">exit:</span><span class="w"></span>
+<span class="w">  </span><span class="k">ret</span><span class="w"> </span><span class="kt">i32</span><span class="w"> </span><span class="nv">%sum</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
+</pre></div>
+</div>
+<p><strong>After IndVarSimplify (conceptual):</strong></p>
+<div class="highlight-llvm notranslate"><div class="highlight"><pre><span></span><span class="k">define</span><span class="w"> </span><span class="kt">i32</span><span class="w"> </span><span class="vg">@sum</span><span class="p">(</span><span class="kt">i32</span><span class="p">*</span><span class="w"> </span><span class="nv">%arr</span><span class="p">,</span><span class="w"> </span><span class="kt">i32</span><span class="w"> </span><span class="nv">%n</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="nl">entry:</span><span class="w"></span>
+<span class="w">  </span><span class="k">br</span><span class="w"> </span><span class="kt">label</span><span class="w"> </span><span class="nv">%loop</span><span class="w"></span>
+
+<span class="nl">loop:</span><span class="w"></span>
+<span class="w">  </span><span class="nv">%iv</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="k">phi</span><span class="w"> </span><span class="kt">i64</span><span class="w"> </span><span class="p">[</span><span class="w"> </span><span class="m">0</span><span class="p">,</span><span class="w"> </span><span class="nv">%entry</span><span class="w"> </span><span class="p">],</span><span class="w"> </span><span class="p">[</span><span class="w"> </span><span class="nv">%iv.next</span><span class="p">,</span><span class="w"> </span><span class="nv">%loop</span><span class="w"> </span><span class="p">]</span><span class="w"></span>
+<span class="w">  </span><span class="nv">%sum</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="k">phi</span><span class="w"> </span><span class="kt">i32</span><span class="w"> </span><span class="p">[</span><span class="w"> </span><span class="m">0</span><span class="p">,</span><span class="w"> </span><span class="nv">%entry</span><span class="w"> </span><span class="p">],</span><span class="w"> </span><span class="p">[</span><span class="w"> </span><span class="nv">%sum.next</span><span class="p">,</span><span class="w"> </span><span class="nv">%loop</span><span class="w"> </span><span class="p">]</span><span class="w"></span>
+
+<span class="w">  </span><span class="nv">%iv.trunc</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="k">trunc</span><span class="w"> </span><span class="kt">i64</span><span class="w"> </span><span class="nv">%iv</span><span class="w"> </span><span class="k">to</span><span class="w"> </span><span class="kt">i32</span><span class="w"></span>
+<span class="w">  </span><span class="nv">%inbounds</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="k">icmp</span><span class="w"> </span><span class="k">slt</span><span class="w"> </span><span class="kt">i32</span><span class="w"> </span><span class="nv">%iv.trunc</span><span class="p">,</span><span class="w"> </span><span class="nv">%n</span><span class="w"></span>
+<span class="w">  </span><span class="k">br</span><span class="w"> </span><span class="kt">i1</span><span class="w"> </span><span class="nv">%inbounds</span><span class="p">,</span><span class="w"> </span><span class="kt">label</span><span class="w"> </span><span class="nv">%body</span><span class="p">,</span><span class="w"> </span><span class="kt">label</span><span class="w"> </span><span class="nv">%exit</span><span class="w"></span>
+
+<span class="nl">body:</span><span class="w"></span>
+<span class="w">  </span><span class="nv">%ptr</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="k">getelementptr</span><span class="w"> </span><span class="k">inbounds</span><span class="w"> </span><span class="kt">i32</span><span class="p">,</span><span class="w"> </span><span class="kt">i32</span><span class="p">*</span><span class="w"> </span><span class="nv">%arr</span><span class="p">,</span><span class="w"> </span><span class="kt">i64</span><span class="w"> </span><span class="nv">%iv</span><span class="w"></span>
+<span class="w">  </span><span class="nv">%val</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="k">load</span><span class="w"> </span><span class="kt">i32</span><span class="p">,</span><span class="w"> </span><span class="kt">i32</span><span class="p">*</span><span class="w"> </span><span class="nv">%ptr</span><span class="w"></span>
+<span class="w">  </span><span class="nv">%sum.next</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="k">add</span><span class="w"> </span><span class="kt">i32</span><span class="w"> </span><span class="nv">%sum</span><span class="p">,</span><span class="w"> </span><span class="nv">%val</span><span class="w"></span>
+<span class="w">  </span><span class="nv">%iv.next</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="k">add</span><span class="w"> </span><span class="kt">i64</span><span class="w"> </span><span class="nv">%iv</span><span class="p">,</span><span class="w"> </span><span class="m">1</span><span class="w"></span>
+<span class="w">  </span><span class="k">br</span><span class="w"> </span><span class="kt">label</span><span class="w"> </span><span class="nv">%loop</span><span class="w"></span>
+
+<span class="nl">exit:</span><span class="w"></span>
+<span class="w">  </span><span class="k">ret</span><span class="w"> </span><span class="kt">i32</span><span class="w"> </span><span class="nv">%sum</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
+</pre></div>
+</div>
+<p>5.2 Loop-Invariant Code Motion (LICM)</p>
+<p><strong>Before:</strong></p>
+<div class="highlight-llvm notranslate"><div class="highlight"><pre><span></span><span class="k">define</span><span class="w"> </span><span class="k">void</span><span class="w"> </span><span class="vg">@example_licm</span><span class="p">(</span><span class="kt">i32</span><span class="p">*</span><span class="w"> </span><span class="nv">%p</span><span class="p">,</span><span class="w"> </span><span class="kt">i32</span><span class="p">*</span><span class="w"> </span><span class="nv">%q</span><span class="p">,</span><span class="w"> </span><span class="kt">i32</span><span class="w"> </span><span class="nv">%n</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="nl">entry:</span><span class="w"></span>
+<span class="w">  </span><span class="k">br</span><span class="w"> </span><span class="kt">label</span><span class="w"> </span><span class="nv">%loop</span><span class="w"></span>
+
+<span class="nl">loop:</span><span class="w"></span>
+<span class="w">  </span><span class="nv">%i</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="k">phi</span><span class="w"> </span><span class="kt">i32</span><span class="w"> </span><span class="p">[</span><span class="w"> </span><span class="m">0</span><span class="p">,</span><span class="w"> </span><span class="nv">%entry</span><span class="w"> </span><span class="p">],</span><span class="w"> </span><span class="p">[</span><span class="w"> </span><span class="nv">%i.next</span><span class="p">,</span><span class="w"> </span><span class="nv">%loop</span><span class="w"> </span><span class="p">]</span><span class="w"></span>
+<span class="w">  </span><span class="nv">%inb</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="k">icmp</span><span class="w"> </span><span class="k">slt</span><span class="w"> </span><span class="kt">i32</span><span class="w"> </span><span class="nv">%i</span><span class="p">,</span><span class="w"> </span><span class="nv">%n</span><span class="w"></span>
+<span class="w">  </span><span class="k">br</span><span class="w"> </span><span class="kt">i1</span><span class="w"> </span><span class="nv">%inb</span><span class="p">,</span><span class="w"> </span><span class="kt">label</span><span class="w"> </span><span class="nv">%body</span><span class="p">,</span><span class="w"> </span><span class="kt">label</span><span class="w"> </span><span class="nv">%exit</span><span class="w"></span>
+
+<span class="nl">body:</span><span class="w"></span>
+<span class="w">  </span><span class="nv">%c</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="k">load</span><span class="w"> </span><span class="kt">i32</span><span class="p">,</span><span class="w"> </span><span class="kt">i32</span><span class="p">*</span><span class="w"> </span><span class="nv">%q</span><span class="w"></span>
+<span class="w">  </span><span class="nv">%ptr</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="k">getelementptr</span><span class="w"> </span><span class="k">inbounds</span><span class="w"> </span><span class="kt">i32</span><span class="p">,</span><span class="w"> </span><span class="kt">i32</span><span class="p">*</span><span class="w"> </span><span class="nv">%p</span><span class="p">,</span><span class="w"> </span><span class="kt">i32</span><span class="w"> </span><span class="nv">%i</span><span class="w"></span>
+<span class="w">  </span><span class="k">store</span><span class="w"> </span><span class="kt">i32</span><span class="w"> </span><span class="nv">%c</span><span class="p">,</span><span class="w"> </span><span class="kt">i32</span><span class="p">*</span><span class="w"> </span><span class="nv">%ptr</span><span class="w"></span>
+<span class="w">  </span><span class="nv">%i.next</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="k">add</span><span class="w"> </span><span class="kt">i32</span><span class="w"> </span><span class="nv">%i</span><span class="p">,</span><span class="w"> </span><span class="m">1</span><span class="w"></span>
+<span class="w">  </span><span class="k">br</span><span class="w"> </span><span class="kt">label</span><span class="w"> </span><span class="nv">%loop</span><span class="w"></span>
+
+<span class="nl">exit:</span><span class="w"></span>
+<span class="w">  </span><span class="k">ret</span><span class="w"> </span><span class="k">void</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
+</pre></div>
+</div>
+<p><strong>After LICM:</strong></p>
+<div class="highlight-llvm notranslate"><div class="highlight"><pre><span></span><span class="k">define</span><span class="w"> </span><span class="k">void</span><span class="w"> </span><span class="vg">@example_licm</span><span class="p">(</span><span class="kt">i32</span><span class="p">*</span><span class="w"> </span><span class="nv">%p</span><span class="p">,</span><span class="w"> </span><span class="kt">i32</span><span class="p">*</span><span class="w"> </span><span class="nv">%q</span><span class="p">,</span><span class="w"> </span><span class="kt">i32</span><span class="w"> </span><span class="nv">%n</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="nl">entry:</span><span class="w"></span>
+<span class="w">  </span><span class="nv">%c</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="k">load</span><span class="w"> </span><span class="kt">i32</span><span class="p">,</span><span class="w"> </span><span class="kt">i32</span><span class="p">*</span><span class="w"> </span><span class="nv">%q</span><span class="w"></span>
+<span class="w">  </span><span class="k">br</span><span class="w"> </span><span class="kt">label</span><span class="w"> </span><span class="nv">%loop</span><span class="w"></span>
+
+<span class="nl">loop:</span><span class="w"></span>
+<span class="w">  </span><span class="nv">%i</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="k">phi</span><span class="w"> </span><span class="kt">i32</span><span class="w"> </span><span class="p">[</span><span class="w"> </span><span class="m">0</span><span class="p">,</span><span class="w"> </span><span class="nv">%entry</span><span class="w"> </span><span class="p">],</span><span class="w"> </span><span class="p">[</span><span class="w"> </span><span class="nv">%i.next</span><span class="p">,</span><span class="w"> </span><span class="nv">%loop</span><span class="w"> </span><span class="p">]</span><span class="w"></span>
+<span class="w">  </span><span class="nv">%inb</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="k">icmp</span><span class="w"> </span><span class="k">slt</span><span class="w"> </span><span class="kt">i32</span><span class="w"> </span><span class="nv">%i</span><span class="p">,</span><span class="w"> </span><span class="nv">%n</span><span class="w"></span>
+<span class="w">  </span><span class="k">br</span><span class="w"> </span><span class="kt">i1</span><span class="w"> </span><span class="nv">%inb</span><span class="p">,</span><span class="w"> </span><span class="kt">label</span><span class="w"> </span><span class="nv">%body</span><span class="p">,</span><span class="w"> </span><span class="kt">label</span><span class="w"> </span><span class="nv">%exit</span><span class="w"></span>
+
+<span class="nl">body:</span><span class="w"></span>
+<span class="w">  </span><span class="nv">%ptr</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="k">getelementptr</span><span class="w"> </span><span class="k">inbounds</span><span class="w"> </span><span class="kt">i32</span><span class="p">,</span><span class="w"> </span><span class="kt">i32</span><span class="p">*</span><span class="w"> </span><span class="nv">%p</span><span class="p">,</span><span class="w"> </span><span class="kt">i32</span><span class="w"> </span><span class="nv">%i</span><span class="w"></span>
+<span class="w">  </span><span class="k">store</span><span class="w"> </span><span class="kt">i32</span><span class="w"> </span><span class="nv">%c</span><span class="p">,</span><span class="w"> </span><span class="kt">i32</span><span class="p">*</span><span class="w"> </span><span class="nv">%ptr</span><span class="w"></span>
+<span class="w">  </span><span class="nv">%i.next</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="k">add</span><span class="w"> </span><span class="kt">i32</span><span class="w"> </span><span class="nv">%i</span><span class="p">,</span><span class="w"> </span><span class="m">1</span><span class="w"></span>
+<span class="w">  </span><span class="k">br</span><span class="w"> </span><span class="kt">label</span><span class="w"> </span><span class="nv">%loop</span><span class="w"></span>
+
+<span class="nl">exit:</span><span class="w"></span>
+<span class="w">  </span><span class="k">ret</span><span class="w"> </span><span class="k">void</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
+</pre></div>
+</div>
+<ol class="arabic simple" start="6">
+<li><p>mem2reg: Introducing φ-Nodes</p></li>
+</ol>
+<p>6.1 Before mem2reg</p>
+<div class="highlight-llvm notranslate"><div class="highlight"><pre><span></span><span class="k">define</span><span class="w"> </span><span class="kt">i32</span><span class="w"> </span><span class="vg">@example_mem2reg</span><span class="p">(</span><span class="kt">i1</span><span class="w"> </span><span class="nv">%cond</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="nl">entry:</span><span class="w"></span>
+<span class="w">  </span><span class="nv">%x</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="k">alloca</span><span class="w"> </span><span class="kt">i32</span><span class="p">,</span><span class="w"> </span><span class="k">align</span><span class="w"> </span><span class="m">4</span><span class="w"></span>
+<span class="w">  </span><span class="k">store</span><span class="w"> </span><span class="kt">i32</span><span class="w"> </span><span class="m">0</span><span class="p">,</span><span class="w"> </span><span class="kt">i32</span><span class="p">*</span><span class="w"> </span><span class="nv">%x</span><span class="w"></span>
+<span class="w">  </span><span class="k">br</span><span class="w"> </span><span class="kt">i1</span><span class="w"> </span><span class="nv">%cond</span><span class="p">,</span><span class="w"> </span><span class="kt">label</span><span class="w"> </span><span class="nv">%then</span><span class="p">,</span><span class="w"> </span><span class="kt">label</span><span class="w"> </span><span class="nv">%else</span><span class="w"></span>
+
+<span class="nl">then:</span><span class="w"></span>
+<span class="w">  </span><span class="k">store</span><span class="w"> </span><span class="kt">i32</span><span class="w"> </span><span class="m">1</span><span class="p">,</span><span class="w"> </span><span class="kt">i32</span><span class="p">*</span><span class="w"> </span><span class="nv">%x</span><span class="w"></span>
+<span class="w">  </span><span class="k">br</span><span class="w"> </span><span class="kt">label</span><span class="w"> </span><span class="nv">%merge</span><span class="w"></span>
+
+<span class="nl">else:</span><span class="w"></span>
+<span class="w">  </span><span class="k">store</span><span class="w"> </span><span class="kt">i32</span><span class="w"> </span><span class="m">2</span><span class="p">,</span><span class="w"> </span><span class="kt">i32</span><span class="p">*</span><span class="w"> </span><span class="nv">%x</span><span class="w"></span>
+<span class="w">  </span><span class="k">br</span><span class="w"> </span><span class="kt">label</span><span class="w"> </span><span class="nv">%merge</span><span class="w"></span>
+
+<span class="nl">merge:</span><span class="w"></span>
+<span class="w">  </span><span class="nv">%x.load</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="k">load</span><span class="w"> </span><span class="kt">i32</span><span class="p">,</span><span class="w"> </span><span class="kt">i32</span><span class="p">*</span><span class="w"> </span><span class="nv">%x</span><span class="w"></span>
+<span class="w">  </span><span class="k">ret</span><span class="w"> </span><span class="kt">i32</span><span class="w"> </span><span class="nv">%x.load</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
+</pre></div>
+</div>
+<p>6.2 After mem2reg</p>
+<div class="highlight-llvm notranslate"><div class="highlight"><pre><span></span><span class="k">define</span><span class="w"> </span><span class="kt">i32</span><span class="w"> </span><span class="vg">@example_mem2reg</span><span class="p">(</span><span class="kt">i1</span><span class="w"> </span><span class="nv">%cond</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="nl">entry:</span><span class="w"></span>
+<span class="w">  </span><span class="k">br</span><span class="w"> </span><span class="kt">i1</span><span class="w"> </span><span class="nv">%cond</span><span class="p">,</span><span class="w"> </span><span class="kt">label</span><span class="w"> </span><span class="nv">%then</span><span class="p">,</span><span class="w"> </span><span class="kt">label</span><span class="w"> </span><span class="nv">%else</span><span class="w"></span>
+
+<span class="nl">then:</span><span class="w"></span>
+<span class="w">  </span><span class="k">br</span><span class="w"> </span><span class="kt">label</span><span class="w"> </span><span class="nv">%merge</span><span class="w"></span>
+
+<span class="nl">else:</span><span class="w"></span>
+<span class="w">  </span><span class="k">br</span><span class="w"> </span><span class="kt">label</span><span class="w"> </span><span class="nv">%merge</span><span class="w"></span>
+
+<span class="nl">merge:</span><span class="w"></span>
+<span class="w">  </span><span class="nv">%x.promoted</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="k">phi</span><span class="w"> </span><span class="kt">i32</span><span class="w"> </span><span class="p">[</span><span class="w"> </span><span class="m">1</span><span class="p">,</span><span class="w"> </span><span class="nv">%then</span><span class="w"> </span><span class="p">],</span><span class="w"> </span><span class="p">[</span><span class="w"> </span><span class="m">2</span><span class="p">,</span><span class="w"> </span><span class="nv">%else</span><span class="w"> </span><span class="p">]</span><span class="w"></span>
+<span class="w">  </span><span class="k">ret</span><span class="w"> </span><span class="kt">i32</span><span class="w"> </span><span class="nv">%x.promoted</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
+</pre></div>
+</div>
+</section>
 <section id="risc-cpu-knowledge">
-<h2><a class="toc-backref" href="#id24" role="doc-backlink">RISC CPU knowledge</a><a class="headerlink" href="#risc-cpu-knowledge" title="Permalink to this heading">¶</a></h2>
+<h2><a class="toc-backref" href="#id26" role="doc-backlink">RISC CPU knowledge</a><a class="headerlink" href="#risc-cpu-knowledge" title="Permalink to this heading">¶</a></h2>
 <p>As mentioned in the previous section, Cpu0 is a RISC (Reduced Instruction Set
 Computer) CPU with a 5-stage pipeline. RISC CPUs dominate the world today.
 Even the x86 architecture, traditionally classified as CISC (Complex Instruction
