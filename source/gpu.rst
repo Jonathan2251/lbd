@@ -1764,6 +1764,10 @@ from the book *OpenGL Programming Guide, 9th Edition* [#redbook]_ as follows:
          - Generates fragments
          - Sends fragments to fragment shader cores
 
+.. list-table:: Data Flow Through the OpenGL Shader Pipeline Continue
+   :widths: 20 35 35 45
+   :header-rows: 1
+
    * - Fragment Shader
      - - Interpolated varyings
        - Textures / samplers
@@ -1844,10 +1848,48 @@ animation tools—such as Maya, Blender, and others—can utilize these APIs to 
 The hardware-specific implementation of these APIs is provided by GPU manufacturers,
 ensuring that rendering is optimized for the underlying hardware.
 
-The subsection :ref:`role-shaders` has introduced the shaders. 
+:ref:`role-shaders` subsection has introduced the shaders. 
 
-A shader-less (fixed-function) pipeline has limitations in both **animation 
-capability and performance**, as follows:
+✔ Some consoles and mobile GPUs did have fixed‑function skinning.
+
+✔ In those systems, you could upload bone matrices and let hardware animate vertices.
+
+❌ **But you could not change the formulas — only use the built‑in ones.**
+
+The following console GPUs did have fixed‑function skinning:
+
+PlayStation 2 (PS2) — VU0/VU1 Microcode
+
+PS2 had fixed hardware instructions for:
+
+-  skinning
+-  morphing
+-  matrix blending
+
+Developers could upload bone matrices and let the hardware do the blending.  
+No shaders existed yet.
+
+Nintendo GameCube / Wii — XF Unit
+
+The GameCube GPU had a fixed‑function transform unit that supported:
+
+-  matrix palette skinning (up to 10 matrices)
+-  per‑vertex weighted blending
+
+Again, no shaders — but hardware skinning existed.
+
+However **the fixed‑function pipeline (OpenGL 1.x / early 2.x without shaders)**
+has:
+
+-  no per‑vertex programmable math
+-  no access to bone matrices
+-  no ability to blend multiple positions
+-  no ability to apply time‑based deformation
+-  no ability to read custom vertex attributes
+-  no ability to modify vertex positions except via the model‑view matrix
+
+A shader-less (fixed-function) pipeline in early OpenGL has limitations in both 
+**animation capability and performance**, as follows:
 
 **Major Disadvantages of a Shader-less (Fixed-Function) Pipeline**
 
