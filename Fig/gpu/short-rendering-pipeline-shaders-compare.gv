@@ -1,0 +1,41 @@
+digraph Pipeline_Traditional_vs_Mesh {
+    rankdir=LR;
+    node [shape=box, style=rounded, fontsize=12];
+
+    subgraph cluster_traditional {
+        label="Traditional Pipeline";
+        style=rounded;
+
+        VIn      [label="Vertex Input\n(Vertex Specification)\nVBOs, VAOs, Indices"];
+        VS       [label="Vertex Shader\n(Transforms, Optional Skinning)"];
+        Tess     [label="Tessellation (Optional)\n(TCS + TES)"];
+        GS       [label="Geometry Shader (Optional)"];
+        Raster   [label="Rasterizer\n(Primitive Assembly,\nClipping, Interpolation)"];
+        FS       [label="Fragment Shader\n(Lighting, Texturing,\nShading, Materials)"];
+        FB       [label="Framebuffer\n(Final Rendered Image)"];
+
+        VIn -> VS;
+        VS  -> Tess;
+        Tess -> GS;
+        GS -> Raster;
+        Raster -> FS;
+        FS -> FB;
+    }
+
+    subgraph cluster_mesh {
+        label="Mesh-Shader Pipeline";
+        style=rounded;
+
+        MIn        [label="Mesh Input\n(Buffers, Meshlets)"];
+        Task       [label="Task Shader (Optional)\n(Culling, LOD, Work Distribution)"];
+        Mesh       [label="Mesh Shader\n(Generates Vertices & Primitives,\nCulling, LOD, Skinning)"];
+        MeshFS     [label="Fragment Shader\n(Lighting, Texturing,\nShading, Materials)"];
+        MeshFB     [label="Framebuffer\n(Final Rendered Image)"];
+
+        MIn -> Task;
+        Task -> Mesh;
+        MIn -> Mesh;      // direct if no task shader
+        Mesh -> MeshFS;
+        MeshFS -> MeshFB;
+    }
+}

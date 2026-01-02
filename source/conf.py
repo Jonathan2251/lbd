@@ -436,4 +436,6 @@ epub_tocdepth = 2
 
 # Example configuration for intersphinx: refer to the Python standard library.
 # Enable loading intersphinx inventory from https://docs.python.org/objects.inv...
-intersphinx_mapping = {'https://docs.python.org/': None}
+intersphinx_mapping = {
+    "python": ("https://docs.python.org/3", "https://docs.python.org/3/objects.inv"),
+}
