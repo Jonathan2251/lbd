@@ -49,15 +49,18 @@ black outlines). As a result, the model appears much smoother [#shading]_.
 Furthermore, after texturing (texture mapping), the model looks even more
 realistic [#texturemapping]_.
 
+
+.. _animation:
+
 Animation
 ^^^^^^^^^
 
 To understand how animation works for a 3D model, please refer to the video here
 [#animation1]_. According to the video on skeleton animation, joints are positioned
 at different poses and assigned timing (keyframes), as illustrated in
-:numref:`animation`.
+:numref:`animationfigure`.
 
-.. _animation: 
+.. _animationfigure: 
 .. figure:: ../Fig/gpu/animation.png
   :align: center
   :scale: 50 %
@@ -139,10 +142,14 @@ Godot) use real‑time engines** for real-time animation.
 
 .. note::
 
-   3D modeling tools do store animation and movement data — but they do NOT 
-   store any rendering or API‑specific code.  
-   Game engines do store animation data — but programmers still write the logic 
-   that plays, blends, and controls those animations.
+   3D modeling tools do store animation and movement data 
+     — but they do NOT store any rendering or API‑specific code. 
+
+   Game engines do store animation data
+     — but programmers still write the logic that plays, blends, 
+     and controls those animations.
+
+.. _movement:
 
 **Animation Data vs. Movement Speed in Games**
 
@@ -657,7 +664,16 @@ and Alembic [#3dfmt]_.
 Graphics HW and SW Stack
 ************************
 
+This subsection provides a more detailed illustration of animation accross the 
+software and hardware stacks on both CPU and GPU, and explains how data flows 
+between the CPU, the GPU, and each layer of the software stack.
+
+Reference:
+
 - https://en.wikipedia.org/wiki/Free_and_open-source_graphics_device_driver
+
+HW Block Diagram
+^^^^^^^^^^^^^^^^
 
 The block diagram of the Graphic Processing Unit (GPU) is shown in
 :numref:`gpu_block_diagram`.
@@ -708,6 +724,12 @@ the CSF into individual data structure for each SIMD processor to execute as
 :numref:`graphic_gpu_csf`. The firmware version of MCU is updated by MCU itself
 usually.
 
+
+.. _sw-stack:
+
+SW Stack and Data Flow
+^^^^^^^^^^^^^^^^^^^^^^
+
 The driver runs on the CPU side as shown in :numref:`graphic_sw_stack`.  
 The OpenGL API eventually calls the driver's functions, and the driver  
 executes these functions by issuing commands to the GPU hardware and/or  
@@ -719,46 +741,135 @@ more computing power than the CPU.
 
 .. _graphic_sw_stack: 
 .. graphviz:: ../Fig/gpu/graphic-sw-stack.gv
-  :caption: Graphic SW Stack
+  :caption: Graphic SW Stack and data flow
 
-- According to the previous section, after the user creates a skeleton and skin  
-  for each model and sets keyframe times using a 3D modeling tool, the tool can  
-  either generate Java code that calls JOGL (Java OpenGL) [#joglwiki]_ or generate  
-  OpenCL APIs directly. The frame data can be calculated by interpolating between  
-  keyframes.
+✅  As section :ref:`animation` and :numref:`graphic_sw_stack`. Higher-level 
+libraries and frameworks on top of OpenGL provide animation frameworks and 
+tools to generate OpenGL APIs and shaders from 3D models.
 
-- As described above, for each animation frame, the client (CPU) program sets the  
-  new positions of objects (vertices) and colors while the  
-  server (driver and GPU) performs the 3D-to-2D rendering. Higher-level libraries  
-  and frameworks on top of OpenGL provide animation frameworks and tools to  
-  generate OpenGL APIs and shaders from 3D models.
+After the user creates a skeleton and skin  
+for each model and sets keyframe times using a 3D modeling tool, the tool can  
+either generate Java code that calls JOGL (Java OpenGL) [#joglwiki]_ or generate  
+OpenCL APIs directly.
 
-- Shaders may call built-in functions written in Compute Shaders, SPIR-V, or  
-  LLVM-IR. LLVM `libclc` is a project for OpenCL built-in functions, which can  
-  also be used in OpenGL [#libclc]_. Like CPU built-ins, new GPU ISAs or  
-  architectures must implement their own built-ins or port them from open source  
-  projects like `libclc`.
+The 3D model on the CPU performs these movement animations by computing each 
+frame from the stored keyframes, as illustrated in animation section 
+:ref:`animation`.
+The per-frame data is not the full set of vertices, but rather a small set of
+animation parameters, which are described in the following illustrated item.
+ 
+The CPU updates only these small animation parameters and issue draw command to 
+the GPU server side. 
+The GPU performs the computationally intensive per‑vertex work, applies the 
+animation movement for each frame, and executes the rendering pipeline  
+from each frame down to the final pixel value.
 
-- The 3D model (on CPU) performs rendering animations to generate each frame  
-  between keyframes (poses), while the GPU executes the rendering pipeline  
-  from each frame down to each pixel’s value.
+The shape of object data are stored in the form of VAOs (Vertex Array Objects) in  
+OpenGL. This will be explained in a later :ref:`section OpenGL <opengl>`.
+Additionally, OpenGL provides VBOs (Vertex Buffer Objects), which allow  
+vertex array data to be stored in high-performance graphics memory on the  
+server side GPU and enable efficient data transfer [#vbo]_ [#classorvbo]_.
 
-- These frame data are stored in the form of VAOs (Vertex Array Objects) in  
-  OpenGL. This will be explained in a later :ref:`section OpenGL <opengl>`.
+As section :ref:`node-editor`, shaders are primarily created by 
+Graphics Designers / Technical Artists and secondly created by Software 
+Programmers / Graphics Programmers.
 
-- Additionally, OpenGL provides VBOs (Vertex Buffer Objects), which allow  
-  vertex array data to be stored in high-performance graphics memory on the  
-  server side and enable efficient data transfer [#vbo]_ [#classorvbo]_.
+Shaders may call built-in functions written in Compute Shaders, SPIR-V, or  
+LLVM-IR. LLVM `libclc` is a project for OpenCL built-in functions, which can  
+also be used in OpenGL [#libclc]_. Like CPU built-ins, new GPU ISAs or  
+architectures must implement their own built-ins or port them from open source  
+projects like `libclc`.
 
-- As section :ref:`node-editor`, shaders are primarily created by 
-  Graphics Designers / Technical Artists and secondly created by Software 
-  Programmers / Graphics Programmers.
+✅ CPU only updates small animation parameters; GPU computes the heavy 
+per‑vertex work.
 
-The flow for 3D/2D graphic processing is shown in :numref:`opengl_flow`.
+As mentioned in the previous section on :ref:`animation movement <movement>`, 
+3D modeling tools store Keyframes, bone transforms at each keyframe and related 
+data, and perform animation based on this information. 
 
-.. _opengl_flow: 
-.. graphviz:: ../Fig/gpu/opengl-flow.gv
-  :caption: OpenGL Flow
+The CPU updates only the **bone** transformation data ..., rather than updating 
+the entire vertex or mesh data for each animation frame.
+These updates are very small—on the order of kilobytes rather than megabytes.
+For each rendered frame, the CPU sends these small updates to the GPU, and the 
+**GPU takes over the animation work from the CPU**.
+This type of movement animation is called **skinning**, and is illustrated as 
+follows:
+
+**Skinning**
+
+Skinning is a vertex deformation technique used to animate a mesh by attaching
+its vertices to a hierarchical skeleton (bones). Each vertex stores one or more
+bone indices and corresponding weights that describe how strongly each bone
+influences that vertex.
+
+During animation, the application updates the bone transformation matrices.
+The vertex shader then computes the final vertex position by blending the
+transformed positions according to the stored weights. This allows the mesh to
+bend, twist, and deform smoothly as the skeleton moves.
+
+Skinning does not create new geometry or smooth the surface topology. It only
+transforms the existing vertices of the mesh. Examples include bending an arm,
+flapping a wing, or deforming a flexible tube as its bones rotate.
+
+CPU only update high‑level animation state, such as:
+
+-  Current animation time
+-  **Bone matrices (small)**
+-  **Morph weights**
+-  Material parameters
+-  Particle emitter settings
+-  Global uniforms (camera, lights, etc.)
+
+These are tiny updates — kilobytes, not megabytes.
+
+.. math::
+
+   finalPosition =
+   \sum_{i=0}^{N-1}
+   \mathbf{weight}_i \left( \mathbf{boneMatrix}_i \cdot originalPosition \right)
+
+
+Example: Bending an Arm
+
+Imagine a character’s arm mesh.  
+Each vertex in the elbow area has weights like:
+
+-  70% influenced by upper‑arm bone
+-  30% influenced by lower‑arm bone
+
+When the elbow bends:
+
+-  Upper‑arm bone rotates
+-  Lower‑arm bone rotates
+-  GPU blends the influence
+-  The elbow area deforms smoothly
+
+This is skinning.
+
+✅  After the GPU animation, the color pixels are write to framebuffer 
+(video memory). The display device (monitor, LCD, OLED, etc.) fetches these 
+pixels and displays them on the screen. The interface between framebuffer and 
+display device is explained in the next subsection :ref:`display`.
+
+
+.. _display:
+
+Pixels Displaying
+^^^^^^^^^^^^^^^^^
+
+The interface between frame buffer and displaying device is shown as 
+:numref:`pc-lcd`.
+
+.. _pc-lcd: 
+.. figure:: ../Fig/gpu/pc-lcd.png
+  :align: center
+  :scale: 50 %
+
+  PC with Frame Buffer to LCD Display
+
+
+GPU and screen (monitor, LCD, OLED, etc.) use **VSync, NVIDIA G-SYNC or AMD 
+FreeSync** to prevent **screen tearing**, as described below:
 
 .. raw:: latex
 
@@ -858,6 +969,43 @@ The flow for 3D/2D graphic processing is shown in :numref:`opengl_flow`.
   Generally, FreeSync monitors are less expensive than their G-SYNC counterparts,
   but gamers generally prefer G-SYNC over FreeSync as the latter may cause 
   ghosting, where old images leave behind artifacts [#g-sync]_.
+
+
+.. _role-shaders:
+
+The Role and Purpose of Shaders
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The flow for 3D/2D graphic processing is shown in :numref:`opengl_flow`.
+
+.. _opengl_flow: 
+.. graphviz:: ../Fig/gpu/opengl-flow.gv
+  :caption: OpenGL Flow
+
+The compiled shaders are sent to the GPU when you call glLinkProgram().  
+That is the moment the driver uploads the compiled shader binaries into 
+GPU‑executable form.
+
+The glLinkProgram() is called when you finish preparing a shader program — 
+**not when creating a mesh, and not when issuing a draw command**.
+
+When a game actually call `glLinkProgram()` to re-link the shader, the shader 
+need to be compiled and load to GPU.
+
+Usually it is happend in game startup, level load, or creating a new shader 
+variant (e.g., enabling shadows, fog, skinning).
+
+Games switch shaders constantly — sometimes hundreds of times per frame — 
+but they do not re‑link them.
+
+When playing a video game, different materials, effects and rendering passes 
+will applying to difference shaders.
+
+Examples:
+
+- When the player enters a snowy biome, ice meshes use the ice shader. 
+- The axe blade uses a metal PBR shader. 
+  Sparks fly when the axe blade hits stone it switch to particle shader.
 
 
 Basic geometry in computer graphics
@@ -1549,17 +1697,22 @@ from the book *OpenGL Programming Guide, 9th Edition* [#redbook]_ as follows:
 
    * - Vertex Shader
      - - Per-vertex attributes:
+
          - Positions (vec3/vec4)
          - Normals, tangents
          - Texture coordinates
          - Vertex colors
          - Skinning weights/indices
+
        - Uniforms and UBOs
        - Textures / samplers
      - - gl_Position (clip-space)
+
        - Varyings
        - Optional point size
+
      - - **Vertex Processing Stage**:
+
          - ALUs transform vertices
          - Writes positions into Primitive Assembly
          - Stores varyings in interpolation registers
@@ -1571,6 +1724,7 @@ from the book *OpenGL Programming Guide, 9th Edition* [#redbook]_ as follows:
      - - Modified control points
        - Tessellation levels
      - - **Tessellation Control Stage**:
+
          - Writes tessellation levels to fixed-function tessellator
          - Stores control points in patch memory
 
@@ -1581,6 +1735,7 @@ from the book *OpenGL Programming Guide, 9th Edition* [#redbook]_ as follows:
      - - gl_Position
        - Varyings
      - - **Tessellation Evaluation Stage**:
+
          - ALUs compute final vertex positions
          - Outputs to Primitive Assembly
          - Sends varyings to interpolation hardware
@@ -1592,6 +1747,7 @@ from the book *OpenGL Programming Guide, 9th Edition* [#redbook]_ as follows:
        - New varyings
        - New gl_Position
      - - **Geometry Processing Stage**:
+
          - Allocates per-primitive scratch memory
          - Emits new primitives
          - Expands or reduces geometry
@@ -1603,6 +1759,7 @@ from the book *OpenGL Programming Guide, 9th Edition* [#redbook]_ as follows:
        - Interpolated varyings
        - gl_FragCoord
      - - **Rasterization Stage**:
+
          - Barycentric units interpolate varyings
          - Generates fragments
          - Sends fragments to fragment shader cores
@@ -1615,6 +1772,7 @@ from the book *OpenGL Programming Guide, 9th Edition* [#redbook]_ as follows:
      - - gl_FragColor or user-defined outputs
        - Depth override (optional)
      - - **Fragment Processing Stage**:
+
          - ALUs compute pixel color
          - Texture units fetch texels
          - Outputs color/depth to ROP
@@ -1626,6 +1784,7 @@ from the book *OpenGL Programming Guide, 9th Edition* [#redbook]_ as follows:
      - - Final framebuffer color
        - Updated depth/stencil buffers
      - - **Output Merger Stage**:
+
          - Performs depth/stencil tests
          - Applies blending
          - Writes final pixels to framebuffer memory
@@ -1684,6 +1843,49 @@ animation tools—such as Maya, Blender, and others—can utilize these APIs to 
 
 The hardware-specific implementation of these APIs is provided by GPU manufacturers,
 ensuring that rendering is optimized for the underlying hardware.
+
+The subsection :ref:`role-shaders` has introduced the shaders. 
+
+A shader-less (fixed-function) pipeline has limitations in both **animation 
+capability and performance**, as follows:
+
+**Major Disadvantages of a Shader-less (Fixed-Function) Pipeline**
+
+- **No GPU-side animation**
+
+  - Cannot perform skinning, morphing, or procedural deformation on the GPU.
+  - All animation must be computed on the CPU, causing performance bottlenecks.
+
+- **Limited lighting and materials**
+
+  - Only fixed-function lighting is available.
+  - No custom BRDFs, PBR workflows, toon shading, or stylized effects.
+
+- **No procedural or time-based effects**
+
+  - Cannot implement UV animation, distortion, dissolve, holograms, or particle effects.
+  - No access to noise functions or time-driven logic in the pipeline.
+
+- **No post-processing**
+
+  - Motion blur, bloom, depth of field, color grading, and screen-space effects are impossible.
+
+- **Rigid data flow**
+
+  - Cannot define custom vertex attributes, varyings, or uniform buffers.
+  - Material and animation systems cannot be data-driven.
+
+- **Poor scalability and performance**
+
+  - CPU must update all animated geometry every frame.
+  - GPU parallelism is unused, limiting scene complexity.
+
+- **Deprecated and non-portable**
+
+  - Fixed-function pipeline is removed in modern OpenGL core profiles.
+  - Not compatible with contemporary engines or hardware.
+
+
 
 Examples
 ^^^^^^^^
