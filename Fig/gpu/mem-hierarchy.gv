@@ -13,6 +13,7 @@ digraph GPU_Memory_Hierarchy {
     Global [label="Global Memory (HBM/GDDR)\nGPU-wide, slowest"];
     L2 [label="L2 Cache\nGPU-wide"];
     L1 [label="L1 Cache\nPer-SM, unified with Shared"];
+    Uniform [label="Uniform / Constant Cache\nPer-SM, Read-only,\nFor Uniform Parameters"];
     Shared [label="Shared Memory\nPer-SM, Block-visible"];
     Local [label="Local Memory\nPer-thread, in DRAM"];
     Reg [label="Registers\nPer-thread, fastest"];
@@ -21,7 +22,13 @@ digraph GPU_Memory_Hierarchy {
     GigaThread -> GPC -> TPC -> SM -> Core;
 
     // Memory hierarchy connections
-    Global -> L2 -> L1 -> Core;
+    Global -> L2;
+    L2 -> L1;
+    L2 -> Uniform;
+
+    L1 -> Core;
+    Uniform -> Core;
+
     Shared -> SM;
     Reg -> Core;
     Local -> Core;
@@ -36,6 +43,6 @@ digraph GPU_Memory_Hierarchy {
     subgraph cluster_mem {
         label="Memory Hierarchy";
         style=dashed;
-        Global; L2; L1; Shared; Local; Reg;
+        Global; L2; L1; Uniform, Shared; Local; Reg;
     }
 }

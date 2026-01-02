@@ -1,0 +1,38 @@
+digraph CPU_GPU_Pipeline {
+    rankdir=LR;
+    node [shape=box, style=rounded, fontsize=12];
+
+    subgraph cluster_cpu {
+        label="CPU";
+        style=rounded;
+
+        CPU_Vertex [label="Load 3D Model\n(Per-Vertex Attributes)\nVBOs, VAOs, Indices"];
+        CPU_Anim   [label="Uniform Updates\n(Animation Parameters,\nMatrices, Lighting,\nMaterial Params)"];
+    }
+
+    subgraph cluster_gpu {
+        label="GPU";
+        style=rounded;
+
+        VS      [label="Vertex Shader\nInputs:\n - Vertex Attributes (in)\n - Uniforms (matrices, animation)\nOutputs:\n - Varyings → Rasterizer"];
+        
+        Raster  [label="Rasterizer\n(Primitive Assembly,\nClipping, Interpolation)\nOutputs:\n - Interpolated Varyings"];
+
+        FS      [label="Fragment Shader\nInputs:\n - Interpolated Data (in)\n - Uniforms (textures, lighting)\nOutputs:\n - Final Fragment Color"];
+
+        FB      [label="Framebuffer\n(Final Rendered Image)"];
+
+        CS      [label="Compute Shader\n(Workgroups, SSBOs,\nImages, Shared Memory)\nIndependent of VS→FS Pipeline"];
+    }
+
+    # Main graphics pipeline
+    CPU_Vertex -> VS;
+    CPU_Anim   -> VS;
+
+    VS -> Raster;
+    Raster -> FS;
+    FS -> FB;
+
+    # Compute shader is dispatched separately
+    CPU_Anim -> CS [style=dashed, label="Dispatch Compute"];
+}
