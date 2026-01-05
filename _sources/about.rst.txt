@@ -63,6 +63,13 @@ Revision history
 
 Version 12.0.20, not released yet.
 
+Version 12.0.19.3, January 4, 2026.
+
+  gpu.rst: Add pc-lcd.png, in-out-rendering.gv, 'section Background of GLSL 
+  (GL Shader Language)', Table 'Animation Types'. 
+  Refine 'section Graphics HW and SW Stack', refine 'section 3D Rendering', 
+  expand 'section 3D Rendering'.
+
 Version 12.0.19.2, December 28, 2025.
 
   gpu.rst: Add subsections 'Animation' and 'Node-Editor (shaders generator)'.
