@@ -1,0 +1,39 @@
+digraph TBDR_GS_Comparison {
+    rankdir=LR;
+    node [shape=box, style=rounded, fontsize=11];
+
+    // Clean TBDR pipeline
+    subgraph cluster_clean {
+        label="A. Clean TBDR Pipeline (Mobile GPUs: Mali / PowerVR / Apple)";
+        style=rounded;
+
+        C_VS   [label="Vertex Shader\n• Transform\n• Skinning\n• Varyings"];
+        C_PA   [label="Primitive Assembly\n• Triangle setup\n• Culling\n• Clipping"];
+        C_Tile [label="Tiling / Binning\n• Bin triangles\n• Build tile lists\n• Predictable geometry"];
+        C_Rast [label="Rasterization\n• Triangle traversal\n• Pixel coverage\n• Early-Z"];
+        C_FS   [label="Fragment Shader\n• Shading\n• Texturing\n• Lighting"];
+        C_WB   [label="Tile Writeback\n• Store tile once\n• Low bandwidth"];
+
+        C_VS -> C_PA -> C_Tile -> C_Rast -> C_FS -> C_WB;
+    }
+
+    // GS/Tessellation amplified pipeline
+    subgraph cluster_gs {
+        label="B. TBDR with GS/Tessellation (Hypothetical — Why It Breaks)";
+        style=rounded;
+
+        G_VS   [label="Vertex Shader"];
+        G_Tess [label="Tessellation / Geometry Shader\n• 1→64→256 triangles\n• Unbounded amplification\n• View-dependent"];
+        G_PA   [label="Primitive Assembly\n(post-amplification)"];
+        G_Tile [label="Tiling / Binning\n• Tile list overflow\n• Unpredictable size\n• May spill to DRAM"];
+        G_Rast [label="Rasterization\n• Heavy load due to amplified geometry"];
+        G_FS   [label="Fragment Shader"];
+        G_WB   [label="Tile Writeback\n• Multiple passes\n• High bandwidth"];
+
+        G_VS -> G_Tess -> G_PA -> G_Tile -> G_Rast -> G_FS -> G_WB;
+    }
+
+    // Annotation arrows
+    G_Tess -> G_Tile [label="massive geometry\namplification", color="red"];
+    G_Tile -> G_WB   [label="DRAM spills\n(high power)", color="red"];
+}

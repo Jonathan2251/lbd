@@ -1747,7 +1747,8 @@ The website also provides a description for each stage.
   :align: center
   :scale: 50 %
 
-  Diagram of the Rendering Pipeline. The blue boxes are programmable shader stages.
+  Diagram of the Rendering Pipeline. The blue boxes are programmable shader 
+  stages. Shaders with dashed outlines indicate optional shader stages.
 
 .. _OpenGL_pipeline: 
 .. figure:: ../Fig/gpu/OpenGL-pipeline.png
@@ -2059,11 +2060,103 @@ triangle**.
      - Used for per-pixel lighting, reflections, shadows, and screen-space effects;
        must be interpolated so each fragment knows its own world position
 
-
 For 2D animation, the model is created by 2D only (1 face only), so it only can be 
 viewed from the same face of model. If you want to display different faces of model,
 multiple 2D models need to be created and switch these 2D models from face(flame) to 
 face(flame) from time to time [#2danimation]_.
+
+Mobile GPU 3D Rendering
+^^^^^^^^^^^^^^^^^^^^^^^
+
+Tessellation Control Shader, Tessellation Evaluation Shader and Geometry Shader
+shown in :numref:`OpenGL_pipeline` are optinal stages.
+
+Mobile GPUs avoid Geometry Shaders (GS) and Tessellation Shaders because they
+are a **poor fit for tile-based deferred rendering (TBDR) hardware**, not
+because mobile applications would never use them.
+
+TBDR architectures depend on:
+
+- predictable geometry counts,
+- small on-chip tile memory,
+- minimal external memory traffic.
+
+GS and tessellation introduce **unbounded geometry amplification**, which
+breaks these assumptions and forces expensive DRAM spills. This is why Mali,
+PowerVR, Apple, and Adreno mobile GPUs all omit these stages. [#arm-gs]_
+[#img-gs]_
+
+.. _mobile-rendering-pipeline-shaders-cpu-gpu: 
+.. graphviz:: ../Fig/gpu/mobile-rendering-pipeline-shaders-cpu-gpu.gv
+  :caption: CPU and GPU Pipeline For Shaders in Mobile Device
+
+
+.. _mobile-tile-base-pipeline: 
+.. graphviz:: ../Fig/gpu/mobile-tile-base-pipeline.gv
+  :caption: CPU and GPU Pipeline For Shaders in Mobile Device
+
+
+✅ Why TBDR conflicts with GS / tessellation
+
+TBDR overview
+
+Tile-based deferred rendering works by:
+
+- splitting the framebuffer into tiles,
+- binning triangles into per-tile lists,
+- shading each tile entirely in on-chip memory,
+- writing each tile back to DRAM only once.
+
+This design is extremely power-efficient, but it assumes that geometry counts
+are **moderate and predictable**. [#arm-tbdr]_
+
+
+✅ Why GS / tessellation break TBDR
+
+Geometry Shader (GS):
+
+- can emit an arbitrary number of primitives,
+- can change topology,
+- can amplify geometry unpredictably.
+
+Tessellation (TCS/TES):
+
+- can turn 1 patch into dozens or hundreds of triangles,
+- amplification is view- and content-dependent,
+- causes massive growth in per-tile geometry.
+
+On a TBDR GPU, this leads to:
+
+- **tile list overflow**,
+- **multiple binning passes**,
+- **DRAM spills**,
+- **loss of power efficiency**,
+- **unpredictable performance**.
+
+This is why mobile vendors avoid GS/Tess and recommend compute-based
+preprocessing instead. [#img-tess]_
+
+
+✅ Direct conclusion
+
+- Mobile GPUs skip GS/Tess primarily due to **hardware constraints**, not
+  because mobile apps never need them.
+- TBDR architectures depend on **predictable geometry** and **small on-chip
+  tile buffers**.
+- GS/Tess introduce **unbounded geometry amplification**, which:
+  
+  - overflows tile memory,
+  - forces DRAM spills,
+  - destroys power efficiency.
+
+- Modern mobile engines instead use **compute shaders** for culling, LOD,
+  meshlet prep, and procedural geometry.
+
+
+✅ Geometry Shaders are notoriously inefficient even on desktop GPUs.
+GPU vendors (NVIDIA + AMD + Intel) designed the mesh‑shader pipeline described
+in the section :ref:`mesh-shader`.
+
 
 Animation Example
 ^^^^^^^^^^^^^^^^^
@@ -2259,6 +2352,8 @@ occurs because the application updates Animation Parameters each frame
 and the vertex shader applies animation math during the draw call. The
 GPU performs the animation only when the draw command is issued.
 
+
+.. _mesh-shader:
 
 Mesh-Shader Pipeline
 ^^^^^^^^^^^^^^^^^^^^
@@ -6133,6 +6228,18 @@ Open Sources
 .. [#2danimation] https://tw.video.search.yahoo.com/search/video?fr=yfp-search-sb&p=2d+animation#id=12&vid=46be09edf57b960ae79e9cd077eea1ea&action=view
 
 .. [#redbook-p36] Page 36 of book "OpenGL Programming Guide 9th Edition" [#redbook]_.
+
+.. [#arm-gs] ARM Developer: *Why mobile GPUs avoid geometry shaders*  
+   https://developer.arm.com/documentation/102476/latest/
+
+.. [#arm-tbdr] ARM Mali Architecture: *Tile-Based Rendering Explained*  
+   https://developer.arm.com/documentation/101897/latest/
+
+.. [#img-gs] Imagination Technologies: *Why Geometry Shaders Are Not Supported*  
+   https://www.imgtec.com/blog/why-powervr-does-not-support-geometry-shaders/
+
+.. [#img-tess] Imagination Technologies: *Tessellation on Mobile GPUs*  
+   https://www.imgtec.com/blog/tessellation-on-mobile-gpus/
 
 .. [#redbook-examples] https://github.com/openglredbook/examples
 
