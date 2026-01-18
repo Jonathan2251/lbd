@@ -442,10 +442,6 @@ onnx api
 
 .. [#cnnwiki] https://en.wikipedia.org/wiki/Convolutional_neural_network
 
-.. [#gru] https://medium.com/@tengyuanchang/%E6%AF%94%E8%BC%83%E9%95%B7%E7%9F%AD%E6%9C%9F%E8%A8%98%E6%86%B6%E6%A8%A1%E5%9E%8B-lstm-%E8%88%87%E6%94%B9%E8%89%AF%E5%BE%8C%E7%9A%84%E9%81%9E%E6%AD%B8%E7%A5%9E%E7%B6%93%E7%B6%B2%E8%B7%AF%E6%A8%A1%E5%9E%8B-gru-813dec22ec6d
-
-.. [#gru2] in video 22:55 https://www.youtube.com/watch?v=rTqmWlnwz_0&list=PLJV_el3uVTsPy9oCRY30oBPNLCo89yu49&index=31
-
 .. [#dlcs] https://arxiv.org/pdf/2002.03794.pdf
 
 .. [#gpu4dl] https://missinglink.ai/guides/tensorflow/tensorflow-support-opencl/
@@ -467,8 +463,6 @@ onnx api
 .. [#tfunknownshape] https://pgaleone.eu/tensorflow/2018/07/28/understanding-tensorflow-tensors-shape-static-dynamic/
 
 .. [#vm-ir-dml] Page 15 of https://docs.google.com/presentation/d/1RCQ4ZPQFK9cVgu3IH1e5xbrBcqy7d_cEZ578j84OvYI/edit#slide=id.g6e31674683_0_23101
-
-.. [#mlir-iree-purpose]  https://kknews.cc/zh-tw/tech/klkombr.html
 
 .. [#onnx-fmt] Actually onnx format based on IO api with protobuffer. It has real binary format but may change from version to version. Tensorflow api has no real binary format.
 

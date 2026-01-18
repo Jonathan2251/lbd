@@ -761,13 +761,84 @@ The Clang project provides a language front-end and tooling infrastructure for
 languages in the C language family (C, C++, Objective C/C++, OpenCL, and CUDA) 
 for the LLVM project. 
 
-**Context Free Grammar:**
+Context Free Grammar
+********************
+
+**Definition:**
 
 - “A context-free grammar defines a language that can be parsed independently
   of surrounding input context; each production rule applies based solely on 
   the current nonterminal, not on neighboring symbols.”
 
 - All context-free grammars (CFGs) can be expressed in Backus-Naur Form (BNF).
+
+.. note::
+
+  Computer languages have been adding complexity features for users' programming:
+
+  ☆ "(**≈ 30 years ago**) Programming languages are **context‑free**." 
+  :math:`\Rightarrow` 
+  "(**Today**) The syntax is context‑free, but the language is 
+  **context‑sensitive**."
+
+⚠️  1. What older textbooks said
+
+Textbooks from the 1980s–1990s typically taught:
+
+- “**Programming languages** are mostly **context‑free**.”
+- “**Parsing is done with CFGs**.”
+- “Semantic analysis comes later.”
+
+They treated semantic constraints as a separate phase, not as part of the grammar
+
+✅  2. What modern textbooks say
+
+Modern compiler books (e.g., newer editions of Aho/Ullman, Appel, Cooper/Torczon, Muchnick, and engineering‑oriented texts) now teach something closer to:
+
+- The surface syntax is context‑free.
+- Real languages require context-sensitive semantic analysis.
+- Some languages **require semantic information during parsing** (C++, Rust, 
+  Swift).
+- Macro systems and type inference break the clean CFG model.
+
+They **no longer pretend that a CFG fully describes a real language**.
+
+So the modern interpretation is:
+
+- “The grammar is context‑free, but the language is not.”
+
+This is a subtle but important shift.
+
+
+.. list-table:: Context-Free Grammar Shifts in Compiler Theory
+   :header-rows: 1
+   :widths: 25 35 40
+
+   * - Statement
+     - Meaning
+     - How Modern Languages Changed
+
+   * - **Old Textbook Statement  
+       (≈ 30 years ago)**  
+       “**Programming languages** are **context‑free**.”
+     - Focused only on the **parser grammar**.  
+       Treated semantic rules as a separate phase,  
+       not part of the language definition.
+     - Languages were simpler (C, Pascal, early C++).  
+       Few features required semantic feedback during parsing.  
+       Grammar-based teaching matched real compilers more closely.
+
+   * - **Modern Understanding  
+       (today)**  
+       “The **syntax is context‑free**, but the **language is context‑sensitive**.”
+     - Parsing still uses a CFG, but real languages rely on  
+       **name resolution**, **type inference**, **generics**,  
+       **macro expansion**, and **semantic disambiguation**.
+     - Modern languages (C++, Rust, Swift, Kotlin, Go)  
+       require semantic information during parsing.  
+       Macro systems and type systems break pure CFG boundaries.  
+       Compilers use multi‑phase frontends to resolve context.
+
 
 Why doesn't the Clang compiler use YACC/LEX tools to parse C++?
 ****************************************************************
@@ -800,7 +871,7 @@ but C++ has many context-sensitive features, especially in templates below:
 In the C++ code above, both f(42) and f('a') can match either the template 
 function or the non-template function.
 
-🤯 Why This Is Hard for YACC:
+✅  Why This Is Hard for YACC:
 
 YACC operates on context-free grammars, but this example is context-sensitive.
 The expression f('a'); selects a template if a template definition exists; 

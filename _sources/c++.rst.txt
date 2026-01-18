@@ -1112,8 +1112,6 @@ following `clang++` options:
 
 .. [#thread-wiki] http://en.wikipedia.org/wiki/Thread-local_storage
 
-.. [#cpp-atomic] https://cplusplus.com/reference/atomic/
-
 .. [#cpp-mem-order] https://en.cppreference.com/w/cpp/atomic/memory_order
 
 .. [#mem-order-wiki] https://en.wikipedia.org/wiki/Memory_model_%28programming%29
@@ -1123,12 +1121,6 @@ following `clang++` options:
 .. [#cas-wiki] https://en.wikipedia.org/wiki/Compare-and-swap
 
 .. [#lf-wiki] https://en.wikipedia.org/wiki/Non-blocking_algorithm
-
-.. [#ll-wiki] https://en.wikipedia.org/wiki/Load-link/store-conditional
-
-.. [#mb-wiki] https://en.wikipedia.org/wiki/Memory_barrier
-
-.. [#mips-sync] From page A-158, it is same with ARM's barrier that all instructions before SYNC are completed before issuing the instructions after SYNC. Page 167 (A-155) of https://www.cs.cmu.edu/afs/cs/academic/class/15740-f97/public/doc/mips-isa.pdf
 
 .. [#atomics-llvm] http://llvm.org/docs/Atomics.html
 

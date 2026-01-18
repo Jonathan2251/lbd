@@ -846,6 +846,19 @@ section :ref:`animation`.
 The per-frame data is not the full set of vertices, but rather a small set of
 animation parameters named **Uniform Updates** as appeared in 
 :numref:`graphic_sw_stack-2`, which are described later.
+
+.. note::
+
+   **Bone matrices** determine the positions of triangles within a 3D model 
+   during animation.
+   This bone transformation data is much **smaller** than the complete mesh of 
+   the 3D model.
+   We will provide an example and explain this in more detail in the 
+   :ref:`animation-ex` section.
+   Because this transformation data is small and constant across all shader 
+   pipeline stages, it is stored in the GPU’s global memory and can be cached in 
+   the **uniform/constant cache** for performance, as illustrated in 
+   :numref:`mem-hierarchy` of :ref:`sec-mem-hierarchy` section.
  
 The CPU updates only these small animation parameters and issues draw command to 
 the GPU server side. 
@@ -1184,7 +1197,10 @@ Perspective and orthographic projections (used in CAD tools) from 3D to 2D
 can be represented by transformation matrices as described in the previous  
 section [#wiki-prospective-projection]_.
 
-Cross product
+
+.. _cross-product:
+
+Cross Product
 ^^^^^^^^^^^^^
 
 Both triangles and quads are polygons. So, objects can be formed with  
@@ -1640,7 +1656,7 @@ The “small animation parameters” updated by the CPU are formally called:
 These are the correct technical terms used in modern graphics pipelines.
 
 
-🧠 The Proper Term: “Uniform Updates”
+⚓ The Proper Term: “Uniform Updates”
 
 The most accurate and universal name is:
 
@@ -1663,49 +1679,49 @@ Examples of uniform data:
 
 These are small, constant‑for‑the‑draw values.
 
-🎯 More Specific Terms Used in Game Engines
+⚓ More Specific Terms Used in Game Engines
 
 1. Animation Parameters
 
 Used in animation systems:
 
-•  “animation parameters”
-•  “skinning parameters”
-•  “bone palette”
-•  “morph weights”
+- “animation parameters”
+- “skinning parameters”
+- “bone palette”
+- “morph weights”
 
 2. Per‑Frame Constants
 
 Used in engine architecture:
 
-•  “frame constants”
-•  “per‑frame constant buffer”
-•  “global shader constants”
+- “frame constants”
+- “per‑frame constant buffer”
+- “global shader constants”
 
 3. Per‑Draw Constants
 
 Used in render pipelines:
 
-•  “per‑draw uniform block”
-•  “per‑object constant buffer”
-•  “material constant buffer”
+- “per‑draw uniform block”
+- “per‑object constant buffer”
+- “material constant buffer”
 
-🧩 In Modern APIs (GL, Vulkan, DirectX)
+⚓ In Modern APIs (GL, Vulkan, DirectX)
 
 OpenGL
 
-•  Uniforms
-•  Uniform Buffer Objects (UBOs)
-•  Shader Storage Buffer Objects (SSBOs)
+- Uniforms
+- Uniform Buffer Objects (UBOs)
+- Shader Storage Buffer Objects (SSBOs)
 
 DirectX
 
-•  Constant Buffers (CBuffers)
+- Constant Buffers (CBuffers)
 
 Vulkan
 
-•  Descriptor sets
-•  Uniform buffers
+- Descriptor sets
+- Uniform buffers
 
 All refer to the same concept:  
 small CPU‑updated data that the GPU reads during shading.
@@ -1747,7 +1763,8 @@ The website also provides a description for each stage.
   :align: center
   :scale: 50 %
 
-  Diagram of the Rendering Pipeline. The blue boxes are programmable shader stages.
+  Diagram of the Rendering Pipeline. The blue boxes are programmable shader 
+  stages. Shaders with dashed outlines indicate optional shader stages.
 
 .. _OpenGL_pipeline: 
 .. figure:: ../Fig/gpu/OpenGL-pipeline.png
@@ -1766,6 +1783,13 @@ The animation flow from CPU to GPU is shown in
 .. _short-rendering-pipeline-shaders-cpu-gpu: 
 .. graphviz:: ../Fig/gpu/short-rendering-pipeline-shaders-cpu-gpu.gv
   :caption: CPU and GPU Pipeline For Shaders
+
+Each draw call may correspond to:
+
+- one mesh
+- one submesh
+- one meshlet (in mesh‑shader pipelines)
+- or many meshes batched together
 
 Although the Rendering Pipeline shown in :numref:`rendering_pipeline1` and
 :numref:`OpenGL_pipeline` do not explicitly include per-frame animation flow—
@@ -1800,7 +1824,9 @@ broad enough to cover animation.
        stage (if active) continues processing.
        The tessellation stage is actually divided into two shaders known as the 
        **tessellation control shader** and the **tessellation evaluation 
-       shader**. See reference below.
+       shader**. A single patch from Tesslation Control Shader (TCS) and 
+       Tesslation Evaluation Shader (TVS) can generate **millions of 
+       micro‑triangles**. See reference below.
    * - Geometry Shading
      - **Vertex → Primitives**. Allows additional processing of geometric 
        primitives.
@@ -1817,6 +1843,8 @@ broad enough to cover animation.
        **Geometry Shader:** provides the Vertex → Geometric Primitives 
        transformation effects controlled by the users.
        See Chapter 10 of the Red Book [#redbook-p36]_.
+       **Geometry Shader (GS)** can generate both **more vertices and more 
+       primitives** than it receives.
    * - Primitive Assembly
      - The previous shading stages all operate on vertices, with the information 
        about how those vertices are organized into geometric primitives being 
@@ -2059,11 +2087,378 @@ triangle**.
      - Used for per-pixel lighting, reflections, shadows, and screen-space effects;
        must be interpolated so each fragment knows its own world position
 
-
 For 2D animation, the model is created by 2D only (1 face only), so it only can be 
 viewed from the same face of model. If you want to display different faces of model,
 multiple 2D models need to be created and switch these 2D models from face(flame) to 
 face(flame) from time to time [#2danimation]_.
+
+Mobile GPU 3D Rendering
+^^^^^^^^^^^^^^^^^^^^^^^
+
+The traditional desktop GPUs is **IMR — Immediate‑Mode Rendering**:
+Cache misses dominate bandwidth.
+
+**TBDR — Tile‑Based Deferred Rendering**:
+Cache misses are nearly eliminated.
+
+.. note:: 
+
+   **Idea:**
+
+   1. TBDR divides the whole frame into small tiles that fit entirely into 
+   on‑chip **SRAM**. 
+
+   2. Remove stages of Tessellation Control Shader (TCS), Tessellation 
+   Evaluation Shader (TES) and Geometry Shader (GS) since they are optional stages 
+   are shown in :numref:`OpenGL_pipeline`.
+   Instead, developers use **compute shaders** before the graphics pipeline to 
+   generate meshlets, perform LOD selection, or add extra geometric detail for 
+   close‑up **room-in** effects is shown as 
+   :numref:`mobile-mesh-to-meshlets-to-render`. 
+
+★ TBDR reduces **cache‑miss** rate by roughly **10×–50×** compared to IMR, 
+because all intermediate color/depth/stencil traffic stays in on‑chip 
+tile memory instead of going to L2/DRAM.
+
+★ Desktop GPUs adopt IMR partly because GS/Tess/Mesh Shaders cannot run 
+efficiently on TBDR.
+In addition, desktop GPUs adopt IMR because they have the **power**, 
+**bandwidth**, and architectural freedom to **support unpredictable 
+geometry pipelines** and massive workloads that would break TBDR’s 
+tile‑based constraints.
+
+
+TBDR — Tile‑Based Deferred Rendering
+""""""""""""""""""""""""""""""""""""
+
+⚠️  For **low power** mobile device, mobile GPUs use **tile-based** 
+rendering to **reduce the traffice to DRAM** as 
+described below:
+
+The traditional desktop GPUs is IMR — Immediate‑Mode Rendering:
+
+1. IMR: “Draw call arrives → render immediately”
+
+CPU issues DrawCall #1
+
+→ GPU transforms vertices
+
+→ GPU rasterizes fragments
+
+→ GPU writes to DRAM
+
+It never waits to see the rest of the frame.
+
+2. TBDR: “Draw call arrives → store geometry, don’t render yet”. 
+TBDR processes it into two phases as follows:
+
+**Phase 1 — Binning** (Full‑Frame Geometry Processing) is shown as 
+:numref:`tbdr-pipeline`.
+
+.. _tbdr-pipeline: 
+.. graphviz:: ../Fig/gpu/tbdr-pipeline.gv
+  :caption: TBDR Pipeline 
+
+When a draw call arrives on a TBDR GPU:
+
+→ It runs the vertex shader
+
+→ It transforms all triangles
+
+→ It determines which tiles each triangle touches
+
+→ It stores triangle references in **per‑tile lists** is shown as follows:
+
+.. rubric:: Example of per‑tile lists
+.. code-block:: text
+
+   Tile 0 → triangles: [T1, T7, T8, T20]
+   Tile 1 → triangles: [T2, T3, T7]
+   Tile 2 → triangles: [T4, T5, T6, T9, T10]
+   ...
+
+**Phase 2 — Tile Rendering** (Deferred Shading)
+
+For each tile:
+
+→ Load tile’s triangle list
+
+→ Rasterize only those triangles
+
+→ Shade only visible fragments
+
+→ Keep all intermediate buffers in on‑chip **SRAM**
+
+→ Write final tile to DRAM once
+
+★ As you can see, tile is a small part of rendering frame. 
+In Phase 2 — Tile Rendering, GPU rendering each tile and
+keep the rendering result of each **tile in SRAM**.
+
+
+TBDR Rendering
+""""""""""""""
+
+✅ Rendering flow: 
+
+   - Vertax Shader → Primitive Setup → **Tile-Based Culling and Clipping** → 
+     Rasterization → Fragment Shader
+
+TBDR architectures depend on:
+
+- predictable geometry counts,
+- small on-chip tile memory,
+- minimal external memory traffic.
+
+⚠️  As described in section :ref:`three-d-rendering-pipeline`,
+Geometry Shader (GS) can generate both more vertices and more 
+primitives than it receives. 
+A single patch from Tesslation Control Shader (TCS) and Tesslation Evaluation 
+Shader (TVS) can generate millions of micro‑triangles.
+GS and Tessellation introduce **unbounded geometry amplification**, which
+breaks these assumptions and forces expensive DRAM spills for TBDR as shown in 
+:numref:`mobile-tile-base-pipeline`,
+
+.. _mobile-tile-base-pipeline: 
+.. graphviz:: ../Fig/gpu/mobile-tile-base-pipeline.gv
+  :caption: CPU and GPU Pipeline For Shaders in Mobile Device
+
+
+This is why Mali,
+PowerVR, Apple, and Adreno mobile GPUs all omit these stages [#arm-gs]_
+[#img-gs]_.
+
+Developers manually invoke **compute shaders** to generate meshlets or 
+additional geometry, adding extra geometric detail for close-up **zoom-in** 
+effects.
+Both Mali and PowerVR GPUs then run the standard vertex shader on the generated 
+results.
+
+✔ Step 1 — Developer dispatches a compute shader
+
+This compute shader can do things like:
+
+- break a big mesh into meshlets as :numref:`mobile-mesh-to-meshlets-to-render`.
+  The mesh and meshlets are described in the :ref:`mesh-shader` next 
+  section.
+- generate more vertices for detail (subdivision, displacement)
+- perform LOD selection
+- cull invisible meshlets
+- generate new index/vertex buffers
+
+This is developer‑controlled, not automatic.
+
+.. _mobile-mesh-to-meshlets-to-render: 
+.. graphviz:: ../Fig/gpu/mobile-mesh-to-meshlets-to-render.gv
+  :caption: CPU and GPU Pipeline For Shader`s in Mobile Device
+
+
+The compute shader writes results into:
+
+- SSBOs
+- vertex buffers
+- index buffers
+
+These buffers now contain the final geometry you want to render.
+
+✔ Step 2 — Developer issues a normal draw call
+
+The Mali and PowerVR's rendering flow is illustrated as
+:numref:`mobile-rendering-pipeline-shaders-cpu-gpu`.
+
+.. _mobile-rendering-pipeline-shaders-cpu-gpu: 
+.. graphviz:: ../Fig/gpu/mobile-rendering-pipeline-shaders-cpu-gpu.gv
+  :caption: CPU and GPU Pipeline For Shaders in Mobile Device
+
+- Modern mobile engines instead use **compute shaders** for culling, LOD,
+  meshlet prep, and procedural geometry.
+
+
+✅ Geometry Shaders are notoriously inefficient even on desktop GPUs.
+GPU vendors (NVIDIA + AMD + Intel) designed the mesh‑shader pipeline described
+in the section :ref:`mesh-shader`.
+
+
+.. _mesh-shader:
+
+Mesh-Shader Pipeline
+^^^^^^^^^^^^^^^^^^^^
+
+A single 3D object can contain 1 mesh, multiple meshes or hundreds of meshes 
+(complex characters, vehicles, weapons).
+
+**Reasons**
+
+The purpose of converting **a mesh into small clusters (meshlets)** is to give the GPU **small, coherent**, cullable, cache‑friendly work units that dramatically improve parallelism, memory locality, and LOD efficiency.
+
+Raw meshes can have anywhere from thousands to millions of vertices/triangles, while meshlets intentionally restrict clusters to ~32–128 vertices and ~32–256 triangles to maximize GPU efficiency.
+
+**Motivation**
+
+NVIDIA, AMD, and Intel all needed:
+
+- a compute‑like geometry pipeline
+- meshlet‑based processing
+- better culling
+- GPU‑driven rendering
+- a **replacement** for VS → TCS → TES → GS
+
+So the vendors co‑designed the hardware pipeline.
+
+✔ Microsoft and Khronos (Vulkan) each standardized it in their own APIs
+
+
+✅ **Solution**: As shown in :numref:`meshlet-offline-to-render`.
+
+.. _meshlet-offline-to-render: 
+.. graphviz:: ../Fig/gpu/meshlet-offline-to-render.gv
+  :caption: Meshlet Offline To Render
+
+
+
+**Rendering Pipeline**
+
+✔ GPU vendors (NVIDIA + AMD + Intel) designed the mesh‑shader pipeline:
+
+The animation flow from CPU to GPU for **Traditional**, **Compute Shader** 
+based and **Mesh Shader** are 
+shown in :numref:`short-rendering-pipeline-shaders-cpu-gpu-2`,
+:numref:`short-mobile-rendering-pipeline-shaders-cpu-gpu` and 
+:numref:`short-mesh-rendering-pipeline-shaders-cpu-gpu`. 
+
+Mesh shading (Vulkan VK_EXT_mesh_shader, similarly in NV mesh shader) replaces 
+the fixed vertex-input + VS + optional tess/GS stages with a compute-like 
+geometry pipeline:
+
+.. _short-rendering-pipeline-shaders-cpu-gpu-2: 
+.. graphviz:: ../Fig/gpu/short-rendering-pipeline-shaders-cpu-gpu-2.gv
+  :caption: CPU and GPU **Traditional** Pipeline For Shaders
+
+.. _short-mobile-rendering-pipeline-shaders-cpu-gpu: 
+.. graphviz:: ../Fig/gpu/short-mobile-rendering-pipeline-shaders-cpu-gpu.gv
+  :caption: CPU and GPU **Mobile** Pipeline For Shaders
+
+.. _short-mesh-rendering-pipeline-shaders-cpu-gpu: 
+.. graphviz:: ../Fig/gpu/short-mesh-rendering-pipeline-shaders-cpu-gpu.gv
+  :caption: CPU and GPU **Mesh Shader** Pipeline For Shaders
+
+As in :numref:`short-mesh-rendering-pipeline-shaders-cpu-gpu`,
+NVIDIA/AMD desktop provide mesh‑shader to do the following pipeline.
+
+3D Modeling Tool Output (big mesh)
+
+→ CPU Meshlet Generator Tool (offline) 
+
+  - Converting **big mesh** into **small clusters (meshlets)** to maximize GPU 
+    efficiency.
+
+→ Precomputed meshlets (static clusters)
+
+→ Task Shader (optional)
+
+→ Mesh Shader
+
+**Comparsion: Mobile GPU (Compute-Shader Based) vs Desktop Mesh-Shader GPU**
+
+The **Mesh Shader** is similar to the previous section of **Mobile 
+Compute Shader** based Meshlets as the following tables:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 25 35 40
+
+   * - Feature
+     - Mobile Compute‑Based Meshlets
+     - Desktop Mesh‑Shader Meshlets
+
+   * - Where It Runs
+     - GPU compute shader **before** the graphics pipeline
+     - Task Shader + Mesh Shader **inside** the graphics pipeline
+
+   * - Who Controls It
+     - Developer‑written compute shaders
+     - Hardware‑driven mesh shader pipeline
+
+   * - Purpose
+     - Generate meshlets, LOD, culling, subdivision for TBDR
+     - Expand meshlets, cull, LOD, and emit primitives to rasterizer
+
+   * - Geometry Amplification
+     - Allowed, but must be bounded and predictable
+     - Fully dynamic; mesh shaders can amplify geometry arbitrarily
+
+   * - Compatibility With TBDR
+     - ✔ Fully compatible (geometry finalized before binning)
+     - ❌ Not compatible (geometry generated too late for tile binning)
+
+   * - Replaces
+     - Replaces Tessellation + Geometry Shader on mobile
+     - Replaces Vertex Shader + Geometry Shader + Tessellation
+
+   * - Input Data
+     - Raw mesh or CPU‑precomputed meshlets
+     - CPU‑precomputed meshlets or GPU‑generated meshlets
+
+   * - Output to Next Stage
+     - Final vertex/index buffers → Vertex Shader → TBDR
+     - Final vertices + primitives → Rasterizer
+
+   * - Typical Use Cases
+     - Mobile TBDR pipelines (Mali, PowerVR, Apple AGX)
+     - Desktop IMR pipelines (NVIDIA, AMD)
+
+.. list-table::
+   :header-rows: 1
+   :widths: 25 35 35
+
+   * - Concept
+     - Mobile GPU (Compute-Shader Based)
+     - Desktop Mesh-Shader GPU
+
+   * - Meshlet generation
+     - Compute Shader generates meshlets at runtime
+     - Meshlet Generator Tool (CPU) → Task Shader → Mesh Shader
+
+   * - Work distribution
+     - Compute Shader dispatch groups handle distribution
+     - Task Shader distributes meshlet workloads
+
+   * - Meshlet expansion
+     - Vertex Shader processes vertices after compute pre-processing
+     - Mesh Shader expands meshlets and emits triangles
+
+   * - Culling & LOD
+     - Compute Shader performs culling and LOD before raster
+     - Task + Mesh Shader perform culling and LOD selection
+
+   * - Draw submission
+     - Compute Shader writes indirect draw commands
+     - Mesh Shader emits primitives directly to rasterizer
+
+   * - Pipeline family
+     - Traditional Pipeline (VS → Raster → FS)
+     - Mesh-Shader Pipeline (Task → Mesh → Raster → FS)
+
+
+**Summary**
+
+Meshlets and the mesh-shader pipeline transform geometry processing into
+a compute-like workflow. By organizing geometry into small, cache-friendly
+clusters and distributing work across task and mesh shaders, modern GPUs
+achieve higher throughput, better culling efficiency, and reduced CPU
+overhead compared to the traditional vertex-processing pipeline.
+
+3D modeling tools do NOT generate meshlets.  
+Meshlets are always generated later, using specialized meshlet‑generation tools, most commonly:
+
+- NVIDIA meshlet generator (NV_mesh_shader ecosystem)
+- meshoptimizer (Khronos‑recommended, open source)
+- Engine‑specific meshlet builders (Unreal, Frostbite, etc.)
+
+So the meshlet conversion happens after the model is exported — not inside Blender, Maya, 3ds Max, etc.
+
+
+.. _animation-ex:
 
 Animation Example
 ^^^^^^^^^^^^^^^^^
@@ -2258,202 +2653,6 @@ OpenGL does not provide a built-in animation system. Instead, animation
 occurs because the application updates Animation Parameters each frame
 and the vertex shader applies animation math during the draw call. The
 GPU performs the animation only when the draw command is issued.
-
-
-Mesh-Shader Pipeline
-^^^^^^^^^^^^^^^^^^^^
-
-✔ GPU vendors (NVIDIA + AMD + Intel) designed the mesh‑shader pipeline
-
-NVIDIA, AMD, and Intel all needed:
-
-•  a compute‑like geometry pipeline
-•  meshlet‑based processing
-•  better culling
-•  GPU‑driven rendering
-•  a replacement for VS → TCS → TES → GS
-
-So the vendors co‑designed the hardware pipeline.
-
-✔ Microsoft and Khronos (Vulkan) each standardized it in their own APIs
-
-Mesh shading (Vulkan VK_EXT_mesh_shader, similarly in NV mesh shader) replaces 
-the fixed vertex-input + VS + optional tess/GS stages with a compute-like 
-geometry pipeline:
-
-Comparing traditional vs mesh‑shader pipelines is shown as the following 
-:numref:`short-rendering-pipeline-shaders-compare` and table:
-
-
-.. _short-rendering-pipeline-shaders-compare: 
-.. graphviz:: ../Fig/gpu/short-rendering-pipeline-shaders-compare.gv
-  :caption: GPU Pipeline For Shaders (Traditional vs Mesh-Shader)
-
-.. list-table:: summarizing all shader stages
-   :header-rows: 1
-   :widths: 18 25 40 17
-
-   * - Shader Stage
-     - Pipeline Family
-     - Main Responsibility
-     - Optional?
-   * - Vertex Shader
-     - Traditional
-     - Processes per-vertex attributes from vertex input (positions, normals,
-       UVs, etc.), applies transforms, may do basic skinning or morphing.
-     - No
-   * - Tessellation Control Shader
-     - Traditional
-     - Controls tessellation factors, prepares patch data for the tessellation
-       evaluation shader.
-     - Yes
-   * - Tessellation Evaluation Shader
-     - Traditional
-     - Evaluates tessellated vertices on patches (curves/surfaces), often used
-       for displacement and smooth surfaces.
-     - Yes
-   * - Geometry Shader
-     - Traditional
-     - Operates on whole primitives (triangles, lines, points), can expand,
-       shrink, or modify them, often used for simple amplification or effects.
-     - Yes
-   * - Fragment Shader
-     - Both
-     - Runs per-fragment after rasterization, performs texturing, lighting,
-       shading, material evaluation, and writes colors/depth to the framebuffer.
-     - No
-   * - Compute Shader
-     - Both
-     - General-purpose compute stage, independent of the fixed graphics
-       pipeline. Used for skinning, culling, particles, post-processing,
-       and other GPGPU tasks.
-     - Yes
-   * - Task Shader
-     - Mesh-Shader Pipeline
-     - Work-dispatch stage that runs in workgroups, performs coarse culling,
-       LOD selection, and determines how many mesh shader workgroups to launch.
-       Does not directly emit primitives.
-     - Yes
-   * - Mesh Shader
-     - Mesh-Shader Pipeline
-     - Compute-like stage that generates vertices and primitives directly in
-       workgroups, replacing vertex input, vertex shader, and often tessellation
-       and geometry stages. Operates naturally on meshlets.
-     - No (if mesh pipeline is used)
-
-
-**GPU Architecture–Level Explanation of Meshlets and Work Distribution**
-
-**Overview**
-
-Mesh shaders introduce a compute-like geometry pipeline that replaces
-the traditional vertex input, vertex shader, tessellation, and often
-geometry shader stages. At the architectural level, this pipeline is
-organized around *meshlets* and *workgroups*, enabling efficient
-GPU-driven rendering, fine-grained culling, and improved cache locality.
-
-**What Meshlets Are**
-
-A **meshlet** is a compact cluster of vertices and triangles extracted
-from a larger mesh. Meshlets are designed to fit efficiently into GPU
-workgroup memory and caches.
-
-Characteristics:
-
-- Small, bounded size (e.g., up to ~256 vertices and ~256 triangles).
-- High spatial and topological locality.
-- Preprocessed offline or at load time using specialized
-  meshlet-generation tools.
-- Ideal for GPU workgroup processing because all data needed for a
-  meshlet fits into fast on-chip memory.
-
-Meshlets serve as the fundamental unit of geometry work in the
-mesh-shader pipeline.
-
-**Work Distribution in the Mesh-Shader Pipeline**
-
-The mesh-shader pipeline consists of two programmable stages:
-
-1. **Task Shader (Optional)**
-2. **Mesh Shader**
-
-These stages operate similarly to compute shaders, using workgroups and
-shared memory.
-
-**Task Shader Responsibilities**
-
-The **task shader** acts as a coarse-grained work distributor.
-
-Key responsibilities:
-
-- Perform coarse culling at the meshlet or instance level.
-- Select appropriate LODs for distant geometry.
-- Build a compact list of meshlets to be processed.
-- Determine how many mesh shader workgroups to launch.
-- Pass a payload (task data) to mesh shader workgroups.
-
-The task shader does *not* emit vertices or primitives.
-
-**Mesh Shader Responsibilities**
-
-The **mesh shader** replaces the vertex shader, tessellation, and often
-the geometry shader. It operates on meshlets inside workgroups.
-
-Key responsibilities:
-
-- Load meshlet vertices and indices from GPU memory.
-- Apply transforms, skinning, morphing, and procedural deformation.
-- Perform fine-grained culling:
-  - frustum culling
-  - backface culling
-  - small triangle culling
-  - cluster-level culling
-- Generate the final set of vertices and primitives.
-- Emit primitives directly to the rasterizer.
-
-Because mesh shaders run in workgroups, they can use shared memory and
-synchronize threads, enabling efficient reuse of vertex data.
-
-**Why Meshlets Fit GPU Architecture Well**
-
-Meshlets align naturally with GPU hardware for several reasons:
-
-- **Workgroup-Friendly:**  
-  Each meshlet maps cleanly to a single workgroup, keeping memory usage
-  predictable and minimizing divergence.
-
-- **Cache Efficiency:**  
-  Meshlets maximize vertex reuse and reduce memory bandwidth by grouping
-  spatially local geometry.
-
-- **Hierarchical Culling:**  
-  - Task shader: coarse culling of entire meshlets.  
-  - Mesh shader: fine culling of individual primitives.
-
-- **Reduced CPU Overhead:**  
-  The GPU can perform culling, LOD selection, and primitive generation
-  without CPU intervention, enabling GPU-driven rendering.
-
-- **Scalable Parallelism:**  
-  Each meshlet is processed independently, allowing thousands of
-  workgroups to run in parallel across GPU SMs.
-
-**Summary**
-
-Meshlets and the mesh-shader pipeline transform geometry processing into
-a compute-like workflow. By organizing geometry into small, cache-friendly
-clusters and distributing work across task and mesh shaders, modern GPUs
-achieve higher throughput, better culling efficiency, and reduced CPU
-overhead compared to the traditional vertex-processing pipeline.
-
-3D modeling tools do NOT generate meshlets.  
-Meshlets are always generated later, using specialized meshlet‑generation tools, most commonly:
-
-•  NVIDIA meshlet generator (NV_mesh_shader ecosystem)
-•  meshoptimizer (Khronos‑recommended, open source)
-•  Engine‑specific meshlet builders (Unreal, Frostbite, etc.)
-
-So the meshlet conversion happens after the model is exported — not inside Blender, Maya, 3ds Max, etc.
 
 
 GLSL (GL Shader Language)
@@ -3456,7 +3655,7 @@ that accelerate them as shown in :numref:`ogl-pipeline-hw`:
 
 **GPU provides the following hardware to accelerate graphics rendering pipeline as follows:**
 
-🔹 Simplified Flow (OpenGL → Hardware)
+✅ Simplified Flow (OpenGL → Hardware)
 	1.	Vertex Fetch → VRAM & Memory Controllers.
 	2.	Vertex Shader → SM cores + Geometry Units.
 	3.	Geometry/Tessellation → SM core + Geometry Units.
@@ -3881,6 +4080,8 @@ Therefore, the average total execution time for 32 threads in an SM is:
 •  Pascal: 640 cycles (20 cycles × 32 threads, due to lack of independent 
    progress inside a Warp)
 
+
+.. _sec-mem-hierarchy:
 
 Processor Units and Memory Hierarchy in NVIDIA GPU [#chatgpt-pumh]_
 *******************************************************************
@@ -4352,7 +4553,7 @@ This section outlines the transition from traditional GPU operand coherence
 using a monolithic register file and L1 data cache, to a RegLess-style 
 architecture that employs operand staging and register file-local coherence.
 
-🧮 Operand Delivery in Traditional GPU: :numref:`no-regless`:
+✅ Operand Delivery in Traditional GPU: :numref:`no-regless`:
 
 .. _no-regless: 
 .. graphviz:: ../Fig/gpu/no-regless.gv
@@ -4383,7 +4584,7 @@ architecture that employs operand staging and register file-local coherence.
    # All operands reside in register file and may be cached in L1
 
 
-🌀 Operand Delivery in RegLess GPU (with L1 Cache in LD Path): :numref:`regless`:
+✅ Operand Delivery in RegLess GPU (with L1 Cache in LD Path): :numref:`regless`:
 
 .. _regless: 
 .. graphviz:: ../Fig/gpu/regless.gv
@@ -5757,7 +5958,7 @@ SPIR-V.
      - **Region-based register allocation; dynamic renaming; not exposed as 
        physical register model**
 
-✅NVIDIA, AMD, ARM and Imagination all have exposed LLVM IR and convert SPIR-V IR to LLVM IR.
+✅ NVIDIA, AMD, ARM and Imagination all have exposed LLVM IR and convert SPIR-V IR to LLVM IR.
   - SPIR:
 
     - For OpenCL development, the IR started from SPIR (LLVM-based IR). 
@@ -5773,7 +5974,7 @@ SPIR-V.
     - A Vulkan shader written in GLSL is compiled to SPIR-V, then passed to the GPU driver.
     - An OpenCL kernel written in C can be compiled to SPIR-V, then lowered to LLVM IR internally by vendors like AMD or NVIDIA.
 
-⚠️ Apple
+⚠️  Apple
 
 •  Uses LLVM IR Partially. Apple supports SPIR-V in Metal and OpenCL, but 
    LLVM IR is not always exposed.
@@ -6133,6 +6334,12 @@ Open Sources
 .. [#2danimation] https://tw.video.search.yahoo.com/search/video?fr=yfp-search-sb&p=2d+animation#id=12&vid=46be09edf57b960ae79e9cd077eea1ea&action=view
 
 .. [#redbook-p36] Page 36 of book "OpenGL Programming Guide 9th Edition" [#redbook]_.
+
+.. [#arm-gs] ARM Developer: *Why mobile GPUs avoid geometry shaders*  
+   https://developer.arm.com/documentation/102476/latest/
+
+.. [#img-gs] Imagination Technologies: *Why Geometry Shaders Are Not Supported*  
+   https://www.imgtec.com/blog/why-powervr-does-not-support-geometry-shaders/
 
 .. [#redbook-examples] https://github.com/openglredbook/examples
 
