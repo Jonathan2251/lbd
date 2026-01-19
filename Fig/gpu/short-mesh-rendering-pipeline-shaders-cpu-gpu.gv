@@ -1,0 +1,34 @@
+digraph CPU_GPU_Pipeline {
+    rankdir=LR;
+    node [shape=box, style=rounded, fontsize=12];
+
+    subgraph cluster_cpu {
+        label="CPU";
+        style=rounded;
+        CPU_Vertex   [label="Load 3D Model\n(Vertex Data)\nVBOs, VAOs, Indices"];
+        MeshletGen   [label="Meshlet Generator Tool\n(Cluster Vertices & Triangles,\nBuild Meshlets, Culling Data)", style=filled, fillcolor=orange];
+        CPU_Anim     [label="Update Animation Parameters\n(Bone Matrices, Morph Weights,\nTime, Material Params)"];
+    }
+
+    subgraph cluster_gpu {
+        label="GPU";
+        style=rounded;
+
+        TaskS   [label="Task Shader (Optional)\n(Work Distribution,\nMeshlet Dispatch)", style=filled, fillcolor=orange];
+        MeshS   [label="Mesh Shader\n(Expand Meshlets,\nCulling, LOD,\nEmit Triangles\nskinning)", style=filled, fillcolor=orange];
+
+        Raster  [label="Rasterizer\n(Consumes Mesh Shader Output,\nClipping, Interpolation)", style=filled, fillcolor=yellow];
+
+        FS      [label="Fragment Shader\n(Lighting, Texturing,\nShading, Materials)"];
+        FB      [label="Final Rendered Image\n(Framebuffer Output)"];
+    }
+
+    CPU_Vertex -> MeshletGen;
+    MeshletGen -> TaskS [label=<<b><font color="blue">Small Meshlets</font></b>>];
+    CPU_Anim   -> TaskS;
+
+    TaskS -> MeshS;
+    MeshS -> Raster;
+    Raster -> FS;
+    FS -> FB;
+}

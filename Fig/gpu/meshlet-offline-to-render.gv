@@ -1,0 +1,33 @@
+digraph Meshlet_Offline_To_Render {
+    rankdir=LR;
+    node [shape=box, style=rounded, fontsize=12];
+
+    subgraph cluster_offline {
+        label="Offline / Build Time";
+        style=rounded;
+
+        BigMesh [label="Big Mesh\n(High-Poly Model)"];
+        MeshletGen [label="CPU Meshlet Generator Tool\n(Cluster Vertices & Triangles,\nBuild Meshlets, Culling Data)",
+                    style=filled, fillcolor=orange];
+        Meshlets [label="Small Clusters\n(Meshlets)\n(Precomputed)"];
+    }
+
+    subgraph cluster_runtime {
+        label="Runtime / Load Time";
+        style=rounded;
+
+        Loader [label="Meshlets Loader\n(Load Meshlet Buffers,\nBuild GPU-Ready Data)"];
+    }
+
+    subgraph cluster_render {
+        label="Mesh Rendering Flow";
+        style=rounded;
+
+        RenderFlow [label="Mesh Rendering Pipeline\n(Task/Mesh Shader or\nCompute + VS Pipeline)"];
+    }
+
+    BigMesh -> MeshletGen;
+    MeshletGen -> Meshlets;
+    Meshlets -> Loader;
+    Loader -> RenderFlow;
+}

@@ -63,6 +63,12 @@ Revision history
 
 Version 12.0.20, not released yet.
 
+Version 12.0.19.4, January 19, 2026.
+
+  gpu.rst: add 'section Mobile GPU 3D Rendering', 
+  refine 'section Mesh-Shader Pipeline'.
+  llvmstructure.rst: refine 'section Clang'.
+
 Version 12.0.19.3, January 4, 2026.
 
   gpu.rst: Add pc-lcd.png, in-out-rendering.gv, 'section Background of GLSL 

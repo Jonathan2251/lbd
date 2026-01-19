@@ -1,0 +1,47 @@
+digraph Mobile_GPU_Comparison {
+    rankdir=TB;
+    node [shape=box, style=rounded, fontsize=11];
+
+    // ARM Mali cluster
+    subgraph cluster_mali {
+        label="ARM Mali TBDR Pipeline";
+        style=rounded;
+
+        Mali_VS [label="Vertex Shader (VS)\n• Vertex fetch\n• Skinning / morphing\n• Model→World→Clip transforms\n• Varying generation", style="filled,rounded,bold", fillcolor="orange"];
+        Mali_PA [label="Primitive Assembly\n• Triangle assembly\n• Back-face culling\n• Clipping\n• Viewport transform", style="filled,rounded,bold", fillcolor="lightyellow"];
+        Mali_Tiling [label="Tiling / Binning\n• Bin triangles into tiles\n• Per-tile visibility\n• Tile list construction"];
+        Mali_Raster [label="Rasterization\n• Triangle traversal\n• Pixel coverage\n• Early-Z"];
+        Mali_FS [label="Fragment Shader (FS)\n• Shading\n• Texturing\n• Lighting\n• Blending", style="filled,rounded,bold", fillcolor="orange"];
+        Mali_Writeback [label="Tile Writeback\n• Store tile to framebuffer\n• Resolve MSAA"];
+
+        Mali_VS -> Mali_PA -> Mali_Tiling -> Mali_Raster -> Mali_FS -> Mali_Writeback;
+    }
+
+    // PowerVR cluster
+    subgraph cluster_powervr {
+        label="Imagination PowerVR TBDR Pipeline";
+        style=rounded;
+
+        PV_VS [label="Vertex Shader (VS)\n• Vertex fetch\n• Skinning / morphing\n• Transform to clip space\n• Varying generation", style="filled,rounded,bold", fillcolor="orange"];
+        PV_PB [label="Parameter Buffer (PB)\n• Store transformed vertices\n• Geometry parameter encoding\n• Prepare for tiling", style="filled,rounded,bold", fillcolor="lightyellow"];
+        PV_Tiling [label="Tiling / Binning\n• Tile list creation\n• Hidden surface removal (HSR)\n• Per-tile visibility"];
+        PV_Raster [label="Rasterization\n• Triangle traversal\n• Pixel coverage\n• Early-Z"];
+        PV_FS [label="Fragment Shader (FS)\n• Shading\n• Texturing\n• Lighting\n• Blending", style="filled,rounded,bold", fillcolor="orange"];
+        PV_Writeback [label="Tile Writeback\n• Store tile to framebuffer\n• Composition"];
+
+        PV_VS -> PV_PB -> PV_Tiling -> PV_Raster -> PV_FS -> PV_Writeback;
+    }
+
+    // Compute shader (shared concept)
+    Compute [shape=box, style="rounded,dashed",
+             label="Compute Shader (Optional)\n• Culling\n• Skinning\n• Particle simulation\n• Buffer generation\n• Preprocessing"];
+
+    CPU [shape=box, style=rounded, label="CPU\n• glDispatchCompute\n• glDraw*"];
+
+    // Shared compute flow
+    CPU -> Compute [label="optional"];
+    Compute -> Mali_VS [label=<<b><font color="blue">Small Meshlets<br/>in SSBO/buffers</font></b>>];
+    Compute -> PV_VS   [label=<<b><font color="blue">Small Meshlets<br/>in SSBO/buffers</font></b>>];
+    CPU -> Mali_VS     [label="draw call"];
+    CPU -> PV_VS       [label="draw call"];
+}

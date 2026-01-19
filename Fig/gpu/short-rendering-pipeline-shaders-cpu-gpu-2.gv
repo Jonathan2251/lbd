@@ -1,0 +1,52 @@
+digraph CPU_GPU_Pipeline {
+    rankdir=LR;
+    node [shape=box, style=rounded, fontsize=12];
+
+    subgraph cluster_cpu {
+        label="CPU";
+        style=rounded;
+        CPU_Vertex [label="Load 3D Model\n(Vertex Data)\nVBOs, VAOs, Indices"];
+        CPU_Anim   [label="Update Animation Parameters\n(Bone Matrices, Morph Weights,\nTime, Material Params)"];
+    }
+
+    subgraph cluster_gpu {
+        label="GPU";
+        style=rounded;
+
+        VS   [label="Vertex Shader\n(Skinning, Morphing,\nModel/View/Proj Transform)",
+              style=filled, fillcolor=orange];
+
+        TCS  [label="Tessellation Control Shader (Optional)\n(TCS)",
+              style=filled, fillcolor=orange];
+
+        TES  [label="Tessellation Evaluation Shader (Optional)\n(TES)",
+              style=filled, fillcolor=orange];
+
+        GS   [label="Geometry Shader (Optional)\n(Primitive Expansion,\nCulling, Layering)",
+              style=filled, fillcolor=orange];
+
+        Raster [label="Rasterizer\n(Primitive Assembly,\nClipping, Interpolation)",
+                style=filled, fillcolor=yellow];
+
+        FS   [label="Fragment Shader\n(Lighting, Texturing,\nShading, Materials)"];
+
+        FB   [label="Final Rendered Image\n(Framebuffer Output)"];
+
+        // === Layering for better spacing ===
+        { rank = same; VS; TCS ; TES}
+       // { rank = same;  TES }
+       // { rank = same; GS; Raster; FS; FB }
+    }
+
+    CPU_Vertex -> VS [label=<<b><font color="red">Big Mesh</font></b>>];
+    CPU_Anim   -> VS;
+
+    VS  -> TCS;
+    TCS -> TES;
+    TES -> GS;
+    GS  -> Raster;
+
+    Raster -> FS;
+    FS -> FB;
+}
+

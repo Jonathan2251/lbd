@@ -1,0 +1,37 @@
+digraph CPU_GPU_MobilePipeline {
+    rankdir=LR;
+    node [shape=box, style=rounded, fontsize=12];
+
+    subgraph cluster_cpu {
+        label="CPU";
+        style=rounded;
+
+        CPU_Vertex   [label="Load 3D Model\n(Vertex Data)\nVBOs, VAOs, Indices"];
+        CPU_Anim     [label="Update Animation Parameters\n(Bone Matrices, Morph Weights,\nTime, Material Params)"];
+    }
+
+    subgraph cluster_gpu {
+        label="GPU (Mobile / TBDR)";
+        style=rounded;
+
+        CS_Meshlet [label="Compute Shader\n(Generate Meshlets,\nCulling, LOD,\nBuild Indirect Draw Cmds)", 
+                    style=filled, fillcolor=orange];
+
+        VS         [label="Vertex Shader\n(Transform, Skinning,\nMorphing, MVP)"];
+
+        Raster     [label="Rasterizer\n(Primitive Assembly,\nClipping, Interpolation)",
+                    style=filled, fillcolor=yellow];
+
+        FS         [label="Fragment Shader\n(Lighting, Texturing,\nShading, Materials)"];
+
+        FB         [label="Final Rendered Image\n(Framebuffer Output)"];
+    }
+
+    CPU_Vertex -> CS_Meshlet;
+    CPU_Anim   -> CS_Meshlet;
+
+    CS_Meshlet -> VS [label=<<b><font color="blue">Small Meshlets</font></b>>];
+    VS -> Raster;
+    Raster -> FS;
+    FS -> FB;
+}

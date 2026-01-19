@@ -15,7 +15,7 @@ Create gh-pages
 
 1. Create a new orphan branch for GitHub Pages and clean the directory.
 
-..code-block:: console
+.. code-block:: console
 
   % git branch
   * gh-pages
@@ -29,7 +29,7 @@ Create gh-pages
   - Cause: GitHub tries to build Jekyll by default
   - Fix: Add a .nojekyll file to the root of gh-pages:
 
-..code-block:: console
+.. code-block:: console
 
   % git branch
   * gh-pages
@@ -82,6 +82,92 @@ Six Levels of Chapter, section, subsections
   Level 6 Title
   ~~~~~~~~~~~~~~~
 
+
+- Do not use more than 90 characters per line in ``code-block:: console`` or any
+  other code block, otherwise errors may occur during `make latexpdf`.
+
+- Use ``\clearpage`` (see gpu.rst) to force page breaks in pdf and avoid content
+  splitting across two pages.
+
+- For instructions on inserting a reference before any paragraph that is not a 
+  section heading, see the word ``cfg-warps`` in gpu.rst.
+
+Symbols
+*******
+
+Pdf (xelatex) recognizes:
+
+1. Basic geometric shapes
+
+- ●  (black circle)
+- ○  (white circle)
+- ■  (black square)
+- □  (white square)
+- ◆  (black diamond)
+- ◇  (white diamond)
+- ►  (black right pointer)
+- ◄  (black left pointer)
+- ▲  (black up triangle)
+- ▼  (black down triangle) 
+
+2. Classic dingbats
+
+- ✓  (check mark)
+- ✗  (ballot X)
+- ✦  (four-point star)
+- ✧  (open four-point star)
+- ✱  (heavy asterisk)
+- ✲  (open center asterisk)
+- ✳  (eight-spoked asterisk)
+
+3. Miscellaneous symbols
+
+- ⚠️  (warning sign)
+- ⚡  (high voltage)
+- ★ / ☆  ✨  ↦ ⇢ ➚ / ➘ ↺ / ↻ ∴ → ∵ ⟳ ⤴ ⇧  ✦→ ⧖ ✦ ✧
+- ⚓  (anchor)
+- ⚙️  (gear)
+- ⚖️  (scales)
+- ⚒  (hammer and pick)
+- ⚔️  (crossed swords)
+- ⚕️  (medical symbol)
+- ⚘  (flower)
+- ⚪  (white circle)
+- ⚫  (black circle)
+
+4. Arrows
+
+- ← → ↑ ↓
+- ↔ ↕
+- ↦ ↤
+- ⇐ ⇒ ⇑ ⇓
+- ⇔
+- Use math: ``:math:`\Leftarrow``` or ``:math:`\Rightarrow```;  :math:`\Leftarrow` :math:`\Rightarrow`; reference :ref:`cross-product`.
+
+.. math::
+
+  \Leftarrow,   \Rightarrow
+
+
+Math
+****
+
+- Sphinx supports math symbols; see references [#sphinx-math]_ and
+  [#mathbase-latex]_ for more details.
+
+Figures
+*******
+
+- Figures side by side: refer to ``sm:left`` in gpu.rst.
+
+Graphviz
+********
+
+- To draw nodes inside a parent node, use "compound=true;" and subgraph
+  cluster_name [#graphviz-cluster]_. To create edges from/to parent nodes,
+  use the attributes "ltail" and "lhead" set to the parent node.
+
+- See graphviz documents here [#gv-doc-pdf]_.
 
 
 Cpu0 document
@@ -167,17 +253,6 @@ adding the following to your ``.profile``:
 Note of Sphinx
 **************
 
-- Do not use more than 90 characters per line in ``code-block:: console`` or any
-  other code block, otherwise errors may occur during `make latexpdf`.
-
-- Use ``\clearpage`` (see gpu.rst) to force page breaks in pdf and avoid content
-  splitting across two pages.
-
-- Figures side by side: refer to ``sm:left`` in gpu.rst.
-
-- For instructions on inserting a reference before any paragraph that is not a 
-  section heading, see the word ``cfg-warps`` in gpu.rst.
-
 .. code-block:: console
 
   $HOME/git/lbd$ make latexpdf
@@ -201,18 +276,6 @@ Note of Sphinx
   make[1]: *** [LLVMToolchainCpu0.pdf] Error 12
   make: *** [latexpdf] Error 2
   make latexpdf  14.57s user 1.11s system 99% cpu 15.790 total
-
-- Sphinx supports math symbols; see references [#sphinx-math]_ and
-  [#mathbase-latex]_ for more details.
-
-Note of graphviz
-****************
-
-- To draw nodes inside a parent node, use "compound=true;" and subgraph
-  cluster_name [#graphviz-cluster]_. To create edges from/to parent nodes,
-  use the attributes "ltail" and "lhead" set to the parent node.
-
-- See graphviz documents here [#gv-doc-pdf]_.
 
 Generate Cpu0 document
 **********************
