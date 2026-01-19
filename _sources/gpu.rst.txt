@@ -2289,9 +2289,13 @@ A single 3D object can contain 1 mesh, multiple meshes or hundreds of meshes
 
 **Reasons**
 
-The purpose of converting **a mesh into small clusters (meshlets)** is to give the GPU **small, coherent**, cullable, cache‑friendly work units that dramatically improve parallelism, memory locality, and LOD efficiency.
+The purpose of converting **a mesh into small clusters (meshlets)** is 
+to give the GPU **small, coherent**, cullable, cache‑friendly work units 
+that dramatically improve parallelism, memory locality, and LOD efficiency.
 
-Raw meshes can have anywhere from thousands to millions of vertices/triangles, while meshlets intentionally restrict clusters to ~32–128 vertices and ~32–256 triangles to maximize GPU efficiency.
+Raw meshes can have anywhere from thousands to millions of vertices/triangles, 
+while meshlets intentionally restrict clusters to ~32–128 vertices and 
+~32–256 triangles to maximize GPU efficiency.
 
 **Motivation**
 
@@ -2315,10 +2319,22 @@ So the vendors co‑designed the hardware pipeline.
   :caption: Meshlet Offline To Render
 
 
-
 **Rendering Pipeline**
 
 ✔ GPU vendors (NVIDIA + AMD + Intel) designed the mesh‑shader pipeline:
+
+3D Modeling Tool Output (big mesh)
+
+→ CPU Meshlet Generator Tool (offline) 
+
+  - Converting **big mesh** into **small clusters (meshlets)** to maximize GPU 
+    efficiency.
+
+→ Precomputed meshlets (static clusters)
+
+→ Task Shader (optional)
+
+→ Mesh Shader
 
 The animation flow from CPU to GPU for **Traditional**, **Compute Shader** 
 based and **Mesh Shader** are 
@@ -2345,68 +2361,73 @@ geometry pipeline:
 As in :numref:`short-mesh-rendering-pipeline-shaders-cpu-gpu`,
 NVIDIA/AMD desktop provide mesh‑shader to do the following pipeline.
 
-3D Modeling Tool Output (big mesh)
+**Task Shader Responsibilities**
 
-→ CPU Meshlet Generator Tool (offline) 
+The **Task Shader** acts as a coarse-grained work distributor.
 
-  - Converting **big mesh** into **small clusters (meshlets)** to maximize GPU 
-    efficiency.
+Key responsibilities:
 
-→ Precomputed meshlets (static clusters)
+- Perform coarse culling at the meshlet or instance level.
+- Select appropriate LODs for distant geometry.
+- Build a compact list of meshlets to be processed.
+- Determine how many mesh shader workgroups to launch.
+- Pass a payload (task data) to mesh shader workgroups.
 
-→ Task Shader (optional)
+The task shader does *not* emit vertices or primitives.
 
-→ Mesh Shader
+**Mesh Shader Responsibilities**
+
+The **mesh shader** replaces the vertex shader, tessellation, and often
+the geometry shader. It operates on meshlets inside workgroups.
+
+Key responsibilities:
+
+- Load meshlet vertices and indices from GPU memory.
+- Apply transforms, skinning, morphing, and procedural deformation.
+- Perform fine-grained culling:
+  - frustum culling
+  - backface culling
+  - small triangle culling
+  - cluster-level culling
+- Generate the final set of vertices and primitives.
+- Emit primitives directly to the rasterizer.
+
+Because mesh shaders run in workgroups, they can use shared memory and
+synchronize threads, enabling efficient reuse of vertex data.
+
+**Why Meshlets Fit GPU Architecture Well**
+
+Meshlets align naturally with GPU hardware for several reasons:
+
+- **Workgroup-Friendly:**  
+  Each meshlet maps cleanly to a single workgroup, keeping memory usage
+  predictable and minimizing divergence.
+
+- **Cache Efficiency:**  
+  Meshlets maximize vertex reuse and reduce memory bandwidth by grouping
+  spatially local geometry.
+
+- **Hierarchical Culling:**  
+  - Task shader: coarse culling of entire meshlets.  
+  - Mesh shader: fine culling of individual primitives.
+
+- **Reduced CPU Overhead:**  
+  The GPU can perform culling, LOD selection, and primitive generation
+  without CPU intervention, enabling GPU-driven rendering.
+
+- **Scalable Parallelism:**  
+  Each meshlet is processed independently, allowing thousands of
+  workgroups to run in parallel across GPU SMs.
+
+
+Both Mobile GPU and Mesh-Shader GPU convert big mesh to small meshlets and
+render them efficiently using GPU SIMT executation and memory hierarchy. 
+The comparsion is shown in the following table.
 
 **Comparsion: Mobile GPU (Compute-Shader Based) vs Desktop Mesh-Shader GPU**
 
 The **Mesh Shader** is similar to the previous section of **Mobile 
-Compute Shader** based Meshlets as the following tables:
-
-.. list-table:: Mobile Compute‑Based vs Desktop Mesh‑Shader -- **Feature 
-                Comparison**
-   :header-rows: 1
-   :widths: 25 35 40
-
-   * - Feature
-     - Mobile Compute‑Based Meshlets
-     - Desktop Mesh‑Shader Meshlets
-
-   * - Where It Runs
-     - GPU compute shader **before** the graphics pipeline
-     - Task Shader + Mesh Shader **inside** the graphics pipeline
-
-   * - Who Controls It
-     - Developer‑written compute shaders
-     - Hardware‑driven mesh shader pipeline
-
-   * - Purpose
-     - Generate meshlets, LOD, culling, subdivision for TBDR
-     - Expand meshlets, cull, LOD, and emit primitives to rasterizer
-
-   * - Geometry Amplification
-     - Allowed, but must be bounded and predictable
-     - Fully dynamic; mesh shaders can amplify geometry arbitrarily
-
-   * - Compatibility With TBDR
-     - ✔ Fully compatible (geometry finalized before binning)
-     - ❌ Not compatible (geometry generated too late for tile binning)
-
-   * - Replaces
-     - Replaces Tessellation + Geometry Shader on mobile
-     - Replaces Vertex Shader + Geometry Shader + Tessellation
-
-   * - Input Data
-     - Raw mesh or CPU‑precomputed meshlets
-     - CPU‑precomputed meshlets or GPU‑generated meshlets
-
-   * - Output to Next Stage
-     - Final vertex/index buffers → Vertex Shader → TBDR
-     - Final vertices + primitives → Rasterizer
-
-   * - Typical Use Cases
-     - Mobile TBDR pipelines (Mali, PowerVR, Apple AGX)
-     - Desktop IMR pipelines (NVIDIA, AMD)
+Compute Shader** based Meshlets as the following table:
 
 .. list-table:: Mobile GPU vs Desktop Mesh-Shader GPU -- **Concept Comparison**
    :header-rows: 1
@@ -2416,9 +2437,13 @@ Compute Shader** based Meshlets as the following tables:
      - Mobile GPU (Compute-Shader Based)
      - Desktop Mesh-Shader GPU
 
-   * - Meshlet generation
-     - Compute Shader generates meshlets at runtime
-     - Meshlet Generator Tool (CPU) → Task Shader → Mesh Shader
+   * - **Meshlet generation**
+     - **Compute Shader** generates meshlets at runtime
+     - **CPU Meshlet Generator Tool** (offline)
+
+   * - Tile-based
+     - Yes
+     - No
 
    * - Work distribution
      - Compute Shader dispatch groups handle distribution
@@ -2450,13 +2475,15 @@ achieve higher throughput, better culling efficiency, and reduced CPU
 overhead compared to the traditional vertex-processing pipeline.
 
 3D modeling tools do NOT generate meshlets.  
-Meshlets are always generated later, using specialized meshlet‑generation tools, most commonly:
+Meshlets are always generated later, using specialized meshlet‑generation 
+tools, most commonly:
 
 - NVIDIA meshlet generator (NV_mesh_shader ecosystem)
 - meshoptimizer (Khronos‑recommended, open source)
 - Engine‑specific meshlet builders (Unreal, Frostbite, etc.)
 
-So the meshlet conversion happens after the model is exported — not inside Blender, Maya, 3ds Max, etc.
+So the meshlet conversion happens after the model is exported — not inside 
+Blender, Maya, 3ds Max, etc.
 
 
 .. _animation-ex:
