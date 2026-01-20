@@ -1,0 +1,40 @@
+digraph OpenGL_Pipeline_Part1 {
+    rankdir=LR;
+    node [shape=box, style=rounded, fontsize=12];
+
+    App  [label="Application"];
+    VS   [label="Vertex Shader"];
+
+    subgraph cluster_optional {
+        label="Optional Stages";
+        style="rounded,dashed";
+        color="gray";
+
+        subgraph cluster_ts {
+            label="Tessellation";
+            style=rounded;
+
+            TCS  [label="Tessellation Control Shader\n(TCS)"];
+
+            TS  [label="Fixed-Function Tessellator"];
+
+            TES  [label="Tessellation Evaluation Shader\n(TES)"];
+
+            TCS -> TS      [label="CP + Tessellation level"];
+            TS  -> TES     [label="Tessellated domain\ncoordinates"];
+
+            { rank = same;  TCS; TS; TES }
+        }
+
+        GS  [label="Geometry Shader"];
+    }
+
+    PA   [label="Primitive Assembly"];
+
+    App -> VS      [label="Vertex Arrays"];
+    VS  -> TCS     [label="Transformed Vertices +\nControl Points(CP)"];
+    TES -> GS      [label="Tessellated Vertices\n(more vertices)"];
+    GS  -> PA      [label="Modified Primitives"];
+
+    //{ rank = same; TCS; TES }
+}

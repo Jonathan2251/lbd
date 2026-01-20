@@ -16,14 +16,33 @@ digraph CPU_GPU_Pipeline {
         VS   [label="Vertex Shader\n(Skinning, Morphing,\nModel/View/Proj Transform)",
               style=filled, fillcolor=orange];
 
-        TCS  [label="Tessellation Control Shader (Optional)\n(TCS)",
-              style=filled, fillcolor=orange];
+        subgraph cluster_optional {
+            label="Optional Stages";
+            style="rounded,dashed";
+            color="gray";
 
-        TES  [label="Tessellation Evaluation Shader (Optional)\n(TES)",
-              style=filled, fillcolor=orange];
+            subgraph cluster_ts {
+                label="Tessellation";
+                style=rounded;
 
-        GS   [label="Geometry Shader (Optional)\n(Primitive Expansion,\nCulling, Layering)",
-              style=filled, fillcolor=orange];
+                TCS  [label="Tessellation Control Shader\n(TCS)",
+                      style=filled, fillcolor=orange];
+
+                TS  [label="Fixed-Function Tessellator",
+                      style=filled, fillcolor=orange];
+
+                TES  [label="Tessellation Evaluation Shader\n(TES)",
+                      style=filled, fillcolor=orange];
+
+                TCS -> TS [label="CP + Tessellation level"];
+                TS -> TES  [label="Tessellated domain\ncoordinates"];
+
+                { rank = same;  TCS; TS; TES }
+            }
+
+            GS   [label="Geometry Shader\n(Primitive Expansion,\nCulling, Layering)",
+                  style=filled, fillcolor=orange];
+        }
 
         Raster [label="Rasterizer\n(Primitive Assembly,\nClipping, Interpolation)",
                 style=filled, fillcolor=yellow];
@@ -31,19 +50,13 @@ digraph CPU_GPU_Pipeline {
         FS   [label="Fragment Shader\n(Lighting, Texturing,\nShading, Materials)"];
 
         FB   [label="Final Rendered Image\n(Framebuffer Output)"];
-
-        // === Layering for better spacing ===
-        { rank = same; VS; TCS ; TES}
-       // { rank = same;  TES }
-       // { rank = same; GS; Raster; FS; FB }
     }
 
     CPU_Vertex -> VS [label=<<b><font color="red">Big Mesh</font></b>>];
     CPU_Anim   -> VS;
 
-    VS  -> TCS;
-    TCS -> TES;
-    TES -> GS;
+    VS  -> TCS [label="Transformed Vertices +\nControl Points(CP)"];
+    TES -> GS [label="Tessellated Vertices\n(more vertices)"];
     GS  -> Raster;
 
     Raster -> FS;

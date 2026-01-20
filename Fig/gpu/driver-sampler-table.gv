@@ -1,0 +1,115 @@
+digraph G {
+    graph [rankdir=TB];
+
+    // ---------------------
+    // Node n1, n2, n3, n4
+    // ---------------------
+    n1 [shape=box, label="1. GPU Compiler"];
+    n2 [shape=box, label="2. Driver alloc memory xLoc for x"];
+    n3 [shape=box, label="3. xLoc = gl.getUniformLocation(prog, \"x\")"];
+    n4 [shape=box, label="4. gl.uniform1i(xLoc, 1)"];
+
+    // -------------------------
+    // Table 1 (tbl1)
+    // -------------------------
+    tbl1 [
+        shape=none
+        label=<
+        <TABLE BORDER="1" CELLBORDER="1" CELLSPACING="0">
+            <TR><TD COLSPAN="3"><B>driver Sampler Variables table</B></TD></TR>
+            <TR>
+                <TD PORT="r0c0">name</TD>
+                <TD PORT="r0c1">type</TD>
+                <TD PORT="r0c2">location</TD>
+            </TR>
+            <TR>
+                <TD PORT="r1c0">...</TD>
+                <TD PORT="r1c1"></TD>
+                <TD PORT="r1c2"></TD>
+            </TR>
+            <TR>
+                <TD PORT="r2c0">"x"</TD>
+                <TD PORT="r2c1">SAMPLE_2D</TD>
+                <TD PORT="r2c2">xLoc</TD>
+            </TR>
+            <TR>
+                <TD PORT="r3c0">...</TD>
+                <TD PORT="r3c1"></TD>
+                <TD PORT="r3c2"></TD>
+            </TR>
+        </TABLE>
+        >
+    ];
+
+    // -------------------------
+    // Table 2 (tbl2)
+    // -------------------------
+    tbl2 [
+        shape=none
+        label=<
+        <TABLE BORDER="1" CELLBORDER="1" CELLSPACING="0">
+            <TR><TD COLSPAN="4"><B>texture descriptor</B></TD></TR>
+            <TR>
+                <TD PORT="t0c0">offset</TD>
+                <TD PORT="t0c1">location</TD>
+                <TD PORT="t0c2">Texture Unit</TD>
+            </TR>
+            <TR>
+                <TD PORT="t1c0">...</TD>
+                <TD PORT="t1c1"></TD>
+                <TD PORT="t1c2"></TD>
+            </TR>
+            <TR>
+                <TD PORT="t2c0">k</TD>
+                <TD PORT="t2c1">xLoc</TD>
+                <TD PORT="t2c2">1</TD>
+            </TR>
+            <TR>
+                <TD PORT="t3c0">...</TD>
+                <TD PORT="t3c1"></TD>
+                <TD PORT="t3c2"></TD>
+            </TR>
+        </TABLE>
+        >
+    ];
+
+    // -------------------------
+    // Table 3 (tbl3)
+    // -------------------------
+    tbl3 [
+        shape=none
+        label=<
+        <TABLE BORDER="1" CELLBORDER="1" CELLSPACING="0">
+            <TR><TD COLSPAN="3"><B>GPU executable binary</B></TD></TR>
+            <TR>
+                <TD PORT="u0c0" ALIGN="LEFT">4. load $1, tex_a</TD>
+            </TR>
+            <TR>
+                <TD PORT="u1c0" ALIGN="LEFT">   sample_inst $1, $2, $3 // $2: %uv_2d, $3: %bias</TD>
+            </TR>
+            <TR>
+                <TD PORT="u2c0" ALIGN="LEFT">   .tex_a // Driver set value to k when calling gl.uniformli(xLoc, 1)</TD>
+            </TR>
+        </TABLE>
+        >
+    ];
+
+    // -------------------------
+    // Edges
+    // -------------------------
+
+    // n1 -> n2 -> tbl1(2,2)
+    n1 -> n2 [label="During the link stage for uniform sampler2D x;"];
+    n2 -> tbl1:r2c2;
+
+    // tbl1(2,2) -> n3
+    tbl1:r2c2 -> n3;
+
+    n3 -> tbl2:t2c1 [label="Driver fill xLoc \n(the location of x sampler variable)\n to the offset k in the table"];
+
+    // n4 -> right side of tbl2 (choose last column: row 2 col 2)
+    n4 -> tbl2:t2c2 [label="Driver write 1 to the table\nfor using Texture Unit 1"];
+
+    // tbl2(2,0) -> tb3(2,0)
+    tbl2:t2c0 -> tbl3:u2c0 [label="Driver lookup the table and \nset the value of the symbol '.tex_a' to k \nin the executable binary file"];
+}

@@ -45,8 +45,9 @@ the first image as :numref:`modeling1`.
   Creating 3D model and texturing
 
 After applying smooth shading [#polygon]_, the vertices and edge lines are
-covered with color (or the edges are visually removed—edges never actually have
-black outlines). As a result, the model appears much smoother [#shading]_.
+covered with color (or the edges are visually removed — **edges never actually 
+have black outlines**). As a result, the model appears much smoother 
+[#shading]_.
 
 Furthermore, after texturing (texture mapping), the model looks even more
 realistic [#texturemapping]_.
@@ -57,21 +58,181 @@ realistic [#texturemapping]_.
 Animation
 ^^^^^^^^^
 
-To understand how animation works for a 3D model, please refer to the video here
-[#animation1]_. According to the video on skeleton animation, joints are positioned
-at different poses and assigned timing (keyframes), as illustrated in
-:numref:`animationfigure`.
+★ Animation Layers: High → Low
+
+This breakdown organizes animation systems from the **highest gameplay
+logic** down to the **lowest GPU skinning**, and clearly marks which
+parts are controlled by the **user** and which parts are handled by the
+**3D engine**.
+
+1. Gameplay Animation Logic (High Level): set by user (game developer)
+
+**Examples**
+
+- Play "walk" when speed > 0.1
+- Trigger "jump" on button press
+- Switch to "attack" when enemy detected
+- Blend run when velocity increases
+
+**Where it lives**
+
+Live in **gameplay scripts** (C#, Blueprints, GDScript, Python)
+
+- Unity: C# scripts
+- Unreal: Blueprints or C++
+- Godot: GDScript
+- ThinMatrix: Java (no scripting layer)
+
+This layer decides *when* animations should play.
+
+2. Animation State Machine / Animation Graph: set by user (game developer)
+
+See video here [#animation-state-video]_.
+
+**Examples**
+
+- Idle → Walk → Run transitions
+- Blend trees
+- Animation layers (upper body, lower body)
+- Animation parameters (speed, grounded, direction)
+
+**Where it lives**
+
+- Unity: Animator Controller
+- Unreal: Animation Blueprint
+- Godot: AnimationTree
+- ThinMatrix: *Does not have this layer*
+
+This layer controls *which* animation clip is active and how transitions
+occur.
+
+3. Animation Clip Playback Layer: user chooses
+
+An **animation clip** is **a sequence of keyframes** over a period of time that 
+represents a **motion or action**.
+
+**Examples**
+
+- Play animation clip
+- Loop animation
+- Set animation speed
+- Crossfade between clips
+- Blend two clips together
+
+**Who sets it?**  
+User chooses which clip to play.
+
+**Who implements it?**  
+Engine handles blending, timing, and playback.
+
+**Where it lives**
+
+- Unity: Mecanim runtime
+- Unreal: AnimInstance
+- Godot: AnimationPlayer
+- ThinMatrix: Java engine code (Animator.java)
+
+This layer executes the user’s choices.
+
+4. Skeleton Animation System (Low Level): 3D engine implements it
+
+**Examples**
+
+- Bone hierarchy
+- Keyframe interpolation
+- Joint transforms
+- Matrix palette generation
+- Pose calculation
+
+**Who sets it?**  
+Engine
+
+**Who uses it?**  
+User indirectly, by playing animations.
+
+**Where it lives**
+
+- Unity: C++ engine core
+- Unreal: C++ engine core
+- Godot: C++ engine core
+- ThinMatrix: Java engine code (he writes this manually)
+
+This layer performs the mathematical work of animation.
+
+5. GPU Skinning (Lowest Level): 3D engine implements it
+
+**Examples**
+
+- Vertex shader skinning
+- Applying bone matrices
+- Weighted vertex deformation
+- Sending matrices to GPU
+
+**Who sets it?**  
+Engine
+
+**Who uses it?**  
+User never touches this layer directly (except in custom engines).
+
+**Where it lives**
+
+- Unity: C++ + HLSL
+- Unreal: C++ + HLSL
+- Godot: C++ + GLSL
+- ThinMatrix: GLSL shader he writes manually
+
+This is the final stage where the GPU deforms the mesh.
+
+Full Hierarchy (Summary)
+
+::
+
+    HIGH LEVEL (User)
+    ──────────────────────────────────────────────
+    1. Gameplay Animation Logic
+    2. Animation State Machine / Animation Graph
+    3. Animation Clip Playback
+
+    LOW LEVEL (Engine)
+    ──────────────────────────────────────────────
+    4. Skeleton Animation System
+    5. GPU Skinning
+
+
+.. _animation-levels: 
+.. graphviz:: ../Fig/gpu/animation-levels.gv
+  :caption: Animation levels
+
+
+ThinMatrix’s engine collapses the top three layers into Java because it
+has **no scripting layer** and **no animation graph**, so the user must
+modify the engine code directly.
+
+According to the video on ThinMatrix’s skeleton animation [#animation1]_, 
+he is sampling the animation clip at different times.
+The animation clip already contains: keyframes, bone transforms, timestamps, 
+interpolation curves.
+All of this comes from Blender’s exported .dae file.
+Joints are positioned at different poses at specific times (keyframes), as 
+illustrated in :numref:`animationfigure`.
 
 .. _animationfigure: 
 .. figure:: ../Fig/gpu/animation.png
   :align: center
   :scale: 50 %
 
-  Set time point at keyframes
+  Get time points at keyframes
 
-In this series of videos, you will see 3D modeling tools generating Java code
-instead of C/C++ code calling OpenGL API and shaders. This is because Java can
-call OpenGL API through a wrapper library [#joglwiki]_.
+Although most of 3D game engines are written C++, **ThinMatrix’s engine** is 
+100% Java.
+In this series of videos, you will see that he writes new Java engine modules, 
+edits existing engine code, loads animation data from Blender, interpolates 
+keyframes, updates bone matrices and sends them to the GPU.
+Because ThinMatrix's engine is **tiny and educational** for engine programmer or
+game developer, does not provide Scripting Layer (such as C#, Python, GDScript, 
+Blueprints) most commercial 3D engines.
+Instead, he modifies ThinMatrix’s Java engine directly, which differs from most
+other 3D engines operate.
 
 **Animation flow**
 
@@ -206,6 +367,23 @@ different systems working together:
    animation, the character would walk in place without actually moving
    forward.
 
+   - Root bone: the bone that represents the entire object’s transform — 
+     the top‑most parent of the hierarchy. An example of person:
+
+.. code-block:: text
+
+    Root
+     └─ Pelvis
+         ├─ Spine
+         │   ├─ Chest
+         │   │   ├─ Neck
+         │   │   │   └─ Head
+         │   │   └─ Shoulders
+         │   │       ├─ Arm_L
+         │   │       └─ Arm_R
+         ├─ Leg_L
+         └─ Leg_R
+
 Both systems are required to create a complete walking animation:
 
 - **Skinning** provides the internal limb motion.
@@ -248,6 +426,8 @@ Example:
 
 2. What Game Engines Actually Store
 
+The **engine’s built‑in C++ renderer handles all OpenGL/Vulkan/Metal calls 
+automatically**.
 Game engines such as Unity, Unreal Engine, Godot, or custom engines store
 and manage animation data, but still do not define gameplay movement speed.
 
@@ -370,7 +550,8 @@ However:
 - **Game engines store animation clips, not movement speed.**
 - **Programmers control movement speed, physics, and gameplay behavior.**
 - **No tool generates JOGL/OpenGL/Vulkan/DirectX code.**
-- **All rendering API calls are written by engine developers or by you in a custom engine.**
+- **All rendering API calls are written by engine developers or by you in a 
+  custom engine.**
 
 
 **Example for accelerating playing**
@@ -816,18 +997,21 @@ more computing power than the CPU.
 .. graphviz:: ../Fig/gpu/graphic-sw-stack.gv
   :caption: Graphic SW Stack and data flow in initializing graphic model
 
-✅  As section :ref:`animation` and :numref:`graphic_sw_stack`. Higher-level 
-libraries and frameworks on top of OpenGL provide animation frameworks and 
-tools to generate OpenGL APIs and shaders from 3D models.
+✅  As section :ref:`animation` and :numref:`graphic_sw_stack`. 
+The **game engine’s built‑in C++ renderer handles all OpenGL/Vulkan/Metal 
+calls automatically**. 
+Users set the value for speed, velocity, ..., etc, customize the animation
+logic.
 
 After the user creates a skeleton and textures  
-for each model and sets keyframe times using a 3D modeling tool, the tool can  
-either generate Java code that calls JOGL (Java OpenGL) [#joglwiki]_ or generate  
-OpenCL APIs directly.
+for each model and sets keyframe times using a 3D modeling tool, users can  
+write **gameplay scripts** (**Java code**, C#, Blueprints, GDScript, Python, 
+etc.) to tell the engine to play animations [#joglwiki]_.
 
-As section :ref:`node-editor`, shaders are primarily created by 
-Graphics Designers / Technical Artists and secondly created by Software 
-Programmers / Graphics Programmers.
+As section :ref:`node-editor`, the skin materials created by Graphics Designers 
+/ Technical Artists and secondly created by Software Programmers / Graphics 
+Programmers using the tool Node-Editor (shaders generator).
+As result, shaders generated from tool Node-Editor (shaders generator).
 
 Shaders may call built-in functions written in Compute Shaders, SPIR-V, or  
 LLVM-IR. LLVM `libclc` is a project for OpenCL built-in functions, which can  
@@ -933,6 +1117,9 @@ These are tiny updates — kilobytes, not megabytes.
    \sum_{i=0}^{N-1}
    \mathbf{weight}_i \left( \mathbf{boneMatrix}_i \cdot originalPosition \right)
 
+
+In practice (real engines): the weights are normalized so the sum = 1.0 
+:math:`\Rightarrow \sum_{i=0}^{N-1}\mathbf{weight}_i = 1.0`
 
 Example: Bending an Arm
 
@@ -1801,10 +1988,6 @@ However the following table from OpenGL rendering pipeline Figure 1.2 and its
 stages from the book *OpenGL Programming Guide, 9th Edition* [#redbook]_ is 
 broad enough to cover animation.
 
-.. raw:: latex
-
-   \clearpage
-
 .. list-table:: OpenGL rendering pipeline from page 10 and page 36 of book
    "OpenGL Programming Guide 9th Edition" [#redbook]_ and [#rendering]_.
    :widths: 20 60
@@ -1917,6 +2100,8 @@ broad enough to cover animation.
        “Compute Shaders” [#redbook-p36]_.
 
 
+**Tessllation**
+
 - Tessellation Shading: 
   The core problem that Tessellation deals with is the static nature of 3D models
   in terms of their detail and polygon count. The thing is that when we look at 
@@ -1931,18 +2116,48 @@ broad enough to cover animation.
   resources and often will not be flexible enough. ...
   Let's take a look at how Tessellation has been implemented in the graphics 
   pipeline. The core components that are responsible for Tessellation are two 
-  new shader stages and in between them a fixed function stage that can be 
+  new shader stages and in between them a **fixed function** stage that can be 
   configured to some degree but does not run a shader. The first shader stage 
-  is called Tessellation Control Shader (TCS), the fixed function stage is 
-  called the Primitive Generator (PG), and the second shader stage is called 
-  Tessellation Evaluation Shader (TES). 
+  is called **Tessellation Control Shader (TCS)**, the **fixed function** stage 
+  is called the **Primitive Generator (PG)**, and the second shader stage is 
+  called **Tessellation Evaluation Shader (TES)**. 
   Some GPU havn't this fixed function stage implemented in HW and even havn't
-  provide these TCS, TES and Gemoetry Shader. User can write Compute Shaders 
-  instead for this on-fly detail display.
-  This surface is usually defined by some polynomial formula and the idea is 
-  that moving a CP has an effect on the entire surface. ...
-  The group of CPs is usually called a Patch [#ts-tu30]_.
-  Chapter 9 of Red Book [#redbook]_ has details.
+  provide these TCS, TES and Gemoetry Shader. User can write 
+  **Compute Shaders** instead for this on-fly detail display.
+  This surface is usually defined by some **polynomial formula** and the idea 
+  is that moving a **CP** has an effect on the entire surface. ...
+  The group of CPs is usually called a **Patch** [#ts-tu30]_.
+  The data flow in Tessllation Stage between TCS, Fixed-Function Tessellator 
+  and TES is illustrated in :numref:`imr-rendering-pipeline-1`.
+  Chapter 9 of Red Book [#redbook]_ has details. 
+  The next section :ref:`tessellation-ex` describes the details for the 
+  Tessallation with an example.
+
+- Tessellation **cannot** decrease the resolution of vertices from the VS.
+  The Geometry Shader can **reduce geometry** (by discarding primitives), but it
+  **cannot** reduce the number of input vertices coming from VS/TES.
+  The rasterizer can **reduce fragments**, but it cannot reduce vertices.
+
+**Data Flow**
+
+Sumarize the OpenGL Rendering Pipeline as shown in the 
+:numref:`imr-rendering-pipeline-1` and 
+:numref:`imr-rendering-pipeline-2`.
+
+.. _imr-rendering-pipeline-1: 
+.. graphviz:: ../Fig/gpu/imr-rendering-pipeline-1.gv
+  :caption: The part 1 of GPU Rendering Pipeline Stages in Red Book
+
+.. _imr-rendering-pipeline-2: 
+.. graphviz:: ../Fig/gpu/imr-rendering-pipeline-2.gv
+  :caption: The part 2 of GPU Rendering Pipeline Stages in Red Book
+
+.. raw:: latex
+
+   \clearpage
+
+The data flow through the OpenGL Shader and the details flow
+in TCS, Fixed-Function Tessellator and TES are described in below.
 
 .. list-table:: Data Flow Through the OpenGL Shader Pipeline
    :widths: 20 35 35 45
@@ -1979,19 +2194,33 @@ broad enough to cover animation.
      - - Patch control points
        - Uniforms
        - Per-patch attributes
-     - - Modified control points
-       - Tessellation levels
+     - - **Modified control points**: gl_out
+       - **Tessellation levels**: gl_TessLevelInner, gl_TessLevelOuter
      - - **Tessellation Control Stage**:
 
          - Writes tessellation levels to fixed-function tessellator
          - Stores control points in patch memory
 
+   * - Fixed‑Function Tessellator (TS)
+     - - Modified control points: gl_out
+       - Tessellation levels:  gl_TessLevelInner, gl_TessLevelOuter
+       - Per-patch attribute (triangles, quads, isolines)
+       - Partitioning mode (integer, fractional_even, fractional_odd)
+       - Winding order
+     - - **Tessellated coordinates (u,v,w)**: gl_TessCoord
+       - Bypass modified Control Points
+     - - **Fixed‑Function Tessellator (TS)**, also name as **Primitive Generator (PG)**:
+
+         - Generates tessellated domain coordinates (u,v,w) to TES
+
    * - Tessellation Evaluation Shader (TES)
-     - - Tessellated coordinates (u,v,w)
-       - Patch control points
+     - - Tessellated coordinates (u,v,w): gl_TessCoord
+       - modified Control Points
        - Uniforms
-     - - gl_Position
-       - Varyings
+       - gl_PrimitiveID
+     - - **Tessellated Vertices**: gl_Position
+       - Any per‑vertex **varyings** for GS or rasterizer
+       - Optional custom attributes
      - - **Tessellation Evaluation Stage**:
 
          - ALUs compute final vertex positions
@@ -2010,6 +2239,15 @@ broad enough to cover animation.
          - Emits new primitives
          - Expands or reduces geometry
 
+.. list-table:: Data Flow Through the OpenGL Shader Pipeline Continue
+   :widths: 20 35 35 45
+   :header-rows: 1
+
+   * - Shader Stage
+     - Input Data (from CPU or previous stage)
+     - Output Data (to next stage)
+     - How GPU Hardware Uses These Data (with Stage Name)
+
    * - Rasterizer (Fixed Function)
      - - Primitives (triangles/lines/points)
        - Per-vertex varyings
@@ -2021,10 +2259,6 @@ broad enough to cover animation.
          - Barycentric units interpolate varyings
          - Generates fragments
          - Sends fragments to fragment shader cores
-
-.. list-table:: Data Flow Through the OpenGL Shader Pipeline Continue
-   :widths: 20 35 35 45
-   :header-rows: 1
 
    * - Fragment Shader
      - - Interpolated varyings
@@ -2051,6 +2285,8 @@ broad enough to cover animation.
          - Applies blending
          - Writes final pixels to framebuffer memory
          - Handles MSAA resolve
+
+**Varying**
 
 A varying is a piece of data that:
 
@@ -2087,10 +2323,344 @@ triangle**.
      - Used for per-pixel lighting, reflections, shadows, and screen-space effects;
        must be interpolated so each fragment knows its own world position
 
+
 For 2D animation, the model is created by 2D only (1 face only), so it only can be 
 viewed from the same face of model. If you want to display different faces of model,
 multiple 2D models need to be created and switch these 2D models from face(flame) to 
 face(flame) from time to time [#2danimation]_.
+
+
+.. _tessellation-ex:
+
+Tessellation Example
+^^^^^^^^^^^^^^^^^^^^
+
+In Chapter 9 (Tessellation), the Red Book [#redbook]_ focuses on:
+
+- gl_TessLevelOuter[]
+- gl_TessLevelInner[]
+
+It never mentioned to gnerate modified CPs in TCS.
+The following example give the output for  (TCS → TS → TES) in patching a
+single rectangle.
+
+**An example for Inflated 4×4 Bézier Patch (TCS → TS → TES)**
+
+The following diagram illustrates the complete OpenGL tessellation
+pipeline for a **4×4** bicubic Bézier patch on **1 single rectangle**. 
+Only the four interior control points (5, 6, 9, 10) are lifted off the plane, 
+producing a smooth inflated surface.
+
+
+**Tessellation Control Shader (TCS)**: output:
+
+- **modified Control Points (CPs, Patch)**: gl_out
+- **Tessellation level**: gl_TessLevelInner, gl_TessLevelOuter
+
+Another name for **CPs** is **Patch**.
+
+The TCS outputs 16 CPs arranged in a 4×4 grid.  
+Only CPs 5, 6, 9, and 10 are elevated to create curvature.
+
+.. code-block:: glsl
+
+   #version 450 core
+   layout(vertices = 16) out;
+
+   void main()
+   {
+       // Copy all CPs
+       gl_out[gl_InvocationID].gl_Position =
+           gl_in[gl_InvocationID].gl_Position;
+
+       // Inflate interior CPs
+       if (gl_InvocationID == 5 ||
+           gl_InvocationID == 6 ||
+           gl_InvocationID == 9 ||
+           gl_InvocationID == 10)
+       {
+           gl_out[gl_InvocationID].gl_Position +=
+               vec4(0.0, 0.0, 1.0, 0.0);
+       }
+
+       // Tessellation levels
+       if (gl_InvocationID == 0) {
+           gl_TessLevelOuter[0] = 4.0;
+           gl_TessLevelOuter[1] = 4.0;
+           gl_TessLevelOuter[2] = 4.0;
+           gl_TessLevelOuter[3] = 4.0;
+
+           gl_TessLevelInner[0] = 4.0;
+           gl_TessLevelInner[1] = 4.0;
+       }
+   }
+
+**Fixed-Function Tessellator (TS)**, also name as **Primitive Generator 
+(PG)**: output:
+
+- **Tessellated coordinates (u,v,w)**: gl_TessCoord
+
+The PG takes the TLs and based on their values generates a **set of points** 
+inside the triangle. Each point is defined by its own barycentric coordinate.
+The set of points named **Tessellated coordinates**.
+
+The grid size depends on tessellation levels:
+
+- If gl_TessLevelOuter[0..3] = 4.0 and gl_TessLevelInner[0..1] = 4.0 → you 
+  get a 5×5 grid, **Tessellated coordinates (u,v,w)**
+- If you set 8.0 → you get a 9×9 grid
+- If you set 2.0 → you get a 3×3 grid
+
+The fixed‑function tessellator generates a 5×5 evaluation grid
+for tessellation level 4.0.  
+No shading language code is written for this stage.
+
+**Tessellation Evaluation Shader (TES)**: output:
+
+- **Tessellated Vertices**: gl_Position
+
+For each ``(u, v)``, the TES computes the surface point ``P(u, v)`` as:
+
+.. math::
+
+   P(u, v)
+   \;=\;
+   \sum_{i=0}^{3} \sum_{j=0}^{3}
+   B_i(u)\, B_j(v)\, P_{ij}
+
+where the Bernstein basis functions are:
+
+.. math::
+
+   B_0(t) = (1 - t)^3,\qquad
+   B_1(t) = 3t(1 - t)^2,\qquad
+   B_2(t) = 3t^2(1 - t),\qquad
+   B_3(t) = t^3.
+
+The TES evaluates the Bézier surface at each tessellated (u, v)
+coordinate using the 16 CPs.
+
+.. code-block:: glsl
+
+   #version 450 core
+   layout(quads, equal_spacing, cw) in;
+
+   float B(int i, float t) {
+       if (i == 0) return (1 - t) * (1 - t) * (1 - t);
+       if (i == 1) return 3 * t * (1 - t) * (1 - t);
+       if (i == 2) return 3 * t * t * (1 - t);
+       return t * t * t;
+   }
+
+   void main()
+   {
+       float u = gl_TessCoord.x;
+       float v = gl_TessCoord.y;
+
+       vec4 p = vec4(0.0);
+       int idx = 0;
+
+       for (int i = 0; i < 4; ++i) {
+           float bu = B(i, u);
+           for (int j = 0; j < 4; ++j) {
+               float bv = B(j, v);
+               p += gl_in[idx].gl_Position * (bu * bv);
+               idx++;
+           }
+       }
+
+       gl_Position = p;
+   }
+
+**Result**
+
+The output for (TCS → TS → TES) in patching a single rectangle as the 
+following table. 
+
+Inflated Bézier Patch: Control Points and Evaluated Surface (vec4)
+
+All control points use homogeneous coordinates (x, y, z, w = 1.0).
+Evaluated surface points P(u,v) are also vec4.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 10 20 30 30
+
+   * - **CP Index**
+     - **Grid Position (i, j)**
+     - **Control Point (x, y, z, w)**
+     - **Evaluated P(u,v) = vec4**
+   * - 0
+     - (0, 0)
+     - (0, 0, 0, 1)
+     - (0.0, 0.0, 0.0, 1)
+   * - 1
+     - (1, 0)
+     - (1, 0, 0, 1)
+     - (1.0, 0.0, 0.0, 1)
+   * - 2
+     - (2, 0)
+     - (2, 0, 0, 1)
+     - (2.0, 0.0, 0.0, 1)
+   * - 3
+     - (3, 0)
+     - (3, 0, 0, 1)
+     - (3.0, 0.0, 0.0, 1)
+   * - 4
+     - (0, 1)
+     - (0, 1, 0, 1)
+     - (0.0, 1.0, 0.0, 1)
+   * - 5
+     - (1, 1)
+     - (1, 1, 1, 1)
+     - (1.0, 1.0, 0.5625, 1)
+   * - 6
+     - (2, 1)
+     - (2, 1, 1, 1)
+     - (2.0, 1.0, 0.5625, 1)
+   * - 7
+     - (3, 1)
+     - (3, 1, 0, 1)
+     - (3.0, 1.0, 0.0, 1)
+   * - 8
+     - (0, 2)
+     - (0, 2, 0, 1)
+     - (0.0, 2.0, 0.0, 1)
+   * - 9
+     - (1, 2)
+     - (1, 2, 1, 1)
+     - (1.0, 2.0, 0.5625, 1)
+   * - 10
+     - (2, 2)
+     - (2, 2, 1, 1)
+     - (2.0, 2.0, 0.5625, 1)
+   * - 11
+     - (3, 2)
+     - (3, 2, 0, 1)
+     - (3.0, 2.0, 0.0, 1)
+   * - 12
+     - (0, 3)
+     - (0, 3, 0, 1)
+     - (0.0, 3.0, 0.0, 1)
+   * - 13
+     - (1, 3)
+     - (1, 3, 0, 1)
+     - (1.0, 3.0, 0.0, 1)
+   * - 14
+     - (2, 3)
+     - (2, 3, 0, 1)
+     - (2.0, 3.0, 0.0, 1)
+   * - 15
+     - (3, 3)
+     - (3, 3, 0, 1)
+     - (3.0, 3.0, 0.0, 1)
+
+.. list-table::
+   :widths: 50 50
+   :align: center
+
+   * - .. _ts-ex:left:
+       .. figure:: ../Fig/gpu/ts-ex.png
+          :scale: 50 %
+
+          The final rendering result for 5×5 tessellated mesh.
+
+     - .. _ts-ex:right: 
+       .. figure:: ../Fig/gpu/ts-gs-ex.png
+          :scale: 50 %
+
+          Geometry Shader (GS) can expand a 5×5 tessellated grid into a 6×6 mesh
+
+The following TCS glsl from the Red Book can patch high or low resolution of 
+CPs at runtime according the distance of the squre vertices.
+
+Specifying Tessellation Level Factors Using Perimeter Edge Centers.
+
+.. code-block:: glsl
+
+   #version 450 core
+
+   // Each patch has four precomputed edge centers:
+   //   edgeCenter[0] = left edge center
+   //   edgeCenter[1] = bottom edge center
+   //   edgeCenter[2] = right edge center
+   //   edgeCenter[3] = top edge center
+   struct EdgeCenters {
+       vec4 edgeCenter[4];
+   };
+
+   // Array of edge-center data, one entry per patch
+   uniform EdgeCenters patch[];
+
+   // Camera position in world space
+   uniform vec3 EyePosition;
+
+   layout(vertices = 16) out;
+
+   void main()
+   {
+       // Pass through control points unchanged
+       gl_out[gl_InvocationID].gl_Position =
+           gl_in[gl_InvocationID].gl_Position;
+
+       // Synchronize all invocations
+       barrier();
+
+       // Only invocation 0 computes tessellation levels
+       if (gl_InvocationID == 0)
+       {
+           // Loop over the four perimeter edges
+           for (int i = 0; i < 4; ++i)
+           {
+               // Distance from eye to this edge center
+               float d = distance(
+                   patch[gl_PrimitiveID].edgeCenter[i],
+                   vec4(EyePosition, 1.0)
+               );
+
+               // Scale factor controlling how quickly tessellation increases
+               const float lodScale = 2.5;
+
+               // Convert distance to tessellation level
+               float tessLOD = mix(
+                   0.0,
+                   gl_MaxTessGenLevel,
+                   d * lodScale
+               );
+
+               gl_TessLevelOuter[i] = tessLOD;
+           }
+       #if 1
+           // Compute the inner tessellation as the average of opposing outer 
+           // edges: differently from Red Book.
+           // It’s what most engines (Unreal, Unity HDRP, Vulkan samples) do.
+           // Inner tessellation is the average of outer levels
+           float inner = 0.5 *
+               (gl_TessLevelOuter[0] + gl_TessLevelOuter[2]);
+
+           inner = clamp(inner, 0.0, gl_MaxTessGenLevel);
+           gl_TessLevelInner[0] = inner;
+           gl_TessLevelInner[1] = inner;
+       #else
+           // The Red Book computes outer tessellation levels first, then 
+           // derives the inner levels from the last computed tessLOD.
+           tessLOD = clamp(0.5 * tessLOD, 0.0, gl_MaxTessGenLevel);
+           gl_TessLevelInner[0] = tessLOD;
+           gl_TessLevelInner[1] = tessLOD;
+       #endif
+       }
+   }
+
+The texture function with the argument DisplacementMap in the Red Book, as 
+shown in the following code, does not return color data as in the Fragment 
+Shader. 
+It returns the vertex position data for displacement, such as a roughness map 
+or anything related to surface appearance.
+
+.. code-block:: glsl
+
+  p += texture(DisplacementMap, gl_TessCoord.xy);
+
 
 Mobile GPU 3D Rendering
 ^^^^^^^^^^^^^^^^^^^^^^^
@@ -2238,11 +2808,12 @@ results.
 
 This compute shader can do things like:
 
-- break a big mesh into meshlets as :numref:`mobile-mesh-to-meshlets-to-render`.
+- break a **big mesh** into **meshlets** as 
+  :numref:`mobile-mesh-to-meshlets-to-render`.
   The mesh and meshlets are described in the :ref:`mesh-shader` next 
   section.
-- generate more vertices for detail (subdivision, displacement)
-- perform LOD selection
+- generate **more vertices** for detail (subdivision, displacement)
+- perform **LOD** selection
 - cull invisible meshlets
 - generate new index/vertex buffers
 
@@ -2306,6 +2877,13 @@ NVIDIA, AMD, and Intel all needed:
 - better culling
 - GPU‑driven rendering
 - a **replacement** for VS → TCS → TES → GS
+- TCS → Fixed-Function Tessellator → TES: geometry amplification.
+
+  - Fixed‑Function Tessellator: subdivides the patch, generates new domain 
+    coordinates and creates the tessellated grid.
+
+  - Mesh-Shader replaces the fixed‑function tessellator with compute‑like 
+    geometry pipeline.
 
 So the vendors co‑designed the hardware pipeline.
 
@@ -2335,6 +2913,17 @@ So the vendors co‑designed the hardware pipeline.
 → Task Shader (optional)
 
 → Mesh Shader
+
+3D modeling tools do NOT generate meshlets.  
+Meshlets are always generated later, using specialized meshlet‑generation 
+→ tools, most commonly:
+
+- NVIDIA meshlet generator (NV_mesh_shader ecosystem)
+- meshoptimizer (Khronos‑recommended, open source)
+- Engine‑specific meshlet builders (Unreal, Frostbite, etc.)
+
+So the meshlet conversion happens after the model is exported — not inside 
+Blender, Maya, 3ds Max, etc.
 
 The animation flow from CPU to GPU for **Traditional**, **Compute Shader** 
 based and **Mesh Shader** are 
@@ -2368,7 +2957,10 @@ The **Task Shader** acts as a coarse-grained work distributor.
 Key responsibilities:
 
 - Perform coarse culling at the meshlet or instance level.
-- Select appropriate LODs for distant geometry.
+- Select appropriate **LODs** for distant geometry.
+
+  - But it does not create new detail like the Tessellation Shaders.
+
 - Build a compact list of meshlets to be processed.
 - Determine how many mesh shader workgroups to launch.
 - Pass a payload (task data) to mesh shader workgroups.
@@ -2384,6 +2976,16 @@ Key responsibilities:
 
 - Load meshlet vertices and indices from GPU memory.
 - Apply transforms, skinning, morphing, and procedural deformation.
+- Mesh Shader outputs exactly what the meshlet contains usually, unless you 
+  code it manually.
+  
+  - Custom procedural code inside a Mesh Shader can generate more vertices,
+    subdivide triangles, procedurally generate detail, amplify geometry.
+    Mesh Shaders replace Vertex Shader, Geometry Shader and Tessellation 
+    (optional). But they do not perform automatic tessellation.
+    They simply take a meshlet, run a workgroup and output the triangles 
+    inside that meshlet.
+
 - Perform fine-grained culling:
   - frustum culling
   - backface culling
@@ -2474,22 +3076,21 @@ clusters and distributing work across task and mesh shaders, modern GPUs
 achieve higher throughput, better culling efficiency, and reduced CPU
 overhead compared to the traditional vertex-processing pipeline.
 
-3D modeling tools do NOT generate meshlets.  
-Meshlets are always generated later, using specialized meshlet‑generation 
-tools, most commonly:
-
-- NVIDIA meshlet generator (NV_mesh_shader ecosystem)
-- meshoptimizer (Khronos‑recommended, open source)
-- Engine‑specific meshlet builders (Unreal, Frostbite, etc.)
-
-So the meshlet conversion happens after the model is exported — not inside 
-Blender, Maya, 3ds Max, etc.
-
 
 .. _animation-ex:
 
 Animation Example
 ^^^^^^^^^^^^^^^^^
+
+The skinning formula is described in :ref:`sw-stack` section as follows:
+
+.. math::
+
+   finalPosition =
+   \sum_{i=0}^{N-1}
+   \mathbf{weight}_i \left( \mathbf{boneMatrix}_i \cdot originalPosition \right)
+
+The following code implements the formula shown above.
 
 .. code-block:: c++
    :caption: Example GPU skinning
@@ -3282,24 +3883,27 @@ associated with that sampler [#textureobject]_.
 
   Binding sampler variables [#tpu]_.
 
-As shown in :numref:`sampling_binding`, the Java API function `gl.bindTexture()` 
+For Java programmers, JOGL provides same level of API in Java for wrapping to 
+OpenGL C API.
+As shown in :numref:`sampling_binding`, the JOGL `gl.bindTexture()` 
 binds a *Texture Object* to a specific *Texture Unit*. Then, using 
-`gl.getUniformLocation()` and `gl.uniform1i()`, you associate the *Texture Unit* 
-with a *sampler uniform variable* in the shader.
+**gl.getUniformLocation() and gl.uniform1i()**, you **associate** the 
+**Texture Unit** with a *sampler uniform variable* in the shader.
 
-For example, `gl.uniform1i(xLoc, 1)` assigns *Texture Unit 1* to the sampler variable 
-at location `xLoc`. Similarly, passing `2` would refer to *Texture Unit 2*, and so on 
+For example, **gl.uniform1i(xLoc, 1)** assigns **Texture Unit 1** to the 
+sampler variable at location **xLoc**. 
+Similarly, passing `2` would refer to *Texture Unit 2*, and so on 
 [#tpu]_.
 
-The following figure illustrates how the OpenGL driver reads metadata from a compiled 
-GLSL object, how the OpenGL API links *sampler uniform variables* to *Texture Units*, 
-and how the GPU executes the corresponding texture instructions.
+The following :numref:`driver-sampler-table` illustrates how the OpenGL driver 
+reads metadata from a compiled GLSL object, how the OpenGL API **links** 
+**sampler uniform variables** to **Texture Units**, 
+and how the GPU **executes** the corresponding **texture instructions**.
 
-.. _driverSamplerTable: 
-.. figure:: ../Fig/gpu/driverSamplerTable.png
-  :align: center
+.. _driver-sampler-table: 
+.. graphviz:: ../Fig/gpu/driver-sampler-table.gv
+  :caption: Binding Sampler Variables to Texture Instructions
 
-  Associating Sampler Variables and gpu executing texture instruction
 
 Explaining the detailed steps for the figure above:
 
@@ -3309,8 +3913,9 @@ Explaining the detailed steps for the figure above:
    The backend then allocates and embeds this metadata in the compiled binary 
    file [#metadata]_.
 
-2. During the on-line compilation of the GLSL shader, the GPU driver reads 
-   this metadata from the compiled binary file. It constructs an internal 
+2. During the link stage of on-line compilation of the GLSL shader, the GPU 
+   driver reads this metadata from the compiled binary file. 
+   It constructs an internal 
    table mapping each *sampler uniform variable* to its attributes, such as 
    `{name, type, location}`. This mapping allows the driver to properly 
    populate the *Texture Descriptor* in the GPU’s memory, linking the variable 
@@ -6292,6 +6897,8 @@ Open Sources
 .. [#shading] https://en.wikipedia.org/wiki/Shading
 
 .. [#texturemapping] https://en.wikipedia.org/wiki/Texture_mapping
+
+.. [#animation-state-video] https://www.youtube.com/watch?v=7QIcd6_TTys
 
 .. [#animation1] https://www.youtube.com/watch?v=f3Cr8Yx3GGA
 
