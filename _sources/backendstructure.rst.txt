@@ -207,7 +207,7 @@ TargetMachine structure
   };
 
 .. _backendstructure-f1: 
-.. figure:: ../Fig/backendstructure/1.png
+.. figure:: ../Fig/backendstructure/class-access-link.png
   :align: center
 
   Cpu0 backend class access link
@@ -258,7 +258,7 @@ opportunity to override functions if needed.
 
 .. _backendstructure-f2:
 
-.. figure:: ../Fig/backendstructure/2.png
+.. figure:: ../Fig/backendstructure/class-inherited-from-tblgen.png
    :align: center
 
    Cpu0 classes inherited from TableGen-generated files
