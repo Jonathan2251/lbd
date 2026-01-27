@@ -67,6 +67,8 @@ parts are controlled by the **user** and which parts are handled by the
 
 1. Gameplay Animation Logic (High Level): set by user (game developer)
 
+See video here [#animation-state-video]_.
+
 **Examples**
 
 - Play "walk" when speed > 0.1
@@ -86,8 +88,6 @@ Live in **gameplay scripts** (C#, Blueprints, GDScript, Python)
 This layer decides *when* animations should play.
 
 2. Animation State Machine / Animation Graph: set by user (game developer)
-
-See video here [#animation-state-video]_.
 
 **Examples**
 
@@ -197,6 +197,25 @@ Full Hierarchy (Summary)
     ──────────────────────────────────────────────
     4. Skeleton Animation System
     5. GPU Skinning
+
+
+Developers only write the highest‑level animation logic and designed 
+transitions & blends as shown in :numref:`animation-levels`.
+The engine automatically handles all lower‑level animation work.
+Like the video [#animation-state-video]_, Jason’s tutorials operate only in 
+Level 1 and Level 2:
+
+✔ Level 1 — Scripts
+
+He writes code like:
+
+.. code-block:: c++
+
+   animator.SetFloat("Speed", speed);
+
+✔ Level 2 — State Machine
+
+He configures transitions and parameters.
 
 
 .. _animation-levels: 
