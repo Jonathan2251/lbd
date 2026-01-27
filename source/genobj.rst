@@ -498,13 +498,11 @@ The register functions for ELF object output are listed as follows:
     }
 
 Above, `createELFStreamer` handles the ELF object streamer.  
-:numref:`genobj-f10` below shows the `MCELFStreamer` inheritance tree.  
+:numref:`mcelf-inherit-tree` below shows the `MCELFStreamer` inheritance tree.  
 You can find many operations within that inheritance tree.
 
-.. _genobj-f10:
-.. figure:: ../Fig/genobj/10.png
-	:height: 596 px
-	:width: 783 px
+.. _mcelf-inherit-tree:
+.. figure:: ../Fig/genobj/mcelf-inherit-tree.png
 	:scale: 100 %
 	:align: center
 

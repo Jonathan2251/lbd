@@ -67,6 +67,8 @@ parts are controlled by the **user** and which parts are handled by the
 
 1. Gameplay Animation Logic (High Level): set by user (game developer)
 
+See video here [#animation-state-video]_.
+
 **Examples**
 
 - Play "walk" when speed > 0.1
@@ -86,8 +88,6 @@ Live in **gameplay scripts** (C#, Blueprints, GDScript, Python)
 This layer decides *when* animations should play.
 
 2. Animation State Machine / Animation Graph: set by user (game developer)
-
-See video here [#animation-state-video]_.
 
 **Examples**
 
@@ -197,6 +197,25 @@ Full Hierarchy (Summary)
     ──────────────────────────────────────────────
     4. Skeleton Animation System
     5. GPU Skinning
+
+
+Developers only write the highest‑level animation logic and designed 
+transitions & blends as shown in :numref:`animation-levels`.
+The engine automatically handles all lower‑level animation work.
+Like the video [#animation-state-video]_, Jason’s tutorials operate only in 
+Level 1 and Level 2:
+
+✔ Level 1 — Scripts
+
+He writes code like:
+
+.. code-block:: c++
+
+   animator.SetFloat("Speed", speed);
+
+✔ Level 2 — State Machine
+
+He configures transitions and parameters.
 
 
 .. _animation-levels: 
@@ -3092,8 +3111,19 @@ The skinning formula is described in :ref:`sw-stack` section as follows:
 
 The following code implements the formula shown above.
 
+.. rubric:: GLSL Vertex Shader
 .. code-block:: c++
    :caption: Example GPU skinning
+
+   layout(location = 0) in vec3 position;
+   layout(location = 1) in uvec4 boneIndex;
+   layout(location = 2) in vec4 boneWeights;
+
+   // Simple Uniforms (non-UBO)
+   uniform mat4 boneMatrices[100];
+   uniform mat4 model;
+   uniform mat4 view;
+   uniform mat4 projection;
 
    vec4 skinnedPos = vec4(0.0);
    for (int i = 0; i < 4; ++i) {
@@ -3105,8 +3135,30 @@ Here:
 
 - **position, boneIndex, boneWeight = vertex attributes**
 - **boneMatrices, model, view, projection = uniforms**
+- The OpenGL code used to pass these varaibles to GLSL will be shown in 
+  :ref:`OpenGL API Commands That Trigger GPU Skinning <opengl-uniform>` later.
+  The OpenGL API sets position, boneIndex and boneWeight to locations 0, 1 and 
+  2, respectively, using **glVertexAttribPointer**.
 
-The vertex shader combines them.
+  - void glVertexAttribPointer(**GLuint index, GLint size, GLenum type**, 
+    GLboolean normalized, GLsizei stride, const GLvoid * pointer);
+
+    Examples:
+
+    - glBindBuffer(GL_ARRAY_BUFFER, vboPositions);
+
+      glVertexAttribPointer(**0, 3, GL_FLOAT, GL_FALSE**, stride, offset); →
+      layout(**location = 0**) in **vec3** position;
+
+    - glBindBuffer(GL_ARRAY_BUFFER, vboBoneIndex);
+
+      glVertexAttribIPointer(**1, 4, GL_UNSIGNED_BYTE**, stride, offset); →
+      layout(**location = 1**) in **uvec4** boneIndex;
+
+      - Bone indices are small integers (0–255), so storing them as 
+        GL_UNSIGNED_BYTE: OpenGL will automatically zero‑extend 8‑bit 
+        unsigned integers into 32‑bit unsigned integers inside the shader.
+
 
 ✔ Why boneIndex[] and boneWeight[] are 3D Model Information
 
@@ -3153,6 +3205,8 @@ Animation Parameters are dynamic per‑frame data, such as:
 
 These change every frame.
 
+.. _opengl-uniform:
+
 ✔ OpenGL API Commands That Trigger GPU Skinning
 
 Overview
@@ -3175,6 +3229,16 @@ buffer object (UBO).
 
 .. code-block:: c
 
+   // Matrix Uniforms
+   GLint locModel = glGetUniformLocation(program, "model");
+   GLint locView  = glGetUniformLocation(program, "view");
+   GLint locProj  = glGetUniformLocation(program, "proj");
+
+   glUniformMatrix4fv(locModel, 1, GL_FALSE, glm::value_ptr(modelMatrix));
+   glUniformMatrix4fv(locView,  1, GL_FALSE, glm::value_ptr(viewMatrix));
+   glUniformMatrix4fv(locProj,  1, GL_FALSE, glm::value_ptr(projMatrix));
+
+   // Bone Matrix Array
    GLint loc = glGetUniformLocation(program, "boneMatrices");
    glUniformMatrix4fv(loc, boneCount, GL_FALSE, boneMatrixData);
 
@@ -3200,6 +3264,9 @@ to a vertex array object (VAO).
 
    glBindBuffer(GL_ARRAY_BUFFER, vboPositions);
    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, stride, offset);
+
+   // Activate attribute location 1, then ehe shader’s layout(location = 1) 
+   // input receives real data.
    glEnableVertexAttribArray(0);
 
    glBindBuffer(GL_ARRAY_BUFFER, vboBoneIndex);
@@ -3432,7 +3499,7 @@ An OpenGL program typically follows a structure like the example below:
       FragColor = computeColorOfThisPixel(...);
   } 
   
-.. rubric:: OpenGl user program
+.. rubric:: OpenGL user program
 .. code-block:: c++
 
   int main(int argc, char ** argv)
@@ -3556,7 +3623,8 @@ GLSL expands upon C for GPU-based graphics programming.
 - **uniform:** uniform variables are set externally by the host application 
   (e.g., OpenGL) and remain constant across all shader invocations for 
   a draw call.
-- layout(location = x): set GPU variable locations
+- **layout(location = x)**: set GPU variable locations. See :ref:`animation-ex` 
+  section. 
 - precision qualifiers: lowp, mediump, highp
 
 3. Built-in Functions
@@ -3637,8 +3705,12 @@ The :numref:`shaders-pipeline-in-out` is the summary of GLSL Qualifiers below.
 - out: Passes data to next stage (e.g., fragment shader)
 - **uniform**: Global parameters like matrices or lighting, it is 
   **Animation Parameters**, also referred to as **Uniform Updates** described 
-  in :numref:`shaders-pipeline-in-out`.
-- layout(location = x): Binds input/output to attribute index
+  in :numref:`shaders-pipeline-in-out`. 
+  The :ref:`animation-ex` section provides an example in Vertex Shader (VS) that
+  demostrates animation using both the 3D model information and Uniform Updates.
+  
+- **layout(location = x)**: Binds input/output to attribute index. See 
+  :ref:`animation-ex` section.
 - const: Compile-time constants
 - Cannot use interpolation qualifiers on inputs
 

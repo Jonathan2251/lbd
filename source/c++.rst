@@ -495,7 +495,7 @@ Source Code Compatibility
   }
 
 .. _mem_o_hw:
-.. graphviz:: ../Fig/gpu/mem-o-hw.gv
+.. graphviz:: ../Fig/c++/mem-o-hw.gv
   :caption: Diagram for mem-order-ex1.cpp
 
 Diagram Explanation:
