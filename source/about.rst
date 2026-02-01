@@ -63,6 +63,10 @@ Revision history
 
 Version 12.0.20, not released yet.
 
+Version 12.0.19.6, January 31, 2026.
+
+  gpu.rst: refine section animation.
+
 Version 12.0.19.5, January 25, 2026.
 
   gpu.rst: refine 'section Animation', 'section Mesh-Shader Pipeline' and 
