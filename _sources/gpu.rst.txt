@@ -816,12 +816,27 @@ looks like this:
 
 1. The user opens the shader editor.
 2. The user creates nodes representing:
+
    - math operations (add, multiply, dot product)
    - texture sampling
+
+     - Determine FS.
+
    - lighting functions
    - color adjustments
    - UV transformations
+
+
 3. The user connects nodes visually to define the shader logic.
+
+   - Defines surface color,lighting, and texture sampling → **determine FS**.
+   - For simple deformations (waves, wind, dissolve) → **determine the VS**.
+   - Generate both **TCS and TES** code for **displacement and subdivision 
+     control**.
+   - Geometry shaders are rarely exposed in node editors due to performance
+     costs and limited engine support. 
+     **GS** code is typically **written manually** by  graphics programmers.
+
 4. The engine converts the node graph into an internal shader
    representation.
 5. The engine compiles this representation into platform-specific shader
@@ -1960,24 +1975,34 @@ as follows:
    matrices, camera, materials, ...)
 
 The complete steps of 3D Rendering pipeline, **excluding animation** are shown 
-in the :numref:`rendering_pipeline1` from the OpenGL website [#rendering]_ and 
-in the :numref:`OpenGL_pipeline`. 
+in the :numref:`rp:left` from the OpenGL website [#rendering]_ and 
+in the :numref:`rp:right`. 
 The website also provides a description for each stage.
+To clarify the modern GPU pipeline, :numref:`gpu-pipeline` shows the use of 
+Primitive Assembly (fixed-function) and Primitive Setup (fixed-function).
 
-.. _rendering_pipeline1: 
-.. figure:: ../Fig/gpu/rendering_pipeline.png
-  :align: center
-  :scale: 50 %
+.. list-table::
+   :widths: 30 70
+   :align: center
 
-  Diagram of the Rendering Pipeline. The blue boxes are programmable shader 
-  stages. Shaders with dashed outlines indicate optional shader stages.
+   * - .. _rp:left:
+       .. figure:: ../Fig/gpu/rendering_pipeline.png
+          :scale: 50 %
 
-.. _OpenGL_pipeline: 
-.. figure:: ../Fig/gpu/OpenGL-pipeline.png
-  :align: center
-  :scale: 50 %
+          Diagram of the Rendering Pipeline. The blue boxes are programmable 
+          shader stages. Shaders with dashed outlines indicate optional shader 
+          stages.
 
-  OpenGL pipeline
+     - .. _rp:right: 
+       .. figure:: ../Fig/gpu/OpenGL-pipeline.png
+          :scale: 30 %
+
+          OpenGL pipeline in blue book
+
+.. _gpu-pipeline: 
+.. graphviz:: ../Fig/gpu/gpu-pipeline.gv
+  :caption: Modern GPU Pipeline
+
 
 The Red Book and Blue Book show only **Vertex Specification** and 
 **Vertex Data** in the rendering flow because 
@@ -1997,8 +2022,8 @@ Each draw call may correspond to:
 - one meshlet (in mesh‑shader pipelines)
 - or many meshes batched together
 
-Although the Rendering Pipeline shown in :numref:`rendering_pipeline1` and
-:numref:`OpenGL_pipeline` do not explicitly include per-frame animation flow—
+Although the Rendering Pipeline shown in :numref:`rp:left` and
+:numref:`rp:right` do not explicitly include per-frame animation flow—
 because the inputs are labeled **Vertex Specification** and **Vertex Data** and
 they do not show Animation Parameters as part of the rendering process—the 
 pipeline is still applicable.
@@ -2029,31 +2054,24 @@ broad enough to cover animation.
        shader**. A single patch from Tesslation Control Shader (TCS) and 
        Tesslation Evaluation Shader (TVS) can generate **millions of 
        micro‑triangles**. See reference below.
-   * - Geometry Shading
-     - **Vertex → Primitives**. Allows additional processing of geometric 
-       primitives.
+   * - Primitive Assembly
+     - This is a fixed‑function hardware stage: forms triangles/lines/points.
+   * - Geometry Shader
+     - **Primitive Transformation**: output zero primitives (cull), output one 
+       primitive (pass‑through), output many primitives (amplify) and output 
+       different topology (e.g., point → quad)
+       Allows additional processing of geometric primitives.
        This stage may create new primitives before rasterization. 
        The Geometry shading stage is another optional stage that can modify 
        entire geometric primitives within the OpenGL pipeline. This stage 
        operates on individual geometric primitives allowing each to be modified. 
        In this stage, you might generate more geometry from the input primitive, 
        change the type of geometric primitive (e.g., converting triangles to 
-       lines), or discard the geometry altogether. If activated, a geometry 
-       shader receives its input either after vertex shading has completed 
-       processing the vertices of a geometric primitive or from the primitives 
-       generated from the tessellation shading stage, if it’s been enabled. 
-       **Geometry Shader:** provides the Vertex → Geometric Primitives 
-       transformation effects controlled by the users.
-       See Chapter 10 of the Red Book [#redbook-p36]_.
-       **Geometry Shader (GS)** can generate both **more vertices and more 
-       primitives** than it receives.
-   * - Primitive Assembly
-     - The previous shading stages all operate on vertices, with the information 
-       about how those vertices are organized into geometric primitives being 
-       carried along internal to OpenGL. 
-       **The primitive assembly stage organizes the vertices into their 
-       associated geometric primitives in preparation for clipping and 
-       rasterization.**
+       lines), or discard the geometry altogether.
+   * - Primitive Setup (rasterization preparation)
+     - This stage: takes the final primitive (after GS), computes edge 
+       equations, computes barycentric interpolation rules and prepares the 
+       primitive for rasterization.
    * - Clipping
      - **Clipping hidden parts.** Occasionally, vertices will be outside of the 
        viewport—the region of the window where you’re permitted to draw—and 
@@ -2165,11 +2183,11 @@ Sumarize the OpenGL Rendering Pipeline as shown in the
 
 .. _imr-rendering-pipeline-1: 
 .. graphviz:: ../Fig/gpu/imr-rendering-pipeline-1.gv
-  :caption: The part 1 of GPU Rendering Pipeline Stages in Red Book
+  :caption: The part 1 of GPU Rendering Pipeline Stages
 
 .. _imr-rendering-pipeline-2: 
 .. graphviz:: ../Fig/gpu/imr-rendering-pipeline-2.gv
-  :caption: The part 2 of GPU Rendering Pipeline Stages in Red Book
+  :caption: The part 2 of GPU Rendering Pipeline Stages
 
 .. raw:: latex
 
@@ -2699,7 +2717,7 @@ Cache misses are nearly eliminated.
 
    2. Remove stages of Tessellation Control Shader (TCS), Tessellation 
    Evaluation Shader (TES) and Geometry Shader (GS) since they are optional stages 
-   are shown in :numref:`OpenGL_pipeline`.
+   are shown in :numref:`rp:right`.
    Instead, developers use **compute shaders** before the graphics pipeline to 
    generate meshlets, perform LOD selection, or add extra geometric detail for 
    close‑up **room-in** effects is shown as 

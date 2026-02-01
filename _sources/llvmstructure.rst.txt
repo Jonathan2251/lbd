@@ -1902,10 +1902,10 @@ The **Instruction Selection Process** will translate these two IR DAG nodes:
 
 into a **single** machine instruction DAG node:  
 
-  `(**fmadd** %a, %c, %b)`  
+  (**`fmadd`** `%a, %c, %b`)  
 
 instead of translating them into **two separate** machine instruction nodes  
-(`**fmul**` and `**fadd**`).  
+(**`fmul`** and **`fadd`**).  
 
 This optimization occurs **only if** `FMADDS` appears **before** `FMUL` and  
 `FADD` in your `.td` file.
