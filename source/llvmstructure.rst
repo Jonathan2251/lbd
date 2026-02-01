@@ -1186,21 +1186,16 @@ on LLVM written by Chris Lattner [#aosa-book]_.
 
 The most common design for a traditional static compiler (such as most C  
 compilers) follows a three-phase structure, consisting of the front end,  
-the optimizer, and the back end, as shown in :numref:`llvmstructure-f6`.  
+the optimizer, and the back end, as shown in :numref:`three-phases`.  
 
 The **front end** parses the source code, checks for errors, and constructs  
 a language-specific Abstract Syntax Tree (AST) to represent the input code.  
 The AST may then be converted into an intermediate representation for  
 optimization, after which the **optimizer** and **back end** process the code.
 
-.. _llvmstructure-f6: 
-.. figure:: ../Fig/llvmstructure/6.png
-  :width: 470 px
-  :height: 63 px
-  :scale: 70 %
-  :align: center
-
-  Three Major Components of a Three Phase Compiler
+.. _three-phases:
+.. graphviz:: ../Fig/llvmstructure/three-phases.gv
+  :caption: Three Major Components of a Three Phase Compiler
 
 The optimizer performs a wide range of transformations to improve code execution  
 efficiency, such as eliminating redundant computations. It is generally  
@@ -1221,16 +1216,11 @@ supports multiple source languages or target architectures. If the compiler's
 optimizer uses a common intermediate representation, a front end can be written  
 for any language that compiles to this representation, and a back end can be  
 developed for any target that compiles from it, as illustrated in  
-:numref:`llvmstructure-f7`.  
+:numref:`three-layers`.  
 
-.. _llvmstructure-f7: 
-.. figure:: ../Fig/llvmstructure/7.png
-  :align: center
-  :width: 837 px
-  :height: 299 px
-  :scale: 70 %
-
-  Retargetablity
+.. _three-layers:
+.. graphviz:: ../Fig/llvmstructure/three-layers.gv
+  :caption: Retargetablity
 
 With this design, porting the compiler to support a new source language  
 (e.g., Algol or BASIC) requires implementing a new front end, while the  
@@ -1362,16 +1352,11 @@ description using a declarative domain-specific language, defined in a set of
 necessary target-specific data structures.  
 
 The simplified build process for the x86 target is illustrated in  
-:numref:`llvmstructure-f8`.
+:numref:`td-def`.
 
-.. _llvmstructure-f8: 
-.. figure:: ../Fig/llvmstructure/8.png
-  :align: center
-  :width: 850 px
-  :height: 428 px
-  :scale: 70 %
-
-  Simplified x86 Target Definition
+.. _td-def:
+.. graphviz:: ../Fig/llvmstructure/td-def.gv
+  :caption: Simplified x86 Target Definition
 
 The different subsystems supported by `.td` files enable target authors to  
 construct various components of their target architecture.  
@@ -1794,18 +1779,6 @@ This optimization method is also applied in LLVM.
 Instruction Selection
 *********************
 
-A major function of the backend is to **translate IR code into machine code**  
-during **Instruction Selection**, as illustrated in :numref:`llvmstructure-f11`.  
-
-.. _llvmstructure-f11:  
-.. figure:: ../Fig/llvmstructure/11.png  
-  :width: 495 px  
-  :height: 116 px  
-  :scale: 70 %  
-  :align: center  
-
-  IR and its corresponding machine instruction  
-
 For **machine instruction selection**, the best approach is to represent both  
 **IR** and **machine instructions** as a **DAG**.  
 
@@ -1850,7 +1823,7 @@ Now, let's examine the **ADDiu** instruction defined in `Cpu0InstrInfo.td`:
     :start-after: //#if CH >= CH2 14  
     :end-before: #endif
 
-:numref:`llvmstructure-f13` illustrates how pattern matching works between the  
+:numref:`llvmstructure-dag` illustrates how pattern matching works between the  
 **IR node** `add` and the **instruction node** `ADDiu`, both defined in  
 `Cpu0InstrInfo.td`.  
 
@@ -1871,19 +1844,6 @@ included in an **ELF object file**, which will be explained in a later chapter.
 
 Similarly, **machine instruction DAG nodes** `LD` and `ST` are translated from  
 the IR DAG nodes **load** and **store**.  
-
-Note that in :numref:`llvmstructure-f13`, `$rb` represents a **virtual register**  
-rather than a physical machine register. The details are further illustrated  
-in :numref:`llvmstructure-dag`.  
-
-.. _llvmstructure-f13:  
-.. figure:: ../Fig/llvmstructure/13.png  
-  :width: 643 px  
-  :height: 421 px  
-  :scale: 80 %  
-  :align: center  
-
-  Pattern matching for `ADDiu` instruction and IR node `add`  
 
 .. _llvmstructure-dag:  
 .. graphviz:: ../Fig/llvmstructure/DAG.gv  
@@ -1942,10 +1902,10 @@ The **Instruction Selection Process** will translate these two IR DAG nodes:
 
 into a **single** machine instruction DAG node:  
 
-  `(**fmadd** %a, %c, %b)`  
+  (**`fmadd`** `%a, %c, %b`)  
 
 instead of translating them into **two separate** machine instruction nodes  
-(`**fmul**` and `**fadd**`).  
+(**`fmul`** and **`fadd`**).  
 
 This optimization occurs **only if** `FMADDS` appears **before** `FMUL` and  
 `FADD` in your `.td` file.
@@ -1968,7 +1928,7 @@ Now, consider the following **basic block code**:
   d = a – d
   %e = fmadd %a, %c, %b // in llvm SSA IR form
 
-We can apply :numref:`llvmstructure-f8` **Instruction Tree Patterns**  
+We can apply :numref:`td-def` **Instruction Tree Patterns**  
 to generate the following **machine code**:
 
 .. code-block:: console

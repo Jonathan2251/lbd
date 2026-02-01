@@ -1,0 +1,53 @@
+digraph GPU_Pipeline {
+    rankdir=LR;
+    node [shape=box, style=rounded, fontsize=12];
+
+    VB [label="Vertex Buffer"];
+    VS [label="Vertex Shader", style=filled, fillcolor=orange];
+    subgraph cluster_ts {
+        label="Tessellation";
+        style=rounded;
+
+        TCS [label="Tessellation\nControl Shader\n(optional)", style=filled, fillcolor=orange];
+        TS  [label="Tessellator\n(fixed-function)"];
+        TES [label="Tessellation\nEvaluation Shader\n(optional)", style=filled, fillcolor=orange];
+
+        { rank = same;  TCS; TS; TES }
+    }
+    subgraph cluster_pp {
+        label="Primitive Processing";
+        style=rounded;
+
+        PA  [label="Primitive Assembly\n(topology formation)"];
+        GS  [label="Geometry Shader\n(optional)", style=filled, fillcolor=orange];
+        Cull  [label="Culling"];
+        Clip  [label="Clipping"];
+        PS  [label="Primitive Setup\n(rasterization\n prep)"];
+
+        { rank = same;  PA; GS; Cull; Clip; PS }
+    }
+    RAST [label="Rasterizer"];
+    FS [label="Fragment Shader", style=filled, fillcolor=orange];
+    FB [label="Framebuffer"];
+
+    VB -> VS;
+
+    VS -> TCS;
+    TCS -> TS;
+    TS  -> TES;
+
+    // Bypass tessellation path
+    VS -> PA [label="(no tessellation)", style=dashed];
+
+    TES -> PA;
+
+    PA -> GS [label = "Primitives\n(triangles/lines)"];
+    GS -> Cull;
+    Cull -> Clip;
+    Clip -> PS;
+    PS -> RAST;
+    RAST -> FS;
+    FS -> FB;
+
+    { rank = same; FS; FB }
+}

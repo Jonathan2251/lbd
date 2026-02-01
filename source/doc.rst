@@ -92,6 +92,13 @@ Six Levels of Chapter, section, subsections
 - For instructions on inserting a reference before any paragraph that is not a 
   section heading, see the word ``cfg-warps`` in gpu.rst.
 
+Command
+*******
+
+1. Generate png from uml:
+
+plantuml -tpng input.uml
+
 Symbols
 *******
 

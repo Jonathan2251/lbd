@@ -67,6 +67,8 @@ parts are controlled by the **user** and which parts are handled by the
 
 1. Gameplay Animation Logic (High Level): set by user (game developer)
 
+See video here [#animation-state-video]_.
+
 **Examples**
 
 - Play "walk" when speed > 0.1
@@ -86,8 +88,6 @@ Live in **gameplay scripts** (C#, Blueprints, GDScript, Python)
 This layer decides *when* animations should play.
 
 2. Animation State Machine / Animation Graph: set by user (game developer)
-
-See video here [#animation-state-video]_.
 
 **Examples**
 
@@ -197,6 +197,25 @@ Full Hierarchy (Summary)
     ──────────────────────────────────────────────
     4. Skeleton Animation System
     5. GPU Skinning
+
+
+Developers only write the highest‑level animation logic and designed 
+transitions & blends as shown in :numref:`animation-levels`.
+The engine automatically handles all lower‑level animation work.
+Like the video [#animation-state-video]_, Jason’s tutorials operate only in 
+Level 1 and Level 2:
+
+✔ Level 1 — Scripts
+
+He writes code like:
+
+.. code-block:: c++
+
+   animator.SetFloat("Speed", speed);
+
+✔ Level 2 — State Machine
+
+He configures transitions and parameters.
 
 
 .. _animation-levels: 
@@ -797,12 +816,27 @@ looks like this:
 
 1. The user opens the shader editor.
 2. The user creates nodes representing:
+
    - math operations (add, multiply, dot product)
    - texture sampling
+
+     - Determine FS.
+
    - lighting functions
    - color adjustments
    - UV transformations
+
+
 3. The user connects nodes visually to define the shader logic.
+
+   - Defines surface color,lighting, and texture sampling → **determine FS**.
+   - For simple deformations (waves, wind, dissolve) → **determine the VS**.
+   - Generate both **TCS and TES** code for **displacement and subdivision 
+     control**.
+   - **GS** code is typically **written manually** by  graphics programmers
+     since **primitives culling and clipping** are not related with model 
+     resolution and texture materials.
+
 4. The engine converts the node graph into an internal shader
    representation.
 5. The engine compiles this representation into platform-specific shader
@@ -1941,24 +1975,45 @@ as follows:
    matrices, camera, materials, ...)
 
 The complete steps of 3D Rendering pipeline, **excluding animation** are shown 
-in the :numref:`rendering_pipeline1` from the OpenGL website [#rendering]_ and 
-in the :numref:`OpenGL_pipeline`. 
+in the :numref:`rp:left` from the OpenGL website [#rendering]_ and 
+in the :numref:`rp:right`. 
 The website also provides a description for each stage.
+To clarify the modern GPU pipeline, :numref:`gpu-pipeline` shows the use of 
+Primitive Assembly (fixed-function) and Primitive Setup (fixed-function).
 
-.. _rendering_pipeline1: 
-.. figure:: ../Fig/gpu/rendering_pipeline.png
-  :align: center
-  :scale: 50 %
+.. list-table::
+   :widths: 30 70
+   :align: center
 
-  Diagram of the Rendering Pipeline. The blue boxes are programmable shader 
-  stages. Shaders with dashed outlines indicate optional shader stages.
+   * - .. _rp:left:
+       .. figure:: ../Fig/gpu/rendering_pipeline.png
+          :scale: 50 %
 
-.. _OpenGL_pipeline: 
-.. figure:: ../Fig/gpu/OpenGL-pipeline.png
-  :align: center
-  :scale: 50 %
+          Diagram of the Rendering Pipeline. The blue boxes are programmable 
+          shader stages. Shaders with dashed outlines indicate optional shader 
+          stages.
 
-  OpenGL pipeline
+     - .. _rp:right: 
+       .. figure:: ../Fig/gpu/OpenGL-pipeline.png
+          :scale: 30 %
+
+          OpenGL pipeline in blue book
+
+.. _gpu-pipeline: 
+.. graphviz:: ../Fig/gpu/gpu-pipeline.gv
+  :caption: Modern GPU Pipeline
+
+As shown in :numref:`gpu-pipeline`:
+
+- Vertex Shader and Tessellation: processing and transform for **vertices** 
+  data.
+- Primitive Processing: processing and transform for **primitives** data.
+- Rasterizer: **Primitives → Fragment**.
+- Fragment Shader: **Fragment → Colored Fragment**.
+
+As illustred in :ref:`cross-product` section, after vertices are assembled into
+primitives (such as triangles), the front-facing and back-facing surfaces can 
+be determined, and the hidden primitives can be removed.
 
 The Red Book and Blue Book show only **Vertex Specification** and 
 **Vertex Data** in the rendering flow because 
@@ -1978,8 +2033,8 @@ Each draw call may correspond to:
 - one meshlet (in mesh‑shader pipelines)
 - or many meshes batched together
 
-Although the Rendering Pipeline shown in :numref:`rendering_pipeline1` and
-:numref:`OpenGL_pipeline` do not explicitly include per-frame animation flow—
+Although the Rendering Pipeline shown in :numref:`rp:left` and
+:numref:`rp:right` do not explicitly include per-frame animation flow—
 because the inputs are labeled **Vertex Specification** and **Vertex Data** and
 they do not show Animation Parameters as part of the rendering process—the 
 pipeline is still applicable.
@@ -2010,49 +2065,43 @@ broad enough to cover animation.
        shader**. A single patch from Tesslation Control Shader (TCS) and 
        Tesslation Evaluation Shader (TVS) can generate **millions of 
        micro‑triangles**. See reference below.
-   * - Geometry Shading
-     - **Vertex → Primitives**. Allows additional processing of geometric 
-       primitives.
+   * - Primitive Assembly
+     - This is a fixed‑function hardware stage: forms triangles/lines/points.
+   * - Geometry Shader
+     - **Primitive Transformation**: output zero primitives (cull), output one 
+       primitive (pass‑through), output many primitives (amplify) and output 
+       different topology (e.g., point → quad)
+       Allows additional processing of geometric primitives.
        This stage may create new primitives before rasterization. 
        The Geometry shading stage is another optional stage that can modify 
        entire geometric primitives within the OpenGL pipeline. This stage 
        operates on individual geometric primitives allowing each to be modified. 
        In this stage, you might generate more geometry from the input primitive, 
        change the type of geometric primitive (e.g., converting triangles to 
-       lines), or discard the geometry altogether. If activated, a geometry 
-       shader receives its input either after vertex shading has completed 
-       processing the vertices of a geometric primitive or from the primitives 
-       generated from the tessellation shading stage, if it’s been enabled. 
-       **Geometry Shader:** provides the Vertex → Geometric Primitives 
-       transformation effects controlled by the users.
-       See Chapter 10 of the Red Book [#redbook-p36]_.
-       **Geometry Shader (GS)** can generate both **more vertices and more 
-       primitives** than it receives.
-   * - Primitive Assembly
-     - The previous shading stages all operate on vertices, with the information 
-       about how those vertices are organized into geometric primitives being 
-       carried along internal to OpenGL. 
-       **The primitive assembly stage organizes the vertices into their 
-       associated geometric primitives in preparation for clipping and 
-       rasterization.**
+       lines), or discard the geometry altogether.
+   * - Culling
+     - **Remove entire primitives** that are hidden or outside the viewport.
    * - Clipping
-     - **Clipping hidden parts.** Occasionally, vertices will be outside of the 
-       viewport—the region of the window where you’re permitted to draw—and 
-       cause the primitive associated with that vertex to be modified so none 
-       of its pixels are outside of the viewport. 
-       This operation is called clipping and is handled automatically by OpenGL.
+     - **Clip the hidden portions** of the primitive, separating it into visible 
+       and hidden parts and discarding the hidden portions.
+   * - Primitive Setup (rasterization preparation)
+     - This stage: takes the final primitive (after GS), computes edge 
+       equations, computes barycentric interpolation coefficients, determine 
+       rasterization rules and prepare for triangle traversal.
    * - Rasterization
-     - **Vertex → Fragment.** or **Geometric Primitives → Fragment**.
+     - **Geometric Primitives → Fragment**.
        The job of the rasterizer is to determine which 
-       screen locations are covered by a particular piece of geometry (point, 
+       screen locations are **covered** by a particular piece of geometry (point, 
        line, or triangle). Knowing those locations, along with the input vertex 
-       data, the rasterizer linearly interpolates the data values for each 
+       data, the rasterizer linearly **interpolates** the data values for each 
        varying variable in the fragment shader and sends those values as inputs 
        into your fragment shader. A fragment can be treated as a pixel in 3D 
        spaces, which is aligned with the pixel grid, with attributes such as 
        position, color, normal and texture.
+       Early Depth and Stencil Tests (**Early‑Z**): reject hidden fragments 
+       before shading.
    * - Fragment Shading
-     - **Fragment → Fragment**. **Determine color for each pixel.** 
+     - **Fragment → Colored Fragment**. **Determine color for each pixel.** 
        In this stage, a fragment’s **color and depth** values are computed and 
        then sent for further processing in the **fragment-testing** and 
        **blending** parts of the pipeline.
@@ -2146,11 +2195,11 @@ Sumarize the OpenGL Rendering Pipeline as shown in the
 
 .. _imr-rendering-pipeline-1: 
 .. graphviz:: ../Fig/gpu/imr-rendering-pipeline-1.gv
-  :caption: The part 1 of GPU Rendering Pipeline Stages in Red Book
+  :caption: The part 1 of GPU Rendering Pipeline Stages
 
 .. _imr-rendering-pipeline-2: 
 .. graphviz:: ../Fig/gpu/imr-rendering-pipeline-2.gv
-  :caption: The part 2 of GPU Rendering Pipeline Stages in Red Book
+  :caption: The part 2 of GPU Rendering Pipeline Stages
 
 .. raw:: latex
 
@@ -2680,7 +2729,7 @@ Cache misses are nearly eliminated.
 
    2. Remove stages of Tessellation Control Shader (TCS), Tessellation 
    Evaluation Shader (TES) and Geometry Shader (GS) since they are optional stages 
-   are shown in :numref:`OpenGL_pipeline`.
+   are shown in :numref:`rp:right`.
    Instead, developers use **compute shaders** before the graphics pipeline to 
    generate meshlets, perform LOD selection, or add extra geometric detail for 
    close‑up **room-in** effects is shown as 
@@ -3092,8 +3141,19 @@ The skinning formula is described in :ref:`sw-stack` section as follows:
 
 The following code implements the formula shown above.
 
+.. rubric:: GLSL Vertex Shader
 .. code-block:: c++
    :caption: Example GPU skinning
+
+   layout(location = 0) in vec3 position;
+   layout(location = 1) in uvec4 boneIndex;
+   layout(location = 2) in vec4 boneWeights;
+
+   // Simple Uniforms (non-UBO)
+   uniform mat4 boneMatrices[100];
+   uniform mat4 model;
+   uniform mat4 view;
+   uniform mat4 projection;
 
    vec4 skinnedPos = vec4(0.0);
    for (int i = 0; i < 4; ++i) {
@@ -3105,8 +3165,30 @@ Here:
 
 - **position, boneIndex, boneWeight = vertex attributes**
 - **boneMatrices, model, view, projection = uniforms**
+- The OpenGL code used to pass these varaibles to GLSL will be shown in 
+  :ref:`OpenGL API Commands That Trigger GPU Skinning <opengl-uniform>` later.
+  The OpenGL API sets position, boneIndex and boneWeight to locations 0, 1 and 
+  2, respectively, using **glVertexAttribPointer**.
 
-The vertex shader combines them.
+  - void glVertexAttribPointer(**GLuint index, GLint size, GLenum type**, 
+    GLboolean normalized, GLsizei stride, const GLvoid * pointer);
+
+    Examples:
+
+    - glBindBuffer(GL_ARRAY_BUFFER, vboPositions);
+
+      glVertexAttribPointer(**0, 3, GL_FLOAT, GL_FALSE**, stride, offset); →
+      layout(**location = 0**) in **vec3** position;
+
+    - glBindBuffer(GL_ARRAY_BUFFER, vboBoneIndex);
+
+      glVertexAttribIPointer(**1, 4, GL_UNSIGNED_BYTE**, stride, offset); →
+      layout(**location = 1**) in **uvec4** boneIndex;
+
+      - Bone indices are small integers (0–255), so storing them as 
+        GL_UNSIGNED_BYTE: OpenGL will automatically zero‑extend 8‑bit 
+        unsigned integers into 32‑bit unsigned integers inside the shader.
+
 
 ✔ Why boneIndex[] and boneWeight[] are 3D Model Information
 
@@ -3153,6 +3235,8 @@ Animation Parameters are dynamic per‑frame data, such as:
 
 These change every frame.
 
+.. _opengl-uniform:
+
 ✔ OpenGL API Commands That Trigger GPU Skinning
 
 Overview
@@ -3175,6 +3259,16 @@ buffer object (UBO).
 
 .. code-block:: c
 
+   // Matrix Uniforms
+   GLint locModel = glGetUniformLocation(program, "model");
+   GLint locView  = glGetUniformLocation(program, "view");
+   GLint locProj  = glGetUniformLocation(program, "proj");
+
+   glUniformMatrix4fv(locModel, 1, GL_FALSE, glm::value_ptr(modelMatrix));
+   glUniformMatrix4fv(locView,  1, GL_FALSE, glm::value_ptr(viewMatrix));
+   glUniformMatrix4fv(locProj,  1, GL_FALSE, glm::value_ptr(projMatrix));
+
+   // Bone Matrix Array
    GLint loc = glGetUniformLocation(program, "boneMatrices");
    glUniformMatrix4fv(loc, boneCount, GL_FALSE, boneMatrixData);
 
@@ -3200,6 +3294,9 @@ to a vertex array object (VAO).
 
    glBindBuffer(GL_ARRAY_BUFFER, vboPositions);
    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, stride, offset);
+
+   // Activate attribute location 1, then ehe shader’s layout(location = 1) 
+   // input receives real data.
    glEnableVertexAttribArray(0);
 
    glBindBuffer(GL_ARRAY_BUFFER, vboBoneIndex);
@@ -3432,7 +3529,7 @@ An OpenGL program typically follows a structure like the example below:
       FragColor = computeColorOfThisPixel(...);
   } 
   
-.. rubric:: OpenGl user program
+.. rubric:: OpenGL user program
 .. code-block:: c++
 
   int main(int argc, char ** argv)
@@ -3556,7 +3653,8 @@ GLSL expands upon C for GPU-based graphics programming.
 - **uniform:** uniform variables are set externally by the host application 
   (e.g., OpenGL) and remain constant across all shader invocations for 
   a draw call.
-- layout(location = x): set GPU variable locations
+- **layout(location = x)**: set GPU variable locations. See :ref:`animation-ex` 
+  section. 
 - precision qualifiers: lowp, mediump, highp
 
 3. Built-in Functions
@@ -3637,8 +3735,12 @@ The :numref:`shaders-pipeline-in-out` is the summary of GLSL Qualifiers below.
 - out: Passes data to next stage (e.g., fragment shader)
 - **uniform**: Global parameters like matrices or lighting, it is 
   **Animation Parameters**, also referred to as **Uniform Updates** described 
-  in :numref:`shaders-pipeline-in-out`.
-- layout(location = x): Binds input/output to attribute index
+  in :numref:`shaders-pipeline-in-out`. 
+  The :ref:`animation-ex` section provides an example in Vertex Shader (VS) that
+  demostrates animation using both the 3D model information and Uniform Updates.
+  
+- **layout(location = x)**: Binds input/output to attribute index. See 
+  :ref:`animation-ex` section.
 - const: Compile-time constants
 - Cannot use interpolation qualifiers on inputs
 
