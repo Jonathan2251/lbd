@@ -833,9 +833,9 @@ looks like this:
    - For simple deformations (waves, wind, dissolve) → **determine the VS**.
    - Generate both **TCS and TES** code for **displacement and subdivision 
      control**.
-   - Geometry shaders are rarely exposed in node editors due to performance
-     costs and limited engine support. 
-     **GS** code is typically **written manually** by  graphics programmers.
+   - **GS** code is typically **written manually** by  graphics programmers
+     since **primitives culling and clipping** are not related with model 
+     resolution and texture materials.
 
 4. The engine converts the node graph into an internal shader
    representation.
@@ -2003,6 +2003,17 @@ Primitive Assembly (fixed-function) and Primitive Setup (fixed-function).
 .. graphviz:: ../Fig/gpu/gpu-pipeline.gv
   :caption: Modern GPU Pipeline
 
+As shown in :numref:`gpu-pipeline`:
+
+- Vertex Shader and Tessellation: processing and transform for **vertices** 
+  data.
+- Primitive Processing: processing and transform for **primitives** data.
+- Rasterizer: **Primitives → Fragment**.
+- Fragment Shader: **Fragment → Colored Fragment**.
+
+As illustred in :ref:`cross-product` section, after vertices are assembled into
+primitives (such as triangles), the front-facing and back-facing surfaces can 
+be determined, and the hidden primitives can be removed.
 
 The Red Book and Blue Book show only **Vertex Specification** and 
 **Vertex Data** in the rendering flow because 
@@ -2068,28 +2079,29 @@ broad enough to cover animation.
        In this stage, you might generate more geometry from the input primitive, 
        change the type of geometric primitive (e.g., converting triangles to 
        lines), or discard the geometry altogether.
+   * - Culling
+     - **Remove entire primitives** that are hidden or outside the viewport.
+   * - Clipping
+     - **Clip the hidden portions** of the primitive, separating it into visible 
+       and hidden parts and discarding the hidden portions.
    * - Primitive Setup (rasterization preparation)
      - This stage: takes the final primitive (after GS), computes edge 
-       equations, computes barycentric interpolation rules and prepares the 
-       primitive for rasterization.
-   * - Clipping
-     - **Clipping hidden parts.** Occasionally, vertices will be outside of the 
-       viewport—the region of the window where you’re permitted to draw—and 
-       cause the primitive associated with that vertex to be modified so none 
-       of its pixels are outside of the viewport. 
-       This operation is called clipping and is handled automatically by OpenGL.
+       equations, computes barycentric interpolation coefficients, determine 
+       rasterization rules and prepare for triangle traversal.
    * - Rasterization
-     - **Vertex → Fragment.** or **Geometric Primitives → Fragment**.
+     - **Geometric Primitives → Fragment**.
        The job of the rasterizer is to determine which 
-       screen locations are covered by a particular piece of geometry (point, 
+       screen locations are **covered** by a particular piece of geometry (point, 
        line, or triangle). Knowing those locations, along with the input vertex 
-       data, the rasterizer linearly interpolates the data values for each 
+       data, the rasterizer linearly **interpolates** the data values for each 
        varying variable in the fragment shader and sends those values as inputs 
        into your fragment shader. A fragment can be treated as a pixel in 3D 
        spaces, which is aligned with the pixel grid, with attributes such as 
        position, color, normal and texture.
+       Early Depth and Stencil Tests (**Early‑Z**): reject hidden fragments 
+       before shading.
    * - Fragment Shading
-     - **Fragment → Fragment**. **Determine color for each pixel.** 
+     - **Fragment → Colored Fragment**. **Determine color for each pixel.** 
        In this stage, a fragment’s **color and depth** values are computed and 
        then sent for further processing in the **fragment-testing** and 
        **blending** parts of the pipeline.
