@@ -63,6 +63,10 @@ Revision history
 
 Version 12.0.20, not released yet.
 
+Version 12.0.19.7, Febuary 16, 2026.
+
+  gpu.rst: refine 'section Basic geometry in computer graphics'.
+
 Version 12.0.19.6, Febuary 1, 2026.
 
   gpu.rst: refine 'section animation' and 'section '3D Rendering'.
