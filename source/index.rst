@@ -32,7 +32,6 @@ Table of Contents
    asm
    c++
    verilog
-   gpu
    install
    doc
    npu

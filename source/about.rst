@@ -63,6 +63,10 @@ Revision history
 
 Version 12.0.20, not released yet.
 
+Version 12.0.19.8, March 14, 2026.
+
+  Split gpu.rst into https://github.com/Jonathan2251/gpu.git.
+
 Version 12.0.19.7, Febuary 16, 2026.
 
   gpu.rst: refine 'section Basic geometry in computer graphics'.
