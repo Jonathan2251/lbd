@@ -17,10 +17,6 @@ Create gh-pages
 
 .. code-block:: console
 
-  % git branch
-  * gh-pages
-  master
-
   % git checkout --orphan gh-pages
   % git rm -rf .
 
