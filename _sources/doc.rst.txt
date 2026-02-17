@@ -177,6 +177,63 @@ Graphviz
 - See graphviz documents here [#gv-doc-pdf]_.
 
 
+Tex
+***
+
+macos:
+
+TexShop:
+
+  Typeset - save file - generate pdf auto
+
+% latex input.tex
+
+Open Preview - File - Export - Format: png, resolution: 360.
+
+draw:
+
+  Tikz
+
+Tikz:
+
+tuturial: https://www.math.uni-leipzig.de/~hellmund/LaTeX/pgf-tut.pdf
+
+menu: https://www.bu.edu/math/files/2013/08/tikzpgfmanual.pdf
+
+CircuitTikz: https://texample.net/tikz/examples/circuitikz/
+
+
+Table: TeX → LaTeX → PGF → TikZ Hierarchy
+
++-----------+--------------------------------------------------------------+
+| Layer     | Purpose                                                      |
++===========+==============================================================+
+| TeX       | Low-level typesetting engine created by Donald Knuth.        |
+|           | Provides primitives for boxes, glue, fonts, and math.        |
++-----------+--------------------------------------------------------------+
+| LaTeX     | High-level document system built on TeX by Leslie Lamport.   |
+|           | Adds structure, macros, environments, and packages.          |
++-----------+--------------------------------------------------------------+
+| PGF       | Low-level graphics engine used by TikZ.                      |
+|           | Converts drawing commands into PDF instructions.             |
++-----------+--------------------------------------------------------------+
+| TikZ      | High-level drawing language built on PGF.                    |
+|           | Provides nodes, paths, arrows, shapes, and diagram tools.    |
++-----------+--------------------------------------------------------------+
+
+- LaTex uses TikZ for drawing diagrams
+- TikZ uses LaTeX to typeset all text and math
+- TikZ uses PGF to draw graphics
+- PGF (Portable Graphics Format) uses TeX primitives to produce PDF output
+- MacTeX includes TeXShop
+
+Difference between Graphviz and TikZ:
+
+- Graphviz = “I describe the graph, you compute the layout.”
+- TikZ = “I control every coordinate and style manually.”
+- They are independent. Rendering engine: Graphviz is C-based vs TikZ is 
+  TeX+PGF.
+
 Cpu0 document
 -------------
 
