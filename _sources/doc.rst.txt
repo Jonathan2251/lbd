@@ -17,10 +17,6 @@ Create gh-pages
 
 .. code-block:: console
 
-  % git branch
-  * gh-pages
-  master
-
   % git checkout --orphan gh-pages
   % git rm -rf .
 
@@ -149,7 +145,7 @@ Pdf (xelatex) recognizes:
 - ↦ ↤
 - ⇐ ⇒ ⇑ ⇓
 - ⇔
-- Use math: ``:math:`\Leftarrow``` or ``:math:`\Rightarrow```;  :math:`\Leftarrow` :math:`\Rightarrow`; reference :ref:`cross-product`.
+- Use math: ``:math:`\Leftarrow``` or ``:math:`\Rightarrow```;  :math:`\Leftarrow` :math:`\Rightarrow`.
 
 .. math::
 
@@ -165,7 +161,7 @@ Math
 Figures
 *******
 
-- Figures side by side: refer to ``sm:left`` in gpu.rst.
+- Figures side by side: refer to ``sm:left`` in the gpu of my github repo.
 
 Graphviz
 ********
