@@ -63,6 +63,11 @@ Revision history
 
 Version 12.0.20, not released yet.
 
+Version 12.0.19.9, April 8, 2026.
+
+  llvmstructure.rst: Add question and answer for compiler executable run as
+  multi-processes.
+
 Version 12.0.19.8, March 14, 2026.
 
   Split gpu.rst into https://github.com/Jonathan2251/gpu.git.
