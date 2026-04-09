@@ -39,6 +39,24 @@ Finally, there are compiler knowledge like DAG (Directed-Acyclic-Graph) and
 instruction selection needed in llvm backend design, and they are explained 
 here. 
 
+**Question:**
+
+When running the same compiler executable twice concurrently, do these 
+instances run as separate processes, or as a single process with multiple 
+threads?
+
+
+**Answer**
+
+They run as **separate processes**, not as a single multi-threaded process.
+
+Each time you launch the executable, the operating system creates a new process 
+with its own memory space and resources. Even if both instances run at the same 
+time, they remain independent of each other.
+
+Within each process, the compiler may internally use multiple threads, but that 
+does not change the fact that the two executions are separate processes.
+
 
 Cpu0 Processor Architecture Details
 -----------------------------------
