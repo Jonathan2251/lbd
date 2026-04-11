@@ -39,23 +39,6 @@ Finally, there are compiler knowledge like DAG (Directed-Acyclic-Graph) and
 instruction selection needed in llvm backend design, and they are explained 
 here. 
 
-**Question:**
-
-When running the same compiler executable twice concurrently, do these 
-instances run as separate processes, or as a single process with multiple 
-threads?
-
-
-**Answer**
-
-They run as **separate processes**, not as a single multi-threaded process.
-
-Each time you launch the executable, the operating system creates a new process 
-with its own memory space and resources. Even if both instances run at the same 
-time, they remain independent of each other.
-
-Within each process, the compiler may internally use multiple threads, but that 
-does not change the fact that the two executions are separate processes.
 
 
 Cpu0 Processor Architecture Details
@@ -981,6 +964,146 @@ The following information comes from Wikipedia:
 
 Java syntax has a context-free grammar that can be parsed by a simple LALR  
 parser. Parsing C++ is more complicated [#java-cpp]_.  
+
+
+Use metadata in LLVM
+********************
+
+Key Aspects of the Clang Driver:
+
+- Driver vs. Frontend:  When you run clang, you are using the driver. 
+  The driver calls the frontend, usually via clang -cc1.
+
+- GCC Compatibility: The clang driver is designed to be a drop-in replacement 
+  for the gcc driver, accepting similar command-line arguments.
+- Role: It manages high-level tasks like setting up include paths, selecting 
+  the target architecture, and determining which toolchain components to invoke.
+
+The driver provides enhanced error reporting and efficient management of 
+complex builds.
+
+When running the same compiler executable twice concurrently, 
+they run as **separate processes**, not as a single multi-threaded process.
+
+Each time you launch the executable, the operating system creates a new process 
+with its own memory space and resources. Even if both instances run at the same 
+time, they remain independent of each other.
+
+Within each process, the compiler may internally use multiple threads, but that 
+does not change the fact that the two executions are separate processes.
+
+Question (refined)
+
+If each ``clang -cc1`` runs in a separate process, will global variables or
+static variables in LLVM still cause problems?
+
+Answer
+
+**Yes — they can still cause problems, but in a different way.**
+
+Explanation
+
+Since each ``clang -cc1`` is a **separate process**:
+
+- Global/static variables are **NOT shared across files**
+- Each process has its own independent copy
+
+So:
+
+- ❌ No cross-file contamination
+- ❌ No need to reset between ``a.cpp`` and ``b.cpp``
+
+However, problems can still occur **within a single process**.
+
+---
+
+What problems remain?
+
+1. Within one translation unit (single cc1 process)
+
+Even for one file:
+
+- LLVM runs many passes (IR → MIR → CodeGen)
+- Your global variable is shared across:
+
+  - all functions
+  - all passes
+
+So:
+
+- State may unintentionally leak between functions
+- Order-dependent bugs can appear
+
+---
+
+2. Multi-threading inside one process
+
+Even in one ``clang -cc1``:
+
+- Some LLVM stages may use threads
+
+Global variables then become:
+
+- ❌ Race condition risks
+- ❌ Non-deterministic results
+
+---
+
+3. Future changes (very important)
+
+Your code may be correct today, but break later if:
+
+- LTO (Link Time Optimization) is enabled
+- ThinLTO merges modules
+- Clang runs multiple compilations in-process (tooling, JIT, etc.)
+
+In those cases:
+
+- Global variables may be **shared across modules**
+- Bugs will reappear
+
+---
+
+4. Reentrancy and reuse issues
+
+If LLVM is used as a library (e.g., JIT, tools):
+
+- Multiple compilations may happen in the **same process**
+
+Global variables then:
+
+- Persist across compilations
+- Cause hidden state bugs
+
+---
+
+Key Insight
+
+- Multi-process (cc1) protects you from cross-file bugs,  
+- but **does NOT make global variables safe design**.
+
+---
+
+Best Practice
+
+Instead of globals:
+
+- Per-module → store in ``Module`` (metadata / flags)
+- Per-function → use ``Function`` / ``MachineFunction``
+- Complex state → use **Analysis Pass**
+
+---
+
+Summary
+
+- Separate ``clang -cc1`` processes → isolate memory per file
+- But global variables still:
+  - Break modular design
+  - Risk race conditions
+  - Cause future scalability issues
+
+- ✅ Safe today (in simple cases)  
+- ❌ Fragile and unsafe by design
 
 
 LLVM Structure
