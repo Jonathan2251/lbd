@@ -63,6 +63,10 @@ Revision history
 
 Version 12.0.20, not released yet.
 
+Version 12.0.19.10, April 10, 2026.
+
+  llvmstructure.rst: Add section 'Use metadata in LLVM'.
+
 Version 12.0.19.9, April 8, 2026.
 
   llvmstructure.rst: Add question and answer for compiler executable run as
