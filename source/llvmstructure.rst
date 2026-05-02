@@ -1532,7 +1532,69 @@ facilitate instruction selection and code generation, as shown in
 LLVM Code Generation Sequence
 *****************************
 
-Following diagram is from `tricore_llvm.pdf`.
+LLVM infrastructure composed of backend instructions generation and optimization.
+
+From :numref:`llvmstructure-f9`, llvm compiler transfer from llvm-ir to assembly
+or binary object with the following data structure as
+:numref:`backendstructure-lds_2`.
+
+.. _backendstructure-lds_2:
+.. graphviz:: ../Fig/backendstructure/llvm-data-structure.gv
+  :caption: LLVM data structure used in different stages
+
+The MCInst, assembly and binary object from :numref:`backendstructure-lds_2` are
+the parts of backend instructions generation which can be completed with the
+help of TabelGen and td mentioned in the previous section.
+The optimization and tranformation are completed by many passes of LLVM.
+Each pass operates on one of the other three data structures, llvm-ir, DAG and 
+MCInst (Machine Code Instruction).
+
+1. LLVM IR Transformations (lib/Transforms)
+
+The directory ``llvm/lib/Transforms`` contains **IR-level optimization
+and transformation passes**.
+
+These passes:
+- Operate on **LLVM IR**
+- Improve code quality without changing semantics
+- Do **not** generate machine code
+
+Examples of transformations:
+- Dead code elimination
+- Instruction combining
+- Loop optimizations
+- Function inlining
+
+Key idea:
+
+    ``Transforms = optimization and restructuring within LLVM IR``
+
+2. Code Generation Overview
+
+Located in: ``llvm/lib/CodeGen``
+
+The LLVM backend pipeline can be divided into several stages:
+
+::
+
+    Frontend (Clang)
+        ↓
+    LLVM IR
+        ↓
+    Transforms (IR optimization)
+        ↓
+    Instruction Selection (SelectionDAG / GlobalISel)
+        ↓
+    MachineInstr (Machine IR)
+        ↓
+    Machine-level passes (regalloc, scheduling, etc.)
+        ↓
+    MC layer (encoding)
+        ↓
+    Assembly / Object file
+
+The code generation sequence on llvm-ir, DAG, MCInst and assembly can be 
+illustrated as the following diagram from `tricore_llvm.pdf`.
 
 .. _llvmstructure-f9: 
 .. figure:: ../Fig/llvmstructure/9.png
@@ -1543,6 +1605,211 @@ Following diagram is from `tricore_llvm.pdf`.
   `tricore_llvm.pdf`: **Code Generation Sequence**  
   On the path from LLVM code to assembly code, numerous passes are executed,  
   and several data structures are used to represent intermediate results.
+
+3. SelectionDAG
+
+Located in: ``llvm/lib/CodeGen/SelectionDAG``
+
+SelectionDAG is responsible for:
+
+- Lowering LLVM IR into a **Directed Acyclic Graph (DAG)**
+- Performing **DAG-level optimizations**
+- Legalizing operations for the target
+- Selecting **target-specific MachineInstr**
+
+Flow:
+
+::
+
+    LLVM IR
+        ↓
+    SelectionDAG
+        ↓
+    MachineInstr
+
+Important notes:
+- It does **not** emit final machine code
+- It performs **target-aware optimizations**
+- Instruction selection happens here
+
+Summary:
+
+    ``SelectionDAG = IR → DAG → MachineInstr (with optimization)``
+
+4. GlobalISel
+
+Located in: ``llvm/lib/CodeGen/GlobalISel``
+
+GlobalISel is a modern alternative to SelectionDAG.
+
+It performs:
+
+::
+
+    LLVM IR → MachineInstr (directly)
+
+Key characteristics:
+
+- No DAG construction
+- Works directly on Machine IR
+- More modular and extensible
+- Better suited for fast compilation (-O0)
+
+Pipeline:
+
+::
+
+    LLVM IR
+        ↓
+    Legalizer
+        ↓
+    RegBankSelect
+        ↓
+    InstructionSelect
+        ↓
+    MachineInstr
+
+Summary:
+
+    ``GlobalISel = direct IR → MachineInstr instruction selection framework``
+
+5. MachineInstr and lib/CodeGen (rest)
+
+After instruction selection, LLVM operates on **MachineInstr**.
+
+MachineInstr:
+
+- Represents target-specific instructions
+- Is **not yet machine code**
+- May include pseudo instructions
+
+Most of ``llvm/lib/CodeGen`` performs:
+
+1. Machine-level optimizations
+
+   - Peephole optimization
+   - Copy propagation
+   - Dead code elimination (machine level)
+
+2. Register allocation
+
+   - Assign virtual registers to physical registers
+
+3. Scheduling
+
+   - Instruction ordering for performance
+
+4. Prologue/Epilogue insertion
+
+   - Stack frame setup and teardown
+
+5. Preparation for emission
+
+Important distinction:
+
+::
+
+    MachineInstr ≠ machine code
+    MachineInstr → MCInst → binary encoding
+
+Summary:
+
+    ``lib/CodeGen (post-ISel) = MachineInstr optimization and lowering``
+
+6. MIRParser
+
+Located in: ``llvm/lib/CodeGen/MIRParser``
+
+MIRParser is a utility for parsing **MIR (Machine IR) text format**.
+
+MIR:
+
+- Textual representation of MachineInstr and MachineFunction
+
+Example:
+
+::
+
+    bb.0:
+      %0 = COPY %1
+      ADDXri %0, 1
+
+MIRParser:
+
+- Reads `.mir` files
+- Reconstructs MachineFunction
+- Used for:
+
+  - Debugging
+  - Testing backend passes
+  - Reproducing bugs
+
+Important:
+
+    ``MIRParser is not part of the compilation pipeline``
+
+Summary:
+
+    ``MIRParser = MIR text → MachineFunction (tooling/debugging)``
+
+7. LiveDebugValues
+
+Located in: ``llvm/lib/CodeGen/LiveDebugValues``
+
+LiveDebugValues tracks **source-level variable locations** during codegen.
+
+Problem:
+
+- Optimizations and register allocation move or eliminate variables
+- Debuggers need correct variable values
+
+Solution:
+
+- Maintain mapping:
+
+::
+
+    source variable → (register / stack location)
+
+- Update mappings across transformations
+
+Example:
+
+::
+
+    int x = a + b;
+
+Even after optimization, debugger can still show correct value of `x`.
+
+Important:
+
+- Does **not affect program execution**
+- Only affects **debugging information**
+
+Summary:
+
+    ``LiveDebugValues = maintain variable location info for debuggers``
+
+8. Final Mental Model
+
+::
+
+    IR level        → lib/Transforms
+    --------------------------------
+    Lowering level  → SelectionDAG / GlobalISel
+    --------------------------------
+    Machine level   → lib/CodeGen (MachineInstr passes)
+    --------------------------------
+    MC level        → final encoding
+
+9. Key Takeaways
+
+- ``Transforms`` optimize LLVM IR
+- ``SelectionDAG`` and ``GlobalISel`` perform instruction selection
+- ``MachineInstr`` is not machine code
+- ``lib/CodeGen`` handles machine-level processing
+- ``MIRParser`` is for testing/debugging
+- ``LiveDebugValues`` preserves debug information
 
 LLVM is a **Static Single Assignment (SSA)**-based representation.  
 It provides an infinite number of virtual registers that can hold values of  

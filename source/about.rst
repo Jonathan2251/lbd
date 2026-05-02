@@ -63,6 +63,8 @@ Revision history
 
 Version 12.0.20, not released yet.
 
+  llvmstructure.rst: Refine section 'LLVM Code Generation Sequence'.
+
 Version 12.0.19.10, April 10, 2026.
 
   llvmstructure.rst: Add section 'Use metadata in LLVM'.
