@@ -64,6 +64,7 @@ Revision history
 Version 12.0.20, not released yet.
 
   llvmstructure.rst: Refine section 'LLVM Code Generation Sequence'.
+  c++.rst: Add section 'DWRAF'.
 
 Version 12.0.19.10, April 10, 2026.
 
