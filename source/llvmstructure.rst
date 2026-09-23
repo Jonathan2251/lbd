@@ -1319,6 +1319,31 @@ parallel processing opportunities for **multi-core (SMP) systems** and
 
 For example, `g(x)` can be executed on a **GPU**, while `f(x)` runs on a **CPU**.  
 
+
+LLVM Language
+*************
+
+LLVM uses minimum data types which does not provide different data types for
+signed integer and unsigned integer.
+
+.. code-block:: llvm
+
+  define i32 @func(i32* %pa, i32* %pb) {
+  entry:
+    %a = load i32, i32* %pa          ; load unsigned
+    %b = load i32, i32* %pb
+
+    %divu = udiv i32 %a, %b          ; unsigned division
+    %cmpu = icmp ult i32 %a, %b      ; unsigned less-than
+
+    %divs = sdiv i32 %a, %b          ; signed division
+    %cmps = icmp slt i32 %a, %b      ; signed less-than
+
+    %z = zext i1 %cmpu to i32
+    ret i32 %divu
+  }
+
+
 Three-Phase Design
 ******************
 
