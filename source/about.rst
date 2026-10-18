@@ -61,7 +61,9 @@ https://github.com/Jonathan2251/lbd/blob/master/README.md
 Revision history
 ----------------
 
-Version 12.0.20, not released yet.
+Version 12.0.20.1, not released yet.
+
+Version 12.0.20, October 18, 2026.
 
   llvmstructure.rst: Refine section 'LLVM Code Generation Sequence'.
   c++.rst: Add section 'DWRAF'.
