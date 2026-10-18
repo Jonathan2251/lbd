@@ -9,7 +9,7 @@
     <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
     <link rel="stylesheet" type="text/css" href="_static/haiku.css?v=fce32b03" />
     <link rel="stylesheet" type="text/css" href="_static/graphviz.css?v=4ae1632d" />
-    <script src="_static/documentation_options.js?v=b6527a0c"></script>
+    <script src="_static/documentation_options.js?v=f001b849"></script>
     <script src="_static/doctools.js?v=fd6eb6e6"></script>
     <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
     <link rel="author" title="About these documents" href="about.html" />
@@ -40,21 +40,87 @@
 <span id="sec-c"></span><h1>C++ support<a class="headerlink" href="#c-support" title="Link to this heading">¶</a></h1>
 <nav class="contents local" id="contents">
 <ul class="simple">
-<li><p><a class="reference internal" href="#exception-handling" id="id24">Exception Handling</a></p></li>
-<li><p><a class="reference internal" href="#thread-variable" id="id25">Thread variable</a></p></li>
-<li><p><a class="reference internal" href="#c-memory-order" id="id26">C++ Memory Order   </a></p>
+<li><p><a class="reference internal" href="#dwarf" id="id25">DWARF</a></p></li>
+<li><p><a class="reference internal" href="#exception-handling" id="id26">Exception Handling</a></p></li>
+<li><p><a class="reference internal" href="#thread-variable" id="id27">Thread variable</a></p></li>
+<li><p><a class="reference internal" href="#c-memory-order" id="id28">C++ Memory Order   </a></p>
 <ul>
-<li><p><a class="reference internal" href="#source-code-compatibility" id="id27">Source Code Compatibility</a></p></li>
-<li><p><a class="reference internal" href="#the-problem-before-c-11" id="id28">The Problem Before C++11</a></p></li>
-<li><p><a class="reference internal" href="#c-11-memory-model-solution" id="id29">C++11 Memory Model Solution</a></p></li>
+<li><p><a class="reference internal" href="#source-code-compatibility" id="id29">Source Code Compatibility</a></p></li>
+<li><p><a class="reference internal" href="#the-problem-before-c-11" id="id30">The Problem Before C++11</a></p></li>
+<li><p><a class="reference internal" href="#c-11-memory-model-solution" id="id31">C++11 Memory Model Solution</a></p></li>
 </ul>
 </li>
-<li><p><a class="reference internal" href="#cpu0-implementation-for-memory-order" id="id30">Cpu0 implementation for memory-order</a></p></li>
+<li><p><a class="reference internal" href="#cpu0-implementation-for-memory-order" id="id32">Cpu0 implementation for memory-order</a></p></li>
 </ul>
 </nav>
 <p>This chapter supports some C++ compiler features.</p>
+<section id="dwarf">
+<span id="id1"></span><h2><a class="toc-backref" href="#id25" role="doc-backlink">DWARF</a><a class="headerlink" href="#dwarf" title="Link to this heading">¶</a></h2>
+<p>DWARF is a standardized format for storing debugging information in object
+files and executables. It enables source-level debuggers, such as GDB and
+LLDB, to map machine instructions back to source code, functions, variables,
+and data types.</p>
+<p>On ELF systems, the compiler typically emits DWARF debugging information into
+sections such as <code class="docutils literal notranslate"><span class="pre">.debug_info</span></code>, <code class="docutils literal notranslate"><span class="pre">.debug_line</span></code>, <code class="docutils literal notranslate"><span class="pre">.debug_abbrev</span></code>, and
+<code class="docutils literal notranslate"><span class="pre">.debug_str</span></code>. These sections are primarily used by debuggers and are not
+required for normal program execution.</p>
+<p>In addition to debugging information, DWARF also defines <strong>Call Frame
+Information (CFI)</strong>, which describes how to restore registers and stack frames
+during stack unwinding. The compiler emits this information into the
+<code class="docutils literal notranslate"><span class="pre">.eh_frame</span></code> and <code class="docutils literal notranslate"><span class="pre">.eh_frame_hdr</span></code> sections. Unlike the <code class="docutils literal notranslate"><span class="pre">.debug_*</span></code> sections,
+these sections are used at run time by the exception handling mechanism.</p>
+<p>When a C++ exception is thrown, the C++ ABI library (such as <code class="docutils literal notranslate"><span class="pre">libc++abi</span></code> or
+<code class="docutils literal notranslate"><span class="pre">libsupc++</span></code>) invokes the unwinder (<code class="docutils literal notranslate"><span class="pre">libunwind</span></code> or <code class="docutils literal notranslate"><span class="pre">libgcc_s</span></code>). The
+unwinder reads the Call Frame Information in <code class="docutils literal notranslate"><span class="pre">.eh_frame</span></code> to restore stack
+frames until a matching exception handler is found.</p>
+<p>The relationship between these components is illustrated below:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">C</span><span class="o">++</span> <span class="n">exception</span>
+      <span class="o">|</span>
+      <span class="n">v</span>
+<span class="n">libc</span><span class="o">++</span><span class="n">abi</span> <span class="o">/</span> <span class="n">libsupc</span><span class="o">++</span>
+      <span class="o">|</span>
+      <span class="n">v</span>
+<span class="n">libunwind</span> <span class="o">/</span> <span class="n">libgcc_s</span>
+      <span class="o">|</span>
+      <span class="n">v</span>
+<span class="o">.</span><span class="n">eh_frame</span> <span class="p">(</span><span class="o">.</span><span class="n">eh_frame_hdr</span><span class="p">)</span>
+      <span class="o">|</span>
+      <span class="n">v</span>
+<span class="n">DWARF</span> <span class="n">Call</span> <span class="n">Frame</span> <span class="n">Information</span>
+</pre></div>
+</div>
+<p>Although <code class="docutils literal notranslate"><span class="pre">.eh_frame</span></code> uses the DWARF Call Frame Information format, it is
+separate from the <code class="docutils literal notranslate"><span class="pre">.debug_*</span></code> sections used by debuggers. In other words,
+DWARF serves two purposes on ELF systems:</p>
+<ul class="simple">
+<li><p><strong>Debugging information</strong>, used by debuggers such as GDB and LLDB.</p></li>
+<li><p><strong>Call Frame Information (CFI)</strong>, used by the unwinder during exception
+handling.</p></li>
+</ul>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>DWARF is an architecture-independent standard. It is used on many ELF
+targets, including x86-64, ARM, AArch64, MIPS, PowerPC, and RISC-V.
+The format is common across architectures, while the register numbers
+and calling conventions are architecture specific.</p>
+</div>
+</section>
 <section id="exception-handling">
-<h2><a class="toc-backref" href="#id24" role="doc-backlink">Exception Handling</a><a class="headerlink" href="#exception-handling" title="Link to this heading">¶</a></h2>
+<h2><a class="toc-backref" href="#id26" role="doc-backlink">Exception Handling</a><a class="headerlink" href="#exception-handling" title="Link to this heading">¶</a></h2>
+<p>On ELF systems (Linux, BSD, etc.), that information is stored as DWARF unwind
+information, typically in sections such as</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>.eh_frame
+.eh_frame_hdr
+</pre></div>
+</div>
+<p>The unwinder uses these tables to restore registers and unwind the stack.</p>
+<p>What about .eh_frame_hdr?</p>
+<ul class="simple">
+<li><p>.eh_frame contains the actual unwind tables.</p></li>
+<li><p>.eh_frame_hdr is an index into .eh_frame that allows the unwinder to quickly
+locate the correct Frame Description Entry (FDE) instead of scanning the
+entire section.</p></li>
+</ul>
 <p>Chapter11_2 can be built and run using the C++ polymorphism example code in
 <code class="docutils literal notranslate"><span class="pre">ch12_inherit.cpp</span></code> as follows:</p>
 <p class="rubric">lbdex/input/ch12_inherit.cpp</p>
@@ -138,9 +204,9 @@ and Linux.</p>
 </pre></div>
 </div>
 <p>A description of the C++ exception table formats can be found here
-<a class="footnote-reference brackets" href="#itanium-exception" id="id1" role="doc-noteref"><span class="fn-bracket">[</span>2<span class="fn-bracket">]</span></a>.</p>
+<a class="footnote-reference brackets" href="#itanium-exception" id="id2" role="doc-noteref"><span class="fn-bracket">[</span>2<span class="fn-bracket">]</span></a>.</p>
 <p>For details about the LLVM IR used in exception handling, please refer to
-<a class="footnote-reference brackets" href="#exception" id="id2" role="doc-noteref"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></a>.</p>
+<a class="footnote-reference brackets" href="#exception" id="id3" role="doc-noteref"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></a>.</p>
 <p>Chapter12_1 supports the LLVM IRs that correspond to the C++ <strong>try</strong> and
 <strong>catch</strong> keywords. It can compile <code class="docutils literal notranslate"><span class="pre">ch12_eh.bc</span></code> as follows:</p>
 <p class="rubric">lbdex/chapters/Chapter12_1/Cpu0ISelLowering.h</p>
@@ -199,7 +265,7 @@ $BB1_5:                                 # %return
 </div>
 </section>
 <section id="thread-variable">
-<h2><a class="toc-backref" href="#id25" role="doc-backlink">Thread variable</a><a class="headerlink" href="#thread-variable" title="Link to this heading">¶</a></h2>
+<h2><a class="toc-backref" href="#id27" role="doc-backlink">Thread variable</a><a class="headerlink" href="#thread-variable" title="Link to this heading">¶</a></h2>
 <p>C++ support thread variable as the following file ch12_thread_var.cpp.</p>
 <p class="rubric">lbdex/input/ch12_thread_var.cpp</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">__thread</span> <span class="nb">int</span> <span class="n">a</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
@@ -222,7 +288,7 @@ $BB1_5:                                 # %return
 a thread-local variable has a separate instance for each thread in the process.
 The same thread accesses the same instance of the thread-local variable, while
 different threads have their own instances with the same variable name
-<a class="footnote-reference brackets" href="#thread-wiki" id="id3" role="doc-noteref"><span class="fn-bracket">[</span>3<span class="fn-bracket">]</span></a>.</p>
+<a class="footnote-reference brackets" href="#thread-wiki" id="id4" role="doc-noteref"><span class="fn-bracket">[</span>3<span class="fn-bracket">]</span></a>.</p>
 <p>To support thread-local variables, symbols such as <strong>tlsgd</strong>, <strong>tlsldm</strong>,
 <strong>dtp_hi</strong>, <strong>dtp_lo</strong>, <strong>gottp</strong>, <strong>tp_hi</strong>, and <strong>tp_lo</strong> must be handled in
 both <cite>evaluateRelocExpr()</cite> of <cite>Cpu0AsmParser.cpp</cite> and <cite>printImpl()</cite> of
@@ -680,8 +746,8 @@ In general, they are the same in terms of LLVM IR, DAG, and machine code
 translation.</p>
 <p>You can refer to the following tables for a detailed comparison.</p>
 <p>To observe this in action, compile and check with debug options enabled.</p>
-<table class="docutils align-default" id="id15">
-<caption><span class="caption-number">Table 40 </span><span class="caption-text">The DAGs of thread varaible of static mode</span><a class="headerlink" href="#id15" title="Link to this table">¶</a></caption>
+<table class="docutils align-default" id="id16">
+<caption><span class="caption-number">Table 40 </span><span class="caption-text">The DAGs of thread varaible of static mode</span><a class="headerlink" href="#id16" title="Link to this table">¶</a></caption>
 <thead>
 <tr class="row-odd"><th class="head"><p>stage</p></th>
 <th class="head"><p>DAG</p></th>
@@ -711,8 +777,8 @@ translation.</p>
 </tr>
 </tbody>
 </table>
-<table class="docutils align-default" id="id16">
-<caption><span class="caption-number">Table 41 </span><span class="caption-text">The DAGs of local_thread varaible of static mode</span><a class="headerlink" href="#id16" title="Link to this table">¶</a></caption>
+<table class="docutils align-default" id="id17">
+<caption><span class="caption-number">Table 41 </span><span class="caption-text">The DAGs of local_thread varaible of static mode</span><a class="headerlink" href="#id17" title="Link to this table">¶</a></caption>
 <thead>
 <tr class="row-odd"><th class="head"><p>stage</p></th>
 <th class="head"><p>DAG</p></th>
@@ -744,9 +810,9 @@ translation.</p>
 </table>
 </section>
 <section id="c-memory-order">
-<h2><a class="toc-backref" href="#id26" role="doc-backlink">C++ Memory Order <a class="footnote-reference brackets" href="#cpp-mem-order" id="id4" role="doc-noteref"><span class="fn-bracket">[</span>4<span class="fn-bracket">]</span></a> <a class="footnote-reference brackets" href="#mem-order-wiki" id="id5" role="doc-noteref"><span class="fn-bracket">[</span>5<span class="fn-bracket">]</span></a> <a class="footnote-reference brackets" href="#atomic-stackoverflow" id="id6" role="doc-noteref"><span class="fn-bracket">[</span>6<span class="fn-bracket">]</span></a></a><a class="headerlink" href="#c-memory-order" title="Link to this heading">¶</a></h2>
+<h2><a class="toc-backref" href="#id28" role="doc-backlink">C++ Memory Order <a class="footnote-reference brackets" href="#cpp-mem-order" id="id5" role="doc-noteref"><span class="fn-bracket">[</span>4<span class="fn-bracket">]</span></a> <a class="footnote-reference brackets" href="#mem-order-wiki" id="id6" role="doc-noteref"><span class="fn-bracket">[</span>5<span class="fn-bracket">]</span></a> <a class="footnote-reference brackets" href="#atomic-stackoverflow" id="id7" role="doc-noteref"><span class="fn-bracket">[</span>6<span class="fn-bracket">]</span></a></a><a class="headerlink" href="#c-memory-order" title="Link to this heading">¶</a></h2>
 <section id="source-code-compatibility">
-<h3><a class="toc-backref" href="#id27" role="doc-backlink">Source Code Compatibility</a><a class="headerlink" href="#source-code-compatibility" title="Link to this heading">¶</a></h3>
+<h3><a class="toc-backref" href="#id29" role="doc-backlink">Source Code Compatibility</a><a class="headerlink" href="#source-code-compatibility" title="Link to this heading">¶</a></h3>
 <p><strong>Memory Order:</strong></p>
 <ul class="simple">
 <li><p><strong>Memory Order is the rules that define how operations on shared memory
@@ -778,7 +844,7 @@ as shown below.</p></li>
 <span class="p">}</span>
 </pre></div>
 </div>
-<figure class="align-default" id="id17">
+<figure class="align-default" id="id18">
 <span id="mem-o-hw"></span><div class="graphviz"><img src="_images/graphviz-d1a47bb72182b805f8b7fe7f5f431c71ef946f76.png" alt="digraph MemoryOrderAcquireCache {
     rankdir=TB;
     node [shape=box, fontname=&quot;Helvetica&quot;];
@@ -821,7 +887,7 @@ as shown below.</p></li>
     Cache1_Ready -&gt; Cache2_Ready [label=&quot;Acquire-Release Sync&quot;, style=dashed, color=purple];
 }" class="graphviz" /></div>
 <figcaption>
-<p><span class="caption-number">Fig. 56 </span><span class="caption-text">Diagram for mem-order-ex1.cpp</span><a class="headerlink" href="#id17" title="Link to this image">¶</a></p>
+<p><span class="caption-number">Fig. 57 </span><span class="caption-text">Diagram for mem-order-ex1.cpp</span><a class="headerlink" href="#id18" title="Link to this image">¶</a></p>
 </figcaption>
 </figure>
 <p>Diagram Explanation:</p>
@@ -919,14 +985,14 @@ re-ordered before the operation,
 <p>C++ Memory Order makes <strong>“source code compatible”</strong> across different platforms.</p>
 </section>
 <section id="the-problem-before-c-11">
-<h3><a class="toc-backref" href="#id28" role="doc-backlink">The Problem Before C++11</a><a class="headerlink" href="#the-problem-before-c-11" title="Link to this heading">¶</a></h3>
+<h3><a class="toc-backref" href="#id30" role="doc-backlink">The Problem Before C++11</a><a class="headerlink" href="#the-problem-before-c-11" title="Link to this heading">¶</a></h3>
 <p>Before <strong>C++11</strong>, multi-threaded programming relied on <strong>mutexes, volatile
 variables, and platform-specific atomic operations (such as atomic_load(&amp;a) and
 atomic_store(&amp;a, 42)</strong>, which often led to
 inefficiencies and undefined behavior.</p>
 <p>For RISC CPUs, <strong>only load/store instructions access memory.</strong> Atomic
 instructions ensure memory consistency across multiple cores.</p>
-<p>CPUs provide atomic operations such as <strong>compare-and-swap</strong> <a class="footnote-reference brackets" href="#cas-wiki" id="id7" role="doc-noteref"><span class="fn-bracket">[</span>7<span class="fn-bracket">]</span></a> or
+<p>CPUs provide atomic operations such as <strong>compare-and-swap</strong> <a class="footnote-reference brackets" href="#cas-wiki" id="id8" role="doc-noteref"><span class="fn-bracket">[</span>7<span class="fn-bracket">]</span></a> or
 <strong>ll/sc (load-linked/store-conditional)</strong>, along with <strong>BARRIER</strong> or <strong>SYNC</strong>
 instructions to enforce memory ordering. However, <strong>C++03 did not have a language
 feature to tell the compiler how to control memory order for load/store
@@ -966,7 +1032,7 @@ accesses.</p></li>
 </ol>
 </section>
 <section id="c-11-memory-model-solution">
-<h3><a class="toc-backref" href="#id29" role="doc-backlink">C++11 Memory Model Solution</a><a class="headerlink" href="#c-11-memory-model-solution" title="Link to this heading">¶</a></h3>
+<h3><a class="toc-backref" href="#id31" role="doc-backlink">C++11 Memory Model Solution</a><a class="headerlink" href="#c-11-memory-model-solution" title="Link to this heading">¶</a></h3>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p><strong>Non-blocking algorithm:</strong>
@@ -990,15 +1056,15 @@ In particular, if one thread is suspended, then a lock-free algorithm guarantees
 that the remaining threads can still make progress. Hence, if two threads can
 contend for the same mutex lock or spinlock, then the algorithm is not lock-free.
 (If we suspend one thread that holds the lock, then the second thread will block.)
-<a class="footnote-reference brackets" href="#lf-wiki" id="id8" role="doc-noteref"><span class="fn-bracket">[</span>8<span class="fn-bracket">]</span></a>.</p>
+<a class="footnote-reference brackets" href="#lf-wiki" id="id9" role="doc-noteref"><span class="fn-bracket">[</span>8<span class="fn-bracket">]</span></a>.</p>
 <p>Based on this definition, any algorithm that retains a mutex without
 allowing temporary release does not qualify as lock-free.</p>
 </div>
 <p>C++11 introduced <strong>a well-defined memory model</strong> and <strong>atomic operations</strong> with
 <strong>memory orderings</strong>, allowing programmers to control hardware-level
 optimizations.</p>
-<table class="docutils align-default" id="id18">
-<caption><span class="caption-number">Table 42 </span><span class="caption-text">C++ memory order A</span><a class="headerlink" href="#id18" title="Link to this table">¶</a></caption>
+<table class="docutils align-default" id="id19">
+<caption><span class="caption-number">Table 42 </span><span class="caption-text">C++ memory order A</span><a class="headerlink" href="#id19" title="Link to this table">¶</a></caption>
 <thead>
 <tr class="row-odd"><th class="head"><p><strong>Feature</strong></p></th>
 <th class="head"><p><strong>Description</strong></p></th>
@@ -1028,8 +1094,8 @@ optimizations.</p>
 </tr>
 </tbody>
 </table>
-<table class="docutils align-default" id="id19">
-<caption><span class="caption-number">Table 43 </span><span class="caption-text">C++ memory order B</span><a class="headerlink" href="#id19" title="Link to this table">¶</a></caption>
+<table class="docutils align-default" id="id20">
+<caption><span class="caption-number">Table 43 </span><span class="caption-text">C++ memory order B</span><a class="headerlink" href="#id20" title="Link to this table">¶</a></caption>
 <thead>
 <tr class="row-odd"><th class="head"><p><strong>Memory Order</strong></p></th>
 <th class="head"><p><strong>Description</strong></p></th>
@@ -1108,11 +1174,11 @@ performance cost</strong>.</p></li>
 </section>
 </section>
 <section id="cpu0-implementation-for-memory-order">
-<h2><a class="toc-backref" href="#id30" role="doc-backlink">Cpu0 implementation for memory-order</a><a class="headerlink" href="#cpu0-implementation-for-memory-order" title="Link to this heading">¶</a></h2>
+<h2><a class="toc-backref" href="#id32" role="doc-backlink">Cpu0 implementation for memory-order</a><a class="headerlink" href="#cpu0-implementation-for-memory-order" title="Link to this heading">¶</a></h2>
 <p>In order to support atomic in C++ and java, llvm provides the atomic IRs and
-memory ordering here <a class="footnote-reference brackets" href="#atomics-llvm" id="id9" role="doc-noteref"><span class="fn-bracket">[</span>9<span class="fn-bracket">]</span></a> <a class="footnote-reference brackets" href="#llvmlang-ordering" id="id10" role="doc-noteref"><span class="fn-bracket">[</span>10<span class="fn-bracket">]</span></a>.</p>
+memory ordering here <a class="footnote-reference brackets" href="#atomics-llvm" id="id10" role="doc-noteref"><span class="fn-bracket">[</span>9<span class="fn-bracket">]</span></a> <a class="footnote-reference brackets" href="#llvmlang-ordering" id="id11" role="doc-noteref"><span class="fn-bracket">[</span>10<span class="fn-bracket">]</span></a>.</p>
 <p>The chapter 19
-of book DPC++ <a class="footnote-reference brackets" href="#dpcpp-memorder" id="id11" role="doc-noteref"><span class="fn-bracket">[</span>11<span class="fn-bracket">]</span></a> explains the memory ordering better and I add
+of book DPC++ <a class="footnote-reference brackets" href="#dpcpp-memorder" id="id12" role="doc-noteref"><span class="fn-bracket">[</span>11<span class="fn-bracket">]</span></a> explains the memory ordering better and I add
 the related code fragment of lbdex/input/atomics.ll to it for explanation as
 follows,</p>
 <ul class="simple">
@@ -1215,29 +1281,29 @@ acquire the same atomic variable as the memory_order_release definition.
 Mips’ ll and sc quarantees this feature of “cmpxchg seq_cst”.
 Second Sync guarantees “cmpxchg seq_cst” complete before the next R/W.</p>
 <p>There are several restrictions on which memory orders are supported by each
-operation. <a class="reference internal" href="#c-f1"><span class="std std-numref">Fig. 57</span></a> (from book Figure 19-10) summarizes which
+operation. <a class="reference internal" href="#c-f1"><span class="std std-numref">Fig. 58</span></a> (from book Figure 19-10) summarizes which
 combinations are valid.</p>
-<figure class="align-center" id="id20">
+<figure class="align-center" id="id21">
 <span id="c-f1"></span><a class="reference internal image-reference" href="_images/Fig-19-10-book-dpc++.png"><img alt="_images/Fig-19-10-book-dpc%2B%2B.png" src="_images/Fig-19-10-book-dpc%2B%2B.png" style="width: 633px; height: 368px;" />
 </a>
 <figcaption>
-<p><span class="caption-number">Fig. 57 </span><span class="caption-text">Supporting atomic operations with memory_order</span><a class="headerlink" href="#id20" title="Link to this image">¶</a></p>
+<p><span class="caption-number">Fig. 58 </span><span class="caption-text">Supporting atomic operations with memory_order</span><a class="headerlink" href="#id21" title="Link to this image">¶</a></p>
 </figcaption>
 </figure>
 <p>Load operations do not write values to memory and are therefore incompatible
 with release semantics. Similarly, store operations do not read values from
 memory and are therefore incompatible with acquire semantics. The remaining
 read-modify-write atomic operations and fences are compatible with all memory
-orderings <a class="footnote-reference brackets" href="#dpcpp-memorder" id="id12" role="doc-noteref"><span class="fn-bracket">[</span>11<span class="fn-bracket">]</span></a>.</p>
+orderings <a class="footnote-reference brackets" href="#dpcpp-memorder" id="id13" role="doc-noteref"><span class="fn-bracket">[</span>11<span class="fn-bracket">]</span></a>.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p><strong>C++ memory_order_consume</strong></p>
 </div>
-<figure class="align-center" id="id21">
+<figure class="align-center" id="id22">
 <span id="c-f2"></span><a class="reference internal image-reference" href="_images/Fig-19-9-book-dpc++.png"><img alt="_images/Fig-19-9-book-dpc%2B%2B.png" src="_images/Fig-19-9-book-dpc%2B%2B.png" style="width: 578px; height: 594px;" />
 </a>
 <figcaption>
-<p><span class="caption-number">Fig. 58 </span><span class="caption-text">Comparing standard C++ and SYCL/DPC++ memory models</span><a class="headerlink" href="#id21" title="Link to this image">¶</a></p>
+<p><span class="caption-number">Fig. 59 </span><span class="caption-text">Comparing standard C++ and SYCL/DPC++ memory models</span><a class="headerlink" href="#id22" title="Link to this image">¶</a></p>
 </figcaption>
 </figure>
 <p>The C++ memory model additionally includes memory_order::consume, with similar
@@ -1245,7 +1311,7 @@ behavior to memory_order::acquire. however, the C++17 standard discourages its
 use, noting that its definition is being revised. its inclusion in dpC++ has
 therefore been postponed to a future version.</p>
 <p>For a few years now, compilers have treated consume as a synonym for acquire
-<a class="footnote-reference brackets" href="#cpp-memorder-consume-as-acquire" id="id13" role="doc-noteref"><span class="fn-bracket">[</span>12<span class="fn-bracket">]</span></a>.</p>
+<a class="footnote-reference brackets" href="#cpp-memorder-consume-as-acquire" id="id14" role="doc-noteref"><span class="fn-bracket">[</span>12<span class="fn-bracket">]</span></a>.</p>
 <p>The current expectation is that the replacement facility will rely on core
 memory model and atomics definitions very similar to what’s currently there.
 Since memory_order_consume does have a profound impact on the memory model,
@@ -1253,11 +1319,11 @@ removing this text would allow drastic simplification, but conversely would
 make it very difficult to add anything along the lines of memory_order_consume
 back in later, especially if the standard evolves in the meantime, as expected.
 Thus we are not proposing to remove the current wording
-<a class="footnote-reference brackets" href="#cpp-memorder-consume-remove" id="id14" role="doc-noteref"><span class="fn-bracket">[</span>13<span class="fn-bracket">]</span></a>.</p>
+<a class="footnote-reference brackets" href="#cpp-memorder-consume-remove" id="id15" role="doc-noteref"><span class="fn-bracket">[</span>13<span class="fn-bracket">]</span></a>.</p>
 <p>The following test files are extracted from <cite>memory_checks()</cite> in
 <cite>clang/test/Sema/atomic-ops.c</cite>. The <cite>__c11_atomic_xxx</cite> built-in functions used
 by Clang are defined in <cite>clang/include/clang/Basic/Builtins.def</cite>. Compiling
-these files with Clang produces the same results as shown in <a class="reference internal" href="#c-f1"><span class="std std-numref">Fig. 57</span></a>.</p>
+these files with Clang produces the same results as shown in <a class="reference internal" href="#c-f1"><span class="std std-numref">Fig. 58</span></a>.</p>
 <p>Note: Clang compiles <cite>memory_order_consume</cite> to the same result as
 <cite>memory_order_acquire</cite>.</p>
 <p class="rubric">lbdex/input/ch12_sema_atomic-ops.c</p>
@@ -1397,8 +1463,8 @@ these files with Clang produces the same results as shown in <a class="reference
 <span class="p">}</span>
 </pre></div>
 </div>
-<table class="docutils align-default" id="id22">
-<caption><span class="caption-number">Table 44 </span><span class="caption-text">Atomic related between clang’s builtin and llvm ir</span><a class="headerlink" href="#id22" title="Link to this table">¶</a></caption>
+<table class="docutils align-default" id="id23">
+<caption><span class="caption-number">Table 44 </span><span class="caption-text">Atomic related between clang’s builtin and llvm ir</span><a class="headerlink" href="#id23" title="Link to this table">¶</a></caption>
 <thead>
 <tr class="row-odd"><th class="head"><p>clang’s builtin</p></th>
 <th class="head"><p>llvm ir</p></th>
@@ -2246,8 +2312,8 @@ into the actual <cite>sync</cite> instruction via <cite>def SYNC</cite> and its 
 not include the <cite>nor</cite> instruction.</p>
 <p>Below is a table listing the atomic IRs, their corresponding DAG nodes, and
 machine opcodes.</p>
-<table class="docutils align-default" id="id23">
-<caption><span class="caption-number">Table 45 </span><span class="caption-text">The atomic related IRs, their corresponding DAGs and Opcode of Cpu0ISelLowering.cpp</span><a class="headerlink" href="#id23" title="Link to this table">¶</a></caption>
+<table class="docutils align-default" id="id24">
+<caption><span class="caption-number">Table 45 </span><span class="caption-text">The atomic related IRs, their corresponding DAGs and Opcode of Cpu0ISelLowering.cpp</span><a class="headerlink" href="#id24" title="Link to this table">¶</a></caption>
 <thead>
 <tr class="row-odd"><th class="head"><p>IR</p></th>
 <th class="head"><p>DAG</p></th>
@@ -2307,56 +2373,56 @@ following <cite>clang++</cite> options:</p>
 </div>
 <aside class="footnote-list brackets">
 <aside class="footnote brackets" id="exception" role="doc-footnote">
-<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id2">1</a><span class="fn-bracket">]</span></span>
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id3">1</a><span class="fn-bracket">]</span></span>
 <p><a class="reference external" href="http://llvm.org/docs/ExceptionHandling.html">http://llvm.org/docs/ExceptionHandling.html</a></p>
 </aside>
 <aside class="footnote brackets" id="itanium-exception" role="doc-footnote">
-<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id1">2</a><span class="fn-bracket">]</span></span>
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id2">2</a><span class="fn-bracket">]</span></span>
 <p><a class="reference external" href="http://itanium-cxx-abi.github.io/cxx-abi/exceptions.pdf">http://itanium-cxx-abi.github.io/cxx-abi/exceptions.pdf</a></p>
 </aside>
 <aside class="footnote brackets" id="thread-wiki" role="doc-footnote">
-<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id3">3</a><span class="fn-bracket">]</span></span>
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id4">3</a><span class="fn-bracket">]</span></span>
 <p><a class="reference external" href="http://en.wikipedia.org/wiki/Thread-local_storage">http://en.wikipedia.org/wiki/Thread-local_storage</a></p>
 </aside>
 <aside class="footnote brackets" id="cpp-mem-order" role="doc-footnote">
-<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id4">4</a><span class="fn-bracket">]</span></span>
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id5">4</a><span class="fn-bracket">]</span></span>
 <p><a class="reference external" href="https://en.cppreference.com/w/cpp/atomic/memory_order">https://en.cppreference.com/w/cpp/atomic/memory_order</a></p>
 </aside>
 <aside class="footnote brackets" id="mem-order-wiki" role="doc-footnote">
-<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id5">5</a><span class="fn-bracket">]</span></span>
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id6">5</a><span class="fn-bracket">]</span></span>
 <p><a class="reference external" href="https://en.wikipedia.org/wiki/Memory_model_%28programming%29">https://en.wikipedia.org/wiki/Memory_model_%28programming%29</a></p>
 </aside>
 <aside class="footnote brackets" id="atomic-stackoverflow" role="doc-footnote">
-<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id6">6</a><span class="fn-bracket">]</span></span>
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id7">6</a><span class="fn-bracket">]</span></span>
 <p><a class="reference external" href="http://stackoverflow.com/questions/6319146/c11-introduced-a-standardized-memory-model-what-does-it-mean-and-how-is-it-g">http://stackoverflow.com/questions/6319146/c11-introduced-a-standardized-memory-model-what-does-it-mean-and-how-is-it-g</a></p>
 </aside>
 <aside class="footnote brackets" id="cas-wiki" role="doc-footnote">
-<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id7">7</a><span class="fn-bracket">]</span></span>
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id8">7</a><span class="fn-bracket">]</span></span>
 <p><a class="reference external" href="https://en.wikipedia.org/wiki/Compare-and-swap">https://en.wikipedia.org/wiki/Compare-and-swap</a></p>
 </aside>
 <aside class="footnote brackets" id="lf-wiki" role="doc-footnote">
-<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id8">8</a><span class="fn-bracket">]</span></span>
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id9">8</a><span class="fn-bracket">]</span></span>
 <p><a class="reference external" href="https://en.wikipedia.org/wiki/Non-blocking_algorithm">https://en.wikipedia.org/wiki/Non-blocking_algorithm</a></p>
 </aside>
 <aside class="footnote brackets" id="atomics-llvm" role="doc-footnote">
-<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id9">9</a><span class="fn-bracket">]</span></span>
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id10">9</a><span class="fn-bracket">]</span></span>
 <p><a class="reference external" href="http://llvm.org/docs/Atomics.html">http://llvm.org/docs/Atomics.html</a></p>
 </aside>
 <aside class="footnote brackets" id="llvmlang-ordering" role="doc-footnote">
-<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id10">10</a><span class="fn-bracket">]</span></span>
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id11">10</a><span class="fn-bracket">]</span></span>
 <p><a class="reference external" href="http://llvm.org/docs/LangRef.html#ordering">http://llvm.org/docs/LangRef.html#ordering</a></p>
 </aside>
 <aside class="footnote brackets" id="dpcpp-memorder" role="doc-footnote">
 <span class="label"><span class="fn-bracket">[</span>11<span class="fn-bracket">]</span></span>
-<span class="backrefs">(<a role="doc-backlink" href="#id11">1</a>,<a role="doc-backlink" href="#id12">2</a>)</span>
+<span class="backrefs">(<a role="doc-backlink" href="#id12">1</a>,<a role="doc-backlink" href="#id13">2</a>)</span>
 <p>Section “The memory_order Enumeration Class” which include figure 19-10 of book <a class="reference external" href="https://link.springer.com/book/10.1007/978-1-4842-5574-2">https://link.springer.com/book/10.1007/978-1-4842-5574-2</a></p>
 </aside>
 <aside class="footnote brackets" id="cpp-memorder-consume-as-acquire" role="doc-footnote">
-<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id13">12</a><span class="fn-bracket">]</span></span>
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id14">12</a><span class="fn-bracket">]</span></span>
 <p><a class="reference external" href="https://stackoverflow.com/questions/65336409/what-does-memory-order-consume-really-do">https://stackoverflow.com/questions/65336409/what-does-memory-order-consume-really-do</a></p>
 </aside>
 <aside class="footnote brackets" id="cpp-memorder-consume-remove" role="doc-footnote">
-<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id14">13</a><span class="fn-bracket">]</span></span>
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id15">13</a><span class="fn-bracket">]</span></span>
 <p><a class="reference external" href="https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2016/p0371r1.html">https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2016/p0371r1.html</a></p>
 </aside>
 </aside>

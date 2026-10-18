@@ -9,8 +9,83 @@ C++ support
 
 This chapter supports some C++ compiler features.
 
+.. _dwarf:
+
+DWARF
+-----
+
+DWARF is a standardized format for storing debugging information in object
+files and executables. It enables source-level debuggers, such as GDB and
+LLDB, to map machine instructions back to source code, functions, variables,
+and data types.
+
+On ELF systems, the compiler typically emits DWARF debugging information into
+sections such as ``.debug_info``, ``.debug_line``, ``.debug_abbrev``, and
+``.debug_str``. These sections are primarily used by debuggers and are not
+required for normal program execution.
+
+In addition to debugging information, DWARF also defines **Call Frame
+Information (CFI)**, which describes how to restore registers and stack frames
+during stack unwinding. The compiler emits this information into the
+``.eh_frame`` and ``.eh_frame_hdr`` sections. Unlike the ``.debug_*`` sections,
+these sections are used at run time by the exception handling mechanism.
+
+When a C++ exception is thrown, the C++ ABI library (such as ``libc++abi`` or
+``libsupc++``) invokes the unwinder (``libunwind`` or ``libgcc_s``). The
+unwinder reads the Call Frame Information in ``.eh_frame`` to restore stack
+frames until a matching exception handler is found.
+
+The relationship between these components is illustrated below::
+
+    C++ exception
+          |
+          v
+    libc++abi / libsupc++
+          |
+          v
+    libunwind / libgcc_s
+          |
+          v
+    .eh_frame (.eh_frame_hdr)
+          |
+          v
+    DWARF Call Frame Information
+
+Although ``.eh_frame`` uses the DWARF Call Frame Information format, it is
+separate from the ``.debug_*`` sections used by debuggers. In other words,
+DWARF serves two purposes on ELF systems:
+
+* **Debugging information**, used by debuggers such as GDB and LLDB.
+* **Call Frame Information (CFI)**, used by the unwinder during exception
+  handling.
+
+.. note::
+
+   DWARF is an architecture-independent standard. It is used on many ELF
+   targets, including x86-64, ARM, AArch64, MIPS, PowerPC, and RISC-V.
+   The format is common across architectures, while the register numbers
+   and calling conventions are architecture specific.
+
 Exception Handling
 ------------------
+
+On ELF systems (Linux, BSD, etc.), that information is stored as DWARF unwind 
+information, typically in sections such as
+
+.. code-block:: text
+
+  .eh_frame
+  .eh_frame_hdr
+
+The unwinder uses these tables to restore registers and unwind the stack.
+
+What about .eh_frame_hdr?
+
+- .eh_frame contains the actual unwind tables.
+- .eh_frame_hdr is an index into .eh_frame that allows the unwinder to quickly 
+  locate the correct Frame Description Entry (FDE) instead of scanning the 
+  entire section.
+
 
 Chapter11_2 can be built and run using the C++ polymorphism example code in
 ``ch12_inherit.cpp`` as follows:
